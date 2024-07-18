@@ -22,7 +22,8 @@ use temporal_rs::{
 };
 
 use super::{
-    options::{get_temporal_unit, TemporalUnitGroup},
+    create_temporal_duration,
+    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_integer_with_truncation, to_temporal_duration_record, PlainDateTime, ZonedDateTime,
 };
 
@@ -110,6 +111,8 @@ impl IntrinsicObject for PlainTime {
             .static_method(Self::from, js_string!("from"), 2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::until, js_string!("subtract"), 2)
+            .method(Self::since, js_string!("subtract"), 2)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
@@ -326,7 +329,7 @@ impl PlainTime {
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let time = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
@@ -344,7 +347,7 @@ impl PlainTime {
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let time = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
@@ -356,13 +359,51 @@ impl PlainTime {
         create_temporal_time(time.inner.subtract(&duration)?, None, context).map(Into::into)
     }
 
+    /// 4.3.12 Temporal.PlainTime.prototype.until ( other [ , options ] )
+    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
+
+        let settings =
+            get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
+
+        let result = time.inner.until(&other, settings)?;
+
+        create_temporal_duration(result, None, context).map(Into::into)
+    }
+
+    /// 4.3.13 Temporal.PlainTime.prototype.since ( other [ , options ] )
+    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let other = to_temporal_time(args.get_or_undefined(0), None, context)?;
+
+        let settings =
+            get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
+
+        let result = time.inner.since(&other, settings)?;
+
+        create_temporal_duration(result, None, context).map(Into::into)
+    }
+
     /// 4.3.14 Temporal.PlainTime.prototype.round ( roundTo )
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
         let time = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;

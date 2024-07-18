@@ -4,7 +4,7 @@
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
-        temporal::{calendar, to_integer_with_truncation},
+        temporal::to_integer_with_truncation,
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -28,10 +28,15 @@ use temporal_rs::{
         DateTime as InnerDateTime,
     },
     iso::{IsoDate, IsoDateSlots},
-    options::ArithmeticOverflow,
+    options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
 };
 
-use super::{to_temporal_duration_record, PlainDate, ZonedDateTime};
+use super::{
+    calendar::to_temporal_calendar_slot_value,
+    create_temporal_duration,
+    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
+    to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
+};
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -272,8 +277,14 @@ impl IntrinsicObject for PlainDateTime {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 2)
+            .method(Self::with_plain_time, js_string!("withPlainTime"), 1)
+            .method(Self::with_calendar, js_string!("withCalendar"), 1)
             .method(Self::add, js_string!("add"), 2)
             .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::until, js_string!("until"), 2)
+            .method(Self::since, js_string!("since"), 2)
+            .method(Self::round, js_string!("round"), 1)
+            .method(Self::equals, js_string!("equals"), 2)
             .build();
     }
 
@@ -332,7 +343,7 @@ impl BuiltInConstructor for PlainDateTime {
             .get(8)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 11. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
-        let calendar_slot = calendar::to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
+        let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
 
         let dt = InnerDateTime::new(
             iso_year,
@@ -651,6 +662,39 @@ impl PlainDateTime {
 // ==== PlainDateTime.prototype method implementations ====
 
 impl PlainDateTime {
+    /// 5.3.26 Temporal.PlainDateTime.prototype.withPlainTime ( [ plainTimeLike ] )
+    fn with_plain_time(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let time = to_temporal_time(args.get_or_undefined(0), None, context)?;
+
+        create_temporal_datetime(dt.inner.with_time(time)?, None, context).map(Into::into)
+    }
+
+    /// 5.3.27 Temporal.PlainDateTime.prototype.withCalendar ( calendarLike )
+    fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
+
+        create_temporal_datetime(dt.inner.with_calendar(calendar)?, None, context).map(Into::into)
+    }
+
+    /// 5.3.28 Temporal.PlainDateTime.prototype.add ( temporalDurationLike [ , options ] )
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
@@ -673,6 +717,7 @@ impl PlainDateTime {
         create_temporal_datetime(dt.inner.add(&duration, overflow)?, None, context).map(Into::into)
     }
 
+    /// 5.3.29 Temporal.PlainDateTime.prototype.subtract ( temporalDurationLike [ , options ] )
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
@@ -697,6 +742,106 @@ impl PlainDateTime {
             .map(Into::into)
     }
 
+    /// 5.3.30 Temporal.PlainDateTime.prototype.until ( other [ , options ] )
+    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        create_temporal_duration(dt.inner.until(&other, settings)?, None, context).map(Into::into)
+    }
+
+    /// 5.3.31 Temporal.PlainDateTime.prototype.since ( other [ , options ] )
+    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        create_temporal_duration(dt.inner.until(&other, settings)?, None, context).map(Into::into)
+    }
+
+    // TODO(nekevss): finish after temporal_rs impl
+    /// 5.3.32 Temporal.PlainDateTime.prototype.round ( roundTo )
+    fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let round_to = match args.first() {
+            // 3. If roundTo is undefined, then
+            None | Some(JsValue::Undefined) => {
+                return Err(JsNativeError::typ()
+                    .with_message("roundTo cannot be undefined.")
+                    .into())
+            }
+            // 4. If Type(roundTo) is String, then
+            Some(JsValue::String(rt)) => {
+                // a. Let paramString be roundTo.
+                let param_string = rt.clone();
+                // b. Set roundTo to OrdinaryObjectCreate(null).
+                let new_round_to = JsObject::with_null_proto();
+                // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
+                new_round_to.create_data_property_or_throw(
+                    js_str!("smallestUnit"),
+                    param_string,
+                    context,
+                )?;
+                new_round_to
+            }
+            // 5. Else,
+            Some(round_to) => {
+                // a. Set roundTo to ? GetOptionsObject(roundTo).
+                get_options_object(round_to)?
+            }
+        };
+
+        let (plain_relative_to, zoned_relative_to) =
+            super::to_relative_temporal_object(&round_to, context)?;
+
+        let mut options = RoundingOptions::default();
+
+        options.increment =
+            get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
+
+        // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
+        options.rounding_mode =
+            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
+
+        // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", TIME, REQUIRED, undefined).
+        options.smallest_unit = get_temporal_unit(
+            &round_to,
+            js_str!("smallestUnit"),
+            TemporalUnitGroup::Time,
+            None,
+            context,
+        )?;
+
+        // TODO: implement in temporal_rs
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
+    }
+
+    /// 5.3.33 Temporal.PlainDateTime.prototype.equals ( other )
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
