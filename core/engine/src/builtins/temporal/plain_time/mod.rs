@@ -632,8 +632,7 @@ pub(crate) fn to_temporal_time(
         JsValue::String(str) => {
             // b. Let result be ? ParseTemporalTimeString(item).
             // c. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
-            str
-                .to_std_string_escaped()
+            str.to_std_string_escaped()
                 .parse::<Time>()
                 .map_err(Into::into)
         }
