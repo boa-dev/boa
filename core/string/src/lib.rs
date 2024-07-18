@@ -154,7 +154,7 @@ impl CodePoint {
 struct RawJsString {
     /// A field represented for **flag_and_len** or **pointer**.
     ///
-    /// ## flag_and_len:
+    /// ## `flag_and_len`:
     /// ```text
     /// ┌───────────────────────────────────────────────────┐
     /// │  length((usize::BITS -  1) bits)  │  flag(1 bit)  │
@@ -164,7 +164,7 @@ struct RawJsString {
     ///
     /// The latin1 flag is stored in the bottom bit.
     ///
-    /// ## pointer:
+    /// ## `pointer`:
     /// A pointer to a static `JsStr` that references an ASCII literal.
     flags_and_len_or_ptr: usize,
 
