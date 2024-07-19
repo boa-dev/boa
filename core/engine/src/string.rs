@@ -7,6 +7,15 @@
 #[doc(inline)]
 pub use boa_string::*;
 
+static_assertions::const_assert_eq!(
+    // SAFETY:
+    // Compiler will throw error if `transmute` does not meet the requirement.
+    unsafe { std::mem::transmute::<std::cell::Cell<usize>, usize>(std::cell::Cell::new(0usize)) },
+    // SAFETY:
+    // Compiler will throw error if `transmute` does not meet the requirement.
+    unsafe { std::mem::transmute::<Option<&'static usize>, usize>(None) }
+);
+
 /// Utility macro to create a [`JsString`].
 ///
 /// # Examples
@@ -54,9 +63,40 @@ macro_rules! js_string {
     () => {
         $crate::string::JsString::default()
     };
-    ($s:literal) => {
-        $crate::string::JsString::from($crate::js_str!($s))
-    };
+    ($s:literal) => {{
+        if $s.is_ascii() {
+            use $crate::string::JsStr;
+
+            #[allow(clippy::items_after_statements)]
+            // Create a static `JsStr` that references an ASCII literal
+            static ORIGINAL_JS_STR: JsStr<'static> = JsStr::latin1($s.as_bytes());
+
+            #[allow(clippy::items_after_statements)]
+            // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
+            // to represent `RawJsString` since `Cell` is unable to construct in static
+            // and `RawJsString` is private.
+            // With `Null Pointer Optimization` we could use `None`
+            // to represent `Cell(0usize)` to mark it as being created from ASCII literal.
+            static DUMMY_RAW_JS_STRING: &[Option<&usize>; 2] = &[
+                // SAFETY:
+                // Reference of static variable is always valid to cast into an non-null pointer,
+                // And the primitive size of `RawJsString` is twice as large as `usize`.
+                Some(unsafe { &*std::ptr::addr_of!(ORIGINAL_JS_STR).cast::<usize>() }),
+                None,
+            ];
+            #[allow(trivial_casts)]
+            // SAFETY:
+            // Reference of static variable is always valid to cast into non-null pointer,
+            // size of `[Option<&usize>; 2]` is equal to the primitive size of `RawJsString`.
+            unsafe {
+                $crate::string::JsString::from_opaque_ptr(
+                    std::ptr::from_ref(DUMMY_RAW_JS_STRING) as *mut _
+                )
+            }
+        } else {
+            $crate::string::JsString::from($crate::js_str!($s))
+        }
+    }};
     ($s:expr) => {
         $crate::string::JsString::from($s)
     };
@@ -92,6 +132,9 @@ mod tests {
     #[test]
     fn refcount() {
         let x = js_string!("Hello world");
+        assert_eq!(x.refcount(), None);
+
+        let x = js_string!("你好");
         assert_eq!(x.refcount(), Some(1));
 
         {
