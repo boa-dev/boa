@@ -77,6 +77,7 @@ macro_rules! js_string {
             // and `RawJsString` is private.
             // With `Null Pointer Optimization` we could use `None`
             // to represent `Cell(0usize)` to mark it as being created from ASCII literal.
+            // TODO: change to `const` once https://github.com/rust-lang/rust/issues/119618 is done.
             static DUMMY_RAW_JS_STRING: &[Option<&usize>; 2] = &[
                 // SAFETY:
                 // Reference of static variable is always valid to cast into an non-null pointer,
