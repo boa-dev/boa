@@ -477,10 +477,9 @@ impl JsValue {
             ),
             Self::String(ref str) => Self::new(-str.to_number()),
             Self::Rational(num) => Self::new(-num),
-            Self::Integer(0) => Self::new(-f64::from(0)),
+            Self::Integer(0) | Self::Boolean(false) | Self::Null => Self::new(-f64::from(0)),
             Self::Integer(num) => Self::new(-num),
             Self::Boolean(true) => Self::new(-f64::from(1)),
-            Self::Boolean(false) | Self::Null => Self::new(-f64::from(0)),
             Self::BigInt(ref x) => Self::new(JsBigInt::neg(x)),
         })
     }
