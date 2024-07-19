@@ -14,6 +14,48 @@ use boa_gc::{custom_trace, Finalize, Trace};
 use boa_macros::js_str;
 use thiserror::Error;
 
+/// Create an opaque error object from a value or string literal.
+///
+/// Can be used with an expression that converts into `JsValue` or a format
+/// string with arguments.
+///
+/// # Examples
+///
+/// ```
+/// # use boa_engine::{js_str, Context, JsValue};
+/// use boa_engine::{js_error};
+/// let context = &mut Context::default();
+///
+/// let error = js_error!("error!");
+/// assert!(error.as_opaque().is_some());
+/// assert_eq!(error.as_opaque().unwrap().to_string(context).unwrap(), "error!");
+///
+/// let error = js_error!("error: {}", 5);
+/// assert_eq!(error.as_opaque().unwrap().to_string(context).unwrap(), "error: 5");
+///
+/// // Non-string literals must be used as an expression.
+/// let error = js_error!({ true });
+/// assert_eq!(error.as_opaque().unwrap(), &JsValue::from(true));
+/// ```
+#[macro_export]
+macro_rules! js_error {
+    ($value: literal) => {
+        $crate::JsError::from_opaque($crate::JsValue::from(
+            $crate::js_string!($value)
+        ))
+    };
+    ($value: expr) => {
+        $crate::JsError::from_opaque(
+            $crate::JsValue::from($value)
+        )
+    };
+    ($value: literal $(, $args: tt)* $(,)?) => {
+        $crate::JsError::from_opaque($crate::JsValue::from(
+            $crate::JsString::from(format!($value $(, $args)*))
+        ))
+    };
+}
+
 /// The error type returned by all operations related
 /// to the execution of Javascript code.
 ///
@@ -352,7 +394,7 @@ impl JsError {
     ///
     /// assert!(error.as_native().is_some());
     ///
-    /// let error = JsError::from_opaque(JsValue::undefined().into());
+    /// let error = JsError::from_opaque(JsValue::undefined());
     ///
     /// assert!(error.as_native().is_none());
     /// ```

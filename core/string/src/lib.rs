@@ -1073,19 +1073,14 @@ impl<const N: usize> PartialEq<[u16; N]> for JsString {
 impl PartialEq<str> for JsString {
     #[inline]
     fn eq(&self, other: &str) -> bool {
-        let utf16 = self.code_points();
-        let mut utf8 = other.chars();
+        self.as_str() == other
+    }
+}
 
-        for lhs in utf16 {
-            if let Some(rhs) = utf8.next() {
-                match lhs {
-                    CodePoint::Unicode(lhs) if lhs == rhs => continue,
-                    _ => return false,
-                }
-            }
-            return false;
-        }
-        utf8.next().is_none()
+impl PartialEq<&str> for JsString {
+    #[inline]
+    fn eq(&self, other: &&str) -> bool {
+        self.as_str() == *other
     }
 }
 
