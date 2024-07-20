@@ -156,6 +156,7 @@ impl IntrinsicObject for PlainYearMonth {
             .method(Self::until, js_string!("until"), 2)
             .method(Self::since, js_string!("since"), 2)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::to_string, js_string!("toString"), 1)
             .build();
     }
 
@@ -385,6 +386,27 @@ impl PlainYearMonth {
             .with_message("not yet implemented.")
             .into())
     }
+
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let YearMonth be the this value.
+        // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
+        let year_month = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+
+        let inner = &year_month.inner;
+        // 3. Set options to ? NormalizeOptionsObject(options).
+        let options = get_options_object(args.get_or_undefined(0))?;
+        // 4. Let showCalendar be ? ToShowCalendarOption(options).
+        // Get calendarName from the options object
+        let show_calendar =
+            get_option(&options, js_str!("calendarName"), context)?.unwrap_or(js_string!("auto"));
+
+        Ok(year_month_to_string(inner, &show_calendar))
+    }
 }
 
 // ==== Abstract Operations ====
@@ -479,4 +501,31 @@ fn add_or_subtract_duration(
     };
 
     create_temporal_year_month(year_month_result, None, context)
+}
+
+fn year_month_to_string(inner: &InnerYearMonth, show_calendar: &JsString) -> JsValue {
+    // Let year be PadISOYear(yearMonth.[[ISOYear]]).
+    let year = inner.padded_iso_year_string();
+    // Let month be ToZeroPaddedDecimalString(yearMonth.[[ISOMonth]], 2).
+    let month = inner.month().to_string();
+
+    // Let result be the string-concatenation of year, the code unit 0x002D (HYPHEN-MINUS), and month.
+    let mut result = format!("{year}-{month:0>2}");
+
+    // 5. If showCalendar is one of "always" or "critical", or if calendarIdentifier is not "iso8601", then
+    // a. Let day be ToZeroPaddedDecimalString(yearMonth.[[ISODay]], 2).
+    // b. Set result to the string-concatenation of result, the code unit 0x002D (HYPHEN-MINUS), and day.
+    // 6. Let calendarString be FormatCalendarAnnotation(calendarIdentifier, showCalendar).
+    // 7. Set result to the string-concatenation of result and calendarString.
+    let show_cal_val = show_calendar.to_std_string_escaped();
+    if (show_cal_val == "critical" || show_cal_val == "always" || show_cal_val == "auto")
+        && !(show_cal_val == "auto" && inner.calendar_id() == "iso8601")
+    {
+        let calendar = inner.calendar_id();
+        let calendar_string = calendar.to_string();
+        let flag = if show_cal_val == "critical" { "!" } else { "" };
+        result.push_str(&format!("[{flag}c={calendar_string}]",));
+    }
+    // 8. Return result.
+    js_string!(result).into()
 }

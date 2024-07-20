@@ -103,27 +103,6 @@ impl PlainMonthDay {
         }
     }
 
-    // 10.3.7 Temporal.PlainMonthDay.prototype.toString ( [ options ] )
-    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let monthDay be the this value.
-        // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
-        let month_day = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
-            })?;
-        let inner = &month_day.inner;
-        // 3. Set options to ? NormalizeOptionsObject(options).
-        let options = get_options_object(args.get_or_undefined(0))?;
-        // 4. Let showCalendar be ? ToShowCalendarOption(options).
-        // Get calendarName from the options object
-        let show_calendar =
-            get_option(&options, js_str!("calendarName"), context)?.unwrap_or(js_string!("auto"));
-
-        Ok(month_day_to_string(inner, &show_calendar, context))
-    }
-
     fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Self::get_internal_field(this, &DateTimeValues::Day)
     }
@@ -148,6 +127,29 @@ impl PlainMonthDay {
     }
 }
 
+// ==== `Temporal.PlainMonthDay` Methods ====
+impl PlainMonthDay {
+    // 10.3.7 Temporal.PlainMonthDay.prototype.toString ( [ options ] )
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let monthDay be the this value.
+        // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+        let inner = &month_day.inner;
+        // 3. Set options to ? NormalizeOptionsObject(options).
+        let options = get_options_object(args.get_or_undefined(0))?;
+        // 4. Let showCalendar be ? ToShowCalendarOption(options).
+        // Get calendarName from the options object
+        let show_calendar =
+            get_option(&options, js_str!("calendarName"), context)?.unwrap_or(js_string!("auto"));
+
+        Ok(month_day_to_string(inner, &show_calendar))
+    }
+}
 impl IsoDateSlots for JsObject<PlainMonthDay> {
     fn iso_date(&self) -> temporal_rs::iso::IsoDate {
         self.borrow().data().inner.iso_date()
@@ -232,11 +234,7 @@ impl BuiltInConstructor for PlainMonthDay {
 
 // ==== `PlainMonthDay` Abstract Operations ====
 
-fn month_day_to_string(
-    inner: &InnerMonthDay,
-    show_calendar: &JsString,
-    context: &mut Context,
-) -> JsValue {
+fn month_day_to_string(inner: &InnerMonthDay, show_calendar: &JsString) -> JsValue {
     // Let month be monthDay.[[ISOMonth]] formatted as a two-digit decimal number, padded to the left with a zero if necessary
     let month = inner.month().to_string();
 
