@@ -276,14 +276,14 @@ impl IntrinsicObject for PlainDateTime {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .static_method(Self::from, js_string!("from"), 2)
+            .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::with_plain_time, js_string!("withPlainTime"), 1)
             .method(Self::with_calendar, js_string!("withCalendar"), 1)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::until, js_string!("until"), 1)
+            .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .build();
