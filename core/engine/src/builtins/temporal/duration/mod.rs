@@ -185,7 +185,7 @@ impl IntrinsicObject for Duration {
             .method(Self::negated, js_string!("negated"), 0)
             .method(Self::abs, js_string!("abs"), 0)
             .method(Self::add, js_string!("add"), 1)
-            .method(Self::subtract, js_string!("subtract"),1)
+            .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::total, js_string!("total"), 1)
             .method(Self::to_string, js_string!("toString"), 1)
