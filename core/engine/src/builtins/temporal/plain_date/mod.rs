@@ -60,7 +60,7 @@ impl GetTemporalCalendar for JsObject<PlainDate> {
 }
 
 impl BuiltInObject for PlainDate {
-    const NAME: JsString = StaticJsStrings::PLAIN_DATE;
+    const NAME: JsString = StaticJsStrings::PLAIN_DATE_NAME;
 }
 
 impl IntrinsicObject for PlainDate {
@@ -126,7 +126,7 @@ impl IntrinsicObject for PlainDate {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::PLAIN_DATE_TAG,
                 Attribute::CONFIGURABLE,
             )
             .accessor(

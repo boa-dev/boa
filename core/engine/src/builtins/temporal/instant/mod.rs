@@ -40,7 +40,7 @@ pub struct Instant {
 }
 
 impl BuiltInObject for Instant {
-    const NAME: JsString = StaticJsStrings::INSTANT;
+    const NAME: JsString = StaticJsStrings::INSTANT_NAME;
 }
 
 impl IntrinsicObject for Instant {
@@ -66,7 +66,7 @@ impl IntrinsicObject for Instant {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::INSTANT_TAG,
                 Attribute::CONFIGURABLE,
             )
             .accessor(

@@ -36,7 +36,7 @@ pub struct PlainTime {
 }
 
 impl BuiltInObject for PlainTime {
-    const NAME: JsString = StaticJsStrings::PLAIN_TIME;
+    const NAME: JsString = StaticJsStrings::PLAIN_TIME_NAME;
 }
 
 impl IntrinsicObject for PlainTime {
@@ -69,7 +69,7 @@ impl IntrinsicObject for PlainTime {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::PLAIN_TIME_TAG,
                 Attribute::CONFIGURABLE,
             )
             .accessor(

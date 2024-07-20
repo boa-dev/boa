@@ -47,7 +47,7 @@ impl Duration {
 }
 
 impl BuiltInObject for Duration {
-    const NAME: JsString = StaticJsStrings::DURATION;
+    const NAME: JsString = StaticJsStrings::DURATION_NAME;
 }
 
 impl IntrinsicObject for Duration {
@@ -105,7 +105,7 @@ impl IntrinsicObject for Duration {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::DURATION_TAG,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
