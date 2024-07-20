@@ -285,11 +285,7 @@ impl PlainYearMonth {
                 .into());
         };
 
-        Ok(year_month
-            .get_calendar()
-            .identifier()
-            .map(JsString::from)?
-            .into())
+        Ok(js_string!(year_month.get_calendar().identifier()).into())
     }
 
     fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -362,14 +358,14 @@ impl PlainYearMonth {
         let duration_like = args.get_or_undefined(0);
         let options = get_options_object(args.get_or_undefined(1))?;
 
-        return add_or_subtract_duration(true, this, duration_like, &options, context);
+        add_or_subtract_duration(true, this, duration_like, &options, context)
     }
 
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let duration_like = args.get_or_undefined(0);
         let options = get_options_object(args.get_or_undefined(1))?;
 
-        return add_or_subtract_duration(false, this, duration_like, &options, context);
+        add_or_subtract_duration(false, this, duration_like, &options, context)
     }
 
     fn until(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -461,12 +457,8 @@ fn add_or_subtract_duration(
             .into());
     };
 
-    let overflow = get_option(&options, js_str!("overflow"), context)?
-        .unwrap_or(ArithmeticOverflow::Constrain);
-
-    let obj = this
-        .as_object()
-        .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+    let overflow =
+        get_option(options, js_str!("overflow"), context)?.unwrap_or(ArithmeticOverflow::Constrain);
 
     let year_month = this
         .as_object()
