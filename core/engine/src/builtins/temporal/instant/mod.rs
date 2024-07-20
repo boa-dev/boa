@@ -40,7 +40,7 @@ pub struct Instant {
 }
 
 impl BuiltInObject for Instant {
-    const NAME: JsString = StaticJsStrings::INSTANT;
+    const NAME: JsString = StaticJsStrings::INSTANT_NAME;
 }
 
 impl IntrinsicObject for Instant {
@@ -66,7 +66,7 @@ impl IntrinsicObject for Instant {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::INSTANT_TAG,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -107,8 +107,8 @@ impl IntrinsicObject for Instant {
             .static_method(Self::compare, js_string!("compare"), 1)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
+            .method(Self::until, js_string!("until"), 1)
+            .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
