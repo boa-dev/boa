@@ -34,7 +34,7 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::{Identifier, ImportCall, SuperCall},
+    expression::{ImportCall, SuperCall},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
@@ -50,21 +50,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct LeftHandSideExpression {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl LeftHandSideExpression {
     /// Creates a new `LeftHandSideExpression` parser.
-    pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -130,7 +127,7 @@ where
             // `(`
             cursor.advance(interner);
 
-            let arg = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+            let arg = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
             cursor.expect(
@@ -146,7 +143,7 @@ where
             )
             .parse(cursor, interner)?
         } else {
-            let mut member = MemberExpression::new(self.name, self.allow_yield, self.allow_await)
+            let mut member = MemberExpression::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             if let Some(tok) = cursor.peek(0, interner)? {
                 if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {

@@ -9,25 +9,25 @@ use crate::{
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
-/// A generator declaration.
+/// A function declaration.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
+/// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct GeneratorDeclaration {
+pub struct FunctionDeclaration {
     name: Identifier,
     parameters: FormalParameterList,
     body: FunctionBody,
 }
 
-impl GeneratorDeclaration {
-    /// Creates a new generator declaration.
+impl FunctionDeclaration {
+    /// Creates a new function declaration.
     #[inline]
     #[must_use]
     pub const fn new(
@@ -42,21 +42,21 @@ impl GeneratorDeclaration {
         }
     }
 
-    /// Gets the name of the generator declaration.
+    /// Gets the name of the function declaration.
     #[inline]
     #[must_use]
     pub const fn name(&self) -> Identifier {
         self.name
     }
 
-    /// Gets the list of parameters of the generator declaration.
+    /// Gets the list of parameters of the function declaration.
     #[inline]
     #[must_use]
     pub const fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
-    /// Gets the body of the generator declaration.
+    /// Gets the body of the function declaration.
     #[inline]
     #[must_use]
     pub const fn body(&self) -> &FunctionBody {
@@ -64,10 +64,10 @@ impl GeneratorDeclaration {
     }
 }
 
-impl ToIndentedString for GeneratorDeclaration {
+impl ToIndentedString for FunctionDeclaration {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
-            "function* {}({}) {}",
+            "function {}({}) {}",
             interner.resolve_expect(self.name.sym()),
             join_nodes(interner, self.parameters.as_ref()),
             block_to_string(self.body.statements(), interner, indentation)
@@ -75,7 +75,7 @@ impl ToIndentedString for GeneratorDeclaration {
     }
 }
 
-impl VisitWith for GeneratorDeclaration {
+impl VisitWith for FunctionDeclaration {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,
@@ -95,33 +95,33 @@ impl VisitWith for GeneratorDeclaration {
     }
 }
 
-impl From<GeneratorDeclaration> for Declaration {
+impl From<FunctionDeclaration> for Declaration {
     #[inline]
-    fn from(f: GeneratorDeclaration) -> Self {
-        Self::GeneratorDeclaration(f)
+    fn from(f: FunctionDeclaration) -> Self {
+        Self::FunctionDeclaration(f)
     }
 }
 
-/// A generator expression.
+/// A function expression.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
+/// [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct GeneratorExpression {
+pub struct FunctionExpression {
     pub(crate) name: Option<Identifier>,
     parameters: FormalParameterList,
     body: FunctionBody,
     has_binding_identifier: bool,
 }
 
-impl GeneratorExpression {
-    /// Creates a new generator expression.
+impl FunctionExpression {
+    /// Creates a new function expression.
     #[inline]
     #[must_use]
     pub const fn new(
@@ -138,28 +138,28 @@ impl GeneratorExpression {
         }
     }
 
-    /// Gets the name of the generator expression.
+    /// Gets the name of the function expression.
     #[inline]
     #[must_use]
     pub const fn name(&self) -> Option<Identifier> {
         self.name
     }
 
-    /// Gets the list of parameters of the generator expression.
+    /// Gets the list of parameters of the function expression.
     #[inline]
     #[must_use]
     pub const fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
-    /// Gets the body of the generator expression.
+    /// Gets the body of the function expression.
     #[inline]
     #[must_use]
     pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
 
-    /// Returns whether the generator expression has a binding identifier.
+    /// Returns whether the function expression has a binding identifier.
     #[inline]
     #[must_use]
     pub const fn has_binding_identifier(&self) -> bool {
@@ -167,9 +167,9 @@ impl GeneratorExpression {
     }
 }
 
-impl ToIndentedString for GeneratorExpression {
+impl ToIndentedString for FunctionExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = "function*".to_owned();
+        let mut buf = "function".to_owned();
         if self.has_binding_identifier {
             if let Some(name) = self.name {
                 buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
@@ -185,14 +185,14 @@ impl ToIndentedString for GeneratorExpression {
     }
 }
 
-impl From<GeneratorExpression> for Expression {
+impl From<FunctionExpression> for Expression {
     #[inline]
-    fn from(expr: GeneratorExpression) -> Self {
-        Self::GeneratorExpression(expr)
+    fn from(expr: FunctionExpression) -> Self {
+        Self::FunctionExpression(expr)
     }
 }
 
-impl VisitWith for GeneratorExpression {
+impl VisitWith for FunctionExpression {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,

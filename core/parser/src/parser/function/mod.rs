@@ -267,7 +267,7 @@ where
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(None, true, self.allow_yield, self.allow_await)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)
                         })
                         .transpose()?;
@@ -292,7 +292,7 @@ where
                             *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
                         })
                         .map(|_| {
-                            Initializer::new(None, true, self.allow_yield, self.allow_await)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)
                         })
                         .transpose()?;
@@ -356,7 +356,7 @@ where
                         == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         Some(
-                            Initializer::new(None, true, self.allow_yield, self.allow_await)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?,
                         )
                     } else {
@@ -372,7 +372,7 @@ where
                         == TokenKind::Punctuator(Punctuator::Assign)
                     {
                         Some(
-                            Initializer::new(None, true, self.allow_yield, self.allow_await)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?,
                         )
                     } else {
@@ -388,7 +388,7 @@ where
                         tok.kind() == &TokenKind::Punctuator(Punctuator::Assign)
                     }) {
                         Some(
-                            Initializer::new(None, true, self.allow_yield, self.allow_await)
+                            Initializer::new(true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?,
                         )
                     } else {

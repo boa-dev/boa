@@ -1,6 +1,6 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
-    function::{FormalParameterList, Function, FunctionBody},
+    function::{FormalParameterList, FunctionBody, FunctionDeclaration},
     Declaration,
 };
 use boa_interner::Interner;
@@ -12,15 +12,12 @@ fn function_declaration() {
     let interner = &mut Interner::default();
     check_script_parser(
         "function hello() {}",
-        vec![Declaration::Function(Function::new_with_binding_identifier(
-            Some(
-                interner
-                    .get_or_intern_static("hello", utf16!("hello"))
-                    .into(),
-            ),
+        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+            interner
+                .get_or_intern_static("hello", utf16!("hello"))
+                .into(),
             FormalParameterList::default(),
             FunctionBody::default(),
-            true,
         ))
         .into()],
         interner,
@@ -32,15 +29,12 @@ fn function_declaration() {
 fn function_declaration_keywords() {
     macro_rules! genast {
         ($keyword:literal, $interner:expr) => {
-            vec![Declaration::Function(Function::new_with_binding_identifier(
-                Some(
-                    $interner
-                        .get_or_intern_static($keyword, utf16!($keyword))
-                        .into(),
-                ),
+            vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+                $interner
+                    .get_or_intern_static($keyword, utf16!($keyword))
+                    .into(),
                 FormalParameterList::default(),
                 FunctionBody::default(),
-                true,
             ))
             .into()]
         };
