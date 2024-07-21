@@ -76,7 +76,7 @@ macro_rules! js_string {
                 // SAFETY:
                 // This transmutation is valid becuase of the rvalue static promotion
                 // and the primitive size of `RawJsString` is twice as large as `usize`.
-                Some(unsafe { std::mem::transmute(&JsStr::latin1($s.as_bytes())) }),
+                Some(unsafe { std::mem::transmute::<&'static JsStr<'static>, &usize>(&JsStr::latin1($s.as_bytes())) }),
                 None,
             ];
             #[allow(trivial_casts)]
