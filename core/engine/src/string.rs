@@ -69,7 +69,7 @@ macro_rules! js_string {
 
             #[allow(clippy::items_after_statements)]
             // Create a static `JsStr` that references an ASCII literal
-            static ORIGINAL_JS_STR: JsStr<'static> = JsStr::latin1($s.as_bytes());
+            static ORIGINAL_JS_STR: &JsStr<'static> = &JsStr::latin1($s.as_bytes());
 
             #[allow(clippy::items_after_statements)]
             // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
@@ -82,7 +82,7 @@ macro_rules! js_string {
                 // SAFETY:
                 // Reference of static variable is always valid to cast into an non-null pointer,
                 // And the primitive size of `RawJsString` is twice as large as `usize`.
-                Some(unsafe { &*std::ptr::addr_of!(ORIGINAL_JS_STR).cast::<usize>() }),
+                Some(unsafe { &*std::ptr::addr_of!(*ORIGINAL_JS_STR).cast::<usize>() }),
                 None,
             ];
             #[allow(trivial_casts)]
