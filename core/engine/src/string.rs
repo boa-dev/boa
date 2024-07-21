@@ -68,21 +68,15 @@ macro_rules! js_string {
             use $crate::string::JsStr;
 
             #[allow(clippy::items_after_statements)]
-            // Create a static `JsStr` that references an ASCII literal
-            static ORIGINAL_JS_STR: &JsStr<'static> = &JsStr::latin1($s.as_bytes());
-
-            #[allow(clippy::items_after_statements)]
             // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
-            // to represent `RawJsString` since `Cell` is unable to construct in static
-            // and `RawJsString` is private.
+            // to represent `RawJsString` because `RawJsString` is private.
             // With `Null Pointer Optimization` we could use `None`
             // to represent `Cell(0usize)` to mark it as being created from ASCII literal.
-            // TODO: change to `const` once https://github.com/rust-lang/rust/issues/119618 is done.
-            static DUMMY_RAW_JS_STRING: &[Option<&usize>; 2] = &[
+            const DUMMY_RAW_JS_STRING: &[Option<&usize>; 2] = &[
                 // SAFETY:
-                // Reference of static variable is always valid to cast into an non-null pointer,
-                // And the primitive size of `RawJsString` is twice as large as `usize`.
-                Some(unsafe { &*std::ptr::addr_of!(*ORIGINAL_JS_STR).cast::<usize>() }),
+                // This transmutation is valid becuase of the rvalue static promotion
+                // and the primitive size of `RawJsString` is twice as large as `usize`.
+                Some(unsafe { std::mem::transmute(&JsStr::latin1($s.as_bytes())) }),
                 None,
             ];
             #[allow(trivial_casts)]
