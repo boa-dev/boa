@@ -25,7 +25,7 @@ use temporal_rs::{
         Duration, YearMonth as InnerYearMonth,
     },
     iso::IsoDateSlots,
-    options::ArithmeticOverflow,
+    options::{ArithmeticOverflow, CalendarName},
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, to_temporal_duration, DateTimeValues};
@@ -215,27 +215,39 @@ impl PlainYearMonth {
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. If Type(item) is Object or Type(item) is String and item is not null, then
-        let inner = if item.is_object() {
-            let options = get_options_object(args.get_or_undefined(1))?;
-            let overflow = get_option(&options, js_str!("overflow"), context)?
-                .unwrap_or(ArithmeticOverflow::Constrain);
 
-            // a. Let calendar be ? ToTemporalCalendar(item).
-            let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
-            InnerYearMonth::new(
-                item.get_v(js_str!("year"), context)
-                    .expect("Year not found")
-                    .to_i32(context)
-                    .expect("Cannot convert year to i32"),
-                item.get_v(js_str!("month"), context)
-                    .expect("Month not found")
-                    .to_i32(context)
-                    .expect("Cannot convert month to i32"),
-                item.get_v(js_str!("day"), context)
-                    .map_or(Some(1), |x| x.to_i32(context).ok()),
-                calendar,
-                overflow,
-            )?
+        let inner = if item.is_object() {
+            // 9.2.2.2
+            if let Some(data) = item
+                .as_object()
+                .and_then(JsObject::downcast_ref::<PlainYearMonth>)
+            {
+                // Perform ? [GetTemporalOverflowOption](https://tc39.es/proposal-temporal/#sec-temporal-gettemporaloverflowoption)(options).
+                let options = get_options_object(args.get_or_undefined(1))?;
+                let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+                data.inner.clone()
+            } else {
+                let options = get_options_object(args.get_or_undefined(1))?;
+                let overflow = get_option(&options, js_str!("overflow"), context)?
+                    .unwrap_or(ArithmeticOverflow::Constrain);
+
+                // a. Let calendar be ? ToTemporalCalendar(item).
+                let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
+                InnerYearMonth::new(
+                    item.get_v(js_str!("year"), context)
+                        .expect("Year not found")
+                        .to_i32(context)
+                        .expect("Cannot convert year to i32"),
+                    item.get_v(js_str!("month"), context)
+                        .expect("Month not found")
+                        .to_i32(context)
+                        .expect("Cannot convert month to i32"),
+                    item.get_v(js_str!("day"), context)
+                        .map_or(Some(1), |x| x.to_i32(context).ok()),
+                    calendar,
+                    overflow,
+                )?
+            }
         } else if item.is_string() {
             let item_str = &item
                 .as_string()
@@ -402,10 +414,10 @@ impl PlainYearMonth {
         let options = get_options_object(args.get_or_undefined(0))?;
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
-        let show_calendar =
-            get_option(&options, js_str!("calendarName"), context)?.unwrap_or(js_string!("auto"));
+        let show_calendar = get_option::<CalendarName>(&options, js_str!("calendarName"), context)?
+            .unwrap_or(CalendarName::Auto);
 
-        Ok(year_month_to_string(inner, &show_calendar))
+        Ok(year_month_to_string(inner, show_calendar))
     }
 }
 
@@ -492,18 +504,18 @@ fn add_or_subtract_duration(
     let inner = &year_month.inner;
     let year_month_result = if is_addition {
         inner
-            .add_duration(duration, overflow)
+            .add_duration(&duration, overflow)
             .expect("Error adding duration to year month")
     } else {
         inner
-            .subtract_duration(duration, overflow)
+            .subtract_duration(&duration, overflow)
             .expect("Error subtracting duration from year month")
     };
 
     create_temporal_year_month(year_month_result, None, context)
 }
 
-fn year_month_to_string(inner: &InnerYearMonth, show_calendar: &JsString) -> JsValue {
+fn year_month_to_string(inner: &InnerYearMonth, show_calendar: CalendarName) -> JsValue {
     // Let year be PadISOYear(yearMonth.[[ISOYear]]).
     let year = inner.padded_iso_year_string();
     // Let month be ToZeroPaddedDecimalString(yearMonth.[[ISOMonth]], 2).
@@ -517,13 +529,18 @@ fn year_month_to_string(inner: &InnerYearMonth, show_calendar: &JsString) -> JsV
     // b. Set result to the string-concatenation of result, the code unit 0x002D (HYPHEN-MINUS), and day.
     // 6. Let calendarString be FormatCalendarAnnotation(calendarIdentifier, showCalendar).
     // 7. Set result to the string-concatenation of result and calendarString.
-    let show_cal_val = show_calendar.to_std_string_escaped();
-    if (show_cal_val == "critical" || show_cal_val == "always" || show_cal_val == "auto")
-        && !(show_cal_val == "auto" && inner.calendar_id() == "iso8601")
+    if matches!(
+        show_calendar,
+        CalendarName::Critical | CalendarName::Always | CalendarName::Auto
+    ) && !(matches!(show_calendar, CalendarName::Auto) && inner.calendar_id() == "iso8601")
     {
         let calendar = inner.calendar_id();
         let calendar_string = calendar.to_string();
-        let flag = if show_cal_val == "critical" { "!" } else { "" };
+        let flag = if matches!(show_calendar, CalendarName::Critical) {
+            "!"
+        } else {
+            ""
+        };
         result.push_str(&format!("[{flag}c={calendar_string}]",));
     }
     // 8. Return result.

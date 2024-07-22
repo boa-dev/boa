@@ -15,7 +15,7 @@ use crate::{
 };
 use boa_macros::js_str;
 use temporal_rs::options::{
-    ArithmeticOverflow, DifferenceSettings, DurationOverflow, InstantDisambiguation,
+    ArithmeticOverflow, CalendarName, DifferenceSettings, DurationOverflow, InstantDisambiguation,
     OffsetDisambiguation, RoundingIncrement, TemporalRoundingMode, TemporalUnit,
 };
 
@@ -116,6 +116,7 @@ impl ParsableOptionType for DurationOverflow {}
 impl ParsableOptionType for InstantDisambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
 impl ParsableOptionType for TemporalRoundingMode {}
+impl ParsableOptionType for CalendarName {}
 
 impl OptionType for RoundingIncrement {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
