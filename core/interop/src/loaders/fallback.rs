@@ -4,6 +4,7 @@ use boa_engine::{Context, JsResult, JsString, Module};
 
 /// A [`ModuleLoader`] that tries to load a module from one loader, and if that fails,
 /// falls back to another loader.
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
 pub struct FallbackModuleLoader<L, R>(L, R);
 

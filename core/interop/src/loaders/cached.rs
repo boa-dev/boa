@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 /// A module loader that caches modules once they're resolved.
+#[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
 pub struct CachedModuleLoader<B>
 where
