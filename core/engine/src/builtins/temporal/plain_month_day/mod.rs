@@ -105,7 +105,7 @@ impl PlainMonthDay {
             })?;
         let inner = &month_day.inner;
         match field {
-            DateTimeValues::Day => Ok(inner.day().into()),
+            DateTimeValues::Day => Ok(inner.iso_day().into()),
             DateTimeValues::MonthCode => {
                 Ok(JsString::from(InnerMonthDay::month_code(inner)?.as_str()).into())
             }
@@ -246,10 +246,10 @@ impl BuiltInConstructor for PlainMonthDay {
 
 fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> JsValue {
     // Let month be monthDay.[[ISOMonth]] formatted as a two-digit decimal number, padded to the left with a zero if necessary
-    let month = inner.month().to_string();
+    let month = inner.iso_month().to_string();
 
     // 2. Let day be ! FormatDayOfMonth(monthDay.[[ISODay]]).
-    let day = inner.day().to_string();
+    let day = inner.iso_day().to_string();
 
     // 3. Let result be the string-concatenation of month and the code unit 0x002D (HYPHEN-MINUS).
     let mut result = format!("{month:0>2}-{day:0>2}");

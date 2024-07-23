@@ -278,8 +278,8 @@ impl PlainYearMonth {
             })?;
         let inner = &year_month.inner;
         match field {
-            DateTimeValues::Year => Ok(inner.year().into()),
-            DateTimeValues::Month => Ok(inner.month().into()),
+            DateTimeValues::Year => Ok(inner.iso_year().into()),
+            DateTimeValues::Month => Ok(inner.iso_month().into()),
             DateTimeValues::MonthCode => {
                 Ok(JsString::from(InnerYearMonth::month_code(inner)?.as_str()).into())
             }
@@ -519,7 +519,7 @@ fn year_month_to_string(inner: &InnerYearMonth, show_calendar: CalendarName) -> 
     // Let year be PadISOYear(yearMonth.[[ISOYear]]).
     let year = inner.padded_iso_year_string();
     // Let month be ToZeroPaddedDecimalString(yearMonth.[[ISOMonth]], 2).
-    let month = inner.month().to_string();
+    let month = inner.iso_month().to_string();
 
     // Let result be the string-concatenation of year, the code unit 0x002D (HYPHEN-MINUS), and month.
     let mut result = format!("{year}-{month:0>2}");
