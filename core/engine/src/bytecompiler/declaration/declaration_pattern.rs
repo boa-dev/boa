@@ -119,6 +119,7 @@ impl ByteCompiler<'_> {
                             self.emit_opcode(Opcode::Dup);
                             if let PropertyName::Computed(node) = &name {
                                 self.compile_expr(node, true);
+                                self.emit_opcode(Opcode::ToPropertyKey);
                                 self.emit_opcode(Opcode::Swap);
                             }
 
