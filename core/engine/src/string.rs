@@ -7,15 +7,6 @@
 #[doc(inline)]
 pub use boa_string::*;
 
-static_assertions::const_assert_eq!(
-    // SAFETY:
-    // Compiler will throw error if `transmute` does not meet the requirement.
-    unsafe { std::mem::transmute::<std::cell::Cell<usize>, usize>(std::cell::Cell::new(0usize)) },
-    // SAFETY:
-    // Compiler will throw error if `transmute` does not meet the requirement.
-    unsafe { std::mem::transmute::<Option<&'static usize>, usize>(None) }
-);
-
 /// Utility macro to create a [`JsString`].
 ///
 /// # Examples
