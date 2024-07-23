@@ -64,34 +64,9 @@ macro_rules! js_string {
         $crate::string::JsString::default()
     };
     ($s:literal) => {{
-        if $s.is_ascii() {
-            use $crate::string::RawJsString;
-            use $crate::string::StaticLatin1String;
+        static LITERAL: $crate::string::StaticJsString = $crate::string::StaticJsString::new($crate::js_str!($s));
 
-            #[allow(clippy::items_after_statements)]
-            // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
-            // to represent `RawJsString` because `RawJsString` is private.
-            // With `Null Pointer Optimization` we could use `None`
-            // to represent `Cell(0usize)` to mark it as being created from ASCII literal.
-            const DUMMY_RAW_JS_STRING: &RawJsString = &RawJsString {
-                    repr: StaticLatin1String {
-                        len: $s.len(),
-                        zero_marker: 0,
-                        pointer:$s.as_ptr(),
-                    }
-            };
-            #[allow(trivial_casts)]
-            // SAFETY:
-            // Reference of static variable is always valid to cast into non-null pointer,
-            // size of `[Option<&usize>; 2]` is equal to the primitive size of `RawJsString`.
-            unsafe {
-                $crate::string::JsString::from_opaque_ptr(
-                    std::ptr::from_ref(DUMMY_RAW_JS_STRING) as *mut _
-                )
-            }
-        } else {
-            $crate::string::JsString::from($crate::js_str!($s))
-        }
+        $crate::string::JsString::from_static_js_string(&LITERAL)
     }};
     ($s:expr) => {
         $crate::string::JsString::from($s)

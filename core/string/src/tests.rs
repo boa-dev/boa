@@ -2,7 +2,7 @@
 
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
-use crate::{JsStr, JsString, StaticJsStrings};
+use crate::{JsStr, JsString, StaticJsString, StaticJsStrings};
 
 use rustc_hash::FxHasher;
 
@@ -172,4 +172,28 @@ fn conversion_to_known_static_js_string() {
 
     assert!(string.is_some());
     assert!(string.unwrap().as_str().is_latin1());
+}
+
+#[test]
+fn from_static_js_string() {
+    static STATIC_HELLO_WORLD: StaticJsString =
+        StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
+    static STATIC_EMOJIS: StaticJsString =
+        StaticJsString::new(JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5])); // 🎹🎶🎵
+    let latin1 = JsString::from_static_js_string(&STATIC_HELLO_WORLD);
+    let utf16 = JsString::from_static_js_string(&STATIC_EMOJIS);
+
+    assert_eq!(latin1.as_str(), "hello world");
+    assert_eq!(utf16.as_str(), "🎹🎶🎵");
+
+    let clone = latin1.clone();
+
+    assert_eq!(clone, latin1);
+
+    let clone = utf16.clone();
+
+    assert_eq!(clone, utf16);
+
+    assert!(latin1.refcount().is_none());
+    assert!(utf16.refcount().is_none());
 }
