@@ -106,6 +106,9 @@ mod tests {
         assert_eq!(x.refcount(), None);
 
         let x = js_string!("你好");
+        assert_eq!(x.refcount(), None);
+
+        let x = js_string!("Hello world".to_string());
         assert_eq!(x.refcount(), Some(1));
 
         {
