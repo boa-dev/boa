@@ -38,6 +38,7 @@ use std::{
     convert::Infallible,
     hash::{Hash, Hasher},
     iter::Peekable,
+    mem::ManuallyDrop,
     process::abort,
     ptr::{self, addr_of, addr_of_mut, NonNull},
     str::FromStr,
@@ -171,7 +172,7 @@ impl TaggedLen {
 
 pub struct StaticJsString {
     tagged_len: TaggedLen,
-    _zero: Cell<usize>,
+    _zero: usize,
     ptr: *const u8,
 }
 
@@ -184,23 +185,28 @@ impl StaticJsString {
         match string.variant() {
             JsStrVariant::Latin1(l) => StaticJsString {
                 tagged_len: TaggedLen::new(l.len(), true),
-                _zero: Cell::new(0),
+                _zero: 0,
                 ptr: l.as_ptr(),
             },
             JsStrVariant::Utf16(u) => StaticJsString {
                 tagged_len: TaggedLen::new(u.len(), false),
-                _zero: Cell::new(0),
+                _zero: 0,
                 ptr: u.as_ptr().cast(),
             },
         }
     }
 }
 
+union RefCount {
+    read_only: usize,
+    read_write: ManuallyDrop<Cell<usize>>,
+}
+
 /// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
 struct RawJsString {
     tagged_len: TaggedLen,
-    refcount: Cell<usize>,
+    refcount: RefCount,
     data: [u8; 0],
 }
 
@@ -297,7 +303,7 @@ impl JsString {
                 // - The `RawJsString` created from ASCII literal has a static lifetime `JsStr`.
                 unsafe {
                     let h = h.as_ptr();
-                    if (*h).refcount.get() == 0 {
+                    if (*h).refcount.read_only == 0 {
                         let h = h.cast::<StaticJsString>();
                         return if (*h).tagged_len.is_latin1() {
                             JsStr::latin1(std::slice::from_raw_parts(
@@ -720,7 +726,9 @@ impl JsString {
             // Write the first part, the `RawJsString`.
             inner.as_ptr().write(RawJsString {
                 tagged_len: TaggedLen::new(str_len, latin1),
-                refcount: Cell::new(1),
+                refcount: RefCount {
+                    read_write: ManuallyDrop::new(Cell::new(1)),
+                },
                 data: [0; 0],
             });
         }
@@ -892,8 +900,7 @@ impl JsString {
         match self.ptr.unwrap() {
             UnwrappedTagged::Ptr(inner) => {
                 // SAFETY: The reference count of `JsString` guarantees that `inner` is always valid.
-                let inner = unsafe { inner.as_ref() };
-                let rc = inner.refcount.get();
+                let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
                 if rc == 0 {
                     None
                 } else {
@@ -910,18 +917,21 @@ impl Clone for JsString {
     fn clone(&self) -> Self {
         if let UnwrappedTagged::Ptr(inner) = self.ptr.unwrap() {
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
-            let inner = unsafe { inner.as_ref() };
-            let rc = inner.refcount.get();
+            let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
             if rc == 0 {
                 // pointee is a static string
                 return Self { ptr: self.ptr };
             }
 
+            let inner = unsafe { inner.as_ref() };
+
             let strong = rc.wrapping_add(1);
             if strong == 0 {
                 abort()
             }
-            inner.refcount.set(strong);
+            unsafe {
+                inner.refcount.read_write.set(strong);
+            }
         }
         Self { ptr: self.ptr }
     }
@@ -941,16 +951,19 @@ impl Drop for JsString {
             // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
 
             // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
-            let inner = unsafe { raw.as_ref() };
-            let refcount = inner.refcount.get();
+            let refcount = unsafe { (*raw.as_ptr()).refcount.read_only };
             if refcount == 0 {
                 // Just a static string. No need to drop.
                 return;
             }
 
-            inner.refcount.set(refcount - 1);
-            if inner.refcount.get() != 0 {
-                return;
+            let inner = unsafe { raw.as_ref() };
+
+            unsafe {
+                inner.refcount.read_write.set(refcount - 1);
+                if inner.refcount.read_write.get() != 0 {
+                    return;
+                }
             }
 
             // SAFETY:

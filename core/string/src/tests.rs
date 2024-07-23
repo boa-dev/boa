@@ -178,8 +178,9 @@ fn conversion_to_known_static_js_string() {
 fn from_static_js_string() {
     static STATIC_HELLO_WORLD: StaticJsString =
         StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
-    static STATIC_EMOJIS: StaticJsString =
-        StaticJsString::new(JsStr::utf16(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5])); // 🎹🎶🎵
+    static STATIC_EMOJIS: StaticJsString = StaticJsString::new(JsStr::utf16(&[
+        0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
+    ])); // 🎹🎶🎵
     let latin1 = JsString::from_static_js_string(&STATIC_HELLO_WORLD);
     let utf16 = JsString::from_static_js_string(&STATIC_EMOJIS);
 
