@@ -926,13 +926,13 @@ impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
         if let UnwrappedTagged::Ptr(inner) = self.ptr.unwrap() {
-            // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
+            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
             let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
             if rc == 0 {
                 // pointee is a static string
                 return Self { ptr: self.ptr };
             }
-            // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
+            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { inner.as_ref() };
 
             let strong = rc.wrapping_add(1);
@@ -961,13 +961,14 @@ impl Drop for JsString {
         if let UnwrappedTagged::Ptr(raw) = self.ptr.unwrap() {
             // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
 
-            // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
+            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
             let refcount = unsafe { (*raw.as_ptr()).refcount.read_only };
             if refcount == 0 {
                 // Just a static string. No need to drop.
                 return;
             }
 
+            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { raw.as_ref() };
 
             // SAFETY: This has been checked aboved to ensure it is a `read_write` variant.
