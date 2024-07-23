@@ -65,20 +65,21 @@ macro_rules! js_string {
     };
     ($s:literal) => {{
         if $s.is_ascii() {
-            use $crate::string::JsStr;
+            use $crate::string::RawJsString;
+            use $crate::string::StaticLatin1String;
 
             #[allow(clippy::items_after_statements)]
             // Use `[Option<&usize>; 2]` which has the same size with primitive `RawJsString`
             // to represent `RawJsString` because `RawJsString` is private.
             // With `Null Pointer Optimization` we could use `None`
             // to represent `Cell(0usize)` to mark it as being created from ASCII literal.
-            const DUMMY_RAW_JS_STRING: &[Option<&usize>; 2] = &[
-                // SAFETY:
-                // This transmutation is valid becuase of the rvalue static promotion
-                // and the primitive size of `RawJsString` is twice as large as `usize`.
-                Some(unsafe { std::mem::transmute::<&'static JsStr<'static>, &usize>(&JsStr::latin1($s.as_bytes())) }),
-                None,
-            ];
+            const DUMMY_RAW_JS_STRING: &RawJsString = &RawJsString {
+                    repr: StaticLatin1String {
+                        len: $s.len(),
+                        zero_marker: 0,
+                        pointer:$s.as_ptr(),
+                    }
+            };
             #[allow(trivial_casts)]
             // SAFETY:
             // Reference of static variable is always valid to cast into non-null pointer,
