@@ -150,6 +150,9 @@ impl CodePoint {
     }
 }
 
+/// Contains the flags and Latin1/UTF-16 length.
+///
+/// The latin1 flag is stored in the bottom bit.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct TaggedLen(usize);
 
@@ -170,6 +173,8 @@ impl TaggedLen {
     }
 }
 
+/// The raw representation of a [`JsString`] from a string literal.
+#[derive(Debug)]
 pub struct StaticJsString {
     tagged_len: TaggedLen,
     _zero: usize,
@@ -181,6 +186,8 @@ pub struct StaticJsString {
 unsafe impl Sync for StaticJsString {}
 
 impl StaticJsString {
+    /// Create a `StaticJsString` from a static `JsStr`.
+    #[must_use]
     pub const fn new(string: JsStr<'static>) -> StaticJsString {
         match string.variant() {
             JsStrVariant::Latin1(l) => StaticJsString {
@@ -197,6 +204,9 @@ impl StaticJsString {
     }
 }
 
+/// Memory variant to pass `Miri` test.\
+/// If it equals to `0usize`,
+/// we mark it read-only, otherwise it is readable and writable
 union RefCount {
     read_only: usize,
     read_write: ManuallyDrop<Cell<usize>>,
@@ -300,7 +310,7 @@ impl JsString {
                 // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn't outlive `self`.
                 //
-                // - The `RawJsString` created from ASCII literal has a static lifetime `JsStr`.
+                // - The `RawJsString` created from string literal has a static lifetime `JsStr`.
                 unsafe {
                     let h = h.as_ptr();
                     if (*h).refcount.read_only == 0 {
@@ -402,7 +412,7 @@ impl JsString {
                 }
             }
             Self {
-                // Safety: We already know it's a valid heap pointer.
+                // SAFETY: We already know it's a valid heap pointer.
                 ptr: unsafe { Tagged::from_ptr(ptr.as_ptr()) },
             }
         };
@@ -782,7 +792,7 @@ impl JsString {
             }
         }
         Self {
-            // Safety: `allocate_inner` guarantees `ptr` is a valid heap pointer.
+            // SAFETY: `allocate_inner` guarantees `ptr` is a valid heap pointer.
             ptr: Tagged::from_non_null(ptr),
         }
     }
@@ -875,7 +885,7 @@ impl JsString {
     where
         I: JsSliceIndex<'a>,
     {
-        // Safety: Caller must ensure the index is not out of bounds
+        // SAFETY: Caller must ensure the index is not out of bounds
         unsafe { I::get_unchecked(self.as_str(), index) }
     }
 
@@ -922,13 +932,14 @@ impl Clone for JsString {
                 // pointee is a static string
                 return Self { ptr: self.ptr };
             }
-
+            // SAFETY: The reference count of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { inner.as_ref() };
 
             let strong = rc.wrapping_add(1);
             if strong == 0 {
                 abort()
             }
+            // SAFETY: This has been checked aboved to ensure it is a `read_write` variant.
             unsafe {
                 inner.refcount.read_write.set(strong);
             }
@@ -959,6 +970,7 @@ impl Drop for JsString {
 
             let inner = unsafe { raw.as_ref() };
 
+            // SAFETY: This has been checked aboved to ensure it is a `read_write` variant.
             unsafe {
                 inner.refcount.read_write.set(refcount - 1);
                 if inner.refcount.read_write.get() != 0 {
@@ -985,7 +997,7 @@ impl Drop for JsString {
                 }
             };
 
-            // Safety:
+            // SAFETY:
             // If refcount is 0 and we call drop, that means this is the last `JsString` which
             // points to this memory allocation, so deallocating it is safe.
             unsafe {
