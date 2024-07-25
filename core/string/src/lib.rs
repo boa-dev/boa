@@ -1405,7 +1405,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         let (lower_bound, _) = iterator.size_hint();
         let require_cap = self.len() + lower_bound;
         if require_cap > self.capacity() {
-            self.expand(Self::new_layout(require_cap));
+            self.expand(require_cap);
         }
         iterator.for_each(|c| self.push(c));
     }
