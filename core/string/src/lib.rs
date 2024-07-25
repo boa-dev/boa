@@ -1308,34 +1308,25 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
 
     #[allow(clippy::cast_ptr_alignment)]
     fn reserve(&mut self, new_layout: Layout) {
-        // SAFETY:
-        // The layout size of `RawJsString` is never zero, since it has to store
-        // the length of the string and the reference count.
-        let new_ptr = unsafe { alloc(new_layout) };
+        let new_ptr = if !self.is_dangling() {
+            use std::alloc::realloc;
+            let old_ptr = self.inner.as_ptr();
+            let old_layout = self.current_layout();
+            // SAFETY:
+            // The layout size of `RawJsString` is never zero, since it has to store
+            // the length of the string and the reference count.
+            let new_ptr = unsafe { realloc(old_ptr.cast(), old_layout, new_layout.size()) };
+            new_ptr
+        } else {
+            // SAFETY:
+            // The layout size of `RawJsString` is never zero, since it has to store
+            // the length of the string and the reference count.
+            let new_ptr = unsafe { alloc(new_layout) };
+            new_ptr
+        };
         let Some(new_ptr) = NonNull::new(new_ptr.cast::<RawJsString>()) else {
             std::alloc::handle_alloc_error(new_layout)
         };
-
-        if !self.is_dangling() {
-            let old_layout = self.current_layout();
-
-            let old_ptr = self.inner.as_ptr();
-
-            // SAFETY:
-            // New pointer and old pointer are both valid.
-            unsafe {
-                ptr::copy_nonoverlapping(
-                    old_ptr.cast::<u8>(),
-                    new_ptr.as_ptr().cast::<u8>(),
-                    self.allocated_byte_len(),
-                );
-            }
-            // SAFETY:
-            // Old pointer is valid.
-            unsafe {
-                dealloc(old_ptr.cast(), old_layout);
-            }
-        }
         self.inner = new_ptr;
         let new_arr_size = new_layout.size() - DATA_OFFSET;
         self.cap = new_arr_size / Self::DATA_SIZE;
