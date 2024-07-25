@@ -1403,7 +1403,10 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     pub fn extend<I: IntoIterator<Item = D>>(&mut self, iter: I) {
         let iterator = iter.into_iter();
         let (lower_bound, _) = iterator.size_hint();
-        self.reserve(Self::new_layout(lower_bound));
+        let require_cap = self.len() + lower_bound;
+        if require_cap > self.cap() {
+            self.reserve(Self::new_layout(require_cap));
+        }
         iterator.for_each(|c| self.push(c));
     }
 
