@@ -461,9 +461,9 @@ impl Object<dyn NativeObject> {
 ///
 /// There are two implementations:
 ///  - From a single type `T` which implements `Into<FunctionBinding>` which sets the binding
-/// name and the function name to the same value.
+///    name and the function name to the same value.
 ///  - From a tuple `(B: Into<PropertyKey>, N: Into<JsString>)`, where the `B` is the binding name
-/// and the `N` is the function name.
+///    and the `N` is the function name.
 #[derive(Debug, Clone)]
 pub struct FunctionBinding {
     pub(crate) binding: PropertyKey,

@@ -993,7 +993,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                 }
             }
             OptionalOperationKind::Call { args } => {
-                for arg in args.iter() {
+                for arg in args {
                     try_break!(self.visit_expression(arg));
                 }
                 ControlFlow::Continue(())

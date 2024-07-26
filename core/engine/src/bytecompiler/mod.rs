@@ -743,7 +743,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {
-        const U32_SIZE: usize = std::mem::size_of::<u32>();
+        const U32_SIZE: usize = size_of::<u32>();
 
         let Label { index } = label;
 
@@ -1104,9 +1104,9 @@ impl<'ctx> ByteCompiler<'ctx> {
     ///
     /// # Requirements
     /// - This should only be called after verifying that the previous value of the chain
-    /// is not null or undefined (if the operator `?.` was used).
+    ///   is not null or undefined (if the operator `?.` was used).
     /// - This assumes that the state of the stack before compiling is `...rest, this, value`,
-    /// since the operation compiled by this function could be a call.
+    ///   since the operation compiled by this function could be a call.
     fn compile_optional_item_kind(&mut self, kind: &OptionalOperationKind) {
         match kind {
             OptionalOperationKind::SimplePropertyAccess { field } => {

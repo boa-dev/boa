@@ -91,8 +91,8 @@ impl SliceRef<'_> {
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
             #[cfg(debug_assertions)]
             {
-                assert!(buffer.len() >= std::mem::size_of::<T>());
-                assert_eq!(buffer.addr() % std::mem::align_of::<T>(), 0);
+                assert!(buffer.len() >= size_of::<T>());
+                assert_eq!(buffer.addr() % align_of::<T>(), 0);
             }
 
             // 3. Let block be arrayBuffer.[[ArrayBufferData]].
@@ -270,8 +270,8 @@ impl SliceRefMut<'_> {
             // 3. Assert: value is a BigInt if IsBigIntElementType(type) is true; otherwise, value is a Number.
             #[cfg(debug_assertions)]
             {
-                assert!(buffer.len() >= std::mem::size_of::<T>());
-                assert_eq!(buffer.addr() % std::mem::align_of::<T>(), 0);
+                assert!(buffer.len() >= size_of::<T>());
+                assert_eq!(buffer.addr() % align_of::<T>(), 0);
             }
 
             // 4. Let block be arrayBuffer.[[ArrayBufferData]].
@@ -335,7 +335,7 @@ impl<'a> From<&'a [AtomicU8]> for SliceRefMut<'a> {
 /// # Safety
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write,
-/// respectively.
+///   respectively.
 pub(super) unsafe fn copy_shared_to_shared(
     src: *const AtomicU8,
     dest: *const AtomicU8,
@@ -355,7 +355,7 @@ pub(super) unsafe fn copy_shared_to_shared(
 /// # Safety
 ///
 /// - Both `src` and `dest` must have at least `count` bytes to read and write,
-/// respectively.
+///   respectively.
 unsafe fn copy_shared_to_shared_backwards(
     src: *const AtomicU8,
     dest: *const AtomicU8,

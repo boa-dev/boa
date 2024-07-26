@@ -9,8 +9,8 @@ use core::{hash::Hash, ptr::NonNull};
 /// - Use without ensuring the referenced memory is still allocated.
 /// - Construction of an [`InternedStr`] from an invalid [`NonNull<Char>`] pointer.
 /// - Construction of an [`InternedStr`] from a [`NonNull<Char>`] pointer
-/// without checking if the pointed memory of the [`NonNull<Char>`] outlives
-/// the [`InternedStr`].
+///   without checking if the pointed memory of the [`NonNull<Char>`] outlives
+///   the [`InternedStr`].
 ///
 /// In general, this should not be used outside of an [`Interner`][`super::Interner`].
 #[derive(Debug)]
