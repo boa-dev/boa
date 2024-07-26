@@ -1205,7 +1205,6 @@ impl<D: private::JsStringData> Default for JsStringBuilder<D> {
 impl<D: private::JsStringData> JsStringBuilder<D> {
     const DATA_SIZE: usize = std::mem::size_of::<D>();
     const MIN_NON_ZERO_CAP: usize = 8 / Self::DATA_SIZE;
-    const IS_LATIN: bool = Self::DATA_SIZE == std::mem::size_of::<u8>();
 
     /// Create a new `JsStringBuilder` with capacity of zero.
     #[inline]
@@ -1424,6 +1423,17 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         self.len() == 0
     }
 
+    /// Checks if all bytes in this inner is ascii.
+    fn is_ascii(&self) -> bool {
+        let ptr = self.inner.as_ptr();
+        // SAFETY:
+        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can read to its pointed memory.
+        let data =
+            unsafe { std::slice::from_raw_parts(addr_of!((*ptr).data).cast::<u8>(), self.len()) };
+        data.is_ascii()
+    }
+
     /// build `JsString` from `JsStringBuilder`
     #[must_use]
     pub fn build(mut self) -> JsString {
@@ -1445,7 +1455,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         // meaning we can write to its pointed memory.
         unsafe {
             inner.as_ptr().write(RawJsString {
-                flags_and_len: RawJsString::encode_flags_and_len(len, Self::IS_LATIN),
+                flags_and_len: RawJsString::encode_flags_and_len(len, self.is_ascii()),
                 refcount: Cell::new(1),
                 data: [0; 0],
             });
