@@ -1249,7 +1249,13 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// Returns the allocated byte of inner.
     #[must_use]
     fn allocated_byte_len(&self) -> usize {
-        DATA_OFFSET + self.len() * Self::DATA_SIZE
+        DATA_OFFSET + self.allocated_data_byte_len()
+    }
+
+    /// Returns the allocated byte of inner's data.
+    #[must_use]
+    fn allocated_data_byte_len(&self) -> usize {
+        self.len() * Self::DATA_SIZE
     }
 
     /// create a new `JsStringBuilder` with specific capacity
@@ -1429,8 +1435,12 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         // SAFETY:
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can read to its pointed memory.
-        let data =
-            unsafe { std::slice::from_raw_parts(addr_of!((*ptr).data).cast::<u8>(), self.len()) };
+        let data = unsafe {
+            std::slice::from_raw_parts(
+                addr_of!((*ptr).data).cast::<u8>(),
+                self.allocated_data_byte_len(),
+            )
+        };
         data.is_ascii()
     }
 
