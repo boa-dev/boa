@@ -1221,7 +1221,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// Returns the number of elements that inner holds.
     #[inline]
     #[must_use]
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         self.len
     }
 
@@ -1242,20 +1242,26 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// Returns the total number of elements can hold without reallocating
     #[inline]
     #[must_use]
-    pub fn capacity(&self) -> usize {
+    pub const fn capacity(&self) -> usize {
         self.cap
     }
 
     /// Returns the allocated byte of inner.
     #[must_use]
-    fn allocated_byte_len(&self) -> usize {
+    const fn allocated_byte_len(&self) -> usize {
         DATA_OFFSET + self.allocated_data_byte_len()
     }
 
     /// Returns the allocated byte of inner's data.
     #[must_use]
-    fn allocated_data_byte_len(&self) -> usize {
+    const fn allocated_data_byte_len(&self) -> usize {
         self.len() * Self::DATA_SIZE
+    }
+
+    /// Returns the capacity calculted from given layout.
+    #[must_use]
+    const fn capacity_from_layout(layout: Layout) -> usize {
+        (layout.size() - DATA_OFFSET) / Self::DATA_SIZE
     }
 
     /// create a new `JsStringBuilder` with specific capacity
@@ -1272,7 +1278,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
             std::alloc::handle_alloc_error(layout)
         };
         Self {
-            cap,
+            cap: Self::capacity_from_layout(layout),
             len: 0,
             inner: ptr,
             phantom_data: PhantomData,
@@ -1331,8 +1337,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
             std::alloc::handle_alloc_error(new_layout)
         };
         self.inner = new_ptr;
-        let new_arr_size = new_layout.size() - DATA_OFFSET;
-        self.cap = new_arr_size / Self::DATA_SIZE;
+        self.cap = Self::capacity_from_layout(new_layout);
     }
 
     /// Appends an element to the inner of `JsStringBuilder`.
