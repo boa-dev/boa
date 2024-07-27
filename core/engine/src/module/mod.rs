@@ -36,6 +36,7 @@ use boa_interner::Interner;
 use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
+use boa_string::JsStr;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
@@ -640,7 +641,7 @@ impl Module {
     #[inline]
     pub fn get_typed_fn<A, R>(
         &self,
-        name: boa_string::JsStr<'_>,
+        name: JsStr<'_>,
         context: &mut Context,
     ) -> JsResult<TypedJsFunction<A, R>>
     where
