@@ -30,6 +30,7 @@ use std::rc::Rc;
 use rustc_hash::FxHashSet;
 
 use boa_engine::js_string;
+use boa_engine::property::PropertyKey;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
@@ -40,13 +41,15 @@ pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
+use crate::object::TypedJsFunction;
 use crate::{
     builtins,
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
+    js_error,
     object::{JsObject, JsPromise},
     realm::Realm,
-    Context, HostDefined, JsError, JsResult, JsString, JsValue, NativeFunction,
+    Context, HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeFunction,
 };
 
 mod loader;
@@ -566,6 +569,20 @@ impl Module {
         promise
     }
 
+    /// Utility function that execute [`load_link_evaluate`] and then run the job queue.
+    /// This combines two operations that are often done together into a simpler
+    /// version. If you need more control over the execution, use [`load_link_evaluate`]
+    /// and [`Context::run_jobs`] separately.
+    pub fn load_link_evaluate_and_run_jobs(&self, context: &mut Context) -> JsResult<()> {
+        let promise = self.load_link_evaluate(context);
+        context.run_jobs();
+        match promise.state() {
+            PromiseState::Fulfilled(_) => Ok(()),
+            PromiseState::Rejected(err) => Err(JsError::from_opaque(err)),
+            PromiseState::Pending => Err(js_error!("Module evaluation did not complete")),
+        }
+    }
+
     /// Abstract operation [`GetModuleNamespace ( module )`][spec].
     ///
     /// Gets the [**Module Namespace Object**][ns] that represents this module's exports.
@@ -606,6 +623,35 @@ impl Module {
                 ModuleNamespace::create(self.clone(), unambiguous_names, context)
             })
             .clone()
+    }
+
+    /// Get an exported value from the module.
+    #[inline]
+    #[must_use]
+    pub fn get_value<K>(&self, name: K, context: &mut Context) -> JsResult<JsValue>
+    where
+        K: Into<PropertyKey>,
+    {
+        let namespace = self.namespace(context);
+        namespace.get(name, context)
+    }
+
+    /// Get an exported function, typed, from the module.
+    #[inline]
+    pub fn get_typed_fn<A, R>(
+        &self,
+        name: boa_string::JsStr<'_>,
+        context: &mut Context,
+    ) -> JsResult<TypedJsFunction<A, R>>
+    where
+        A: crate::object::TryIntoJsArguments,
+        R: crate::value::TryFromJs,
+    {
+        let func = self.get_value(name, context)?;
+        let func = func.as_function().ok_or_else(|| {
+            JsNativeError::typ().with_message(format!("{name:?} is not a function"))
+        })?;
+        Ok(func.typed())
     }
 
     /// Returns the path of the module, if it was created from a file or assigned.
