@@ -2,7 +2,7 @@
 
 use boa_engine::module::{resolve_module_specifier, ModuleLoader, Referrer};
 use boa_engine::{js_string, Context, JsError, JsNativeError, JsResult, JsString, Module, Source};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// A module loader that loads modules from the filesystem.
 #[derive(Clone, Debug)]
@@ -12,9 +12,15 @@ pub struct FsModuleLoader {
 
 impl FsModuleLoader {
     /// Create a new [`FsModuleLoader`] from a root path.
-    #[must_use]
-    pub fn new(root: PathBuf) -> Self {
-        Self { root }
+    pub fn new(root: impl AsRef<Path>) -> JsResult<Self> {
+        let root = root.as_ref();
+        let root = root.canonicalize().map_err(|e| {
+            JsNativeError::typ()
+                .with_message(format!("could not set module root `{}`", root.display()))
+                .with_cause(JsError::from_opaque(js_string!(e.to_string()).into()))
+        })?;
+
+        Ok(Self { root })
     }
 }
 
