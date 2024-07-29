@@ -12,6 +12,10 @@ pub struct FsModuleLoader {
 
 impl FsModuleLoader {
     /// Create a new [`FsModuleLoader`] from a root path.
+    ///
+    /// # Errors
+    /// An error happens if the root path cannot be canonicalized (e.g. does
+    /// not exists).
     pub fn new(root: impl AsRef<Path>) -> JsResult<Self> {
         let root = root.as_ref();
         let root = root.canonicalize().map_err(|e| {
