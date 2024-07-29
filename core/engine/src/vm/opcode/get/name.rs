@@ -89,7 +89,7 @@ impl Operation for GetLocator {
 ///
 /// Operation:
 ///  - Find a binding on the environment chain and push its value to the stack, setting the
-/// `current_binding` of the current frame.
+///    `current_binding` of the current frame.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameAndLocator;
 

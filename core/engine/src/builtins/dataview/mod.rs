@@ -7,7 +7,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-dataview-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView
 
-use std::{mem, sync::atomic::Ordering};
+use std::sync::atomic::Ordering;
 
 use crate::{
     builtins::BuiltInObject,
@@ -467,7 +467,7 @@ impl DataView {
         let view_size = view.byte_length(data.len());
 
         // 10. Let elementSize be the Element Size value specified in Table 71 for Element Type type.
-        let element_size = mem::size_of::<T>() as u64;
+        let element_size = size_of::<T>() as u64;
 
         // 11. If getIndex + elementSize > viewSize, throw a RangeError exception.
         if get_index + element_size > view_size {
@@ -481,7 +481,7 @@ impl DataView {
 
         let src = data.subslice(buffer_index..);
 
-        debug_assert!(src.len() >= mem::size_of::<T>());
+        debug_assert!(src.len() >= size_of::<T>());
 
         // 13. Return GetValueFromBuffer(view.[[ViewedArrayBuffer]], bufferIndex, type, false, unordered, isLittleEndian).
         // SAFETY: All previous checks ensure the element fits in the buffer.
@@ -490,7 +490,7 @@ impl DataView {
             memcpy(
                 src.as_ptr(),
                 BytesMutPtr::Bytes(bytes_of_mut(&mut value).as_mut_ptr()),
-                mem::size_of::<T>(),
+                size_of::<T>(),
             );
 
             if is_little_endian {
@@ -789,7 +789,7 @@ impl DataView {
         let view_offset = view.byte_offset;
 
         // 12. Let elementSize be the Element Size value specified in Table 71 for Element Type type.
-        let elem_size = mem::size_of::<T>();
+        let elem_size = size_of::<T>();
 
         // 13. If getIndex + elementSize > viewSize, throw a RangeError exception.
         if get_index + elem_size as u64 > view_size {
@@ -803,7 +803,7 @@ impl DataView {
 
         let mut target = data.subslice_mut(buffer_index..);
 
-        debug_assert!(target.len() >= mem::size_of::<T>());
+        debug_assert!(target.len() >= size_of::<T>());
 
         // 15. Perform SetValueInBuffer(view.[[ViewedArrayBuffer]], bufferIndex, type, numberValue, false, unordered, isLittleEndian).
         // SAFETY: All previous checks ensure the element fits in the buffer.
@@ -817,7 +817,7 @@ impl DataView {
             memcpy(
                 BytesConstPtr::Bytes(bytes_of(&value).as_ptr()),
                 target.as_ptr(),
-                mem::size_of::<T>(),
+                size_of::<T>(),
             );
         }
 

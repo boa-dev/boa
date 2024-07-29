@@ -43,7 +43,7 @@ fn gc_recursion() {
             next: Option<Gc<S>>,
         }
 
-        const SIZE: usize = std::mem::size_of::<GcBox<S>>();
+        const SIZE: usize = size_of::<GcBox<S>>();
         const COUNT: usize = 1_000_000;
 
         let mut root = Gc::new(S { i: 0, next: None });

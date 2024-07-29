@@ -67,7 +67,7 @@ impl Operation for IteratorNextWithoutPop {
 ///
 /// Operation:
 ///  - Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
-/// result of the current iterator.
+///    result of the current iterator.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct IteratorFinishAsyncNext;
 

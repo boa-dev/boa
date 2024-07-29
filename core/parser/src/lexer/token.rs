@@ -17,7 +17,6 @@ use num_bigint::BigInt;
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-tokens
-#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token kind, which contains the actual data of the token.
@@ -56,7 +55,6 @@ impl Token {
 }
 
 /// Represents the type different types of numeric literals.
-#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum Numeric {
     /// A floating point number.
@@ -91,7 +89,6 @@ impl From<BigInt> for Numeric {
 }
 
 /// Represents the type of Token and the data it has inside.
-#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
     /// A boolean literal, which is either `true` or `false`.
@@ -290,7 +287,6 @@ impl TokenKind {
 
 bitflags! {
     /// Indicates the set of escape sequences a string contains.
-    #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
     pub struct EscapeSequence: u8 {
         /// A legacy escape sequence starting with `0` - `7`.
@@ -322,6 +318,5 @@ bitflags! {
 }
 
 /// Indicates if an identifier contains an escape sequence.
-#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ContainsEscapeSequence(pub bool);

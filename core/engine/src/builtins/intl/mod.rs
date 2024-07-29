@@ -202,9 +202,9 @@ trait Service {
     /// # Note
     ///
     /// - A correct implementation must ensure `locale` and `options` are both written with the
-    /// new final values.
+    ///   new final values.
     /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
-    /// skipped.
+    ///   skipped.
     fn resolve(
         _locale: &mut icu_locid::Locale,
         _options: &mut Self::LocaleOptions,

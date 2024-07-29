@@ -155,8 +155,8 @@ pub(crate) fn canonicalize_locale_list(
 /// # Notes
 ///
 /// - This differs a bit from the spec, since we don't have an `[[AvailableLocales]]`
-/// list to compare with. However, we can do data requests to a [`DataProvider`]
-/// in order to see if a certain [`Locale`] is supported.
+///   list to compare with. However, we can do data requests to a [`DataProvider`]
+///   in order to see if a certain [`Locale`] is supported.
 ///
 /// - Calling this function with a singleton `KeyedDataMarker` will always return `None`.
 ///
