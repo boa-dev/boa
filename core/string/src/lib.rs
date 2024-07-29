@@ -230,7 +230,7 @@ impl RawJsString {
     }
 }
 
-const DATA_OFFSET: usize = std::mem::size_of::<RawJsString>();
+const DATA_OFFSET: usize = size_of::<RawJsString>();
 
 /// A Latin1 or UTF-16–encoded, reference counted, immutable string.
 ///

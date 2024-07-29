@@ -47,7 +47,7 @@ impl Duration {
 }
 
 impl BuiltInObject for Duration {
-    const NAME: JsString = StaticJsStrings::DURATION;
+    const NAME: JsString = StaticJsStrings::DURATION_NAME;
 }
 
 impl IntrinsicObject for Duration {
@@ -105,7 +105,7 @@ impl IntrinsicObject for Duration {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::DURATION_TAG,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -184,8 +184,8 @@ impl IntrinsicObject for Duration {
             .method(Self::with, js_string!("with"), 1)
             .method(Self::negated, js_string!("negated"), 0)
             .method(Self::abs, js_string!("abs"), 0)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::total, js_string!("total"), 1)
             .method(Self::to_string, js_string!("toString"), 1)
@@ -199,7 +199,7 @@ impl IntrinsicObject for Duration {
 }
 
 impl BuiltInConstructor for Duration {
-    const LENGTH: usize = 10;
+    const LENGTH: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::duration;

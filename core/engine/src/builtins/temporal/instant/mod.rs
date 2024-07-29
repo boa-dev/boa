@@ -6,6 +6,7 @@ use crate::{
         temporal::{
             duration::{create_temporal_duration, to_temporal_duration_record},
             options::{get_temporal_unit, TemporalUnitGroup},
+            ZonedDateTime,
         },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
@@ -15,13 +16,18 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+    value::PreferredType,
     Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 use boa_profiler::Profiler;
-use temporal_rs::{components::Instant as InnerInstant, options::TemporalRoundingMode};
+use num_traits::ToPrimitive;
+use temporal_rs::{
+    components::Instant as InnerInstant,
+    options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+};
 
 use super::options::get_difference_settings;
 
@@ -34,7 +40,7 @@ pub struct Instant {
 }
 
 impl BuiltInObject for Instant {
-    const NAME: JsString = StaticJsStrings::INSTANT;
+    const NAME: JsString = StaticJsStrings::INSTANT_NAME;
 }
 
 impl IntrinsicObject for Instant {
@@ -60,7 +66,7 @@ impl IntrinsicObject for Instant {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::INSTANT_TAG,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -87,10 +93,22 @@ impl IntrinsicObject for Instant {
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .static_method(Self::from, js_string!("from"), 1)
+            .static_method(
+                Self::from_epoch_milliseconds,
+                js_string!("fromEpochMilliseconds"),
+                1,
+            )
+            .static_method(
+                Self::from_epoch_nanoseconds,
+                js_string!("fromEpochNanoseconds"),
+                1,
+            )
+            .static_method(Self::compare, js_string!("compare"), 1)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
+            .method(Self::until, js_string!("until"), 1)
+            .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
@@ -130,14 +148,80 @@ impl BuiltInConstructor for Instant {
         let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
 
         // 3. If ! IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
-        // NOTE: boa_temporal::Instant asserts that the epochNanoseconds are valid.
-        let instant = InnerInstant::new(epoch_nanos.as_inner().clone())?;
+        // NOTE: temporal_rs::Instant asserts that the epochNanoseconds are valid.
+        let instant = InnerInstant::new(epoch_nanos.as_inner().to_i128().unwrap_or(i128::MAX))?;
         // 4. Return ? CreateTemporalInstant(epochNanoseconds, NewTarget).
         create_temporal_instant(instant, Some(new_target.clone()), context)
     }
 }
 
-// -- Instant method implementations --
+// ==== Instant Static method implementations ====
+
+impl Instant {
+    pub(crate) fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. If item is an Object and item has an [[InitializedTemporalInstant]] internal slot, then
+        // a. Return ! CreateTemporalInstant(item.[[Nanoseconds]]).
+        // 2. Return ? ToTemporalInstant(item).
+        create_temporal_instant(
+            to_temporal_instant(args.get_or_undefined(0), context)?,
+            None,
+            context,
+        )
+        .map(Into::into)
+    }
+
+    pub(crate) fn from_epoch_milliseconds(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Set epochMilliseconds to ? ToNumber(epochMilliseconds).
+        let epoch_millis = args.get_or_undefined(0).to_number(context)?;
+        // 2. Set epochMilliseconds to ? NumberToBigInt(epochMilliseconds).
+        // 3. Let epochNanoseconds be epochMilliseconds × ℤ(10**6).
+        // 4. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
+        // 5. Return ! CreateTemporalInstant(epochNanoseconds).
+        create_temporal_instant(
+            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i128().unwrap_or(i128::MAX))?,
+            None,
+            context,
+        )
+        .map(Into::into)
+    }
+
+    pub(crate) fn from_epoch_nanoseconds(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Set epochNanoseconds to ? ToBigInt(epochNanoseconds).
+        let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
+        // 2. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
+        // 3. Return ! CreateTemporalInstant(epochNanoseconds).
+        let nanos = epoch_nanos.as_inner().to_i128();
+        create_temporal_instant(
+            InnerInstant::new(nanos.unwrap_or(i128::MAX))?,
+            None,
+            context,
+        )
+        .map(Into::into)
+    }
+
+    pub(crate) fn compare(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Set one to ? ToTemporalInstant(one).
+        let one = to_temporal_instant(args.get_or_undefined(0), context)?;
+        // 2. Set two to ? ToTemporalInstant(two).
+        let two = to_temporal_instant(args.get_or_undefined(1), context)?;
+        // 3. Return 𝔽(CompareEpochNanoseconds(one.[[Nanoseconds]], two.[[Nanoseconds]])).
+        Ok((one.cmp(&two) as i8).into())
+    }
+}
+
+// ==== Instant method implementations ====
 
 impl Instant {
     /// 8.3.3 get Temporal.Instant.prototype.epochSeconds
@@ -281,7 +365,7 @@ impl Instant {
             })?;
 
         // 3. Return ? DifferenceTemporalInstant(until, instant, other, options).
-        let other = to_temporal_instant(args.get_or_undefined(0))?;
+        let other = to_temporal_instant(args.get_or_undefined(0), context)?;
 
         // Fetch the necessary options.
         let settings =
@@ -306,7 +390,7 @@ impl Instant {
             })?;
 
         // 3. Return ? DifferenceTemporalInstant(since, instant, other, options).
-        let other = to_temporal_instant(args.get_or_undefined(0))?;
+        let other = to_temporal_instant(args.get_or_undefined(0), context)?;
         let settings =
             get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
         let result = instant.inner.since(&other, settings)?;
@@ -358,12 +442,13 @@ impl Instant {
 
         // 6. NOTE: The following steps read options and perform independent validation in
         // alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
+        let mut options = RoundingOptions::default();
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
-        let rounding_increment =
-            get_option::<f64>(&round_to, js_str!("roundingIncrement"), context)?;
+        options.increment =
+            get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
-        let rounding_mode =
+        options.rounding_mode =
             get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
@@ -375,6 +460,8 @@ impl Instant {
             context,
         )?
         .ok_or_else(|| JsNativeError::range().with_message("smallestUnit cannot be undefined."))?;
+
+        options.smallest_unit = Some(smallest_unit);
 
         // 10. If smallestUnit is "hour"), then
         // a. Let maximum be HoursPerDay.
@@ -392,16 +479,18 @@ impl Instant {
         // unreachable here functions as 15.a.
         // 16. Perform ? ValidateTemporalRoundingIncrement(roundingIncrement, maximum, true).
         // 17. Let roundedNs be RoundTemporalInstant(instant.[[Nanoseconds]], roundingIncrement, smallestUnit, roundingMode).
-        let result = instant
-            .inner
-            .round(rounding_increment, smallest_unit, rounding_mode)?;
+        let result = instant.inner.round(options)?;
 
         // 18. Return ! CreateTemporalInstant(roundedNs).
         create_temporal_instant(result, None, context)
     }
 
     /// 8.3.12 `Temporal.Instant.prototype.equals ( other )`
-    pub(crate) fn equals(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn equals(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let instant be the this value.
         // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
         // 4. If instant.[[Nanoseconds]] ≠ other.[[Nanoseconds]], return false.
@@ -415,7 +504,7 @@ impl Instant {
 
         // 3. Set other to ? ToTemporalInstant(other).
         let other = args.get_or_undefined(0);
-        let other_instant = to_temporal_instant(other)?;
+        let other_instant = to_temporal_instant(other, context)?;
 
         if instant.inner != other_instant {
             return Ok(false.into());
@@ -484,9 +573,42 @@ fn create_temporal_instant(
 
 /// 8.5.3 `ToTemporalInstant ( item )`
 #[inline]
-fn to_temporal_instant(_: &JsValue) -> JsResult<InnerInstant> {
-    // TODO: Need to implement parsing.
-    Err(JsNativeError::error()
-        .with_message("Instant parsing is not yet implemented.")
-        .into())
+fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerInstant> {
+    // 1.If item is an Object, then
+    let item = if let Some(obj) = item.as_object() {
+        // a. If item has an [[InitializedTemporalInstant]] internal slot, then
+        //     i. Return item.
+        // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
+        //     i. Return ! CreateTemporalInstant(item.[[Nanoseconds]]).
+        // c. NOTE: This use of ToPrimitive allows Instant-like objects to be converted.
+        // d. Set item to ? ToPrimitive(item, string).
+        if let Some(instant) = obj.downcast_ref::<Instant>() {
+            return Ok(instant.inner.clone());
+        } else if let Some(_zdt) = obj.downcast_ref::<ZonedDateTime>() {
+            return Err(JsNativeError::error()
+                .with_message("Not yet implemented.")
+                .into());
+        }
+        item.to_primitive(context, PreferredType::String)?
+    } else {
+        item.clone()
+    };
+
+    let Some(string_to_parse) = item.as_string() else {
+        return Err(JsNativeError::typ()
+            .with_message("Invalid type to convert to a Temporal.Instant.")
+            .into());
+    };
+
+    // 3. Let parsed be ? ParseTemporalInstantString(item).
+    // 4. If parsed.[[TimeZone]].[[Z]] is true, let offsetNanoseconds be 0; otherwise, let offsetNanoseconds be ! ParseDateTimeUTCOffset(parsed.[[TimeZone]].[[OffsetString]]).
+    // 5. If abs(ISODateToEpochDays(parsed.[[Year]], parsed.[[Month]] - 1, parsed.[[Day]])) > 10**8, throw a RangeError exception.
+    // 6. Let epochNanoseconds be GetUTCEpochNanoseconds(parsed.[[Year]], parsed.[[Month]], parsed.[[Day]], parsed.[[Hour]], parsed.[[Minute]], parsed.[[Second]], parsed.[[Millisecond]], parsed.[[Microsecond]], parsed.[[Nanosecond]], offsetNanoseconds).
+    // 7. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
+    // 8. Return ! CreateTemporalInstant(epochNanoseconds).
+    // 2. If item is not a String, throw a TypeError exception.
+    string_to_parse
+        .to_std_string_escaped()
+        .parse::<InnerInstant>()
+        .map_err(Into::into)
 }

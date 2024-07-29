@@ -36,7 +36,7 @@ pub struct PlainTime {
 }
 
 impl BuiltInObject for PlainTime {
-    const NAME: JsString = StaticJsStrings::PLAIN_TIME;
+    const NAME: JsString = StaticJsStrings::PLAIN_TIME_NAME;
 }
 
 impl IntrinsicObject for PlainTime {
@@ -69,7 +69,7 @@ impl IntrinsicObject for PlainTime {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::PLAIN_TIME_TAG,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -108,12 +108,12 @@ impl IntrinsicObject for PlainTime {
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .static_method(Self::from, js_string!("from"), 2)
+            .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
+            .method(Self::until, js_string!("until"), 1)
+            .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::get_iso_fields, js_string!("getISOFields"), 0)

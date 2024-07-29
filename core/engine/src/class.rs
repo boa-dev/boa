@@ -154,7 +154,7 @@ pub trait Class: NativeObject + Sized {
     ///
     /// - Throws an error if `new_target` is undefined.
     /// - Throws an error if this class is not registered in `new_target`'s realm.
-    /// See [`Context::register_global_class`].
+    ///   See [`Context::register_global_class`].
     ///
     /// <div class="warning">
     /// Overriding this method could be useful for certain usages, but incorrectly implementing this
@@ -211,7 +211,7 @@ pub trait Class: NativeObject + Sized {
     ///
     /// # Errors
     /// - Throws an error if this class is not registered in the context's realm. See
-    /// [`Context::register_global_class`].
+    ///   [`Context::register_global_class`].
     ///
     /// <div class="warning">
     /// Overriding this method could be useful for certain usages, but incorrectly implementing this

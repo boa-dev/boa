@@ -48,7 +48,7 @@ pub(crate) const fn vtable_of<T: Trace + 'static>() -> &'static VTable {
             trace_non_roots_fn: T::trace_non_roots_fn,
             run_finalizer_fn: T::run_finalizer_fn,
             drop_fn: T::drop_fn,
-            size: std::mem::size_of::<GcBox<T>>(),
+            size: size_of::<GcBox<T>>(),
         };
     }
 

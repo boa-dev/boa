@@ -213,7 +213,7 @@ where
     /// i.e. if there are tokens `A`, `B`, `C`, `D`, `E` and `peek(0, false)` returns `A` then:
     ///  - `peek(1, false) == peek(1, true) == B`.
     ///  - `peek(2, false)` will return `C`.
-    /// where `A`, `B`, `C`, `D` and `E` are tokens but not line terminators.
+    ///    where `A`, `B`, `C`, `D` and `E` are tokens but not line terminators.
     ///
     /// If `skip_line_terminators` is `true` then line terminators will be discarded.
     /// i.e. If there are tokens `A`, `\n`, `B` and `peek(0, false)` is `A` then the following
