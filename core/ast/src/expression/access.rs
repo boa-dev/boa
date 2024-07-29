@@ -3,9 +3,9 @@
 //! [Property access expressions][access] provide two ways to access properties of an object: *dot notation*
 //! and *bracket notation*.
 //! - *Dot notation* is mostly used when the name of the property is static, and a valid Javascript
-//! identifier e.g. `obj.prop`, `arr.$val`.
+//!   identifier e.g. `obj.prop`, `arr.$val`.
 //! - *Bracket notation* is used when the name of the property is either variable, not a valid
-//! identifier or a symbol e.g. `arr[var]`, `arr[5]`, `arr[Symbol.iterator]`.
+//!   identifier or a symbol e.g. `arr[var]`, `arr[5]`, `arr[Symbol.iterator]`.
 //!
 //! A property access expression can be represented by a [`SimplePropertyAccess`] (`x.y`), a
 //! [`PrivatePropertyAccess`] (`x.#y`) or a [`SuperPropertyAccess`] (`super["y"]`), each of them with

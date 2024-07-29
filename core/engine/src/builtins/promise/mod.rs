@@ -88,8 +88,8 @@ pub struct Promise {
 /// Per the spec:
 ///
 /// > If operation is "handle", an implementation should not hold a reference to promise in a way
-/// that would interfere with garbage collection. An implementation may hold a reference to promise
-/// if operation is "reject", since it is expected that rejections will be rare and not on hot code paths.
+/// > that would interfere with garbage collection. An implementation may hold a reference to promise
+/// > if operation is "reject", since it is expected that rejections will be rare and not on hot code paths.
 ///
 /// [fn]: https://tc39.es/ecma262/#sec-host-promise-rejection-tracker
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

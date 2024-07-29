@@ -38,7 +38,7 @@ impl VisitWith for OptionalOperationKind {
             Self::SimplePropertyAccess { field } => visitor.visit_property_access_field(field),
             Self::PrivatePropertyAccess { field } => visitor.visit_private_name(field),
             Self::Call { args } => {
-                for arg in args.iter() {
+                for arg in args {
                     try_break!(visitor.visit_expression(arg));
                 }
                 ControlFlow::Continue(())

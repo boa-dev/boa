@@ -9,7 +9,6 @@ use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::{self, ErrorKind};
 
-#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TemplateString {
     /// The raw template string.

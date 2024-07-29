@@ -154,7 +154,7 @@ fn eph_self_referential() {
                 inner: GcRefCell::new(None),
             }),
         };
-        let root_size = std::mem::size_of::<GcBox<InnerCell>>();
+        let root_size = size_of::<GcBox<InnerCell>>();
 
         Harness::assert_exact_bytes_allocated(root_size);
 
@@ -183,7 +183,7 @@ fn eph_self_referential_chain() {
     }
     run_test(|| {
         let root = Gc::new(GcRefCell::new(None));
-        let root_size = std::mem::size_of::<GcBox<GcRefCell<Option<Ephemeron<u8, TestCell>>>>>();
+        let root_size = size_of::<GcBox<GcRefCell<Option<Ephemeron<u8, TestCell>>>>>();
 
         Harness::assert_exact_bytes_allocated(root_size);
 
