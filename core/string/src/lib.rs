@@ -1198,7 +1198,7 @@ impl<D: private::JsStringData> Default for JsStringBuilder<D> {
 }
 
 impl<D: private::JsStringData> JsStringBuilder<D> {
-    const DATA_SIZE: usize = std::mem::size_of::<D>();
+    const DATA_SIZE: usize = size_of::<D>();
     const MIN_NON_ZERO_CAP: usize = 8 / Self::DATA_SIZE;
 
     /// Create a new `JsStringBuilder` with capacity of zero.
@@ -1281,6 +1281,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// Checks if the inner is allocated.
+    #[must_use]
     fn is_dangling(&self) -> bool {
         self.inner == NonNull::dangling()
     }
