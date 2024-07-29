@@ -99,7 +99,7 @@ fn from_js_str_radix(src: JsStr<'_>, radix: u8) -> Option<f64> {
     /// Note that if the radix is known to the compiler, it is just the check of digits.len that
     /// is done at runtime.
     fn can_not_overflow(radix: u8, digits_len: usize) -> bool {
-        usize::from(radix) <= 16 && digits_len <= std::mem::size_of::<u64>() * 2
+        usize::from(radix) <= 16 && digits_len <= size_of::<u64>() * 2
     }
 
     const fn to_digit(input: u8, radix: u8) -> Option<u8> {

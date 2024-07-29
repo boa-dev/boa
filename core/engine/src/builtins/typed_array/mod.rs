@@ -76,12 +76,12 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
             )
             .property(
                 js_str!("BYTES_PER_ELEMENT"),
-                std::mem::size_of::<T::Element>(),
+                size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .static_property(
                 js_str!("BYTES_PER_ELEMENT"),
-                std::mem::size_of::<T::Element>(),
+                size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .build();
@@ -437,14 +437,14 @@ impl TypedArrayKind {
     pub(crate) const fn element_size(self) -> u64 {
         match self {
             TypedArrayKind::Int8 | TypedArrayKind::Uint8 | TypedArrayKind::Uint8Clamped => {
-                std::mem::size_of::<u8>() as u64
+                size_of::<u8>() as u64
             }
-            TypedArrayKind::Int16 | TypedArrayKind::Uint16 => std::mem::size_of::<u16>() as u64,
+            TypedArrayKind::Int16 | TypedArrayKind::Uint16 => size_of::<u16>() as u64,
             TypedArrayKind::Int32 | TypedArrayKind::Uint32 | TypedArrayKind::Float32 => {
-                std::mem::size_of::<u32>() as u64
+                size_of::<u32>() as u64
             }
             TypedArrayKind::BigInt64 | TypedArrayKind::BigUint64 | TypedArrayKind::Float64 => {
-                std::mem::size_of::<u64>() as u64
+                size_of::<u64>() as u64
             }
         }
     }

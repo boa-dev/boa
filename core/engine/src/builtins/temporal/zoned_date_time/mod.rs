@@ -19,7 +19,7 @@ pub struct ZonedDateTime {
 }
 
 impl BuiltInObject for ZonedDateTime {
-    const NAME: JsString = StaticJsStrings::ZONED_DT;
+    const NAME: JsString = StaticJsStrings::ZONED_DT_NAME;
 }
 
 impl IntrinsicObject for ZonedDateTime {
@@ -29,7 +29,7 @@ impl IntrinsicObject for ZonedDateTime {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::ZONED_DT_TAG,
                 Attribute::CONFIGURABLE,
             )
             .build();
@@ -41,7 +41,7 @@ impl IntrinsicObject for ZonedDateTime {
 }
 
 impl BuiltInConstructor for ZonedDateTime {
-    const LENGTH: usize = 0;
+    const LENGTH: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::zoned_date_time;

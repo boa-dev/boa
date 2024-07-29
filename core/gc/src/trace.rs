@@ -54,10 +54,10 @@ pub trait Finalize {
 /// # Safety
 ///
 /// - An incorrect implementation of the trait can result in heap overflows, data corruption,
-/// use-after-free, or Undefined Behaviour in general.
+///   use-after-free, or Undefined Behaviour in general.
 ///
 /// - Calling any of the functions marked as `unsafe` outside of the context of the garbage collector
-/// can result in Undefined Behaviour.
+///   can result in Undefined Behaviour.
 pub unsafe trait Trace: Finalize {
     /// Marks all contained `Gc`s.
     ///
