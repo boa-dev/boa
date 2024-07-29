@@ -123,7 +123,7 @@ pub(crate) fn read<T>(bytes: &[u8], offset: usize) -> T
 where
     T: Readable,
 {
-    assert!(offset + std::mem::size_of::<T>() - 1 < bytes.len());
+    assert!(offset + size_of::<T>() - 1 < bytes.len());
 
     // Safety: We checked that it is not an out-of-bounds read,
     // so this is safe.
@@ -211,7 +211,7 @@ impl BytecodeConversion for GeneratorResumeKind {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<u8>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         JsValue::from(value).to_generator_resume_kind()
     }
 }
@@ -222,7 +222,7 @@ impl BytecodeConversion for bool {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<u8>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value != 0
     }
 }
@@ -233,7 +233,7 @@ impl BytecodeConversion for i8 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -244,7 +244,7 @@ impl BytecodeConversion for u8 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -255,7 +255,7 @@ impl BytecodeConversion for i16 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -266,7 +266,7 @@ impl BytecodeConversion for u16 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -277,7 +277,7 @@ impl BytecodeConversion for i32 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -288,7 +288,7 @@ impl BytecodeConversion for u32 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -299,7 +299,7 @@ impl BytecodeConversion for i64 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -310,7 +310,7 @@ impl BytecodeConversion for u64 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -321,7 +321,7 @@ impl BytecodeConversion for f32 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -332,7 +332,7 @@ impl BytecodeConversion for f64 {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let value = read::<Self>(bytes, *pc);
-        *pc += std::mem::size_of::<Self>();
+        *pc += size_of::<Self>();
         value
     }
 }
@@ -346,11 +346,11 @@ impl BytecodeConversion for ThinVec<u32> {
     }
     fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
         let count = read::<u32>(bytes, *pc);
-        *pc += std::mem::size_of::<u32>();
+        *pc += size_of::<u32>();
         let mut result = Self::with_capacity(count as usize);
         for _ in 0..count {
             let item = read::<u32>(bytes, *pc);
-            *pc += std::mem::size_of::<u32>();
+            *pc += size_of::<u32>();
             result.push(item);
         }
         result

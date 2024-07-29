@@ -32,7 +32,7 @@ impl IntrinsicObject for Now {
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::NOW_TAG,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_method(Self::time_zone_id, js_string!("timeZoneId"), 0)
@@ -52,7 +52,7 @@ impl IntrinsicObject for Now {
 }
 
 impl BuiltInObject for Now {
-    const NAME: JsString = StaticJsStrings::NOW;
+    const NAME: JsString = StaticJsStrings::NOW_NAME;
 }
 
 impl Now {

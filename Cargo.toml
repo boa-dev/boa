@@ -29,7 +29,7 @@ exclude = [
 [workspace.package]
 edition = "2021"
 version = "0.19.0"
-rust-version = "1.79.0"
+rust-version = "1.80.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense OR MIT"
@@ -53,7 +53,7 @@ boa_string = { version = "~0.19.0", path = "core/string" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.5.0"
-clap = "4.5.8"
+clap = "4.5.9"
 colored = "2.1.0"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.5", default-features = false }
@@ -80,7 +80,7 @@ simple_logger = "5.0.0"
 cargo_metadata = "0.18.1"
 trybuild = "1.0.97"
 rayon = "1.10.0"
-toml = "0.8.14"
+toml = "0.8.15"
 color-eyre = "0.6.3"
 comfy-table = "7.1.1"
 serde_repr = "0.1.19"
@@ -95,7 +95,7 @@ isahc = "1.7.2"
 rustyline = { version = "14.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.36"
-syn = { version = "2.0.69", default-features = false }
+syn = { version = "2.0.72", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "11.0.1"
@@ -105,18 +105,18 @@ rand = "0.8.5"
 num-integer = "0.1.46"
 ryu-js = "1.0.1"
 tap = "1.0.1"
-thiserror = "1.0.60"
+thiserror = "1.0.63"
 dashmap = "5.5.3"
 num_enum = "0.7.2"
 itertools = { version = "0.13.0", default-features = false }
-portable-atomic = "1.6.0"
+portable-atomic = "1.7.0"
 bytemuck = { version = "1.16.1", default-features = false }
 arrayvec = "0.7.4"
 intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
 either = "1.13.0"
 sys-locale = "0.3.1"
-temporal_rs = "0.0.3"
+temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "8ef18fedc401761875b815a692443bf54ce9bd96" }
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.9.0"
@@ -185,13 +185,13 @@ codegen-units = 1
 [workspace.lints.rust]
 # rustc lint groups https://doc.rust-lang.org/rustc/lints/groups.html
 warnings = "warn"
-future_incompatible = "warn"
-let_underscore = "warn"
-nonstandard_style = "warn"
-rust_2018_compatibility = "warn"
-rust_2018_idioms = "warn"
-rust_2021_compatibility = "warn"
-unused = "warn"
+future_incompatible = { level = "warn", priority = -1 }
+let_underscore = { level = "warn", priority = -1 }
+nonstandard_style = { level = "warn", priority = -1 }
+rust_2018_compatibility = { level = "warn", priority = -1 }
+rust_2018_idioms = { level = "warn", priority = -1 }
+rust_2021_compatibility = { level = "warn", priority = -1 }
+unused = { level = "warn", priority = -1 }
 
 # rustc allowed-by-default lints https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html
 missing_docs = "warn"
@@ -228,10 +228,10 @@ bare_urls = "warn"
 dbg_macro = "warn"
 
 # clippy categories https://doc.rust-lang.org/clippy/
-all = "warn"
-correctness = "warn"
-suspicious = "warn"
-style = "warn"
-complexity = "warn"
-perf = "warn"
-pedantic = "warn"
+all = { level = "warn", priority = -1 }
+correctness = { level = "warn", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }

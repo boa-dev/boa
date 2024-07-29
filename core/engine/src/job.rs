@@ -10,9 +10,9 @@
 //! implementing custom event loops, custom handling of Jobs or other fun things.
 //! This trait is also accompanied by two implementors of the trait:
 //! - [`IdleJobQueue`], which is a queue that does nothing, and the default queue if no queue is
-//! provided. Useful for hosts that want to disable promises.
+//!   provided. Useful for hosts that want to disable promises.
 //! - [`SimpleJobQueue`], which is a simple FIFO queue that runs all jobs to completion, bailing
-//! on the first error encountered.
+//!   on the first error encountered.
 //!
 //! [Job]: https://tc39.es/ecma262/#sec-jobs
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
@@ -37,7 +37,7 @@ pub type FutureJob = Pin<Box<dyn Future<Output = NativeJob> + 'static>>;
 /// ### Requirements
 ///
 /// - At some future point in time, when there is no running execution context and the execution
-/// context stack is empty, the implementation must:
+///   context stack is empty, the implementation must:
 ///     - Perform any host-defined preparation steps.
 ///     - Invoke the Job Abstract Closure.
 ///     - Perform any host-defined cleanup steps, after which the execution context stack must be empty.
@@ -196,12 +196,12 @@ pub trait JobQueue {
     ///
     /// Per the [spec]:
     /// > An implementation of `HostEnqueuePromiseJob` must conform to the requirements in [9.5][Jobs] as well as the
-    ///   following:
+    /// > following:
     /// > - If `realm` is not null, each time `job` is invoked the implementation must perform implementation-defined steps
-    ///     such that execution is prepared to evaluate ECMAScript code at the time of job's invocation.
+    ///   > such that execution is prepared to evaluate ECMAScript code at the time of job's invocation.
     /// > - Let `scriptOrModule` be `GetActiveScriptOrModule()` at the time `HostEnqueuePromiseJob` is invoked. If realm
-    ///     is not null, each time job is invoked the implementation must perform implementation-defined steps such that
-    ///     `scriptOrModule` is the active script or module at the time of job's invocation.
+    ///   > is not null, each time job is invoked the implementation must perform implementation-defined steps such that
+    ///   > `scriptOrModule` is the active script or module at the time of job's invocation.
     /// > - Jobs must run in the same order as the `HostEnqueuePromiseJob` invocations that scheduled them.
     ///
     /// Of all the requirements, Boa guarantees the first two by its internal implementation of `NativeJob`, meaning

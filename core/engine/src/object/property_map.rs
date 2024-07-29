@@ -7,7 +7,7 @@ use super::{
     },
     JsPrototype, ObjectStorage, PropertyDescriptor, PropertyKey,
 };
-use crate::{property::PropertyDescriptorBuilder, JsString, JsSymbol, JsValue};
+use crate::{property::PropertyDescriptorBuilder, JsValue};
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::IndexMap;
 use rustc_hash::{FxHashMap, FxHasher};
@@ -746,35 +746,6 @@ impl PropertyMap {
         }
 
         false
-    }
-}
-
-/// An iterator over the property entries of an `Object`
-#[derive(Debug, Clone)]
-pub struct Iter<'a> {
-    indexed_properties: IndexProperties<'a>,
-    string_properties: indexmap::map::Iter<'a, JsString, PropertyDescriptor>,
-    symbol_properties: indexmap::map::Iter<'a, JsSymbol, PropertyDescriptor>,
-}
-
-impl Iterator for Iter<'_> {
-    type Item = (PropertyKey, PropertyDescriptor);
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some((key, value)) = self.indexed_properties.next() {
-            Some((key.into(), value))
-        } else if let Some((key, value)) = self.string_properties.next() {
-            Some((key.clone().into(), value.clone()))
-        } else {
-            let (key, value) = self.symbol_properties.next()?;
-            Some((key.clone().into(), value.clone()))
-        }
-    }
-}
-
-impl ExactSizeIterator for Iter<'_> {
-    #[inline]
-    fn len(&self) -> usize {
-        self.indexed_properties.len() + self.string_properties.len() + self.symbol_properties.len()
     }
 }
 

@@ -110,8 +110,8 @@ impl JsPromise {
     /// - The executor function `executor` is called synchronously just after the promise is created.
     /// - The executor return value is ignored.
     /// - Any error thrown within the execution of `executor` will call the `reject` function
-    /// of the newly created promise, unless either `resolve` or `reject` were already called
-    /// beforehand.
+    ///   of the newly created promise, unless either `resolve` or `reject` were already called
+    ///   beforehand.
     ///
     /// `executor` receives as an argument the [`ResolvingFunctions`] needed to settle the promise,
     /// which can be done by either calling the `resolve` function or the `reject` function.
@@ -424,9 +424,9 @@ impl JsPromise {
     /// the original promise settles:
     ///
     /// - If the original promise is fulfilled, `on_fulfilled` is called with the fulfillment value
-    /// of the original promise.
+    ///   of the original promise.
     /// - If the original promise is rejected, `on_rejected` is called with the rejection reason
-    /// of the original promise.
+    ///   of the original promise.
     ///
     /// The return value of the handlers can be used to mutate the state of the created promise. If
     /// the callback:
@@ -437,7 +437,7 @@ impl JsPromise {
     /// - returns a fulfilled promise: the created promise gets fulfilled with that promise's value as its value.
     /// - returns a rejected promise: the created promise gets rejected with that promise's value as its value.
     /// - returns another pending promise: the created promise remains pending but becomes settled with that
-    /// promise's value as its value immediately after that promise becomes settled.
+    ///   promise's value as its value immediately after that promise becomes settled.
     ///
     /// # Examples
     ///
@@ -559,8 +559,8 @@ impl JsPromise {
     /// it has slightly different semantics than `then`:
     /// - `on_finally` doesn't receive any argument, unlike `on_fulfilled` and `on_rejected`.
     /// - `finally()` is transparent; a call like `Promise.resolve("first").finally(() => "second")`
-    /// returns a promise fulfilled with the value `"first"`, which would return `"second"` if `finally`
-    /// was a shortcut of `then`.
+    ///   returns a promise fulfilled with the value `"first"`, which would return `"second"` if `finally`
+    ///   was a shortcut of `then`.
     ///
     /// # Examples
     ///

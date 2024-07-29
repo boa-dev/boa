@@ -703,12 +703,29 @@ impl Math {
         // 2. Set exponent to ? ToNumber(exponent).
         let y = args.get_or_undefined(1).to_number(context)?;
 
-        // 3. If |x| = 1 and the exponent is infinite, return NaN.
+        // 3. Return Number::exponentiate(base, exponent).
+
+        // https://github.com/rust-lang/rust/issues/60468
+
+        // https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate
+        // 6.1.6.1.3 Number::exponentiate ( base, exponent )
+        //  1. If exponent is NaN, return NaN.
+        if y.is_nan() {
+            return Ok(f64::NAN.into());
+        }
+
+        // 9. If exponent is +∞𝔽, then
+        //   a. If abs(ℝ(base)) > 1, return +∞𝔽.
+        //   b. If abs(ℝ(base)) = 1, return NaN.
+        //   c. If abs(ℝ(base)) < 1, return +0𝔽.
+        // 10. If exponent is -∞𝔽, then
+        //   a. If abs(ℝ(base)) > 1, return +0𝔽.
+        //   b. If abs(ℝ(base)) = 1, return NaN.
+        //   c. If abs(ℝ(base)) < 1, return +∞𝔽.
         if f64::abs(x) == 1f64 && y.is_infinite() {
             return Ok(f64::NAN.into());
         }
 
-        // 4. Return ! Number::exponentiate(base, exponent).
         Ok(x.powf(y).into())
     }
 

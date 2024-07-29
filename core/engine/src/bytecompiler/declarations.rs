@@ -587,7 +587,7 @@ impl ByteCompiler<'_> {
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
-                .binding_identifier(Some(name.sym().to_js_string(self.interner())))
+                .binding_identifier(None)
                 .compile(
                     parameters,
                     body,
