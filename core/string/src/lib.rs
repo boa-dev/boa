@@ -158,6 +158,7 @@ impl CodePoint {
 /// ```
 /// The latin1/UTF-16 flag is stored in the bottom bit.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(transparent)]
 struct TaggedLen(usize);
 
 impl TaggedLen {
