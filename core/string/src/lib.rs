@@ -175,6 +175,7 @@ impl TaggedLen {
 
 /// The raw representation of a [`JsString`] from a string literal.
 #[derive(Debug)]
+#[repr(C)]
 pub struct StaticJsString {
     tagged_len: TaggedLen,
     _zero: usize,
