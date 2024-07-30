@@ -150,9 +150,13 @@ impl CodePoint {
     }
 }
 
-/// Contains the flags and Latin1/UTF-16 length.
-///
-/// The latin1 flag is stored in the bottom bit.
+/// A `usize` contains a flag and the length of Latin1/UTF-16 .
+/// ```text
+/// ┌────────────────────────────────────┐
+/// │ length (usize::BITS - 1) │ flag(1) │
+/// └────────────────────────────────────┘
+/// ```
+/// The latin1/UTF-16 flag is stored in the bottom bit.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct TaggedLen(usize);
 
@@ -205,7 +209,8 @@ impl StaticJsString {
     }
 }
 
-/// Memory variant to pass `Miri` test.\
+/// Memory variant to pass `Miri` test.
+///
 /// If it equals to `0usize`,
 /// we mark it read-only, otherwise it is readable and writable
 union RefCount {
@@ -222,11 +227,11 @@ struct RawJsString {
 }
 
 impl RawJsString {
-    fn is_latin1(&self) -> bool {
+    const fn is_latin1(&self) -> bool {
         self.tagged_len.is_latin1()
     }
 
-    fn len(&self) -> usize {
+    const fn len(&self) -> usize {
         self.tagged_len.len()
     }
 }
@@ -275,8 +280,9 @@ impl JsString {
         let src = ptr::from_ref(src).cast::<RawJsString>();
         JsString {
             // SAFETY:
-            // Caller must ensure the pointer is valid and point to data
-            // with the same size and alignment of `RawJsString`.
+            // `StaticJsString` has the same memory layout as `RawJsString` for the first 2 fields
+            // which means it is safe to use it to represent `RawJsString` as long as we only acccess the first 2 fields,
+            // and the static reference indicates that the pointer cast is valid.
             ptr: unsafe { Tagged::from_ptr(src.cast_mut()) },
         }
     }
@@ -311,7 +317,11 @@ impl JsString {
                 // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
                 //   by its signature, so this doesn't outlive `self`.
                 //
-                // - The `RawJsString` created from string literal has a static lifetime `JsStr`.
+                // - The `RawJsString` created from string literal has a static reference to the string literal,
+                //   making it safe to be dereferenced and used as a static `JsStr`.
+                //
+                // - `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
+                //   which means it is safe to read the `refcount` as `read_only` here.
                 unsafe {
                     let h = h.as_ptr();
                     if (*h).refcount.read_only == 0 {
@@ -910,7 +920,10 @@ impl JsString {
     pub fn refcount(&self) -> Option<usize> {
         match self.ptr.unwrap() {
             UnwrappedTagged::Ptr(inner) => {
-                // SAFETY: The reference count of `JsString` guarantees that `inner` is always valid.
+                // SAFETY:
+                // `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
+                // And `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
+                // which means it is safe to read the `refcount` as `read_only` here.
                 let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
                 if rc == 0 {
                     None
@@ -927,20 +940,25 @@ impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
         if let UnwrappedTagged::Ptr(inner) = self.ptr.unwrap() {
-            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
+            // SAFETY:
+            // `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
+            // And `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
+            // which means it is safe to read the `refcount` as `read_only` here.
             let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
             if rc == 0 {
                 // pointee is a static string
                 return Self { ptr: self.ptr };
             }
-            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
+            // SAFETY: `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
             let inner = unsafe { inner.as_ref() };
 
             let strong = rc.wrapping_add(1);
             if strong == 0 {
                 abort()
             }
-            // SAFETY: This has been checked aboved to ensure it is a `read_write` variant.
+            // SAFETY:
+            // This has been checked aboved to ensure it is a `read_write` variant,
+            // which means it is safe to write the `refcount` as `read_write` here.
             unsafe {
                 inner.refcount.read_write.set(strong);
             }
@@ -962,7 +980,10 @@ impl Drop for JsString {
         if let UnwrappedTagged::Ptr(raw) = self.ptr.unwrap() {
             // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
 
-            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
+            // SAFETY:
+            // `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
+            // And `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
+            // which means it is safe to read the `refcount` as `read_only` here.
             let refcount = unsafe { (*raw.as_ptr()).refcount.read_only };
             if refcount == 0 {
                 // Just a static string. No need to drop.
@@ -972,7 +993,9 @@ impl Drop for JsString {
             // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
             let inner = unsafe { raw.as_ref() };
 
-            // SAFETY: This has been checked aboved to ensure it is a `read_write` variant.
+            // SAFETY:
+            // This has been checked aboved to ensure it is a `read_write` variant,
+            // which means it is safe to write the `refcount` as `read_write` here.
             unsafe {
                 inner.refcount.read_write.set(refcount - 1);
                 if inner.refcount.read_write.get() != 0 {
