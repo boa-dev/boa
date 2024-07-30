@@ -861,7 +861,7 @@ impl JsString {
     #[inline]
     #[must_use]
     pub fn is_static(&self) -> bool {
-        self.ptr.is_tagged()
+        self.refcount().is_none()
     }
 
     /// Get the element a the given index, [`None`] otherwise.
