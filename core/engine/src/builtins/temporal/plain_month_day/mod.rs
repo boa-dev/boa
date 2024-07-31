@@ -49,47 +49,7 @@ impl PlainMonthDay {
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let options = get_options_object(args.get_or_undefined(1))?;
         let item = args.get_or_undefined(0);
-        let inner = if item.is_object() {
-            if let Some(data) = item
-                .as_object()
-                .and_then(JsObject::downcast_ref::<PlainMonthDay>)
-            {
-                // Perform ? [GetTemporalOverflowOption](https://tc39.es/proposal-temporal/#sec-temporal-gettemporaloverflowoption)(options).
-                let options = get_options_object(args.get_or_undefined(1))?;
-                let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
-                data.inner.clone()
-            } else {
-                let overflow = get_option(&options, js_str!("overflow"), context)?
-                    .unwrap_or(ArithmeticOverflow::Constrain);
-
-                let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
-
-                InnerMonthDay::new(
-                    item.get_v(js_str!("month"), context)
-                        .expect("Month not found")
-                        .to_i32(context)
-                        .expect("Cannot convert month to i32"),
-                    item.get_v(js_str!("day"), context)
-                        .expect("Day not found")
-                        .to_i32(context)
-                        .expect("Cannot convert day to i32"),
-                    calendar,
-                    overflow,
-                )?
-            }
-        } else if item.is_string() {
-            let item_str = &item
-                .as_string()
-                .expect("item is not a string")
-                .to_std_string_escaped();
-            InnerMonthDay::from_str(item_str)?
-        } else {
-            return Err(JsNativeError::typ()
-                .with_message("item must be an object or a string")
-                .into());
-        };
-
-        create_temporal_month_day(inner, None, context)
+        to_temporal_month_day(item, options, context)
     }
 }
 
@@ -106,9 +66,7 @@ impl PlainMonthDay {
         let inner = &month_day.inner;
         match field {
             DateTimeValues::Day => Ok(inner.iso_day().into()),
-            DateTimeValues::MonthCode => {
-                Ok(JsString::from(InnerMonthDay::month_code(inner)?.as_str()).into())
-            }
+            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code()).into()),
             _ => unreachable!(),
         }
     }
@@ -133,7 +91,7 @@ impl PlainMonthDay {
                 JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
             })?;
         let inner = &month_day.inner;
-        Ok(js_string!(inner.calendar_id()).into())
+        Ok(js_string!(inner.calendar().identifier()).into())
     }
 }
 
@@ -254,6 +212,8 @@ fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> Js
     // 3. Let result be the string-concatenation of month and the code unit 0x002D (HYPHEN-MINUS).
     let mut result = format!("{month:0>2}-{day:0>2}");
 
+    let calendar_id = inner.calendar().identifier();
+
     // 5. Let calendar be monthDay.[[Calendar]].
     // 6. If showCalendar is "auto", then
     //     a. Set showCalendar to "always".
@@ -263,16 +223,14 @@ fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> Js
     if (matches!(
         show_calendar,
         CalendarName::Critical | CalendarName::Always | CalendarName::Auto
-    )) && !(matches!(show_calendar, CalendarName::Auto) && inner.calendar_id() == "iso8601")
+    )) && !(matches!(show_calendar, CalendarName::Auto) && calendar_id == "iso8601")
     {
-        let calendar = inner.calendar_id();
-        let calendar_string = calendar.to_string();
         let flag = if matches!(show_calendar, CalendarName::Critical) {
             "!"
         } else {
             ""
         };
-        result.push_str(&format!("[{flag}c={calendar_string}]",));
+        result.push_str(&format!("[{flag}c={calendar_id}]",));
     }
     // 8. Return result.
     js_string!(result).into()
@@ -319,4 +277,49 @@ pub(crate) fn create_temporal_month_day(
 
     // 9. Return object.
     Ok(obj.into())
+}
+
+fn to_temporal_month_day(
+    item: &JsValue,
+    options: JsObject,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?
+        .unwrap_or(ArithmeticOverflow::Constrain);
+
+    let calendar = to_temporal_calendar_slot_value(item)?;
+
+    let inner = if item.is_object() {
+        if let Some(data) = item
+            .as_object()
+            .and_then(JsObject::downcast_ref::<PlainMonthDay>)
+        {
+            data.inner.clone()
+        } else {
+            InnerMonthDay::new(
+                item.get_v(js_str!("month"), context)
+                    .expect("Month not found")
+                    .to_i32(context)
+                    .expect("Cannot convert month to i32"),
+                item.get_v(js_str!("day"), context)
+                    .expect("Day not found")
+                    .to_i32(context)
+                    .expect("Cannot convert day to i32"),
+                calendar,
+                overflow,
+            )?
+        }
+    } else if item.is_string() {
+        let item_str = &item
+            .as_string()
+            .expect("item is not a string")
+            .to_std_string_escaped();
+        InnerMonthDay::from_str(item_str)?
+    } else {
+        return Err(JsNativeError::typ()
+            .with_message("item must be an object or a string")
+            .into());
+    };
+
+    create_temporal_month_day(inner, None, context)
 }
