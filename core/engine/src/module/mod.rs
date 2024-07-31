@@ -628,7 +628,6 @@ impl Module {
 
     /// Get an exported value from the module.
     #[inline]
-    #[must_use]
     pub fn get_value<K>(&self, name: K, context: &mut Context) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,

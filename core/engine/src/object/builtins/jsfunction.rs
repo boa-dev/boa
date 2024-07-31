@@ -4,6 +4,7 @@ use crate::{
     value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
 };
 use boa_gc::{Finalize, Trace};
+use std::marker::PhantomData;
 use std::ops::Deref;
 
 /// A trait for converting a tuple of Rust values into a vector of `JsValue`,
@@ -42,8 +43,8 @@ impl_try_into_js_args!(a: A, b: B, c: C, d: D, e: E);
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct TypedJsFunction<A: TryIntoJsArguments, R: TryFromJs> {
     inner: JsFunction,
-    _args: std::marker::PhantomData<A>,
-    _ret: std::marker::PhantomData<R>,
+    _args: PhantomData<A>,
+    _ret: PhantomData<R>,
 }
 
 impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
@@ -55,14 +56,12 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
 
     /// Call the function with the given arguments.
     #[inline]
-    #[must_use]
     pub fn call(&self, context: &mut Context, args: A) -> JsResult<R> {
         self.call_with_this(&JsValue::undefined(), context, args)
     }
 
     /// Call the function with the given argument and `this`.
     #[inline]
-    #[must_use]
     pub fn call_with_this(&self, this: &JsValue, context: &mut Context, args: A) -> JsResult<R> {
         let arguments = args.into_js_args(context)?;
         let result = self.inner.call(this, &arguments, context)?;
@@ -117,8 +116,8 @@ impl JsFunction {
     pub fn typed<A: TryIntoJsArguments, R: TryFromJs>(self) -> TypedJsFunction<A, R> {
         TypedJsFunction {
             inner: self,
-            _args: Default::default(),
-            _ret: Default::default(),
+            _args: PhantomData,
+            _ret: PhantomData,
         }
     }
 }

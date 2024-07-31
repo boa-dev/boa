@@ -1,6 +1,6 @@
 #![allow(unused_crate_dependencies)]
 //! A test that mimics the GCD example from wasmtime.
-//! See: https://docs.wasmtime.dev/examples-rust-gcd.html#gcdrs
+//! See: <https://docs.wasmtime.dev/examples-rust-gcd.html#gcdrs>.
 //! This is a good point to discuss and improve on the usability
 //! of the [`boa_engine`] API.
 
