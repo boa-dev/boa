@@ -86,7 +86,7 @@ impl ToInternedString for TemplateLiteral {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "`".to_owned();
 
-        for elt in self.elements.iter() {
+        for elt in &self.elements {
             match elt {
                 TemplateElement::String(s) => {
                     buf.push_str(&format!("{}", interner.resolve_expect(*s)));

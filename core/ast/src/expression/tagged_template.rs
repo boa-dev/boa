@@ -87,7 +87,7 @@ impl ToInternedString for TaggedTemplate {
         let mut buf = format!("{}`", self.tag.to_interned_string(interner));
         let mut exprs = self.exprs.iter();
 
-        for raw in self.raws.iter() {
+        for raw in &self.raws {
             buf.push_str(&format!("{}", interner.resolve_expect(*raw)));
             if let Some(expr) = exprs.next() {
                 buf.push_str(&format!("${{{}}}", expr.to_interned_string(interner)));
