@@ -47,7 +47,6 @@ use crate::{
     builtins,
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
-    js_error,
     object::{JsObject, JsPromise},
     realm::Realm,
     Context, HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeFunction,
@@ -568,20 +567,6 @@ impl Module {
         Profiler::global().drop();
 
         promise
-    }
-
-    /// Utility function that execute [`load_link_evaluate`] and then run the job queue.
-    /// This combines two operations that are often done together into a simpler
-    /// version. If you need more control over the execution, use [`load_link_evaluate`]
-    /// and [`Context::run_jobs`] separately.
-    pub fn load_link_evaluate_and_run_jobs(&self, context: &mut Context) -> JsResult<()> {
-        let promise = self.load_link_evaluate(context);
-        context.run_jobs();
-        match promise.state() {
-            PromiseState::Fulfilled(_) => Ok(()),
-            PromiseState::Rejected(err) => Err(JsError::from_opaque(err)),
-            PromiseState::Pending => Err(js_error!("Module evaluation did not complete")),
-        }
     }
 
     /// Abstract operation [`GetModuleNamespace ( module )`][spec].

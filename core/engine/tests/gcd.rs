@@ -22,7 +22,10 @@ fn gcd() {
     let gcd_path = assets_dir.join("gcd.js");
     let source = Source::from_filepath(&gcd_path).unwrap();
     let module = Module::parse(source, None, context).unwrap();
-    module.load_link_evaluate_and_run_jobs(context).unwrap();
+    module
+        .load_link_evaluate(context)
+        .await_blocking(context)
+        .unwrap();
 
     let js_gcd = module
         .get_typed_fn::<(i32, i32), i32>(js_str!("gcd"), context)
