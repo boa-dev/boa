@@ -121,10 +121,10 @@ impl<'path, R: Read> Source<'path, UTF8Input<R>> {
 
 impl<'path, R> Source<'path, R> {
     /// Add a path to the current [`Source`] instance.
-    pub fn with_path<'path2>(self, new_path: &'path2 Path) -> Self<'path2, R> {
-        Self {
+    pub fn with_path(self, new_path: &Path) -> Source<'_, R> {
+        Source {
             reader: self.reader,
-            path: new_path,
+            path: Some(new_path),
         }
     }
 
