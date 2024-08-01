@@ -1042,9 +1042,10 @@ impl JsPromise {
 
     /// Run jobs until this promise is resolved or rejected. This could
     /// result in an infinite loop if the promise is never resolved or
-    /// rejected (e.g. with a [`JobQueue`] that does not prioritize
-    /// properly). If you need more control over how the promise handles
-    /// timing out, consider using [`Context::run_jobs`] directly.
+    /// rejected (e.g. with a [`boa_engine::job::JobQueue`] that does
+    /// not prioritize properly). If you need more control over how
+    /// the promise handles timing out, consider using
+    /// [`Context::run_jobs`] directly.
     ///
     /// Returns [`Result::Ok`] if the promise resolved, or [`Result::Err`]
     /// if the promise was rejected. If the promise was already resolved,
