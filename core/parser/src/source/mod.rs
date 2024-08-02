@@ -120,7 +120,7 @@ impl<'path, R: Read> Source<'path, UTF8Input<R>> {
 }
 
 impl<'path, R> Source<'path, R> {
-    /// Add a path to the current [`Source`] instance.
+    /// Sets the path of this [`Source`].
     pub fn with_path(self, new_path: &Path) -> Source<'_, R> {
         Source {
             reader: self.reader,
