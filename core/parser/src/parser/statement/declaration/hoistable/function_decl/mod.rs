@@ -81,6 +81,11 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(Function::new(Some(result.0), result.1, result.2))
+        Ok(Function::new_with_binding_identifier(
+            Some(result.0),
+            result.1,
+            result.2,
+            true,
+        ))
     }
 }

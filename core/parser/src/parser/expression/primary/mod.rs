@@ -47,7 +47,7 @@ use boa_ast::{
     self as ast,
     declaration::Variable,
     expression::{
-        literal::Literal,
+        literal::{self, Literal, TemplateElement},
         operator::{assign::AssignTarget, binary::BinaryOp},
         Identifier, Parenthesized,
     },
@@ -221,9 +221,10 @@ where
                         tok.span().start(),
                     ));
                 };
-                let node = Literal::from(cooked).into();
+                let temp =
+                    literal::TemplateLiteral::new(Box::new([TemplateElement::String(cooked)]));
                 cursor.advance(interner);
-                Ok(node)
+                Ok(temp.into())
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => {
                 let node = Literal::from(*num).into();

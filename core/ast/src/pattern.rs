@@ -308,8 +308,6 @@ pub enum ObjectPatternElement {
     RestProperty {
         /// The variable name where the unassigned properties will be stored.
         ident: Identifier,
-        /// A list of the excluded property keys that were already destructured.
-        excluded_keys: Vec<Identifier>,
     },
 
     /// `AssignmentGetField` represents an `AssignmentProperty` with an expression field member expression `AssignmentElement`.
@@ -342,8 +340,6 @@ pub enum ObjectPatternElement {
     AssignmentRestPropertyAccess {
         /// The property access where the unassigned properties will be stored.
         access: PropertyAccess,
-        /// A list of the excluded property keys that were already destructured.
-        excluded_keys: Vec<Identifier>,
     },
 
     /// Pattern represents a property with a `Pattern` as the element.
@@ -397,13 +393,10 @@ impl ToInternedString for ObjectPatternElement {
                 }
                 buf
             }
-            Self::RestProperty {
-                ident,
-                excluded_keys: _,
-            } => {
+            Self::RestProperty { ident } => {
                 format!(" ... {}", interner.resolve_expect(ident.sym()))
             }
-            Self::AssignmentRestPropertyAccess { access, .. } => {
+            Self::AssignmentRestPropertyAccess { access } => {
                 format!(" ... {}", access.to_interned_string(interner))
             }
             Self::AssignmentPropertyAccess {

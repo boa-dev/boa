@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, FunctionSpec, Operand},
+    bytecompiler::{Access, ByteCompiler, FunctionSpec, MethodKind, Operand},
     vm::Opcode,
 };
 use boa_ast::{
@@ -46,7 +46,9 @@ impl ByteCompiler<'_> {
                 PropertyDefinition::MethodDefinition(name, kind) => match kind {
                     MethodDefinition::Get(expr) => match name {
                         PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
+                            let mut method: FunctionSpec<'_> = expr.into();
+                            method.name = Some((*name).into());
+                            self.object_method(method, MethodKind::Get);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit_with_varying_operand(Opcode::SetPropertyGetterByName, index);
@@ -61,7 +63,9 @@ impl ByteCompiler<'_> {
                     },
                     MethodDefinition::Set(expr) => match name {
                         PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
+                            let mut method: FunctionSpec<'_> = expr.into();
+                            method.name = Some((*name).into());
+                            self.object_method(method, MethodKind::Set);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit_with_varying_operand(Opcode::SetPropertySetterByName, index);
@@ -76,7 +80,9 @@ impl ByteCompiler<'_> {
                     },
                     MethodDefinition::Ordinary(expr) => match name {
                         PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
+                            let mut method: FunctionSpec<'_> = expr.into();
+                            method.name = Some((*name).into());
+                            self.object_method(method, MethodKind::Ordinary);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
@@ -91,7 +97,9 @@ impl ByteCompiler<'_> {
                     },
                     MethodDefinition::Async(expr) => match name {
                         PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
+                            let mut method: FunctionSpec<'_> = expr.into();
+                            method.name = Some((*name).into());
+                            self.object_method(method, MethodKind::Ordinary);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
@@ -106,7 +114,9 @@ impl ByteCompiler<'_> {
                     },
                     MethodDefinition::Generator(expr) => match name {
                         PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
+                            let mut method: FunctionSpec<'_> = expr.into();
+                            method.name = Some((*name).into());
+                            self.object_method(method, MethodKind::Ordinary);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
@@ -121,7 +131,9 @@ impl ByteCompiler<'_> {
                     },
                     MethodDefinition::AsyncGenerator(expr) => match name {
                         PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
+                            let mut method: FunctionSpec<'_> = expr.into();
+                            method.name = Some((*name).into());
+                            self.object_method(method, MethodKind::Ordinary);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
@@ -171,7 +183,7 @@ impl ByteCompiler<'_> {
         self.emit_opcode(Opcode::Dup);
 
         // stack: object, object, ToPropertyKey(name), ToPropertyKey(name)
-        self.object_method(function);
+        self.object_method(function, kind);
 
         // stack: object, object, ToPropertyKey(name), ToPropertyKey(name), method
         let value = match kind {
@@ -203,11 +215,4 @@ impl ByteCompiler<'_> {
             MethodKind::Ordinary => self.emit_opcode(Opcode::DefineOwnPropertyByValue),
         }
     }
-}
-
-#[derive(Debug, Clone, Copy)]
-enum MethodKind {
-    Get,
-    Set,
-    Ordinary,
 }

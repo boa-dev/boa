@@ -1548,7 +1548,7 @@ impl SourceTextModule {
                 // 2. Perform ! env.InitializeBinding(dn, fo).
                 //
                 // deferred to below.
-                let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
+                let (mut spec, locator): (FunctionSpec<'_>, _) = match declaration {
                     LexicallyScopedDeclaration::Function(f) => {
                         let name = bound_names(f)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
@@ -1607,6 +1607,8 @@ impl SourceTextModule {
                         continue;
                     }
                 };
+
+                spec.has_binding_identifier = false;
 
                 functions.push((spec, locator));
             }

@@ -40,6 +40,7 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
+use boa_macros::js_str;
 use rustc_hash::FxHashMap;
 use thin_vec::ThinVec;
 
@@ -112,7 +113,7 @@ pub(crate) struct FunctionSpec<'a> {
     pub(crate) name: Option<Identifier>,
     parameters: &'a FormalParameterList,
     body: &'a FunctionBody,
-    has_binding_identifier: bool,
+    pub(crate) has_binding_identifier: bool,
 }
 
 impl<'a> From<&'a Function> for FunctionSpec<'a> {
@@ -185,6 +186,13 @@ impl<'a> From<&'a AsyncGenerator> for FunctionSpec<'a> {
             has_binding_identifier: function.has_binding_identifier(),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum MethodKind {
+    Get,
+    Set,
+    Ordinary,
 }
 
 /// Represents a callable expression, like `f()` or `new Cl()`
@@ -1346,11 +1354,15 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// pushing it to the stack if necessary.
     pub(crate) fn function_with_binding(
         &mut self,
-        function: FunctionSpec<'_>,
+        mut function: FunctionSpec<'_>,
         node_kind: NodeKind,
         use_expr: bool,
     ) {
         let name = function.name;
+
+        if node_kind == NodeKind::Declaration {
+            function.has_binding_identifier = false;
+        }
 
         let index = self.function(function);
         self.emit_with_varying_operand(Opcode::GetFunction, index);
@@ -1372,7 +1384,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     /// Compile an object method AST Node into bytecode.
-    pub(crate) fn object_method(&mut self, function: FunctionSpec<'_>) {
+    pub(crate) fn object_method(&mut self, function: FunctionSpec<'_>, kind: MethodKind) {
         let (generator, r#async, arrow) = (
             function.kind.is_generator(),
             function.kind.is_async(),
@@ -1387,7 +1399,12 @@ impl<'ctx> ByteCompiler<'ctx> {
         } = function;
 
         let name = if let Some(name) = name {
-            Some(name.sym().to_js_string(self.interner()))
+            let name = name.sym().to_js_string(self.interner());
+            match kind {
+                MethodKind::Ordinary => Some(name),
+                MethodKind::Get => Some(js_string!(js_str!("get "), &name)),
+                MethodKind::Set => Some(js_string!(js_str!("set "), &name)),
+            }
         } else {
             Some(js_string!())
         };
