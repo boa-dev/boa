@@ -153,16 +153,16 @@ impl JsError {
     /// ```
     /// # use boa_engine::JsError;
     /// let error = std::io::Error::new(std::io::ErrorKind::Other, "oh no!");
-    /// let js_error: JsError = JsError::from_std(error);
+    /// let js_error: JsError = JsError::from_rust(error);
     ///
     /// assert_eq!(js_error.as_native().unwrap().message(), "oh no!");
     /// assert!(js_error.as_native().unwrap().cause().is_none());
     /// ```
     #[must_use]
-    pub fn from_std(err: impl error::Error) -> Self {
+    pub fn from_rust(err: impl error::Error) -> Self {
         let mut native_err = JsNativeError::error().with_message(err.to_string());
         if let Some(source) = err.source() {
-            native_err = native_err.with_cause(Self::from_std(source));
+            native_err = native_err.with_cause(Self::from_rust(source));
         }
 
         Self::from_native(native_err)
