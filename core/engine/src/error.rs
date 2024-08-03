@@ -1,7 +1,5 @@
 //! Error-related types and conversions.
 
-use std::{error, fmt};
-
 use crate::{
     builtins::{error::ErrorObject, Array},
     js_string,
@@ -12,6 +10,7 @@ use crate::{
 };
 use boa_gc::{custom_trace, Finalize, Trace};
 use boa_macros::js_str;
+use std::{error, fmt};
 use thiserror::Error;
 
 /// Create an opaque error object from a value or string literal.
@@ -186,6 +185,29 @@ impl JsError {
         Self {
             inner: Repr::Native(err),
         }
+    }
+
+    /// Creates a new `JsError` from a Rust standard error `err`.
+    /// This will create a new `JsNativeError` with the message of the standard error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::JsError;
+    /// let error = std::io::Error::new(std::io::ErrorKind::Other, "oh no!");
+    /// let js_error: JsError = JsError::from_rust(error);
+    ///
+    /// assert_eq!(js_error.as_native().unwrap().message(), "oh no!");
+    /// assert!(js_error.as_native().unwrap().cause().is_none());
+    /// ```
+    #[must_use]
+    pub fn from_rust(err: impl error::Error) -> Self {
+        let mut native_err = JsNativeError::error().with_message(err.to_string());
+        if let Some(source) = err.source() {
+            native_err = native_err.with_cause(Self::from_rust(source));
+        }
+
+        Self::from_native(native_err)
     }
 
     /// Creates a new `JsError` from an opaque error `value`.
