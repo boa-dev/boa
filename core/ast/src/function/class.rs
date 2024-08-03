@@ -99,7 +99,7 @@ impl ToIndentedString for ClassDeclaration {
                 block_to_string(expr.body().statements(), interner, indent_n + 1)
             ));
         }
-        for element in self.elements.iter() {
+        for element in &self.elements {
             buf.push_str(&element.to_indented_string(interner, indent_n));
         }
         buf.push('}');
@@ -244,7 +244,7 @@ impl ToIndentedString for ClassExpression {
                 block_to_string(expr.body().statements(), interner, indent_n + 1)
             ));
         }
-        for element in self.elements.iter() {
+        for element in &self.elements {
             buf.push_str(&element.to_indented_string(interner, indent_n));
         }
         buf.push('}');
