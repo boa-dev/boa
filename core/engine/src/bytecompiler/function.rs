@@ -112,16 +112,12 @@ impl FunctionCompiler {
             false,
             variable_environment,
             lexical_environment,
+            self.r#async,
+            self.generator,
             interner,
             self.in_with,
         );
         compiler.length = length;
-        compiler
-            .code_block_flags
-            .set(CodeBlockFlags::IS_ASYNC, self.r#async);
-        compiler
-            .code_block_flags
-            .set(CodeBlockFlags::IS_GENERATOR, self.generator);
         compiler.code_block_flags.set(
             CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,
             !self.arrow && !self.method && !self.r#async && !self.generator,

@@ -254,6 +254,8 @@ impl Eval {
             false,
             var_env.clone(),
             lex_env.clone(),
+            false,
+            false,
             context.interner_mut(),
             in_with,
         );

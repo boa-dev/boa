@@ -549,6 +549,8 @@ impl CodeBlock {
             } => {
                 format!("is_anonymous_function: {is_anonymous_function}")
             }
+            Instruction::PopIntoRegister { dst } => format!("dst:reg{}", dst.value()),
+            Instruction::PushFromRegister { src } => format!("src:reg{}", src.value()),
             Instruction::Pop
             | Instruction::Dup
             | Instruction::Swap
@@ -724,9 +726,7 @@ impl CodeBlock {
             | Instruction::Reserved48
             | Instruction::Reserved49
             | Instruction::Reserved50
-            | Instruction::Reserved51
-            | Instruction::Reserved52
-            | Instruction::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved51 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
