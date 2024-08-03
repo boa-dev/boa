@@ -120,6 +120,14 @@ impl<'path, R: Read> Source<'path, UTF8Input<R>> {
 }
 
 impl<'path, R> Source<'path, R> {
+    /// Sets the path of this [`Source`].
+    pub fn with_path(self, new_path: &Path) -> Source<'_, R> {
+        Source {
+            reader: self.reader,
+            path: Some(new_path),
+        }
+    }
+
     /// Returns the path (if any) of this source file.
     pub fn path(&self) -> Option<&'path Path> {
         self.path
