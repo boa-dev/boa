@@ -54,6 +54,8 @@ impl ByteCompiler<'_> {
             self.json_parse,
             self.variable_environment.clone(),
             self.lexical_environment.clone(),
+            false,
+            false,
             self.interner,
             self.in_with,
         );
@@ -288,6 +290,8 @@ impl ByteCompiler<'_> {
                         self.json_parse,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
+                        false,
+                        false,
                         self.interner,
                         self.in_with,
                     );
@@ -317,6 +321,8 @@ impl ByteCompiler<'_> {
                         self.json_parse,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
+                        false,
+                        false,
                         self.interner,
                         self.in_with,
                     );
@@ -356,6 +362,8 @@ impl ByteCompiler<'_> {
                         self.json_parse,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
+                        false,
+                        false,
                         self.interner,
                         self.in_with,
                     );
@@ -391,6 +399,8 @@ impl ByteCompiler<'_> {
                         false,
                         self.variable_environment.clone(),
                         self.lexical_environment.clone(),
+                        false,
+                        false,
                         self.interner,
                         self.in_with,
                     );

@@ -1780,6 +1780,20 @@ generate_opcodes! {
     /// Stack: value **=>**
     SetReturnValue,
 
+    /// Pop value from the stack and push to register `dst`
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>**
+    PopIntoRegister { dst: VaryingOperand },
+
+    /// Copy value at register `src` and push it into the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>** value
+    PushFromRegister { src: VaryingOperand },
+
     /// Push a declarative environment.
     ///
     /// Operands: compile_environments_index: `VaryingOperand`
@@ -2255,10 +2269,6 @@ generate_opcodes! {
     Reserved50 => Reserved,
     /// Reserved [`Opcode`].
     Reserved51 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved52 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved53 => Reserved,
 }
 
 /// Specific opcodes for bindings.

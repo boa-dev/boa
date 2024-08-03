@@ -286,6 +286,8 @@ impl SyntheticModule {
             false,
             module_compile_env.clone(),
             module_compile_env.clone(),
+            false,
+            false,
             context.interner_mut(),
             false,
         );
