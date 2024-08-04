@@ -68,6 +68,15 @@ impl DeclarativeEnvironment {
         &self.kind
     }
 
+    /// Returns whether this environment is a function environment.
+    pub(crate) fn is_function(&self) -> bool {
+        if let DeclarativeEnvironmentKind::Function(_) = self.kind() {
+            true
+        } else {
+            false
+        }
+    }
+
     /// Gets the binding value from the environment by index.
     ///
     /// # Panics

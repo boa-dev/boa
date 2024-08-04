@@ -278,7 +278,7 @@ impl EnvironmentStack {
             .filter_map(Environment::as_declarative)
         {
             env.poison();
-            if env.compile_env().is_function() {
+            if env.is_function() {
                 return;
             }
         }
@@ -513,8 +513,8 @@ impl Context {
             match self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
-                        let compile = env.compile_env();
-                        if compile.is_function() {
+                        if env.is_function() {
+                            let compile = env.compile_env();
                             if let Some(b) = compile.get_binding(locator.name()) {
                                 locator.set_environment(b.environment());
                                 locator.binding_index = b.binding_index();
@@ -578,8 +578,9 @@ impl Context {
             match self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
-                        let compile = env.compile_env();
-                        if compile.is_function() && compile.get_binding(locator.name()).is_some() {
+                        if env.is_function()
+                            && env.compile_env().get_binding(locator.name()).is_some()
+                        {
                             break;
                         }
                     } else if !env.with() {
