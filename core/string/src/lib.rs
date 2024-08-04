@@ -1313,8 +1313,11 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         unsafe { addr_of_mut!((*self.inner.as_ptr()).data).cast() }
     }
 
+    /// Inner logic of `allocate`.
+    ///
+    /// Use `realloc` here because it has a better performance than using `alloc`, `copy` and `dealloc`.
     #[allow(clippy::cast_ptr_alignment)]
-    fn reserve_inner(&mut self, new_layout: Layout) {
+    fn allocate_inner(&mut self, new_layout: Layout) {
         let new_ptr = if self.is_dangling() {
             // SAFETY:
             // The layout size of `RawJsString` is never zero, since it has to store
@@ -1339,7 +1342,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     pub fn push(&mut self, v: D) {
         let len = self.len();
         if len == self.capacity() {
-            self.expand(len + 1);
+            self.allocate(len + 1);
         }
         // SAFETY:
         // Capacity has been expanded to be large enough to hold elements.
@@ -1369,7 +1372,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     pub fn extend_from_slice(&mut self, v: &[D]) {
         let required_cap = self.len() + v.len();
         if required_cap > self.capacity() {
-            self.expand(required_cap);
+            self.allocate(required_cap);
         }
         // SAFETY:
         // Capacity has been expanded to be large enough to hold elements.
@@ -1399,7 +1402,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         let (lower_bound, _) = iterator.size_hint();
         let require_cap = self.len() + lower_bound;
         if require_cap > self.capacity() {
-            self.expand(require_cap);
+            self.allocate(require_cap);
         }
         iterator.for_each(|c| self.push(c));
     }
@@ -1414,15 +1417,16 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
             let Some(cap) = self.len().checked_add(additional) else {
                 alloc_overflow()
             };
-            self.expand(cap);
+            self.allocate(cap);
         }
     }
 
-    /// Capacity calculation from [`std::vec::Vec::reserve`].
-    fn expand(&mut self, cap: usize) {
+    /// Allocates memory to the inner by the given capacity.
+    /// Capacity calculation is from [`std::vec::Vec::reserve`].
+    fn allocate(&mut self, cap: usize) {
         let cap = std::cmp::max(self.capacity() * 2, cap);
         let cap = std::cmp::max(Self::MIN_NON_ZERO_CAP, cap);
-        self.reserve_inner(Self::new_layout(cap));
+        self.allocate_inner(Self::new_layout(cap));
     }
 
     /// Appends an element to the inner of `JsStringBuilder` without doing bounds check.
@@ -1469,7 +1473,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         // Shrink to fit the length.
         if len != self.capacity() {
             let layout = Self::new_layout(self.len());
-            self.reserve_inner(layout);
+            self.allocate_inner(layout);
         }
 
         let inner = self.inner;
