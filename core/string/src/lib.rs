@@ -33,7 +33,7 @@ pub use crate::{
     str::{JsStr, JsStrVariant},
 };
 use std::{
-    alloc::{alloc, dealloc, Layout},
+    alloc::{alloc, dealloc, realloc, Layout},
     cell::Cell,
     convert::Infallible,
     hash::{Hash, Hasher},
@@ -1314,14 +1314,13 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     #[allow(clippy::cast_ptr_alignment)]
-    fn reserve(&mut self, new_layout: Layout) {
+    fn reserve_inner(&mut self, new_layout: Layout) {
         let new_ptr = if self.is_dangling() {
             // SAFETY:
             // The layout size of `RawJsString` is never zero, since it has to store
             // the length of the string and the reference count.
             unsafe { alloc(new_layout) }
         } else {
-            use std::alloc::realloc;
             let old_ptr = self.inner.as_ptr();
             let old_layout = self.current_layout();
             // SAFETY:
@@ -1405,11 +1404,25 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         iterator.for_each(|c| self.push(c));
     }
 
+    /// Reserves capacity for at least `additional` more elements to be inserted
+    /// in the given `JsStringBuilder<D>`. The collection may reserve more space to
+    /// speculatively avoid frequent reallocations. After calling `reserve`,
+    /// capacity will be greater than or equal to `self.len() + additional`.
+    /// Does nothing if capacity is already sufficient.
+    pub fn reserve(&mut self, additional: usize) {
+        if additional > self.capacity().wrapping_sub(self.len) {
+            let Some(cap) = self.len().checked_add(additional) else {
+                alloc_overflow()
+            };
+            self.expand(cap);
+        }
+    }
+
     /// Capacity calculation from [`std::vec::Vec::reserve`].
     fn expand(&mut self, cap: usize) {
         let cap = std::cmp::max(self.capacity() * 2, cap);
         let cap = std::cmp::max(Self::MIN_NON_ZERO_CAP, cap);
-        self.reserve(Self::new_layout(cap));
+        self.reserve_inner(Self::new_layout(cap));
     }
 
     /// Appends an element to the inner of `JsStringBuilder` without doing bounds check.
@@ -1456,7 +1469,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         // Shrink to fit the length.
         if len != self.capacity() {
             let layout = Self::new_layout(self.len());
-            self.reserve(layout);
+            self.reserve_inner(layout);
         }
 
         let inner = self.inner;
