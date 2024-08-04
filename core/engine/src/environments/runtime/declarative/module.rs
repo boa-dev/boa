@@ -1,8 +1,8 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use boa_gc::{Finalize, GcRefCell, Trace};
 
-use crate::{module::Module, JsString, JsValue};
+use crate::{environments::CompileTimeEnvironment, module::Module, JsString, JsValue};
 
 /// Type of accessor used to access an indirect binding.
 #[derive(Debug, Clone)]
@@ -36,14 +36,24 @@ enum BindingType {
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct ModuleEnvironment {
     bindings: GcRefCell<Vec<BindingType>>,
+
+    // Safety: Nothing in CompileTimeEnvironment needs tracing.
+    #[unsafe_ignore_trace]
+    compile: Rc<CompileTimeEnvironment>,
 }
 
 impl ModuleEnvironment {
     /// Creates a new `LexicalEnvironment`.
-    pub(crate) fn new(bindings: u32) -> Self {
+    pub(crate) fn new(bindings: u32, compile: Rc<CompileTimeEnvironment>) -> Self {
         Self {
             bindings: GcRefCell::new(vec![BindingType::Direct(None); bindings as usize]),
+            compile,
         }
+    }
+
+    /// Gets the compile time environment of this module environment.
+    pub(crate) const fn compile(&self) -> &Rc<CompileTimeEnvironment> {
+        &self.compile
     }
 
     /// Get the binding value from the environment by it's index.
@@ -63,7 +73,10 @@ impl ModuleEnvironment {
                 match &*accessor.clone().borrow() {
                     BindingAccessor::Identifier(name) => {
                         let index = env
-                            .compile_env()
+                            .kind()
+                            .as_module()
+                            .expect("must be module environment")
+                            .compile()
                             .get_binding(name)
                             .expect("linking must ensure the binding exists");
 

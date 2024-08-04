@@ -1701,14 +1701,14 @@ generate_opcodes! {
     /// Operands: argument_count: `VaryingOperand`
     ///
     /// Stack: this, func, argument_1, ... argument_n **=>** result
-    CallEval { argument_count: VaryingOperand },
+    CallEval { argument_count: VaryingOperand, compile_environments_index: VaryingOperand },
 
     /// Call a function named "eval" where the arguments contain spreads.
     ///
     /// Operands:
     ///
     /// Stack: this, func, arguments_array **=>** result
-    CallEvalSpread,
+    CallEvalSpread { compile_environments_index: VaryingOperand },
 
     /// Call a function.
     ///

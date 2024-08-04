@@ -62,7 +62,7 @@ impl Eval {
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
     fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
-        Self::perform_eval(args.get_or_undefined(0), false, false, context)
+        Self::perform_eval(args.get_or_undefined(0), false, None, false, context)
     }
 
     /// `19.2.1.1 PerformEval ( x, strictCaller, direct )`
@@ -74,6 +74,7 @@ impl Eval {
     pub(crate) fn perform_eval(
         x: &JsValue,
         direct: bool,
+        lex_env: Option<Rc<CompileTimeEnvironment>>,
         mut strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
@@ -229,10 +230,17 @@ impl Eval {
             }
         });
 
-        let var_environment = context.vm.environments.outer_function_environment().clone();
-        let mut var_env = var_environment.compile_env();
+        let (var_environment, mut var_env) =
+            if let Some(e) = context.vm.environments.outer_function_environment() {
+                (e.0, e.1)
+            } else {
+                (
+                    context.realm().environment().clone(),
+                    context.realm().compile_environment(),
+                )
+            };
 
-        let lex_env = context.vm.environments.current_compile_environment();
+        let lex_env = lex_env.unwrap_or(context.realm().compile_environment());
         let lex_env = Rc::new(CompileTimeEnvironment::new(lex_env, strict));
 
         let mut annex_b_function_names = Vec::new();

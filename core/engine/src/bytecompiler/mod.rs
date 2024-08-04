@@ -1709,9 +1709,22 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
 
         match kind {
-            CallKind::CallEval if contains_spread => self.emit_opcode(Opcode::CallEvalSpread),
             CallKind::CallEval => {
-                self.emit_with_varying_operand(Opcode::CallEval, call.args().len() as u32);
+                let env_index = self.constants.len() as u32;
+                self.constants.push(Constant::CompileTimeEnvironment(
+                    self.lexical_environment.clone(),
+                ));
+                if contains_spread {
+                    self.emit_with_varying_operand(Opcode::CallEvalSpread, env_index);
+                } else {
+                    self.emit(
+                        Opcode::CallEval,
+                        &[
+                            Operand::Varying(call.args().len() as u32),
+                            Operand::Varying(env_index),
+                        ],
+                    );
+                }
             }
             CallKind::Call if contains_spread => self.emit_opcode(Opcode::CallSpread),
             CallKind::Call => {

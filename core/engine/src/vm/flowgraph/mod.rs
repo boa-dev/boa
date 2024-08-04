@@ -434,7 +434,7 @@ impl CodeBlock {
                 | Instruction::Await
                 | Instruction::NewTarget
                 | Instruction::ImportMeta
-                | Instruction::CallEvalSpread
+                | Instruction::CallEvalSpread { .. }
                 | Instruction::CallSpread
                 | Instruction::NewSpread
                 | Instruction::SuperCallSpread

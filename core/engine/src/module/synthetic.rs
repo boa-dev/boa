@@ -205,12 +205,18 @@ impl SyntheticModule {
                 export_name.to_std_string_escaped()
             ))
         })?;
-        let locator = env.compile_env().get_binding(export_name).ok_or_else(|| {
-            JsNativeError::reference().with_message(format!(
-                "cannot set name `{}` which was not included in the list of exports",
-                export_name.to_std_string_escaped()
-            ))
-        })?;
+        let locator = env
+            .kind()
+            .as_module()
+            .expect("must be module environment")
+            .compile()
+            .get_binding(export_name)
+            .ok_or_else(|| {
+                JsNativeError::reference().with_message(format!(
+                    "cannot set name `{}` which was not included in the list of exports",
+                    export_name.to_std_string_escaped()
+                ))
+            })?;
         env.set(locator.binding_index(), export_value);
 
         Ok(())
@@ -275,7 +281,7 @@ impl SyntheticModule {
         // 2. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 3. Set module.[[Environment]] to env.
         let global_env = module_self.realm().environment().clone();
-        let global_compile_env = global_env.compile_env();
+        let global_compile_env = module_self.realm().compile_environment();
         let module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
 
         // TODO: A bit of a hack to be able to pass the currently active runnable without an

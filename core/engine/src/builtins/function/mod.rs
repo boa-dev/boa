@@ -644,8 +644,8 @@ impl BuiltInFunctionObject {
             .compile(
                 &parameters,
                 &body,
-                context.realm().environment().compile_env(),
-                context.realm().environment().compile_env(),
+                context.realm().compile_environment(),
+                context.realm().compile_environment(),
                 context.interner_mut(),
             );
 
@@ -1008,10 +1008,10 @@ pub(crate) fn function_call(
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context
-            .vm
-            .environments
-            .push_lexical(code.constant_compile_time_environment(last_env));
+        let index = context.vm.environments.push_lexical(
+            code.constant_compile_time_environment(last_env)
+                .num_bindings(),
+        );
         context.vm.environments.put_lexical_value(
             BindingLocatorEnvironment::Stack(index),
             0,
@@ -1101,10 +1101,10 @@ fn function_construct(
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context
-            .vm
-            .environments
-            .push_lexical(code.constant_compile_time_environment(last_env));
+        let index = context.vm.environments.push_lexical(
+            code.constant_compile_time_environment(last_env)
+                .num_bindings(),
+        );
         context.vm.environments.put_lexical_value(
             BindingLocatorEnvironment::Stack(index),
             0,

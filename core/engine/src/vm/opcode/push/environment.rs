@@ -24,7 +24,10 @@ impl PushDeclarativeEnvironment {
             .frame()
             .code_block()
             .constant_compile_time_environment(compile_environments_index);
-        context.vm.environments.push_lexical(compile_environment);
+        context
+            .vm
+            .environments
+            .push_lexical(compile_environment.num_bindings());
         Ok(CompletionType::Normal)
     }
 }

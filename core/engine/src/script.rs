@@ -124,7 +124,7 @@ impl Script {
         global_declaration_instantiation_context(
             &mut annex_b_function_names,
             &self.inner.source,
-            &self.inner.realm.environment().compile_env(),
+            &self.inner.realm.compile_environment(),
             context,
         )?;
 
@@ -132,8 +132,8 @@ impl Script {
             js_string!("<main>"),
             self.inner.source.strict(),
             false,
-            self.inner.realm.environment().compile_env(),
-            self.inner.realm.environment().compile_env(),
+            self.inner.realm.compile_environment(),
+            self.inner.realm.compile_environment(),
             false,
             false,
             context.interner_mut(),
@@ -148,7 +148,7 @@ impl Script {
         // TODO: move to `Script::evaluate` to make this operation infallible.
         compiler.global_declaration_instantiation(
             &self.inner.source,
-            &self.inner.realm.environment().compile_env(),
+            &self.inner.realm.compile_environment(),
         );
         compiler.compile_statement_list(self.inner.source.statements(), true, false);
 

@@ -76,18 +76,20 @@ impl EnvironmentStack {
     }
 
     /// Gets the next outer function environment.
-    pub(crate) fn outer_function_environment(&self) -> &Gc<DeclarativeEnvironment> {
+    pub(crate) fn outer_function_environment(
+        &self,
+    ) -> Option<(Gc<DeclarativeEnvironment>, Rc<CompileTimeEnvironment>)> {
         for env in self
             .stack
             .iter()
             .filter_map(Environment::as_declarative)
             .rev()
         {
-            if let DeclarativeEnvironmentKind::Function(_) = &env.kind() {
-                return env;
+            if let Some(function_env) = env.kind().as_function() {
+                return Some((env.clone(), function_env.compile().clone()));
             }
         }
-        self.global()
+        None
     }
 
     /// Pop all current environments except the global environment.
@@ -157,9 +159,7 @@ impl EnvironmentStack {
     }
 
     /// Push a lexical environment on the environments stack and return it's index.
-    pub(crate) fn push_lexical(&mut self, compile_environment: Rc<CompileTimeEnvironment>) -> u32 {
-        let num_bindings = compile_environment.num_bindings();
-
+    pub(crate) fn push_lexical(&mut self, bindings_count: u32) -> u32 {
         let (poisoned, with) = {
             // Check if the outer environment is a declarative environment.
             let with = if let Some(env) = self.stack.last() {
@@ -180,14 +180,9 @@ impl EnvironmentStack {
         let index = self.stack.len() as u32;
 
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(
-                DeclarativeEnvironmentKind::Lexical(LexicalEnvironment::new(
-                    num_bindings,
-                    poisoned,
-                    with,
-                )),
-                compile_environment,
-            ),
+            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Lexical(
+                LexicalEnvironment::new(bindings_count, poisoned, with),
+            )),
         )));
 
         index
@@ -219,15 +214,15 @@ impl EnvironmentStack {
         };
 
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(
-                DeclarativeEnvironmentKind::Function(FunctionEnvironment::new(
+            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Function(
+                FunctionEnvironment::new(
                     num_bindings,
                     poisoned,
                     with,
                     function_slots,
-                )),
-                compile_environment,
-            ),
+                    compile_environment,
+                ),
+            )),
         )));
     }
 
@@ -235,10 +230,9 @@ impl EnvironmentStack {
     pub(crate) fn push_module(&mut self, compile_environment: Rc<CompileTimeEnvironment>) {
         let num_bindings = compile_environment.num_bindings();
         self.stack.push(Environment::Declarative(Gc::new(
-            DeclarativeEnvironment::new(
-                DeclarativeEnvironmentKind::Module(ModuleEnvironment::new(num_bindings)),
-                compile_environment,
-            ),
+            DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Module(
+                ModuleEnvironment::new(num_bindings, compile_environment),
+            )),
         )));
     }
 
@@ -256,16 +250,6 @@ impl EnvironmentStack {
         } else {
             Some(self.global())
         }
-    }
-
-    /// Get the compile environment for the current runtime environment.
-    pub(crate) fn current_compile_environment(&self) -> Rc<CompileTimeEnvironment> {
-        self.stack
-            .iter()
-            .filter_map(Environment::as_declarative)
-            .last()
-            .map(|env| env.compile_env())
-            .unwrap_or(self.global().compile_env())
     }
 
     /// Mark that there may be added bindings from the current environment to the next function
@@ -513,9 +497,8 @@ impl Context {
             match self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
-                        if env.is_function() {
-                            let compile = env.compile_env();
-                            if let Some(b) = compile.get_binding(locator.name()) {
+                        if let Some(env) = env.kind().as_function() {
+                            if let Some(b) = env.compile().get_binding(locator.name()) {
                                 locator.set_environment(b.environment());
                                 locator.binding_index = b.binding_index();
                                 return Ok(());
@@ -542,14 +525,14 @@ impl Context {
             }
         }
 
-        if global {
-            let env = self.vm.environments.global();
-            if env.poisoned() {
-                let compile = env.compile_env();
-                if let Some(b) = compile.get_binding(locator.name()) {
-                    locator.set_environment(b.environment());
-                    locator.binding_index = b.binding_index();
-                }
+        if global && self.realm().environment().poisoned() {
+            if let Some(b) = self
+                .realm()
+                .compile_environment()
+                .get_binding(locator.name())
+            {
+                locator.set_environment(b.environment());
+                locator.binding_index = b.binding_index();
             }
         }
 
@@ -578,10 +561,10 @@ impl Context {
             match self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
-                        if env.is_function()
-                            && env.compile_env().get_binding(locator.name()).is_some()
-                        {
-                            break;
+                        if let Some(env) = env.kind().as_function() {
+                            if env.compile().get_binding(locator.name()).is_some() {
+                                break;
+                            }
                         }
                     } else if !env.with() {
                         break;

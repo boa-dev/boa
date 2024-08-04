@@ -1423,7 +1423,7 @@ impl SourceTextModule {
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
         let global_env = realm.environment().clone();
-        let global_compile_env = global_env.compile_env();
+        let global_compile_env = realm.compile_environment();
         let env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
 
         let mut compiler = ByteCompiler::new(

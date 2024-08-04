@@ -15,7 +15,11 @@ use crate::{
 pub(crate) struct CallEval;
 
 impl CallEval {
-    fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
+    fn operation(
+        context: &mut Context,
+        argument_count: usize,
+        env_index: usize,
+    ) -> JsResult<CompletionType> {
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
@@ -45,7 +49,18 @@ impl CallEval {
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
                 let strict = context.vm.frame().code_block.strict();
-                let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
+                let compile_environment = context
+                    .vm
+                    .frame()
+                    .code_block()
+                    .constant_compile_time_environment(env_index);
+                let result = crate::builtins::eval::Eval::perform_eval(
+                    x,
+                    true,
+                    Some(compile_environment),
+                    strict,
+                    context,
+                )?;
                 context.vm.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
@@ -69,17 +84,20 @@ impl Operation for CallEval {
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u8>();
-        Self::operation(context, argument_count as usize)
+        let env_index = context.vm.read::<u8>();
+        Self::operation(context, argument_count as usize, env_index as usize)
     }
 
     fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
-        Self::operation(context, argument_count)
+        let env_index = context.vm.read::<u16>();
+        Self::operation(context, argument_count, env_index as usize)
     }
 
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>();
-        Self::operation(context, argument_count as usize)
+        let env_index = context.vm.read::<u32>();
+        Self::operation(context, argument_count as usize, env_index as usize)
     }
 }
 
@@ -90,14 +108,8 @@ impl Operation for CallEval {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CallEvalSpread;
 
-impl Operation for CallEvalSpread {
-    const NAME: &'static str = "CallEvalSpread";
-    const INSTRUCTION: &'static str = "INST - CallEvalSpread";
-    // TODO: Calls will require a big refactor in order to track
-    // the cost of the call.
-    const COST: u8 = 5;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl CallEvalSpread {
+    fn operation(context: &mut Context, env_index: usize) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -137,7 +149,18 @@ impl Operation for CallEvalSpread {
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
                 let strict = context.vm.frame().code_block.strict();
-                let result = crate::builtins::eval::Eval::perform_eval(x, true, strict, context)?;
+                let compile_environment = context
+                    .vm
+                    .frame()
+                    .code_block()
+                    .constant_compile_time_environment(env_index);
+                let result = crate::builtins::eval::Eval::perform_eval(
+                    x,
+                    true,
+                    Some(compile_environment),
+                    strict,
+                    context,
+                )?;
                 context.vm.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
@@ -152,6 +175,29 @@ impl Operation for CallEvalSpread {
 
         object.__call__(argument_count).resolve(context)?;
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for CallEvalSpread {
+    const NAME: &'static str = "CallEvalSpread";
+    const INSTRUCTION: &'static str = "INST - CallEvalSpread";
+    // TODO: Calls will require a big refactor in order to track
+    // the cost of the call.
+    const COST: u8 = 5;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let env_index = context.vm.read::<u8>();
+        Self::operation(context, env_index as usize)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let env_index = context.vm.read::<u16>();
+        Self::operation(context, env_index as usize)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let env_index = context.vm.read::<u32>();
+        Self::operation(context, env_index as usize)
     }
 }
 

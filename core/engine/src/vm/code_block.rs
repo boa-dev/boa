@@ -416,8 +416,11 @@ impl CodeBlock {
             | Instruction::Coalesce { exit: value } => value.to_string(),
             Instruction::CallEval {
                 argument_count: value,
+                compile_environments_index,
+            } => {
+                format!("{}, {}", value.value(), compile_environments_index.value())
             }
-            | Instruction::Call {
+            Instruction::Call {
                 argument_count: value,
             }
             | Instruction::New {
@@ -429,6 +432,9 @@ impl CodeBlock {
             | Instruction::ConcatToString { value_count: value }
             | Instruction::GetArgument { index: value } => value.value().to_string(),
             Instruction::PushDeclarativeEnvironment {
+                compile_environments_index,
+            }
+            | Instruction::CallEvalSpread {
                 compile_environments_index,
             } => compile_environments_index.value().to_string(),
             Instruction::CopyDataProperties {
@@ -657,7 +663,6 @@ impl CodeBlock {
             | Instruction::NewTarget
             | Instruction::ImportMeta
             | Instruction::SuperCallPrepare
-            | Instruction::CallEvalSpread
             | Instruction::CallSpread
             | Instruction::NewSpread
             | Instruction::SuperCallSpread
