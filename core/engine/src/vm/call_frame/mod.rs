@@ -43,6 +43,7 @@ pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
     /// The register pointer, points to the first register in the stack.
+    ///
     // TODO: Check if storing the frame pointer instead of argument count and computing the
     //       argument count based on the pointers would be better for accessing the arguments
     //       and the elements before the register pointer.
@@ -119,10 +120,10 @@ impl CallFrame {
     ///     caller prologue    caller arguments   callee prologue   callee arguments
     ///   ┌─────────────────┐   ┌─────────┐   ┌─────────────────┐  ┌──────┐
     ///   ▼                 ▼   ▼         ▼   │                 ▼  ▼      ▼
-    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3  |
-    /// ▲                                   ▲                            ▲
-    /// │       caller register pointer ────┤                            │
-    /// │                                   │                callee register pointer
+    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3 |
+    /// ▲                                   ▲                             ▲
+    /// │       caller register pointer ────┤                             │
+    /// │                                   │                 callee register pointer
     /// │                             callee frame pointer
     /// │
     /// └─────  caller frame pointer
