@@ -54,9 +54,11 @@ macro_rules! js_string {
     () => {
         $crate::string::JsString::default()
     };
-    ($s:literal) => {
-        $crate::string::JsString::from($crate::js_str!($s))
-    };
+    ($s:literal) => {{
+        const LITERAL: &$crate::string::StaticJsString = &$crate::string::StaticJsString::new($crate::js_str!($s));
+
+        $crate::string::JsString::from_static_js_string(LITERAL)
+    }};
     ($s:expr) => {
         $crate::string::JsString::from($s)
     };
@@ -92,6 +94,12 @@ mod tests {
     #[test]
     fn refcount() {
         let x = js_string!("Hello world");
+        assert_eq!(x.refcount(), None);
+
+        let x = js_string!("你好");
+        assert_eq!(x.refcount(), None);
+
+        let x = js_string!("Hello world".to_string());
         assert_eq!(x.refcount(), Some(1));
 
         {

@@ -87,14 +87,14 @@ impl<'a> JsStr<'a> {
     /// Return the inner [`JsStrVariant`] varient of the [`JsStr`].
     #[inline]
     #[must_use]
-    pub fn variant(self) -> JsStrVariant<'a> {
+    pub const fn variant(self) -> JsStrVariant<'a> {
         self.inner
     }
 
     /// Check if the [`JsStr`] is latin1 encoded.
     #[inline]
     #[must_use]
-    pub fn is_latin1(&self) -> bool {
+    pub const fn is_latin1(&self) -> bool {
         matches!(self.inner, JsStrVariant::Latin1(_))
     }
 
