@@ -2,7 +2,7 @@
 
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
-use crate::{JsStr, JsString, StaticJsStrings};
+use crate::{JsStr, JsString, JsStringBuilder, StaticJsStrings};
 
 use rustc_hash::FxHasher;
 
@@ -172,4 +172,61 @@ fn conversion_to_known_static_js_string() {
 
     assert!(string.is_some());
     assert!(string.unwrap().as_str().is_latin1());
+}
+
+#[test]
+fn js_string_builder() {
+    let utf16 = "2024年5月21日".encode_utf16().collect::<Vec<_>>();
+    let s_utf16 = utf16.as_slice();
+    let s_utf8 = &b"Lorem ipsum dolor sit amet"[..];
+
+    // utf8 -- test
+    let s_js_string = JsString::from(JsStr::latin1(s_utf8));
+
+    // push
+    let mut builder: JsStringBuilder<u8> = JsStringBuilder::new();
+    for &code in s_utf8 {
+        builder.push(code);
+    }
+    let s_builder = builder.build();
+    assert_eq!(s_js_string, s_builder);
+
+    // from_iter
+    let s_builder = s_utf8
+        .iter()
+        .copied()
+        .collect::<JsStringBuilder<_>>()
+        .build();
+    assert_eq!(s_js_string, s_builder);
+
+    // extend_from_slice
+    let mut builder = JsStringBuilder::new();
+    builder.extend_from_slice(s_utf8);
+    let s_builder = builder.build();
+    assert_eq!(s_js_string, s_builder);
+
+    // utf16 -- test
+    let s_js_string = JsString::from(s_utf16);
+
+    // push
+    let mut builder = JsStringBuilder::new();
+    for &code in s_utf16 {
+        builder.push(code);
+    }
+    let s_builder = builder.build();
+    assert_eq!(s_js_string, s_builder);
+
+    // from_iter
+    let s_builder = s_utf16
+        .iter()
+        .copied()
+        .collect::<JsStringBuilder<_>>()
+        .build();
+    assert_eq!(s_js_string, s_builder);
+
+    // extend_from_slice
+    let mut builder = JsStringBuilder::new();
+    builder.extend_from_slice(s_utf16);
+    let s_builder = builder.build();
+    assert_eq!(s_js_string, s_builder);
 }
