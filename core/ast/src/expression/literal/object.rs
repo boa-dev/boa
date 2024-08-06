@@ -2,8 +2,10 @@
 
 use crate::{
     block_to_string,
-    expression::{operator::assign::AssignTarget, Expression, RESERVED_IDENTIFIERS_STRICT},
-    function::Function,
+    expression::{
+        operator::assign::{AssignOp, AssignTarget},
+        Expression, RESERVED_IDENTIFIERS_STRICT,
+    },
     join_nodes,
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinition, PropertyDefinition, PropertyName},
@@ -52,7 +54,6 @@ impl ObjectLiteral {
     #[must_use]
     pub fn to_pattern(&self, strict: bool) -> Option<ObjectPattern> {
         let mut bindings = Vec::new();
-        let mut excluded_keys = Vec::new();
         for (i, property) in self.properties.iter().enumerate() {
             match property {
                 PropertyDefinition::IdentifierReference(ident) if strict && *ident == Sym::EVAL => {
@@ -63,7 +64,6 @@ impl ObjectLiteral {
                         return None;
                     }
 
-                    excluded_keys.push(*ident);
                     bindings.push(ObjectPatternElement::SingleName {
                         ident: *ident,
                         name: PropertyName::Literal(ident.sym()),
@@ -81,7 +81,6 @@ impl ObjectLiteral {
                             return None;
                         }
 
-                        excluded_keys.push(*ident);
                         bindings.push(ObjectPatternElement::SingleName {
                             ident: *ident,
                             name: PropertyName::Literal(*name),
@@ -111,42 +110,46 @@ impl ObjectLiteral {
                             default_init: None,
                         });
                     }
-                    (_, Expression::Assign(assign)) => match assign.lhs() {
-                        AssignTarget::Identifier(ident) => {
-                            if let Some(name) = name.literal() {
-                                if name == *ident {
-                                    if strict && name == Sym::EVAL {
-                                        return None;
+                    (_, Expression::Assign(assign)) => {
+                        if assign.op() != AssignOp::Assign {
+                            return None;
+                        }
+                        match assign.lhs() {
+                            AssignTarget::Identifier(ident) => {
+                                if let Some(name) = name.literal() {
+                                    if name == *ident {
+                                        if strict && name == Sym::EVAL {
+                                            return None;
+                                        }
+                                        if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name) {
+                                            return None;
+                                        }
                                     }
-                                    if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name) {
-                                        return None;
-                                    }
-                                    excluded_keys.push(*ident);
+                                    bindings.push(ObjectPatternElement::SingleName {
+                                        ident: *ident,
+                                        name: PropertyName::Literal(name),
+                                        default_init: Some(assign.rhs().clone()),
+                                    });
+                                } else {
+                                    return None;
                                 }
-                                bindings.push(ObjectPatternElement::SingleName {
-                                    ident: *ident,
-                                    name: PropertyName::Literal(name),
+                            }
+                            AssignTarget::Pattern(pattern) => {
+                                bindings.push(ObjectPatternElement::Pattern {
+                                    name: name.clone(),
+                                    pattern: pattern.clone(),
                                     default_init: Some(assign.rhs().clone()),
                                 });
-                            } else {
-                                return None;
+                            }
+                            AssignTarget::Access(access) => {
+                                bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
+                                    name: name.clone(),
+                                    access: access.clone(),
+                                    default_init: Some(assign.rhs().clone()),
+                                });
                             }
                         }
-                        AssignTarget::Pattern(pattern) => {
-                            bindings.push(ObjectPatternElement::Pattern {
-                                name: name.clone(),
-                                pattern: pattern.clone(),
-                                default_init: Some(assign.rhs().clone()),
-                            });
-                        }
-                        AssignTarget::Access(access) => {
-                            bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
-                                name: name.clone(),
-                                access: access.clone(),
-                                default_init: Some(assign.rhs().clone()),
-                            });
-                        }
-                    },
+                    }
                     (_, Expression::PropertyAccess(access)) => {
                         bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
                             name: name.clone(),
@@ -166,15 +169,11 @@ impl ObjectLiteral {
                 PropertyDefinition::SpreadObject(spread) => {
                     match spread {
                         Expression::Identifier(ident) => {
-                            bindings.push(ObjectPatternElement::RestProperty {
-                                ident: *ident,
-                                excluded_keys: excluded_keys.clone(),
-                            });
+                            bindings.push(ObjectPatternElement::RestProperty { ident: *ident });
                         }
                         Expression::PropertyAccess(access) => {
                             bindings.push(ObjectPatternElement::AssignmentRestPropertyAccess {
                                 access: access.clone(),
-                                excluded_keys: excluded_keys.clone(),
                             });
                         }
                         _ => return None,
@@ -212,12 +211,6 @@ impl ToIndentedString for ObjectLiteral {
                     format!("{indentation}{},\n", interner.resolve_expect(ident.sym()))
                 }
                 PropertyDefinition::Property(key, value) => {
-                    let value = if let Expression::Function(f) = value {
-                        Function::new(None, f.parameters().clone(), f.body().clone()).into()
-                    } else {
-                        value.clone()
-                    };
-
                     format!(
                         "{indentation}{}: {},\n",
                         key.to_interned_string(interner),
@@ -229,13 +222,21 @@ impl ToIndentedString for ObjectLiteral {
                 }
                 PropertyDefinition::MethodDefinition(key, method) => {
                     format!(
-                        "{indentation}{}{}({}) {},\n",
+                        "{indentation}{}({}) {},\n",
                         match &method {
-                            MethodDefinition::Get(_) => "get ",
-                            MethodDefinition::Set(_) => "set ",
-                            _ => "",
+                            MethodDefinition::Get(_) =>
+                                format!("get {}", key.to_interned_string(interner)),
+                            MethodDefinition::Set(_) =>
+                                format!("set {}", key.to_interned_string(interner)),
+                            MethodDefinition::Ordinary(_) =>
+                                key.to_interned_string(interner).to_string(),
+                            MethodDefinition::Generator(_) =>
+                                format!("*{}", key.to_interned_string(interner)),
+                            MethodDefinition::AsyncGenerator(_) =>
+                                format!("async *{}", key.to_interned_string(interner)),
+                            MethodDefinition::Async(_) =>
+                                format!("async {}", key.to_interned_string(interner)),
                         },
-                        key.to_interned_string(interner),
                         match &method {
                             MethodDefinition::Get(expression)
                             | MethodDefinition::Set(expression)

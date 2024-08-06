@@ -20,7 +20,7 @@ fn async_function_declaration() {
             ),
             FormalParameterList::default(),
             FunctionBody::default(),
-            false,
+            true,
         ))
         .into()],
         interner,
@@ -37,7 +37,7 @@ fn async_function_declaration_keywords() {
             Some(Sym::YIELD.into()),
             FormalParameterList::default(),
             FunctionBody::default(),
-            false,
+            true,
         ))
         .into()],
         interner,
@@ -50,7 +50,7 @@ fn async_function_declaration_keywords() {
             Some(Sym::AWAIT.into()),
             FormalParameterList::default(),
             FunctionBody::default(),
-            false,
+            true,
         ))
         .into()],
         interner,

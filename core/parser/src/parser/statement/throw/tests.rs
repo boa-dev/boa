@@ -1,4 +1,4 @@
-use crate::parser::tests::check_script_parser;
+use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{expression::literal::Literal, statement::Throw, Statement};
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -14,4 +14,9 @@ fn check_throw_parsing() {
         .into()],
         interner,
     );
+}
+
+#[test]
+fn check_throw_syntax_error() {
+    check_invalid_script("throw async () => {} - 1;");
 }
