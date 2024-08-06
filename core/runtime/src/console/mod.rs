@@ -25,26 +25,64 @@ use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
 use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc, time::SystemTime};
 
-/// This represents the different types of log messages.
-#[derive(Debug)]
-enum LogMessage {
-    Log(String),
-    Info(String),
-    Warn(String),
-    Error(String),
+/// A trait that can be used to forward console logs to an implementation.
+pub trait Logger: Trace + Sized {
+    /// Log a log message (`console.log`).
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn log(&self, msg: String, state: &Console) -> JsResult<()>;
+
+    /// Log an info message (`console.info`).
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn info(&self, msg: String, state: &Console) -> JsResult<()>;
+
+    /// Log a warning message (`console.warn`).
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn warn(&self, msg: String, state: &Console) -> JsResult<()>;
+
+    /// Log an error message (`console.error`).
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn error(&self, msg: String, state: &Console) -> JsResult<()>;
 }
 
-/// Helper function for logging messages.
-fn logger(msg: LogMessage, console_state: &Console) {
-    let indent = 2 * console_state.groups.len();
+/// The default implementation for logging from the console.
+///
+/// Implements the [`Logger`] trait and output errors to stderr and all
+/// the others to stdout. Will add indentation based on the number of
+/// groups.
+#[derive(Trace, Finalize)]
+struct DefaultLogger;
 
-    match msg {
-        LogMessage::Error(msg) => {
-            eprintln!("{msg:>indent$}");
-        }
-        LogMessage::Log(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
-            println!("{msg:>indent$}");
-        }
+impl Logger for DefaultLogger {
+    #[inline]
+    fn log(&self, msg: String, state: &Console) -> JsResult<()> {
+        let indent = 2 * state.groups.len();
+        println!("{msg:>indent$}");
+        Ok(())
+    }
+
+    #[inline]
+    fn info(&self, msg: String, state: &Console) -> JsResult<()> {
+        self.log(msg, state)
+    }
+
+    #[inline]
+    fn warn(&self, msg: String, state: &Console) -> JsResult<()> {
+        self.log(msg, state)
+    }
+
+    #[inline]
+    fn error(&self, msg: String, state: &Console) -> JsResult<()> {
+        let indent = 2 * state.groups.len();
+        eprintln!("{msg:>indent$}");
+        Ok(())
     }
 }
 
@@ -123,132 +161,154 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
 /// This is the internal console object state.
 #[derive(Debug, Default, Trace, Finalize, JsData)]
 pub struct Console {
-    count_map: FxHashMap<JsString, u32>,
-    timer_map: FxHashMap<JsString, u128>,
-    groups: Vec<String>,
+    /// The map of console counters, used in `console.count()`.
+    pub count_map: FxHashMap<JsString, u32>,
+
+    /// The map of console timers, used in `console.time`, `console.timeLog`
+    /// and `console.timeEnd`.
+    pub timer_map: FxHashMap<JsString, u128>,
+
+    /// The current list of groups. Groups should be indented, but some logging
+    /// libraries may want to use them in a different way.
+    pub groups: Vec<String>,
 }
 
 impl Console {
     /// Name of the built-in `console` property.
     pub const NAME: JsStr<'static> = js_str!("console");
 
-    /// Initializes the `console` built-in object.
+    /// Initializes the `console` with a special logger.
     #[allow(clippy::too_many_lines)]
-    pub fn init(context: &mut Context) -> JsObject {
-        fn console_method(
-            f: fn(&JsValue, &[JsValue], &Console, &mut Context) -> JsResult<JsValue>,
+    pub fn init_with_logger<L>(context: &mut Context, logger: L) -> JsObject
+    where
+        L: Logger + 'static,
+    {
+        fn console_method<L: Logger + 'static>(
+            f: fn(&JsValue, &[JsValue], &Console, &L, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
+            logger: Rc<L>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
             unsafe {
                 NativeFunction::from_closure(move |this, args, context| {
-                    f(this, args, &state.borrow(), context)
+                    f(this, args, &state.borrow(), &logger, context)
                 })
             }
         }
-        fn console_method_mut(
-            f: fn(&JsValue, &[JsValue], &mut Console, &mut Context) -> JsResult<JsValue>,
+        fn console_method_mut<L: Logger + 'static>(
+            f: fn(&JsValue, &[JsValue], &mut Console, &L, &mut Context) -> JsResult<JsValue>,
             state: Rc<RefCell<Console>>,
+            logger: Rc<L>,
         ) -> NativeFunction {
             // SAFETY: `Console` doesn't contain types that need tracing.
             unsafe {
                 NativeFunction::from_closure(move |this, args, context| {
-                    f(this, args, &mut state.borrow_mut(), context)
+                    f(this, args, &mut state.borrow_mut(), &logger, context)
                 })
             }
         }
         // let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let state = Rc::new(RefCell::new(Self::default()));
+        let logger = Rc::new(logger);
 
         ObjectInitializer::with_native_data(Self::default(), context)
             .function(
-                console_method(Self::assert, state.clone()),
+                console_method(Self::assert, state.clone(), logger.clone()),
                 js_string!("assert"),
                 0,
             )
             .function(
-                console_method_mut(Self::clear, state.clone()),
+                console_method_mut(Self::clear, state.clone(), logger.clone()),
                 js_string!("clear"),
                 0,
             )
             .function(
-                console_method(Self::debug, state.clone()),
+                console_method(Self::debug, state.clone(), logger.clone()),
                 js_string!("debug"),
                 0,
             )
             .function(
-                console_method(Self::error, state.clone()),
+                console_method(Self::error, state.clone(), logger.clone()),
                 js_string!("error"),
                 0,
             )
             .function(
-                console_method(Self::info, state.clone()),
+                console_method(Self::info, state.clone(), logger.clone()),
                 js_string!("info"),
                 0,
             )
             .function(
-                console_method(Self::log, state.clone()),
+                console_method(Self::log, state.clone(), logger.clone()),
                 js_string!("log"),
                 0,
             )
             .function(
-                console_method(Self::trace, state.clone()),
+                console_method(Self::trace, state.clone(), logger.clone()),
                 js_string!("trace"),
                 0,
             )
             .function(
-                console_method(Self::warn, state.clone()),
+                console_method(Self::warn, state.clone(), logger.clone()),
                 js_string!("warn"),
                 0,
             )
             .function(
-                console_method_mut(Self::count, state.clone()),
+                console_method_mut(Self::count, state.clone(), logger.clone()),
                 js_string!("count"),
                 0,
             )
             .function(
-                console_method_mut(Self::count_reset, state.clone()),
+                console_method_mut(Self::count_reset, state.clone(), logger.clone()),
                 js_string!("countReset"),
                 0,
             )
             .function(
-                console_method_mut(Self::group, state.clone()),
+                console_method_mut(Self::group, state.clone(), logger.clone()),
                 js_string!("group"),
                 0,
             )
             .function(
-                console_method_mut(Self::group_collapsed, state.clone()),
+                console_method_mut(Self::group_collapsed, state.clone(), logger.clone()),
                 js_string!("groupCollapsed"),
                 0,
             )
             .function(
-                console_method_mut(Self::group_end, state.clone()),
+                console_method_mut(Self::group_end, state.clone(), logger.clone()),
                 js_string!("groupEnd"),
                 0,
             )
             .function(
-                console_method_mut(Self::time, state.clone()),
+                console_method_mut(Self::time, state.clone(), logger.clone()),
                 js_string!("time"),
                 0,
             )
             .function(
-                console_method(Self::time_log, state.clone()),
+                console_method(Self::time_log, state.clone(), logger.clone()),
                 js_string!("timeLog"),
                 0,
             )
             .function(
-                console_method_mut(Self::time_end, state.clone()),
+                console_method_mut(Self::time_end, state.clone(), logger.clone()),
                 js_string!("timeEnd"),
                 0,
             )
             .function(
-                console_method(Self::dir, state.clone()),
+                console_method(Self::dir, state.clone(), logger.clone()),
                 js_string!("dir"),
                 0,
             )
-            .function(console_method(Self::dir, state), js_string!("dirxml"), 0)
+            .function(
+                console_method(Self::dir, state, logger.clone()),
+                js_string!("dirxml"),
+                0,
+            )
             .build()
+    }
+
+    /// Initializes the `console` built-in object.
+    pub fn init(context: &mut Context) -> JsObject {
+        Self::init_with_logger(context, DefaultLogger)
     }
 
     /// `console.assert(condition, ...data)`
@@ -266,6 +326,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let assertion = args.first().map_or(false, JsValue::to_boolean);
@@ -283,7 +344,7 @@ impl Console {
                 args[0] = JsValue::new(concat);
             }
 
-            logger(LogMessage::Error(formatter(&args, context)?), console);
+            logger.error(formatter(&args, context)?, console)?;
         }
 
         Ok(JsValue::undefined())
@@ -300,7 +361,13 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
     #[allow(clippy::unnecessary_wraps)]
-    fn clear(_: &JsValue, _: &[JsValue], console: &mut Self, _: &mut Context) -> JsResult<JsValue> {
+    fn clear(
+        _: &JsValue,
+        _: &[JsValue],
+        console: &mut Self,
+        _: &impl Logger,
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
         console.groups.clear();
         Ok(JsValue::undefined())
     }
@@ -319,9 +386,10 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger(LogMessage::Log(formatter(args, context)?), console);
+        logger.log(formatter(args, context)?, console)?;
         Ok(JsValue::undefined())
     }
 
@@ -339,9 +407,10 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger(LogMessage::Error(formatter(args, context)?), console);
+        logger.error(formatter(args, context)?, console)?;
         Ok(JsValue::undefined())
     }
 
@@ -359,9 +428,10 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger(LogMessage::Info(formatter(args, context)?), console);
+        logger.info(formatter(args, context)?, console)?;
         Ok(JsValue::undefined())
     }
 
@@ -379,9 +449,10 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger(LogMessage::Log(formatter(args, context)?), console);
+        logger.log(formatter(args, context)?, console)?;
         Ok(JsValue::undefined())
     }
 
@@ -399,10 +470,11 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if !args.is_empty() {
-            logger(LogMessage::Log(formatter(args, context)?), console);
+            logger.log(formatter(args, context)?, console)?;
         }
 
         let stack_trace_dump = context
@@ -413,7 +485,7 @@ impl Console {
             .map(JsString::to_std_string_escaped)
             .collect::<Vec<_>>()
             .join("\n");
-        logger(LogMessage::Log(stack_trace_dump), console);
+        logger.log(stack_trace_dump, console)?;
 
         Ok(JsValue::undefined())
     }
@@ -432,9 +504,10 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger(LogMessage::Warn(formatter(args, context)?), console);
+        logger.warn(formatter(args, context)?, console)?;
         Ok(JsValue::undefined())
     }
 
@@ -452,6 +525,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
@@ -463,7 +537,7 @@ impl Console {
         let c = console.count_map.entry(label).or_insert(0);
         *c += 1;
 
-        logger(LogMessage::Info(format!("{msg} {c}")), console);
+        logger.info(format!("{msg} {c}"), console)?;
         Ok(JsValue::undefined())
     }
 
@@ -481,6 +555,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
@@ -490,10 +565,10 @@ impl Console {
 
         console.count_map.remove(&label);
 
-        logger(
-            LogMessage::Warn(format!("countReset {}", label.to_std_string_escaped())),
+        logger.warn(
+            format!("countReset {}", label.to_std_string_escaped()),
             console,
-        );
+        )?;
 
         Ok(JsValue::undefined())
     }
@@ -520,6 +595,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
@@ -531,13 +607,10 @@ impl Console {
             let time = Self::system_time_in_ms();
             e.insert(time);
         } else {
-            logger(
-                LogMessage::Warn(format!(
-                    "Timer '{}' already exist",
-                    label.to_std_string_escaped()
-                )),
+            logger.warn(
+                format!("Timer '{}' already exist", label.to_std_string_escaped()),
                 console,
-            );
+            )?;
         }
 
         Ok(JsValue::undefined())
@@ -557,6 +630,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
@@ -566,13 +640,10 @@ impl Console {
 
         console.timer_map.get(&label).map_or_else(
             || {
-                logger(
-                    LogMessage::Warn(format!(
-                        "Timer '{}' doesn't exist",
-                        label.to_std_string_escaped()
-                    )),
+                logger.warn(
+                    format!("Timer '{}' doesn't exist", label.to_std_string_escaped()),
                     console,
-                );
+                )
             },
             |t| {
                 let time = Self::system_time_in_ms();
@@ -580,9 +651,9 @@ impl Console {
                 for msg in args.iter().skip(1) {
                     concat = concat + " " + &msg.display().to_string();
                 }
-                logger(LogMessage::Log(concat), console);
+                logger.log(concat, console)
             },
-        );
+        )?;
 
         Ok(JsValue::undefined())
     }
@@ -601,6 +672,7 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let label = match args.first() {
@@ -610,26 +682,23 @@ impl Console {
 
         console.timer_map.remove(&label).map_or_else(
             || {
-                logger(
-                    LogMessage::Warn(format!(
-                        "Timer '{}' doesn't exist",
-                        label.to_std_string_escaped()
-                    )),
+                logger.warn(
+                    format!("Timer '{}' doesn't exist", label.to_std_string_escaped()),
                     console,
-                );
+                )
             },
             |t| {
                 let time = Self::system_time_in_ms();
-                logger(
-                    LogMessage::Info(format!(
+                logger.info(
+                    format!(
                         "{}: {} ms - timer removed",
                         label.to_std_string_escaped(),
                         time - t
-                    )),
+                    ),
                     console,
-                );
+                )
             },
-        );
+        )?;
 
         Ok(JsValue::undefined())
     }
@@ -648,11 +717,12 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
-        logger(LogMessage::Info(format!("group: {group_label}")), console);
+        logger.info(format!("group: {group_label}"), console)?;
         console.groups.push(group_label);
 
         Ok(JsValue::undefined())
@@ -672,9 +742,10 @@ impl Console {
         _: &JsValue,
         args: &[JsValue],
         console: &mut Self,
+        logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Console::group(&JsValue::Undefined, args, console, context)
+        Console::group(&JsValue::Undefined, args, console, logger, context)
     }
 
     /// `console.groupEnd(label)`
@@ -692,6 +763,7 @@ impl Console {
         _: &JsValue,
         _: &[JsValue],
         console: &mut Self,
+        _: &impl Logger,
         _: &mut Context,
     ) -> JsResult<JsValue> {
         console.groups.pop();
@@ -710,11 +782,14 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
     #[allow(clippy::unnecessary_wraps)]
-    fn dir(_: &JsValue, args: &[JsValue], console: &Self, _: &mut Context) -> JsResult<JsValue> {
-        logger(
-            LogMessage::Info(args.get_or_undefined(0).display_obj(true)),
-            console,
-        );
+    fn dir(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        logger.info(args.get_or_undefined(0).display_obj(true), console)?;
         Ok(JsValue::undefined())
     }
 }
