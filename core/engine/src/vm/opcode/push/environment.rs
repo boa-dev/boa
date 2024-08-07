@@ -2,7 +2,7 @@ use crate::{
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 use boa_gc::Gc;
 
@@ -78,15 +78,41 @@ impl Operation for PushObjectEnvironment {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushPrivateEnvironment;
 
+impl PushPrivateEnvironment {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        class: u32,
+        names: Vec<JsString>,
+        operand_types: u8,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let class_value = context
+            .vm
+            .frame()
+            .read_value::<0>(operand_types, class, &context.vm);
+        let class = class_value.as_object().expect("should be a object");
+
+        let ptr: *const _ = class.as_ref();
+        let environment = Gc::new(PrivateEnvironment::new(ptr.cast::<()>() as usize, names));
+
+        class
+            .downcast_mut::<OrdinaryFunction>()
+            .expect("class object must be function")
+            .push_private_environment(environment.clone());
+        context.vm.environments.push_private(environment);
+
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for PushPrivateEnvironment {
     const NAME: &'static str = "PushPrivateEnvironment";
     const INSTRUCTION: &'static str = "INST - PushPrivateEnvironment";
     const COST: u8 = 5;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let class_value = context.vm.pop();
-        let class = class_value.to_object(context)?;
-
+        let operand_types = context.vm.read::<u8>();
+        let class = u32::from(context.vm.read::<u8>());
         let count = context.vm.read::<u32>();
         let mut names = Vec::with_capacity(count as usize);
         for _ in 0..count {
@@ -98,19 +124,41 @@ impl Operation for PushPrivateEnvironment {
                 .constant_string(index as usize);
             names.push(name);
         }
+        Self::operation(class, names, operand_types, context)
+    }
 
-        let ptr: *const _ = class.as_ref();
-        let environment = Gc::new(PrivateEnvironment::new(ptr.cast::<()>() as usize, names));
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
+        let class = u32::from(context.vm.read::<u16>());
+        let count = context.vm.read::<u32>();
+        let mut names = Vec::with_capacity(count as usize);
+        for _ in 0..count {
+            let index = context.vm.read::<u32>();
+            let name = context
+                .vm
+                .frame()
+                .code_block()
+                .constant_string(index as usize);
+            names.push(name);
+        }
+        Self::operation(class, names, operand_types, context)
+    }
 
-        class
-            .downcast_mut::<OrdinaryFunction>()
-            .expect("class object must be function")
-            .push_private_environment(environment.clone());
-        context.vm.environments.push_private(environment);
-
-        context.vm.push(class_value);
-
-        Ok(CompletionType::Normal)
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let operand_types = context.vm.read::<u8>();
+        let class = context.vm.read::<u32>();
+        let count = context.vm.read::<u32>();
+        let mut names = Vec::with_capacity(count as usize);
+        for _ in 0..count {
+            let index = context.vm.read::<u32>();
+            let name = context
+                .vm
+                .frame()
+                .code_block()
+                .constant_string(index as usize);
+            names.push(name);
+        }
+        Self::operation(class, names, operand_types, context)
     }
 }
 

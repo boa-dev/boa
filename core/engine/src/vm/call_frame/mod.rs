@@ -43,6 +43,7 @@ pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
     /// The register pointer, points to the first register in the stack.
+    ///
     // TODO: Check if storing the frame pointer instead of argument count and computing the
     //       argument count based on the pointers would be better for accessing the arguments
     //       and the elements before the register pointer.
@@ -119,10 +120,10 @@ impl CallFrame {
     ///     caller prologue    caller arguments   callee prologue   callee arguments
     ///   ┌─────────────────┐   ┌─────────┐   ┌─────────────────┐  ┌──────┐
     ///   ▼                 ▼   ▼         ▼   │                 ▼  ▼      ▼
-    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3  |
-    /// ▲                                   ▲                            ▲
-    /// │       caller register pointer ────┤                            │
-    /// │                                   │                callee register pointer
+    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3 |
+    /// ▲                                   ▲                             ▲
+    /// │       caller register pointer ────┤                             │
+    /// │                                   │                 callee register pointer
     /// │                             callee frame pointer
     /// │
     /// └─────  caller frame pointer
@@ -332,6 +333,26 @@ impl CallFrame {
     /// The cached value is placed in the [`CallFrame::THIS_POSITION`] position.
     pub(crate) fn has_this_value_cached(&self) -> bool {
         self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
+    }
+
+    pub(crate) fn read_value<const N: u8>(
+        &self,
+        operand_types: u8,
+        operand: u32,
+        vm: &Vm,
+    ) -> JsValue {
+        assert!(N <= 4, "operand type index ({N}) must be less than 4");
+
+        let type_ = (operand_types >> (N * 2)) & 0x0000_0011;
+        match type_ {
+            0 => vm.stack[(self.rp + operand) as usize].clone(),
+            1 => self
+                .argument(operand as usize, vm)
+                .expect("should be argument")
+                .clone(),
+            2 => operand.into(),
+            _ => unreachable!(),
+        }
     }
 }
 

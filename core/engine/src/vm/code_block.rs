@@ -370,6 +370,48 @@ impl CodeBlock {
     /// Returns an empty `String` if no operands are present.
     pub(crate) fn instruction_operands(&self, instruction: &Instruction) -> String {
         match instruction {
+            Instruction::SetRegisterFromAccumulator { register }
+            | Instruction::SetAccumulator { register } => format!("R{}", register.value()),
+            Instruction::Add { .. }
+            | Instruction::Sub { .. }
+            | Instruction::Div { .. }
+            | Instruction::Mul { .. }
+            | Instruction::Mod { .. }
+            | Instruction::Pow { .. }
+            | Instruction::ShiftRight { .. }
+            | Instruction::ShiftLeft { .. }
+            | Instruction::UnsignedShiftRight { .. }
+            | Instruction::BitOr { .. }
+            | Instruction::BitAnd { .. }
+            | Instruction::BitXor { .. }
+            | Instruction::BitNot { .. }
+            | Instruction::In { .. }
+            | Instruction::Eq { .. }
+            | Instruction::NotEq { .. }
+            | Instruction::GreaterThan { .. }
+            | Instruction::GreaterThanOrEq { .. }
+            | Instruction::LessThan { .. }
+            | Instruction::LessThanOrEq { .. }
+            | Instruction::InstanceOf { .. }
+            | Instruction::StrictNotEq { .. }
+            | Instruction::StrictEq { .. }
+            | Instruction::InPrivate { .. }
+            | Instruction::Inc { .. }
+            | Instruction::Dec { .. }
+            | Instruction::ToNumeric { .. } => "TODO: fix".to_string(),
+            Instruction::PopIntoRegister { dst } => format!("R{}", dst.value()),
+            Instruction::PushFromRegister { src } => format!("R{}", src.value()),
+            Instruction::Move {
+                operand_types,
+                dst: r1,
+                src: r2,
+            } => {
+                format!(
+                    "dst:reg{}, src:{}",
+                    r1.value(),
+                    r2.to_string::<0>(*operand_types)
+                )
+            }
             Instruction::SetFunctionName { prefix } => match prefix {
                 0 => "prefix: none",
                 1 => "prefix: get",
@@ -410,10 +452,24 @@ impl CodeBlock {
             | Instruction::JumpIfNotUndefined { address: value }
             | Instruction::JumpIfNullOrUndefined { address: value }
             | Instruction::Case { address: value }
-            | Instruction::Default { address: value }
-            | Instruction::LogicalAnd { exit: value }
-            | Instruction::LogicalOr { exit: value }
-            | Instruction::Coalesce { exit: value } => value.to_string(),
+            | Instruction::Default { address: value } => value.to_string(),
+            Instruction::LogicalAnd {
+                exit,
+                lhs,
+                operand_types,
+            }
+            | Instruction::LogicalOr {
+                exit,
+                lhs,
+                operand_types,
+            }
+            | Instruction::Coalesce {
+                exit,
+                lhs,
+                operand_types,
+            } => {
+                format!("lhs:{} exit:{exit}", lhs.to_string::<0>(*operand_types))
+            }
             Instruction::CallEval {
                 argument_count: value,
             }
@@ -449,10 +505,11 @@ impl CodeBlock {
             Instruction::TemplateCreate { count, site } => {
                 format!("{}, {site}", count.value())
             }
-            Instruction::GetFunction { index } => {
+            Instruction::GetFunction { dst, index } => {
                 let index = index.value() as usize;
                 format!(
-                    "{index:04}: '{}' (length: {})",
+                    "R{} = {index:04}: '{}' (length: {})",
+                    dst.value(),
                     self.constant_function(index).name().to_std_string_escaped(),
                     self.constant_function(index).length
                 )
@@ -483,7 +540,6 @@ impl CodeBlock {
             | Instruction::SetPropertySetterByName { index }
             | Instruction::DefineClassStaticSetterByName { index }
             | Instruction::DefineClassSetterByName { index }
-            | Instruction::InPrivate { index }
             | Instruction::ThrowMutateImmutable { index }
             | Instruction::DeletePropertyByName { index }
             | Instruction::SetPrivateField { index }
@@ -503,7 +559,28 @@ impl CodeBlock {
                         .to_std_string_escaped(),
                 )
             }
-            Instruction::GetPropertyByName { index } | Instruction::SetPropertyByName { index } => {
+            Instruction::GetPropertyByName {
+                operand_types,
+                dst,
+                receiver,
+                value,
+                index,
+            } => {
+                let ic = &self.ic[index.value() as usize];
+                let slot = ic.slot();
+                format!(
+                    "dst:reg{}, receiver:{}, value:{}, {:04}: '{}', Shape: 0x{:x}, Slot: index: {}, attributes {:?}",
+                    dst.value(),
+                    receiver.to_string::<0>(*operand_types),
+                    value.to_string::<1>(*operand_types),
+                    index.value(),
+                    ic.name.to_std_string_escaped(),
+                    ic.shape.borrow().to_addr_usize(),
+                    slot.index,
+                    slot.attributes,
+                )
+            }
+            Instruction::SetPropertyByName { index } => {
                 let ic = &self.ic[index.value() as usize];
                 let slot = ic.slot();
                 format!(
@@ -515,8 +592,15 @@ impl CodeBlock {
                     slot.attributes,
                 )
             }
-            Instruction::PushPrivateEnvironment { name_indices } => {
-                format!("{name_indices:?}")
+            Instruction::PushPrivateEnvironment {
+                class,
+                name_indices,
+                operand_types,
+            } => {
+                format!(
+                    "class:{}, names:{name_indices:?}",
+                    class.to_string::<0>(*operand_types)
+                )
             }
             Instruction::JumpTable { default, addresses } => {
                 let mut operands = format!("#{}: Default: {default:4}", addresses.len());
@@ -544,6 +628,32 @@ impl CodeBlock {
                     .to_std_string_escaped();
                 format!("name: {name}, configurable: {configurable}")
             }
+            Instruction::PushClassPrototype {
+                operand_types,
+                dst,
+                class,
+                superclass,
+            } => {
+                format!(
+                    "dst:reg{}, class:{}, superclass:{}",
+                    dst.value(),
+                    class.to_string::<0>(*operand_types),
+                    superclass.to_string::<1>(*operand_types)
+                )
+            }
+            Instruction::SetClassPrototype {
+                operand_types,
+                dst,
+                prototype,
+                class,
+            } => {
+                format!(
+                    "dst:reg{}, prototype:{}, class:{}",
+                    dst.value(),
+                    prototype.to_string::<0>(*operand_types),
+                    class.to_string::<1>(*operand_types)
+                )
+            }
             Instruction::Pop
             | Instruction::Dup
             | Instruction::Swap
@@ -557,41 +667,12 @@ impl CodeBlock {
             | Instruction::PushFalse
             | Instruction::PushUndefined
             | Instruction::PushEmptyObject
-            | Instruction::PushClassPrototype
-            | Instruction::SetClassPrototype
             | Instruction::SetHomeObject
-            | Instruction::Add
-            | Instruction::Sub
-            | Instruction::Div
-            | Instruction::Mul
-            | Instruction::Mod
-            | Instruction::Pow
-            | Instruction::ShiftRight
-            | Instruction::ShiftLeft
-            | Instruction::UnsignedShiftRight
-            | Instruction::BitOr
-            | Instruction::BitAnd
-            | Instruction::BitXor
-            | Instruction::BitNot
-            | Instruction::In
-            | Instruction::Eq
-            | Instruction::StrictEq
-            | Instruction::NotEq
-            | Instruction::StrictNotEq
-            | Instruction::GreaterThan
-            | Instruction::GreaterThanOrEq
-            | Instruction::LessThan
-            | Instruction::LessThanOrEq
-            | Instruction::InstanceOf
             | Instruction::TypeOf
             | Instruction::Void
             | Instruction::LogicalNot
             | Instruction::Pos
             | Instruction::Neg
-            | Instruction::Inc
-            | Instruction::IncPost
-            | Instruction::Dec
-            | Instruction::DecPost
             | Instruction::GetPropertyByValue
             | Instruction::GetPropertyByValuePush
             | Instruction::SetPropertyByValue
@@ -661,8 +742,8 @@ impl CodeBlock {
             | Instruction::SetNameByLocator
             | Instruction::PopPrivateEnvironment
             | Instruction::ImportCall
-            | Instruction::GetReturnValue
-            | Instruction::SetReturnValue
+            | Instruction::GetAccumulator
+            | Instruction::SetAccumulatorFromStack
             | Instruction::BindThisValue
             | Instruction::CreateMappedArgumentsObject
             | Instruction::CreateUnmappedArgumentsObject
@@ -718,11 +799,7 @@ impl CodeBlock {
             | Instruction::Reserved46
             | Instruction::Reserved47
             | Instruction::Reserved48
-            | Instruction::Reserved49
-            | Instruction::Reserved50
-            | Instruction::Reserved51
-            | Instruction::Reserved52
-            | Instruction::Reserved53 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved49 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }

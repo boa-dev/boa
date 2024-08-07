@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
+    bytecompiler::{Access, ByteCompiler, InstructionOperand, Operand2, ToJsString},
     environments::BindingLocatorError,
     vm::Opcode,
 };
@@ -11,10 +11,8 @@ use boa_ast::expression::{
 impl ByteCompiler<'_> {
     pub(crate) fn compile_update(&mut self, update: &Update, use_expr: bool) {
         let opcode = match update.op() {
-            UpdateOp::IncrementPre => Opcode::Inc,
-            UpdateOp::DecrementPre => Opcode::Dec,
-            UpdateOp::IncrementPost => Opcode::IncPost,
-            UpdateOp::DecrementPost => Opcode::DecPost,
+            UpdateOp::IncrementPost | UpdateOp::IncrementPre => Opcode::Inc,
+            UpdateOp::DecrementPre | UpdateOp::DecrementPost => Opcode::Dec,
         };
         let post = matches!(
             update.op(),
@@ -35,12 +33,26 @@ impl ByteCompiler<'_> {
                     self.emit_with_varying_operand(Opcode::GetNameAndLocator, index);
                 }
 
-                self.emit_opcode(opcode);
-                if post {
-                    self.emit_opcode(Opcode::Swap);
-                } else {
-                    self.emit_opcode(Opcode::Dup);
-                }
+                let src = self.register_allocator.alloc();
+                let dst = self.register_allocator.alloc();
+
+                self.pop_into_register(&src);
+
+                self.emit2(
+                    Opcode::ToNumeric,
+                    &[
+                        Operand2::Register(&dst),
+                        Operand2::Operand(InstructionOperand::Register(&src)),
+                    ],
+                );
+                self.emit2(
+                    opcode,
+                    &[
+                        Operand2::Register(&src),
+                        Operand2::Operand(InstructionOperand::Register(&dst)),
+                    ],
+                );
+                self.push_from_register(&src);
 
                 if binding.is_lexical() {
                     match self.lexical_environment.set_mutable_binding(name.clone()) {
@@ -59,60 +71,134 @@ impl ByteCompiler<'_> {
                 } else {
                     self.emit_opcode(Opcode::SetNameByLocator);
                 }
+                if post {
+                    self.push_from_register(&dst);
+                } else {
+                    self.push_from_register(&src);
+                }
+
+                self.register_allocator.dealloc(src);
+                self.register_allocator.dealloc(dst);
             }
             Access::Property { access } => match access {
-                PropertyAccess::Simple(access) => match access.field() {
-                    PropertyAccessField::Const(name) => {
-                        self.compile_expr(access.target(), true);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
+                PropertyAccess::Simple(access) => {
+                    self.compile_expr(access.target(), true);
 
-                        self.emit_get_property_by_name(*name);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
+                    self.emit_opcode(Opcode::Dup);
+                    self.emit_opcode(Opcode::Dup);
+                    self.emit_opcode(Opcode::Dup);
+
+                    // Stack: value, value, value, value
+                    match access.field() {
+                        PropertyAccessField::Const(name) => {
+                            self.emit_get_property_by_name(*name);
+
+                            let src = self.register_allocator.alloc();
+                            let dst = self.register_allocator.alloc();
+                            self.pop_into_register(&src);
+
+                            self.emit2(
+                                Opcode::ToNumeric,
+                                &[
+                                    Operand2::Register(&dst),
+                                    Operand2::Operand(InstructionOperand::Register(&src)),
+                                ],
+                            );
+                            self.emit2(
+                                opcode,
+                                &[
+                                    Operand2::Register(&src),
+                                    Operand2::Operand(InstructionOperand::Register(&dst)),
+                                ],
+                            );
+
+                            self.push_from_register(&src);
+
+                            self.emit_set_property_by_name(*name);
+
+                            if post {
+                                self.emit_opcode(Opcode::Pop);
+                                self.push_from_register(&dst);
+                            }
+
+                            self.register_allocator.dealloc(src);
+                            self.register_allocator.dealloc(dst);
                         }
+                        PropertyAccessField::Expr(expr) => {
+                            self.compile_expr(expr, true);
 
-                        self.emit_set_property_by_name(*name);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
+                            self.emit_opcode(Opcode::GetPropertyByValuePush);
+
+                            let src = self.register_allocator.alloc();
+                            let dst = self.register_allocator.alloc();
+                            self.pop_into_register(&src);
+
+                            self.emit2(
+                                Opcode::ToNumeric,
+                                &[
+                                    Operand2::Register(&dst),
+                                    Operand2::Operand(InstructionOperand::Register(&src)),
+                                ],
+                            );
+                            self.emit2(
+                                opcode,
+                                &[
+                                    Operand2::Register(&src),
+                                    Operand2::Operand(InstructionOperand::Register(&dst)),
+                                ],
+                            );
+
+                            self.push_from_register(&src);
+
+                            self.emit_opcode(Opcode::SetPropertyByValue);
+
+                            if post {
+                                self.emit_opcode(Opcode::Pop);
+                                self.push_from_register(&dst);
+                            }
+
+                            self.register_allocator.dealloc(src);
+                            self.register_allocator.dealloc(dst);
                         }
                     }
-                    PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(access.target(), true);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.compile_expr(expr, true);
-
-                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(5)]);
-                        }
-
-                        self.emit_opcode(Opcode::SetPropertyByValue);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
-                        }
-                    }
-                },
+                }
                 PropertyAccess::Private(access) => {
                     let index = self.get_or_insert_private_name(access.field());
                     self.compile_expr(access.target(), true);
+
                     self.emit_opcode(Opcode::Dup);
 
                     self.emit_with_varying_operand(Opcode::GetPrivateField, index);
-                    self.emit_opcode(opcode);
-                    if post {
-                        self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
-                    }
+
+                    let src = self.register_allocator.alloc();
+                    let dst = self.register_allocator.alloc();
+                    self.pop_into_register(&src);
+
+                    self.emit2(
+                        Opcode::ToNumeric,
+                        &[
+                            Operand2::Register(&dst),
+                            Operand2::Operand(InstructionOperand::Register(&src)),
+                        ],
+                    );
+                    self.emit2(
+                        opcode,
+                        &[
+                            Operand2::Register(&src),
+                            Operand2::Operand(InstructionOperand::Register(&dst)),
+                        ],
+                    );
+
+                    self.push_from_register(&src);
 
                     self.emit_with_varying_operand(Opcode::SetPrivateField, index);
                     if post {
                         self.emit_opcode(Opcode::Pop);
+                        self.push_from_register(&dst);
                     }
+
+                    self.register_allocator.dealloc(src);
+                    self.register_allocator.dealloc(dst);
                 }
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
@@ -123,15 +209,36 @@ impl ByteCompiler<'_> {
                         self.emit_opcode(Opcode::This);
 
                         self.emit_get_property_by_name(*name);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
-                        }
+
+                        let src = self.register_allocator.alloc();
+                        let dst = self.register_allocator.alloc();
+                        self.pop_into_register(&src);
+
+                        self.emit2(
+                            Opcode::ToNumeric,
+                            &[
+                                Operand2::Register(&dst),
+                                Operand2::Operand(InstructionOperand::Register(&src)),
+                            ],
+                        );
+                        self.emit2(
+                            opcode,
+                            &[
+                                Operand2::Register(&src),
+                                Operand2::Operand(InstructionOperand::Register(&dst)),
+                            ],
+                        );
+
+                        self.push_from_register(&src);
 
                         self.emit_set_property_by_name(*name);
                         if post {
                             self.emit_opcode(Opcode::Pop);
+                            self.push_from_register(&dst);
                         }
+
+                        self.register_allocator.dealloc(src);
+                        self.register_allocator.dealloc(dst);
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.emit_opcode(Opcode::Super);
@@ -140,18 +247,37 @@ impl ByteCompiler<'_> {
                         self.compile_expr(expr, true);
 
                         self.emit_opcode(Opcode::GetPropertyByValuePush);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(2)]);
-                        }
+
+                        let src = self.register_allocator.alloc();
+                        let dst = self.register_allocator.alloc();
+                        self.pop_into_register(&src);
+
+                        self.emit2(
+                            Opcode::ToNumeric,
+                            &[
+                                Operand2::Register(&dst),
+                                Operand2::Operand(InstructionOperand::Register(&src)),
+                            ],
+                        );
+                        self.emit2(
+                            opcode,
+                            &[
+                                Operand2::Register(&src),
+                                Operand2::Operand(InstructionOperand::Register(&dst)),
+                            ],
+                        );
 
                         self.emit_opcode(Opcode::This);
-                        self.emit(Opcode::RotateRight, &[Operand::U8(2)]);
+                        self.push_from_register(&src);
 
                         self.emit_opcode(Opcode::SetPropertyByValue);
                         if post {
                             self.emit_opcode(Opcode::Pop);
+                            self.push_from_register(&dst);
                         }
+
+                        self.register_allocator.dealloc(src);
+                        self.register_allocator.dealloc(dst);
                     }
                 },
             },

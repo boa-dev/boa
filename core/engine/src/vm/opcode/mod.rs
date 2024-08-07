@@ -131,7 +131,8 @@ where
 }
 
 /// Represents a varying operand kind.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(u8)]
 pub(crate) enum VaryingOperandKind {
     #[default]
     U8,
@@ -180,6 +181,16 @@ impl VaryingOperand {
     #[must_use]
     pub(crate) const fn kind(self) -> VaryingOperandKind {
         self.kind
+    }
+    #[must_use]
+    pub(crate) fn to_string<const N: u8>(self, operand_types: u8) -> String {
+        let type_ = (operand_types >> (N * 2)) & 0x0000_0011;
+        match type_ {
+            0b0000_0000 => format!("reg{}", self.value),
+            0b0000_0001 => format!("arg{}", self.value),
+            0b0000_0010 => format!("{}", self.value),
+            _ => unreachable!("unknown operand kind"),
+        }
     }
 }
 
@@ -758,14 +769,24 @@ generate_opcodes! {
     /// Operands:
     ///
     /// Stack: class, superclass **=>** class, superclass.prototype
-    PushClassPrototype,
+    PushClassPrototype {
+        operand_types: u8,
+        dst: VaryingOperand,
+        class: VaryingOperand,
+        superclass: VaryingOperand
+    },
 
     /// Set the prototype of a class object.
     ///
     /// Operands:
     ///
     /// Stack: class, prototype **=>** class.prototype
-    SetClassPrototype,
+    SetClassPrototype {
+        operand_types: u8,
+        dst: VaryingOperand,
+        prototype: VaryingOperand,
+        class: VaryingOperand
+    },
 
     /// Set home object internal slot of an object literal method.
     ///
@@ -814,168 +835,160 @@ generate_opcodes! {
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs + rhs)
-    Add,
+    Add { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `-` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs - rhs)
-    Sub,
+    Sub { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `/` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs / rhs)
-    Div,
+    Div { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `*` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs * rhs)
-    Mul,
+    Mul { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `%` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs % rhs)
-    Mod,
+    Mod { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `**` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs ** rhs)
-    Pow,
+    Pow { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs >> rhs)
-    ShiftRight,
+    ShiftRight { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<<` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** `(lhs << rhs)`
-    ShiftLeft,
+    ShiftLeft { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>>` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs >>> rhs)
-    UnsignedShiftRight,
+    UnsignedShiftRight { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `|` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs | rhs)
-    BitOr,
+    BitOr { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `&` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs & rhs)
-    BitAnd,
+    BitAnd { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `^` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs ^ rhs)
-    BitXor,
+    BitXor { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Unary bitwise `~` operator.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** ~value
-    BitNot,
+    BitNot { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `in` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs `in` rhs)
-    In,
+    In { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `in` operator for private names.
     ///
     /// Operands: index: `u32`
     ///
     /// Stack: rhs **=>** (private_name `in` rhs)
-    InPrivate { index: VaryingOperand },
+    InPrivate { operand_types: u8, dst: VaryingOperand, index: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `==` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs `==` rhs)
-    Eq,
+    Eq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `===` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs `===` rhs)
-    StrictEq,
+    StrictEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!=` operator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs `!=` rhs)
-    NotEq,
+    NotEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!==` operator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs `!==` rhs)
-    StrictNotEq,
+    StrictNotEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs > rhs)
-    GreaterThan,
+    GreaterThan { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>=` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs >= rhs)
-    GreaterThanOrEq,
+    GreaterThanOrEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** `(lhs < rhs)`
-    LessThan,
+    LessThan { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<=` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** `(lhs <= rhs)`
-    LessThanOrEq,
+    LessThanOrEq { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `instanceof` operator.
     ///
     /// Operands:
     ///
     /// Stack: lhs, rhs **=>** (lhs instanceof rhs)
-    InstanceOf,
+    InstanceOf { operand_types: u8, dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary logical `&&` operator.
     ///
@@ -984,7 +997,7 @@ generate_opcodes! {
     /// Operands: exit: `u32`
     ///
     /// Stack: lhs, rhs **=>** (lhs && rhs)
-    LogicalAnd { exit: u32 },
+    LogicalAnd { operand_types: u8, exit: u32, lhs: VaryingOperand },
 
     /// Binary logical `||` operator.
     ///
@@ -993,7 +1006,7 @@ generate_opcodes! {
     /// Operands: exit: `u32`
     ///
     /// Stack: lhs, rhs **=>** (lhs || rhs)
-    LogicalOr { exit: u32 },
+    LogicalOr { operand_types: u8, exit: u32, lhs: VaryingOperand },
 
     /// Binary `??` operator.
     ///
@@ -1003,7 +1016,7 @@ generate_opcodes! {
     /// Operands: exit: `u32`
     ///
     /// Stack: lhs, rhs **=>** (lhs ?? rhs)
-    Coalesce { exit: u32 },
+    Coalesce { operand_types: u8, exit: u32, lhs: VaryingOperand },
 
     /// Unary `typeof` operator.
     ///
@@ -1040,33 +1053,22 @@ generate_opcodes! {
     /// Stack: value **=>** (-value)
     Neg,
 
+    /// Convert value at register `src` to numeric and puts it in register `dst`.
+    ToNumeric { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
+
     /// Unary `++` operator.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** (value + 1)
-    Inc,
-
-    /// Unary postfix `++` operator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (ToNumeric(value)), (value + 1)
-    IncPost,
+    Inc { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
 
     /// Unary `--` operator.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** (value - 1)
-    Dec,
-
-    /// Unary postfix `--` operator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (ToNumeric(value)), (value - 1)
-    DecPost,
+    Dec { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
 
     /// Declare `var` type variable.
     ///
@@ -1160,7 +1162,13 @@ generate_opcodes! {
     /// Operands: index: `u32`
     ///
     /// Stack: object, receiver **=>** value
-    GetPropertyByName { index: VaryingOperand },
+    GetPropertyByName {
+        operand_types: u8,
+        dst: VaryingOperand,
+        receiver: VaryingOperand,
+        value: VaryingOperand,
+        index: VaryingOperand
+    },
 
     /// Get a property by value from an object an push it on the stack.
     ///
@@ -1694,7 +1702,7 @@ generate_opcodes! {
     /// Operands: index: `VaryingOperand`
     ///
     /// Stack: **=>** func
-    GetFunction { index: VaryingOperand },
+    GetFunction { dst: VaryingOperand, index: VaryingOperand },
 
     /// Call a function named "eval".
     ///
@@ -1771,14 +1779,49 @@ generate_opcodes! {
     /// Operands:
     ///
     /// Stack: **=>** value
-    GetReturnValue,
+    GetAccumulator,
 
     /// Set return value of a function.
     ///
     /// Operands:
     ///
     /// Stack: value **=>**
-    SetReturnValue,
+    SetAccumulatorFromStack,
+
+    /// Set return value of a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    SetAccumulator { register: VaryingOperand },
+
+    // Set return value of a function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    SetRegisterFromAccumulator { register: VaryingOperand },
+
+    /// Move value of operand `src` to register `dst`.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>**
+    Move { operand_types: u8, dst: VaryingOperand, src: VaryingOperand },
+
+    /// Pop value from the stack and push to register `dst`
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>**
+    PopIntoRegister { dst: VaryingOperand },
+
+    /// Copy value at register `src` and push it into the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>** value
+    PushFromRegister { src: VaryingOperand },
 
     /// Push a declarative environment.
     ///
@@ -2058,7 +2101,7 @@ generate_opcodes! {
     /// Operands: count: `u32`, count * name_index: `u32`
     ///
     /// Stack: class **=>** class
-    PushPrivateEnvironment { name_indices: ThinVec<u32> },
+    PushPrivateEnvironment { operand_types: u8, class: VaryingOperand, name_indices: ThinVec<u32> },
 
     /// Pop a private environment.
     ///
@@ -2251,14 +2294,6 @@ generate_opcodes! {
     Reserved48 => Reserved,
     /// Reserved [`Opcode`].
     Reserved49 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved50 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved51 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved52 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved53 => Reserved,
 }
 
 /// Specific opcodes for bindings.

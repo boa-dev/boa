@@ -143,11 +143,11 @@ impl ByteCompiler<'_> {
     }
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, has_catch: bool) {
-        // TODO: We could probably remove the Get/SetReturnValue if we check that there is no break/continues statements.
+        // TODO: We could probably remove the Get/SetAccumulatorFromStack if we check that there is no break/continues statements.
         self.current_stack_value_count += 1;
-        self.emit_opcode(Opcode::GetReturnValue);
+        self.emit_opcode(Opcode::GetAccumulator);
         self.compile_catch_finally_block(finally.block(), true);
-        self.emit_opcode(Opcode::SetReturnValue);
+        self.emit_opcode(Opcode::SetAccumulatorFromStack);
         self.current_stack_value_count -= 1;
 
         // Rethrow error if error happend!
@@ -184,7 +184,7 @@ impl ByteCompiler<'_> {
                     Statement::Break(_) | Statement::Continue(_),
                 )) => {
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::SetReturnValue);
+                    self.emit_opcode(Opcode::SetAccumulatorFromStack);
                     break;
                 }
                 Some(StatementListItem::Statement(Statement::Block(block))) => {

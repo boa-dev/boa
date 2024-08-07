@@ -597,10 +597,13 @@ impl ByteCompiler<'_> {
                 );
 
             // Ensures global functions are printed when generating the global flowgraph.
-            let function_index = self.push_function_to_constants(code.clone());
+            let function_index = self.push_function_to_constants(code);
 
             // b. Let fo be InstantiateFunctionObject of f with arguments env and privateEnv.
-            self.emit_with_varying_operand(Opcode::GetFunction, function_index);
+            let dst = self.register_allocator.alloc();
+            self.emit_get_function(&dst, function_index);
+            self.push_from_register(&dst);
+            self.register_allocator.dealloc(dst);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
             let name_index = self.get_or_insert_name(name);
@@ -971,7 +974,10 @@ impl ByteCompiler<'_> {
                 let index = self.push_function_to_constants(code.clone());
 
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
-                self.emit_with_varying_operand(Opcode::GetFunction, index);
+                let dst = self.register_allocator.alloc();
+                self.emit_get_function(&dst, index);
+                self.push_from_register(&dst);
+                self.register_allocator.dealloc(dst);
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
                 let name_index = self.get_or_insert_name(name);
@@ -984,7 +990,10 @@ impl ByteCompiler<'_> {
             else {
                 // b. Let fo be InstantiateFunctionObject of f with arguments lexEnv and privateEnv.
                 let index = self.push_function_to_constants(code);
-                self.emit_with_varying_operand(Opcode::GetFunction, index);
+                let dst = self.register_allocator.alloc();
+                self.emit_get_function(&dst, index);
+                self.push_from_register(&dst);
+                self.register_allocator.dealloc(dst);
 
                 let name = name.to_js_string(self.interner());
 
