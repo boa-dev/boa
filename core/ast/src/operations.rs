@@ -14,14 +14,16 @@ use crate::{
     },
     expression::{
         access::{PrivatePropertyAccess, SuperPropertyAccess},
+        literal::PropertyDefinition,
         operator::BinaryInPrivate,
         Await, Identifier, OptionalOperationKind, SuperCall, Yield,
     },
     function::{
-        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
-        Function, Generator,
+        ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
+        AsyncGeneratorDeclaration, AsyncGeneratorExpression, ClassDeclaration, ClassElement,
+        ClassElementName, ClassExpression, FormalParameterList, FunctionDeclaration,
+        FunctionExpression, GeneratorDeclaration, GeneratorExpression,
     },
-    property::{MethodDefinition, PropertyDefinition},
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         LabelledItem,
@@ -87,23 +89,81 @@ where
             ControlFlow::Continue(())
         }
 
-        fn visit_function(&mut self, _: &'ast Function) -> ControlFlow<Self::BreakTy> {
+        fn visit_function_expression(
+            &mut self,
+            _: &'ast FunctionExpression,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_async_function(&mut self, _: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
+        fn visit_function_declaration(
+            &mut self,
+            _: &'ast FunctionDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_generator(&mut self, _: &'ast Generator) -> ControlFlow<Self::BreakTy> {
+        fn visit_async_function_expression(
+            &mut self,
+            _: &'ast AsyncFunctionExpression,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_async_generator(&mut self, _: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
+        fn visit_async_function_declaration(
+            &mut self,
+            _: &'ast AsyncFunctionDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_class(&mut self, node: &'ast Class) -> ControlFlow<Self::BreakTy> {
+        fn visit_generator_expression(
+            &mut self,
+            _: &'ast GeneratorExpression,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_generator_declaration(
+            &mut self,
+            _: &'ast GeneratorDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_async_generator_expression(
+            &mut self,
+            _: &'ast AsyncGeneratorExpression,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_async_generator_declaration(
+            &mut self,
+            _: &'ast AsyncGeneratorDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_class_expression(
+            &mut self,
+            node: &'ast ClassExpression,
+        ) -> ControlFlow<Self::BreakTy> {
+            if !node.elements().is_empty() && self.0 == ContainsSymbol::ClassBody {
+                return ControlFlow::Break(());
+            }
+
+            if node.super_ref().is_some() && self.0 == ContainsSymbol::ClassHeritage {
+                return ControlFlow::Break(());
+            }
+
+            node.visit_with(self)
+        }
+
+        fn visit_class_declaration(
+            &mut self,
+            node: &'ast ClassDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
             if !node.elements().is_empty() && self.0 == ContainsSymbol::ClassBody {
                 return ControlFlow::Break(());
             }
@@ -118,9 +178,14 @@ where
         // `ComputedPropertyContains`: https://tc39.es/ecma262/#sec-static-semantics-computedpropertycontains
         fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
             match node {
-                ClassElement::MethodDefinition(name, _)
-                | ClassElement::StaticMethodDefinition(name, _)
-                | ClassElement::FieldDefinition(name, _)
+                ClassElement::MethodDefinition(m) => {
+                    if let ClassElementName::PropertyName(name) = m.name() {
+                        name.visit_with(self)
+                    } else {
+                        ControlFlow::Continue(())
+                    }
+                }
+                ClassElement::FieldDefinition(name, _)
                 | ClassElement::StaticFieldDefinition(name, _) => name.visit_with(self),
                 _ => ControlFlow::Continue(()),
             }
@@ -130,11 +195,11 @@ where
             &mut self,
             node: &'ast PropertyDefinition,
         ) -> ControlFlow<Self::BreakTy> {
-            if let PropertyDefinition::MethodDefinition(name, _) = node {
+            if let PropertyDefinition::MethodDefinition(m) = node {
                 if self.0 == ContainsSymbol::MethodDefinition {
                     return ControlFlow::Break(());
                 }
-                return name.visit_with(self);
+                return m.name().visit_with(self);
             }
 
             node.visit_with(self)
@@ -250,27 +315,67 @@ where
             }
         }
 
-        fn visit_function(&mut self, _: &'ast Function) -> ControlFlow<Self::BreakTy> {
+        fn visit_function_expression(
+            &mut self,
+            _: &'ast FunctionExpression,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_async_function(&mut self, _: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
+        fn visit_function_declaration(
+            &mut self,
+            _: &'ast FunctionDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_generator(&mut self, _: &'ast Generator) -> ControlFlow<Self::BreakTy> {
+        fn visit_async_function_expression(
+            &mut self,
+            _: &'ast AsyncFunctionExpression,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
-        fn visit_async_generator(&mut self, _: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
+        fn visit_async_function_declaration(
+            &mut self,
+            _: &'ast AsyncFunctionDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_generator_expression(
+            &mut self,
+            _: &'ast GeneratorExpression,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_generator_declaration(
+            &mut self,
+            _: &'ast GeneratorDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_async_generator_expression(
+            &mut self,
+            _: &'ast AsyncGeneratorExpression,
+        ) -> ControlFlow<Self::BreakTy> {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_async_generator_declaration(
+            &mut self,
+            _: &'ast AsyncGeneratorDeclaration,
+        ) -> ControlFlow<Self::BreakTy> {
             ControlFlow::Continue(())
         }
 
         fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
-            match node {
-                ClassElement::MethodDefinition(name, _)
-                | ClassElement::StaticMethodDefinition(name, _) => return name.visit_with(self),
-                _ => {}
+            if let ClassElement::MethodDefinition(m) = node {
+                if let ClassElementName::PropertyName(name) = m.name() {
+                    return name.visit_with(self);
+                }
             }
             node.visit_with(self)
         }
@@ -279,8 +384,8 @@ where
             &mut self,
             node: &'ast PropertyDefinition,
         ) -> ControlFlow<Self::BreakTy> {
-            if let PropertyDefinition::MethodDefinition(name, _) = node {
-                name.visit_with(self)
+            if let PropertyDefinition::MethodDefinition(m) = node {
+                m.name().visit_with(self)
             } else {
                 node.visit_with(self)
             }
@@ -296,15 +401,8 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
 #[must_use]
 #[inline]
-pub fn has_direct_super(method: &MethodDefinition) -> bool {
-    match method {
-        MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) => {
-            contains(f, ContainsSymbol::SuperCall)
-        }
-        MethodDefinition::Generator(f) => contains(f, ContainsSymbol::SuperCall),
-        MethodDefinition::AsyncGenerator(f) => contains(f, ContainsSymbol::SuperCall),
-        MethodDefinition::Async(f) => contains(f, ContainsSymbol::SuperCall),
-    }
+pub fn has_direct_super_new(params: &FormalParameterList, body: &Script) -> bool {
+    contains(params, ContainsSymbol::SuperCall) || contains(body, ContainsSymbol::SuperCall)
 }
 
 /// A container that [`BoundNamesVisitor`] can use to push the found identifiers.
@@ -352,38 +450,93 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
         ControlFlow::Continue(())
     }
 
-    fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_expression(
+        &mut self,
+        node: &'ast FunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), true);
         }
         ControlFlow::Continue(())
     }
 
-    fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_declaration(
+        &mut self,
+        node: &'ast FunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.0.add(node.name().sym(), true);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_generator_expression(
+        &mut self,
+        node: &'ast GeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
         }
         ControlFlow::Continue(())
     }
 
-    fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
+    fn visit_generator_declaration(
+        &mut self,
+        node: &'ast GeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.0.add(node.name().sym(), false);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_async_function_expression(
+        &mut self,
+        node: &'ast AsyncFunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
         }
         ControlFlow::Continue(())
     }
 
-    fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
+    fn visit_async_function_declaration(
+        &mut self,
+        node: &'ast AsyncFunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.0.add(node.name().sym(), false);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_async_generator_expression(
+        &mut self,
+        node: &'ast AsyncGeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
         }
         ControlFlow::Continue(())
     }
 
-    fn visit_class(&mut self, node: &'ast Class) -> ControlFlow<Self::BreakTy> {
+    fn visit_async_generator_declaration(
+        &mut self,
+        node: &'ast AsyncGeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.0.add(node.name().sym(), false);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_class_expression(
+        &mut self,
+        node: &'ast ClassExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(ident) = node.name() {
             self.0.add(ident.sym(), false);
         }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_class_declaration(
+        &mut self,
+        node: &'ast ClassDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.0.add(node.name().sym(), false);
         ControlFlow::Continue(())
     }
 
@@ -394,31 +547,20 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
         match node {
             ExportDeclaration::VarStatement(var) => try_break!(self.visit_var_declaration(var)),
             ExportDeclaration::Declaration(decl) => try_break!(self.visit_declaration(decl)),
-            ExportDeclaration::DefaultFunction(f) => {
-                self.0
-                    .add(f.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym), true);
+            ExportDeclaration::DefaultFunctionDeclaration(f) => {
+                self.0.add(f.name().sym(), true);
             }
-            ExportDeclaration::DefaultGenerator(g) => {
-                self.0
-                    .add(g.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym), false);
+            ExportDeclaration::DefaultGeneratorDeclaration(g) => {
+                self.0.add(g.name().sym(), false);
             }
-            ExportDeclaration::DefaultAsyncFunction(af) => {
-                self.0.add(
-                    af.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
-                    false,
-                );
+            ExportDeclaration::DefaultAsyncFunctionDeclaration(af) => {
+                self.0.add(af.name().sym(), false);
             }
-            ExportDeclaration::DefaultAsyncGenerator(ag) => {
-                self.0.add(
-                    ag.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
-                    false,
-                );
+            ExportDeclaration::DefaultAsyncGeneratorDeclaration(ag) => {
+                self.0.add(ag.name().sym(), false);
             }
             ExportDeclaration::DefaultClassDeclaration(cl) => {
-                self.0.add(
-                    cl.name().map_or(Sym::DEFAULT_EXPORT, Identifier::sym),
-                    false,
-                );
+                self.0.add(cl.name().sym(), false);
             }
             ExportDeclaration::DefaultAssignmentExpression(_) => {
                 self.0.add(Sym::DEFAULT_EXPORT, false);
@@ -502,24 +644,66 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
-            LabelledItem::Function(f) => BoundNamesVisitor(self.0).visit_function(f),
+            LabelledItem::FunctionDeclaration(f) => {
+                BoundNamesVisitor(self.0).visit_function_declaration(f)
+            }
             LabelledItem::Statement(_) => ControlFlow::Continue(()),
         }
     }
 
-    fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_expression(
+        &mut self,
+        node: &'ast FunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
-    fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_declaration(
+        &mut self,
+        node: &'ast FunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
-    fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
+    fn visit_async_function_expression(
+        &mut self,
+        node: &'ast AsyncFunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
-    fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
+    fn visit_async_function_declaration(
+        &mut self,
+        node: &'ast AsyncFunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_generator_expression(
+        &mut self,
+        node: &'ast GeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_generator_declaration(
+        &mut self,
+        node: &'ast GeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_async_generator_expression(
+        &mut self,
+        node: &'ast AsyncGeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_async_generator_declaration(
+        &mut self,
+        node: &'ast AsyncGeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
@@ -730,7 +914,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
-            LabelledItem::Function(_) => ControlFlow::Continue(()),
+            LabelledItem::FunctionDeclaration(_) => ControlFlow::Continue(()),
             LabelledItem::Statement(stmt) => self.visit(stmt),
         }
     }
@@ -745,19 +929,59 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         self.visit(node.block())
     }
 
-    fn visit_function(&mut self, node: &'ast Function) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_expression(
+        &mut self,
+        node: &'ast FunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
-    fn visit_async_function(&mut self, node: &'ast AsyncFunction) -> ControlFlow<Self::BreakTy> {
+    fn visit_function_declaration(
+        &mut self,
+        node: &'ast FunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
-    fn visit_generator(&mut self, node: &'ast Generator) -> ControlFlow<Self::BreakTy> {
+    fn visit_async_function_expression(
+        &mut self,
+        node: &'ast AsyncFunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
-    fn visit_async_generator(&mut self, node: &'ast AsyncGenerator) -> ControlFlow<Self::BreakTy> {
+    fn visit_async_function_declaration(
+        &mut self,
+        node: &'ast AsyncFunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_generator_expression(
+        &mut self,
+        node: &'ast GeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_generator_declaration(
+        &mut self,
+        node: &'ast GeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_async_generator_expression(
+        &mut self,
+        node: &'ast AsyncGeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_script(node.body())
+    }
+
+    fn visit_async_generator_declaration(
+        &mut self,
+        node: &'ast AsyncGeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
         self.visit_script(node.body())
     }
 
@@ -815,12 +1039,12 @@ fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
                 // Note
                 // At the top level of a function, or script, function declarations are treated like
                 // var declarations rather than like lexical declarations.
-                Declaration::Function(_)
-                | Declaration::Generator(_)
-                | Declaration::AsyncFunction(_)
-                | Declaration::AsyncGenerator(_) => {}
-                Declaration::Class(class) => {
-                    BoundNamesVisitor(names).visit_class(class);
+                Declaration::FunctionDeclaration(_)
+                | Declaration::GeneratorDeclaration(_)
+                | Declaration::AsyncFunctionDeclaration(_)
+                | Declaration::AsyncGeneratorDeclaration(_) => {}
+                Declaration::ClassDeclaration(class) => {
+                    BoundNamesVisitor(names).visit_class_declaration(class);
                 }
                 Declaration::Lexical(decl) => {
                     BoundNamesVisitor(names).visit_lexical_declaration(decl);
@@ -843,27 +1067,27 @@ fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
                     // Note
                     // At the top level of a function, or script, function declarations are treated like
                     // var declarations rather than like lexical declarations.
-                    Declaration::Function(f) => {
-                        BoundNamesVisitor(names).visit_function(f);
+                    Declaration::FunctionDeclaration(f) => {
+                        BoundNamesVisitor(names).visit_function_declaration(f);
                     }
-                    Declaration::Generator(f) => {
-                        BoundNamesVisitor(names).visit_generator(f);
+                    Declaration::GeneratorDeclaration(f) => {
+                        BoundNamesVisitor(names).visit_generator_declaration(f);
                     }
-                    Declaration::AsyncFunction(f) => {
-                        BoundNamesVisitor(names).visit_async_function(f);
+                    Declaration::AsyncFunctionDeclaration(f) => {
+                        BoundNamesVisitor(names).visit_async_function_declaration(f);
                     }
-                    Declaration::AsyncGenerator(f) => {
-                        BoundNamesVisitor(names).visit_async_generator(f);
+                    Declaration::AsyncGeneratorDeclaration(f) => {
+                        BoundNamesVisitor(names).visit_async_generator_declaration(f);
                     }
-                    Declaration::Class(_) | Declaration::Lexical(_) => {}
+                    Declaration::ClassDeclaration(_) | Declaration::Lexical(_) => {}
                 }
             }
             StatementListItem::Statement(stmt) => {
                 let mut stmt = Some(stmt);
                 while let Some(Statement::Labelled(labelled)) = stmt {
                     match labelled.item() {
-                        LabelledItem::Function(f) => {
-                            BoundNamesVisitor(names).visit_function(f);
+                        LabelledItem::FunctionDeclaration(f) => {
+                            BoundNamesVisitor(names).visit_function_declaration(f);
                             stmt = None;
                         }
                         LabelledItem::Statement(s) => stmt = Some(s),
@@ -898,7 +1122,10 @@ struct AllPrivateIdentifiersValidVisitor(Vec<Sym>);
 impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
     type BreakTy = ();
 
-    fn visit_class(&mut self, node: &'ast Class) -> ControlFlow<Self::BreakTy> {
+    fn visit_class_expression(
+        &mut self,
+        node: &'ast ClassExpression,
+    ) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.super_ref() {
             try_break!(self.visit(node));
         }
@@ -906,9 +1133,12 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
         let mut names = self.0.clone();
         for element in node.elements() {
             match element {
-                ClassElement::PrivateMethodDefinition(name, _)
-                | ClassElement::PrivateStaticMethodDefinition(name, _)
-                | ClassElement::PrivateFieldDefinition(name, _)
+                ClassElement::MethodDefinition(m) => {
+                    if let ClassElementName::PrivateName(name) = m.name() {
+                        names.push(name.description());
+                    }
+                }
+                ClassElement::PrivateFieldDefinition(name, _)
                 | ClassElement::PrivateStaticFieldDefinition(name, _) => {
                     names.push(name.description());
                 }
@@ -924,10 +1154,12 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
 
         for element in node.elements() {
             match element {
-                ClassElement::MethodDefinition(name, method)
-                | ClassElement::StaticMethodDefinition(name, method) => {
-                    try_break!(visitor.visit(name));
-                    try_break!(visitor.visit(method));
+                ClassElement::MethodDefinition(m) => {
+                    if let ClassElementName::PropertyName(name) = m.name() {
+                        try_break!(visitor.visit(name));
+                    }
+                    try_break!(visitor.visit(m.parameters()));
+                    try_break!(visitor.visit(m.body()));
                 }
                 ClassElement::FieldDefinition(name, expression)
                 | ClassElement::StaticFieldDefinition(name, expression) => {
@@ -936,9 +1168,66 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                         try_break!(visitor.visit(expression));
                     }
                 }
-                ClassElement::PrivateMethodDefinition(_, method)
-                | ClassElement::PrivateStaticMethodDefinition(_, method) => {
-                    try_break!(visitor.visit(method));
+                ClassElement::PrivateFieldDefinition(_, expression)
+                | ClassElement::PrivateStaticFieldDefinition(_, expression) => {
+                    if let Some(expression) = expression {
+                        try_break!(visitor.visit(expression));
+                    }
+                }
+                ClassElement::StaticBlock(statement_list) => {
+                    try_break!(visitor.visit(statement_list));
+                }
+            }
+        }
+
+        ControlFlow::Continue(())
+    }
+
+    fn visit_class_declaration(
+        &mut self,
+        node: &'ast ClassDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        if let Some(node) = node.super_ref() {
+            try_break!(self.visit(node));
+        }
+
+        let mut names = self.0.clone();
+        for element in node.elements() {
+            match element {
+                ClassElement::MethodDefinition(m) => {
+                    if let ClassElementName::PrivateName(name) = m.name() {
+                        names.push(name.description());
+                    }
+                }
+                ClassElement::PrivateFieldDefinition(name, _)
+                | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                    names.push(name.description());
+                }
+                _ => {}
+            }
+        }
+
+        let mut visitor = Self(names);
+
+        if let Some(node) = node.constructor() {
+            try_break!(visitor.visit(node));
+        }
+
+        for element in node.elements() {
+            match element {
+                ClassElement::MethodDefinition(m) => {
+                    if let ClassElementName::PropertyName(name) = m.name() {
+                        try_break!(visitor.visit(name));
+                    }
+                    try_break!(visitor.visit(m.parameters()));
+                    try_break!(visitor.visit(m.body()));
+                }
+                ClassElement::FieldDefinition(name, expression)
+                | ClassElement::StaticFieldDefinition(name, expression) => {
+                    try_break!(visitor.visit(name));
+                    if let Some(expression) = expression {
+                        try_break!(visitor.visit(expression));
+                    }
                 }
                 ClassElement::PrivateFieldDefinition(_, expression)
                 | ClassElement::PrivateStaticFieldDefinition(_, expression) => {
@@ -1297,7 +1586,7 @@ where
         fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
             match node {
                 LabelledItem::Statement(stmt) => self.visit_statement(stmt),
-                LabelledItem::Function(_) => ControlFlow::Continue(()),
+                LabelledItem::FunctionDeclaration(_) => ControlFlow::Continue(()),
             }
         }
 
@@ -1388,20 +1677,20 @@ pub enum LexicallyScopedDeclaration<'a> {
     /// See [`LexicalDeclaration`]
     LexicalDeclaration(&'a LexicalDeclaration),
 
-    /// See [`Function`]
-    Function(&'a Function),
+    /// See [`FunctionDeclaration`]
+    FunctionDeclaration(&'a FunctionDeclaration),
 
-    /// See [`Generator`]
-    Generator(&'a Generator),
+    /// See [`GeneratorDeclaration`]
+    GeneratorDeclaration(&'a GeneratorDeclaration),
 
-    /// See [`AsyncFunction`]
-    AsyncFunction(&'a AsyncFunction),
+    /// See [`AsyncFunctionDeclaration`]
+    AsyncFunctionDeclaration(&'a AsyncFunctionDeclaration),
 
-    /// See [`AsyncGenerator`]
-    AsyncGenerator(&'a AsyncGenerator),
+    /// See [`AsyncGeneratorDeclaration`]
+    AsyncGeneratorDeclaration(&'a AsyncGeneratorDeclaration),
 
-    /// See [`Class`]
-    Class(&'a Class),
+    /// See [`ClassDeclaration`]
+    ClassDeclaration(&'a ClassDeclaration),
 
     /// A default assignment expression as an export declaration.
     ///
@@ -1415,11 +1704,11 @@ impl LexicallyScopedDeclaration<'_> {
     pub fn bound_names(&self) -> Vec<Identifier> {
         match *self {
             Self::LexicalDeclaration(v) => bound_names(v),
-            Self::Function(f) => bound_names(f),
-            Self::Generator(g) => bound_names(g),
-            Self::AsyncFunction(f) => bound_names(f),
-            Self::AsyncGenerator(g) => bound_names(g),
-            Self::Class(cl) => bound_names(cl),
+            Self::FunctionDeclaration(f) => bound_names(f),
+            Self::GeneratorDeclaration(g) => bound_names(g),
+            Self::AsyncFunctionDeclaration(f) => bound_names(f),
+            Self::AsyncGeneratorDeclaration(g) => bound_names(g),
+            Self::ClassDeclaration(cl) => bound_names(cl),
             Self::AssignmentExpression(expr) => bound_names(expr),
         }
     }
@@ -1428,11 +1717,11 @@ impl LexicallyScopedDeclaration<'_> {
 impl<'ast> From<&'ast Declaration> for LexicallyScopedDeclaration<'ast> {
     fn from(value: &'ast Declaration) -> LexicallyScopedDeclaration<'ast> {
         match value {
-            Declaration::Function(f) => Self::Function(f),
-            Declaration::Generator(g) => Self::Generator(g),
-            Declaration::AsyncFunction(af) => Self::AsyncFunction(af),
-            Declaration::AsyncGenerator(ag) => Self::AsyncGenerator(ag),
-            Declaration::Class(c) => Self::Class(c),
+            Declaration::FunctionDeclaration(f) => Self::FunctionDeclaration(f),
+            Declaration::GeneratorDeclaration(g) => Self::GeneratorDeclaration(g),
+            Declaration::AsyncFunctionDeclaration(af) => Self::AsyncFunctionDeclaration(af),
+            Declaration::AsyncGeneratorDeclaration(ag) => Self::AsyncGeneratorDeclaration(ag),
+            Declaration::ClassDeclaration(c) => Self::ClassDeclaration(c),
             Declaration::Lexical(lex) => Self::LexicalDeclaration(lex),
         }
     }
@@ -1490,19 +1779,23 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
 
             // ExportDeclaration : export default HoistableDeclaration
             // 1. Return a List whose sole element is DeclarationPart of HoistableDeclaration.
-            ExportDeclaration::DefaultFunction(f) => LexicallyScopedDeclaration::Function(f),
-            ExportDeclaration::DefaultGenerator(g) => LexicallyScopedDeclaration::Generator(g),
-            ExportDeclaration::DefaultAsyncFunction(af) => {
-                LexicallyScopedDeclaration::AsyncFunction(af)
+            ExportDeclaration::DefaultFunctionDeclaration(f) => {
+                LexicallyScopedDeclaration::FunctionDeclaration(f)
             }
-            ExportDeclaration::DefaultAsyncGenerator(ag) => {
-                LexicallyScopedDeclaration::AsyncGenerator(ag)
+            ExportDeclaration::DefaultGeneratorDeclaration(g) => {
+                LexicallyScopedDeclaration::GeneratorDeclaration(g)
+            }
+            ExportDeclaration::DefaultAsyncFunctionDeclaration(af) => {
+                LexicallyScopedDeclaration::AsyncFunctionDeclaration(af)
+            }
+            ExportDeclaration::DefaultAsyncGeneratorDeclaration(ag) => {
+                LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag)
             }
 
             // ExportDeclaration : export default ClassDeclaration
             ExportDeclaration::DefaultClassDeclaration(c) => {
                 // 1. Return a List whose sole element is ClassDeclaration.
-                LexicallyScopedDeclaration::Class(c)
+                LexicallyScopedDeclaration::ClassDeclaration(c)
             }
 
             // ExportDeclaration : export default AssignmentExpression ;
@@ -1544,9 +1837,10 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
             // LabelledItem : FunctionDeclaration
-            LabelledItem::Function(f) => {
+            LabelledItem::FunctionDeclaration(f) => {
                 // 1. Return « FunctionDeclaration ».
-                self.0.push(LexicallyScopedDeclaration::Function(f));
+                self.0
+                    .push(LexicallyScopedDeclaration::FunctionDeclaration(f));
             }
 
             // LabelledItem : Statement
@@ -1591,16 +1885,17 @@ impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_, 'ast
             // StatementListItem : Declaration
             StatementListItem::Declaration(d) => match d {
                 // 1. If Declaration is Declaration : HoistableDeclaration , then
-                Declaration::Function(_)
-                | Declaration::Generator(_)
-                | Declaration::AsyncFunction(_)
-                | Declaration::AsyncGenerator(_) => {
+                Declaration::FunctionDeclaration(_)
+                | Declaration::GeneratorDeclaration(_)
+                | Declaration::AsyncFunctionDeclaration(_)
+                | Declaration::AsyncGeneratorDeclaration(_) => {
                     // a. Return a new empty List.
                 }
 
                 // 2. Return « Declaration ».
-                Declaration::Class(cl) => {
-                    self.0.push(LexicallyScopedDeclaration::Class(cl));
+                Declaration::ClassDeclaration(cl) => {
+                    self.0
+                        .push(LexicallyScopedDeclaration::ClassDeclaration(cl));
                 }
                 Declaration::Lexical(lex) => {
                     self.0
@@ -1624,17 +1919,17 @@ pub enum VarScopedDeclaration {
     /// See [`VarDeclaration`]
     VariableDeclaration(Variable),
 
-    /// See [`Function`]
-    Function(Function),
+    /// See [`FunctionDeclaration`]
+    FunctionDeclaration(FunctionDeclaration),
 
-    /// See [`Generator`]
-    Generator(Generator),
+    /// See [`GeneratorDeclaration`]
+    GeneratorDeclaration(GeneratorDeclaration),
 
-    /// See [`AsyncFunction`]
-    AsyncFunction(AsyncFunction),
+    /// See [`AsyncFunctionDeclaration`]
+    AsyncFunctionDeclaration(AsyncFunctionDeclaration),
 
-    /// See [`AsyncGenerator`]
-    AsyncGenerator(AsyncGenerator),
+    /// See [`AsyncGeneratorDeclaration`]
+    AsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
 }
 
 impl VarScopedDeclaration {
@@ -1643,10 +1938,10 @@ impl VarScopedDeclaration {
     pub fn bound_names(&self) -> Vec<Identifier> {
         match self {
             Self::VariableDeclaration(v) => bound_names(v),
-            Self::Function(f) => bound_names(f),
-            Self::Generator(g) => bound_names(g),
-            Self::AsyncFunction(f) => bound_names(f),
-            Self::AsyncGenerator(g) => bound_names(g),
+            Self::FunctionDeclaration(f) => bound_names(f),
+            Self::GeneratorDeclaration(g) => bound_names(g),
+            Self::AsyncFunctionDeclaration(f) => bound_names(f),
+            Self::AsyncGeneratorDeclaration(g) => bound_names(g),
         }
     }
 }
@@ -1802,7 +2097,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
     fn visit_labelled_item(&mut self, node: &'ast LabelledItem) -> ControlFlow<Self::BreakTy> {
         match node {
             LabelledItem::Statement(s) => self.visit(s),
-            LabelledItem::Function(_) => ControlFlow::Continue(()),
+            LabelledItem::FunctionDeclaration(_) => ControlFlow::Continue(()),
         }
     }
 
@@ -1851,17 +2146,21 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
         match node {
             StatementListItem::Declaration(d) => {
                 match d {
-                    Declaration::Function(f) => {
-                        self.0.push(VarScopedDeclaration::Function(f.clone()));
+                    Declaration::FunctionDeclaration(f) => {
+                        self.0
+                            .push(VarScopedDeclaration::FunctionDeclaration(f.clone()));
                     }
-                    Declaration::Generator(f) => {
-                        self.0.push(VarScopedDeclaration::Generator(f.clone()));
+                    Declaration::GeneratorDeclaration(f) => {
+                        self.0
+                            .push(VarScopedDeclaration::GeneratorDeclaration(f.clone()));
                     }
-                    Declaration::AsyncFunction(f) => {
-                        self.0.push(VarScopedDeclaration::AsyncFunction(f.clone()));
+                    Declaration::AsyncFunctionDeclaration(f) => {
+                        self.0
+                            .push(VarScopedDeclaration::AsyncFunctionDeclaration(f.clone()));
                     }
-                    Declaration::AsyncGenerator(f) => {
-                        self.0.push(VarScopedDeclaration::AsyncGenerator(f.clone()));
+                    Declaration::AsyncGeneratorDeclaration(f) => {
+                        self.0
+                            .push(VarScopedDeclaration::AsyncGeneratorDeclaration(f.clone()));
                     }
                     _ => {}
                 }
@@ -1882,8 +2181,9 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
                 VarScopedDeclarationsVisitor(self.0).visit(s);
                 ControlFlow::Continue(())
             }
-            LabelledItem::Function(f) => {
-                self.0.push(VarScopedDeclaration::Function(f.clone()));
+            LabelledItem::FunctionDeclaration(f) => {
+                self.0
+                    .push(VarScopedDeclaration::FunctionDeclaration(f.clone()));
                 ControlFlow::Continue(())
             }
         }
@@ -1949,10 +2249,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement_list());
         for statement in node.statement_list().statements() {
-            if let StatementListItem::Declaration(Declaration::Function(function)) = statement {
-                let name = function
-                    .name()
-                    .expect("function declaration must have name");
+            if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
+                statement
+            {
+                let name = function.name();
                 self.0.push(name);
             }
         }
@@ -1969,10 +2269,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         for case in node.cases() {
             self.visit(case);
             for statement in case.body().statements() {
-                if let StatementListItem::Declaration(Declaration::Function(function)) = statement {
-                    let name = function
-                        .name()
-                        .expect("function declaration must have name");
+                if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
+                    statement
+                {
+                    let name = function.name();
                     self.0.push(name);
                 }
             }
@@ -1980,10 +2280,10 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         if let Some(default) = node.default() {
             self.visit(default);
             for statement in default.statements() {
-                if let StatementListItem::Declaration(Declaration::Function(function)) = statement {
-                    let name = function
-                        .name()
-                        .expect("function declaration must have name");
+                if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
+                    statement
+                {
+                    let name = function.name();
                     self.0.push(name);
                 }
             }
@@ -2152,7 +2452,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
     ) -> ControlFlow<Self::BreakTy> {
         match node.item() {
             LabelledItem::Statement(node) => try_break!(self.visit(node)),
-            LabelledItem::Function(_) => {}
+            LabelledItem::FunctionDeclaration(_) => {}
         }
         ControlFlow::Continue(())
     }

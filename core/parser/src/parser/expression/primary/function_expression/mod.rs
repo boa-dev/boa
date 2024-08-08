@@ -21,8 +21,7 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::Identifier,
-    function::Function,
+    function::FunctionExpression as FunctionExpressionNode,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword, Punctuator,
 };
@@ -38,17 +37,12 @@ use boa_profiler::Profiler;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct FunctionExpression {
-    name: Option<Identifier>,
-}
+pub(super) struct FunctionExpression {}
 
 impl FunctionExpression {
     /// Creates a new `FunctionExpression` parser.
-    pub(in crate::parser) fn new<N>(name: N) -> Self
-    where
-        N: Into<Option<Identifier>>,
-    {
-        Self { name: name.into() }
+    pub(in crate::parser) fn new() -> Self {
+        Self {}
     }
 }
 
@@ -56,7 +50,7 @@ impl<R> TokenParser<R> for FunctionExpression
 where
     R: ReadChar,
 {
-    type Output = Function;
+    type Output = FunctionExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionExpression", "Parsing");
@@ -140,8 +134,7 @@ where
             interner,
         )?;
 
-        let function =
-            Function::new_with_binding_identifier(name.or(self.name), params, body, name.is_some());
+        let function = FunctionExpressionNode::new(name, params, body, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

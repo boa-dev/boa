@@ -21,8 +21,7 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::Identifier,
-    function::AsyncGenerator,
+    function::AsyncGeneratorExpression as AsyncGeneratorExpressionNode,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword, Punctuator,
 };
@@ -36,17 +35,12 @@ use boa_profiler::Profiler;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncGeneratorExpression {
-    name: Option<Identifier>,
-}
+pub(super) struct AsyncGeneratorExpression {}
 
 impl AsyncGeneratorExpression {
     /// Creates a new `AsyncGeneratorExpression` parser.
-    pub(in crate::parser) fn new<N>(name: N) -> Self
-    where
-        N: Into<Option<Identifier>>,
-    {
-        Self { name: name.into() }
+    pub(in crate::parser) fn new() -> Self {
+        Self {}
     }
 }
 
@@ -55,7 +49,7 @@ where
     R: ReadChar,
 {
     //The below needs to be implemented in ast::node
-    type Output = AsyncGenerator;
+    type Output = AsyncGeneratorExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncGeneratorExpression", "Parsing");
@@ -182,7 +176,7 @@ where
             interner,
         )?;
 
-        let function = AsyncGenerator::new(name.or(self.name), params, body, name.is_some());
+        let function = AsyncGeneratorExpressionNode::new(name, params, body, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

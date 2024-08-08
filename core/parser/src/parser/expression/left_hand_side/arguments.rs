@@ -99,14 +99,14 @@ where
             if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
                 args.push(
                     Spread::new(
-                        AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                     )
                     .into(),
                 );
             } else {
                 args.push(
-                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,
                 );
             }

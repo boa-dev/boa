@@ -4,6 +4,7 @@ use boa_macros::js_str;
 use indoc::indoc;
 
 mod async_generator;
+mod class;
 mod control_flow;
 mod env;
 mod function;

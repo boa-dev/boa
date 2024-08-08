@@ -12,8 +12,7 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::Identifier,
-    function::AsyncFunction,
+    function::AsyncFunctionExpression as AsyncFunctionExpressionNode,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword, Punctuator,
 };
@@ -29,17 +28,12 @@ use boa_profiler::Profiler;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncFunctionExpression {
-    name: Option<Identifier>,
-}
+pub(super) struct AsyncFunctionExpression {}
 
 impl AsyncFunctionExpression {
     /// Creates a new `AsyncFunctionExpression` parser.
-    pub(super) fn new<N>(name: N) -> Self
-    where
-        N: Into<Option<Identifier>>,
-    {
-        Self { name: name.into() }
+    pub(super) fn new() -> Self {
+        Self {}
     }
 }
 
@@ -47,7 +41,7 @@ impl<R> TokenParser<R> for AsyncFunctionExpression
 where
     R: ReadChar,
 {
-    type Output = AsyncFunction;
+    type Output = AsyncFunctionExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncFunctionExpression", "Parsing");
@@ -145,7 +139,7 @@ where
             interner,
         )?;
 
-        let function = AsyncFunction::new(name.or(self.name), params, body, name.is_some());
+        let function = AsyncFunctionExpressionNode::new(name, params, body, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

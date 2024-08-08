@@ -1420,10 +1420,10 @@ generate_opcodes! {
 
     /// Push a field to a class.
     ///
-    /// Operands:
+    /// Operands: is_anonymous_function: `bool`
     ///
     /// Stack: class, field_name, field_function **=>**
-    PushClassField,
+    PushClassField  { is_anonymous_function: bool },
 
     /// Push a private field to the class.
     ///

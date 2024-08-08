@@ -99,9 +99,8 @@ where
                 }
                 TokenKind::Punctuator(Punctuator::Spread) => {
                     cursor.advance(interner);
-                    let node =
-                        AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                    let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                     elements.push(Some(Spread::new(node).into()));
                     next_comma = true;
                     last_spread = true;
@@ -114,9 +113,8 @@ where
                     ));
                 }
                 _ => {
-                    let expr =
-                        AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                    let expr = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                     elements.push(Some(expr));
                     next_comma = true;
                     last_spread = false;

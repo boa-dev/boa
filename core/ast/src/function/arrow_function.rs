@@ -22,7 +22,7 @@ use super::{FormalParameterList, FunctionBody};
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArrowFunction {
-    name: Option<Identifier>,
+    pub(crate) name: Option<Identifier>,
     parameters: FormalParameterList,
     body: FunctionBody,
 }

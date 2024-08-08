@@ -49,8 +49,8 @@ where
 
         cursor.peek_expect_no_lineterminator(0, "throw statement", interner)?;
 
-        let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+        let expr =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         cursor.expect_semicolon("throw statement", interner)?;
 

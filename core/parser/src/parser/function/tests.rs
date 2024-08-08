@@ -6,8 +6,8 @@ use boa_ast::{
         Identifier,
     },
     function::{
-        ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags, Function,
-        FunctionBody,
+        ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags,
+        FunctionBody, FunctionDeclaration,
     },
     statement::Return,
     Declaration, Expression, Statement, StatementListItem,
@@ -28,8 +28,8 @@ fn check_basic() {
 
     check_script_parser(
         "function foo(a) { return a; }",
-        vec![Declaration::Function(Function::new_with_binding_identifier(
-            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
+        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+            interner.get_or_intern_static("foo", utf16!("foo")).into(),
             params,
             FunctionBody::new(
                 vec![StatementListItem::Statement(Statement::Return(
@@ -39,7 +39,6 @@ fn check_basic() {
                 ))]
                 .into(),
             ),
-            true,
         ))
         .into()],
         interner,
@@ -67,8 +66,8 @@ fn check_duplicates_strict_off() {
     assert_eq!(params.length(), 2);
     check_script_parser(
         "function foo(a, a) { return a; }",
-        vec![Declaration::Function(Function::new_with_binding_identifier(
-            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
+        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+            interner.get_or_intern_static("foo", utf16!("foo")).into(),
             params,
             FunctionBody::new(
                 vec![StatementListItem::Statement(Statement::Return(
@@ -78,7 +77,6 @@ fn check_duplicates_strict_off() {
                 ))]
                 .into(),
             ),
-            true,
         ))
         .into()],
         interner,
@@ -104,8 +102,8 @@ fn check_basic_semicolon_insertion() {
 
     check_script_parser(
         "function foo(a) { return a }",
-        vec![Declaration::Function(Function::new_with_binding_identifier(
-            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
+        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+            interner.get_or_intern_static("foo", utf16!("foo")).into(),
             params,
             FunctionBody::new(
                 vec![StatementListItem::Statement(Statement::Return(
@@ -115,7 +113,6 @@ fn check_basic_semicolon_insertion() {
                 ))]
                 .into(),
             ),
-            true,
         ))
         .into()],
         interner,
@@ -134,8 +131,8 @@ fn check_empty_return() {
     assert_eq!(params.length(), 1);
     check_script_parser(
         "function foo(a) { return; }",
-        vec![Declaration::Function(Function::new_with_binding_identifier(
-            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
+        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+            interner.get_or_intern_static("foo", utf16!("foo")).into(),
             params,
             FunctionBody::new(
                 vec![StatementListItem::Statement(Statement::Return(
@@ -143,7 +140,6 @@ fn check_empty_return() {
                 ))]
                 .into(),
             ),
-            true,
         ))
         .into()],
         interner,
@@ -162,8 +158,8 @@ fn check_empty_return_semicolon_insertion() {
     assert_eq!(params.length(), 1);
     check_script_parser(
         "function foo(a) { return }",
-        vec![Declaration::Function(Function::new_with_binding_identifier(
-            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
+        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+            interner.get_or_intern_static("foo", utf16!("foo")).into(),
             params,
             FunctionBody::new(
                 vec![StatementListItem::Statement(Statement::Return(
@@ -171,7 +167,6 @@ fn check_empty_return_semicolon_insertion() {
                 ))]
                 .into(),
             ),
-            true,
         ))
         .into()],
         interner,
@@ -199,11 +194,10 @@ fn check_rest_operator() {
     assert_eq!(params.length(), 1);
     check_script_parser(
         "function foo(a, ...b) {}",
-        vec![Declaration::Function(Function::new_with_binding_identifier(
-            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
+        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
+            interner.get_or_intern_static("foo", utf16!("foo")).into(),
             params,
             FunctionBody::default(),
-            true,
         ))
         .into()],
         interner,

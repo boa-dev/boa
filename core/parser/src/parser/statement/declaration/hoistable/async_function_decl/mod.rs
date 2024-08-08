@@ -8,7 +8,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{function::AsyncFunction, Keyword};
+use boa_ast::{function::AsyncFunctionDeclaration as AsyncFunctionDeclarationNode, Keyword};
 use boa_interner::Interner;
 
 /// Async Function declaration parsing.
@@ -27,7 +27,7 @@ pub(in crate::parser) struct AsyncFunctionDeclaration {
 }
 
 impl AsyncFunctionDeclaration {
-    /// Creates a new `FunctionDeclaration` parser.
+    /// Creates a new `AsyncFunctionDeclaration` parser.
     pub(in crate::parser) fn new<Y, A, D>(allow_yield: Y, allow_await: A, is_default: D) -> Self
     where
         Y: Into<AllowYield>,
@@ -76,7 +76,7 @@ impl<R> TokenParser<R> for AsyncFunctionDeclaration
 where
     R: ReadChar,
 {
-    type Output = AsyncFunction;
+    type Output = AsyncFunctionDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
@@ -93,6 +93,8 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(AsyncFunction::new(Some(result.0), result.1, result.2, true))
+        Ok(AsyncFunctionDeclarationNode::new(
+            result.0, result.1, result.2,
+        ))
     }
 }

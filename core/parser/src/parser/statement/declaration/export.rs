@@ -173,12 +173,12 @@ where
                     TokenKind::Keyword((Keyword::Function, false)) => {
                         let next_token = cursor.peek(1, interner).or_abrupt()?;
                         if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
-                            AstExportDeclaration::DefaultGenerator(
+                            AstExportDeclaration::DefaultGeneratorDeclaration(
                                 GeneratorDeclaration::new(false, true, true)
                                     .parse(cursor, interner)?,
                             )
                         } else {
-                            AstExportDeclaration::DefaultFunction(
+                            AstExportDeclaration::DefaultFunctionDeclaration(
                                 FunctionDeclaration::new(false, true, true)
                                     .parse(cursor, interner)?,
                             )
@@ -187,12 +187,12 @@ where
                     TokenKind::Keyword((Keyword::Async, false)) => {
                         let next_token = cursor.peek(2, interner).or_abrupt()?;
                         if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
-                            AstExportDeclaration::DefaultAsyncGenerator(
+                            AstExportDeclaration::DefaultAsyncGeneratorDeclaration(
                                 AsyncGeneratorDeclaration::new(false, true, true)
                                     .parse(cursor, interner)?,
                             )
                         } else {
-                            AstExportDeclaration::DefaultAsyncFunction(
+                            AstExportDeclaration::DefaultAsyncFunctionDeclaration(
                                 AsyncFunctionDeclaration::new(false, true, true)
                                     .parse(cursor, interner)?,
                             )
@@ -204,8 +204,8 @@ where
                         )
                     }
                     _ => {
-                        let expr = AssignmentExpression::new(None, true, false, true)
-                            .parse(cursor, interner)?;
+                        let expr =
+                            AssignmentExpression::new(true, false, true).parse(cursor, interner)?;
 
                         cursor.expect_semicolon("default expression export", interner)?;
 

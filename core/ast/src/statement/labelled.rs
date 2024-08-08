@@ -1,5 +1,5 @@
 use crate::{
-    function::Function,
+    function::FunctionDeclaration,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Statement,
@@ -12,7 +12,7 @@ use core::ops::ControlFlow;
 /// Semantically, a [`Labelled`] statement should only wrap [`Statement`] nodes. However,
 /// old ECMAScript implementations supported [labelled function declarations][label-fn] as an extension
 /// of the grammar. In the ECMAScript 2015 spec, the production of `LabelledStatement` was
-/// modified to include labelled [`Function`]s as a valid node.
+/// modified to include labelled [`FunctionDeclaration`]s as a valid node.
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LabelledItem
 /// [label-fn]: https://tc39.es/ecma262/#sec-labelled-function-declarations
@@ -20,8 +20,9 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum LabelledItem {
-    /// A labelled [`Function`].
-    Function(Function),
+    /// A labelled [`FunctionDeclaration`].
+    FunctionDeclaration(FunctionDeclaration),
+
     /// A labelled [`Statement`].
     Statement(Statement),
 }
@@ -29,7 +30,7 @@ pub enum LabelledItem {
 impl LabelledItem {
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
-            Self::Function(f) => f.to_indented_string(interner, indentation),
+            Self::FunctionDeclaration(f) => f.to_indented_string(interner, indentation),
             Self::Statement(stmt) => stmt.to_indented_string(interner, indentation),
         }
     }
@@ -41,9 +42,9 @@ impl ToInternedString for LabelledItem {
     }
 }
 
-impl From<Function> for LabelledItem {
-    fn from(f: Function) -> Self {
-        Self::Function(f)
+impl From<FunctionDeclaration> for LabelledItem {
+    fn from(f: FunctionDeclaration) -> Self {
+        Self::FunctionDeclaration(f)
     }
 }
 
@@ -59,7 +60,7 @@ impl VisitWith for LabelledItem {
         V: Visitor<'a>,
     {
         match self {
-            Self::Function(f) => visitor.visit_function(f),
+            Self::FunctionDeclaration(f) => visitor.visit_function_declaration(f),
             Self::Statement(s) => visitor.visit_statement(s),
         }
     }
@@ -69,7 +70,7 @@ impl VisitWith for LabelledItem {
         V: VisitorMut<'a>,
     {
         match self {
-            Self::Function(f) => visitor.visit_function_mut(f),
+            Self::FunctionDeclaration(f) => visitor.visit_function_declaration_mut(f),
             Self::Statement(s) => visitor.visit_statement_mut(s),
         }
     }

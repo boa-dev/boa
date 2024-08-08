@@ -2,7 +2,7 @@ use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{Declaration, LexicalDeclaration, Variable},
     expression::literal::Literal,
-    function::{AsyncFunction, FormalParameterList, FunctionBody},
+    function::{AsyncFunctionExpression, FormalParameterList, FunctionBody},
     statement::Return,
     Statement, StatementListItem,
 };
@@ -23,7 +23,7 @@ fn check_async_expression() {
             vec![Variable::from_identifier(
                 add.into(),
                 Some(
-                    AsyncFunction::new(
+                    AsyncFunctionExpression::new(
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -61,7 +61,7 @@ fn check_nested_async_expression() {
             vec![Variable::from_identifier(
                 a.into(),
                 Some(
-                    AsyncFunction::new(
+                    AsyncFunctionExpression::new(
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -69,7 +69,7 @@ fn check_nested_async_expression() {
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
-                                        AsyncFunction::new(
+                                        AsyncFunctionExpression::new(
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(

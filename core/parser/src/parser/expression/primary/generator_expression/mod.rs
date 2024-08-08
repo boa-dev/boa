@@ -21,8 +21,7 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::Identifier,
-    function::Generator,
+    function::GeneratorExpression as GeneratorExpressionNode,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword, Punctuator,
 };
@@ -38,17 +37,12 @@ use boa_profiler::Profiler;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct GeneratorExpression {
-    name: Option<Identifier>,
-}
+pub(super) struct GeneratorExpression {}
 
 impl GeneratorExpression {
     /// Creates a new `GeneratorExpression` parser.
-    pub(in crate::parser) fn new<N>(name: N) -> Self
-    where
-        N: Into<Option<Identifier>>,
-    {
-        Self { name: name.into() }
+    pub(in crate::parser) fn new() -> Self {
+        Self {}
     }
 }
 
@@ -56,7 +50,7 @@ impl<R> TokenParser<R> for GeneratorExpression
 where
     R: ReadChar,
 {
-    type Output = Generator;
+    type Output = GeneratorExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("GeneratorExpression", "Parsing");
@@ -157,7 +151,7 @@ where
             )));
         }
 
-        let function = Generator::new(name.or(self.name), params, body, name.is_some());
+        let function = GeneratorExpressionNode::new(name, params, body, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

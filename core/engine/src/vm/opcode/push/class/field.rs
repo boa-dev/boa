@@ -18,6 +18,7 @@ impl Operation for PushClassField {
     const COST: u8 = 6;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let is_annonymus_function = context.vm.read::<u8>() != 0;
         let field_function_value = context.vm.pop();
         let field_name_value = context.vm.pop();
         let class_value = context.vm.pop();
@@ -39,8 +40,13 @@ impl Operation for PushClassField {
             .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_field(
-                field_name_key,
+                field_name_key.clone(),
                 JsFunction::from_object_unchecked(field_function_object.clone()),
+                if is_annonymus_function {
+                    Some(field_name_key)
+                } else {
+                    None
+                },
             );
         Ok(CompletionType::Normal)
     }

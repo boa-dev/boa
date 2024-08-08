@@ -166,7 +166,7 @@ where
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     cursor.advance(interner);
-                    let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
+                    let idx = Expression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression", interner)?;
                     lhs =

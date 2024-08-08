@@ -16,10 +16,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    expression::{
-        operator::{binary::ArithmeticOp, Binary},
-        Identifier,
-    },
+    expression::operator::{binary::ArithmeticOp, Binary},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
@@ -35,25 +32,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-ExponentiationExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser::expression) struct ExponentiationExpression {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ExponentiationExpression {
     /// Creates a new `ExponentiationExpression` parser.
-    pub(in crate::parser::expression) fn new<N, Y, A>(
-        name: N,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
+    pub(in crate::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -75,18 +65,18 @@ where
             | TokenKind::Punctuator(
                 Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg,
             ) => {
-                return UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                return UnaryExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner);
             }
             TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
-                return UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                return UnaryExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner);
             }
             _ => {}
         }
 
-        let lhs = UpdateExpression::new(self.name, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+        let lhs =
+            UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Exp) {
                 cursor.advance(interner);

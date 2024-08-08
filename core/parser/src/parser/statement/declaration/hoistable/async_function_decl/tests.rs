@@ -1,6 +1,6 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
-    function::{AsyncFunction, FormalParameterList, FunctionBody},
+    function::{AsyncFunctionDeclaration, FormalParameterList, FunctionBody},
     Declaration,
 };
 use boa_interner::{Interner, Sym};
@@ -12,17 +12,16 @@ fn async_function_declaration() {
     let interner = &mut Interner::default();
     check_script_parser(
         "async function hello() {}",
-        vec![Declaration::AsyncFunction(AsyncFunction::new(
-            Some(
+        vec![
+            Declaration::AsyncFunctionDeclaration(AsyncFunctionDeclaration::new(
                 interner
                     .get_or_intern_static("hello", utf16!("hello"))
                     .into(),
-            ),
-            FormalParameterList::default(),
-            FunctionBody::default(),
-            true,
-        ))
-        .into()],
+                FormalParameterList::default(),
+                FunctionBody::default(),
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -33,26 +32,28 @@ fn async_function_declaration_keywords() {
     let interner = &mut Interner::default();
     check_script_parser(
         "async function yield() {}",
-        vec![Declaration::AsyncFunction(AsyncFunction::new(
-            Some(Sym::YIELD.into()),
-            FormalParameterList::default(),
-            FunctionBody::default(),
-            true,
-        ))
-        .into()],
+        vec![
+            Declaration::AsyncFunctionDeclaration(AsyncFunctionDeclaration::new(
+                Sym::YIELD.into(),
+                FormalParameterList::default(),
+                FunctionBody::default(),
+            ))
+            .into(),
+        ],
         interner,
     );
 
     let interner = &mut Interner::default();
     check_script_parser(
         "async function await() {}",
-        vec![Declaration::AsyncFunction(AsyncFunction::new(
-            Some(Sym::AWAIT.into()),
-            FormalParameterList::default(),
-            FunctionBody::default(),
-            true,
-        ))
-        .into()],
+        vec![
+            Declaration::AsyncFunctionDeclaration(AsyncFunctionDeclaration::new(
+                Sym::AWAIT.into(),
+                FormalParameterList::default(),
+                FunctionBody::default(),
+            ))
+            .into(),
+        ],
         interner,
     );
 }

@@ -57,8 +57,8 @@ where
 
         cursor.expect(Punctuator::OpenParen, "while statement", interner)?;
 
-        let cond = Expression::new(None, true, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+        let cond =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         cursor.expect(Punctuator::CloseParen, "while statement", interner)?;
 

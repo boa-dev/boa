@@ -8,7 +8,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{function::Function, Keyword};
+use boa_ast::{function::FunctionDeclaration as FunctionDeclarationNode, Keyword};
 use boa_interner::Interner;
 
 /// Function declaration parsing.
@@ -74,18 +74,13 @@ impl<R> TokenParser<R> for FunctionDeclaration
 where
     R: ReadChar,
 {
-    type Output = Function;
+    type Output = FunctionDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Function, false), "function declaration", interner)?;
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(Function::new_with_binding_identifier(
-            Some(result.0),
-            result.1,
-            result.2,
-            true,
-        ))
+        Ok(FunctionDeclarationNode::new(result.0, result.1, result.2))
     }
 }

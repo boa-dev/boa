@@ -5,12 +5,6 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-modules
 
-use std::{convert::Infallible, hash::BuildHasherDefault, ops::ControlFlow};
-
-use boa_interner::Sym;
-use indexmap::IndexSet;
-use rustc_hash::{FxHashSet, FxHasher};
-
 use crate::{
     declaration::{
         ExportDeclaration, ExportEntry, ExportSpecifier, ImportDeclaration, ImportEntry,
@@ -23,6 +17,10 @@ use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},
     StatementListItem,
 };
+use boa_interner::Sym;
+use indexmap::IndexSet;
+use rustc_hash::{FxHashSet, FxHasher};
+use std::{convert::Infallible, hash::BuildHasherDefault, ops::ControlFlow};
 
 /// Module item list AST node.
 ///
@@ -106,10 +104,10 @@ impl ModuleItemList {
                     ExportDeclaration::Declaration(decl) => {
                         BoundNamesVisitor(self.0).visit_declaration(decl)
                     }
-                    ExportDeclaration::DefaultFunction(_)
-                    | ExportDeclaration::DefaultGenerator(_)
-                    | ExportDeclaration::DefaultAsyncFunction(_)
-                    | ExportDeclaration::DefaultAsyncGenerator(_)
+                    ExportDeclaration::DefaultFunctionDeclaration(_)
+                    | ExportDeclaration::DefaultGeneratorDeclaration(_)
+                    | ExportDeclaration::DefaultAsyncFunctionDeclaration(_)
+                    | ExportDeclaration::DefaultAsyncGeneratorDeclaration(_)
                     | ExportDeclaration::DefaultClassDeclaration(_)
                     | ExportDeclaration::DefaultAssignmentExpression(_) => {
                         self.0.push(Sym::DEFAULT);
@@ -178,15 +176,14 @@ impl ModuleItemList {
                     ExportDeclaration::Declaration(decl) => {
                         return BoundNamesVisitor(self.0).visit_declaration(decl);
                     }
-                    ExportDeclaration::DefaultFunction(f) => f.name(),
-                    ExportDeclaration::DefaultGenerator(g) => g.name(),
-                    ExportDeclaration::DefaultAsyncFunction(af) => af.name(),
-                    ExportDeclaration::DefaultAsyncGenerator(ag) => ag.name(),
+                    ExportDeclaration::DefaultFunctionDeclaration(f) => f.name(),
+                    ExportDeclaration::DefaultGeneratorDeclaration(g) => g.name(),
+                    ExportDeclaration::DefaultAsyncFunctionDeclaration(af) => af.name(),
+                    ExportDeclaration::DefaultAsyncGeneratorDeclaration(ag) => ag.name(),
                     ExportDeclaration::DefaultClassDeclaration(cl) => cl.name(),
                 };
 
-                self.0
-                    .insert(name.unwrap_or_else(|| Identifier::new(Sym::DEFAULT_EXPORT)));
+                self.0.insert(name);
 
                 ControlFlow::Continue(())
             }
@@ -388,23 +385,18 @@ impl ModuleItemList {
                         }
                         return ControlFlow::Continue(());
                     }
-                    ExportDeclaration::DefaultFunction(f) => f.name(),
-                    ExportDeclaration::DefaultGenerator(g) => g.name(),
-                    ExportDeclaration::DefaultAsyncFunction(af) => af.name(),
-                    ExportDeclaration::DefaultAsyncGenerator(ag) => ag.name(),
+                    ExportDeclaration::DefaultFunctionDeclaration(f) => f.name(),
+                    ExportDeclaration::DefaultGeneratorDeclaration(g) => g.name(),
+                    ExportDeclaration::DefaultAsyncFunctionDeclaration(af) => af.name(),
+                    ExportDeclaration::DefaultAsyncGeneratorDeclaration(ag) => ag.name(),
                     ExportDeclaration::DefaultClassDeclaration(c) => c.name(),
                     ExportDeclaration::DefaultAssignmentExpression(_) => {
-                        Some(Identifier::from(Sym::DEFAULT_EXPORT))
+                        Identifier::from(Sym::DEFAULT_EXPORT)
                     }
                 };
 
-                self.0.push(
-                    LocalExportEntry::new(
-                        name.unwrap_or_else(|| Identifier::from(Sym::DEFAULT_EXPORT)),
-                        Sym::DEFAULT,
-                    )
-                    .into(),
-                );
+                self.0
+                    .push(LocalExportEntry::new(name, Sym::DEFAULT).into());
 
                 ControlFlow::Continue(())
             }

@@ -2,7 +2,7 @@ use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::literal::Literal,
-    function::{FormalParameterList, Function, FunctionBody},
+    function::{FormalParameterList, FunctionBody, FunctionExpression},
     statement::Return,
     Declaration, Statement, StatementListItem,
 };
@@ -23,7 +23,7 @@ fn check_function_expression() {
             vec![Variable::from_identifier(
                 add.into(),
                 Some(
-                    Function::new(
+                    FunctionExpression::new(
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -32,6 +32,7 @@ fn check_function_expression() {
                             ))]
                             .into(),
                         ),
+                        false,
                     )
                     .into(),
                 ),
@@ -60,7 +61,7 @@ fn check_nested_function_expression() {
             vec![Variable::from_identifier(
                 a.into(),
                 Some(
-                    Function::new(
+                    FunctionExpression::new(
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -68,7 +69,7 @@ fn check_nested_function_expression() {
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
-                                        Function::new(
+                                        FunctionExpression::new(
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(
@@ -79,6 +80,7 @@ fn check_nested_function_expression() {
                                                 )]
                                                 .into(),
                                             ),
+                                            false,
                                         )
                                         .into(),
                                     ),
@@ -89,6 +91,7 @@ fn check_nested_function_expression() {
                             .into()]
                             .into(),
                         ),
+                        false,
                     )
                     .into(),
                 ),
@@ -109,7 +112,7 @@ fn check_function_non_reserved_keyword() {
                 vec![Variable::from_identifier(
                     $interner.get_or_intern_static("add", utf16!("add")).into(),
                     Some(
-                        Function::new_with_binding_identifier(
+                        FunctionExpression::new(
                             Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
                             FormalParameterList::default(),
                             FunctionBody::new(

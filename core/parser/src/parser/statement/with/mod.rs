@@ -70,8 +70,8 @@ where
         }
 
         cursor.expect(Punctuator::OpenParen, "with statement", interner)?;
-        let expression = Expression::new(None, true, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+        let expression =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
         let position = cursor
             .expect(Punctuator::CloseParen, "with statement", interner)?
             .span()
