@@ -49,7 +49,7 @@ impl PlainMonthDay {
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let options = get_options_object(args.get_or_undefined(1))?;
         let item = args.get_or_undefined(0);
-        to_temporal_month_day(item, options, context)
+        to_temporal_month_day(item, &options, context)
     }
 }
 
@@ -66,7 +66,7 @@ impl PlainMonthDay {
         let inner = &month_day.inner;
         match field {
             DateTimeValues::Day => Ok(inner.iso_day().into()),
-            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code()).into()),
+            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code()?.to_string()).into()),
             _ => unreachable!(),
         }
     }
@@ -281,13 +281,15 @@ pub(crate) fn create_temporal_month_day(
 
 fn to_temporal_month_day(
     item: &JsValue,
-    options: JsObject,
+    options: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?
+    let overflow = get_option::<ArithmeticOverflow>(options, js_str!("overflow"), context)?
         .unwrap_or(ArithmeticOverflow::Constrain);
 
-    let calendar = to_temporal_calendar_slot_value(item)?;
+    // get the calendar property (string) from the item object
+    let calender_id = item.get_v(js_str!("calendar"), context)?;
+    let calendar = to_temporal_calendar_slot_value(&calender_id)?;
 
     let inner = if item.is_object() {
         if let Some(data) = item
