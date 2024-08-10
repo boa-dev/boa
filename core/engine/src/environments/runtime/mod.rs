@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
+    builtins::{Array, IntrinsicObject},
     environments::CompileTimeEnvironment,
     object::{JsObject, PrivateName},
     Context, JsResult, JsString, JsSymbol, JsValue,
@@ -641,6 +642,9 @@ impl Context {
         match locator.environment() {
             BindingLocatorEnvironment::GlobalObject => {
                 let key = locator.name().clone();
+                if key.as_str() == "Array" {
+                    Array::init(self.realm());
+                }
                 let obj = self.global_object();
                 obj.try_get(key, self)
             }
