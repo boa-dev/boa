@@ -311,16 +311,16 @@ impl Duration {
         let inner = &duration.inner;
 
         match field {
-            DateTimeValues::Year => Ok(JsValue::Rational(inner.years().into())),
-            DateTimeValues::Month => Ok(JsValue::Rational(inner.months().into())),
-            DateTimeValues::Week => Ok(JsValue::Rational(inner.weeks().into())),
-            DateTimeValues::Day => Ok(JsValue::Rational(inner.days().into())),
-            DateTimeValues::Hour => Ok(JsValue::Rational(inner.hours().into())),
-            DateTimeValues::Minute => Ok(JsValue::Rational(inner.minutes().into())),
-            DateTimeValues::Second => Ok(JsValue::Rational(inner.seconds().into())),
-            DateTimeValues::Millisecond => Ok(JsValue::Rational(inner.milliseconds().into())),
-            DateTimeValues::Microsecond => Ok(JsValue::Rational(inner.microseconds().into())),
-            DateTimeValues::Nanosecond => Ok(JsValue::Rational(inner.nanoseconds().into())),
+            DateTimeValues::Year => Ok(JsValue::Rational(inner.years().as_inner())),
+            DateTimeValues::Month => Ok(JsValue::Rational(inner.months().as_inner())),
+            DateTimeValues::Week => Ok(JsValue::Rational(inner.weeks().as_inner())),
+            DateTimeValues::Day => Ok(JsValue::Rational(inner.days().as_inner())),
+            DateTimeValues::Hour => Ok(JsValue::Rational(inner.hours().as_inner())),
+            DateTimeValues::Minute => Ok(JsValue::Rational(inner.minutes().as_inner())),
+            DateTimeValues::Second => Ok(JsValue::Rational(inner.seconds().as_inner())),
+            DateTimeValues::Millisecond => Ok(JsValue::Rational(inner.milliseconds().as_inner())),
+            DateTimeValues::Microsecond => Ok(JsValue::Rational(inner.microseconds().as_inner())),
+            DateTimeValues::Nanosecond => Ok(JsValue::Rational(inner.nanoseconds().as_inner())),
             DateTimeValues::MonthCode => unreachable!(
                 "Any other DateTimeValue fields on Duration would be an implementation error."
             ),
@@ -936,7 +936,7 @@ pub(crate) fn to_temporal_partial_duration(
     let days = unknown_object.get(js_str!("days"), context)?;
     if !days.is_undefined() {
         // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
-        result
+        let _ = result
             .days
             .insert(FiniteF64::from(to_integer_if_integral(&days, context)?));
     }
@@ -945,7 +945,7 @@ pub(crate) fn to_temporal_partial_duration(
     let hours = unknown_object.get(js_str!("hours"), context)?;
     // 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
     if !hours.is_undefined() {
-        result
+        let _ = result
             .hours
             .insert(FiniteF64::from(to_integer_if_integral(&hours, context)?));
     }
@@ -954,7 +954,7 @@ pub(crate) fn to_temporal_partial_duration(
     let microseconds = unknown_object.get(js_str!("microseconds"), context)?;
     // 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
     if !microseconds.is_undefined() {
-        result
+        let _ = result
             .microseconds
             .insert(FiniteF64::from(to_integer_if_integral(
                 &microseconds,
@@ -966,7 +966,7 @@ pub(crate) fn to_temporal_partial_duration(
     let milliseconds = unknown_object.get(js_str!("milliseconds"), context)?;
     // 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
     if !milliseconds.is_undefined() {
-        result
+        let _ = result
             .milliseconds
             .insert(FiniteF64::from(to_integer_if_integral(
                 &milliseconds,
@@ -978,7 +978,7 @@ pub(crate) fn to_temporal_partial_duration(
     let minutes = unknown_object.get(js_str!("minutes"), context)?;
     // 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
     if !minutes.is_undefined() {
-        result
+        let _ = result
             .minutes
             .insert(FiniteF64::from(to_integer_if_integral(&minutes, context)?));
     }
@@ -987,7 +987,7 @@ pub(crate) fn to_temporal_partial_duration(
     let months = unknown_object.get(js_str!("months"), context)?;
     // 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
     if !months.is_undefined() {
-        result
+        let _ = result
             .months
             .insert(FiniteF64::from(to_integer_if_integral(&months, context)?));
     }
@@ -996,7 +996,7 @@ pub(crate) fn to_temporal_partial_duration(
     let nanoseconds = unknown_object.get(js_str!("nanoseconds"), context)?;
     // 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
     if !nanoseconds.is_undefined() {
-        result
+        let _ = result
             .nanoseconds
             .insert(FiniteF64::from(to_integer_if_integral(
                 &nanoseconds,
@@ -1008,7 +1008,7 @@ pub(crate) fn to_temporal_partial_duration(
     let seconds = unknown_object.get(js_str!("seconds"), context)?;
     // 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
     if !seconds.is_undefined() {
-        result
+        let _ = result
             .seconds
             .insert(FiniteF64::from(to_integer_if_integral(&seconds, context)?));
     }
@@ -1017,7 +1017,7 @@ pub(crate) fn to_temporal_partial_duration(
     let weeks = unknown_object.get(js_str!("weeks"), context)?;
     // 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
     if !weeks.is_undefined() {
-        result
+        let _ = result
             .weeks
             .insert(FiniteF64::from(to_integer_if_integral(&weeks, context)?));
     }
@@ -1026,7 +1026,7 @@ pub(crate) fn to_temporal_partial_duration(
     let years = unknown_object.get(js_str!("years"), context)?;
     // 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
     if !years.is_undefined() {
-        result
+        let _ = result
             .years
             .insert(FiniteF64::from(to_integer_if_integral(&years, context)?));
     }
