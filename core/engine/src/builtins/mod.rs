@@ -203,7 +203,7 @@ impl Realm {
         ForInIterator::init(self);
         Math::init(self);
         Json::init(self);
-        // Array::init(self);
+        Array::init(self);
         ArrayIterator::init(self);
         Proxy::init(self);
         ArrayBuffer::init(self);

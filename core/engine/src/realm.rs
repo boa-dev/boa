@@ -60,6 +60,7 @@ struct Inner {
     template_map: GcRefCell<FxHashMap<u64, JsObject>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_classes: GcRefCell<FxHashMap<TypeId, StandardConstructor>>,
+
     host_defined: GcRefCell<HostDefined>,
 }
 
