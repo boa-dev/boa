@@ -53,7 +53,7 @@ boa_string = { version = "~0.19.0", path = "core/string" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.5.0"
-clap = "4.5.13"
+clap = "4.5.15"
 colored = "2.1.0"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.5", default-features = false }
@@ -68,8 +68,8 @@ pollster = "0.3.0"
 regex = "1.10.6"
 regress = { version = "0.10.0", features = ["utf16"] }
 rustc-hash = { version = "2.0.0", default-features = false }
-serde_json = "1.0.122"
-serde = "1.0.204"
+serde_json = "1.0.124"
+serde = "1.0.206"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
@@ -95,7 +95,7 @@ isahc = "1.7.2"
 rustyline = { version = "14.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.36"
-syn = { version = "2.0.72", default-features = false }
+syn = { version = "2.0.74", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "11.0.1"
