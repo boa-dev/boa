@@ -39,7 +39,6 @@ use boa_ast::{
     Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_macros::utf16;
 use boa_profiler::Profiler;
 
 /// Parses an object literal.
@@ -357,15 +356,8 @@ where
                     interner,
                 )?;
 
-                let name = property_name.literal().map(|name| {
-                    let s = interner.resolve_expect(name).utf16();
-                    interner
-                        .get_or_intern([utf16!("get "), s].concat().as_slice())
-                        .into()
-                });
-
                 let method = MethodDefinition::Get(Function::new(
-                    name,
+                    None,
                     FormalParameterList::default(),
                     body,
                 ));
@@ -450,14 +442,7 @@ where
                     interner,
                 )?;
 
-                let name = property_name.literal().map(|name| {
-                    let s = interner.resolve_expect(name).utf16();
-                    interner
-                        .get_or_intern([utf16!("set "), s].concat().as_slice())
-                        .into()
-                });
-
-                let method = MethodDefinition::Set(Function::new(name, parameters, body));
+                let method = MethodDefinition::Set(Function::new(None, parameters, body));
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 // https://tc39.es/ecma262/#sec-object-initializer-static-semantics-early-errors
@@ -526,11 +511,7 @@ where
                     interner,
                 )?;
 
-                let method = MethodDefinition::Ordinary(Function::new(
-                    property_name.literal().map(Into::into),
-                    params,
-                    body,
-                ));
+                let method = MethodDefinition::Ordinary(Function::new(None, params, body));
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 if has_direct_super(&method) {
@@ -809,12 +790,7 @@ where
             interner,
         )?;
 
-        let method = MethodDefinition::Generator(Generator::new(
-            class_element_name.literal().map(Into::into),
-            params,
-            body,
-            false,
-        ));
+        let method = MethodDefinition::Generator(Generator::new(None, params, body, false));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(
@@ -925,12 +901,8 @@ where
             interner,
         )?;
 
-        let method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(
-            name.literal().map(Into::into),
-            params,
-            body,
-            false,
-        ));
+        let method =
+            MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body, false));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(
@@ -1018,12 +990,7 @@ where
             interner,
         )?;
 
-        let method = MethodDefinition::Async(AsyncFunction::new(
-            class_element_name.literal().map(Into::into),
-            params,
-            body,
-            false,
-        ));
+        let method = MethodDefinition::Async(AsyncFunction::new(None, params, body, false));
 
         if contains(&method, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

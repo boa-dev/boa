@@ -6,11 +6,10 @@ use crate::{
     property::{MethodDefinition, PropertyName},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, ToStringEscaped,
+    Declaration,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
-use std::borrow::Cow;
 use std::hash::Hash;
 
 /// A class declaration, as defined by the [spec].
@@ -89,34 +88,24 @@ impl Class {
 
 impl ToIndentedString for Class {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
-        let class_name = self.name.map_or(Cow::Borrowed(""), |s| {
-            interner.resolve_expect(s.sym()).join(
-                Cow::Borrowed,
-                |utf16| Cow::Owned(utf16.to_string_escaped()),
-                true,
-            )
-        });
+        let mut buf = "class".to_string();
+        if self.has_binding_identifier {
+            if let Some(name) = self.name {
+                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+            }
+        }
+        if let Some(super_ref) = self.super_ref.as_ref() {
+            buf.push_str(&format!(
+                " extends {}",
+                super_ref.to_interned_string(interner)
+            ));
+        }
         if self.elements.is_empty() && self.constructor().is_none() {
-            return format!(
-                "class {class_name}{} {{}}",
-                self.super_ref
-                    .as_ref()
-                    .map_or_else(String::new, |sup| format!(
-                        " extends {}",
-                        sup.to_interned_string(interner)
-                    ))
-            );
+            buf.push_str(" {}");
+            return buf;
         }
         let indentation = "    ".repeat(indent_n + 1);
-        let mut buf = format!(
-            "class {class_name}{} {{\n",
-            self.super_ref
-                .as_ref()
-                .map_or_else(String::new, |sup| format!(
-                    "extends {}",
-                    sup.to_interned_string(interner)
-                ))
-        );
+        buf.push_str(" {\n");
         if let Some(expr) = &self.constructor {
             buf.push_str(&format!(
                 "{indentation}constructor({}) {}\n",
