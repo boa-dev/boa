@@ -21,6 +21,8 @@
 )]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+extern crate alloc;
+
 use icu_provider::{BufferMarker, BufferProvider, DataError, DataErrorKind, DataKey, DataResponse};
 use icu_provider_adapters::{fallback::LocaleFallbackProvider, fork::MultiForkByKeyProvider};
 use icu_provider_blob::BlobDataProvider;
@@ -78,7 +80,7 @@ macro_rules! provider_from_icu_crate {
 /// Boa's default buffer provider.
 static PROVIDER: Lazy<LocaleFallbackProvider<MultiForkByKeyProvider<LazyBufferProvider>>> =
     Lazy::new(|| {
-        let provider = MultiForkByKeyProvider::new(vec![
+        let provider = MultiForkByKeyProvider::new(alloc::vec![
             provider_from_icu_crate!(icu_casemap),
             provider_from_icu_crate!(icu_collator),
             provider_from_icu_crate!(icu_datetime),
