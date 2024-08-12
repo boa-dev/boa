@@ -141,7 +141,7 @@ fn concat() {
 fn trim_start_non_ascii_to_ascii() {
     let s = "\u{2029}abc";
     let x = JsString::from(s);
-  
+
     let y = JsString::from(x.trim_start());
 
     assert_eq!(&y, s.trim_start());
@@ -174,6 +174,7 @@ fn conversion_to_known_static_js_string() {
     assert!(string.unwrap().as_str().is_latin1());
 }
 
+#[test]
 fn from_static_js_string() {
     static STATIC_HELLO_WORLD: StaticJsString =
         StaticJsString::new(JsStr::latin1("hello world".as_bytes()));

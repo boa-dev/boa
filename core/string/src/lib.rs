@@ -1584,8 +1584,10 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         // meaning we can write to its pointed memory.
         unsafe {
             inner.as_ptr().write(RawJsString {
-                flags_and_len: RawJsString::encode_flags_and_len(len, self.is_ascii()),
-                refcount: Cell::new(1),
+                tagged_len: TaggedLen::new(len, self.is_ascii()),
+                refcount: RefCount {
+                    read_write: ManuallyDrop::new(Cell::new(1)),
+                },
                 data: [0; 0],
             });
         }
