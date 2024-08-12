@@ -15,11 +15,7 @@
 mod tests;
 
 use boa_engine::{
-    js_str, js_string,
-    native_function::NativeFunction,
-    object::{JsObject, ObjectInitializer},
-    value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsResult, JsStr, JsString,
+    js_str, js_string, native_function::NativeFunction, object::{JsObject, ObjectInitializer}, value::{JsValue, Numeric}, Context, JsArgs, JsData, JsResult, JsStr, JsString
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -190,6 +186,11 @@ impl Console {
             .function(
                 console_method(Self::log, state.clone()),
                 js_string!("log"),
+                0,
+            )
+            .function(
+                console_method(Self::table, state.clone()),
+                js_string!("table"),
                 0,
             )
             .function(
@@ -382,6 +383,100 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger(LogMessage::Log(formatter(args, context)?), console);
+        Ok(JsValue::undefined())
+    }
+
+    /// `console.table(...data, columns)`
+    ///
+    /// Prints a JavaScript values to a tabular form with "log" logLevel.
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [WHATWG `console` specification][spec]
+    ///
+    /// [spec]: https://console.spec.whatwg.org/#table
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/table
+    fn table(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let mut value_vec: Vec<String> = Vec::new();
+
+        fn print_table(value_vec: &Vec<String>) {
+            let max_value_width = value_vec.iter().map(|value| value.len()).max().unwrap_or(0);
+        
+            println!("┌─────────┬─{:─<width$}──────┐", "", width = max_value_width);
+            println!("│ (index) │ Values{:>width$}│", "", width = max_value_width);
+            println!("├─────────┼{:─<width$}───────┤", "", width = max_value_width);
+        
+            for (i, el) in value_vec.iter().enumerate() {
+                println!("│ {:<7} │ {:<width$}      │", i, el, width = max_value_width);
+            }
+            println!("└─────────┴{:─<width$}───────┘", "", width = max_value_width);
+        }
+        
+        for arg in args {
+            match arg {
+                JsValue::Object(obj) => {
+                    if obj.is_array() {
+                        let borrowed_object = obj.borrow();
+
+                        let key_value_array = borrowed_object.properties().index_properties();
+                        for key_value in key_value_array {
+
+                            match key_value.1.value().unwrap() {
+                                JsValue::Integer(integer) => {
+                                    value_vec.push(integer.to_string())
+                                },
+                                JsValue::BigInt(big_int) => {
+                                    value_vec.push(big_int.to_string())
+                                }
+                                JsValue::Rational(rational) => {
+                                    value_vec.push(rational.to_string());                              
+                                }
+                                JsValue::Symbol(symbol) => {
+                                    value_vec.push(symbol.to_string());
+                                }
+                                JsValue::String(s) => {
+                                    value_vec.push(s.to_std_string_escaped());
+                                    
+                                },
+                                JsValue::Boolean(b) => {
+                                    value_vec.push(b.to_string());
+                                },
+                                JsValue::Null => {
+                                    value_vec.push(String::from("null"));
+                                },
+                                JsValue::Undefined => {
+                                    value_vec.push(String::from("undefined"));
+                                },
+                                _ => {
+                                    value_vec.push(String::from("unknown"));
+                                },
+                            }
+                        }        
+                        print_table(&value_vec);
+                    }
+                    if obj.is_ordinary() {
+                        let borrowed_object = obj.borrow();
+
+                        let key_value_array = borrowed_object.properties().index_properties();
+                        for key_value in key_value_array {
+                            let lol  = key_value.0;
+                            println!("{lol}");
+                        }
+                        
+                    }
+                }
+
+                _ => {
+                    // Handle other JsValue types
+                    logger(LogMessage::Log(formatter(args, context)?), console);
+                }
+            }
+        }
         Ok(JsValue::undefined())
     }
 
