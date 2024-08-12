@@ -806,7 +806,7 @@ impl Duration {
 
 // -- Duration Abstract Operations --
 
-/// 7.5.8 `ToTemporalDuration ( item )`
+/// 7.5.12 `ToTemporalDuration ( item )`
 pub(crate) fn to_temporal_duration(
     item: &JsValue,
     context: &mut Context,

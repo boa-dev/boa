@@ -291,32 +291,26 @@ fn to_temporal_month_day(
     let calender_id = item.get_v(js_str!("calendar"), context)?;
     let calendar = to_temporal_calendar_slot_value(&calender_id)?;
 
-    let inner = if item.is_object() {
-        if let Some(data) = item
-            .as_object()
-            .and_then(JsObject::downcast_ref::<PlainMonthDay>)
-        {
-            data.inner.clone()
-        } else {
-            InnerMonthDay::new(
-                item.get_v(js_str!("month"), context)
-                    .expect("Month not found")
-                    .to_i32(context)
-                    .expect("Cannot convert month to i32"),
-                item.get_v(js_str!("day"), context)
-                    .expect("Day not found")
-                    .to_i32(context)
-                    .expect("Cannot convert day to i32"),
-                calendar,
-                overflow,
-            )?
-        }
-    } else if item.is_string() {
-        let item_str = &item
-            .as_string()
-            .expect("item is not a string")
-            .to_std_string_escaped();
-        InnerMonthDay::from_str(item_str)?
+    let inner = if let Some(item_obj) = item
+        .as_object()
+        .and_then(JsObject::downcast_ref::<PlainMonthDay>)
+    {
+        item_obj.inner.clone()
+    } else if let Some(item_string) = item.as_string() {
+        InnerMonthDay::from_str(item_string.to_std_string_escaped().as_str())?
+    } else if item.is_object() {
+        InnerMonthDay::new(
+            item.get_v(js_str!("month"), context)
+                .expect("Month not found")
+                .to_i32(context)
+                .expect("Cannot convert month to i32"),
+            item.get_v(js_str!("day"), context)
+                .expect("Day not found")
+                .to_i32(context)
+                .expect("Cannot convert day to i32"),
+            calendar,
+            overflow,
+        )?
     } else {
         return Err(JsNativeError::typ()
             .with_message("item must be an object or a string")

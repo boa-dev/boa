@@ -234,27 +234,25 @@ impl PlainYearMonth {
                 // a. Let calendar be ? ToTemporalCalendar(item).
                 let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
                 InnerYearMonth::new(
-                    item.get_v(js_str!("year"), context)
-                        .expect("Year not found")
-                        .to_i32(context)
-                        .expect("Cannot convert year to i32"),
-                    item.get_v(js_str!("month"), context)
-                        .expect("Month not found")
-                        .to_i32(context)
-                        .expect("Cannot convert month to i32"),
-                    item.get_v(js_str!("day"), context)
-                        .map_or(Some(1), |x| x.to_i32(context).ok()),
+                    super::to_integer_with_truncation(
+                        &item.get_v(js_str!("year"), context)?,
+                        context,
+                    )?,
+                    super::to_integer_with_truncation(
+                        &item.get_v(js_str!("month"), context)?,
+                        context,
+                    )?,
+                    super::to_integer_with_truncation(
+                        &item.get_v(js_str!("day"), context)?,
+                        context,
+                    )
+                    .ok(),
                     calendar,
                     overflow,
                 )?
             }
-        } else if item.is_string() {
-            let item_str = &item
-                .as_string()
-                .expect("Value passed not a string")
-                .to_std_string_escaped();
-
-            InnerYearMonth::from_str(item_str)?
+        } else if let Some(item_as_string) = item.as_string() {
+            InnerYearMonth::from_str(item_as_string.to_std_string_escaped().as_str())?
         } else {
             return Err(JsNativeError::typ()
                 .with_message("item must be an object, string, or null.")
@@ -476,15 +474,8 @@ fn add_or_subtract_duration(
 ) -> JsResult<JsValue> {
     let duration: Duration = if duration_like.is_object() {
         to_temporal_duration(duration_like, context)?
-    } else if duration_like.is_string() {
-        Duration::from_str(
-            duration_like
-                .as_string()
-                .expect("Value passed not a string")
-                .to_std_string_escaped()
-                .as_str(),
-        )
-        .expect("Unable to parse Duration from string")
+    } else if let Some(duration_string) = duration_like.as_string() {
+        Duration::from_str(duration_string.to_std_string_escaped().as_str())?
     } else {
         return Err(JsNativeError::typ()
             .with_message("cannot handler string durations yet.")
@@ -503,13 +494,9 @@ fn add_or_subtract_duration(
 
     let inner = &year_month.inner;
     let year_month_result = if is_addition {
-        inner
-            .add_duration(&duration, overflow)
-            .expect("Error adding duration to year month")
+        inner.add_duration(&duration, overflow)?
     } else {
-        inner
-            .subtract_duration(&duration, overflow)
-            .expect("Error subtracting duration from year month")
+        inner.subtract_duration(&duration, overflow)?
     };
 
     create_temporal_year_month(year_month_result, None, context)
