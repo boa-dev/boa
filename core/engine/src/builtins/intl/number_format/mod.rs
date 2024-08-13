@@ -240,7 +240,7 @@ impl BuiltInConstructor for NumberFormat {
             requested_locales,
             &mut intl_options,
             context.intl_provider(),
-        );
+        )?;
 
         // 11. Set numberFormat.[[Locale]] to r.[[locale]].
         // 12. Set numberFormat.[[DataLocale]] to r.[[dataLocale]].

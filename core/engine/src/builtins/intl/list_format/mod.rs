@@ -128,7 +128,7 @@ impl BuiltInConstructor for ListFormat {
                 ..Default::default()
             },
             context.intl_provider(),
-        );
+        )?;
 
         // 11. Let type be ? GetOption(options, "type", string, « "conjunction", "disjunction", "unit" », "conjunction").
         // 12. Set listFormat.[[Type]] to type.

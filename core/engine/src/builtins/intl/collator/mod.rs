@@ -279,7 +279,7 @@ impl BuiltInConstructor for Collator {
             requested_locales,
             &mut intl_options,
             context.intl_provider(),
-        );
+        )?;
 
         let collator_locale = {
             // `collator_locale` needs to be different from the resolved locale because ECMA402 doesn't

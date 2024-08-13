@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{cell::OnceCell, fmt::Debug};
 
 use icu_casemap::CaseMapper;
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
@@ -12,7 +12,7 @@ use thiserror::Error;
 use yoke::{trait_hack::YokeTraitHack, Yokeable};
 use zerofrom::ZeroFrom;
 
-use crate::builtins::string::StringNormalizers;
+use crate::{builtins::string::StringNormalizers, JsError, JsNativeError};
 
 /// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`].
 enum ErasedProvider {
@@ -34,13 +34,25 @@ pub enum IcuError {
     CaseMap(#[from] DataError),
 }
 
+impl From<IcuError> for JsNativeError {
+    fn from(value: IcuError) -> Self {
+        JsNativeError::typ().with_message(value.to_string())
+    }
+}
+
+impl From<IcuError> for JsError {
+    fn from(value: IcuError) -> Self {
+        JsNativeError::from(value).into()
+    }
+}
+
 /// Custom [`DataProvider`] for `Intl` that caches some utilities.
 pub(crate) struct IntlProvider {
     inner_provider: ErasedProvider,
-    locale_canonicalizer: LocaleCanonicalizer,
-    locale_expander: LocaleExpander,
-    string_normalizers: StringNormalizers,
-    case_mapper: CaseMapper,
+    locale_canonicalizer: OnceCell<LocaleCanonicalizer>,
+    locale_expander: OnceCell<LocaleExpander>,
+    string_normalizers: OnceCell<StringNormalizers>,
+    case_mapper: OnceCell<CaseMapper>,
 }
 
 impl<M> DataProvider<M> for IntlProvider
@@ -76,19 +88,14 @@ impl IntlProvider {
     /// Returns an error if any of the tools required cannot be constructed.
     pub(crate) fn try_new_with_buffer_provider(
         provider: (impl BufferProvider + 'static),
-    ) -> Result<IntlProvider, IcuError> {
-        Ok(Self {
-            locale_canonicalizer: LocaleCanonicalizer::try_new_with_buffer_provider(&provider)?,
-            locale_expander: LocaleExpander::try_new_with_buffer_provider(&provider)?,
-            string_normalizers: StringNormalizers {
-                nfc: ComposingNormalizer::try_new_nfc_with_buffer_provider(&provider)?,
-                nfkc: ComposingNormalizer::try_new_nfkc_with_buffer_provider(&provider)?,
-                nfd: DecomposingNormalizer::try_new_nfd_with_buffer_provider(&provider)?,
-                nfkd: DecomposingNormalizer::try_new_nfkd_with_buffer_provider(&provider)?,
-            },
-            case_mapper: CaseMapper::try_new_with_buffer_provider(&provider)?,
+    ) -> IntlProvider {
+        Self {
+            locale_canonicalizer: OnceCell::new(),
+            locale_expander: OnceCell::new(),
+            string_normalizers: OnceCell::new(),
+            case_mapper: OnceCell::new(),
             inner_provider: ErasedProvider::Buffer(Box::new(provider)),
-        })
+        }
     }
 
     /// Creates a new [`IntlProvider`] from an [`AnyProvider`].
@@ -98,38 +105,54 @@ impl IntlProvider {
     /// Returns an error if any of the tools required cannot be constructed.
     pub(crate) fn try_new_with_any_provider(
         provider: (impl AnyProvider + 'static),
-    ) -> Result<IntlProvider, IcuError> {
-        Ok(Self {
-            locale_canonicalizer: LocaleCanonicalizer::try_new_with_any_provider(&provider)?,
-            locale_expander: LocaleExpander::try_new_extended_with_any_provider(&provider)?,
-            string_normalizers: StringNormalizers {
-                nfc: ComposingNormalizer::try_new_nfc_with_any_provider(&provider)?,
-                nfkc: ComposingNormalizer::try_new_nfkc_with_any_provider(&provider)?,
-                nfd: DecomposingNormalizer::try_new_nfd_with_any_provider(&provider)?,
-                nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(&provider)?,
-            },
-            case_mapper: CaseMapper::try_new_with_any_provider(&provider)?,
+    ) -> IntlProvider {
+        Self {
+            locale_canonicalizer: OnceCell::new(),
+            locale_expander: OnceCell::new(),
+            string_normalizers: OnceCell::new(),
+            case_mapper: OnceCell::new(),
             inner_provider: ErasedProvider::Any(Box::new(provider)),
-        })
+        }
     }
 
     /// Gets the [`LocaleCanonicalizer`] tool.
-    pub(crate) const fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
-        &self.locale_canonicalizer
+    pub(crate) fn locale_canonicalizer(&self) -> Result<&LocaleCanonicalizer, IcuError> {
+        if let Some(lc) = self.locale_canonicalizer.get() {
+            return Ok(lc);
+        }
+        let lc = LocaleCanonicalizer::try_new_unstable(self)?;
+        Ok(self.locale_canonicalizer.get_or_init(|| lc))
     }
 
     /// Gets the [`LocaleExpander`] tool.
-    pub(crate) const fn locale_expander(&self) -> &LocaleExpander {
-        &self.locale_expander
+    pub(crate) fn locale_expander(&self) -> Result<&LocaleExpander, IcuError> {
+        if let Some(le) = self.locale_expander.get() {
+            return Ok(le);
+        }
+        let le = LocaleExpander::try_new_unstable(self)?;
+        Ok(self.locale_expander.get_or_init(|| le))
     }
 
     /// Gets the [`StringNormalizers`] tools.
-    pub(crate) const fn string_normalizers(&self) -> &StringNormalizers {
-        &self.string_normalizers
+    pub(crate) fn string_normalizers(&self) -> Result<&StringNormalizers, IcuError> {
+        if let Some(sn) = self.string_normalizers.get() {
+            return Ok(sn);
+        }
+        let sn = StringNormalizers {
+            nfc: ComposingNormalizer::try_new_nfc_unstable(self)?,
+            nfkc: ComposingNormalizer::try_new_nfkc_unstable(self)?,
+            nfd: DecomposingNormalizer::try_new_nfd_unstable(self)?,
+            nfkd: DecomposingNormalizer::try_new_nfkd_unstable(self)?,
+        };
+        Ok(self.string_normalizers.get_or_init(|| sn))
     }
 
     /// Gets the [`CaseMapper`] tool.
-    pub(crate) const fn case_mapper(&self) -> &CaseMapper {
-        &self.case_mapper
+    pub(crate) fn case_mapper(&self) -> Result<&CaseMapper, IcuError> {
+        if let Some(cm) = self.case_mapper.get() {
+            return Ok(cm);
+        }
+        let cm = CaseMapper::try_new_unstable(self)?;
+        Ok(self.case_mapper.get_or_init(|| cm))
     }
 }

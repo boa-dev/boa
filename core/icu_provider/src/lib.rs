@@ -22,6 +22,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
+use core::fmt::Debug;
 
 use icu_provider::{BufferMarker, BufferProvider, DataError, DataErrorKind, DataKey, DataResponse};
 use icu_provider_adapters::{fallback::LocaleFallbackProvider, fork::MultiForkByKeyProvider};
@@ -36,6 +37,16 @@ struct LazyBufferProvider {
     provider: OnceCell<BlobDataProvider>,
     bytes: &'static [u8],
     valid_keys: &'static [DataKey],
+}
+
+impl Debug for LazyBufferProvider {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("LazyBufferProvider")
+            .field("provider", &self.provider)
+            .field("bytes", &"[...]")
+            .field("valid_keys", &self.valid_keys)
+            .finish()
+    }
 }
 
 impl BufferProvider for LazyBufferProvider {

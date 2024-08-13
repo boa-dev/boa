@@ -142,7 +142,7 @@ impl BuiltInConstructor for PluralRules {
                 ..Default::default()
             },
             context.intl_provider(),
-        );
+        )?;
 
         let native = match rule_type {
             PluralRuleType::Cardinal => PluralRulesWithRanges::try_new_cardinal_unstable(

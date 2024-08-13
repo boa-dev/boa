@@ -155,7 +155,7 @@ impl BuiltInConstructor for Segmenter {
                 ..Default::default()
             },
             context.intl_provider(),
-        );
+        )?;
 
         // 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
         let granularity =
