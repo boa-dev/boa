@@ -17,6 +17,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 mod common;
+mod display;
 mod iter;
 mod str;
 mod tagged;
@@ -25,6 +26,7 @@ mod tagged;
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
+use crate::display::JsStringDisplayEscaped;
 use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
@@ -865,6 +867,17 @@ impl JsString {
             UnwrappedTagged::Tag(_inner) => None,
         }
     }
+
+    /// Gets a displayable escaped string. This may be faster and has less
+    /// allocations than `format!("{}", str.to_string_escaped())` when
+    /// displaying.
+    #[inline]
+    #[must_use]
+    pub fn display_escaped(&self) -> JsStringDisplayEscaped<'_> {
+        JsStringDisplayEscaped {
+            inner: self.as_str(),
+        }
+    }
 }
 
 impl Clone for JsString {
@@ -935,10 +948,7 @@ impl Drop for JsString {
 impl ToStringEscaped for JsString {
     #[inline]
     fn to_string_escaped(&self) -> String {
-        match self.as_str().variant() {
-            JsStrVariant::Latin1(v) => v.iter().copied().map(char::from).collect(),
-            JsStrVariant::Utf16(v) => v.to_string_escaped(),
-        }
+        format!("{}", self.display_escaped())
     }
 }
 

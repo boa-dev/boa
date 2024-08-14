@@ -2,7 +2,7 @@
 
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
-use crate::{JsStr, JsString, StaticJsStrings};
+use crate::{JsStr, JsString, StaticJsStrings, ToStringEscaped};
 
 use rustc_hash::FxHasher;
 
@@ -172,4 +172,33 @@ fn conversion_to_known_static_js_string() {
 
     assert!(string.is_some());
     assert!(string.unwrap().as_str().is_latin1());
+}
+
+#[test]
+fn to_string_escaped() {
+    assert_eq!(
+        JsString::from("Hello, \u{1D49E} world!").to_string_escaped(),
+        "Hello, \u{1D49E} world!"
+    );
+
+    assert_eq!(
+        JsString::from("Hello, world!").to_string_escaped(),
+        "Hello, world!"
+    );
+
+    // Padding.
+    assert_eq!(
+        format!(
+            "{:0<10}, World!",
+            JsString::from("Hello").to_string_escaped()
+        ),
+        "Hello00000, World!"
+    );
+
+    // 15 should not be escaped.
+    let unpaired_surrogates: [u16; 3] = [0xDC58, 0xD83C, 0x0015];
+    assert_eq!(
+        JsString::from(&unpaired_surrogates).to_string_escaped(),
+        "\\uDC58\\uD83C\u{15}"
+    );
 }
