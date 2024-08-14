@@ -15,7 +15,7 @@ use zerofrom::ZeroFrom;
 use crate::{builtins::string::StringNormalizers, JsError, JsNativeError};
 
 /// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`].
-enum ErasedProvider {
+pub(crate) enum ErasedProvider {
     Any(Box<dyn AnyProvider>),
     Buffer(Box<dyn BufferProvider>),
 }
@@ -120,7 +120,10 @@ impl IntlProvider {
         if let Some(lc) = self.locale_canonicalizer.get() {
             return Ok(lc);
         }
-        let lc = LocaleCanonicalizer::try_new_unstable(self)?;
+        let lc = match &self.inner_provider {
+            ErasedProvider::Any(a) => LocaleCanonicalizer::try_new_with_any_provider(a)?,
+            ErasedProvider::Buffer(b) => LocaleCanonicalizer::try_new_with_buffer_provider(b)?,
+        };
         Ok(self.locale_canonicalizer.get_or_init(|| lc))
     }
 
@@ -129,7 +132,10 @@ impl IntlProvider {
         if let Some(le) = self.locale_expander.get() {
             return Ok(le);
         }
-        let le = LocaleExpander::try_new_unstable(self)?;
+        let le = match &self.inner_provider {
+            ErasedProvider::Any(a) => LocaleExpander::try_new_with_any_provider(a)?,
+            ErasedProvider::Buffer(b) => LocaleExpander::try_new_with_buffer_provider(b)?,
+        };
         Ok(self.locale_expander.get_or_init(|| le))
     }
 
@@ -138,11 +144,19 @@ impl IntlProvider {
         if let Some(sn) = self.string_normalizers.get() {
             return Ok(sn);
         }
-        let sn = StringNormalizers {
-            nfc: ComposingNormalizer::try_new_nfc_unstable(self)?,
-            nfkc: ComposingNormalizer::try_new_nfkc_unstable(self)?,
-            nfd: DecomposingNormalizer::try_new_nfd_unstable(self)?,
-            nfkd: DecomposingNormalizer::try_new_nfkd_unstable(self)?,
+        let sn = match &self.inner_provider {
+            ErasedProvider::Any(a) => StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_any_provider(a)?,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_any_provider(a)?,
+                nfd: DecomposingNormalizer::try_new_nfd_with_any_provider(a)?,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(a)?,
+            },
+            ErasedProvider::Buffer(b) => StringNormalizers {
+                nfc: ComposingNormalizer::try_new_nfc_with_buffer_provider(b)?,
+                nfkc: ComposingNormalizer::try_new_nfkc_with_buffer_provider(b)?,
+                nfd: DecomposingNormalizer::try_new_nfd_with_buffer_provider(b)?,
+                nfkd: DecomposingNormalizer::try_new_nfkd_with_buffer_provider(b)?,
+            },
         };
         Ok(self.string_normalizers.get_or_init(|| sn))
     }
@@ -152,7 +166,15 @@ impl IntlProvider {
         if let Some(cm) = self.case_mapper.get() {
             return Ok(cm);
         }
-        let cm = CaseMapper::try_new_unstable(self)?;
+        let cm = match &self.inner_provider {
+            ErasedProvider::Any(a) => CaseMapper::try_new_with_any_provider(a)?,
+            ErasedProvider::Buffer(b) => CaseMapper::try_new_with_buffer_provider(b)?,
+        };
         Ok(self.case_mapper.get_or_init(|| cm))
+    }
+
+    /// Gets the inner erased provider.
+    pub(crate) fn erased_provider(&self) -> &ErasedProvider {
+        &self.inner_provider
     }
 }

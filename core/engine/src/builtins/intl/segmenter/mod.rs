@@ -12,7 +12,10 @@ use crate::{
         options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::{
+        icu::ErasedProvider,
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    },
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectInitializer},
     property::Attribute,
@@ -160,19 +163,33 @@ impl BuiltInConstructor for Segmenter {
         // 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
         let granularity =
             get_option(&options, js_str!("granularity"), context)?.unwrap_or_default();
-        // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
 
-        let native = match granularity {
-            Granularity::Grapheme => {
-                GraphemeClusterSegmenter::try_new_unstable(context.intl_provider())
+        // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
+        let native = match (granularity, context.intl_provider().erased_provider()) {
+            (Granularity::Grapheme, ErasedProvider::Any(a)) => {
+                GraphemeClusterSegmenter::try_new_with_any_provider(a)
                     .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
             }
-
-            Granularity::Word => WordSegmenter::try_new_auto_unstable(context.intl_provider())
-                .map(|s| NativeSegmenter::Word(Box::new(s))),
-
-            Granularity::Sentence => SentenceSegmenter::try_new_unstable(context.intl_provider())
-                .map(|s| NativeSegmenter::Sentence(Box::new(s))),
+            (Granularity::Word, ErasedProvider::Any(a)) => {
+                WordSegmenter::try_new_auto_with_any_provider(a)
+                    .map(|s| NativeSegmenter::Word(Box::new(s)))
+            }
+            (Granularity::Sentence, ErasedProvider::Any(a)) => {
+                SentenceSegmenter::try_new_with_any_provider(a)
+                    .map(|s| NativeSegmenter::Sentence(Box::new(s)))
+            }
+            (Granularity::Grapheme, ErasedProvider::Buffer(b)) => {
+                GraphemeClusterSegmenter::try_new_with_buffer_provider(b)
+                    .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
+            }
+            (Granularity::Word, ErasedProvider::Buffer(b)) => {
+                WordSegmenter::try_new_auto_with_buffer_provider(b)
+                    .map(|s| NativeSegmenter::Word(Box::new(s)))
+            }
+            (Granularity::Sentence, ErasedProvider::Buffer(b)) => {
+                SentenceSegmenter::try_new_with_buffer_provider(b)
+                    .map(|s| NativeSegmenter::Sentence(Box::new(s)))
+            }
         }
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 

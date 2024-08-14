@@ -15,6 +15,7 @@ use icu_locid::{
     extensions::unicode::{key, Value},
     Locale,
 };
+use icu_provider::DataLocale;
 use num_bigint::BigInt;
 use num_traits::Num;
 pub(crate) use options::*;
@@ -24,7 +25,10 @@ use crate::{
         builder::BuiltInBuilder, options::get_option, string::is_trimmable_whitespace,
         BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::{
+        icu::ErasedProvider,
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    },
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
@@ -365,15 +369,19 @@ impl BuiltInConstructor for NumberFormat {
         let sign_display =
             get_option(&options, js_str!("signDisplay"), context)?.unwrap_or(SignDisplay::Auto);
 
-        let formatter = FixedDecimalFormatter::try_new_unstable(
-            context.intl_provider(),
-            &locale.clone().into(),
-            {
-                let mut options = FixedDecimalFormatterOptions::default();
-                options.grouping_strategy = use_grouping;
-                options
-            },
-        )
+        let mut options = FixedDecimalFormatterOptions::default();
+        options.grouping_strategy = use_grouping;
+
+        let data_locale = &DataLocale::from(&locale);
+
+        let formatter = match context.intl_provider().erased_provider() {
+            ErasedProvider::Any(a) => {
+                FixedDecimalFormatter::try_new_with_any_provider(a, data_locale, options)
+            }
+            ErasedProvider::Buffer(b) => {
+                FixedDecimalFormatter::try_new_with_buffer_provider(b, data_locale, options)
+            }
+        }
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 
         let number_format = JsObject::from_proto_and_data_with_shared_shape(
