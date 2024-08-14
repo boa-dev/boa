@@ -2,7 +2,7 @@
 
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
-use crate::{JsStr, JsString, StaticJsStrings, ToStringEscaped};
+use crate::{JsStr, JsString, StaticJsString, StaticJsStrings, ToStringEscaped};
 
 use rustc_hash::FxHasher;
 
@@ -188,10 +188,7 @@ fn to_string_escaped() {
 
     // Padding.
     assert_eq!(
-        format!(
-            "{:0<10}, World!",
-            JsString::from("Hello").to_string_escaped()
-        ),
+        format!("{:0<10}, World!", JsString::from("Hello").display_escaped()),
         "Hello00000, World!"
     );
 
@@ -201,4 +198,63 @@ fn to_string_escaped() {
         JsString::from(&unpaired_surrogates).to_string_escaped(),
         "\\uDC58\\uD83C\u{15}"
     );
+}
+
+#[test]
+fn from_static_js_string() {
+    static STATIC_HELLO_WORLD: StaticJsString =
+        StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
+    static STATIC_EMOJIS: StaticJsString = StaticJsString::new(JsStr::utf16(&[
+        0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
+    ])); // 🎹🎶🎵
+    let latin1 = JsString::from_static_js_string(&STATIC_HELLO_WORLD);
+    let utf16 = JsString::from_static_js_string(&STATIC_EMOJIS);
+
+    // content compare
+    assert_eq!(latin1, "hello world");
+    assert_eq!(utf16, "🎹🎶🎵");
+
+    // refcount check
+    let clone = latin1.clone();
+
+    assert_eq!(clone, latin1);
+
+    let clone = utf16.clone();
+
+    assert_eq!(clone, utf16);
+
+    assert!(latin1.refcount().is_none());
+    assert!(utf16.refcount().is_none());
+
+    // `is_latin1` check
+    assert!(latin1.as_str().is_latin1());
+    assert!(!utf16.as_str().is_latin1());
+}
+
+#[test]
+fn compare_static_and_dynamic_js_string() {
+    static STATIC_HELLO_WORLD: StaticJsString =
+        StaticJsString::new(JsStr::latin1("hello world".as_bytes()));
+    static STATIC_EMOJIS: StaticJsString = StaticJsString::new(JsStr::utf16(&[
+        0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,
+    ])); // 🎹🎶🎵
+    let static_latin1 = JsString::from_static_js_string(&STATIC_HELLO_WORLD);
+    let static_utf16 = JsString::from_static_js_string(&STATIC_EMOJIS);
+
+    let dynamic_latin1 = JsString::from(JsStr::latin1("hello world".as_bytes()));
+    let dynamic_utf16 = JsString::from(&[0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5]);
+
+    // content compare
+    assert_eq!(static_latin1, dynamic_latin1);
+    assert_eq!(static_utf16, dynamic_utf16);
+
+    // length check
+    assert_eq!(static_latin1.len(), dynamic_latin1.len());
+    assert_eq!(static_utf16.len(), dynamic_utf16.len());
+
+    // `is_static` check
+    assert!(static_latin1.is_static());
+    assert!(static_utf16.is_static());
+    assert!(!dynamic_latin1.is_static());
+    assert!(!dynamic_utf16.is_static());
 }
