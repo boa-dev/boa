@@ -1,9 +1,9 @@
-//! Display implementations for [`JsString`].
+//! Display implementations for [`crate::JsString`].
 use crate::{JsStr, JsStrVariant};
 use std::fmt;
 use std::fmt::Write;
 
-/// Display implementation for JsString that escapes unicode characters.
+/// Display implementation for `JsString` that escapes unicode characters.
 #[derive(Debug)]
 pub struct JsStringDisplayEscaped<'a> {
     pub(crate) inner: JsStr<'a>,
