@@ -16,7 +16,10 @@ use crate::{
         options::get_option, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
         IntrinsicObject,
     },
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::{
+        icu::ErasedProvider,
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    },
     js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectInitializer},
     property::Attribute,
@@ -142,21 +145,16 @@ impl BuiltInConstructor for PluralRules {
                 ..Default::default()
             },
             context.intl_provider(),
-        );
+        )?;
 
-        let native = match rule_type {
-            PluralRuleType::Cardinal => PluralRulesWithRanges::try_new_cardinal_unstable(
-                context.intl_provider(),
-                &DataLocale::from(&locale),
-            ),
-            PluralRuleType::Ordinal => PluralRulesWithRanges::try_new_ordinal_unstable(
-                context.intl_provider(),
-                &DataLocale::from(&locale),
-            ),
-            _ => {
-                return Err(JsNativeError::typ()
-                    .with_message("unimplemented plural rule type")
-                    .into())
+        let data_locale = &DataLocale::from(&locale);
+
+        let native = match context.intl_provider().erased_provider() {
+            ErasedProvider::Any(a) => {
+                PluralRulesWithRanges::try_new_with_any_provider(a, data_locale, rule_type)
+            }
+            ErasedProvider::Buffer(b) => {
+                PluralRulesWithRanges::try_new_with_buffer_provider(b, data_locale, rule_type)
             }
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;

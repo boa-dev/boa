@@ -17,7 +17,7 @@ use crate::{
         OrdinaryObject,
     },
     context::{
-        icu::IntlProvider,
+        icu::{ErasedProvider, IntlProvider},
         intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     },
     js_string,
@@ -279,7 +279,7 @@ impl BuiltInConstructor for Collator {
             requested_locales,
             &mut intl_options,
             context.intl_provider(),
-        );
+        )?;
 
         let collator_locale = {
             // `collator_locale` needs to be different from the resolved locale because ECMA402 doesn't
@@ -335,18 +335,23 @@ impl BuiltInConstructor for Collator {
             .then_some((AlternateHandling::Shifted, MaxVariable::Punctuation))
             .unzip();
 
-        let collator =
-            icu_collator::Collator::try_new_unstable(context.intl_provider(), &collator_locale, {
-                let mut options = icu_collator::CollatorOptions::new();
-                options.strength = strength;
-                options.case_level = case_level;
-                options.case_first = case_first;
-                options.numeric = Some(if numeric { Numeric::On } else { Numeric::Off });
-                options.alternate_handling = alternate_handling;
-                options.max_variable = max_variable;
-                options
-            })
-            .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+        let mut options = icu_collator::CollatorOptions::new();
+        options.strength = strength;
+        options.case_level = case_level;
+        options.case_first = case_first;
+        options.numeric = Some(if numeric { Numeric::On } else { Numeric::Off });
+        options.alternate_handling = alternate_handling;
+        options.max_variable = max_variable;
+
+        let collator = match context.intl_provider().erased_provider() {
+            ErasedProvider::Any(a) => {
+                icu_collator::Collator::try_new_with_any_provider(a, &collator_locale, options)
+            }
+            ErasedProvider::Buffer(b) => {
+                icu_collator::Collator::try_new_with_buffer_provider(b, &collator_locale, options)
+            }
+        }
+        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::collator, context)?;

@@ -12,7 +12,10 @@ use crate::{
         options::{get_option, get_options_object},
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
-    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    context::{
+        icu::ErasedProvider,
+        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    },
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
@@ -128,7 +131,7 @@ impl BuiltInConstructor for ListFormat {
                 ..Default::default()
             },
             context.intl_provider(),
-        );
+        )?;
 
         // 11. Let type be ? GetOption(options, "type", string, « "conjunction", "disjunction", "unit" », "conjunction").
         // 12. Set listFormat.[[Type]] to type.
@@ -142,23 +145,26 @@ impl BuiltInConstructor for ListFormat {
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
         // 17. Let dataLocaleTypes be dataLocaleData.[[<type>]].
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[<style>]].
-        let data_locale = DataLocale::from(&locale);
-        let formatter = match typ {
-            ListFormatType::Conjunction => ListFormatter::try_new_and_with_length_unstable(
-                context.intl_provider(),
-                &data_locale,
-                style,
-            ),
-            ListFormatType::Disjunction => ListFormatter::try_new_or_with_length_unstable(
-                context.intl_provider(),
-                &data_locale,
-                style,
-            ),
-            ListFormatType::Unit => ListFormatter::try_new_unit_with_length_unstable(
-                context.intl_provider(),
-                &data_locale,
-                style,
-            ),
+        let data_locale = &DataLocale::from(&locale);
+        let formatter = match (typ, context.intl_provider().erased_provider()) {
+            (ListFormatType::Conjunction, ErasedProvider::Any(a)) => {
+                ListFormatter::try_new_and_with_length_with_any_provider(a, data_locale, style)
+            }
+            (ListFormatType::Disjunction, ErasedProvider::Any(a)) => {
+                ListFormatter::try_new_or_with_length_with_any_provider(a, data_locale, style)
+            }
+            (ListFormatType::Unit, ErasedProvider::Any(a)) => {
+                ListFormatter::try_new_unit_with_length_with_any_provider(a, data_locale, style)
+            }
+            (ListFormatType::Conjunction, ErasedProvider::Buffer(b)) => {
+                ListFormatter::try_new_and_with_length_with_buffer_provider(b, data_locale, style)
+            }
+            (ListFormatType::Disjunction, ErasedProvider::Buffer(b)) => {
+                ListFormatter::try_new_or_with_length_with_buffer_provider(b, data_locale, style)
+            }
+            (ListFormatType::Unit, ErasedProvider::Buffer(b)) => {
+                ListFormatter::try_new_unit_with_length_with_buffer_provider(b, data_locale, style)
+            }
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
