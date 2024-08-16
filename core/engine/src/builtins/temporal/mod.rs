@@ -274,6 +274,47 @@ pub(crate) fn to_relative_temporal_object(
 // 13.26 `GetUnsignedRoundingMode ( roundingMode, isNegative )`
 // Implemented on RoundingMode in builtins/options.rs
 
+// 13.26 IsPartialTemporalObject ( object )
+pub(crate) fn is_partial_temporal_object<'value>(
+    value: &'value JsValue,
+    context: &mut Context,
+) -> JsResult<Option<&'value JsObject>> {
+    // 2. If value has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]],
+    // [[InitializedTemporalMonthDay]], [[InitializedTemporalTime]],
+    // [[InitializedTemporalYearMonth]], or
+    // [[InitializedTemporalZonedDateTime]] internal slot, return false.
+
+    // 1. If value is not an Object, return false.
+    let Some(obj) = value.as_object() else {
+        return Ok(None);
+    };
+
+    if obj.is::<PlainDate>()
+        || obj.is::<PlainDateTime>()
+        || obj.is::<PlainMonthDay>()
+        || obj.is::<PlainYearMonth>()
+        || obj.is::<PlainTime>()
+        || obj.is::<ZonedDateTime>()
+    {
+        return Ok(None);
+    }
+
+    // 3. Let calendarProperty be ? Get(value, "calendar").
+    let calendar_property = obj.get(js_str!("calendar"), context)?;
+    // 4. If calendarProperty is not undefined, return false.
+    if !calendar_property.is_undefined() {
+        return Ok(None);
+    }
+    // 5. Let timeZoneProperty be ? Get(value, "timeZone").
+    let time_zone_property = obj.get(js_str!("timeZone"), context)?;
+    // 6. If timeZoneProperty is not undefined, return false.
+    if !time_zone_property.is_undefined() {
+        return Ok(None);
+    }
+    // 7. Return true.
+    Ok(Some(obj))
+}
+
 // 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
 // Migrated to `temporal_rs`
 

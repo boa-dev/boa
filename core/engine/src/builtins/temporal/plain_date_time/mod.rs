@@ -4,7 +4,7 @@
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
-        temporal::to_integer_with_truncation,
+        temporal::{to_integer_with_truncation, to_partial_date_record, to_partial_time_record},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -25,14 +25,15 @@ mod tests;
 use temporal_rs::{
     components::{
         calendar::{Calendar, GetTemporalCalendar},
-        DateTime as InnerDateTime,
+        DateTime as InnerDateTime, Time,
     },
     iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+    TemporalFields,
 };
 
 use super::{
-    calendar::to_temporal_calendar_slot_value,
+    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_duration,
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
@@ -278,6 +279,7 @@ impl IntrinsicObject for PlainDateTime {
             )
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::compare, js_string!("compare"), 2)
+            .method(Self::with, js_string!("with"), 1)
             .method(Self::with_plain_time, js_string!("withPlainTime"), 1)
             .method(Self::with_calendar, js_string!("withCalendar"), 1)
             .method(Self::add, js_string!("add"), 1)
@@ -679,6 +681,33 @@ impl PlainDateTime {
 // ==== PlainDateTime.prototype method implementations ====
 
 impl PlainDateTime {
+    ///  5.3.25 Temporal.PlainDateTime.prototype.with ( temporalDateTimeLike [ , options ] )
+    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let Some(partial_object) =
+            super::is_partial_temporal_object(args.get_or_undefined(0), context)?
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("with object was not a PartialTemporalObject.")
+                .into());
+        };
+        let options = get_options_object(args.get_or_undefined(1))?;
+
+        let date = to_partial_date_record(partial_object, context)?;
+        let time = to_partial_time_record(partial_object, context)?;
+
+        // TODO: PartialDateTime pub fields.
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
+    }
+
     /// 5.3.26 Temporal.PlainDateTime.prototype.withPlainTime ( `[ plainTimeLike ]` )
     fn with_plain_time(
         this: &JsValue,
@@ -975,16 +1004,55 @@ pub(crate) fn to_temporal_datetime(
                 date.inner.calendar().clone(),
             )?);
         }
+
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
+        let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
+
         // e. Let calendarRec be ? CreateCalendarMethodsRecord(calendar, « date-from-fields, fields »).
         // f. Let fields be ? PrepareCalendarFields(calendarRec, item, « "day", "month",
         // "monthCode", "year" », « "hour", "microsecond", "millisecond", "minute",
-        // "nanosecond", "second" », «»).
+        // "nanosecond", "second" », «»)
+        let partial_date = to_partial_date_record(object, context)?;
+        let partial_time = to_partial_time_record(object, context)?;
+        // TODO: Move validation to `temporal_rs`.
+        if !(partial_date.day.is_some()
+            && (partial_date.month.is_some() || partial_date.month_code.is_some())
+            && (partial_date.year.is_some()
+                || (partial_date.era.is_some() && partial_date.era_year.is_some())))
+        {
+            return Err(JsNativeError::typ()
+                .with_message("A partial date must have at least one defined field.")
+                .into());
+        }
         // g. Let result be ? InterpretTemporalDateTimeFields(calendarRec, fields, resolvedOptions).
-        // TODO: Implement d-g.
-        return Err(JsNativeError::range()
-            .with_message("Not yet implemented.")
-            .into());
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let date = calendar.date_from_fields(
+            &mut TemporalFields::from(partial_date),
+            overflow.unwrap_or(ArithmeticOverflow::Constrain),
+        )?;
+        let time = Time::new(
+            partial_time.hour.unwrap_or(0),
+            partial_time.minute.unwrap_or(0),
+            partial_time.second.unwrap_or(0),
+            partial_time.millisecond.unwrap_or(0),
+            partial_time.microsecond.unwrap_or(0),
+            partial_time.nanosecond.unwrap_or(0),
+            ArithmeticOverflow::Constrain,
+        )?;
+
+        return InnerDateTime::new(
+            date.iso_year(),
+            date.iso_month().into(),
+            date.iso_day().into(),
+            time.hour().into(),
+            time.minute().into(),
+            time.second().into(),
+            time.millisecond().into(),
+            time.microsecond().into(),
+            time.nanosecond().into(),
+            calendar,
+        )
+        .map_err(Into::into);
     }
     // 4. Else,
     //     a. If item is not a String, throw a TypeError exception.

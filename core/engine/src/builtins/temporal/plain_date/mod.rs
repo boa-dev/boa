@@ -3,6 +3,8 @@
 
 // TODO (nekevss): DOCS DOCS AND MORE DOCS
 
+use std::str::FromStr;
+
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -14,7 +16,8 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -22,16 +25,19 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     components::{
         calendar::{Calendar, GetTemporalCalendar},
-        Date as InnerDate, DateTime,
+        Date as InnerDate, DateTime, MonthCode, PartialDate,
     },
     iso::IsoDateSlots,
     options::ArithmeticOverflow,
+    TemporalFields,
 };
+use tinystr::TinyAsciiStr;
 
 use super::{
-    calendar::to_temporal_calendar_slot_value, create_temporal_datetime, create_temporal_duration,
-    options::get_difference_settings, to_temporal_duration_record, to_temporal_time, PlainDateTime,
-    ZonedDateTime,
+    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
+    create_temporal_datetime, create_temporal_duration,
+    options::get_difference_settings,
+    to_temporal_duration_record, to_temporal_time, PlainDateTime, ZonedDateTime,
 };
 
 /// The `Temporal.PlainDate` object.
@@ -613,10 +619,39 @@ impl PlainDate {
             .map(Into::into)
     }
 
-    fn with(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    // 3.3.24 Temporal.PlainDate.prototype.with ( temporalDateLike [ , options ] )
+    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let temporalDate be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        // 3. If ? IsPartialTemporalObject(temporalDateLike) is false, throw a TypeError exception.
+        let Some(partial_object) =
+            super::is_partial_temporal_object(args.get_or_undefined(0), context)?
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("with object was not a PartialTemporalObject.")
+                .into());
+        };
+        let options = get_options_object(args.get_or_undefined(1))?;
+
+        // 4. Let resolvedOptions be ? SnapshotOwnProperties(? GetOptionsObject(options), null).
+        // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-from-fields, fields, merge-fields »).
+        // 6. Let fieldsResult be ? PrepareCalendarFieldsAndFieldNames(calendarRec, temporalDate, « "day", "month", "monthCode", "year" »).
+        // 7. Let partialDate be ? PrepareTemporalFields(temporalDateLike, fieldsResult.[[FieldNames]], partial).
+        // 8. Let fields be ? CalendarMergeFields(calendarRec, fieldsResult.[[Fields]], partialDate).
+        // 9. Set fields to ? PrepareTemporalFields(fields, fieldsResult.[[FieldNames]], «»).
+
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let partial = to_partial_date_record(partial_object, context)?;
+
+        // 10. Return ? CalendarDateFromFields(calendarRec, fields, resolvedOptions).
+        create_temporal_date(date.inner.with(partial, overflow)?, None, context).map(Into::into)
     }
 
     /// 3.3.26 Temporal.PlainDate.prototype.withCalendar ( calendarLike )
@@ -807,12 +842,29 @@ pub(crate) fn to_temporal_date(
         }
 
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
+        let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
+        let overflow =
+            get_option::<ArithmeticOverflow>(&options_obj, js_str!("overflow"), context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
+
         // e. Let fieldNames be ? CalendarFields(calendar, « "day", "month", "monthCode", "year" »).
         // f. Let fields be ? PrepareTemporalFields(item, fieldNames, «»).
+        let partial = to_partial_date_record(object, context)?;
+        // TODO: Move validation to `temporal_rs`.
+        if !(partial.day.is_some()
+            && (partial.month.is_some() || partial.month_code.is_some())
+            && (partial.year.is_some() || (partial.era.is_some() && partial.era_year.is_some())))
+        {
+            return Err(JsNativeError::typ()
+                .with_message("A partial date must have at least one defined field.")
+                .into());
+        }
+        let mut fields = TemporalFields::from(partial);
+
         // g. Return ? CalendarDateFromFields(calendar, fields, options).
-        return Err(JsNativeError::error()
-            .with_message("CalendarDateFields not yet implemented.")
-            .into());
+        return calendar
+            .date_from_fields(&mut fields, overflow)
+            .map_err(Into::into);
     }
 
     // 5. If item is not a String, throw a TypeError exception.
@@ -836,4 +888,64 @@ pub(crate) fn to_temporal_date(
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
     Ok(result)
+}
+
+pub(crate) fn to_partial_date_record(
+    partial_object: &JsObject,
+    context: &mut Context,
+) -> JsResult<PartialDate> {
+    let day = partial_object
+        .get(js_str!("day"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+    let month = partial_object
+        .get(js_str!("month"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+    let month_code = partial_object
+        .get(js_str!("monthCode"), context)?
+        .map(|v| {
+            let JsValue::String(month_code) =
+                v.to_primitive(context, crate::value::PreferredType::String)?
+            else {
+                return Err(JsNativeError::typ()
+                    .with_message("The monthCode field value must be a string.")
+                    .into());
+            };
+            MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(Into::<JsError>::into)
+        })
+        .transpose()?;
+    let year = partial_object
+        .get(js_str!("year"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+    let era_year = partial_object
+        .get(js_str!("eraYear"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+    let era = partial_object
+        .get(js_str!("era"), context)?
+        .map(|v| {
+            let JsValue::String(era) =
+                v.to_primitive(context, crate::value::PreferredType::String)?
+            else {
+                return Err(JsError::from(
+                    JsNativeError::typ()
+                        .with_message("The monthCode field value must be a string."),
+                ));
+            };
+            // TODO: double check if an invalid monthCode is a range or type error.
+            TinyAsciiStr::<16>::from_str(&era.to_std_string_escaped())
+                .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
+        })
+        .transpose()?;
+
+    Ok(PartialDate {
+        year,
+        month,
+        month_code,
+        day,
+        era,
+        era_year,
+    })
 }
