@@ -29,9 +29,8 @@ use temporal_rs::{
     },
     iso::IsoDateSlots,
     options::ArithmeticOverflow,
-    TemporalFields,
+    TemporalFields, TinyAsciiStr,
 };
-use tinystr::TinyAsciiStr;
 
 use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
