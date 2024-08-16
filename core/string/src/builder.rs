@@ -131,6 +131,9 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// create a new `JsStringBuilder` with specific capacity
     #[must_use]
     pub fn with_capacity(cap: usize) -> Self {
+        if cap == 0 {
+            return Self::new();
+        }
         let layout = Self::new_layout(cap);
         #[allow(clippy::cast_ptr_alignment)]
         // SAFETY:
