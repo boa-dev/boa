@@ -1,10 +1,73 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
 use crate::{
     builtins::function::ConstructorKind, native_function::NativeFunctionObject, object::JsObject,
-    value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction,
+    value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
 };
 use boa_gc::{Finalize, Trace};
+use std::marker::PhantomData;
 use std::ops::Deref;
+
+/// A trait for converting a tuple of Rust values into a vector of `JsValue`,
+/// to be used as arguments for a JavaScript function.
+pub trait TryIntoJsArguments {
+    /// Convert a tuple of Rust values into a vector of `JsValue`.
+    /// This is automatically implemented for tuples that implement
+    /// `TryIntoJsResult`.
+    fn into_js_args(self, cx: &mut Context) -> JsResult<Vec<JsValue>>;
+}
+
+macro_rules! impl_try_into_js_args {
+    ($($n: ident: $t: ident),*) => {
+        impl<$($t),*> TryIntoJsArguments for ($($t,)*) where $($t: TryIntoJsResult),* {
+            fn into_js_args(self, cx: &mut Context) -> JsResult<Vec<JsValue>> {
+                let ($($n,)*) = self;
+                Ok(vec![$($n.try_into_js_result(cx)?),*])
+            }
+        }
+    };
+}
+
+impl_try_into_js_args!(a: A);
+impl_try_into_js_args!(a: A, b: B);
+impl_try_into_js_args!(a: A, b: B, c: C);
+impl_try_into_js_args!(a: A, b: B, c: C, d: D);
+impl_try_into_js_args!(a: A, b: B, c: C, d: D, e: E);
+
+/// A JavaScript `Function` rust object, typed. This adds types to
+/// a JavaScript exported function, allowing for type checking and
+/// type conversion in Rust. Those types must convert to a [`JsValue`]
+/// but will not be verified at runtime (since JavaScript doesn't
+/// actually have strong typing).
+///
+/// To create this type, use the [`JsFunction::typed`] method.
+#[derive(Debug, Clone, Trace, Finalize)]
+pub struct TypedJsFunction<A: TryIntoJsArguments, R: TryFromJs> {
+    inner: JsFunction,
+    _args: PhantomData<A>,
+    _ret: PhantomData<R>,
+}
+
+impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
+    /// Transforms this typed function back into a regular `JsFunction`.
+    #[must_use]
+    pub fn into_inner(self) -> JsFunction {
+        self.inner.clone()
+    }
+
+    /// Call the function with the given arguments.
+    #[inline]
+    pub fn call(&self, context: &mut Context, args: A) -> JsResult<R> {
+        self.call_with_this(&JsValue::undefined(), context, args)
+    }
+
+    /// Call the function with the given argument and `this`.
+    #[inline]
+    pub fn call_with_this(&self, this: &JsValue, context: &mut Context, args: A) -> JsResult<R> {
+        let arguments = args.into_js_args(context)?;
+        let result = self.inner.call(this, &arguments, context)?;
+        R::try_from_js(&result, context)
+    }
+}
 
 /// JavaScript `Function` rust object.
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -45,6 +108,17 @@ impl JsFunction {
         object
             .is_callable()
             .then(|| Self::from_object_unchecked(object))
+    }
+
+    /// Creates a `TypedJsFunction` from a `JsFunction`.
+    #[inline]
+    #[must_use]
+    pub fn typed<A: TryIntoJsArguments, R: TryFromJs>(self) -> TypedJsFunction<A, R> {
+        TypedJsFunction {
+            inner: self,
+            _args: PhantomData,
+            _ret: PhantomData,
+        }
     }
 }
 

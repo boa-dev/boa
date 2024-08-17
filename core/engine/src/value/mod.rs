@@ -21,6 +21,7 @@ use boa_profiler::Profiler;
 #[doc(inline)]
 pub use conversions::convert::Convert;
 
+use crate::object::JsFunction;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -171,6 +172,16 @@ impl JsValue {
     #[must_use]
     pub fn as_callable(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_callable())
+    }
+
+    /// Returns a [`JsFunction`] if the value is callable, otherwise `None`.
+    /// This is equivalent to `JsFunction::from_object(value.as_callable()?)`.
+    #[inline]
+    #[must_use]
+    pub fn as_function(&self) -> Option<JsFunction> {
+        self.as_callable()
+            .cloned()
+            .and_then(JsFunction::from_object)
     }
 
     /// Returns true if the value is a constructor object.
