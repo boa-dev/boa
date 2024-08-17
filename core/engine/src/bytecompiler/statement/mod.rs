@@ -44,14 +44,14 @@ impl ByteCompiler<'_> {
             Statement::Continue(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::SetReturnValue);
+                    self.emit_opcode(Opcode::SetAccumulatorFromStack);
                 }
                 self.compile_continue(*node, use_expr);
             }
             Statement::Break(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
                     self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::SetReturnValue);
+                    self.emit_opcode(Opcode::SetAccumulatorFromStack);
                 }
                 self.compile_break(*node, use_expr);
             }
@@ -79,7 +79,7 @@ impl ByteCompiler<'_> {
             Statement::Expression(expr) => {
                 self.compile_expr(expr, use_expr);
                 if use_expr {
-                    self.emit_opcode(Opcode::SetReturnValue);
+                    self.emit_opcode(Opcode::SetAccumulatorFromStack);
                 }
             }
             Statement::With(with) => self.compile_with(with, use_expr),

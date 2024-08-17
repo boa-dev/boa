@@ -173,19 +173,19 @@ impl ByteCompiler<'_> {
         function: FunctionSpec<'_>,
         kind: MethodKind,
     ) {
-        // stack: object, object
+        // stack: object
         self.compile_expr(name, true);
 
-        // stack: object, object, name
+        // stack: object, name
         self.emit_opcode(Opcode::ToPropertyKey);
 
-        // stack: object, object, ToPropertyKey(name)
+        // stack: object, ToPropertyKey(name)
         self.emit_opcode(Opcode::Dup);
 
         // stack: object, object, ToPropertyKey(name), ToPropertyKey(name)
         self.object_method(function, kind);
 
-        // stack: object, object, ToPropertyKey(name), ToPropertyKey(name), method
+        // stack: object, ToPropertyKey(name), ToPropertyKey(name), method
         let value = match kind {
             MethodKind::Get => 1,
             MethodKind::Set => 2,
@@ -193,26 +193,28 @@ impl ByteCompiler<'_> {
         };
         self.emit(Opcode::SetFunctionName, &[Operand::U8(value)]);
 
-        // stack: object, object, ToPropertyKey(name), method
+        // stack: object, ToPropertyKey(name), method
         self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
 
-        // stack: object, ToPropertyKey(name), method, object
+        // stack: ToPropertyKey(name), method, object
         self.emit_opcode(Opcode::Swap);
 
-        // stack: object, ToPropertyKey(name), object, method
+        // stack: ToPropertyKey(name), object, method
         self.emit_opcode(Opcode::SetHomeObject);
 
-        // stack: object, ToPropertyKey(name), object, method
+        // stack: ToPropertyKey(name), object, method
         self.emit_opcode(Opcode::Swap);
 
-        // stack: object, ToPropertyKey(name), method, object
+        // stack: ToPropertyKey(name), method, object
         self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
 
-        // stack: object, object, ToPropertyKey(name), method
+        // stack: object, ToPropertyKey(name), method
         match kind {
             MethodKind::Get => self.emit_opcode(Opcode::SetPropertyGetterByValue),
             MethodKind::Set => self.emit_opcode(Opcode::SetPropertySetterByValue),
             MethodKind::Ordinary => self.emit_opcode(Opcode::DefineOwnPropertyByValue),
         }
+
+        // stack:
     }
 }
