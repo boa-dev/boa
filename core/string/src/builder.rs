@@ -188,6 +188,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// Allocates when there is not sufficient capacity.
+    #[allow(clippy::inline_always)]
     #[inline(always)]
     fn allocate_if_needed(&mut self, reuired_cap: usize) {
         if reuired_cap > self.capacity() {
