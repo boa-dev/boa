@@ -187,6 +187,14 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         unsafe { addr_of_mut!((*self.inner.as_ptr()).data).cast() }
     }
 
+    /// Allocates when there is not sufficient capacity.
+    #[inline(always)]
+    fn allocate_if_needed(&mut self, reuired_cap: usize) {
+        if reuired_cap > self.capacity() {
+            self.allocate(reuired_cap);
+        }
+    }
+
     /// Inner logic of `allocate`.
     ///
     /// Use `realloc` here because it has a better performance than using `alloc`, `copy` and `dealloc`.
@@ -216,10 +224,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// Appends an element to the inner of `JsStringBuilder`.
     #[inline]
     pub fn push(&mut self, v: D) {
-        let len = self.len();
-        if len == self.capacity() {
-            self.allocate(len + 1);
-        }
+        self.allocate_if_needed(self.len() + 1);
         // SAFETY:
         // Capacity has been expanded to be large enough to hold elements.
         unsafe {
@@ -249,9 +254,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     #[inline]
     pub fn extend_from_slice(&mut self, v: &[D]) {
         let required_cap = self.len() + v.len();
-        if required_cap > self.capacity() {
-            self.allocate(required_cap);
-        }
+        self.allocate_if_needed(required_cap);
         // SAFETY:
         // Capacity has been expanded to be large enough to hold elements.
         unsafe {
@@ -280,9 +283,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
         let iterator = iter.into_iter();
         let (lower_bound, _) = iterator.size_hint();
         let require_cap = self.len() + lower_bound;
-        if require_cap > self.capacity() {
-            self.allocate(require_cap);
-        }
+        self.allocate_if_needed(require_cap);
         iterator.for_each(|c| self.push(c));
     }
 
