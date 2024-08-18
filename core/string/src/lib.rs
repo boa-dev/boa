@@ -29,7 +29,7 @@ use self::{iter::Windows, str::JsSliceIndex};
 use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
-    builder::JsStringBuilder,
+    builder::{JsStringBuilder, JsStringData},
     common::StaticJsStrings,
     iter::Iter,
     str::{JsStr, JsStrVariant},

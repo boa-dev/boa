@@ -12,12 +12,17 @@ use std::{
 
 #[doc(hidden)]
 mod private {
-    /// Inner elements represented for `JsStringBuilder`.
-    pub trait JsStringData {}
+    pub trait Sealed {}
 
-    impl JsStringData for u8 {}
-    impl JsStringData for u16 {}
+    impl Sealed for u8 {}
+    impl Sealed for u16 {}
 }
+
+/// Inner elements represented for `JsStringBuilder`.
+pub trait JsStringData: private::Sealed {}
+
+impl JsStringData for u8 {}
+impl JsStringData for u16 {}
 
 /// A mutable builder to create instance of `JsString`.
 ///
@@ -32,14 +37,14 @@ mod private {
 /// let js_string = s.build();
 /// ```
 #[derive(Debug)]
-pub struct JsStringBuilder<T: private::JsStringData> {
+pub struct JsStringBuilder<T: JsStringData> {
     cap: usize,
     len: usize,
     inner: NonNull<RawJsString>,
     phantom_data: PhantomData<T>,
 }
 
-impl<D: private::JsStringData> Clone for JsStringBuilder<D> {
+impl<D: JsStringData> Clone for JsStringBuilder<D> {
     #[inline]
     #[must_use]
     fn clone(&self) -> Self {
@@ -61,13 +66,13 @@ impl<D: private::JsStringData> Clone for JsStringBuilder<D> {
     }
 }
 
-impl<D: private::JsStringData> Default for JsStringBuilder<D> {
+impl<D: JsStringData> Default for JsStringBuilder<D> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<D: private::JsStringData> JsStringBuilder<D> {
+impl<D: JsStringData> JsStringBuilder<D> {
     const DATA_SIZE: usize = size_of::<D>();
     const MIN_NON_ZERO_CAP: usize = 8 / Self::DATA_SIZE;
 
@@ -398,7 +403,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 }
 
-impl<D: private::JsStringData> Drop for JsStringBuilder<D> {
+impl<D: JsStringData> Drop for JsStringBuilder<D> {
     /// Set cold since [`JsStringBuilder`] should be created to build `JsString`
     #[cold]
     #[inline]
@@ -416,19 +421,19 @@ impl<D: private::JsStringData> Drop for JsStringBuilder<D> {
     }
 }
 
-impl<D: private::JsStringData> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
+impl<D: JsStringData> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
     fn add_assign(&mut self, rhs: &JsStringBuilder<D>) {
         self.extend_from_slice(rhs.as_slice());
     }
 }
 
-impl<D: private::JsStringData> AddAssign<&[D]> for JsStringBuilder<D> {
+impl<D: JsStringData> AddAssign<&[D]> for JsStringBuilder<D> {
     fn add_assign(&mut self, rhs: &[D]) {
         self.extend_from_slice(rhs);
     }
 }
 
-impl<D: private::JsStringData> FromIterator<D> for JsStringBuilder<D> {
+impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
     fn from_iter<T: IntoIterator<Item = D>>(iter: T) -> Self {
         let mut builder = Self::new();
         builder.extend(iter);
