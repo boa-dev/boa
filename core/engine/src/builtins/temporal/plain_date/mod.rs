@@ -639,13 +639,13 @@ impl PlainDate {
         };
         let options = get_options_object(args.get_or_undefined(1))?;
 
+        // SKIP: Steps 4-9 are handled by the with method of temporal_rs's Date
         // 4. Let resolvedOptions be ? SnapshotOwnProperties(? GetOptionsObject(options), null).
         // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-from-fields, fields, merge-fields »).
         // 6. Let fieldsResult be ? PrepareCalendarFieldsAndFieldNames(calendarRec, temporalDate, « "day", "month", "monthCode", "year" »).
         // 7. Let partialDate be ? PrepareTemporalFields(temporalDateLike, fieldsResult.[[FieldNames]], partial).
         // 8. Let fields be ? CalendarMergeFields(calendarRec, fieldsResult.[[Fields]], partialDate).
         // 9. Set fields to ? PrepareTemporalFields(fields, fieldsResult.[[FieldNames]], «»).
-
         let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
         let partial = to_partial_date_record(partial_object, context)?;
 

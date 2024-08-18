@@ -279,16 +279,15 @@ pub(crate) fn is_partial_temporal_object<'value>(
     value: &'value JsValue,
     context: &mut Context,
 ) -> JsResult<Option<&'value JsObject>> {
-    // 2. If value has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]],
-    // [[InitializedTemporalMonthDay]], [[InitializedTemporalTime]],
-    // [[InitializedTemporalYearMonth]], or
-    // [[InitializedTemporalZonedDateTime]] internal slot, return false.
-
     // 1. If value is not an Object, return false.
     let Some(obj) = value.as_object() else {
         return Ok(None);
     };
 
+    // 2. If value has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]],
+    // [[InitializedTemporalMonthDay]], [[InitializedTemporalTime]],
+    // [[InitializedTemporalYearMonth]], or
+    // [[InitializedTemporalZonedDateTime]] internal slot, return false.
     if obj.is::<PlainDate>()
         || obj.is::<PlainDateTime>()
         || obj.is::<PlainMonthDay>()
