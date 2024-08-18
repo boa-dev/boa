@@ -65,10 +65,6 @@ features = [
     # https://github.com/tc39/proposal-arraybuffer-base64
     "uint8array-base64",
 
-    # Atomics.pause
-    # https://github.com/tc39/proposal-atomics-microwait
-    "Atomics.pause",
-
     ### Non-standard
     "caller",
 ]
