@@ -40,6 +40,7 @@ pub struct JsStringBuilder<T: private::JsStringData> {
 }
 
 impl<D: private::JsStringData> Clone for JsStringBuilder<D> {
+    #[inline]
     #[must_use]
     fn clone(&self) -> Self {
         let mut builder = Self::with_capacity(self.capacity());
@@ -129,6 +130,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// create a new `JsStringBuilder` with specific capacity
+    #[inline]
     #[must_use]
     pub fn with_capacity(cap: usize) -> Self {
         if cap == 0 {
@@ -212,6 +214,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// Appends an element to the inner of `JsStringBuilder`.
+    #[inline]
     pub fn push(&mut self, v: D) {
         let len = self.len();
         if len == self.capacity() {
@@ -233,6 +236,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// # Safety
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
+    #[inline]
     pub unsafe fn extend_from_slice_unchecked(&mut self, v: &[D]) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
@@ -242,6 +246,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// push elements from slice to `JsStringBuilder`.
+    #[inline]
     pub fn extend_from_slice(&mut self, v: &[D]) {
         let required_cap = self.len() + v.len();
         if required_cap > self.capacity() {
@@ -270,6 +275,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// Extends `JsStringBuilder` with the contents of an iterator.
+    #[inline]
     pub fn extend<I: IntoIterator<Item = D>>(&mut self, iter: I) {
         let iterator = iter.into_iter();
         let (lower_bound, _) = iterator.size_hint();
@@ -285,6 +291,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// speculatively avoid frequent reallocations. After calling `reserve`,
     /// capacity will be greater than or equal to `self.len() + additional`.
     /// Does nothing if capacity is already sufficient.
+    #[inline]
     pub fn reserve(&mut self, additional: usize) {
         if additional > self.capacity().wrapping_sub(self.len) {
             let Some(cap) = self.len().checked_add(additional) else {
@@ -306,6 +313,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     /// # Safety
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
+    #[inline]
     pub unsafe fn push_unchecked(&mut self, v: D) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
@@ -315,6 +323,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// Returns true if this `JsStringBuilder` has a length of zero, and false otherwise.
+    #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
@@ -336,6 +345,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// Extracts a slice containing the elements in the inner.
+    #[inline]
     #[must_use]
     pub fn as_slice(&self) -> &[D] {
         if self.is_allocated() {
@@ -348,6 +358,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
     }
 
     /// build `JsString` from `JsStringBuilder`
+    #[inline]
     #[must_use]
     pub fn build(mut self) -> JsString {
         if self.is_empty() {
@@ -388,6 +399,7 @@ impl<D: private::JsStringData> JsStringBuilder<D> {
 impl<D: private::JsStringData> Drop for JsStringBuilder<D> {
     /// Set cold since [`JsStringBuilder`] should be created to build `JsString`
     #[cold]
+    #[inline]
     fn drop(&mut self) {
         if self.is_allocated() {
             let layout = self.current_layout();
