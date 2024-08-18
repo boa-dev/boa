@@ -363,6 +363,10 @@ impl AsyncGenerator {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
+    /// # Panics
+    ///
+    /// Panics if the async generator request queue of `generator` is empty.
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorcompletestep
     pub(crate) fn complete_step(
         generator: &JsObject<AsyncGenerator>,
@@ -432,13 +436,17 @@ impl AsyncGenerator {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
+    /// # Panics
+    ///
+    /// Panics if `generator` is neither in the `SuspendedStart` nor in the `SuspendedYield` states.
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorresume
     pub(crate) fn resume(
         generator: &JsObject<AsyncGenerator>,
         completion: CompletionRecord,
         context: &mut Context,
     ) {
-        // 1. Assert: generator.[[AsyncGeneratorState]] is either suspendedStart or suspendedYield.
+        // 1. Assert: generator.[[AsyncGeneratorState]] is either suspended-start or suspended-yield.
         assert!(matches!(
             generator.borrow().data.state,
             AsyncGeneratorState::SuspendedStart | AsyncGeneratorState::SuspendedYield
@@ -481,6 +489,10 @@ impl AsyncGenerator {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///
+    /// # Panics
+    ///
+    /// Panics if `generator` is not in the `DrainingQueue` state.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn
     pub(crate) fn await_return(
@@ -599,6 +611,10 @@ impl AsyncGenerator {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///
+    /// # Panics
+    ///
+    /// Panics if `generator` is not in the `DrainingQueue` state.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
     pub(crate) fn drain_queue(generator: &JsObject<AsyncGenerator>, context: &mut Context) {
