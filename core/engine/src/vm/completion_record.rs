@@ -29,6 +29,10 @@ unsafe impl Trace for CompletionRecord {
 
 // ---- `CompletionRecord` methods ----
 impl CompletionRecord {
+    pub(crate) const fn is_throw_completion(&self) -> bool {
+        matches!(self, Self::Throw(_))
+    }
+
     /// This function will consume the current `CompletionRecord` and return a `JsResult<JsValue>`
     // NOTE: rustc bug around evaluating destructors that prevents this from being a const function.
     // Related issue(s):

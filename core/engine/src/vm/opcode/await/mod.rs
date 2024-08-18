@@ -48,16 +48,6 @@ impl Operation for Await {
 
         let gen = GeneratorContext::from_current(context);
 
-        // Even though it would be great to avoid cloning, we need to ensure
-        // the original async generator has a copy of the context in case it is resumed
-        // by a `return` or `throw` call instead of a continuation.
-        if let Some(async_generator) = gen.async_generator_object() {
-            async_generator
-                .downcast_mut::<AsyncGenerator>()
-                .expect("must be async generator")
-                .context = Some(gen.clone());
-        }
-
         let captures = Gc::new(Cell::new(Some(gen)));
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
@@ -111,7 +101,6 @@ impl Operation for Await {
                     // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
-
                     let mut gen = captures.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
