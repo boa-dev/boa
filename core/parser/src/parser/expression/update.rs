@@ -18,12 +18,9 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::{
-        operator::{
-            update::{UpdateOp, UpdateTarget},
-            Update,
-        },
-        Identifier,
+    expression::operator::{
+        update::{UpdateOp, UpdateTarget},
+        Update,
     },
     Expression, Position, Punctuator,
 };
@@ -38,21 +35,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-UpdateExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct UpdateExpression {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl UpdateExpression {
     /// Creates a new `UpdateExpression` parser.
-    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -102,7 +96,7 @@ where
                     .next(interner)?
                     .expect("Punctuator::Inc token disappeared");
 
-                let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                let target = UnaryExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
@@ -121,7 +115,7 @@ where
                     .next(interner)?
                     .expect("Punctuator::Dec token disappeared");
 
-                let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                let target = UnaryExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
@@ -138,7 +132,7 @@ where
             _ => {}
         }
 
-        let lhs = LeftHandSideExpression::new(self.name, self.allow_yield, self.allow_await)
+        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
         if cursor.peek_is_line_terminator(0, interner)?.unwrap_or(true) {

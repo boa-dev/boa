@@ -63,8 +63,8 @@ where
         cursor.expect((Keyword::If, false), "if statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "if statement", interner)?;
 
-        let condition = Expression::new(None, true, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+        let condition =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         let position = cursor
             .expect(Punctuator::CloseParen, "if statement", interner)?
@@ -83,10 +83,12 @@ where
                 // Source text matched by this production is processed as if each matching
                 // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
                 // StatementListItem of a BlockStatement occupying that position in the source text.
-                Block::from(vec![StatementListItem::Declaration(Declaration::Function(
-                    FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                        .parse(cursor, interner)?,
-                ))])
+                Block::from(vec![StatementListItem::Declaration(
+                    Declaration::FunctionDeclaration(
+                        FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                            .parse(cursor, interner)?,
+                    ),
+                )])
                 .into()
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -126,7 +128,7 @@ where
                             // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
                             // StatementListItem of a BlockStatement occupying that position in the source text.
                             Block::from(vec![StatementListItem::Declaration(
-                                Declaration::Function(
+                                Declaration::FunctionDeclaration(
                                     FunctionDeclaration::new(
                                         self.allow_yield,
                                         self.allow_await,

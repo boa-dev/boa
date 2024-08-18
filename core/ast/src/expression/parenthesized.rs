@@ -15,7 +15,7 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Parenthesized {
-    expression: Box<Expression>,
+    pub(crate) expression: Box<Expression>,
 }
 
 impl Parenthesized {

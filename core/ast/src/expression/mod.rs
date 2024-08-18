@@ -15,7 +15,10 @@ use self::{
     operator::{Assign, Binary, BinaryInPrivate, Conditional, Unary, Update},
 };
 use super::{
-    function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, Function, Generator},
+    function::{
+        ArrowFunction, AsyncFunctionExpression, AsyncGeneratorExpression, ClassExpression,
+        FunctionExpression, GeneratorExpression,
+    },
     function::{AsyncArrowFunction, FormalParameterList},
     Statement,
 };
@@ -88,8 +91,8 @@ pub enum Expression {
     /// See [`Spread`],
     Spread(Spread),
 
-    /// See [`Function`].
-    Function(Function),
+    /// See [`FunctionExpression`].
+    FunctionExpression(FunctionExpression),
 
     /// See [`ArrowFunction`].
     ArrowFunction(ArrowFunction),
@@ -97,20 +100,18 @@ pub enum Expression {
     /// See [`AsyncArrowFunction`].
     AsyncArrowFunction(AsyncArrowFunction),
 
-    /// See [`Generator`].
-    Generator(Generator),
+    /// See [`GeneratorExpression`].
+    GeneratorExpression(GeneratorExpression),
 
-    /// See [`AsyncFunction`].
-    AsyncFunction(AsyncFunction),
+    /// See [`AsyncFunctionExpression`].
+    AsyncFunctionExpression(AsyncFunctionExpression),
 
-    /// See [`AsyncGenerator`].
-    AsyncGenerator(AsyncGenerator),
+    /// See [`AsyncGeneratorExpression`].
+    AsyncGeneratorExpression(AsyncGeneratorExpression),
 
-    /// See [`Class`].
-    Class(Box<Class>),
+    /// See [`ClassExpression`].
+    ClassExpression(Box<ClassExpression>),
 
-    // TODO: Extract regexp literal Expression
-    // RegExpLiteral,
     /// See [`TemplateLiteral`].
     TemplateLiteral(TemplateLiteral),
 
@@ -189,13 +190,15 @@ impl Expression {
             Self::ArrayLiteral(arr) => arr.to_interned_string(interner),
             Self::ObjectLiteral(o) => o.to_indented_string(interner, indentation),
             Self::Spread(sp) => sp.to_interned_string(interner),
-            Self::Function(f) => f.to_indented_string(interner, indentation),
+            Self::FunctionExpression(f) => f.to_indented_string(interner, indentation),
             Self::AsyncArrowFunction(f) => f.to_indented_string(interner, indentation),
             Self::ArrowFunction(arrf) => arrf.to_indented_string(interner, indentation),
-            Self::Class(cl) => cl.to_indented_string(interner, indentation),
-            Self::Generator(gen) => gen.to_indented_string(interner, indentation),
-            Self::AsyncFunction(asf) => asf.to_indented_string(interner, indentation),
-            Self::AsyncGenerator(asgen) => asgen.to_indented_string(interner, indentation),
+            Self::ClassExpression(cl) => cl.to_indented_string(interner, indentation),
+            Self::GeneratorExpression(gen) => gen.to_indented_string(interner, indentation),
+            Self::AsyncFunctionExpression(asf) => asf.to_indented_string(interner, indentation),
+            Self::AsyncGeneratorExpression(asgen) => {
+                asgen.to_indented_string(interner, indentation)
+            }
             Self::TemplateLiteral(tem) => tem.to_interned_string(interner),
             Self::PropertyAccess(prop) => prop.to_interned_string(interner),
             Self::New(new) => new.to_interned_string(interner),
@@ -220,27 +223,6 @@ impl Expression {
         }
     }
 
-    /// Returns if the expression is a function definition according to the spec.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-isfunctiondefinition
-    #[must_use]
-    #[inline]
-    pub const fn is_function_definition(&self) -> bool {
-        matches!(
-            self,
-            Self::ArrowFunction(_)
-                | Self::AsyncArrowFunction(_)
-                | Self::Function(_)
-                | Self::Generator(_)
-                | Self::AsyncGenerator(_)
-                | Self::AsyncFunction(_)
-                | Self::Class(_)
-        )
-    }
-
     /// Returns if the expression is a function definition without a name.
     ///
     /// More information:
@@ -253,13 +235,31 @@ impl Expression {
         match self {
             Self::ArrowFunction(f) => f.name().is_none(),
             Self::AsyncArrowFunction(f) => f.name().is_none(),
-            Self::Function(f) => f.name().is_none(),
-            Self::Generator(f) => f.name().is_none(),
-            Self::AsyncGenerator(f) => f.name().is_none(),
-            Self::AsyncFunction(f) => f.name().is_none(),
-            Self::Class(f) => f.name().is_none(),
+            Self::FunctionExpression(f) => f.name().is_none(),
+            Self::GeneratorExpression(f) => f.name().is_none(),
+            Self::AsyncGeneratorExpression(f) => f.name().is_none(),
+            Self::AsyncFunctionExpression(f) => f.name().is_none(),
+            Self::ClassExpression(f) => f.name().is_none(),
             Self::Parenthesized(p) => p.expression().is_anonymous_function_definition(),
             _ => false,
+        }
+    }
+
+    /// Sets the name of an anonymous function definition.
+    ///
+    /// This is used to set the name of a function expression when it is assigned to a variable.
+    /// If the function already has a name, this does nothing.
+    pub fn set_anonymous_function_definition_name(&mut self, name: &Identifier) {
+        match self {
+            Self::ArrowFunction(f) if f.name().is_none() => f.name = Some(*name),
+            Self::AsyncArrowFunction(f) if f.name().is_none() => f.name = Some(*name),
+            Self::FunctionExpression(f) if f.name().is_none() => f.name = Some(*name),
+            Self::GeneratorExpression(f) if f.name().is_none() => f.name = Some(*name),
+            Self::AsyncGeneratorExpression(f) if f.name().is_none() => f.name = Some(*name),
+            Self::AsyncFunctionExpression(f) if f.name().is_none() => f.name = Some(*name),
+            Self::ClassExpression(f) if f.name().is_none() => f.name = Some(*name),
+            Self::Parenthesized(p) => p.expression.set_anonymous_function_definition_name(name),
+            _ => {}
         }
     }
 
@@ -301,13 +301,13 @@ impl VisitWith for Expression {
             Self::ArrayLiteral(arlit) => visitor.visit_array_literal(arlit),
             Self::ObjectLiteral(olit) => visitor.visit_object_literal(olit),
             Self::Spread(sp) => visitor.visit_spread(sp),
-            Self::Function(f) => visitor.visit_function(f),
+            Self::FunctionExpression(f) => visitor.visit_function_expression(f),
             Self::ArrowFunction(af) => visitor.visit_arrow_function(af),
             Self::AsyncArrowFunction(af) => visitor.visit_async_arrow_function(af),
-            Self::Generator(g) => visitor.visit_generator(g),
-            Self::AsyncFunction(af) => visitor.visit_async_function(af),
-            Self::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
-            Self::Class(c) => visitor.visit_class(c),
+            Self::GeneratorExpression(g) => visitor.visit_generator_expression(g),
+            Self::AsyncFunctionExpression(af) => visitor.visit_async_function_expression(af),
+            Self::AsyncGeneratorExpression(ag) => visitor.visit_async_generator_expression(ag),
+            Self::ClassExpression(c) => visitor.visit_class_expression(c),
             Self::TemplateLiteral(tlit) => visitor.visit_template_literal(tlit),
             Self::PropertyAccess(pa) => visitor.visit_property_access(pa),
             Self::New(n) => visitor.visit_new(n),
@@ -344,13 +344,13 @@ impl VisitWith for Expression {
             Self::ArrayLiteral(arlit) => visitor.visit_array_literal_mut(arlit),
             Self::ObjectLiteral(olit) => visitor.visit_object_literal_mut(olit),
             Self::Spread(sp) => visitor.visit_spread_mut(sp),
-            Self::Function(f) => visitor.visit_function_mut(f),
+            Self::FunctionExpression(f) => visitor.visit_function_expression_mut(f),
             Self::ArrowFunction(af) => visitor.visit_arrow_function_mut(af),
             Self::AsyncArrowFunction(af) => visitor.visit_async_arrow_function_mut(af),
-            Self::Generator(g) => visitor.visit_generator_mut(g),
-            Self::AsyncFunction(af) => visitor.visit_async_function_mut(af),
-            Self::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
-            Self::Class(c) => visitor.visit_class_mut(c),
+            Self::GeneratorExpression(g) => visitor.visit_generator_expression_mut(g),
+            Self::AsyncFunctionExpression(af) => visitor.visit_async_function_expression_mut(af),
+            Self::AsyncGeneratorExpression(ag) => visitor.visit_async_generator_expression_mut(ag),
+            Self::ClassExpression(c) => visitor.visit_class_expression_mut(c),
             Self::TemplateLiteral(tlit) => visitor.visit_template_literal_mut(tlit),
             Self::PropertyAccess(pa) => visitor.visit_property_access_mut(pa),
             Self::New(n) => visitor.visit_new_mut(n),

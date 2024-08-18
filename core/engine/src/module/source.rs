@@ -1549,31 +1549,31 @@ impl SourceTextModule {
                 //
                 // deferred to below.
                 let (mut spec, locator): (FunctionSpec<'_>, _) = match declaration {
-                    LexicallyScopedDeclaration::Function(f) => {
+                    LexicallyScopedDeclaration::FunctionDeclaration(f) => {
                         let name = bound_names(f)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (f.into(), locator)
                     }
-                    LexicallyScopedDeclaration::Generator(g) => {
+                    LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
                         let name = bound_names(g)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (g.into(), locator)
                     }
-                    LexicallyScopedDeclaration::AsyncFunction(af) => {
+                    LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
                         let name = bound_names(af)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (af.into(), locator)
                     }
-                    LexicallyScopedDeclaration::AsyncGenerator(ag) => {
+                    LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
                         let name = bound_names(ag)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (ag.into(), locator)
                     }
-                    LexicallyScopedDeclaration::Class(class) => {
+                    LexicallyScopedDeclaration::ClassDeclaration(class) => {
                         for name in bound_names(class) {
                             let name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, false);

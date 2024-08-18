@@ -544,6 +544,11 @@ impl CodeBlock {
                     .to_std_string_escaped();
                 format!("name: {name}, configurable: {configurable}")
             }
+            Instruction::PushClassField {
+                is_anonymous_function,
+            } => {
+                format!("is_anonymous_function: {is_anonymous_function}")
+            }
             Instruction::Pop
             | Instruction::Dup
             | Instruction::Swap
@@ -645,7 +650,6 @@ impl CodeBlock {
             | Instruction::GeneratorYield
             | Instruction::AsyncGeneratorYield
             | Instruction::GeneratorNext
-            | Instruction::PushClassField
             | Instruction::SuperCallDerived
             | Instruction::Await
             | Instruction::NewTarget
