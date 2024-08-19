@@ -98,7 +98,7 @@ impl IntrinsicObject for String {
         let trim_right = trim_end.clone();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, 36, 3)
             .property(js_string!("length"), 0, attribute)
             .property(
                 js_string!("trimStart"),

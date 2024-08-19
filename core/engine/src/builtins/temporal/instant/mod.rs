@@ -63,7 +63,7 @@ impl IntrinsicObject for Instant {
             .name(js_string!("get epochNanoseconds"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 13, 4)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::INSTANT_TAG,

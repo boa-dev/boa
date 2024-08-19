@@ -105,7 +105,7 @@ impl IntrinsicObject for Array {
 
         let unscopables_object = Self::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 41, 5)
             // Static Methods
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::is_array, js_string!("isArray"), 1)

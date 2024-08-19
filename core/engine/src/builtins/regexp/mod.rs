@@ -88,7 +88,7 @@ impl IntrinsicObject for RegExp {
         let get_source = BuiltInBuilder::callable(realm, Self::get_source)
             .name(js_string!("get source"))
             .build();
-        let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let regexp = BuiltInBuilder::from_standard_constructor::<Self>(realm, 19, 1)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),

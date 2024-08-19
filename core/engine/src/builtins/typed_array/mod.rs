@@ -54,7 +54,7 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 1, 2)
             .prototype(
                 realm
                     .intrinsics()

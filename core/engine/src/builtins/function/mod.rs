@@ -315,7 +315,7 @@ impl IntrinsicObject for BuiltInFunctionObject {
 
         let throw_type_error = realm.intrinsics().objects().throw_type_error();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 7, 0)
             .method(Self::apply, js_string!("apply"), 2)
             .method(Self::bind, js_string!("bind"), 1)
             .method(Self::call, js_string!("call"), 1)

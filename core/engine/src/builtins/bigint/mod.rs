@@ -41,7 +41,7 @@ impl IntrinsicObject for BigInt {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 3, 2)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .static_method(Self::as_int_n, js_string!("asIntN"), 2)

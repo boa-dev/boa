@@ -66,7 +66,7 @@ impl IntrinsicObject for PlainTime {
             .name(js_string!("get nanosecond"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 15, 2)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::PLAIN_TIME_TAG,
