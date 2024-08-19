@@ -1,7 +1,10 @@
 //! A Rust API wrapper for Boa's `Map` Builtin ECMAScript Object
 use crate::{
-    builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
-    builtins::Map,
+    builtins::{
+        iterable::IteratorHint,
+        map::{add_entries_from_iterable, ordered_map::OrderedMap},
+        Map,
+    },
     error::JsNativeError,
     object::{JsFunction, JsMapIterator, JsObject},
     value::TryFromJs,
@@ -126,8 +129,11 @@ impl JsMap {
 
         // Let adder be Get(map, "set") per spec. This action should not fail with default map.
         let adder = map
-            .get(js_str!("set"), context)
-            .expect("creating a map with the default prototype must not fail");
+            .get(js_str!("set"), context)?
+            .as_function()
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("property `set` on new `Map` must be callable")
+            })?;
 
         let _completion_record = add_entries_from_iterable(&map, iterable, &adder, context)?;
 
@@ -199,7 +205,7 @@ impl JsMap {
     #[inline]
     pub fn entries(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
-            .get_iterator(context, None, None)?;
+            .get_iterator(IteratorHint::Sync, context)?;
         let map_iterator_object = iterator_record.iterator();
         JsMapIterator::from_object(map_iterator_object.clone())
     }
@@ -208,7 +214,7 @@ impl JsMap {
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
-            .get_iterator(context, None, None)?;
+            .get_iterator(IteratorHint::Sync, context)?;
         let map_iterator_object = iterator_record.iterator();
         JsMapIterator::from_object(map_iterator_object.clone())
     }
@@ -400,7 +406,7 @@ impl JsMap {
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
-            .get_iterator(context, None, None)?;
+            .get_iterator(IteratorHint::Sync, context)?;
         let map_iterator_object = iterator_record.iterator();
         JsMapIterator::from_object(map_iterator_object.clone())
     }

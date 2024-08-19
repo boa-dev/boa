@@ -189,28 +189,26 @@ pub(crate) fn _iterator_to_list_of_types(
     // 1. Let values be a new empty List.
     let mut values = Vec::new();
 
-    // 2. Let next be true.
-    // 3. Repeat, while next is not false,
-    // a. Set next to ? IteratorStep(iteratorRecord).
-    // b. If next is not false, then
-    while iterator.step(context)? {
-        // i. Let nextValue be ? IteratorValue(next).
-        let next_value = iterator.value(context)?;
-        // ii. If Type(nextValue) is not an element of elementTypes, then
-        if element_types.contains(&next_value.get_type()) {
-            // 1. Let completion be ThrowCompletion(a newly created TypeError object).
+    // 2. Repeat,
+    //     a. Let next be ? IteratorStepValue(iteratorRecord).
+    while let Some(next) = iterator.step_value(context)? {
+        // c. If Type(next) is not an element of elementTypes, then
+
+        if element_types.contains(&next.get_type()) {
+            //     i. Let completion be ThrowCompletion(a newly created TypeError object).
             let completion = JsNativeError::typ()
                 .with_message("IteratorNext is not within allowed type values.");
 
-            // NOTE: The below should return as we are forcing a ThrowCompletion.
-            // 2. Return ? IteratorClose(iteratorRecord, completion).
+            //     ii. Return ? IteratorClose(iteratorRecord, completion).
             let _never = iterator.close(Err(completion.into()), context)?;
         }
-        // iii. Append nextValue to the end of the List values.
-        values.push(next_value);
+
+        // d. Append next to the end of the List values.
+        values.push(next);
     }
 
-    // 4. Return values.
+    // b. If next is done, then
+    //     i. Return values.
     Ok(values)
 }
 

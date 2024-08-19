@@ -36,6 +36,8 @@ use num_traits::Zero;
 
 pub(crate) use set_iterator::SetIterator;
 
+use super::iterable::IteratorHint;
+
 #[derive(Debug, Clone)]
 pub(crate) struct Set;
 
@@ -110,6 +112,9 @@ impl BuiltInConstructor for Set {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::set;
 
+    /// [`Set ( [ iterable ] )`][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-iterable
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
@@ -146,26 +151,20 @@ impl BuiltInConstructor for Set {
             JsNativeError::typ().with_message("'add' of 'newTarget' is not a function")
         })?;
 
-        // 7. Let iteratorRecord be ? GetIterator(iterable).
-        let mut iterator_record = iterable.clone().get_iterator(context, None, None)?;
+        // 7. Let iteratorRecord be ? GetIterator(iterable, sync).
+        let mut iterator_record = iterable.clone().get_iterator(IteratorHint::Sync, context)?;
 
         // 8. Repeat,
-        //     a. Let next be ? IteratorStep(iteratorRecord).
-        //     b. If next is false, return set.
-        //     c. Let nextValue be ? IteratorValue(next).
-        //     d. Let status be Completion(Call(adder, set, « nextValue »)).
-        //     e. IfAbruptCloseIterator(status, iteratorRecord).
-        while !iterator_record.step(context)? {
-            let next = iterator_record.value(context)?;
-            // c
-
-            // d, e
+        //     a. Let next be ? IteratorStepValue(iteratorRecord).
+        while let Some(next) = iterator_record.step_value(context)? {
+            // c. Let status be Completion(Call(adder, set, « next »)).
             if let Err(status) = adder.call(&set.clone().into(), &[next], context) {
+                // d. IfAbruptCloseIterator(status, iteratorRecord).
                 return iterator_record.close(Err(status), context);
             }
         }
 
-        // 8.b
+        //     b. If next is done, return set.
         Ok(set.into())
     }
 }
