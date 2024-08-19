@@ -53,7 +53,7 @@ impl IntrinsicObject for Number {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 6, 14)
             .static_property(js_string!("EPSILON"), f64::EPSILON, attribute)
             .static_property(
                 js_string!("MAX_SAFE_INTEGER"),

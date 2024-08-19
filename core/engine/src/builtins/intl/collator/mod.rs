@@ -156,7 +156,7 @@ impl IntrinsicObject for Collator {
             .name(js_string!("get compare"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 3, 1)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),

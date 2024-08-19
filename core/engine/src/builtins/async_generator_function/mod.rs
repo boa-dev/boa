@@ -28,7 +28,7 @@ impl IntrinsicObject for AsyncGeneratorFunction {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 2, 0)
             .inherits(Some(
                 realm.intrinsics().constructors().function().prototype(),
             ))

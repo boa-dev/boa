@@ -122,7 +122,7 @@ impl IntrinsicObject for Symbol {
             .name(js_string!("get description"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm, 5, 15)
             .static_method(Self::for_, js_string!("for"), 1)
             .static_method(Self::key_for, js_string!("keyFor"), 1)
             .static_property(
