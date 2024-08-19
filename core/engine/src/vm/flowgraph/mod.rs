@@ -429,7 +429,7 @@ impl CodeBlock {
                 | Instruction::CreatePromiseCapability
                 | Instruction::CompletePromiseCapability
                 | Instruction::GeneratorNext
-                | Instruction::PushClassField
+                | Instruction::PushClassField { .. }
                 | Instruction::SuperCallDerived
                 | Instruction::Await
                 | Instruction::NewTarget

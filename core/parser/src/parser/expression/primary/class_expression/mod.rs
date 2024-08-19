@@ -6,7 +6,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{expression::Identifier, function::Class, Keyword};
+use boa_ast::{function::ClassExpression as ClassExpressionNode, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -18,21 +18,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-ClassExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct ClassExpression {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassExpression {
     /// Creates a new `ClassExpression` parser.
-    pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -43,33 +40,34 @@ impl<R> TokenParser<R> for ClassExpression
 where
     R: ReadChar,
 {
-    type Output = Class;
+    type Output = ClassExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassExpression", "Parsing");
         let strict = cursor.strict();
         cursor.set_strict(true);
 
-        let mut has_binding_identifier = false;
         let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::IdentifierName(_)
             | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
-                has_binding_identifier = true;
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
                     .into()
             }
-            _ => self.name,
+            _ => None,
         };
         cursor.set_strict(strict);
 
-        ClassTail::new(
+        let (super_ref, constructor, elements) =
+            ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        Ok(ClassExpressionNode::new(
             name,
-            has_binding_identifier,
-            self.allow_yield,
-            self.allow_await,
-        )
-        .parse(cursor, interner)
+            super_ref,
+            constructor,
+            elements.into_boxed_slice(),
+            name.is_some(),
+        ))
     }
 }

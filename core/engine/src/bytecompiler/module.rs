@@ -34,23 +34,15 @@ impl ByteCompiler<'_> {
                         //    export NamedExports ;
                         //        1. Return empty.
                     }
-                    ExportDeclaration::DefaultFunction(_)
-                    | ExportDeclaration::DefaultGenerator(_)
-                    | ExportDeclaration::DefaultAsyncFunction(_)
-                    | ExportDeclaration::DefaultAsyncGenerator(_) => {
+                    ExportDeclaration::DefaultFunctionDeclaration(_)
+                    | ExportDeclaration::DefaultGeneratorDeclaration(_)
+                    | ExportDeclaration::DefaultAsyncFunctionDeclaration(_)
+                    | ExportDeclaration::DefaultAsyncGeneratorDeclaration(_) => {
                         // Already instantiated in `initialize_environment`.
                     }
                     ExportDeclaration::VarStatement(var) => self.compile_var_decl(var),
                     ExportDeclaration::Declaration(decl) => self.compile_decl(decl, false),
-                    ExportDeclaration::DefaultClassDeclaration(cl) => {
-                        self.class(cl, cl.name().is_none());
-                        if cl.name().is_none() {
-                            self.emit_binding(
-                                BindingOpcode::InitLexical,
-                                Sym::DEFAULT_EXPORT.to_js_string(self.interner()),
-                            );
-                        }
-                    }
+                    ExportDeclaration::DefaultClassDeclaration(cl) => self.class(cl.into(), false),
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
                         let name = Sym::DEFAULT_EXPORT.to_js_string(self.interner());
                         self.lexical_environment

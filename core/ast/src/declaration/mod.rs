@@ -14,7 +14,13 @@
 //! [class]: https://tc39.es/ecma262/#prod-ClassDeclaration
 //! [diff]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#difference_between_statements_and_declarations
 
-use super::function::{AsyncFunction, AsyncGenerator, Class, Function, Generator};
+use super::function::{
+    AsyncFunctionDeclaration, AsyncGeneratorDeclaration, FunctionDeclaration, GeneratorDeclaration,
+};
+use crate::{
+    function::ClassDeclaration,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -22,7 +28,6 @@ mod export;
 mod import;
 mod variable;
 
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
 pub use export::*;
 pub use import::*;
 pub use variable::*;
@@ -34,20 +39,20 @@ pub use variable::*;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Declaration {
-    /// See [`Function`]
-    Function(Function),
+    /// See [`FunctionDeclaration`]
+    FunctionDeclaration(FunctionDeclaration),
 
-    /// See [`Generator`]
-    Generator(Generator),
+    /// See [`GeneratorDeclaration`]
+    GeneratorDeclaration(GeneratorDeclaration),
 
-    /// See [`AsyncFunction`]
-    AsyncFunction(AsyncFunction),
+    /// See [`AsyncFunctionDeclaration`]
+    AsyncFunctionDeclaration(AsyncFunctionDeclaration),
 
-    /// See [`AsyncGenerator`]
-    AsyncGenerator(AsyncGenerator),
+    /// See [`AsyncGeneratorDeclaration`]
+    AsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
 
-    /// See [`Class`]
-    Class(Class),
+    /// See [`ClassDeclaration`]
+    ClassDeclaration(ClassDeclaration),
 
     /// See [`LexicalDeclaration`]
     Lexical(LexicalDeclaration),
@@ -56,11 +61,11 @@ pub enum Declaration {
 impl ToIndentedString for Declaration {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
-            Self::Function(f) => f.to_indented_string(interner, indentation),
-            Self::Generator(g) => g.to_indented_string(interner, indentation),
-            Self::AsyncFunction(af) => af.to_indented_string(interner, indentation),
-            Self::AsyncGenerator(ag) => ag.to_indented_string(interner, indentation),
-            Self::Class(c) => c.to_indented_string(interner, indentation),
+            Self::FunctionDeclaration(f) => f.to_indented_string(interner, indentation),
+            Self::GeneratorDeclaration(g) => g.to_indented_string(interner, indentation),
+            Self::AsyncFunctionDeclaration(af) => af.to_indented_string(interner, indentation),
+            Self::AsyncGeneratorDeclaration(ag) => ag.to_indented_string(interner, indentation),
+            Self::ClassDeclaration(c) => c.to_indented_string(interner, indentation),
             Self::Lexical(l) => {
                 let mut s = l.to_interned_string(interner);
                 s.push(';');
@@ -76,11 +81,11 @@ impl VisitWith for Declaration {
         V: Visitor<'a>,
     {
         match self {
-            Self::Function(f) => visitor.visit_function(f),
-            Self::Generator(g) => visitor.visit_generator(g),
-            Self::AsyncFunction(af) => visitor.visit_async_function(af),
-            Self::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
-            Self::Class(c) => visitor.visit_class(c),
+            Self::FunctionDeclaration(f) => visitor.visit_function_declaration(f),
+            Self::GeneratorDeclaration(g) => visitor.visit_generator_declaration(g),
+            Self::AsyncFunctionDeclaration(af) => visitor.visit_async_function_declaration(af),
+            Self::AsyncGeneratorDeclaration(ag) => visitor.visit_async_generator_declaration(ag),
+            Self::ClassDeclaration(c) => visitor.visit_class_declaration(c),
             Self::Lexical(ld) => visitor.visit_lexical_declaration(ld),
         }
     }
@@ -90,11 +95,13 @@ impl VisitWith for Declaration {
         V: VisitorMut<'a>,
     {
         match self {
-            Self::Function(f) => visitor.visit_function_mut(f),
-            Self::Generator(g) => visitor.visit_generator_mut(g),
-            Self::AsyncFunction(af) => visitor.visit_async_function_mut(af),
-            Self::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
-            Self::Class(c) => visitor.visit_class_mut(c),
+            Self::FunctionDeclaration(f) => visitor.visit_function_declaration_mut(f),
+            Self::GeneratorDeclaration(g) => visitor.visit_generator_declaration_mut(g),
+            Self::AsyncFunctionDeclaration(af) => visitor.visit_async_function_declaration_mut(af),
+            Self::AsyncGeneratorDeclaration(ag) => {
+                visitor.visit_async_generator_declaration_mut(ag)
+            }
+            Self::ClassDeclaration(c) => visitor.visit_class_declaration_mut(c),
             Self::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
         }
     }

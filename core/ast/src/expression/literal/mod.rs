@@ -13,7 +13,7 @@ mod template;
 
 pub use array::ArrayLiteral;
 use core::ops::ControlFlow;
-pub use object::ObjectLiteral;
+pub use object::{ObjectLiteral, ObjectMethodDefinition, PropertyDefinition};
 pub use template::{TemplateElement, TemplateLiteral};
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};

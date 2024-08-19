@@ -1763,13 +1763,18 @@ impl String {
 
             // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
             // 2. If requestedLocales is not an empty List, then
-            //     a. Let requestedLocale be requestedLocales[0].
-            let mut requested_locale = canonicalize_locale_list(args.get_or_undefined(0), context)?
-                .into_iter()
-                .next()
+            let mut requested_locale = if let Some(locale) =
+                canonicalize_locale_list(args.get_or_undefined(0), context)?
+                    .into_iter()
+                    .next()
+            {
+                // a. Let requestedLocale be requestedLocales[0].
+                locale
+            } else {
                 // 3. Else,
                 //     a. Let requestedLocale be ! DefaultLocale().
-                .unwrap_or_else(|| default_locale(context.intl_provider().locale_canonicalizer()));
+                default_locale(context.intl_provider().locale_canonicalizer()?)
+            };
             // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
             requested_locale.extensions.unicode.clear();
 
@@ -1784,7 +1789,7 @@ impl String {
             )
             .unwrap_or(Locale::UND);
 
-            let casemapper = context.intl_provider().case_mapper();
+            let casemapper = context.intl_provider().case_mapper()?;
 
             // 8. Let codePoints be StringToCodePoints(S).
             let result = string.map_valid_segments(|segment| {
@@ -2165,7 +2170,7 @@ impl String {
             }
             #[cfg(feature = "intl")]
             {
-                context.intl_provider().string_normalizers()
+                context.intl_provider().string_normalizers()?
             }
         };
 

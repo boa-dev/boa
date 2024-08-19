@@ -25,7 +25,6 @@ use ast::{
 use boa_ast::{
     self as ast,
     declaration::Variable,
-    expression::Identifier,
     function::{FormalParameter, FormalParameterList},
     statement::Return,
     Punctuator, StatementList,
@@ -43,21 +42,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncArrowFunction
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct AsyncArrowFunction {
-    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
 }
 
 impl AsyncArrowFunction {
     /// Creates a new `AsyncArrowFunction` parser.
-    pub(in crate::parser) fn new<N, I, Y>(name: N, allow_in: I, allow_yield: Y) -> Self
+    pub(in crate::parser) fn new<I, Y>(allow_in: I, allow_yield: Y) -> Self
     where
-        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
     {
         Self {
-            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
         }
@@ -148,9 +144,7 @@ where
             interner,
         )?;
 
-        Ok(ast::function::AsyncArrowFunction::new(
-            self.name, params, body,
-        ))
+        Ok(ast::function::AsyncArrowFunction::new(None, params, body))
     }
 }
 

@@ -443,10 +443,20 @@ dependencies = [
 name = "boa_icu_provider"
 version = "0.19.0"
 dependencies = [
+ "icu_casemap",
+ "icu_collator",
+ "icu_datetime",
+ "icu_decimal",
+ "icu_list",
+ "icu_locid_transform",
+ "icu_normalizer",
+ "icu_plurals",
  "icu_provider",
  "icu_provider_adapters",
  "icu_provider_blob",
+ "icu_segmenter",
  "once_cell",
+ "paste",
 ]
 
 [[package]]
@@ -1364,7 +1374,6 @@ dependencies = [
  "icu_locid_transform",
  "icu_normalizer",
  "icu_plurals",
- "icu_provider",
  "icu_segmenter",
  "log",
  "simple_logger",

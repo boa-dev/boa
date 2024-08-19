@@ -140,7 +140,7 @@ impl ConstructorKind {
 #[derive(Clone, Debug, Finalize)]
 pub enum ClassFieldDefinition {
     /// A class field definition with a `string` or `symbol` as a name.
-    Public(PropertyKey, JsFunction),
+    Public(PropertyKey, JsFunction, Option<PropertyKey>),
 
     /// A class field definition with a private name.
     Private(PrivateName, JsFunction),
@@ -149,7 +149,7 @@ pub enum ClassFieldDefinition {
 unsafe impl Trace for ClassFieldDefinition {
     custom_trace! {this, mark, {
         match this {
-            Self::Public(_key, func) => {
+            Self::Public(_key, func, _) => {
                 mark(func);
             }
             Self::Private(_, func) => {
@@ -265,8 +265,14 @@ impl OrdinaryFunction {
     }
 
     /// Pushes a value to the `[[Fields]]` internal slot if present.
-    pub(crate) fn push_field(&mut self, key: PropertyKey, value: JsFunction) {
-        self.fields.push(ClassFieldDefinition::Public(key, value));
+    pub(crate) fn push_field(
+        &mut self,
+        key: PropertyKey,
+        value: JsFunction,
+        function_name: Option<PropertyKey>,
+    ) {
+        self.fields
+            .push(ClassFieldDefinition::Public(key, value, function_name));
     }
 
     /// Pushes a private value to the `[[Fields]]` internal slot if present.

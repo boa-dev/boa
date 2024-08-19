@@ -54,7 +54,7 @@
 mod console;
 
 #[doc(inline)]
-pub use console::Console;
+pub use console::{Console, Logger};
 
 #[cfg(test)]
 pub(crate) mod test {

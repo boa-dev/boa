@@ -559,7 +559,6 @@ where
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
-                                                    None,
                                                     true,
                                                     self.allow_yield,
                                                     self.allow_await,
@@ -592,7 +591,6 @@ where
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
-                                                    None,
                                                     true,
                                                     self.allow_yield,
                                                     self.allow_await,
@@ -626,13 +624,13 @@ where
                                     if let Some(peek_token) = cursor.peek(0, interner)? {
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
-                                                let init = Initializer::new(
-                                                    None,
+                                                let mut init = Initializer::new(
                                                     true,
                                                     self.allow_yield,
                                                     self.allow_await,
                                                 )
                                                 .parse(cursor, interner)?;
+                                                init.set_anonymous_function_definition_name(&ident);
                                                 patterns.push(ObjectPatternElement::SingleName {
                                                     ident,
                                                     name: property_name,
@@ -656,13 +654,10 @@ where
                             .parse(cursor, interner)?;
                         match cursor.peek(0, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Assign)) => {
-                                let init = Initializer::new(
-                                    Some(name),
-                                    true,
-                                    self.allow_yield,
-                                    self.allow_await,
-                                )
-                                .parse(cursor, interner)?;
+                                let mut init =
+                                    Initializer::new(true, self.allow_yield, self.allow_await)
+                                        .parse(cursor, interner)?;
+                                init.set_anonymous_function_definition_name(&name);
                                 patterns.push(ObjectPatternElement::SingleName {
                                     ident: name,
                                     name: name.sym().into(),
@@ -811,7 +806,7 @@ where
                     match cursor.peek(0, interner).or_abrupt()?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init =
-                                Initializer::new(None, true, self.allow_yield, self.allow_await)
+                                Initializer::new(true, self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
                             patterns.push(ArrayPatternElement::Pattern {
                                 pattern: bindings.into(),
@@ -835,7 +830,7 @@ where
                     match cursor.peek(0, interner).or_abrupt()?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init =
-                                Initializer::new(None, true, self.allow_yield, self.allow_await)
+                                Initializer::new(true, self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
                             patterns.push(ArrayPatternElement::Pattern {
                                 pattern: bindings.into(),
@@ -857,16 +852,13 @@ where
                         .parse(cursor, interner)?;
                     match cursor.peek(0, interner).or_abrupt()?.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init = Initializer::new(
-                                Some(ident),
-                                true,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor, interner)?;
+                            let mut init =
+                                Initializer::new(true, self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
+                            init.set_anonymous_function_definition_name(&ident);
                             patterns.push(ArrayPatternElement::SingleName {
                                 ident,
-                                default_init: Some(default_init),
+                                default_init: Some(init),
                             });
                         }
                         _ => {

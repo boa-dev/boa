@@ -20,7 +20,6 @@ use boa_ast::{
     expression::{
         access::PropertyAccess,
         operator::{unary::UnaryOp, Unary},
-        Identifier,
     },
     Expression, Keyword, Punctuator,
 };
@@ -37,21 +36,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct UnaryExpression {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl UnaryExpression {
     /// Creates a new `UnaryExpression` parser.
-    pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -129,8 +125,7 @@ where
             TokenKind::Keyword((Keyword::Await, false)) if self.allow_await.0 => {
                 Ok((AwaitExpression::new(self.allow_yield).parse(cursor, interner)?).into())
             }
-            _ => UpdateExpression::new(self.name, self.allow_yield, self.allow_await)
-                .parse(cursor, interner),
+            _ => UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner),
         }
     }
 }

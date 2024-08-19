@@ -13,7 +13,9 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{function::AsyncGenerator, Keyword, Punctuator};
+use boa_ast::{
+    function::AsyncGeneratorDeclaration as AsyncGeneratorDeclarationNode, Keyword, Punctuator,
+};
 use boa_interner::Interner;
 
 /// Async Generator Declaration Parser
@@ -89,7 +91,7 @@ impl<R> TokenParser<R> for AsyncGeneratorDeclaration
 where
     R: ReadChar,
 {
-    type Output = AsyncGenerator;
+    type Output = AsyncGeneratorDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
@@ -107,11 +109,8 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(AsyncGenerator::new(
-            Some(result.0),
-            result.1,
-            result.2,
-            true,
+        Ok(AsyncGeneratorDeclarationNode::new(
+            result.0, result.1, result.2,
         ))
     }
 }

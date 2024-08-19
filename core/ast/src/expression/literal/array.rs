@@ -105,9 +105,11 @@ impl ArrayLiteral {
                     }
                     match assign.lhs() {
                         AssignTarget::Identifier(ident) => {
+                            let mut init = assign.rhs().clone();
+                            init.set_anonymous_function_definition_name(ident);
                             bindings.push(ArrayPatternElement::SingleName {
                                 ident: *ident,
-                                default_init: Some(assign.rhs().clone()),
+                                default_init: Some(init),
                             });
                         }
                         AssignTarget::Access(access) => {

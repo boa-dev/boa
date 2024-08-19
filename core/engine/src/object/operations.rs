@@ -1,6 +1,6 @@
 use crate::{
     builtins::{
-        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction},
+        function::{set_function_name, BoundFunction, ClassFieldDefinition, OrdinaryFunction},
         Array, Proxy,
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
@@ -1077,7 +1077,7 @@ impl JsObject {
     ) -> JsResult<()> {
         // 2. Let initializer be fieldRecord.[[Initializer]].
         let initializer = match field_record {
-            ClassFieldDefinition::Public(_, function)
+            ClassFieldDefinition::Public(_, function, _)
             | ClassFieldDefinition::Private(_, function) => function,
         };
 
@@ -1095,7 +1095,18 @@ impl JsObject {
             }
             // 1. Let fieldName be fieldRecord.[[Name]].
             // 6. Else,
-            ClassFieldDefinition::Public(field_name, _) => {
+            ClassFieldDefinition::Public(field_name, _, function_name) => {
+                if let Some(function_name) = function_name {
+                    set_function_name(
+                        init_value
+                            .as_object()
+                            .expect("init value must be a function object"),
+                        function_name,
+                        None,
+                        context,
+                    );
+                }
+
                 // a. Assert: IsPropertyKey(fieldName) is true.
                 // b. Perform ? CreateDataPropertyOrThrow(receiver, fieldName, initValue).
                 self.create_data_property_or_throw(field_name.clone(), init_value, context)?;
