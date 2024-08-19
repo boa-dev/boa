@@ -3220,7 +3220,7 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 [[package]]
 name = "temporal_rs"
 version = "0.0.3"
-source = "git+https://github.com/boa-dev/temporal.git?rev=51bc30aa288b08b44daf6b73372a7335e5a54446#51bc30aa288b08b44daf6b73372a7335e5a54446"
+source = "git+https://github.com/boa-dev/temporal.git?rev=1e7901d07a83211e62373ab94284a7d1ada4c913#1e7901d07a83211e62373ab94284a7d1ada4c913"
 dependencies = [
  "bitflags 2.6.0",
  "icu_calendar",

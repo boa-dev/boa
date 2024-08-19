@@ -25,7 +25,7 @@ mod tests;
 use temporal_rs::{
     components::{
         calendar::{Calendar, GetTemporalCalendar},
-        DateTime as InnerDateTime, Time,
+        DateTime as InnerDateTime, PartialDateTime, Time,
     },
     iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
@@ -702,10 +702,12 @@ impl PlainDateTime {
         let date = to_partial_date_record(partial_object, context)?;
         let time = to_partial_time_record(partial_object, context)?;
 
-        // TODO: PartialDateTime pub fields.
-        Err(JsNativeError::range()
-            .with_message("not yet implemented.")
-            .into())
+        let partial_dt = PartialDateTime { date, time };
+
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+
+        create_temporal_datetime(dt.inner.with(partial_dt, overflow)?, None, context)
+            .map(Into::into)
     }
 
     /// 5.3.26 Temporal.PlainDateTime.prototype.withPlainTime ( `[ plainTimeLike ]` )
