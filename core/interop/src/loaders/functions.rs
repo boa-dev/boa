@@ -11,9 +11,13 @@ use std::io::Cursor;
 ///
 /// `F` cannot be a mutable closure as it could recursively call itself.
 #[derive(Copy, Clone)]
-pub struct FnModuleLoader<F>(F, &'static str)
+pub struct FnModuleLoader<F>
 where
-    F: Fn(&Referrer, &JsString) -> JsResult<Module>;
+    F: Fn(&Referrer, &JsString) -> JsResult<Module>,
+{
+    factory: F,
+    name: &'static str,
+}
 
 impl<F> FnModuleLoader<F>
 where
@@ -21,14 +25,14 @@ where
 {
     /// Create a new [`FnModuleLoader`] from a function that takes a path and returns
     /// a [Module] if it exists.
-    pub const fn new(f: F) -> Self {
-        Self(f, "Unnamed")
+    pub const fn new(factory: F) -> Self {
+        Self::named(factory, "Unnamed")
     }
 
     /// Create a new [`FnModuleLoader`] from a function that takes a path and returns
     /// a [Module] if it exists, with a name.
-    pub const fn named(f: F, name: &'static str) -> Self {
-        Self(f, name)
+    pub const fn named(factory: F, name: &'static str) -> Self {
+        Self { factory, name }
     }
 }
 
@@ -37,7 +41,7 @@ where
     F: Fn(&Referrer, &JsString) -> JsResult<Module>,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("FnModuleLoader").field(&self.1).finish()
+        f.debug_tuple("FnModuleLoader").field(&self.name).finish()
     }
 }
 
@@ -52,7 +56,7 @@ where
         finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
         context: &mut Context,
     ) {
-        finish_load(self.0(&referrer, &specifier), context);
+        finish_load((self.factory)(&referrer, &specifier), context);
     }
 }
 
