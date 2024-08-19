@@ -152,6 +152,17 @@ impl CodePoint {
     }
 }
 
+impl std::fmt::Display for CodePoint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CodePoint::Unicode(c) => std::fmt::Write::write_char(f, *c),
+            CodePoint::UnpairedSurrogate(c) => {
+                write!(f, "\\u{c:04X}")
+            }
+        }
+    }
+}
+
 /// A `usize` contains a flag and the length of Latin1/UTF-16 .
 /// ```text
 /// ┌────────────────────────────────────┐
@@ -530,10 +541,7 @@ impl JsString {
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
     #[inline]
     pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + '_ {
-        char::decode_utf16(self.iter()).map(|res| match res {
-            Ok(c) => CodePoint::Unicode(c),
-            Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
-        })
+        self.as_str().code_points()
     }
 
     /// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
