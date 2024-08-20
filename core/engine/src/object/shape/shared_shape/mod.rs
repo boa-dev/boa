@@ -186,6 +186,7 @@ impl SharedShape {
             forward_transitions: ForwardTransition::default(),
             prototype: None,
             property_count: 0,
+            // Most of the time the root shape initiates with between 1-4 properties.
             property_table: PropertyTable::with_capacity(4),
             previous: None,
             flags: ShapeFlags::default(),
