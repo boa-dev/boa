@@ -235,7 +235,7 @@ impl<'a> JsStr<'a> {
         m >= n && needle == self.get(m - n..).expect("already checked size")
     }
 
-    /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
+    /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
     /// This is not optimized for Latin1 strings.
     #[inline]
     pub(crate) fn code_points(self) -> impl Iterator<Item = CodePoint> + Clone + 'a {
