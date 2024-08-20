@@ -131,6 +131,9 @@ impl ApplyToObject for OrdinaryObject {
     fn apply_to(self, _: &JsObject) {}
 }
 
+// The number of properties that are always present in a standard constructor. See build method
+const OWN_PROPS: usize = 3;
+
 /// Builder for creating built-in objects, like `Array`.
 ///
 /// The marker `ObjectType` restricts the methods that can be called depending on the
@@ -534,8 +537,6 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
     >(
         realm: &'ctx Realm,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
-        // The number of properties that are always present in a standard constructor. See build method
-        const OWN_PROPS: usize = 3;
         let constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInConstructorWithPrototype {
             realm,
