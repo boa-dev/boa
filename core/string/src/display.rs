@@ -25,10 +25,8 @@ impl fmt::Display for JsStringDisplayEscaped<'_> {
 
 #[test]
 fn latin1() {
-    let mut s_bytes = b"Hello ".to_vec();
-    s_bytes.push(0x82);
-    s_bytes.append(b" world!".to_vec().as_mut());
-    let s = JsStr::latin1(&s_bytes);
+    // 0xE9 is `é` in ISO-8859-1 (see https://www.ascii-code.com/ISO-8859-1).
+    let s = JsStr::latin1(b"Hello \xE9 world!");
 
     let rust_str = format!("{}", JsStringDisplayEscaped { inner: s });
     assert_eq!(rust_str, "Hello é world!");

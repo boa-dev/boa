@@ -1,11 +1,7 @@
 #![allow(unused_crate_dependencies)]
 
-<<<<<<< Updated upstream
-use boa_macros::utf16;
-=======
 use boa_engine::{string::JsStrVariant, JsStr, JsString};
 use boa_macros::{js_str, utf16};
->>>>>>> Stashed changes
 
 #[test]
 fn literal() {
