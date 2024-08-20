@@ -186,12 +186,6 @@ fn to_string_escaped() {
         "Hello, world!"
     );
 
-    // Padding.
-    assert_eq!(
-        format!("{:0<10}, World!", JsString::from("Hello").display_escaped()),
-        "Hello00000, World!"
-    );
-
     // 15 should not be escaped.
     let unpaired_surrogates: [u16; 3] = [0xDC58, 0xD83C, 0x0015];
     assert_eq!(

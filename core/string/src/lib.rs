@@ -26,7 +26,7 @@ mod tagged;
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
-use crate::display::JsStringDisplayEscaped;
+use crate::display::JsStrDisplayEscaped;
 use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
@@ -34,6 +34,7 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
+use std::fmt::Write;
 use std::{
     alloc::{alloc, dealloc, Layout},
     cell::Cell,
@@ -155,9 +156,10 @@ impl CodePoint {
 impl std::fmt::Display for CodePoint {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            CodePoint::Unicode(c) => std::fmt::Write::write_char(f, *c),
+            CodePoint::Unicode(c) => f.write_char(*c),
             CodePoint::UnpairedSurrogate(c) => {
-                write!(f, "\\u{c:04X}")
+                f.write_str("\\u")?;
+                write!(f, "{c:04X}")
             }
         }
     }
@@ -951,10 +953,8 @@ impl JsString {
     /// displaying.
     #[inline]
     #[must_use]
-    pub fn display_escaped(&self) -> JsStringDisplayEscaped<'_> {
-        JsStringDisplayEscaped {
-            inner: self.as_str(),
-        }
+    pub fn display_escaped(&self) -> JsStrDisplayEscaped<'_> {
+        JsStrDisplayEscaped::from(self.as_str())
     }
 }
 
