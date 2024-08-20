@@ -110,6 +110,7 @@ unsafe impl Trace for ActiveRunnable {
 impl Vm {
     /// Creates a new virtual machine.
     pub(crate) fn new(realm: Realm) -> Self {
+        let _timer = Profiler::global().start_event("VM::new", "VM");
         Self {
             frames: Vec::with_capacity(16),
             frame: CallFrame::new(
