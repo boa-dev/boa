@@ -1102,7 +1102,6 @@ impl JsPromise {
     /// ```
     pub fn await_blocking(&self, context: &mut Context) -> Result<JsValue, JsValue> {
         loop {
-            eprintln!("await_blocking: {:?}", self.state());
             match self.state() {
                 PromiseState::Pending => {
                     context.run_jobs();
