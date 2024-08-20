@@ -90,7 +90,7 @@ impl IntrinsicObject for Proxy {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 0, 1)
+        BuiltInBuilder::from_standard_constructor::<Self, 0, 1>(realm)
             .static_method(Self::revocable, js_string!("revocable"), 2)
             .build_without_prototype();
     }

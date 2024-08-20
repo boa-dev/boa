@@ -36,7 +36,7 @@ impl IntrinsicObject for WeakSet {
 
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 4, 0)
+        BuiltInBuilder::from_standard_constructor::<Self, 4, 0>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,

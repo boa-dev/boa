@@ -68,7 +68,7 @@ impl IntrinsicObject for DateTimeFormat {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 0, 0).build();
+        BuiltInBuilder::from_standard_constructor::<Self, 0, 0>(realm).build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

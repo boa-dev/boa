@@ -156,7 +156,7 @@ impl IntrinsicObject for PlainDateTime {
             .name(js_string!("get inLeapYear"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 29, 2)
+        BuiltInBuilder::from_standard_constructor::<Self, 29, 2>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::PLAIN_DATETIME_TAG,

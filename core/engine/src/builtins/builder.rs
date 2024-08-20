@@ -529,24 +529,28 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
 
 impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
     /// Create a new builder for a constructor function setting the properties ahead of time for optimizations (less reallocations)
-    pub(crate) fn from_standard_constructor<SC: BuiltInConstructor>(
+    /// Const Generic `P` is the minimum storage capacity for the prototype's Property table.
+    /// Const Generic `SP` is the minimum storage capacity for the object's Static Property table.
+    pub(crate) fn from_standard_constructor<
+        SC: BuiltInConstructor,
+        const P: usize,
+        const SP: usize,
+    >(
         realm: &'ctx Realm,
-        // Sets the minimum storage capacity for the prototype's property table.
-        num_prototype_properties: usize,
-        // Sets the minimum storage capacity for the object's property table.
-        num_own_properties: usize,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
+        // The number of properties that are always present in a standard constructor. See build method
+        const OWN_PROPS: usize = 3;
         let constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
         BuiltInConstructorWithPrototype {
             realm,
             function: SC::constructor,
             name: js_string!(SC::NAME),
             length: SC::LENGTH,
-            object_property_table: PropertyTableInner::with_capacity(num_own_properties),
-            object_storage: Vec::with_capacity(num_own_properties),
+            object_property_table: PropertyTableInner::with_capacity(SP + OWN_PROPS),
+            object_storage: Vec::with_capacity(SP + OWN_PROPS),
             object: constructor.constructor(),
-            prototype_property_table: PropertyTableInner::with_capacity(num_prototype_properties),
-            prototype_storage: Vec::with_capacity(num_prototype_properties),
+            prototype_property_table: PropertyTableInner::with_capacity(P),
+            prototype_storage: Vec::with_capacity(P),
             prototype: constructor.prototype(),
             __proto__: Some(realm.intrinsics().constructors().function().prototype()),
             inherits: Some(realm.intrinsics().constructors().object().prototype()),

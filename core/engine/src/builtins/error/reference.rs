@@ -32,7 +32,7 @@ impl IntrinsicObject for ReferenceError {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 2, 0)
+        BuiltInBuilder::from_standard_constructor::<Self, 2, 0>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
             .property(js_str!("name"), Self::NAME, attribute)

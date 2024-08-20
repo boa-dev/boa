@@ -312,7 +312,7 @@ impl IntrinsicObject for ArrayBuffer {
             .name(js_string!("get detached"))
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm, 9, 2)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self, 9, 2>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
