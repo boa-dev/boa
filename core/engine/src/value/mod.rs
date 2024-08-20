@@ -21,7 +21,7 @@ use boa_profiler::Profiler;
 #[doc(inline)]
 pub use conversions::convert::Convert;
 
-use crate::object::JsFunction;
+use crate::object::{JsFunction, JsPromise};
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -205,11 +205,20 @@ impl JsValue {
         matches!(self, Self::Object(obj) if obj.is::<Promise>())
     }
 
-    /// Returns the promise if the value is a promise, otherwise `None`.
+    /// Returns the value as an object if the value is a promise, otherwise `None`.
     #[inline]
     #[must_use]
-    pub fn as_promise(&self) -> Option<&JsObject> {
+    pub(crate) fn as_promise_object(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is::<Promise>())
+    }
+
+    /// Returns the value as a promise if the value is a promise, otherwise `None`.
+    #[inline]
+    #[must_use]
+    pub fn as_promise(&self) -> Option<JsPromise> {
+        self.as_promise_object()
+            .cloned()
+            .and_then(|o| JsPromise::from_object(o).ok())
     }
 
     /// Returns true if the value is a symbol.
