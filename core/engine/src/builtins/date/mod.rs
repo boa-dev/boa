@@ -72,7 +72,7 @@ impl IntrinsicObject for Date {
             .length(1)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 47, 3)
+        BuiltInBuilder::from_standard_constructor::<Self, 47, 3>(realm)
             .static_method(Self::now, js_string!("now"), 0)
             .static_method(Self::parse, js_string!("parse"), 1)
             .static_method(Self::utc, js_string!("UTC"), 7)

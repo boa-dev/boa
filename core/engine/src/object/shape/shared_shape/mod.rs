@@ -186,7 +186,7 @@ impl SharedShape {
             forward_transitions: ForwardTransition::default(),
             prototype: None,
             property_count: 0,
-            property_table: PropertyTable::default(),
+            property_table: PropertyTable::with_capacity(4),
             previous: None,
             flags: ShapeFlags::default(),
             transition_count: 0,

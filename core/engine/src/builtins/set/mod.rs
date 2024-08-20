@@ -58,7 +58,7 @@ impl IntrinsicObject for Set {
             .name(js_string!("values"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 11, 1)
+        BuiltInBuilder::from_standard_constructor::<Self, 11, 1>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),

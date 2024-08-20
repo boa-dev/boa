@@ -80,6 +80,13 @@ pub(crate) struct PropertyTable {
 }
 
 impl PropertyTable {
+    /// Creates a new `PropertyTable` with the specified capacity.
+    pub(crate) fn with_capacity(capacity: usize) -> Self {
+        Self {
+            inner: Rc::new(RefCell::new(PropertyTableInner::with_capacity(capacity))),
+        }
+    }
+
     /// Returns the inner representation of a [`PropertyTable`].
     pub(super) fn inner(&self) -> &RefCell<PropertyTableInner> {
         &self.inner

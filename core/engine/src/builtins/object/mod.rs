@@ -59,7 +59,7 @@ impl IntrinsicObject for OrdinaryObject {
             .name(js_string!("set __proto__"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm, 11, 23)
+        BuiltInBuilder::from_standard_constructor::<Self, 11, 23>(realm)
             .inherits(None)
             .accessor(
                 js_string!("__proto__"),
