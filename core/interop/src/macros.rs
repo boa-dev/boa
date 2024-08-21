@@ -135,7 +135,7 @@ macro_rules! js_class {
         $(
             $(#[$field_attr: meta])*
             public $field_name: ident
-                ( $( $field_arg: ident: $field_arg_type: ty ),* ) -> $field_ty: ty
+                ( $( $field_arg: ident: $field_arg_type: ty ),* $(,)? ) -> $field_ty: ty
                 $field_body: block
         )*
 
@@ -144,13 +144,13 @@ macro_rules! js_class {
             property $field_prop_name: ident $(as $field_prop_js_name: literal)? {
                 $(
                     $(#[$field_prop_get_attr: meta])*
-                    $(fn)? get( $( $field_prop_get_arg: ident: $field_prop_get_arg_type: ty ),* ) -> $field_prop_get_ty: ty
+                    $(fn)? get( $( $field_prop_get_arg: ident: $field_prop_get_arg_type: ty ),* $(,)? ) -> $field_prop_get_ty: ty
                     $field_prop_get_body: block
                 )?
 
                 $(
                     $(#[$field_prop_set_attr: meta])*
-                    $(fn)? set( $( $field_prop_set_arg: ident: $field_prop_set_arg_type: ty ),* )
+                    $(fn)? set( $( $field_prop_set_arg: ident: $field_prop_set_arg_type: ty ),* $(,)? )
                         $( -> $field_prop_set_ty: ty )?
                         $field_prop_set_body: block
                 )?
@@ -159,19 +159,19 @@ macro_rules! js_class {
 
 
         $(#[$constructor_attr: meta])*
-        constructor( $( $ctor_arg: ident: $ctor_arg_ty: ty ),* )
+        constructor( $( $ctor_arg: ident: $ctor_arg_ty: ty ),* $(,)? )
             $constructor_body: block
 
         $(
             $(#[$init_attr: meta])*
-            init($init_class_builder_name: ident : &mut ClassBuilder) -> JsResult<()>
+            init($init_class_builder_name: ident : &mut ClassBuilder $(,)?) -> JsResult<()>
                 $init_body: block
         )?
 
         $(
             $(#[$method_attr: meta])*
             fn $method_name: ident $( as $method_js_name: literal )?
-                ( $( $fn_arg: ident: $fn_arg_type: ty ),* )
+                ( $( $fn_arg: ident: $fn_arg_type: ty ),* $(,)? )
                 $(-> $result_type: ty)?
                 $method_body: block
         )*
