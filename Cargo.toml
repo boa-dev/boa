@@ -221,8 +221,8 @@ bare_urls = "warn"
 [workspace.lints.clippy]
 # clippy allowed by default
 dbg_macro = "warn"
-print_stdout = "deny"
-print_stderr = "deny"
+print_stdout = "warn"
+print_stderr = "warn"
 
 # clippy categories https://doc.rust-lang.org/clippy/
 all = { level = "warn", priority = -1 }
