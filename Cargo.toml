@@ -3,27 +3,22 @@ resolver = "2"
 members = [
     # CORE
     "core/*",
-
     # FFI
     "ffi/*",
-
     # TESTS
     "tests/*",
-
     # TOOLS
     "tools/*",
-
     # OTHERS
     "examples",
     "cli",
-
     # TOOLS
     "tools/*",
 ]
 
 exclude = [
     "tests/fuzz", # Does weird things on Windows tests
-    "tests/src",  # Just a hack to have fuzz inside tests
+    "tests/src", # Just a hack to have fuzz inside tests
 ]
 
 [workspace.package]
@@ -73,7 +68,7 @@ serde = "1.0.208"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
-time = {version = "0.3.36", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"]}
+time = { version = "0.3.36", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
 tinystr = "0.7.5"
 log = "0.4.22"
 simple_logger = "5.0.0"
@@ -226,6 +221,8 @@ bare_urls = "warn"
 [workspace.lints.clippy]
 # clippy allowed by default
 dbg_macro = "warn"
+print_stdout = "warn"
+print_stderr = "warn"
 
 # clippy categories https://doc.rust-lang.org/clippy/
 all = { level = "warn", priority = -1 }

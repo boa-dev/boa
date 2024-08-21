@@ -19,11 +19,11 @@ use boa_engine::{
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsResult, JsStr, JsString,
+    Context, JsArgs, JsData, JsError, JsResult, JsStr, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use std::{cell::RefCell, collections::hash_map::Entry, rc::Rc, time::SystemTime};
+use std::{cell::RefCell, collections::hash_map::Entry, io::Write, rc::Rc, time::SystemTime};
 
 /// A trait that can be used to forward console logs to an implementation.
 pub trait Logger: Trace + Sized {
@@ -64,8 +64,7 @@ impl Logger for DefaultLogger {
     #[inline]
     fn log(&self, msg: String, state: &Console) -> JsResult<()> {
         let indent = 2 * state.groups.len();
-        println!("{msg:>indent$}");
-        Ok(())
+        writeln!(std::io::stdout(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
 
     #[inline]
@@ -81,8 +80,7 @@ impl Logger for DefaultLogger {
     #[inline]
     fn error(&self, msg: String, state: &Console) -> JsResult<()> {
         let indent = 2 * state.groups.len();
-        eprintln!("{msg:>indent$}");
-        Ok(())
+        writeln!(std::io::stderr(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
 }
 

@@ -277,6 +277,7 @@ pub(crate) enum CompletionType {
     Yield,
 }
 
+#[allow(clippy::print_stdout)]
 #[cfg(feature = "trace")]
 impl Context {
     const COLUMN_WIDTH: usize = 26;
