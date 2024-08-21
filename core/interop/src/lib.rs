@@ -390,6 +390,14 @@ impl<T: NativeObject> JsClass<T> {
     }
 }
 
+impl<T: NativeObject + Clone> JsClass<T> {
+    /// Clones the inner class instance.
+    #[must_use]
+    pub fn clone_inner(&self) -> T {
+        self.inner.data().clone()
+    }
+}
+
 impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
     fn try_from_js_argument(
         this: &'a JsValue,
