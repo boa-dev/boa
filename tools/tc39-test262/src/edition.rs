@@ -39,12 +39,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-json-modules
     "json-modules"  => SpecEdition::ESNext,
 
-    // https://github.com/tc39/proposal-source-phase-imports
-    "source-phase-imports"  => SpecEdition::ESNext,
-
-    // https://github.com/tc39/proposal-source-phase-imports
-    "source-phase-imports-module-source"  => SpecEdition::ESNext,
-
     // ArrayBuffer transfer
     // https://github.com/tc39/proposal-arraybuffer-transfer
     "arraybuffer-transfer" => SpecEdition::ESNext,
@@ -387,7 +381,10 @@ impl SpecEdition {
         if unknowns.is_empty() {
             Ok(min_edition)
         } else {
-            Err(unknowns)
+            // TODO - Temporally fallback to ESNext for unknown features.
+            // Pending on feature->edition map: https://github.com/tc39/test262/issues/4161
+            println!("Unknown test262 features in test metadata: {unknowns:?}");
+            Ok(SpecEdition::ESNext)
         }
     }
 
