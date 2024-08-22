@@ -1,10 +1,10 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, FunctionSpec, Operand},
+    bytecompiler::{Access, ByteCompiler, FunctionSpec, MethodKind, Operand},
     vm::Opcode,
 };
 use boa_ast::{
-    expression::literal::ObjectLiteral,
-    property::{MethodDefinition, PropertyDefinition, PropertyName},
+    expression::literal::{ObjectLiteral, PropertyDefinition},
+    property::{MethodDefinitionKind, PropertyName},
     Expression,
 };
 use boa_interner::Sym;
@@ -43,98 +43,29 @@ impl ByteCompiler<'_> {
                         self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                     }
                 },
-                PropertyDefinition::MethodDefinition(name, kind) => match kind {
-                    MethodDefinition::Get(expr) => match name {
+                PropertyDefinition::MethodDefinition(m) => {
+                    let kind = match m.kind() {
+                        MethodDefinitionKind::Get => MethodKind::Get,
+                        MethodDefinitionKind::Set => MethodKind::Set,
+                        _ => MethodKind::Ordinary,
+                    };
+                    match m.name() {
                         PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
+                            let opcode = match kind {
+                                MethodKind::Get => Opcode::SetPropertyGetterByName,
+                                MethodKind::Set => Opcode::SetPropertySetterByName,
+                                MethodKind::Ordinary => Opcode::DefineOwnPropertyByName,
+                            };
+                            self.object_method((m, *name).into(), kind);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit_with_varying_operand(Opcode::SetPropertyGetterByName, index);
+                            self.emit_with_varying_operand(opcode, index);
                         }
                         PropertyName::Computed(name_node) => {
-                            self.compile_object_literal_computed_method(
-                                name_node,
-                                expr.into(),
-                                MethodKind::Get,
-                            );
+                            self.compile_object_literal_computed_method(name_node, m.into(), kind);
                         }
-                    },
-                    MethodDefinition::Set(expr) => match name {
-                        PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            let index = self.get_or_insert_name((*name).into());
-                            self.emit_with_varying_operand(Opcode::SetPropertySetterByName, index);
-                        }
-                        PropertyName::Computed(name_node) => {
-                            self.compile_object_literal_computed_method(
-                                name_node,
-                                expr.into(),
-                                MethodKind::Set,
-                            );
-                        }
-                    },
-                    MethodDefinition::Ordinary(expr) => match name {
-                        PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            let index = self.get_or_insert_name((*name).into());
-                            self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
-                        }
-                        PropertyName::Computed(name_node) => {
-                            self.compile_object_literal_computed_method(
-                                name_node,
-                                expr.into(),
-                                MethodKind::Ordinary,
-                            );
-                        }
-                    },
-                    MethodDefinition::Async(expr) => match name {
-                        PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            let index = self.get_or_insert_name((*name).into());
-                            self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
-                        }
-                        PropertyName::Computed(name_node) => {
-                            self.compile_object_literal_computed_method(
-                                name_node,
-                                expr.into(),
-                                MethodKind::Ordinary,
-                            );
-                        }
-                    },
-                    MethodDefinition::Generator(expr) => match name {
-                        PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            let index = self.get_or_insert_name((*name).into());
-                            self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
-                        }
-                        PropertyName::Computed(name_node) => {
-                            self.compile_object_literal_computed_method(
-                                name_node,
-                                expr.into(),
-                                MethodKind::Ordinary,
-                            );
-                        }
-                    },
-                    MethodDefinition::AsyncGenerator(expr) => match name {
-                        PropertyName::Literal(name) => {
-                            self.object_method(expr.into());
-                            self.emit_opcode(Opcode::SetHomeObject);
-                            let index = self.get_or_insert_name((*name).into());
-                            self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, index);
-                        }
-                        PropertyName::Computed(name_node) => {
-                            self.compile_object_literal_computed_method(
-                                name_node,
-                                expr.into(),
-                                MethodKind::Ordinary,
-                            );
-                        }
-                    },
-                },
+                    }
+                }
                 PropertyDefinition::SpreadObject(expr) => {
                     self.compile_expr(expr, true);
                     self.emit_opcode(Opcode::Swap);
@@ -171,7 +102,7 @@ impl ByteCompiler<'_> {
         self.emit_opcode(Opcode::Dup);
 
         // stack: object, object, ToPropertyKey(name), ToPropertyKey(name)
-        self.object_method(function);
+        self.object_method(function, kind);
 
         // stack: object, object, ToPropertyKey(name), ToPropertyKey(name), method
         let value = match kind {
@@ -203,11 +134,4 @@ impl ByteCompiler<'_> {
             MethodKind::Ordinary => self.emit_opcode(Opcode::DefineOwnPropertyByValue),
         }
     }
-}
-
-#[derive(Debug, Clone, Copy)]
-enum MethodKind {
-    Get,
-    Set,
-    Ordinary,
 }

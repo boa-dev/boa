@@ -67,7 +67,7 @@ where
                     raws.push(template_string.raw());
                     cookeds.push(template_string.cooked());
                     exprs.push(
-                        Expression::new(None, true, self.allow_yield, self.allow_await)
+                        Expression::new(true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                     );
                     cursor.expect(

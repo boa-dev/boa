@@ -45,8 +45,7 @@ use time::util::local_offset;
 ///     }
 /// }
 ///
-/// let context =
-///     &mut ContextBuilder::new().host_hooks(&Hooks).build().unwrap();
+/// let context = &mut ContextBuilder::new().host_hooks(&Hooks).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
 /// assert_eq!(
 ///     result.unwrap_err().to_string(),
@@ -97,7 +96,7 @@ pub trait HostHooks {
     /// # Requirements
     ///
     /// - It must complete normally (i.e. not return an abrupt completion). This is already
-    /// ensured by the return type.
+    ///   ensured by the return type.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-host-promise-rejection-tracker
     fn promise_rejection_tracker(
@@ -114,7 +113,7 @@ pub trait HostHooks {
     /// # Requirements
     ///
     /// - If the returned Completion Record is a normal completion, it must be a normal completion
-    /// containing unused. This is already ensured by the return type.
+    ///   containing unused. This is already ensured by the return type.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecancompilestrings
     fn ensure_can_compile_strings(
@@ -134,7 +133,7 @@ pub trait HostHooks {
     /// # Requirements
     ///
     /// - It must be deterministic with respect to its parameters. Each time it is called with a
-    /// specific `func` as its argument, it must return the same result.
+    ///   specific `func` as its argument, it must return the same result.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hosthassourcetextavailable
     fn has_source_text_available(&self, _function: &JsFunction, _context: &mut Context) -> bool {
@@ -147,9 +146,9 @@ pub trait HostHooks {
     /// # Requirements
     ///
     /// - If `O` is not a host-defined exotic object, this abstract operation must return
-    /// `NormalCompletion(unused)` and perform no other steps.
+    ///   `NormalCompletion(unused)` and perform no other steps.
     /// - Any two calls of this abstract operation with the same argument must return the same kind
-    /// of *Completion Record*.
+    ///   of *Completion Record*.
     /// - This abstract operation should only be overriden by ECMAScript hosts that are web browsers.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostensurecanaddprivateelement
@@ -213,10 +212,10 @@ pub trait HostHooks {
     /// [specification]:
     ///
     /// > If a host is multi-tenanted (i.e. it runs many ECMAScript applications simultaneously),
-    /// such as a web browser, and its implementations choose to implement in-place growth by reserving
-    /// virtual memory, we recommend that both 32-bit and 64-bit implementations throw for values of
-    /// "`maxByteLength`" ≥ 1GiB to 1.5GiB. This is to reduce the likelihood a single application can
-    /// exhaust the virtual memory address space and to reduce interoperability risk.
+    /// > such as a web browser, and its implementations choose to implement in-place growth by reserving
+    /// > virtual memory, we recommend that both 32-bit and 64-bit implementations throw for values of
+    /// > "`maxByteLength`" ≥ 1GiB to 1.5GiB. This is to reduce the likelihood a single application can
+    /// > exhaust the virtual memory address space and to reduce interoperability risk.
     ///
     ///
     /// [specification]: https://tc39.es/ecma262/#sec-resizable-arraybuffer-guidelines

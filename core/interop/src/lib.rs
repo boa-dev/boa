@@ -1,13 +1,19 @@
 //! Interop utilities between Boa and its host.
 
 use boa_engine::module::SyntheticModuleInitializer;
+use boa_engine::object::Object;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
     Context, JsNativeError, JsResult, JsString, JsValue, Module, NativeFunction, NativeObject,
 };
+use std::ops::Deref;
+
+pub use boa_engine;
+use boa_gc::{GcRef, GcRefMut};
 pub use boa_macros;
 
 pub mod loaders;
+pub mod macros;
 
 /// Internal module only.
 pub(crate) mod private {
@@ -58,7 +64,13 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
 /// let f = unsafe { f.into_js_function_unsafe(&mut context) };
-/// let result = f.call(&JsValue::undefined(), &[JsValue::from(1), JsValue::from(2)], &mut context).unwrap();
+/// let result = f
+///     .call(
+///         &JsValue::undefined(),
+///         &[JsValue::from(1), JsValue::from(2)],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 ///
@@ -79,8 +91,10 @@ impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule fo
 ///     move |a: i32| *x.borrow_mut() += a
 /// };
 /// let f = unsafe { f.into_js_function_unsafe(&mut context) };
-/// f.call(&JsValue::undefined(), &[JsValue::from(1)], &mut context).unwrap();
-/// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context).unwrap();
+/// f.call(&JsValue::undefined(), &[JsValue::from(1)], &mut context)
+///     .unwrap();
+/// f.call(&JsValue::undefined(), &[JsValue::from(4)], &mut context)
+///     .unwrap();
 /// assert_eq!(*x.borrow(), 5);
 /// ```
 pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> {
@@ -103,11 +117,13 @@ pub trait UnsafeIntoJsFunction<Args, Ret>: private::IntoJsFunctionSealed<Args, R
 /// # let mut context = Context::default();
 /// let f = |a: i32, b: i32| a + b;
 /// let f = f.into_js_function_copied(&mut context);
-/// let result = f.call(
-///     &JsValue::undefined(),
-///     &[JsValue::from(1), JsValue::from(2)],
-///     &mut context
-/// ).unwrap();
+/// let result = f
+///     .call(
+///         &JsValue::undefined(),
+///         &[JsValue::from(1), JsValue::from(2)],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(3));
 /// ```
 pub trait IntoJsFunctionCopied<Args, Ret>: private::IntoJsFunctionSealed<Args, Ret> + Copy {
@@ -144,6 +160,20 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
     }
 }
 
+/// An argument that would be ignored in a JS function.
+#[derive(Debug, Clone, Copy)]
+pub struct Ignore;
+
+impl<'a> TryFromJsArgument<'a> for Ignore {
+    fn try_from_js_argument(
+        _this: &'a JsValue,
+        rest: &'a [JsValue],
+        _: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        Ok((Ignore, &rest[1..]))
+    }
+}
+
 /// An argument that when used in a JS function will empty the list
 /// of JS arguments as `JsValue`s. This can be used for having the
 /// rest of the arguments in a function. It should be the last
@@ -155,14 +185,19 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
 /// # use boa_interop::{IntoJsFunctionCopied, JsRest};
 /// # let mut context = Context::default();
 /// let sums = (|args: JsRest, context: &mut Context| -> i32 {
-///    args.iter().map(|i| i.try_js_into::<i32>(context).unwrap()).sum::<i32>()
-/// }).into_js_function_copied(&mut context);
+///     args.iter()
+///         .map(|i| i.try_js_into::<i32>(context).unwrap())
+///         .sum::<i32>()
+/// })
+/// .into_js_function_copied(&mut context);
 ///
-/// let result = sums.call(
-///     &JsValue::undefined(),
-///     &[JsValue::from(1), JsValue::from(2), JsValue::from(3)],
-///     &mut context
-/// ).unwrap();
+/// let result = sums
+///     .call(
+///         &JsValue::undefined(),
+///         &[JsValue::from(1), JsValue::from(2), JsValue::from(3)],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(6));
 /// ```
 #[derive(Debug, Clone)]
@@ -224,15 +259,22 @@ impl<'a> IntoIterator for JsRest<'a> {
 /// # use boa_engine::{Context, JsValue};
 /// # use boa_interop::{IntoJsFunctionCopied, JsAll};
 /// # let mut context = Context::default();
-/// let sums = (|args: JsAll<i32>, context: &mut Context| -> i32 {
-///    args.iter().sum()
-/// }).into_js_function_copied(&mut context);
+/// let sums = (|args: JsAll<i32>, context: &mut Context| -> i32 { args.iter().sum() })
+///     .into_js_function_copied(&mut context);
 ///
-/// let result = sums.call(
-///     &JsValue::undefined(),
-///     &[JsValue::from(1), JsValue::from(2), JsValue::from(3), JsValue::Boolean(true), JsValue::from(4)],
-///     &mut context
-/// ).unwrap();
+/// let result = sums
+///     .call(
+///         &JsValue::undefined(),
+///         &[
+///             JsValue::from(1),
+///             JsValue::from(2),
+///             JsValue::from(3),
+///             JsValue::Boolean(true),
+///             JsValue::from(4),
+///         ],
+///         &mut context,
+///     )
+///     .unwrap();
 /// assert_eq!(result, JsValue::new(6));
 /// ```
 #[derive(Debug, Clone)]
@@ -305,6 +347,67 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
     }
 }
 
+impl<T: TryFromJs> Deref for JsThis<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Captures a class instance from the `this` value in a JS function. The class
+/// will be a non-mutable reference of Rust type `T`, if it is an instance of `T`.
+///
+/// To have more flexibility on the parsing of the `this` value, you can use the
+/// [`JsThis`] capture instead.
+#[derive(Debug, Clone)]
+pub struct JsClass<T: NativeObject> {
+    inner: boa_engine::JsObject<T>,
+}
+
+impl<T: NativeObject> JsClass<T> {
+    /// Borrow a reference to the class instance of type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently borrowed.
+    ///
+    /// This does not panic if the type is wrong, as the type is checked
+    /// during the construction of the `JsClass` instance.
+    #[must_use]
+    pub fn borrow(&self) -> GcRef<'_, T> {
+        GcRef::map(self.inner.borrow(), |obj| obj.data())
+    }
+
+    /// Borrow a mutable reference to the class instance of type `T`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[must_use]
+    pub fn borrow_mut(&self) -> GcRefMut<'_, Object<T>, T> {
+        GcRefMut::map(self.inner.borrow_mut(), |obj| obj.data_mut())
+    }
+}
+
+impl<'a, T: NativeObject + 'static> TryFromJsArgument<'a> for JsClass<T> {
+    fn try_from_js_argument(
+        this: &'a JsValue,
+        rest: &'a [JsValue],
+        _context: &mut Context,
+    ) -> JsResult<(Self, &'a [JsValue])> {
+        if let Some(object) = this.as_object() {
+            if let Ok(inner) = object.clone().downcast::<T>() {
+                return Ok((JsClass { inner }, rest));
+            }
+        }
+
+        Err(JsNativeError::typ()
+            .with_message("invalid this for class method")
+            .into())
+    }
+}
+
 /// Captures a [`ContextData`] data from the [`Context`] as a JS function argument,
 /// based on its type.
 ///
@@ -316,20 +419,22 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for JsThis<T> {
 /// For example,
 /// ```
 /// # use boa_engine::{Context, Finalize, JsData, JsValue, Trace};
-/// use boa_interop::{IntoJsFunctionCopied, ContextData};
+/// use boa_interop::{ContextData, IntoJsFunctionCopied};
 ///
 /// #[derive(Clone, Debug, Finalize, JsData, Trace)]
 /// struct CustomHostDefinedStruct {
-///    #[unsafe_ignore_trace]
-///    pub counter: usize,
+///     #[unsafe_ignore_trace]
+///     pub counter: usize,
 /// }
 /// let mut context = Context::default();
 /// context.insert_data(CustomHostDefinedStruct { counter: 123 });
-/// let f = (|ContextData(host): ContextData<CustomHostDefinedStruct>| {
-///   host.counter + 1
-/// }).into_js_function_copied(&mut context);
+/// let f = (|ContextData(host): ContextData<CustomHostDefinedStruct>| host.counter + 1)
+///     .into_js_function_copied(&mut context);
 ///
-/// assert_eq!(f.call(&JsValue::undefined(), &[], &mut context), Ok(JsValue::new(124)));
+/// assert_eq!(
+///     f.call(&JsValue::undefined(), &[], &mut context),
+///     Ok(JsValue::new(124))
+/// );
 /// ```
 #[derive(Debug, Clone)]
 pub struct ContextData<T: Clone>(pub T);
@@ -505,5 +610,110 @@ fn can_throw_exception() {
     assert_eq!(
         promise_result.state().as_rejected(),
         Some(&JsString::from("from javascript").into())
+    );
+}
+
+#[test]
+fn class() {
+    use boa_engine::class::{Class, ClassBuilder};
+    use boa_engine::property::Attribute;
+    use boa_engine::{js_string, JsValue, Source};
+    use boa_macros::{Finalize, JsData, Trace};
+    use std::rc::Rc;
+
+    #[derive(Debug, Trace, Finalize, JsData)]
+    struct Test {
+        value: i32,
+    }
+
+    impl Test {
+        #[allow(clippy::needless_pass_by_value)]
+        fn get_value(this: JsClass<Test>) -> i32 {
+            this.borrow().value
+        }
+
+        #[allow(clippy::needless_pass_by_value)]
+        fn set_value(this: JsClass<Test>, new_value: i32) {
+            (*this.borrow_mut()).value = new_value;
+        }
+    }
+
+    impl Class for Test {
+        const NAME: &'static str = "Test";
+
+        fn init(class: &mut ClassBuilder<'_>) -> JsResult<()> {
+            let get_value = Self::get_value.into_js_function_copied(class.context());
+            class.method(js_string!("getValue"), 0, get_value);
+            let set_value = Self::set_value.into_js_function_copied(class.context());
+            class.method(js_string!("setValue"), 1, set_value);
+
+            let get_value_getter = Self::get_value
+                .into_js_function_copied(class.context())
+                .to_js_function(class.context().realm());
+            let set_value_setter = Self::set_value
+                .into_js_function_copied(class.context())
+                .to_js_function(class.context().realm());
+            class.accessor(
+                js_string!("value_get"),
+                Some(get_value_getter),
+                None,
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            );
+            class.accessor(
+                js_string!("value_set"),
+                None,
+                Some(set_value_setter),
+                Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+            );
+
+            Ok(())
+        }
+
+        fn data_constructor(
+            _new_target: &JsValue,
+            _args: &[JsValue],
+            _context: &mut Context,
+        ) -> JsResult<Self> {
+            Ok(Self { value: 123 })
+        }
+    }
+
+    let loader = Rc::new(loaders::HashMapModuleLoader::new());
+    let mut context = Context::builder()
+        .module_loader(loader.clone())
+        .build()
+        .unwrap();
+
+    context.register_global_class::<Test>().unwrap();
+
+    let source = Source::from_bytes(
+        r"
+            let t = new Test();
+            if (t.getValue() != 123) {
+                throw 'invalid value';
+            }
+            t.setValue(456);
+            if (t.getValue() != 456) {
+                throw 'invalid value 456';
+            }
+            if (t.value_get != 456) {
+                throw 'invalid value 456';
+            }
+            t.value_set = 789;
+            if (t.getValue() != 789) {
+                throw 'invalid value 789';
+            }
+        ",
+    );
+    let root_module = Module::parse(source, None, &mut context).unwrap();
+
+    let promise_result = root_module.load_link_evaluate(&mut context);
+    context.run_jobs();
+
+    // Checking if the final promise didn't return an error.
+    assert!(
+        promise_result.state().as_fulfilled().is_some(),
+        "module didn't execute successfully! Promise: {:?}",
+        promise_result.state()
     );
 }

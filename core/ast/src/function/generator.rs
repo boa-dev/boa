@@ -1,57 +1,51 @@
+use super::{FormalParameterList, FunctionBody};
 use crate::{
     block_to_string,
     expression::{Expression, Identifier},
-    join_nodes, Declaration,
+    join_nodes, try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Declaration,
 };
+use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use boa_interner::{Interner, ToIndentedString};
-
-use super::{FormalParameterList, FunctionBody};
-
-/// A generator definition, as defined by the [spec].
+/// A generator declaration.
 ///
-/// [Generators][mdn] are "resumable functions", which can be suspended during execution and
-/// resumed at any later time. The main feature of a generator are `yield` expressions, which
-/// specifies the value returned when a generator is suspended, and the point from which
-/// the execution will resume.
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-generator-function-definitions
+/// [spec]: https://tc39.es/ecma262/#prod-GeneratorDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Generator {
-    name: Option<Identifier>,
+pub struct GeneratorDeclaration {
+    name: Identifier,
     parameters: FormalParameterList,
     body: FunctionBody,
-    has_binding_identifier: bool,
 }
 
-impl Generator {
-    /// Creates a new generator expression
+impl GeneratorDeclaration {
+    /// Creates a new generator declaration.
     #[inline]
     #[must_use]
     pub const fn new(
-        name: Option<Identifier>,
+        name: Identifier,
         parameters: FormalParameterList,
         body: FunctionBody,
-        has_binding_identifier: bool,
     ) -> Self {
         Self {
             name,
             parameters,
             body,
-            has_binding_identifier,
         }
     }
 
     /// Gets the name of the generator declaration.
     #[inline]
     #[must_use]
-    pub const fn name(&self) -> Option<Identifier> {
+    pub const fn name(&self) -> Identifier {
         self.name
     }
 
@@ -68,8 +62,104 @@ impl Generator {
     pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
+}
 
-    /// Returns whether the function expression has a binding identifier.
+impl ToIndentedString for GeneratorDeclaration {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            "function* {}({}) {}",
+            interner.resolve_expect(self.name.sym()),
+            join_nodes(interner, self.parameters.as_ref()),
+            block_to_string(self.body.statements(), interner, indentation)
+        )
+    }
+}
+
+impl VisitWith for GeneratorDeclaration {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_identifier(&self.name));
+        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_script(&self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_identifier_mut(&mut self.name));
+        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_script_mut(&mut self.body)
+    }
+}
+
+impl From<GeneratorDeclaration> for Declaration {
+    #[inline]
+    fn from(f: GeneratorDeclaration) -> Self {
+        Self::GeneratorDeclaration(f)
+    }
+}
+
+/// A generator expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct GeneratorExpression {
+    pub(crate) name: Option<Identifier>,
+    parameters: FormalParameterList,
+    body: FunctionBody,
+    has_binding_identifier: bool,
+}
+
+impl GeneratorExpression {
+    /// Creates a new generator expression.
+    #[inline]
+    #[must_use]
+    pub const fn new(
+        name: Option<Identifier>,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        has_binding_identifier: bool,
+    ) -> Self {
+        Self {
+            name,
+            parameters,
+            body,
+            has_binding_identifier,
+        }
+    }
+
+    /// Gets the name of the generator expression.
+    #[inline]
+    #[must_use]
+    pub const fn name(&self) -> Option<Identifier> {
+        self.name
+    }
+
+    /// Gets the list of parameters of the generator expression.
+    #[inline]
+    #[must_use]
+    pub const fn parameters(&self) -> &FormalParameterList {
+        &self.parameters
+    }
+
+    /// Gets the body of the generator expression.
+    #[inline]
+    #[must_use]
+    pub const fn body(&self) -> &FunctionBody {
+        &self.body
+    }
+
+    /// Returns whether the generator expression has a binding identifier.
     #[inline]
     #[must_use]
     pub const fn has_binding_identifier(&self) -> bool {
@@ -77,11 +167,13 @@ impl Generator {
     }
 }
 
-impl ToIndentedString for Generator {
+impl ToIndentedString for GeneratorExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function*".to_owned();
-        if let Some(name) = self.name {
-            buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+        if self.has_binding_identifier {
+            if let Some(name) = self.name {
+                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+            }
         }
         buf.push_str(&format!(
             "({}) {}",
@@ -93,21 +185,14 @@ impl ToIndentedString for Generator {
     }
 }
 
-impl From<Generator> for Expression {
+impl From<GeneratorExpression> for Expression {
     #[inline]
-    fn from(expr: Generator) -> Self {
-        Self::Generator(expr)
+    fn from(expr: GeneratorExpression) -> Self {
+        Self::GeneratorExpression(expr)
     }
 }
 
-impl From<Generator> for Declaration {
-    #[inline]
-    fn from(f: Generator) -> Self {
-        Self::Generator(f)
-    }
-}
-
-impl VisitWith for Generator {
+impl VisitWith for GeneratorExpression {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,

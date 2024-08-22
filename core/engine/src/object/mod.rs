@@ -247,6 +247,13 @@ impl<T: ?Sized> Object<T> {
         &self.data
     }
 
+    /// Returns the data of the object.
+    #[inline]
+    #[must_use]
+    pub fn data_mut(&mut self) -> &mut T {
+        &mut self.data
+    }
+
     /// Gets the prototype instance of this object.
     #[inline]
     #[must_use]
@@ -454,9 +461,9 @@ impl Object<dyn NativeObject> {
 ///
 /// There are two implementations:
 ///  - From a single type `T` which implements `Into<FunctionBinding>` which sets the binding
-/// name and the function name to the same value.
+///    name and the function name to the same value.
 ///  - From a tuple `(B: Into<PropertyKey>, N: Into<JsString>)`, where the `B` is the binding name
-/// and the `N` is the function name.
+///    and the `N` is the function name.
 #[derive(Debug, Clone)]
 pub struct FunctionBinding {
     pub(crate) binding: PropertyKey,

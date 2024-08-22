@@ -6,7 +6,7 @@
 //! 1. Add **boa_runtime** as a dependency to your project along with **boa_engine**.
 //!
 //! ```
-//! use boa_engine::{ Context, Source, property::Attribute, js_string };
+//! use boa_engine::{js_string, property::Attribute, Context, Source};
 //! use boa_runtime::Console;
 //!
 //! // Create the context.
@@ -54,7 +54,7 @@
 mod console;
 
 #[doc(inline)]
-pub use console::Console;
+pub use console::{Console, Logger};
 
 #[cfg(test)]
 pub(crate) mod test {

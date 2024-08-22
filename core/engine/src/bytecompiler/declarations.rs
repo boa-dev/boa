@@ -81,18 +81,14 @@ pub(crate) fn global_declaration_instantiation_context(
         // a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
         // a.i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
         // a.ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
-        let name = match declaration {
-            VarScopedDeclaration::Function(f) => f.name(),
-            VarScopedDeclaration::Generator(f) => f.name(),
-            VarScopedDeclaration::AsyncFunction(f) => f.name(),
-            VarScopedDeclaration::AsyncGenerator(f) => f.name(),
-            VarScopedDeclaration::VariableDeclaration(_) => {
-                continue;
-            }
-        };
-
         // a.iii. Let fn be the sole element of the BoundNames of d.
-        let name = name.expect("function declaration must have a name");
+        let name = match declaration {
+            VarScopedDeclaration::FunctionDeclaration(f) => f.name(),
+            VarScopedDeclaration::GeneratorDeclaration(f) => f.name(),
+            VarScopedDeclaration::AsyncFunctionDeclaration(f) => f.name(),
+            VarScopedDeclaration::AsyncGeneratorDeclaration(f) => f.name(),
+            VarScopedDeclaration::VariableDeclaration(_) => continue,
+        };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
         if !declared_function_names.contains(&name) {
@@ -255,18 +251,14 @@ pub(crate) fn eval_declaration_instantiation_context(
         // a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
         // a.i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
         // a.ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
-        let name = match &declaration {
-            VarScopedDeclaration::Function(f) => f.name(),
-            VarScopedDeclaration::Generator(f) => f.name(),
-            VarScopedDeclaration::AsyncFunction(f) => f.name(),
-            VarScopedDeclaration::AsyncGenerator(f) => f.name(),
-            VarScopedDeclaration::VariableDeclaration(_) => {
-                continue;
-            }
-        };
-
         // a.iii. Let fn be the sole element of the BoundNames of d.
-        let name = name.expect("function declaration must have a name");
+        let name = match &declaration {
+            VarScopedDeclaration::FunctionDeclaration(f) => f.name(),
+            VarScopedDeclaration::GeneratorDeclaration(f) => f.name(),
+            VarScopedDeclaration::AsyncFunctionDeclaration(f) => f.name(),
+            VarScopedDeclaration::AsyncGeneratorDeclaration(f) => f.name(),
+            VarScopedDeclaration::VariableDeclaration(_) => continue,
+        };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
         if !declared_function_names.contains(&name) {
@@ -448,18 +440,14 @@ impl ByteCompiler<'_> {
             // a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
             // a.i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
             // a.ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
-            let name = match declaration {
-                VarScopedDeclaration::Function(f) => f.name(),
-                VarScopedDeclaration::Generator(f) => f.name(),
-                VarScopedDeclaration::AsyncFunction(f) => f.name(),
-                VarScopedDeclaration::AsyncGenerator(f) => f.name(),
-                VarScopedDeclaration::VariableDeclaration(_) => {
-                    continue;
-                }
-            };
-
             // a.iii. Let fn be the sole element of the BoundNames of d.
-            let name = name.expect("function declaration must have a name");
+            let name = match declaration {
+                VarScopedDeclaration::FunctionDeclaration(f) => f.name(),
+                VarScopedDeclaration::GeneratorDeclaration(f) => f.name(),
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => f.name(),
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => f.name(),
+                VarScopedDeclaration::VariableDeclaration(_) => continue,
+            };
 
             // a.iv. If declaredFunctionNames does not contain fn, then
             if !declared_function_names.contains(&name) {
@@ -536,7 +524,7 @@ impl ByteCompiler<'_> {
             //         1. Perform ? env.CreateMutableBinding(dn, false).
             if let StatementListItem::Declaration(declaration) = statement {
                 match declaration {
-                    Declaration::Class(class) => {
+                    Declaration::ClassDeclaration(class) => {
                         for name in bound_names(class) {
                             let name = name.to_js_string(self.interner());
                             env.create_mutable_binding(name, false);
@@ -563,23 +551,20 @@ impl ByteCompiler<'_> {
         for function in functions_to_initialize {
             // a. Let fn be the sole element of the BoundNames of f.
             let (name, generator, r#async, parameters, body) = match &function {
-                VarScopedDeclaration::Function(f) => {
+                VarScopedDeclaration::FunctionDeclaration(f) => {
                     (f.name(), false, false, f.parameters(), f.body())
                 }
-                VarScopedDeclaration::Generator(f) => {
+                VarScopedDeclaration::GeneratorDeclaration(f) => {
                     (f.name(), true, false, f.parameters(), f.body())
                 }
-                VarScopedDeclaration::AsyncFunction(f) => {
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => {
                     (f.name(), false, true, f.parameters(), f.body())
                 }
-                VarScopedDeclaration::AsyncGenerator(f) => {
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => {
                     (f.name(), true, true, f.parameters(), f.body())
                 }
-                VarScopedDeclaration::VariableDeclaration(_) => {
-                    continue;
-                }
+                VarScopedDeclaration::VariableDeclaration(_) => continue,
             };
-            let name = name.expect("function declaration must have a name");
 
             let code = FunctionCompiler::new()
                 .name(name.sym().to_js_string(self.interner()))
@@ -587,7 +572,7 @@ impl ByteCompiler<'_> {
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
-                .binding_identifier(Some(name.sym().to_js_string(self.interner())))
+                .binding_identifier(None)
                 .compile(
                     parameters,
                     body,
@@ -684,16 +669,16 @@ impl ByteCompiler<'_> {
         // TODO: Support B.3.2.6.
         for d in declarations {
             match d {
-                LexicallyScopedDeclaration::Function(function) => {
+                LexicallyScopedDeclaration::FunctionDeclaration(function) => {
                     self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
-                LexicallyScopedDeclaration::Generator(function) => {
+                LexicallyScopedDeclaration::GeneratorDeclaration(function) => {
                     self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
-                LexicallyScopedDeclaration::AsyncFunction(function) => {
+                LexicallyScopedDeclaration::AsyncFunctionDeclaration(function) => {
                     self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
-                LexicallyScopedDeclaration::AsyncGenerator(function) => {
+                LexicallyScopedDeclaration::AsyncGeneratorDeclaration(function) => {
                     self.function_with_binding(function.into(), NodeKind::Declaration, false);
                 }
                 _ => {}
@@ -795,19 +780,14 @@ impl ByteCompiler<'_> {
             // a. If d is not either a VariableDeclaration, a ForBinding, or a BindingIdentifier, then
             // a.i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
             // a.ii. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
-            let name = match &declaration {
-                VarScopedDeclaration::Function(f) => f.name(),
-                VarScopedDeclaration::Generator(f) => f.name(),
-                VarScopedDeclaration::AsyncFunction(f) => f.name(),
-                VarScopedDeclaration::AsyncGenerator(f) => f.name(),
-                VarScopedDeclaration::VariableDeclaration(_) => {
-                    continue;
-                }
-            };
-
             // a.iii. Let fn be the sole element of the BoundNames of d.
-            let name = name.expect("function declaration must have a name");
-
+            let name = match &declaration {
+                VarScopedDeclaration::FunctionDeclaration(f) => f.name(),
+                VarScopedDeclaration::GeneratorDeclaration(f) => f.name(),
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => f.name(),
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => f.name(),
+                VarScopedDeclaration::VariableDeclaration(_) => continue,
+            };
             // a.iv. If declaredFunctionNames does not contain fn, then
             if !declared_function_names.contains(&name) {
                 // 1. If varEnv is a Global Environment Record, then
@@ -906,7 +886,7 @@ impl ByteCompiler<'_> {
             //         1. Perform ? lexEnv.CreateMutableBinding(dn, false).
             if let StatementListItem::Declaration(declaration) = statement {
                 match declaration {
-                    Declaration::Class(class) => {
+                    Declaration::ClassDeclaration(class) => {
                         for name in bound_names(class) {
                             let name = name.to_js_string(self.interner());
                             lex_env.create_mutable_binding(name, false);
@@ -933,23 +913,23 @@ impl ByteCompiler<'_> {
         for function in functions_to_initialize {
             // a. Let fn be the sole element of the BoundNames of f.
             let (name, generator, r#async, parameters, body) = match &function {
-                VarScopedDeclaration::Function(f) => {
+                VarScopedDeclaration::FunctionDeclaration(f) => {
                     (f.name(), false, false, f.parameters(), f.body())
                 }
-                VarScopedDeclaration::Generator(f) => {
+                VarScopedDeclaration::GeneratorDeclaration(f) => {
                     (f.name(), true, false, f.parameters(), f.body())
                 }
-                VarScopedDeclaration::AsyncFunction(f) => {
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => {
                     (f.name(), false, true, f.parameters(), f.body())
                 }
-                VarScopedDeclaration::AsyncGenerator(f) => {
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => {
                     (f.name(), true, true, f.parameters(), f.body())
                 }
                 VarScopedDeclaration::VariableDeclaration(_) => {
                     continue;
                 }
             };
-            let name = name.expect("function declaration must have a name");
+
             let code = FunctionCompiler::new()
                 .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
@@ -1094,18 +1074,18 @@ impl ByteCompiler<'_> {
         for declaration in var_declarations.iter().rev() {
             // a. If d is neither a VariableDeclaration nor a ForBinding nor a BindingIdentifier, then
             // a.i. Assert: d is either a FunctionDeclaration, a GeneratorDeclaration, an AsyncFunctionDeclaration, or an AsyncGeneratorDeclaration.
-            let function = match declaration {
-                VarScopedDeclaration::Function(f) => FunctionSpec::from(f),
-                VarScopedDeclaration::Generator(f) => FunctionSpec::from(f),
-                VarScopedDeclaration::AsyncFunction(f) => FunctionSpec::from(f),
-                VarScopedDeclaration::AsyncGenerator(f) => FunctionSpec::from(f),
+            // a.ii. Let fn be the sole element of the BoundNames of d.
+            let (name, function) = match declaration {
+                VarScopedDeclaration::FunctionDeclaration(f) => (f.name(), FunctionSpec::from(f)),
+                VarScopedDeclaration::GeneratorDeclaration(f) => (f.name(), FunctionSpec::from(f)),
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => {
+                    (f.name(), FunctionSpec::from(f))
+                }
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => {
+                    (f.name(), FunctionSpec::from(f))
+                }
                 VarScopedDeclaration::VariableDeclaration(_) => continue,
             };
-
-            // a.ii. Let fn be the sole element of the BoundNames of d.
-            let name = function
-                .name
-                .expect("function declaration must have a name");
 
             // a.iii. If functionNames does not contain fn, then
             if !function_names.contains(&name) {
@@ -1427,7 +1407,7 @@ impl ByteCompiler<'_> {
         for statement in &**body.statements() {
             if let StatementListItem::Declaration(declaration) = statement {
                 match declaration {
-                    Declaration::Class(class) => {
+                    Declaration::ClassDeclaration(class) => {
                         for name in bound_names(class) {
                             let name = name.to_js_string(self.interner());
                             lex_env.create_mutable_binding(name, false);

@@ -27,12 +27,16 @@ impl Operation for CreateMappedArgumentsObject {
         let code = frame.code_block().clone();
         let args = frame.arguments(&context.vm).to_vec();
 
-        let env = context.vm.environments.current_ref();
+        let env = context
+            .vm
+            .environments
+            .current_declarative_ref()
+            .expect("must be declarative");
         let arguments = MappedArguments::new(
             &function_object,
             &code.mapped_arguments_binding_indices,
             &args,
-            env.declarative_expect(),
+            env,
             context,
         );
         context.vm.push(arguments);

@@ -15,7 +15,7 @@ use super::addr_eq;
 /// You can read more about ephemerons on:
 /// - Racket's page about [**ephemerons**][eph], which gives a brief overview.
 /// - Barry Hayes' paper ["_Ephemerons_: a new finalization mechanism"][acm] which explains the topic
-/// in full detail.
+///   in full detail.
 ///
 ///
 /// [eph]: https://docs.racket-lang.org/reference/ephemerons.html

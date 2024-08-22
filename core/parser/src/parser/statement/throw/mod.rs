@@ -2,11 +2,10 @@
 mod tests;
 
 use crate::{
-    lexer::TokenKind,
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
     source::ReadChar,
 };
-use boa_ast::{statement::Throw, Keyword, Punctuator};
+use boa_ast::{statement::Throw, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -50,13 +49,10 @@ where
 
         cursor.peek_expect_no_lineterminator(0, "throw statement", interner)?;
 
-        let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
-        if let Some(tok) = cursor.peek(0, interner)? {
-            if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
-                cursor.advance(interner);
-            }
-        }
+        let expr =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        cursor.expect_semicolon("throw statement", interner)?;
 
         Ok(Throw::new(expr))
     }

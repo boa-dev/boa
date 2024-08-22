@@ -24,7 +24,7 @@ use boa_ast::{
         access::{
             PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess, SuperPropertyAccess,
         },
-        Call, Identifier, New,
+        Call, New,
     },
     Keyword, Punctuator,
 };
@@ -39,21 +39,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct MemberExpression {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl MemberExpression {
     /// Creates a new `MemberExpression` parser.
-    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -195,7 +192,7 @@ where
                         ast::Expression::PropertyAccess(field.into())
                     }
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                        let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
+                        let expr = Expression::new(true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
                         cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
                         ast::Expression::PropertyAccess(
@@ -211,7 +208,7 @@ where
                     }
                 }
             }
-            _ => PrimaryExpression::new(self.name, self.allow_yield, self.allow_await)
+            _ => PrimaryExpression::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?,
         };
 
@@ -261,7 +258,7 @@ where
                     cursor
                         .next(interner)?
                         .expect("open bracket punctuator token disappeared"); // We move the parser forward.
-                    let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
+                    let idx = Expression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression", interner)?;
                     lhs =

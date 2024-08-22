@@ -20,6 +20,12 @@ impl PushClassPrivateMethod {
         let name = context.vm.frame().code_block().constant_string(index);
         let method = context.vm.pop();
         let method_object = method.as_callable().expect("method must be callable");
+        let class_proto = context.vm.pop();
+        let class_proto_object = class_proto
+            .as_object()
+            .expect("class_proto must be function object");
+        let class = context.vm.pop();
+        let class_object = class.as_object().expect("class must be function object");
 
         let name_string = js_string!(js_str!("#"), &name);
         let desc = PropertyDescriptor::builder()
@@ -35,9 +41,10 @@ impl PushClassPrivateMethod {
                 &mut InternalMethodContext::new(context),
             )
             .expect("failed to set name property on private method");
-
-        let class = context.vm.pop();
-        let class_object = class.as_object().expect("class must be function object");
+        method_object
+            .downcast_mut::<OrdinaryFunction>()
+            .expect("method must be function object")
+            .set_home_object(class_proto_object.clone());
 
         class_object
             .downcast_mut::<OrdinaryFunction>()

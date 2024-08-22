@@ -135,3 +135,48 @@ fn object() {
         "#,
     );
 }
+
+#[test]
+fn array_literal_empty() {
+    test_formatting(
+        r"
+        [];
+        ",
+    );
+}
+
+#[test]
+fn array_literal_values() {
+    test_formatting(
+        r#"
+        [0, 1, "a", this, null, undefined, true, false];
+        "#,
+    );
+}
+
+#[test]
+fn array_literal_elision() {
+    test_formatting(
+        r"
+        [, , ,];
+        ",
+    );
+}
+
+#[test]
+fn array_literal_elision_values() {
+    test_formatting(
+        r"
+        [1, 2, , 3, 4];
+        ",
+    );
+}
+
+#[test]
+fn array_literal_elision_start_end() {
+    test_formatting(
+        r"
+        [, , 1, 2, , 3, 4, ,];
+        ",
+    );
+}

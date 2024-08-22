@@ -193,8 +193,8 @@ impl BuiltInConstructor for Date {
     ///
     /// - When called as a function, returns a string displaying the current time in the UTC timezone.
     /// - When called as a constructor, it returns a new `Date` object from the provided arguments.
-    /// The [MDN documentation][mdn] has a more extensive explanation on the usages and return
-    /// values for all possible arguments.
+    ///   The [MDN documentation][mdn] has a more extensive explanation on the usages and return
+    ///   values for all possible arguments.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date

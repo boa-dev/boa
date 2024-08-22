@@ -3,7 +3,8 @@
 
 use crate::{
     builtins::{
-        temporal::{calendar, to_integer_with_truncation},
+        options::{get_option, get_options_object},
+        temporal::to_integer_with_truncation,
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -23,25 +24,33 @@ mod tests;
 
 use temporal_rs::{
     components::{
-        calendar::{CalendarSlot, GetCalendarSlot},
+        calendar::{Calendar, GetTemporalCalendar},
         DateTime as InnerDateTime,
     },
     iso::{IsoDate, IsoDateSlots},
+    options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+};
+
+use super::{
+    calendar::to_temporal_calendar_slot_value,
+    create_temporal_duration,
+    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
+    to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
 };
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDateTime` could contain `Trace` types.
 pub struct PlainDateTime {
-    pub(crate) inner: InnerDateTime<JsObject>,
+    pub(crate) inner: InnerDateTime,
 }
 
 impl PlainDateTime {
-    fn new(inner: InnerDateTime<JsObject>) -> Self {
+    fn new(inner: InnerDateTime) -> Self {
         Self { inner }
     }
 
-    pub(crate) fn inner(&self) -> &InnerDateTime<JsObject> {
+    pub(crate) fn inner(&self) -> &InnerDateTime {
         &self.inner
     }
 }
@@ -52,14 +61,14 @@ impl IsoDateSlots for JsObject<PlainDateTime> {
     }
 }
 
-impl GetCalendarSlot<JsObject> for JsObject<PlainDateTime> {
-    fn get_calendar(&self) -> CalendarSlot<JsObject> {
+impl GetTemporalCalendar for JsObject<PlainDateTime> {
+    fn get_calendar(&self) -> Calendar {
         self.borrow().data().inner.get_calendar()
     }
 }
 
 impl BuiltInObject for PlainDateTime {
-    const NAME: JsString = StaticJsStrings::PLAIN_DATETIME;
+    const NAME: JsString = StaticJsStrings::PLAIN_DATETIME_NAME;
 }
 
 impl IntrinsicObject for PlainDateTime {
@@ -149,7 +158,7 @@ impl IntrinsicObject for PlainDateTime {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::PLAIN_DATETIME_TAG,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
@@ -267,6 +276,16 @@ impl IntrinsicObject for PlainDateTime {
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::compare, js_string!("compare"), 2)
+            .method(Self::with_plain_time, js_string!("withPlainTime"), 1)
+            .method(Self::with_calendar, js_string!("withCalendar"), 1)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::until, js_string!("until"), 1)
+            .method(Self::since, js_string!("since"), 1)
+            .method(Self::round, js_string!("round"), 1)
+            .method(Self::equals, js_string!("equals"), 1)
             .build();
     }
 
@@ -276,7 +295,7 @@ impl IntrinsicObject for PlainDateTime {
 }
 
 impl BuiltInConstructor for PlainDateTime {
-    const LENGTH: usize = 0;
+    const LENGTH: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_date_time;
@@ -290,7 +309,7 @@ impl BuiltInConstructor for PlainDateTime {
         if new_target.is_undefined() {
             // a. Throw a TypeError exception.
             return Err(JsNativeError::typ()
-                .with_message("NewTarget cannot be undefined when contructing PlainDateTime.")
+                .with_message("NewTarget cannot be undefined when contructing PlainDatedt.")
                 .into());
         };
 
@@ -325,8 +344,7 @@ impl BuiltInConstructor for PlainDateTime {
             .get(8)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 11. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
-        let calendar_slot =
-            calendar::to_temporal_calendar_slot_value(args.get_or_undefined(9), context)?;
+        let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
 
         let dt = InnerDateTime::new(
             iso_year,
@@ -349,319 +367,527 @@ impl BuiltInConstructor for PlainDateTime {
 // ==== `PlainDateTimeTime` accessor implmentations ====
 
 impl PlainDateTime {
-    /// 5.3.3 get `Temporal.PlainDateTime.prototype.calendarId`
+    /// 5.3.3 get `Temporal.PlainDatedt.prototype.calendarId`
     fn get_calendar_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
+        let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(JsString::from(date.inner.calendar().identifier(context)?).into())
+        Ok(JsString::from(dt.inner.calendar().identifier()).into())
     }
 
-    /// 5.3.4 get `Temporal.PlainDateTime.prototype.year`
+    /// 5.3.4 get `Temporal.PlainDatedt.prototype.year`
     fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_year(&date, context)?.into())
+        Ok(dt.inner.year()?.into())
     }
 
-    /// 5.3.5 get `Temporal.PlainDateTime.prototype.month`
+    /// 5.3.5 get `Temporal.PlainDatedt.prototype.month`
     fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_month(&date, context)?.into())
+        Ok(dt.inner.month()?.into())
     }
 
-    /// 5.3.6 get Temporal.PlainDateTime.prototype.monthCode
+    /// 5.3.6 get Temporal.PlainDatedt.prototype.monthCode
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(JsString::from(
-            InnerDateTime::<JsObject>::contextual_month_code(&date, context)?.as_str(),
-        )
-        .into())
+        Ok(JsString::from(dt.inner.month_code()?.as_str()).into())
     }
 
-    /// 5.3.7 get `Temporal.PlainDateTime.prototype.day`
+    /// 5.3.7 get `Temporal.PlainDatedt.prototype.day`
     fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_day(&date, context)?.into())
+        Ok(dt.inner.day()?.into())
     }
 
-    /// 5.3.8 get `Temporal.PlainDateTime.prototype.hour`
+    /// 5.3.8 get `Temporal.PlainDatedt.prototype.hour`
     fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let time = this
+        let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        // 3. Return 𝔽(dateTime.[[ISOHour]]).
-        Ok(time.inner.hour().into())
+        // 3. Return 𝔽(datedt.[[ISOHour]]).
+        Ok(dt.inner.hour().into())
     }
 
-    /// 5.3.9 get `Temporal.PlainDateTime.prototype.minute`
+    /// 5.3.9 get `Temporal.PlainDatedt.prototype.minute`
     fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let time = this
+        let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        // 3. Return 𝔽(dateTime.[[ISOMinute]]).
-        Ok(time.inner.minute().into())
+        // 3. Return 𝔽(datedt.[[ISOMinute]]).
+        Ok(dt.inner.minute().into())
     }
 
-    /// 5.3.10 get `Temporal.PlainDateTime.prototype.second`
+    /// 5.3.10 get `Temporal.PlainDatedt.prototype.second`
     fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let time = this
+        let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        // 3. Return 𝔽(dateTime.[[ISOSecond]]).
-        Ok(time.inner.second().into())
+        // 3. Return 𝔽(datedt.[[ISOSecond]]).
+        Ok(dt.inner.second().into())
     }
 
-    /// 5.3.11 get `Temporal.PlainDateTime.prototype.millisecond`
+    /// 5.3.11 get `Temporal.PlainDatedt.prototype.millisecond`
     fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let time = this
+        let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        // 3. Return 𝔽(dateTime.[[ISOMillisecond]]).
-        Ok(time.inner.millisecond().into())
+        // 3. Return 𝔽(datedt.[[ISOMillisecond]]).
+        Ok(dt.inner.millisecond().into())
     }
 
-    /// 5.3.12 get `Temporal.PlainDateTime.prototype.microsecond`
+    /// 5.3.12 get `Temporal.PlainDatedt.prototype.microsecond`
     fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let time = this
+        let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        // 3. Return 𝔽(dateTime.[[ISOMicrosecond]]).
-        Ok(time.inner.microsecond().into())
+        // 3. Return 𝔽(datedt.[[ISOMicrosecond]]).
+        Ok(dt.inner.microsecond().into())
     }
 
-    /// 5.3.13 get `Temporal.PlainDateTime.prototype.nanosecond`
+    /// 5.3.13 get `Temporal.PlainDatedt.prototype.nanosecond`
     fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
-        let time = this
+        let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        // 3. Return 𝔽(dateTime.[[ISONanosecond]]).
-        Ok(time.inner.nanosecond().into())
+        // 3. Return 𝔽(datedt.[[ISONanosecond]]).
+        Ok(dt.inner.nanosecond().into())
     }
 
-    /// 5.3.14 get `Temporal.PlainDateTime.prototype.dayOfWeek`
+    /// 5.3.14 get `Temporal.PlainDatedt.prototype.dayOfWeek`
     fn get_day_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_day_of_week(&date, context)?.into())
+        Ok(dt.inner.day_of_week()?.into())
     }
 
-    /// 5.3.15 get `Temporal.PlainDateTime.prototype.dayOfYear`
+    /// 5.3.15 get `Temporal.PlainDatedt.prototype.dayOfYear`
     fn get_day_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_day_of_year(&date, context)?.into())
+        Ok(dt.inner.day_of_year()?.into())
     }
 
-    /// 5.3.16 get `Temporal.PlainDateTime.prototype.weekOfYear`
+    /// 5.3.16 get `Temporal.PlainDatedt.prototype.weekOfYear`
     fn get_week_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_week_of_year(&date, context)?.into())
+        Ok(dt.inner.week_of_year()?.into())
     }
 
-    /// 5.3.17 get `Temporal.PlainDateTime.prototype.yearOfWeek`
+    /// 5.3.17 get `Temporal.PlainDatedt.prototype.yearOfWeek`
     fn get_year_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_year_of_week(&date, context)?.into())
+        Ok(dt.inner.year_of_week()?.into())
     }
 
-    /// 5.3.18 get `Temporal.PlainDateTime.prototype.daysInWeek`
+    /// 5.3.18 get `Temporal.PlainDatedt.prototype.daysInWeek`
     fn get_days_in_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_days_in_week(&date, context)?.into())
+        Ok(dt.inner.days_in_week()?.into())
     }
 
-    /// 5.3.19 get `Temporal.PlainDateTime.prototype.daysInMonth`
+    /// 5.3.19 get `Temporal.PlainDatedt.prototype.daysInMonth`
     fn get_days_in_month(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_days_in_month(&date, context)?.into())
+        Ok(dt.inner.days_in_month()?.into())
     }
 
-    /// 5.3.20 get `Temporal.PlainDateTime.prototype.daysInYear`
+    /// 5.3.20 get `Temporal.PlainDatedt.prototype.daysInYear`
     fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_days_in_year(&date, context)?.into())
+        Ok(dt.inner.days_in_year()?.into())
     }
 
-    /// 5.3.21 get `Temporal.PlainDateTime.prototype.monthsInYear`
+    /// 5.3.21 get `Temporal.PlainDatedt.prototype.monthsInYear`
     fn get_months_in_year(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
-        };
-
-        Ok(InnerDateTime::<JsObject>::contextual_months_in_year(&date, context)?.into())
+        Ok(dt.inner.months_in_year()?.into())
     }
 
-    /// 5.3.22 get `Temporal.PlainDateTime.prototype.inLeapYear`
+    /// 5.3.22 get `Temporal.PlainDatedt.prototype.inLeapYear`
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let obj = this
+        let dt = this
             .as_object()
-            .ok_or_else(|| JsNativeError::typ().with_message("this must be an object."))?;
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
 
-        let Ok(date) = obj.clone().downcast::<Self>() else {
-            return Err(JsNativeError::typ()
-                .with_message("the this object must be a PlainDateTime object.")
-                .into());
+        Ok(dt.inner.in_leap_year()?.into())
+    }
+}
+
+// ==== PlainDateTime method implemenations ====
+
+impl PlainDateTime {
+    /// 5.2.2 Temporal.PlainDateTime.from ( item [ , options ] )
+    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let item = args.get_or_undefined(0);
+        // 1. Set options to ? GetOptionsObject(options).
+        let options = args.get(1);
+        // 2. If item is an Object and item has an [[InitializedTemporalDateTime]] internal slot, then
+        let dt = if let Some(pdt) = item.as_object().and_then(JsObject::downcast_ref::<Self>) {
+            // a. Perform ? GetTemporalOverflowOption(options).
+            let options = get_options_object(args.get_or_undefined(1))?;
+            let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+            // b. Return ! CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]],
+            // item.[[ISODay]], item.[[ISOHour]], item.[[ISOMinute]], item.[[ISOSecond]],
+            // item.[[ISOMillisecond]], item.[[ISOMicrosecond]], item.[[ISONanosecond]],
+            // item.[[Calendar]]).
+            pdt.inner.clone()
+        } else {
+            to_temporal_datetime(item, options.cloned(), context)?
         };
 
-        Ok(InnerDateTime::<JsObject>::contextual_in_leap_year(&date, context)?.into())
+        // 3. Return ? ToTemporalDateTime(item, options).
+        create_temporal_datetime(dt, None, context).map(Into::into)
+    }
+
+    /// 5.2.3 Temporal.PlainDateTime.compare ( one, two )
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Set one to ? ToTemporalDateTime(one).
+        let one = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
+        // 2. Set two to ? ToTemporalDateTime(two).
+        let two = to_temporal_datetime(args.get_or_undefined(1), None, context)?;
+
+        // 3. Return 𝔽(CompareISODateTime(one.[[ISOYear]], one.[[ISOMonth]], one.[[ISODay]],
+        // one.[[ISOHour]], one.[[ISOMinute]], one.[[ISOSecond]], one.[[ISOMillisecond]],
+        // one.[[ISOMicrosecond]], one.[[ISONanosecond]], two.[[ISOYear]], two.[[ISOMonth]],
+        // two.[[ISODay]], two.[[ISOHour]], two.[[ISOMinute]], two.[[ISOSecond]],
+        // two.[[ISOMillisecond]], two.[[ISOMicrosecond]], two.[[ISONanosecond]])).
+        Ok((one.cmp(&two) as i8).into())
+    }
+}
+
+// ==== PlainDateTime.prototype method implementations ====
+
+impl PlainDateTime {
+    /// 5.3.26 Temporal.PlainDateTime.prototype.withPlainTime ( `[ plainTimeLike ]` )
+    fn with_plain_time(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let time = to_temporal_time(args.get_or_undefined(0), None, context)?;
+
+        create_temporal_datetime(dt.inner.with_time(time)?, None, context).map(Into::into)
+    }
+
+    /// 5.3.27 Temporal.PlainDateTime.prototype.withCalendar ( calendarLike )
+    fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
+
+        create_temporal_datetime(dt.inner.with_calendar(calendar)?, None, context).map(Into::into)
+    }
+
+    /// 5.3.28 Temporal.PlainDateTime.prototype.add ( temporalDurationLike [ , options ] )
+    fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let temporalDate be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
+        let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
+
+        // 4. Set options to ? GetOptionsObject(options).
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+
+        // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
+        // 6. Return ? AddDate(calendarRec, temporalDate, duration, options).
+        create_temporal_datetime(dt.inner.add(&duration, overflow)?, None, context).map(Into::into)
+    }
+
+    /// 5.3.29 Temporal.PlainDateTime.prototype.subtract ( temporalDurationLike [ , options ] )
+    fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let temporalDate be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        // 3. Let duration be ? ToTemporalDuration(temporalDurationLike).
+        let duration = to_temporal_duration_record(args.get_or_undefined(0), context)?;
+
+        // 4. Set options to ? GetOptionsObject(options).
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+
+        // 5. Let negatedDuration be CreateNegatedTemporalDuration(duration).
+        // 6. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
+        // 7. Return ? AddDate(calendarRec, temporalDate, negatedDuration, options).
+        create_temporal_datetime(dt.inner.subtract(&duration, overflow)?, None, context)
+            .map(Into::into)
+    }
+
+    /// 5.3.30 Temporal.PlainDateTime.prototype.until ( other [ , options ] )
+    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        create_temporal_duration(dt.inner.until(&other, settings)?, None, context).map(Into::into)
+    }
+
+    /// 5.3.31 Temporal.PlainDateTime.prototype.since ( other [ , options ] )
+    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        create_temporal_duration(dt.inner.until(&other, settings)?, None, context).map(Into::into)
+    }
+
+    // TODO(nekevss): finish after temporal_rs impl
+    /// 5.3.32 Temporal.PlainDateTime.prototype.round ( roundTo )
+    fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let round_to = match args.first() {
+            // 3. If roundTo is undefined, then
+            None | Some(JsValue::Undefined) => {
+                return Err(JsNativeError::typ()
+                    .with_message("roundTo cannot be undefined.")
+                    .into())
+            }
+            // 4. If Type(roundTo) is String, then
+            Some(JsValue::String(rt)) => {
+                // a. Let paramString be roundTo.
+                let param_string = rt.clone();
+                // b. Set roundTo to OrdinaryObjectCreate(null).
+                let new_round_to = JsObject::with_null_proto();
+                // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
+                new_round_to.create_data_property_or_throw(
+                    js_str!("smallestUnit"),
+                    param_string,
+                    context,
+                )?;
+                new_round_to
+            }
+            // 5. Else,
+            Some(round_to) => {
+                // a. Set roundTo to ? GetOptionsObject(roundTo).
+                get_options_object(round_to)?
+            }
+        };
+
+        let (plain_relative_to, zoned_relative_to) =
+            super::to_relative_temporal_object(&round_to, context)?;
+
+        let mut options = RoundingOptions::default();
+
+        options.increment =
+            get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
+
+        // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
+        options.rounding_mode =
+            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
+
+        // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", TIME, REQUIRED, undefined).
+        options.smallest_unit = get_temporal_unit(
+            &round_to,
+            js_str!("smallestUnit"),
+            TemporalUnitGroup::Time,
+            None,
+            context,
+        )?;
+
+        // TODO: implement in temporal_rs
+        Err(JsNativeError::range()
+            .with_message("not yet implemented.")
+            .into())
+    }
+
+    /// 5.3.33 Temporal.PlainDateTime.prototype.equals ( other )
+    fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let dateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        // 3. Set other to ? ToTemporalDateTime(other).
+        let other = to_temporal_datetime(args.get_or_undefined(0), None, context)?;
+
+        // 4. Let result be CompareISODateTime(dateTime.[[ISOYear]], dateTime.[[ISOMonth]],
+        // dateTime.[[ISODay]], dateTime.[[ISOHour]], dateTime.[[ISOMinute]],
+        // dateTime.[[ISOSecond]], dateTime.[[ISOMillisecond]], dateTime.[[ISOMicrosecond]],
+        // dateTime.[[ISONanosecond]], other.[[ISOYear]], other.[[ISOMonth]], other.[[ISODay]],
+        // other.[[ISOHour]], other.[[ISOMinute]], other.[[ISOSecond]], other.[[ISOMillisecond]],
+        // other.[[ISOMicrosecond]], other.[[ISONanosecond]]).
+        // 5. If result is not 0, return false.
+        // 6. Return ? CalendarEquals(dateTime.[[Calendar]], other.[[Calendar]]).
+        Ok((dt.inner == other).into())
     }
 }
 
 // ==== `PlainDateTime` Abstract Operations` ====
 
 pub(crate) fn create_temporal_datetime(
-    inner: InnerDateTime<JsObject>,
+    inner: InnerDateTime,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsObject> {
@@ -684,7 +910,7 @@ pub(crate) fn create_temporal_datetime(
             .into()
     };
 
-    // 5. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.PlainDateTime.prototype%", « [[InitializedTemporalDateTime]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[ISOHour]], [[ISOMinute]], [[ISOSecond]], [[ISOMillisecond]], [[ISOMicrosecond]], [[ISONanosecond]], [[Calendar]] »).
+    // 5. Let object be ? OrdinaryCreateFromConstructor(newTarget, "%Temporal.PlainDatedt.prototype%", « [[InitializedTemporalDateTime]], [[ISOYear]], [[ISOMonth]], [[ISODay]], [[ISOHour]], [[ISOMinute]], [[ISOSecond]], [[ISOMillisecond]], [[ISOMicrosecond]], [[ISONanosecond]], [[Calendar]] »).
     let prototype = get_prototype_from_constructor(
         &new_target,
         StandardConstructors::plain_date_time,
@@ -705,4 +931,81 @@ pub(crate) fn create_temporal_datetime(
 
     // 16. Return object.
     Ok(obj)
+}
+
+pub(crate) fn to_temporal_datetime(
+    value: &JsValue,
+    options: Option<JsValue>,
+    context: &mut Context,
+) -> JsResult<InnerDateTime> {
+    // 1. If options is not present, set options to undefined.
+    let options = get_options_object(&options.unwrap_or(JsValue::undefined()))?;
+    // 2. Let resolvedOptions be ? SnapshotOwnProperties(! GetOptionsObject(options), null).
+    // 3. If item is an Object, then
+    if let Some(object) = value.as_object() {
+        // a. If item has an [[InitializedTemporalDateTime]] internal slot, then
+        if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
+            // i. Return item.
+            return Ok(dt.inner.clone());
+        // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
+        } else if let Some(_zdt) = object.downcast_ref::<ZonedDateTime>() {
+            // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
+            let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+            // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
+            // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
+            // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
+            return Err(JsNativeError::range()
+                .with_message("Not yet implemented.")
+                .into());
+        // c. If item has an [[InitializedTemporalDate]] internal slot, then
+        } else if let Some(date) = object.downcast_ref::<PlainDate>() {
+            // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
+            let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+            // ii. Return ? CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], 0, 0, 0, 0, 0, 0, item.[[Calendar]]).
+            return Ok(InnerDateTime::new(
+                date.inner.iso_year(),
+                date.inner.iso_month().into(),
+                date.inner.iso_day().into(),
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                date.inner.calendar().clone(),
+            )?);
+        }
+        // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
+        // e. Let calendarRec be ? CreateCalendarMethodsRecord(calendar, « date-from-fields, fields »).
+        // f. Let fields be ? PrepareCalendarFields(calendarRec, item, « "day", "month",
+        // "monthCode", "year" », « "hour", "microsecond", "millisecond", "minute",
+        // "nanosecond", "second" », «»).
+        // g. Let result be ? InterpretTemporalDateTimeFields(calendarRec, fields, resolvedOptions).
+        // TODO: Implement d-g.
+        return Err(JsNativeError::range()
+            .with_message("Not yet implemented.")
+            .into());
+    }
+    // 4. Else,
+    //     a. If item is not a String, throw a TypeError exception.
+    let Some(string) = value.as_string() else {
+        return Err(JsNativeError::typ()
+            .with_message("Cannot convert unrecognized value to PlainDateTime.")
+            .into());
+    };
+    // b. Let result be ? ParseTemporalDateTimeString(item).
+    // c. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
+    // d. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]],
+    // result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
+    // e. Let calendar be result.[[Calendar]].
+    // f. If calendar is empty, set calendar to "iso8601".
+    // g. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
+    // h. Set calendar to CanonicalizeUValue("ca", calendar).
+    let date = string.to_std_string_escaped().parse::<InnerDateTime>()?;
+    // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
+    let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+    // 5. Return ? CreateTemporalDateTime(result.[[Year]], result.[[Month]], result.[[Day]],
+    // result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]],
+    // result.[[Microsecond]], result.[[Nanosecond]], calendar).
+    Ok(date)
 }

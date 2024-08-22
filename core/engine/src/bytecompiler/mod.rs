@@ -27,19 +27,25 @@ use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
         access::{PropertyAccess, PropertyAccessField},
+        literal::ObjectMethodDefinition,
         operator::{assign::AssignTarget, update::UpdateTarget},
         Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
-        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class,
-        FormalParameterList, Function, FunctionBody, Generator, PrivateName,
+        ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
+        AsyncGeneratorDeclaration, AsyncGeneratorExpression, ClassMethodDefinition,
+        FormalParameterList, FunctionBody, FunctionDeclaration, FunctionExpression,
+        GeneratorDeclaration, GeneratorExpression, PrivateName,
     },
     operations::returns_value,
     pattern::Pattern,
+    property::MethodDefinitionKind,
     Declaration, Expression, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
+use boa_macros::js_str;
+use class::ClassSpec;
 use rustc_hash::FxHashMap;
 use thin_vec::ThinVec;
 
@@ -112,11 +118,59 @@ pub(crate) struct FunctionSpec<'a> {
     pub(crate) name: Option<Identifier>,
     parameters: &'a FormalParameterList,
     body: &'a FunctionBody,
-    has_binding_identifier: bool,
+    pub(crate) has_binding_identifier: bool,
 }
 
-impl<'a> From<&'a Function> for FunctionSpec<'a> {
-    fn from(function: &'a Function) -> Self {
+impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
+    fn from(function: &'a FunctionDeclaration) -> Self {
+        FunctionSpec {
+            kind: FunctionKind::Ordinary,
+            name: Some(function.name()),
+            parameters: function.parameters(),
+            body: function.body(),
+            has_binding_identifier: true,
+        }
+    }
+}
+
+impl<'a> From<&'a GeneratorDeclaration> for FunctionSpec<'a> {
+    fn from(function: &'a GeneratorDeclaration) -> Self {
+        FunctionSpec {
+            kind: FunctionKind::Generator,
+            name: Some(function.name()),
+            parameters: function.parameters(),
+            body: function.body(),
+            has_binding_identifier: true,
+        }
+    }
+}
+
+impl<'a> From<&'a AsyncFunctionDeclaration> for FunctionSpec<'a> {
+    fn from(function: &'a AsyncFunctionDeclaration) -> Self {
+        FunctionSpec {
+            kind: FunctionKind::Async,
+            name: Some(function.name()),
+            parameters: function.parameters(),
+            body: function.body(),
+            has_binding_identifier: true,
+        }
+    }
+}
+
+impl<'a> From<&'a AsyncGeneratorDeclaration> for FunctionSpec<'a> {
+    fn from(function: &'a AsyncGeneratorDeclaration) -> Self {
+        FunctionSpec {
+            kind: FunctionKind::AsyncGenerator,
+            name: Some(function.name()),
+            parameters: function.parameters(),
+            body: function.body(),
+            has_binding_identifier: true,
+        }
+    }
+}
+
+impl<'a> From<&'a FunctionExpression> for FunctionSpec<'a> {
+    fn from(function: &'a FunctionExpression) -> Self {
         FunctionSpec {
             kind: FunctionKind::Ordinary,
             name: function.name(),
@@ -151,8 +205,8 @@ impl<'a> From<&'a AsyncArrowFunction> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a AsyncFunction> for FunctionSpec<'a> {
-    fn from(function: &'a AsyncFunction) -> Self {
+impl<'a> From<&'a AsyncFunctionExpression> for FunctionSpec<'a> {
+    fn from(function: &'a AsyncFunctionExpression) -> Self {
         FunctionSpec {
             kind: FunctionKind::Async,
             name: function.name(),
@@ -163,8 +217,8 @@ impl<'a> From<&'a AsyncFunction> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a Generator> for FunctionSpec<'a> {
-    fn from(function: &'a Generator) -> Self {
+impl<'a> From<&'a GeneratorExpression> for FunctionSpec<'a> {
+    fn from(function: &'a GeneratorExpression) -> Self {
         FunctionSpec {
             kind: FunctionKind::Generator,
             name: function.name(),
@@ -175,8 +229,8 @@ impl<'a> From<&'a Generator> for FunctionSpec<'a> {
     }
 }
 
-impl<'a> From<&'a AsyncGenerator> for FunctionSpec<'a> {
-    fn from(function: &'a AsyncGenerator) -> Self {
+impl<'a> From<&'a AsyncGeneratorExpression> for FunctionSpec<'a> {
+    fn from(function: &'a AsyncGeneratorExpression) -> Self {
         FunctionSpec {
             kind: FunctionKind::AsyncGenerator,
             name: function.name(),
@@ -185,6 +239,70 @@ impl<'a> From<&'a AsyncGenerator> for FunctionSpec<'a> {
             has_binding_identifier: function.has_binding_identifier(),
         }
     }
+}
+
+impl<'a> From<&'a ClassMethodDefinition> for FunctionSpec<'a> {
+    fn from(method: &'a ClassMethodDefinition) -> Self {
+        let kind = match method.kind() {
+            MethodDefinitionKind::Generator => FunctionKind::Generator,
+            MethodDefinitionKind::AsyncGenerator => FunctionKind::AsyncGenerator,
+            MethodDefinitionKind::Async => FunctionKind::Async,
+            _ => FunctionKind::Ordinary,
+        };
+
+        FunctionSpec {
+            kind,
+            name: None,
+            parameters: method.parameters(),
+            body: method.body(),
+            has_binding_identifier: false,
+        }
+    }
+}
+
+impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
+    fn from(method: &'a ObjectMethodDefinition) -> Self {
+        let kind = match method.kind() {
+            MethodDefinitionKind::Generator => FunctionKind::Generator,
+            MethodDefinitionKind::AsyncGenerator => FunctionKind::AsyncGenerator,
+            MethodDefinitionKind::Async => FunctionKind::Async,
+            _ => FunctionKind::Ordinary,
+        };
+
+        FunctionSpec {
+            kind,
+            name: None,
+            parameters: method.parameters(),
+            body: method.body(),
+            has_binding_identifier: false,
+        }
+    }
+}
+
+impl<'a> From<(&'a ObjectMethodDefinition, Sym)> for FunctionSpec<'a> {
+    fn from(method: (&'a ObjectMethodDefinition, Sym)) -> Self {
+        let kind = match method.0.kind() {
+            MethodDefinitionKind::Generator => FunctionKind::Generator,
+            MethodDefinitionKind::AsyncGenerator => FunctionKind::AsyncGenerator,
+            MethodDefinitionKind::Async => FunctionKind::Async,
+            _ => FunctionKind::Ordinary,
+        };
+
+        FunctionSpec {
+            kind,
+            name: Some(Identifier::new(method.1)),
+            parameters: method.0.parameters(),
+            body: method.0.body(),
+            has_binding_identifier: true,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum MethodKind {
+    Get,
+    Set,
+    Ordinary,
 }
 
 /// Represents a callable expression, like `f()` or `new Cl()`
@@ -743,7 +861,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {
-        const U32_SIZE: usize = std::mem::size_of::<u32>();
+        const U32_SIZE: usize = size_of::<u32>();
 
         let Label { index } = label;
 
@@ -1104,9 +1222,9 @@ impl<'ctx> ByteCompiler<'ctx> {
     ///
     /// # Requirements
     /// - This should only be called after verifying that the previous value of the chain
-    /// is not null or undefined (if the operator `?.` was used).
+    ///   is not null or undefined (if the operator `?.` was used).
     /// - This assumes that the state of the stack before compiling is `...rest, this, value`,
-    /// since the operation compiled by this function could be a call.
+    ///   since the operation compiled by this function could be a call.
     fn compile_optional_item_kind(&mut self, kind: &OptionalOperationKind) {
         match kind {
             OptionalOperationKind::SimplePropertyAccess { field } => {
@@ -1259,10 +1377,8 @@ impl<'ctx> ByteCompiler<'ctx> {
     pub fn compile_decl(&mut self, decl: &Declaration, block: bool) {
         match decl {
             #[cfg(feature = "annex-b")]
-            Declaration::Function(function) if block => {
-                let name = function
-                    .name()
-                    .expect("function declaration must have name");
+            Declaration::FunctionDeclaration(function) if block => {
+                let name = function.name();
                 if self.annex_b_function_names.contains(&name) {
                     let name = name.to_js_string(self.interner());
                     let binding = self
@@ -1289,7 +1405,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                 }
             }
-            Declaration::Class(class) => self.class(class, false),
+            Declaration::ClassDeclaration(class) => self.class(class.into(), false),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
             _ => {}
         }
@@ -1346,11 +1462,15 @@ impl<'ctx> ByteCompiler<'ctx> {
     /// pushing it to the stack if necessary.
     pub(crate) fn function_with_binding(
         &mut self,
-        function: FunctionSpec<'_>,
+        mut function: FunctionSpec<'_>,
         node_kind: NodeKind,
         use_expr: bool,
     ) {
         let name = function.name;
+
+        if node_kind == NodeKind::Declaration {
+            function.has_binding_identifier = false;
+        }
 
         let index = self.function(function);
         self.emit_with_varying_operand(Opcode::GetFunction, index);
@@ -1372,7 +1492,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     }
 
     /// Compile an object method AST Node into bytecode.
-    pub(crate) fn object_method(&mut self, function: FunctionSpec<'_>) {
+    pub(crate) fn object_method(&mut self, function: FunctionSpec<'_>, kind: MethodKind) {
         let (generator, r#async, arrow) = (
             function.kind.is_generator(),
             function.kind.is_async(),
@@ -1387,7 +1507,12 @@ impl<'ctx> ByteCompiler<'ctx> {
         } = function;
 
         let name = if let Some(name) = name {
-            Some(name.sym().to_js_string(self.interner()))
+            let name = name.sym().to_js_string(self.interner());
+            match kind {
+                MethodKind::Ordinary => Some(name),
+                MethodKind::Get => Some(js_string!(js_str!("get "), &name)),
+                MethodKind::Set => Some(js_string!(js_str!("set "), &name)),
+            }
         } else {
             Some(js_string!())
         };
@@ -1605,7 +1730,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.compile_declaration_pattern_impl(pattern, def);
     }
 
-    fn class(&mut self, class: &Class, expression: bool) {
+    fn class(&mut self, class: ClassSpec<'_>, expression: bool) {
         self.compile_class(class, expression);
     }
 }

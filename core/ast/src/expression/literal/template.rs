@@ -1,16 +1,12 @@
 //! Template literal Expression.
 
-use core::ops::ControlFlow;
-use std::borrow::Cow;
-
-use boa_interner::{Interner, Sym, ToInternedString};
-
 use crate::{
     expression::Expression,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ToStringEscaped,
 };
+use boa_interner::{Interner, Sym, ToInternedString};
+use core::ops::ControlFlow;
 
 /// Template literals are string literals allowing embedded expressions.
 ///
@@ -21,10 +17,30 @@ use crate::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateLiteral {
     elements: Box<[TemplateElement]>,
+}
+
+/// Manual implementation, because string and expression in the element list must always appear in order.
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for TemplateLiteral {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let len = u.arbitrary_len::<Box<[TemplateElement]>>()?;
+
+        let mut elements = Vec::with_capacity(len);
+        for i in 0..len {
+            if i & 1 == 0 {
+                elements.push(TemplateElement::String(
+                    <Sym as arbitrary::Arbitrary>::arbitrary(u)?,
+                ));
+            } else {
+                elements.push(TemplateElement::Expr(Expression::arbitrary(u)?));
+            }
+        }
+
+        Ok(Self::new(elements.into_boxed_slice()))
+    }
 }
 
 impl From<TemplateLiteral> for Expression {
@@ -70,13 +86,11 @@ impl ToInternedString for TemplateLiteral {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "`".to_owned();
 
-        for elt in &*self.elements {
+        for elt in &self.elements {
             match elt {
-                TemplateElement::String(s) => buf.push_str(&interner.resolve_expect(*s).join(
-                    Cow::Borrowed,
-                    |utf16| Cow::Owned(utf16.to_string_escaped()),
-                    true,
-                )),
+                TemplateElement::String(s) => {
+                    buf.push_str(&format!("{}", interner.resolve_expect(*s)));
+                }
                 TemplateElement::Expr(n) => {
                     buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)));
                 }

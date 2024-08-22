@@ -77,6 +77,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-json-parse-with-source
     "json-parse-with-source" => SpecEdition::ESNext,
 
+    // RegExp.escape
+    // https://github.com/tc39/proposal-regex-escaping
+    "RegExp.escape" => SpecEdition::ESNext,
+
     // Regular expression modifiers
     // https://github.com/tc39/proposal-regexp-modifiers
     "regexp-modifiers" => SpecEdition::ESNext,
@@ -89,10 +93,6 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-promise-try
     "promise-try" => SpecEdition::ESNext,
 
-    // Set methods
-    // https://github.com/tc39/proposal-set-methods
-    "set-methods" => SpecEdition::ESNext,
-
     // Explicit Resource Management
     // https://github.com/tc39/proposal-explicit-resource-management
     "explicit-resource-management" => SpecEdition::ESNext,
@@ -101,19 +101,30 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-float16array
     "Float16Array" => SpecEdition::ESNext,
 
-    // Part of the next ES15 edition
-    "Atomics.waitAsync"  => SpecEdition::ESNext,
-    "regexp-v-flag" => SpecEdition::ESNext,
-    "String.prototype.isWellFormed" => SpecEdition::ESNext,
-    "String.prototype.toWellFormed" => SpecEdition::ESNext,
-    "resizable-arraybuffer" => SpecEdition::ESNext,
-    "promise-with-resolvers" => SpecEdition::ESNext,
-    "array-grouping" => SpecEdition::ESNext,
+    // Math.sumPrecise
+    // https://github.com/tc39/proposal-math-sum
+    "Math.sumPrecise" => SpecEdition::ESNext,
+
+    // Source Phase Imports
+    // https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports" => SpecEdition::ESNext,
+    // test262 special specifier
+    "source-phase-imports-module-source" => SpecEdition::ESNext,
+
+    // Uint8Array Base64
+    // https://github.com/tc39/proposal-arraybuffer-base64
+    "uint8array-base64" => SpecEdition::ESNext,
+
+    // Atomics.pause
+    // https://github.com/tc39/proposal-atomics-microwait
+    "Atomics.pause" => SpecEdition::ESNext,
 
     // Standard language features
     "AggregateError" => SpecEdition::ES12,
+    "Atomics.waitAsync"  => SpecEdition::ES15,
     "align-detached-buffer-semantics-with-web-reality" => SpecEdition::ES12,
     "arbitrary-module-namespace-names" => SpecEdition::ES13,
+    "array-grouping" => SpecEdition::ES15,
     "ArrayBuffer" => SpecEdition::ES6,
     "array-find-from-last" => SpecEdition::ES14,
     "Array.prototype.at" => SpecEdition::ES13,
@@ -201,6 +212,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "Promise.any" => SpecEdition::ES12,
     "Promise.prototype.finally" => SpecEdition::ES9,
     "Proxy" => SpecEdition::ES6,
+    "promise-with-resolvers" => SpecEdition::ES15,
     "proxy-missing-checks" => SpecEdition::ES6,
     "Reflect" => SpecEdition::ES6,
     "Reflect.construct" => SpecEdition::ES6,
@@ -211,6 +223,8 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "regexp-match-indices" => SpecEdition::ES13,
     "regexp-named-groups" => SpecEdition::ES9,
     "regexp-unicode-property-escapes" => SpecEdition::ES9,
+    "regexp-v-flag" => SpecEdition::ES15,
+    "resizable-arraybuffer" => SpecEdition::ES15,
     "rest-parameters" => SpecEdition::ES6,
     "Set" => SpecEdition::ES6,
     "SharedArrayBuffer" => SpecEdition::ES8,
@@ -219,10 +233,13 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "String.prototype.at" => SpecEdition::ES13,
     "String.prototype.endsWith" => SpecEdition::ES6,
     "String.prototype.includes" => SpecEdition::ES6,
+    "String.prototype.isWellFormed" => SpecEdition::ES15,
     "String.prototype.matchAll" => SpecEdition::ES11,
     "String.prototype.replaceAll" => SpecEdition::ES12,
+    "String.prototype.toWellFormed" => SpecEdition::ES15,
     "String.prototype.trimEnd" => SpecEdition::ES10,
     "String.prototype.trimStart" => SpecEdition::ES10,
+    "set-methods" => SpecEdition::ES15,
     "super" => SpecEdition::ES6,
     "Symbol" => SpecEdition::ES6,
     "symbols-as-weakmap-keys" => SpecEdition::ES14,
@@ -320,6 +337,10 @@ pub enum SpecEdition {
     ///
     /// <https://262.ecma-international.org/14.0>
     ES14,
+    /// ECMAScript 15th Edition
+    ///
+    /// <https://262.ecma-international.org/15.0>
+    ES15,
     /// The edition being worked on right now.
     ///
     /// A draft is currently available [here](https://tc39.es/ecma262).
@@ -383,6 +404,7 @@ impl SpecEdition {
             Self::ES12,
             Self::ES13,
             Self::ES14,
+            Self::ES15,
             Self::ESNext,
         ]
         .into_iter()

@@ -1548,32 +1548,32 @@ impl SourceTextModule {
                 // 2. Perform ! env.InitializeBinding(dn, fo).
                 //
                 // deferred to below.
-                let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
-                    LexicallyScopedDeclaration::Function(f) => {
+                let (mut spec, locator): (FunctionSpec<'_>, _) = match declaration {
+                    LexicallyScopedDeclaration::FunctionDeclaration(f) => {
                         let name = bound_names(f)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (f.into(), locator)
                     }
-                    LexicallyScopedDeclaration::Generator(g) => {
+                    LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
                         let name = bound_names(g)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (g.into(), locator)
                     }
-                    LexicallyScopedDeclaration::AsyncFunction(af) => {
+                    LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
                         let name = bound_names(af)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (af.into(), locator)
                     }
-                    LexicallyScopedDeclaration::AsyncGenerator(ag) => {
+                    LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
                         let name = bound_names(ag)[0].to_js_string(compiler.interner());
                         let locator = env.create_mutable_binding(name, false);
 
                         (ag.into(), locator)
                     }
-                    LexicallyScopedDeclaration::Class(class) => {
+                    LexicallyScopedDeclaration::ClassDeclaration(class) => {
                         for name in bound_names(class) {
                             let name = name.to_js_string(compiler.interner());
                             env.create_mutable_binding(name, false);
@@ -1607,6 +1607,8 @@ impl SourceTextModule {
                         continue;
                     }
                 };
+
+                spec.has_binding_identifier = false;
 
                 functions.push((spec, locator));
             }
@@ -1653,7 +1655,7 @@ impl SourceTextModule {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
                     context.vm.environments.put_lexical_value(
-                        locator.environment_index(),
+                        locator.environment(),
                         locator.binding_index(),
                         namespace.into(),
                     );
@@ -1665,8 +1667,8 @@ impl SourceTextModule {
                     BindingName::Name(name) => context
                         .vm
                         .environments
-                        .current_ref()
-                        .declarative_expect()
+                        .current_declarative_ref()
+                        .expect("must be declarative")
                         .kind()
                         .as_module()
                         .expect("last environment should be the module env")
@@ -1674,7 +1676,7 @@ impl SourceTextModule {
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
                         context.vm.environments.put_lexical_value(
-                            locator.environment_index(),
+                            locator.environment(),
                             locator.binding_index(),
                             namespace.into(),
                         );
@@ -1690,7 +1692,7 @@ impl SourceTextModule {
             let function = create_function_object_fast(code, context);
 
             context.vm.environments.put_lexical_value(
-                locator.environment_index(),
+                locator.environment(),
                 locator.binding_index(),
                 function.into(),
             );
@@ -1704,8 +1706,7 @@ impl SourceTextModule {
 
         let env = frame
             .environments
-            .current_ref()
-            .as_declarative()
+            .current_declarative_ref()
             .cloned()
             .expect("frame must have a declarative environment");
 

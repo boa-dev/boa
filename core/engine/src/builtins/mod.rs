@@ -140,6 +140,8 @@ pub(crate) trait BuiltInObject: IntrinsicObject {
     /// E.g. If you want access the properties of a `Complex` built-in with the name `Cplx` you must
     /// assign `"Cplx"` to this constant, making any property inside it accessible from ECMAScript
     /// as `Cplx.prop`
+    // `JsString` can only be const-constructed for static strings.
+    #[allow(clippy::declare_interior_mutable_const)]
     const NAME: JsString;
 
     /// Property attribute flags of the built-in. Check [`Attribute`] for more information.
@@ -284,7 +286,6 @@ impl Realm {
 
         #[cfg(feature = "temporal")]
         {
-            temporal::TimeZone::init(self);
             temporal::Temporal::init(self);
             temporal::Now::init(self);
             temporal::Instant::init(self);
@@ -295,7 +296,6 @@ impl Realm {
             temporal::PlainMonthDay::init(self);
             temporal::PlainYearMonth::init(self);
             temporal::ZonedDateTime::init(self);
-            temporal::Calendar::init(self);
         }
     }
 }

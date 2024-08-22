@@ -72,15 +72,7 @@ impl Unary {
 impl ToInternedString for Unary {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
-        let space = match self.op {
-            UnaryOp::TypeOf | UnaryOp::Delete | UnaryOp::Void => " ",
-            _ => "",
-        };
-        format!(
-            "{}{space}{}",
-            self.op,
-            self.target.to_interned_string(interner)
-        )
+        format!("{} {}", self.op, self.target.to_interned_string(interner))
     }
 }
 

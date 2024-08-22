@@ -8,7 +8,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{function::Generator, Keyword, Punctuator};
+use boa_ast::{function::GeneratorDeclaration as GeneratorDeclarationNode, Keyword, Punctuator};
 use boa_interner::Interner;
 
 /// Generator declaration parsing.
@@ -76,7 +76,7 @@ impl<R> TokenParser<R> for GeneratorDeclaration
 where
     R: ReadChar,
 {
-    type Output = Generator;
+    type Output = GeneratorDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
@@ -88,6 +88,6 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(Generator::new(Some(result.0), result.1, result.2, false))
+        Ok(GeneratorDeclarationNode::new(result.0, result.1, result.2))
     }
 }

@@ -177,7 +177,7 @@ where
                     .is_some()
                 {
                     Some(
-                        Initializer::new(None, self.allow_in, self.allow_yield, self.allow_await)
+                        Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                     )
                 } else {
@@ -196,7 +196,7 @@ where
                     .is_some()
                 {
                     Some(
-                        Initializer::new(None, self.allow_in, self.allow_yield, self.allow_await)
+                        Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                     )
                 } else {
@@ -214,15 +214,11 @@ where
                     .filter(|t| *t.kind() == TokenKind::Punctuator(Punctuator::Assign))
                     .is_some()
                 {
-                    Some(
-                        Initializer::new(
-                            Some(ident),
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?,
-                    )
+                    let mut init =
+                        Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    init.set_anonymous_function_definition_name(&ident);
+                    Some(init)
                 } else {
                     None
                 };

@@ -132,7 +132,7 @@ pub(crate) fn canonicalize_locale_list(
             // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
             context
                 .intl_provider()
-                .locale_canonicalizer()
+                .locale_canonicalizer()?
                 .canonicalize(&mut tag);
 
             // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
@@ -155,8 +155,8 @@ pub(crate) fn canonicalize_locale_list(
 /// # Notes
 ///
 /// - This differs a bit from the spec, since we don't have an `[[AvailableLocales]]`
-/// list to compare with. However, we can do data requests to a [`DataProvider`]
-/// in order to see if a certain [`Locale`] is supported.
+///   list to compare with. However, we can do data requests to a [`DataProvider`]
+///   in order to see if a certain [`Locale`] is supported.
 ///
 /// - Calling this function with a singleton `KeyedDataMarker` will always return `None`.
 ///
@@ -316,7 +316,7 @@ pub(in crate::builtins::intl) fn resolve_locale<S>(
     requested_locales: impl IntoIterator<Item = Locale>,
     options: &mut IntlOptions<S::LocaleOptions>,
     provider: &IntlProvider,
-) -> Locale
+) -> JsResult<Locale>
 where
     S: Service,
     IntlProvider: DataProvider<S::LangMarker>,
@@ -327,12 +327,17 @@ where
     // 3. Else,
     //     a. Let r be LookupMatchingLocaleByBestFit(availableLocales, requestedLocales).
     // 4. If r is undefined, set r to the Record { [[locale]]: DefaultLocale(), [[extension]]: empty }.
-    let mut found_locale = if options.matcher == LocaleMatcher::Lookup {
+    let found_locale = if options.matcher == LocaleMatcher::Lookup {
         lookup_matching_locale_by_prefix::<S::LangMarker>(requested_locales, provider)
     } else {
         lookup_matching_locale_by_best_fit::<S::LangMarker>(requested_locales, provider)
-    }
-    .unwrap_or_else(|| default_locale(provider.locale_canonicalizer()));
+    };
+
+    let mut found_locale = if let Some(loc) = found_locale {
+        loc
+    } else {
+        default_locale(provider.locale_canonicalizer()?)
+    };
 
     // From here, the spec differs significantly from the implementation,
     // since ICU4X allows us to skip some steps and modularize the
@@ -388,9 +393,9 @@ where
     // 12. Return result.
     S::resolve(&mut found_locale, &mut options.service_options, provider);
     provider
-        .locale_canonicalizer()
+        .locale_canonicalizer()?
         .canonicalize(&mut found_locale);
-    found_locale
+    Ok(found_locale)
 }
 
 /// Abstract operation [`FilterLocales ( availableLocales, requestedLocales, options )`][spec]
@@ -493,7 +498,7 @@ mod tests {
 
     #[test]
     fn best_fit() {
-        let icu = &IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer()).unwrap();
+        let icu = &IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer());
 
         assert_eq!(
             lookup_matching_locale_by_best_fit::<CardinalV1Marker>([locale!("en")], icu),
@@ -513,7 +518,7 @@ mod tests {
 
     #[test]
     fn lookup_match() {
-        let icu = &IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer()).unwrap();
+        let icu = &IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer());
 
         // requested: [fr-FR-u-hc-h12]
         let requested: Locale = "fr-FR-u-hc-h12".parse().unwrap();

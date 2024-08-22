@@ -10,6 +10,7 @@ use std::{
     fmt::{self, Debug, Display},
     hash::Hash,
     ops::{Deref, DerefMut},
+    ptr,
 };
 
 /// `BorrowFlag` represent the internal state of a `GcCell` and
@@ -405,7 +406,7 @@ impl<'a, T: ?Sized, U: ?Sized> GcRefMut<'a, T, U> {
     {
         #[allow(trivial_casts)]
         // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
-        let value = unsafe { &mut *(orig.value as *mut U) };
+        let value = unsafe { &mut *ptr::from_mut::<U>(orig.value) };
 
         let ret = GcRefMut {
             gc_cell: orig.gc_cell,
@@ -434,7 +435,7 @@ impl<'a, T: ?Sized, U: ?Sized> GcRefMut<'a, T, U> {
     {
         #[allow(trivial_casts)]
         // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
-        let value = unsafe { &mut *(orig.value as *mut U) };
+        let value = unsafe { &mut *ptr::from_mut::<U>(orig.value) };
 
         let ret = GcRefMut {
             gc_cell: orig.gc_cell,

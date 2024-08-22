@@ -13,9 +13,10 @@ use crate::{
     string::JsStr,
     Context, JsNativeError, JsObject, JsResult, JsValue,
 };
+use boa_macros::js_str;
 use temporal_rs::options::{
-    ArithmeticOverflow, DurationOverflow, InstantDisambiguation, OffsetDisambiguation,
-    RoundingIncrement, TemporalRoundingMode, TemporalUnit,
+    ArithmeticOverflow, CalendarName, DifferenceSettings, DurationOverflow, InstantDisambiguation,
+    OffsetDisambiguation, RoundingIncrement, TemporalRoundingMode, TemporalUnit,
 };
 
 // TODO: Expand docs on the below options.
@@ -46,9 +47,25 @@ pub(crate) fn get_temporal_unit(
     Ok(unit)
 }
 
+#[inline]
+pub(crate) fn get_difference_settings(
+    options: &JsObject,
+    context: &mut Context,
+) -> JsResult<DifferenceSettings> {
+    let mut settings = DifferenceSettings::default();
+    settings.largest_unit = get_option::<TemporalUnit>(options, js_str!("largestUnit"), context)?;
+    settings.increment =
+        get_option::<RoundingIncrement>(options, js_str!("roundingIncrement"), context)?;
+    settings.rounding_mode =
+        get_option::<TemporalRoundingMode>(options, js_str!("roundingMode"), context)?;
+    settings.smallest_unit = get_option::<TemporalUnit>(options, js_str!("smallestUnit"), context)?;
+    Ok(settings)
+}
+
 #[derive(Debug, Clone, Copy)]
+#[allow(unused)]
 pub(crate) enum TemporalUnitGroup {
-    Date,
+    Date, // Need to assert if this is neede anymore with the removal of `Temporal.Calendar`
     Time,
     DateTime,
 }
@@ -99,6 +116,7 @@ impl ParsableOptionType for DurationOverflow {}
 impl ParsableOptionType for InstantDisambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
 impl ParsableOptionType for TemporalRoundingMode {}
+impl ParsableOptionType for CalendarName {}
 
 impl OptionType for RoundingIncrement {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {

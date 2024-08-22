@@ -87,14 +87,14 @@ impl<'a> JsStr<'a> {
     /// Return the inner [`JsStrVariant`] varient of the [`JsStr`].
     #[inline]
     #[must_use]
-    pub fn variant(self) -> JsStrVariant<'a> {
+    pub const fn variant(self) -> JsStrVariant<'a> {
         self.inner
     }
 
     /// Check if the [`JsStr`] is latin1 encoded.
     #[inline]
     #[must_use]
-    pub fn is_latin1(&self) -> bool {
+    pub const fn is_latin1(&self) -> bool {
         matches!(self.inner, JsStrVariant::Latin1(_))
     }
 
@@ -191,6 +191,21 @@ impl<'a> JsStr<'a> {
         I::get(self, index)
     }
 
+    /// Returns an element or subslice depending on the type of index, without doing bounds check.
+    ///
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    #[inline]
+    #[must_use]
+    pub unsafe fn get_unchecked<I>(self, index: I) -> I::Value
+    where
+        I: JsSliceIndex<'a>,
+    {
+        // Safety: Caller must ensure the index is not out of bounds
+        unsafe { I::get_unchecked(self, index) }
+    }
+
     /// Convert the [`JsStr`] into a [`Vec<U16>`].
     #[inline]
     #[must_use]
@@ -276,6 +291,23 @@ impl PartialEq for JsStr<'_> {
     }
 }
 
+impl PartialEq<str> for JsStr<'_> {
+    #[inline]
+    fn eq(&self, other: &str) -> bool {
+        match self.variant() {
+            JsStrVariant::Latin1(v) => v == other.as_bytes(),
+            JsStrVariant::Utf16(v) => other.encode_utf16().zip(v).all(|(a, b)| a == *b),
+        }
+    }
+}
+
+impl PartialEq<&str> for JsStr<'_> {
+    #[inline]
+    fn eq(&self, other: &&str) -> bool {
+        self == *other
+    }
+}
+
 impl<'a> PartialEq<JsStr<'a>> for [u16] {
     #[inline]
     fn eq(&self, other: &JsStr<'a>) -> bool {
@@ -295,6 +327,8 @@ pub trait JsSliceIndex<'a>: SliceIndex<[u8]> + SliceIndex<[u16]> {
     type Value;
 
     fn get(_: JsStr<'a>, index: Self) -> Option<Self::Value>;
+
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value;
 }
 
 impl<'a> JsSliceIndex<'a> for usize {
@@ -305,6 +339,20 @@ impl<'a> JsSliceIndex<'a> for usize {
         match value.variant() {
             JsStrVariant::Latin1(v) => v.get(index).copied().map(u16::from),
             JsStrVariant::Utf16(v) => v.get(index).copied(),
+        }
+    }
+
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => u16::from(*v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => *v.get_unchecked(index),
+            }
         }
     }
 }
@@ -319,6 +367,20 @@ impl<'a> JsSliceIndex<'a> for std::ops::Range<usize> {
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
         }
     }
+
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
+        }
+    }
 }
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
@@ -329,6 +391,20 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeInclusive<usize> {
         match value.variant() {
             JsStrVariant::Latin1(v) => v.get(index).map(JsStr::latin1),
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
+        }
+    }
+
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
         }
     }
 }
@@ -343,6 +419,20 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFrom<usize> {
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
         }
     }
+
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
+        }
+    }
 }
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
@@ -355,6 +445,20 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeTo<usize> {
             JsStrVariant::Utf16(v) => v.get(index).map(JsStr::utf16),
         }
     }
+
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, index: Self) -> Self::Value {
+        // Safety: Caller must ensure the index is not out of bounds
+        unsafe {
+            match value.variant() {
+                JsStrVariant::Latin1(v) => JsStr::latin1(v.get_unchecked(index)),
+                JsStrVariant::Utf16(v) => JsStr::utf16(v.get_unchecked(index)),
+            }
+        }
+    }
 }
 
 impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
@@ -363,5 +467,13 @@ impl<'a> JsSliceIndex<'a> for std::ops::RangeFull {
     #[inline]
     fn get(value: JsStr<'a>, _index: Self) -> Option<Self::Value> {
         Some(value)
+    }
+
+    /// # Safety
+    ///
+    /// Caller must ensure the index is not out of bounds
+    #[inline]
+    unsafe fn get_unchecked(value: JsStr<'a>, _index: Self) -> Self::Value {
+        value
     }
 }

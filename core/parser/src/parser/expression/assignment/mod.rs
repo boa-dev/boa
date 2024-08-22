@@ -29,10 +29,7 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::{
-        operator::assign::{Assign, AssignOp, AssignTarget},
-        Identifier,
-    },
+    expression::operator::assign::{Assign, AssignOp, AssignTarget},
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Expression, Keyword, Punctuator,
 };
@@ -61,7 +58,6 @@ pub(super) use exponentiation::ExponentiationExpression;
 /// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct AssignmentExpression {
-    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -69,20 +65,13 @@ pub(in crate::parser) struct AssignmentExpression {
 
 impl AssignmentExpression {
     /// Creates a new `AssignmentExpression` parser.
-    pub(in crate::parser) fn new<N, I, Y, A>(
-        name: N,
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
+    pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -96,7 +85,7 @@ where
 {
     type Output = Expression;
 
-    fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Expression> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Expression> {
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
@@ -123,7 +112,6 @@ where
                 {
                     if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
-                            self.name,
                             self.allow_in,
                             self.allow_yield,
                             self.allow_await,
@@ -158,11 +146,9 @@ where
                             TokenKind::Punctuator(Punctuator::Arrow)
                         )))
                 {
-                    return Ok(
-                        AsyncArrowFunction::new(self.name, self.allow_in, self.allow_yield)
-                            .parse(cursor, interner)?
-                            .into(),
-                    );
+                    return Ok(AsyncArrowFunction::new(self.allow_in, self.allow_yield)
+                        .parse(cursor, interner)?
+                        .into());
                 }
             }
             _ => {}
@@ -171,13 +157,8 @@ where
         cursor.set_goal(InputElement::Div);
 
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-        let mut lhs = ConditionalExpression::new(
-            self.name,
-            self.allow_in,
-            self.allow_yield,
-            self.allow_await,
-        )
-        .parse(cursor, interner)?;
+        let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
 
         // If the left hand side is a parameter list, we must parse an arrow function.
         if let Expression::FormalParameterList(parameters) = lhs {
@@ -237,7 +218,7 @@ where
                 interner,
             )?;
 
-            return Ok(boa_ast::function::ArrowFunction::new(self.name, parameters, body).into());
+            return Ok(boa_ast::function::ArrowFunction::new(None, parameters, body).into());
         }
 
         // Review if we are trying to assign to an invalid left hand side expression.
@@ -247,11 +228,17 @@ where
                     cursor.advance(interner);
                     cursor.set_goal(InputElement::RegExp);
 
+                    let lhs_name = if let Expression::Identifier(ident) = lhs {
+                        Some(ident)
+                    } else {
+                        None
+                    };
+
                     if let Some(target) = AssignTarget::from_expression(&lhs, cursor.strict()) {
-                        if let Expression::Identifier(ident) = lhs {
-                            self.name = Some(ident);
+                        let mut expr = self.parse(cursor, interner)?;
+                        if let Some(ident) = lhs_name {
+                            expr.set_anonymous_function_definition_name(&ident);
                         }
-                        let expr = self.parse(cursor, interner)?;
                         lhs = Assign::new(AssignOp::Assign, target, expr).into();
                     } else {
                         return Err(Error::lex(LexError::Syntax(
@@ -266,16 +253,16 @@ where
                         AssignTarget::from_expression_simple(&lhs, cursor.strict())
                     {
                         let assignop = p.as_assign_op().expect("assignop disappeared");
+
+                        let mut rhs = self.parse(cursor, interner)?;
                         if assignop == AssignOp::BoolAnd
                             || assignop == AssignOp::BoolOr
                             || assignop == AssignOp::Coalesce
                         {
                             if let AssignTarget::Identifier(ident) = target {
-                                self.name = Some(ident);
+                                rhs.set_anonymous_function_definition_name(&ident);
                             }
                         }
-
-                        let rhs = self.parse(cursor, interner)?;
                         lhs = Assign::new(assignop, target, rhs).into();
                     } else {
                         return Err(Error::lex(LexError::Syntax(

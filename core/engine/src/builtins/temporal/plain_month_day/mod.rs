@@ -1,64 +1,180 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainMonthDay` builtin object.
 #![allow(dead_code, unused_variables)]
+use std::str::FromStr;
+
 use crate::{
-    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
+    builtins::{
+        options::{get_option, get_options_object},
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+    },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::internal_methods::get_prototype_from_constructor,
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use temporal_rs::{
     components::{
-        calendar::{CalendarSlot, GetCalendarSlot},
+        calendar::{Calendar, GetTemporalCalendar},
         DateTime, MonthDay as InnerMonthDay,
     },
     iso::IsoDateSlots,
+    options::{ArithmeticOverflow, CalendarName},
 };
+
+use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerMonthDay` could contain `Trace` types.
 pub struct PlainMonthDay {
-    pub(crate) inner: InnerMonthDay<JsObject>,
+    pub(crate) inner: InnerMonthDay,
 }
 
 impl PlainMonthDay {
-    fn new(inner: InnerMonthDay<JsObject>) -> Self {
+    fn new(inner: InnerMonthDay) -> Self {
         Self { inner }
     }
 }
 
+// ==== `Temporal.PlainMonthDay` static Methods ====
+impl PlainMonthDay {
+    // 10.2.2 Temporal.PlainMonthDay.from ( item [ , options ] )
+    fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let item = args.get_or_undefined(0);
+        to_temporal_month_day(item, &options, context)
+    }
+}
+
+// === `PlainMonthDay` Accessor Implementations ===== /
+
+impl PlainMonthDay {
+    fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+        let inner = &month_day.inner;
+        match field {
+            DateTimeValues::Day => Ok(inner.iso_day().into()),
+            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code()?.to_string()).into()),
+            _ => unreachable!(),
+        }
+    }
+
+    fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::Day)
+    }
+
+    fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::Year)
+    }
+
+    fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        Self::get_internal_field(this, &DateTimeValues::MonthCode)
+    }
+
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+        let inner = &month_day.inner;
+        Ok(js_string!(inner.calendar().identifier()).into())
+    }
+}
+
+// ==== `Temporal.PlainMonthDay` Methods ====
+impl PlainMonthDay {
+    // 10.3.7 Temporal.PlainMonthDay.prototype.toString ( [ options ] )
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let monthDay be the this value.
+        // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+        let inner = &month_day.inner;
+        // 3. Set options to ? NormalizeOptionsObject(options).
+        let options = get_options_object(args.get_or_undefined(0))?;
+        // 4. Let showCalendar be ? ToShowCalendarOption(options).
+        // Get calendarName from the options object
+        let show_calendar = get_option::<CalendarName>(&options, js_str!("calendarName"), context)?
+            .unwrap_or(CalendarName::Auto);
+
+        Ok(month_day_to_string(inner, show_calendar))
+    }
+}
 impl IsoDateSlots for JsObject<PlainMonthDay> {
     fn iso_date(&self) -> temporal_rs::iso::IsoDate {
         self.borrow().data().inner.iso_date()
     }
 }
 
-impl GetCalendarSlot<JsObject> for JsObject<PlainMonthDay> {
-    fn get_calendar(&self) -> CalendarSlot<JsObject> {
+impl GetTemporalCalendar for JsObject<PlainMonthDay> {
+    fn get_calendar(&self) -> Calendar {
         self.borrow().data().inner.get_calendar()
     }
 }
 
 impl BuiltInObject for PlainMonthDay {
-    const NAME: JsString = StaticJsStrings::PLAIN_MD;
+    const NAME: JsString = StaticJsStrings::PLAIN_MD_NAME;
 }
 
 impl IntrinsicObject for PlainMonthDay {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
+        let get_day = BuiltInBuilder::callable(realm, Self::get_day)
+            .name(js_string!("get day"))
+            .build();
+
+        let get_month_code = BuiltInBuilder::callable(realm, Self::get_month_code)
+            .name(js_string!("get monthCode"))
+            .build();
+
+        let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
+            .name(js_string!("get calendarId"))
+            .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
-                Self::NAME,
+                StaticJsStrings::PLAIN_MD_TAG,
                 Attribute::CONFIGURABLE,
             )
+            .accessor(
+                js_string!("day"),
+                Some(get_day),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("monthCode"),
+                Some(get_month_code),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("calendarId"),
+                Some(get_calendar_id),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .method(Self::to_string, js_string!("toString"), 1)
+            .static_method(Self::from, js_string!("from"), 2)
             .build();
     }
 
@@ -68,7 +184,7 @@ impl IntrinsicObject for PlainMonthDay {
 }
 
 impl BuiltInConstructor for PlainMonthDay {
-    const LENGTH: usize = 0;
+    const LENGTH: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_month_day;
@@ -86,16 +202,50 @@ impl BuiltInConstructor for PlainMonthDay {
 
 // ==== `PlainMonthDay` Abstract Operations ====
 
+fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> JsValue {
+    // Let month be monthDay.[[ISOMonth]] formatted as a two-digit decimal number, padded to the left with a zero if necessary
+    let month = inner.iso_month().to_string();
+
+    // 2. Let day be ! FormatDayOfMonth(monthDay.[[ISODay]]).
+    let day = inner.iso_day().to_string();
+
+    // 3. Let result be the string-concatenation of month and the code unit 0x002D (HYPHEN-MINUS).
+    let mut result = format!("{month:0>2}-{day:0>2}");
+
+    let calendar_id = inner.calendar().identifier();
+
+    // 5. Let calendar be monthDay.[[Calendar]].
+    // 6. If showCalendar is "auto", then
+    //     a. Set showCalendar to "always".
+    // 7. If showCalendar is "always", then
+    //     a. Let calendarString be ! FormatCalendarAnnotation(calendar).
+    //     b. Set result to the string-concatenation of result, the code unit 0x0040 (COMMERCIAL AT), and calendarString.
+    if (matches!(
+        show_calendar,
+        CalendarName::Critical | CalendarName::Always | CalendarName::Auto
+    )) && !(matches!(show_calendar, CalendarName::Auto) && calendar_id == "iso8601")
+    {
+        let flag = if matches!(show_calendar, CalendarName::Critical) {
+            "!"
+        } else {
+            ""
+        };
+        result.push_str(&format!("[{flag}c={calendar_id}]",));
+    }
+    // 8. Return result.
+    js_string!(result).into()
+}
+
 pub(crate) fn create_temporal_month_day(
-    inner: InnerMonthDay<JsObject>,
+    inner: InnerMonthDay,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if DateTime::<JsObject>::validate(&inner) {
+    if !DateTime::validate(&inner) {
         return Err(JsNativeError::range()
-            .with_message("PlainMonthDay is not a valid ISO date time.")
+            .with_message("PlainMonthDay does not hold a valid ISO date time.")
             .into());
     }
 
@@ -127,4 +277,45 @@ pub(crate) fn create_temporal_month_day(
 
     // 9. Return object.
     Ok(obj.into())
+}
+
+fn to_temporal_month_day(
+    item: &JsValue,
+    options: &JsObject,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    let overflow = get_option::<ArithmeticOverflow>(options, js_str!("overflow"), context)?
+        .unwrap_or(ArithmeticOverflow::Constrain);
+
+    // get the calendar property (string) from the item object
+    let calender_id = item.get_v(js_str!("calendar"), context)?;
+    let calendar = to_temporal_calendar_slot_value(&calender_id)?;
+
+    let inner = if let Some(item_obj) = item
+        .as_object()
+        .and_then(JsObject::downcast_ref::<PlainMonthDay>)
+    {
+        item_obj.inner.clone()
+    } else if let Some(item_string) = item.as_string() {
+        InnerMonthDay::from_str(item_string.to_std_string_escaped().as_str())?
+    } else if item.is_object() {
+        InnerMonthDay::new(
+            item.get_v(js_str!("month"), context)
+                .expect("Month not found")
+                .to_i32(context)
+                .expect("Cannot convert month to i32"),
+            item.get_v(js_str!("day"), context)
+                .expect("Day not found")
+                .to_i32(context)
+                .expect("Cannot convert day to i32"),
+            calendar,
+            overflow,
+        )?
+    } else {
+        return Err(JsNativeError::typ()
+            .with_message("item must be an object or a string")
+            .into());
+    };
+
+    create_temporal_month_day(inner, None, context)
 }

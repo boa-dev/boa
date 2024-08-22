@@ -17,7 +17,10 @@ use crate::{
     },
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::{EnvironmentStack, FunctionSlots, PrivateEnvironment, ThisBindingStatus},
+    environments::{
+        BindingLocatorEnvironment, EnvironmentStack, FunctionSlots, PrivateEnvironment,
+        ThisBindingStatus,
+    },
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
@@ -137,7 +140,7 @@ impl ConstructorKind {
 #[derive(Clone, Debug, Finalize)]
 pub enum ClassFieldDefinition {
     /// A class field definition with a `string` or `symbol` as a name.
-    Public(PropertyKey, JsFunction),
+    Public(PropertyKey, JsFunction, Option<PropertyKey>),
 
     /// A class field definition with a private name.
     Private(PrivateName, JsFunction),
@@ -146,7 +149,7 @@ pub enum ClassFieldDefinition {
 unsafe impl Trace for ClassFieldDefinition {
     custom_trace! {this, mark, {
         match this {
-            Self::Public(_key, func) => {
+            Self::Public(_key, func, _) => {
                 mark(func);
             }
             Self::Private(_, func) => {
@@ -262,8 +265,14 @@ impl OrdinaryFunction {
     }
 
     /// Pushes a value to the `[[Fields]]` internal slot if present.
-    pub(crate) fn push_field(&mut self, key: PropertyKey, value: JsFunction) {
-        self.fields.push(ClassFieldDefinition::Public(key, value));
+    pub(crate) fn push_field(
+        &mut self,
+        key: PropertyKey,
+        value: JsFunction,
+        function_name: Option<PropertyKey>,
+    ) {
+        self.fields
+            .push(ClassFieldDefinition::Public(key, value, function_name));
     }
 
     /// Pushes a private value to the `[[Fields]]` internal slot if present.
@@ -1003,10 +1012,11 @@ pub(crate) fn function_call(
             .vm
             .environments
             .push_lexical(code.constant_compile_time_environment(last_env));
-        context
-            .vm
-            .environments
-            .put_lexical_value(index, 0, function_object.clone().into());
+        context.vm.environments.put_lexical_value(
+            BindingLocatorEnvironment::Stack(index),
+            0,
+            function_object.clone().into(),
+        );
         last_env += 1;
     }
 
@@ -1095,10 +1105,11 @@ fn function_construct(
             .vm
             .environments
             .push_lexical(code.constant_compile_time_environment(last_env));
-        context
-            .vm
-            .environments
-            .put_lexical_value(index, 0, this_function_object.clone().into());
+        context.vm.environments.put_lexical_value(
+            BindingLocatorEnvironment::Stack(index),
+            0,
+            this_function_object.clone().into(),
+        );
         last_env += 1;
     }
 

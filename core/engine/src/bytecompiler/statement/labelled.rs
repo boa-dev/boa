@@ -29,7 +29,7 @@ impl ByteCompiler<'_> {
                 }
                 stmt => self.compile_stmt(stmt, use_expr, true),
             },
-            LabelledItem::Function(f) => {
+            LabelledItem::FunctionDeclaration(f) => {
                 self.function_with_binding(f.into(), NodeKind::Declaration, false);
             }
         }

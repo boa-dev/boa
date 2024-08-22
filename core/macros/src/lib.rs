@@ -7,6 +7,7 @@
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 
 use proc_macro::TokenStream;
+use proc_macro2::Literal;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
@@ -185,24 +186,25 @@ pub fn utf16(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn js_str(input: TokenStream) -> TokenStream {
     let literal = parse_macro_input!(input as LitStr);
-    let utf8 = literal.value();
 
     let mut is_latin1 = true;
-    let utf16 = utf8
+    let codepoints = literal
+        .value()
         .encode_utf16()
-        .inspect(|x| {
-            if *x > u8::MAX.into() {
+        .map(|x| {
+            if x > u8::MAX.into() {
                 is_latin1 = false;
             }
+            Literal::u16_unsuffixed(x)
         })
         .collect::<Vec<_>>();
     if is_latin1 {
         quote! {
-            ::boa_engine::string::JsStr::latin1(#utf8.as_bytes())
+            ::boa_engine::string::JsStr::latin1([#(#codepoints),*].as_slice())
         }
     } else {
         quote! {
-            ::boa_engine::string::JsStr::utf16([#(#utf16),*].as_slice())
+            ::boa_engine::string::JsStr::utf16([#(#codepoints),*].as_slice())
         }
     }
     .into()

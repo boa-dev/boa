@@ -53,7 +53,9 @@ thread_local!(static BOA_GC: RefCell<BoaGc> = RefCell::new( BoaGc {
 
 #[derive(Debug, Clone, Copy)]
 struct GcConfig {
+    /// The threshold at which the garbage collector will trigger a collection.
     threshold: usize,
+    /// The percentage of used space at which the garbage collector will trigger a collection.
     used_space_percentage: usize,
 }
 
@@ -63,7 +65,8 @@ struct GcConfig {
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            threshold: 1024,
+            // Start at 1MB, the nursary size for V8 is ~1-8MB and SM can be up to 16MB
+            threshold: 1_048_576,
             used_space_percentage: 70,
         }
     }
@@ -128,7 +131,7 @@ impl Allocator {
     /// Allocate a new garbage collected value to the Garbage Collector's heap.
     fn alloc_gc<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
         let _timer = Profiler::global().start_event("New GcBox", "BoaAlloc");
-        let element_size = mem::size_of_val::<GcBox<T>>(&value);
+        let element_size = size_of_val::<GcBox<T>>(&value);
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
 
@@ -148,7 +151,7 @@ impl Allocator {
         value: EphemeronBox<K, V>,
     ) -> NonNull<EphemeronBox<K, V>> {
         let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");
-        let element_size = mem::size_of_val::<EphemeronBox<K, V>>(&value);
+        let element_size = size_of_val::<EphemeronBox<K, V>>(&value);
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
 
@@ -191,6 +194,8 @@ impl Allocator {
         if gc.runtime.bytes_allocated > gc.config.threshold {
             Collector::collect(gc);
 
+            // Post collection check
+            // If the allocated bytes are still above the threshold, increase the threshold.
             if gc.runtime.bytes_allocated
                 > gc.config.threshold / 100 * gc.config.used_space_percentage
             {
@@ -473,9 +478,9 @@ impl Collector {
     /// # Safety
     ///
     /// - Providing an invalid pointer in the `heap_start` or in any of the headers of each
-    /// node will result in Undefined Behaviour.
+    ///   node will result in Undefined Behaviour.
     /// - Providing a list of pointers that weren't allocated by `Box::into_raw(Box::new(..))`
-    /// will result in Undefined Behaviour.
+    ///   will result in Undefined Behaviour.
     unsafe fn sweep(
         strong: &mut Vec<GcErasedPointer>,
         weak: &mut Vec<EphemeronPointer>,
@@ -521,7 +526,7 @@ impl Collector {
                 // SAFETY: The algorithm ensures only unmarked/unreachable pointers are dropped.
                 // The caller must ensure all pointers were allocated by `Box::into_raw(Box::new(..))`.
                 let unmarked_eph = unsafe { Box::from_raw(eph.as_ptr()) };
-                let unallocated_bytes = mem::size_of_val(&*unmarked_eph);
+                let unallocated_bytes = size_of_val(&*unmarked_eph);
                 *total_allocated -= unallocated_bytes;
 
                 false

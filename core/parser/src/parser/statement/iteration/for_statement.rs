@@ -144,14 +144,14 @@ where
                 }
 
                 Some(
-                    Expression::new(None, false, self.allow_yield, self.allow_await)
+                    Expression::new(false, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                         .into(),
                 )
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
-                Expression::new(None, false, self.allow_yield, self.allow_await)
+                Expression::new(false, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
                     .into(),
             ),
@@ -203,10 +203,10 @@ where
 
                 cursor.advance(interner);
                 let expr = if in_loop {
-                    Expression::new(None, true, self.allow_yield, self.allow_await)
+                    Expression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                 } else {
-                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                 };
 
@@ -281,7 +281,7 @@ where
         let cond = if cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {
             None
         } else {
-            let step = Expression::new(None, true, self.allow_yield, self.allow_await)
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
             Some(step)
@@ -290,7 +290,7 @@ where
         let step = if cursor.next_if(Punctuator::CloseParen, interner)?.is_some() {
             None
         } else {
-            let step = Expression::new(None, true, self.allow_yield, self.allow_await)
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),

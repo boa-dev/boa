@@ -9,7 +9,7 @@ use boa_ast::{
     declaration::{Declaration, LexicalDeclaration, VarDeclaration, Variable},
     expression::{
         access::SimplePropertyAccess,
-        literal::{Literal, ObjectLiteral},
+        literal::{Literal, ObjectLiteral, PropertyDefinition},
         operator::{
             assign::AssignOp,
             binary::{ArithmeticOp, BinaryOp, LogicalOp, RelationalOp},
@@ -19,10 +19,9 @@ use boa_ast::{
         Call, Identifier, New, Parenthesized,
     },
     function::{
-        ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags, Function,
-        FunctionBody,
+        ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags,
+        FunctionBody, FunctionDeclaration,
     },
-    property::PropertyDefinition,
     statement::{If, Return},
     Expression, Script, Statement, StatementList, StatementListItem,
 };
@@ -123,8 +122,8 @@ fn hoisting() {
                 UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
-            Declaration::Function(Function::new(
-                Some(hello.into()),
+            Declaration::FunctionDeclaration(FunctionDeclaration::new(
+                hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
                     vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()]

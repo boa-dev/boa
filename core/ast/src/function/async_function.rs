@@ -1,36 +1,129 @@
 //! Async Function Expression.
 
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use super::{FormalParameterList, FunctionBody};
 use crate::{
+    block_to_string,
     expression::{Expression, Identifier},
-    join_nodes, Declaration,
+    join_nodes, try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Declaration,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
-use super::{FormalParameterList, FunctionBody};
-
-/// An async function definition, as defined by the [spec].
+/// An async function declaration.
 ///
-/// An [async function][mdn] is a function where await expressions are allowed within it.
-/// The async and await keywords enable asynchronous programming on Javascript without the use
-/// of promise chains.
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-async-function-definitions
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct AsyncFunction {
-    name: Option<Identifier>,
+pub struct AsyncFunctionDeclaration {
+    name: Identifier,
+    parameters: FormalParameterList,
+    body: FunctionBody,
+}
+
+impl AsyncFunctionDeclaration {
+    /// Creates a new async function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+    ) -> Self {
+        Self {
+            name,
+            parameters,
+            body,
+        }
+    }
+
+    /// Gets the name of the async function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn name(&self) -> Identifier {
+        self.name
+    }
+
+    /// Gets the list of parameters of the async function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn parameters(&self) -> &FormalParameterList {
+        &self.parameters
+    }
+
+    /// Gets the body of the async function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn body(&self) -> &FunctionBody {
+        &self.body
+    }
+}
+
+impl ToIndentedString for AsyncFunctionDeclaration {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            "async function {}({}) {}",
+            interner.resolve_expect(self.name.sym()),
+            join_nodes(interner, self.parameters.as_ref()),
+            block_to_string(self.body.statements(), interner, indentation)
+        )
+    }
+}
+
+impl VisitWith for AsyncFunctionDeclaration {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_identifier(&self.name));
+        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_script(&self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_identifier_mut(&mut self.name));
+        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_script_mut(&mut self.body)
+    }
+}
+
+impl From<AsyncFunctionDeclaration> for Declaration {
+    #[inline]
+    fn from(f: AsyncFunctionDeclaration) -> Self {
+        Self::AsyncFunctionDeclaration(f)
+    }
+}
+
+/// An async function expression.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct AsyncFunctionExpression {
+    pub(crate) name: Option<Identifier>,
     parameters: FormalParameterList,
     body: FunctionBody,
     has_binding_identifier: bool,
 }
 
-impl AsyncFunction {
-    /// Creates a new function expression
+impl AsyncFunctionExpression {
+    /// Creates a new async function expression.
     #[inline]
     #[must_use]
     pub const fn new(
@@ -47,28 +140,28 @@ impl AsyncFunction {
         }
     }
 
-    /// Gets the name of the function declaration.
+    /// Gets the name of the async function expression.
     #[inline]
     #[must_use]
     pub const fn name(&self) -> Option<Identifier> {
         self.name
     }
 
-    /// Gets the list of parameters of the function declaration.
+    /// Gets the list of parameters of the async function expression.
     #[inline]
     #[must_use]
     pub const fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
-    /// Gets the body of the function declaration.
+    /// Gets the body of the async function expression.
     #[inline]
     #[must_use]
     pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
 
-    /// Returns whether the function expression has a binding identifier.
+    /// Returns whether the async function expression has a binding identifier.
     #[inline]
     #[must_use]
     pub const fn has_binding_identifier(&self) -> bool {
@@ -76,11 +169,13 @@ impl AsyncFunction {
     }
 }
 
-impl ToIndentedString for AsyncFunction {
+impl ToIndentedString for AsyncFunctionExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function".to_owned();
-        if let Some(name) = self.name {
-            buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+        if self.has_binding_identifier {
+            if let Some(name) = self.name {
+                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+            }
         }
         buf.push_str(&format!(
             "({}",
@@ -99,21 +194,14 @@ impl ToIndentedString for AsyncFunction {
     }
 }
 
-impl From<AsyncFunction> for Expression {
+impl From<AsyncFunctionExpression> for Expression {
     #[inline]
-    fn from(expr: AsyncFunction) -> Self {
-        Self::AsyncFunction(expr)
+    fn from(expr: AsyncFunctionExpression) -> Self {
+        Self::AsyncFunctionExpression(expr)
     }
 }
 
-impl From<AsyncFunction> for Declaration {
-    #[inline]
-    fn from(f: AsyncFunction) -> Self {
-        Self::AsyncFunction(f)
-    }
-}
-
-impl VisitWith for AsyncFunction {
+impl VisitWith for AsyncFunctionExpression {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,

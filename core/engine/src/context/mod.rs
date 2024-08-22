@@ -220,11 +220,7 @@ impl Context {
     /// let mut context = Context::default();
     ///
     /// context
-    ///     .register_global_property(
-    ///         js_str!("myPrimitiveProperty"),
-    ///         10,
-    ///         Attribute::all(),
-    ///     )
+    ///     .register_global_property(js_str!("myPrimitiveProperty"), 10, Attribute::all())
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
@@ -232,11 +228,7 @@ impl Context {
     ///     .property(js_str!("y"), 1, Attribute::all())
     ///     .build();
     /// context
-    ///     .register_global_property(
-    ///         js_str!("myObjectProperty"),
-    ///         object,
-    ///         Attribute::all(),
-    ///     )
+    ///     .register_global_property(js_str!("myObjectProperty"), object, Attribute::all())
     ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(
@@ -966,7 +958,7 @@ impl ContextBuilder {
         mut self,
         provider: T,
     ) -> Result<Self, IcuError> {
-        self.icu = Some(icu::IntlProvider::try_new_with_buffer_provider(provider)?);
+        self.icu = Some(icu::IntlProvider::try_new_with_buffer_provider(provider));
         Ok(self)
     }
 
@@ -1000,7 +992,7 @@ impl ContextBuilder {
         mut self,
         provider: T,
     ) -> Result<Self, IcuError> {
-        self.icu = Some(icu::IntlProvider::try_new_with_any_provider(provider)?);
+        self.icu = Some(icu::IntlProvider::try_new_with_any_provider(provider));
         Ok(self)
     }
 
@@ -1101,7 +1093,6 @@ impl ContextBuilder {
                 cfg_if::cfg_if! {
                     if #[cfg(feature = "intl_bundled")] {
                         icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
-                            .expect("Failed to initialize default icu data.")
                     } else {
                         return Err(JsNativeError::typ()
                             .with_message("missing Intl provider for context")

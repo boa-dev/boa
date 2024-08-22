@@ -193,14 +193,8 @@ impl JsObject {
                 let erased = ptr.as_ref();
 
                 // Some sanity checks to ensure we're doing the correct cast.
-                assert_eq!(
-                    std::mem::size_of_val(erased),
-                    std::mem::size_of::<GcBox<VTableObject<T>>>()
-                );
-                assert_eq!(
-                    std::mem::align_of_val(erased),
-                    std::mem::align_of::<GcBox<VTableObject<T>>>()
-                );
+                assert_eq!(size_of_val(erased), size_of::<GcBox<VTableObject<T>>>());
+                assert_eq!(align_of_val(erased), align_of::<GcBox<VTableObject<T>>>());
             }
 
             let ptr: NonNull<GcBox<VTableObject<T>>> = ptr.cast();

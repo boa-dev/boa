@@ -1,19 +1,16 @@
 //! Variable related declarations.
 
-use core::ops::ControlFlow;
-use std::convert::TryFrom;
-
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use super::Declaration;
 use crate::{
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
     Statement,
 };
 use boa_interner::{Interner, ToInternedString};
-
-use super::Declaration;
+use core::{convert::TryFrom, ops::ControlFlow};
 
 /// A [`var`][var] statement, also called [`VariableStatement`][varstmt] in the spec.
 ///

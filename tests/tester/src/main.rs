@@ -6,7 +6,9 @@
 #![allow(
     clippy::too_many_lines,
     clippy::redundant_pub_crate,
-    clippy::cast_precision_loss
+    clippy::cast_precision_loss,
+    clippy::print_stderr,
+    clippy::print_stdout
 )]
 
 mod exec;
@@ -386,6 +388,7 @@ struct VersionedStats {
     es12: Statistics,
     es13: Statistics,
     es14: Statistics,
+    es15: Statistics,
 }
 
 impl<'de> Deserialize<'de> for VersionedStats {
@@ -406,6 +409,8 @@ impl<'de> Deserialize<'de> for VersionedStats {
             es13: Statistics,
             #[serde(default)]
             es14: Option<Statistics>,
+            #[serde(default)]
+            es15: Option<Statistics>,
         }
 
         let inner = Inner::deserialize(deserializer)?;
@@ -421,8 +426,10 @@ impl<'de> Deserialize<'de> for VersionedStats {
             es12,
             es13,
             es14,
+            es15,
         } = inner;
         let es14 = es14.unwrap_or(es13);
+        let es15 = es15.unwrap_or(es14);
 
         Ok(Self {
             es5,
@@ -435,6 +442,7 @@ impl<'de> Deserialize<'de> for VersionedStats {
             es12,
             es13,
             es14,
+            es15,
         })
     }
 }
@@ -464,6 +472,7 @@ impl VersionedStats {
             SpecEdition::ES12 => self.es12,
             SpecEdition::ES13 => self.es13,
             SpecEdition::ES14 => self.es14,
+            SpecEdition::ES15 => self.es15,
             SpecEdition::ESNext => return None,
         };
         Some(stats)
@@ -483,6 +492,7 @@ impl VersionedStats {
             SpecEdition::ES12 => &mut self.es12,
             SpecEdition::ES13 => &mut self.es13,
             SpecEdition::ES14 => &mut self.es14,
+            SpecEdition::ES15 => &mut self.es15,
             SpecEdition::ESNext => return None,
         };
         Some(stats)
@@ -504,6 +514,7 @@ impl Add for VersionedStats {
             es12: self.es12 + rhs.es12,
             es13: self.es13 + rhs.es13,
             es14: self.es14 + rhs.es14,
+            es15: self.es15 + rhs.es15,
         }
     }
 }
@@ -520,6 +531,7 @@ impl AddAssign for VersionedStats {
         self.es12 += rhs.es12;
         self.es13 += rhs.es13;
         self.es14 += rhs.es14;
+        self.es15 += rhs.es15;
     }
 }
 

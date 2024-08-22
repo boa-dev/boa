@@ -13,7 +13,7 @@ mod template;
 
 pub use array::ArrayLiteral;
 use core::ops::ControlFlow;
-pub use object::ObjectLiteral;
+pub use object::{ObjectLiteral, ObjectMethodDefinition, PropertyDefinition};
 pub use template::{TemplateElement, TemplateLiteral};
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
@@ -33,7 +33,6 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Literal {
     /// A string literal is zero or more characters enclosed in double (`"`) or single (`'`) quotation marks.
@@ -118,6 +117,25 @@ pub enum Literal {
     Undefined,
 }
 
+/// Manual implementation, because `Undefined` is never constructed during parsing.
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for Literal {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let c = <u8 as arbitrary::Arbitrary<'a>>::arbitrary(u)? % 6;
+        match c {
+            0 => Ok(Self::String(<Sym as arbitrary::Arbitrary>::arbitrary(u)?)),
+            1 => Ok(Self::Num(<f64 as arbitrary::Arbitrary>::arbitrary(u)?)),
+            2 => Ok(Self::Int(<i32 as arbitrary::Arbitrary>::arbitrary(u)?)),
+            3 => Ok(Self::BigInt(Box::new(
+                <BigInt as arbitrary::Arbitrary>::arbitrary(u)?,
+            ))),
+            4 => Ok(Self::Bool(<bool as arbitrary::Arbitrary>::arbitrary(u)?)),
+            5 => Ok(Self::Null),
+            _ => unreachable!(),
+        }
+    }
+}
+
 impl From<Sym> for Literal {
     #[inline]
     fn from(string: Sym) -> Self {
@@ -176,7 +194,7 @@ impl ToInternedString for Literal {
             }
             Self::Num(num) => num.to_string(),
             Self::Int(num) => num.to_string(),
-            Self::BigInt(ref num) => num.to_string(),
+            Self::BigInt(ref num) => format!("{num}n"),
             Self::Bool(v) => v.to_string(),
             Self::Null => "null".to_owned(),
             Self::Undefined => "undefined".to_owned(),
