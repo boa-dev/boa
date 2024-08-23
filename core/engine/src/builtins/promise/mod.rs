@@ -1559,7 +1559,7 @@ impl Promise {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. If IsPromise(x) is true, then
-        if let Some(x) = x.as_promise() {
+        if let Some(x) = x.as_promise_object() {
             // a. Let xConstructor be ? Get(x, "constructor").
             let x_constructor = x.get(CONSTRUCTOR, context)?;
             // b. If SameValue(xConstructor, C) is true, return x.
@@ -1808,7 +1808,7 @@ impl Promise {
         let promise = this;
 
         // 2. If IsPromise(promise) is false, throw a TypeError exception.
-        let promise = promise.as_promise().ok_or_else(|| {
+        let promise = promise.as_promise_object().ok_or_else(|| {
             JsNativeError::typ().with_message("Promise.prototype.then: this is not a promise")
         })?;
 
