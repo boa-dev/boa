@@ -1301,7 +1301,7 @@ impl Promise {
         remaining_elements_count.set(remaining_elements_count.get() - 1);
         //         ii. If remainingElementsCount.[[Value]] = 0, then
         if remaining_elements_count.get() == 0 {
-            //             1. Let error be a newly created AggregateError object.
+            // 1. Let error be a newly created AggregateError object.
             let error = JsNativeError::aggregate(
                 errors
                     .borrow()
@@ -1312,8 +1312,8 @@ impl Promise {
             )
             .with_message("no promise in Promise.any was fulfilled.");
 
-            //             2. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
-            //             3. Return ThrowCompletion(error).
+            // 2. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
+            // 3. Return ThrowCompletion(error).
             return Err(error.into());
         }
 
