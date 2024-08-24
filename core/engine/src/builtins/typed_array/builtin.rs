@@ -16,7 +16,6 @@ use crate::{
             utils::{memcpy, memmove, SliceRefMut},
             ArrayBuffer, BufferObject,
         },
-        iterable::iterable_to_list,
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -228,7 +227,9 @@ impl BuiltinTypedArray {
         // 6. If usingIterator is not undefined, then
         if let Some(using_iterator) = using_iterator {
             // a. Let values be ? IterableToList(source, usingIterator).
-            let values = iterable_to_list(context, source, Some(using_iterator))?;
+            let values = source
+                .get_iterator_from_method(&using_iterator, context)?
+                .into_list(context)?;
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).

@@ -22,6 +22,8 @@ use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 use boa_profiler::Profiler;
 
+use super::iterable::IteratorHint;
+
 type NativeWeakSet = boa_gc::WeakMap<ErasedVTableObject, ()>;
 
 #[derive(Debug, Trace, Finalize)]
@@ -104,23 +106,20 @@ impl BuiltInConstructor for WeakSet {
             .as_callable()
             .ok_or_else(|| JsNativeError::typ().with_message("WeakSet: 'add' is not a function"))?;
 
-        // 7. Let iteratorRecord be ? GetIterator(iterable).
-        let mut iterator_record = iterable.clone().get_iterator(context, None, None)?;
+        // 7. Let iteratorRecord be ? GetIterator(iterable, sync).
+        let mut iterator_record = iterable.clone().get_iterator(IteratorHint::Sync, context)?;
 
         // 8. Repeat,
-        // a. Let next be ? IteratorStep(iteratorRecord).
-        while !iterator_record.step(context)? {
-            // c. Let nextValue be ? IteratorValue(next).
-            let next = iterator_record.value(context)?;
-
-            // d. Let status be Completion(Call(adder, set, « nextValue »)).
-            // e. IfAbruptCloseIterator(status, iteratorRecord).
+        //     a. Let next be ? IteratorStepValue(iteratorRecord).
+        while let Some(next) = iterator_record.step_value(context)? {
+            //     c. Let status be Completion(Call(adder, set, « next »)).
             if let Err(status) = adder.call(&weak_set.clone().into(), &[next], context) {
+                //     d. IfAbruptCloseIterator(status, iteratorRecord).
                 return iterator_record.close(Err(status), context);
             }
         }
 
-        // b. If next is false, return set.
+        //     b. If next is done, return set.
         Ok(weak_set.into())
     }
 }
