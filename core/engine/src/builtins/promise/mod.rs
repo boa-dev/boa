@@ -1078,11 +1078,11 @@ impl Promise {
 
         //     ii. If remainingElementsCount.[[Value]] = 0, then
         if remaining_elements_count.get() == 0 {
-            //         1. Let valuesArray be CreateArrayFromList(values).
+            // 1. Let valuesArray be CreateArrayFromList(values).
             let values_array =
                 Array::create_array_from_list(values.borrow().as_slice().iter().cloned(), context);
 
-            //         2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
+            // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
             result_capability.functions.resolve.call(
                 &JsValue::undefined(),
                 &[values_array.into()],
