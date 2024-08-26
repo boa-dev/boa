@@ -23,8 +23,8 @@ use thiserror::Error;
 /// # Native Errors
 ///
 /// The only native error that is not buildable using this macro is
-/// [`crate::JsNativeErrorKind::AggregateError`], which requires multiple
-/// error objects available at construction.
+/// `AggregateError`, which requires multiple error objects available at
+/// construction.
 ///
 /// [`InternalError`][mdn] is non-standard and unsupported in Boa.
 ///
