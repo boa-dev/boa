@@ -13,10 +13,27 @@ use boa_macros::js_str;
 use std::{error, fmt};
 use thiserror::Error;
 
-/// Create an opaque error object from a value or string literal.
+/// Create an error object from a value or string literal. Optionally the
+/// first argument of the macro can be a type of error (such as `TypeError`,
+/// `RangeError` or `InternalError`).
 ///
 /// Can be used with an expression that converts into `JsValue` or a format
 /// string with arguments.
+///
+/// # Native Errors
+///
+/// The only native error that is not buildable using this macro is
+/// [`crate::JsNativeErrorKind::AggregateError`], which requires multiple
+/// error objects available at construction.
+///
+/// [`InternalError`][mdn] is non-standard and unsupported in Boa.
+///
+/// All other native error types can be created from the macro using their
+/// JavaScript name followed by a colon, like:
+///
+/// ```ignore
+/// js_error!(TypeError: "hello world");
+/// ```
 ///
 /// # Examples
 ///
@@ -36,8 +53,89 @@ use thiserror::Error;
 /// let error = js_error!({ true });
 /// assert_eq!(error.as_opaque().unwrap(), &JsValue::from(true));
 /// ```
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/InternalError
 #[macro_export]
 macro_rules! js_error {
+    (Error: $value: literal) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::error().with_message($value)
+        )
+    };
+    (Error: $value: literal $(, $args: expr)* $(,)?) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::error()
+                .with_message(format!($value $(, $args)*))
+        )
+    };
+
+    (TypeError: $value: literal) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::typ().with_message($value)
+        )
+    };
+    (TypeError: $value: literal $(, $args: expr)* $(,)?) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::typ()
+                .with_message(format!($value $(, $args)*))
+        )
+    };
+
+    (SyntaxError: $value: literal) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::syntax().with_message($value)
+        )
+    };
+    (SyntaxError: $value: literal $(, $args: expr)* $(,)?) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::syntax().with_message(format!($value $(, $args)*))
+        )
+    };
+
+    (RangeError: $value: literal) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::range().with_message($value)
+        )
+    };
+    (RangeError: $value: literal $(, $args: expr)* $(,)?) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::range().with_message(format!($value $(, $args)*))
+        )
+    };
+
+    (EvalError: $value: literal) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::eval().with_message($value)
+        )
+    };
+    (EvalError: $value: literal $(, $args: expr)* $(,)?) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::eval().with_message(format!($value $(, $args)*))
+        )
+    };
+
+    (ReferenceError: $value: literal) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::reference().with_message($value)
+        )
+    };
+    (ReferenceError: $value: literal $(, $args: expr)* $(,)?) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::reference().with_message(format!($value $(, $args)*))
+        )
+    };
+
+    (URIError: $value: literal) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::uri().with_message($value)
+        )
+    };
+    (URIError: $value: literal $(, $args: expr)* $(,)?) => {
+        $crate::JsError::from_native(
+            $crate::JsNativeError::uri().with_message(format!($value $(, $args)*))
+        )
+    };
+
     ($value: literal) => {
         $crate::JsError::from_opaque($crate::JsValue::from(
             $crate::js_string!($value)
@@ -48,7 +146,7 @@ macro_rules! js_error {
             $crate::JsValue::from($value)
         )
     };
-    ($value: literal $(, $args: tt)* $(,)?) => {
+    ($value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_opaque($crate::JsValue::from(
             $crate::JsString::from(format!($value $(, $args)*))
         ))
