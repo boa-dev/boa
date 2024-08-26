@@ -392,6 +392,10 @@ impl<T: NativeObject> JsClass<T> {
 
 impl<T: NativeObject + Clone> JsClass<T> {
     /// Clones the inner class instance.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the inner object is currently borrowed mutably.
     #[must_use]
     pub fn clone_inner(&self) -> T {
         self.inner.borrow().data().clone()
