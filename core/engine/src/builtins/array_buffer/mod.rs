@@ -312,7 +312,7 @@ impl IntrinsicObject for ArrayBuffer {
             .name(js_string!("get detached"))
             .build();
 
-        let builder = BuiltInBuilder::from_standard_constructor::<Self, 9, 2>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -374,6 +374,8 @@ impl BuiltInObject for ArrayBuffer {
 }
 
 impl BuiltInConstructor for ArrayBuffer {
+    const P: usize = 9;
+    const SP: usize = 2;
     const LENGTH: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =

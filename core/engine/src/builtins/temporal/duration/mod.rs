@@ -103,7 +103,7 @@ impl IntrinsicObject for Duration {
             .name(js_string!("get blank"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 22, 1>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::DURATION_TAG,
@@ -201,6 +201,8 @@ impl IntrinsicObject for Duration {
 
 impl BuiltInConstructor for Duration {
     const LENGTH: usize = 0;
+    const P: usize = 22;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::duration;

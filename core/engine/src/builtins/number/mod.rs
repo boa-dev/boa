@@ -53,7 +53,7 @@ impl IntrinsicObject for Number {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        BuiltInBuilder::from_standard_constructor::<Self, 6, 14>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_property(js_string!("EPSILON"), f64::EPSILON, attribute)
             .static_property(
                 js_string!("MAX_SAFE_INTEGER"),
@@ -108,6 +108,8 @@ impl BuiltInObject for Number {
 
 impl BuiltInConstructor for Number {
     const LENGTH: usize = 1;
+    const P: usize = 6;
+    const SP: usize = 14;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::number;

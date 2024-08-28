@@ -136,7 +136,7 @@ impl IntrinsicObject for Error {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self, 2, 0>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(js_string!("name"), Self::NAME, attribute)
             .property(js_string!("message"), js_string!(), attribute)
             .method(Self::to_string, js_string!("toString"), 0)
@@ -154,6 +154,8 @@ impl BuiltInObject for Error {
 
 impl BuiltInConstructor for Error {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::error;

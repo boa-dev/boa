@@ -35,7 +35,7 @@ impl IntrinsicObject for EvalError {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self, 2, 0>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
             .property(js_str!("name"), Self::NAME, attribute)
@@ -54,6 +54,8 @@ impl BuiltInObject for EvalError {
 
 impl BuiltInConstructor for EvalError {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::eval_error;

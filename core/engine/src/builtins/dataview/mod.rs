@@ -109,7 +109,7 @@ impl IntrinsicObject for DataView {
             .name(js_string!("get byteOffset"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 24, 0>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .accessor(
                 js_string!("buffer"),
                 Some(get_buffer),
@@ -167,6 +167,8 @@ impl BuiltInObject for DataView {
 
 impl BuiltInConstructor for DataView {
     const LENGTH: usize = 1;
+    const P: usize = 24;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::data_view;

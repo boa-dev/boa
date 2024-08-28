@@ -33,7 +33,7 @@ impl IntrinsicObject for WeakRef {
 
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-        BuiltInBuilder::from_standard_constructor::<Self, 2, 0>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("WeakRef"),
@@ -53,6 +53,8 @@ impl BuiltInObject for WeakRef {
 impl BuiltInConstructor for WeakRef {
     /// The amount of arguments the `WeakRef` constructor takes.
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_ref;

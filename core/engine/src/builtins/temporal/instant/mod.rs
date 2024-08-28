@@ -63,7 +63,7 @@ impl IntrinsicObject for Instant {
             .name(js_string!("get epochNanoseconds"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 13, 4>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::INSTANT_TAG,
@@ -127,6 +127,8 @@ impl IntrinsicObject for Instant {
 
 impl BuiltInConstructor for Instant {
     const LENGTH: usize = 1;
+    const P: usize = 13;
+    const SP: usize = 4;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::instant;

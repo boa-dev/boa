@@ -74,7 +74,7 @@ impl IntrinsicObject for Locale {
             .name(js_string!("get region"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 14, 0>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 js_string!("Intl.Locale"),
@@ -157,6 +157,8 @@ impl BuiltInObject for Locale {
 
 impl BuiltInConstructor for Locale {
     const LENGTH: usize = 1;
+    const P: usize = 14;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::locale;
