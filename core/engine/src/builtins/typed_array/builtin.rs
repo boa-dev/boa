@@ -65,7 +65,7 @@ impl IntrinsicObject for BuiltinTypedArray {
             .length(0)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 37, 3>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -165,6 +165,8 @@ impl BuiltInObject for BuiltinTypedArray {
 
 impl BuiltInConstructor for BuiltinTypedArray {
     const LENGTH: usize = 0;
+    const P: usize = 37;
+    const SP: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::typed_array;

@@ -26,7 +26,7 @@ impl IntrinsicObject for ZonedDateTime {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        BuiltInBuilder::from_standard_constructor::<Self, 1, 0>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::ZONED_DT_TAG,
@@ -42,6 +42,8 @@ impl IntrinsicObject for ZonedDateTime {
 
 impl BuiltInConstructor for ZonedDateTime {
     const LENGTH: usize = 2;
+    const P: usize = 1;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::zoned_date_time;

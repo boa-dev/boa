@@ -343,7 +343,7 @@ impl IntrinsicObject for Promise {
             .name(js_string!("get [Symbol.species]"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 4, 9>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::all, js_string!("all"), 1)
             .static_method(Self::all_settled, js_string!("allSettled"), 1)
             .static_method(Self::any, js_string!("any"), 1)
@@ -381,6 +381,8 @@ impl BuiltInObject for Promise {
 
 impl BuiltInConstructor for Promise {
     const LENGTH: usize = 1;
+    const P: usize = 4;
+    const SP: usize = 9;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::promise;

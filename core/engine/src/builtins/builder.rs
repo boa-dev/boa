@@ -532,13 +532,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
 
 impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
     /// Create a new builder for a constructor function setting the properties ahead of time for optimizations (less reallocations)
-    /// Const Generic `P` is the minimum storage capacity for the prototype's Property table.
-    /// Const Generic `SP` is the minimum storage capacity for the object's Static Property table.
-    pub(crate) fn from_standard_constructor<
-        SC: BuiltInConstructor,
-        const P: usize,
-        const SP: usize,
-    >(
+    pub(crate) fn from_standard_constructor<SC: BuiltInConstructor>(
         realm: &'ctx Realm,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
         let constructor = SC::STANDARD_CONSTRUCTOR(realm.intrinsics().constructors());
@@ -547,11 +541,11 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
             function: SC::constructor,
             name: js_string!(SC::NAME),
             length: SC::LENGTH,
-            object_property_table: PropertyTableInner::with_capacity(SP + OWN_PROPS),
-            object_storage: Vec::with_capacity(SP + OWN_PROPS),
+            object_property_table: PropertyTableInner::with_capacity(SC::SP + OWN_PROPS),
+            object_storage: Vec::with_capacity(SC::SP + OWN_PROPS),
             object: constructor.constructor(),
-            prototype_property_table: PropertyTableInner::with_capacity(P),
-            prototype_storage: Vec::with_capacity(P),
+            prototype_property_table: PropertyTableInner::with_capacity(SC::P),
+            prototype_storage: Vec::with_capacity(SC::P),
             prototype: constructor.prototype(),
             __proto__: Some(realm.intrinsics().constructors().function().prototype()),
             inherits: Some(realm.intrinsics().constructors().object().prototype()),

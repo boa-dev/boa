@@ -158,6 +158,10 @@ pub(crate) trait BuiltInObject: IntrinsicObject {
 ///
 /// [built-in object]: https://tc39.es/ecma262/#sec-built-in-object
 pub(crate) trait BuiltInConstructor: BuiltInObject {
+    /// Const Generic `P` is the minimum storage capacity for the prototype's Property table.
+    const P: usize;
+    /// Const Generic `SP` is the minimum storage capacity for the object's Static Property table.
+    const SP: usize;
     /// The amount of arguments this function object takes.
     const LENGTH: usize;
 

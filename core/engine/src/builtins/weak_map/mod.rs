@@ -37,7 +37,7 @@ impl IntrinsicObject for WeakMap {
 
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-        BuiltInBuilder::from_standard_constructor::<Self, 5, 0>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -60,6 +60,8 @@ impl BuiltInObject for WeakMap {
 impl BuiltInConstructor for WeakMap {
     /// The amount of arguments the `WeakMap` constructor takes.
     const LENGTH: usize = 0;
+    const P: usize = 5;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_map;

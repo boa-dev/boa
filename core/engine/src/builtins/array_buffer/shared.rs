@@ -109,7 +109,7 @@ impl IntrinsicObject for SharedArrayBuffer {
             .name(js_string!("get maxByteLength"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 6, 1>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -155,6 +155,8 @@ impl BuiltInObject for SharedArrayBuffer {
 
 impl BuiltInConstructor for SharedArrayBuffer {
     const LENGTH: usize = 1;
+    const P: usize = 6;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::shared_array_buffer;

@@ -141,7 +141,7 @@ impl IntrinsicObject for NumberFormat {
             .name(js_string!("get format"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 3, 1>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(
                 Self::supported_locales_of,
                 js_string!("supportedLocalesOf"),
@@ -173,6 +173,8 @@ impl BuiltInObject for NumberFormat {
 
 impl BuiltInConstructor for NumberFormat {
     const LENGTH: usize = 0;
+    const P: usize = 3;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::number_format;

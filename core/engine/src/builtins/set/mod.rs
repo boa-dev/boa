@@ -60,7 +60,7 @@ impl IntrinsicObject for Set {
             .name(js_string!("values"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 11, 1>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
                 Some(get_species),
@@ -109,6 +109,8 @@ impl BuiltInObject for Set {
 
 impl BuiltInConstructor for Set {
     const LENGTH: usize = 0;
+    const P: usize = 11;
+    const SP: usize = 1;
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::set;
 

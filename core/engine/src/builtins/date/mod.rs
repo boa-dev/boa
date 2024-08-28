@@ -72,7 +72,7 @@ impl IntrinsicObject for Date {
             .length(1)
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 47, 3>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::now, js_string!("now"), 0)
             .static_method(Self::parse, js_string!("parse"), 1)
             .static_method(Self::utc, js_string!("UTC"), 7)
@@ -185,6 +185,8 @@ impl BuiltInObject for Date {
 
 impl BuiltInConstructor for Date {
     const LENGTH: usize = 7;
+    const P: usize = 47;
+    const SP: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::date;

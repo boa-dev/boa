@@ -149,7 +149,7 @@ impl IntrinsicObject for PlainMonthDay {
             .name(js_string!("get calendarId"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 5, 1>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
                 StaticJsStrings::PLAIN_MD_TAG,
@@ -185,6 +185,8 @@ impl IntrinsicObject for PlainMonthDay {
 
 impl BuiltInConstructor for PlainMonthDay {
     const LENGTH: usize = 2;
+    const P: usize = 5;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_month_day;

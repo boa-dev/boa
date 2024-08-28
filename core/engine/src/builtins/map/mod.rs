@@ -57,7 +57,7 @@ impl IntrinsicObject for Map {
             .name(js_string!("entries"))
             .build();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 11, 2>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::group_by, js_string!("groupBy"), 2)
             .static_accessor(
                 JsSymbol::species(),
@@ -108,6 +108,8 @@ impl BuiltInObject for Map {
 
 impl BuiltInConstructor for Map {
     const LENGTH: usize = 0;
+    const P: usize = 11;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::map;

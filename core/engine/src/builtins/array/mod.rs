@@ -105,7 +105,7 @@ impl IntrinsicObject for Array {
 
         let unscopables_object = Self::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::<Self, 41, 5>(realm)
+        BuiltInBuilder::from_standard_constructor::<Self>(realm)
             // Static Methods
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::is_array, js_string!("isArray"), 1)
@@ -190,6 +190,9 @@ impl BuiltInObject for Array {
 }
 
 impl BuiltInConstructor for Array {
+    const P: usize = 41;
+    const SP: usize = 5;
+
     const LENGTH: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
