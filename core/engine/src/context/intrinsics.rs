@@ -4,7 +4,9 @@ use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
 use crate::{
-    builtins::{iterable::IteratorPrototypes, uri::UriFunctions, Array, OrdinaryObject},
+    builtins::{
+        iterable::IteratorPrototypes, uri::UriFunctions, Array, IntrinsicObject, OrdinaryObject,
+    },
     js_string,
     object::{
         internal_methods::immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
@@ -12,6 +14,7 @@ use crate::{
         JsFunction, JsObject, Object, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
+    realm::Realm,
     JsSymbol,
 };
 
@@ -92,6 +95,14 @@ impl StandardConstructor {
         Self {
             constructor,
             prototype,
+        }
+    }
+
+    /// Similar to `with_prototype`, but the prototype is lazily initialized.
+    fn with_lazy(init: fn(&Realm) -> ()) -> Self {
+        Self {
+            constructor: JsFunction::lazy_intrinsic_function(true, init),
+            prototype: JsObject::default(),
         }
     }
 
@@ -219,7 +230,7 @@ impl Default for StandardConstructors {
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, Array)),
+            array: StandardConstructor::with_lazy(Array::init),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
