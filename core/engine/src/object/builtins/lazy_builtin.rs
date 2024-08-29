@@ -27,21 +27,22 @@ pub(crate) enum BuiltinKind {
 /// A builtin function. Used for lazy initialization of builtins.
 
 #[derive(Debug, Clone, Finalize)]
-pub(crate) struct Builtin {
-    pub init: fn(&Realm),
-    pub is_initialized: Cell<bool>,
-    pub kind: BuiltinKind,
+pub struct BuiltIn {
+    pub(crate) init: fn(&Realm),
+    pub(crate) is_initialized: Cell<bool>,
+    pub(crate) kind: BuiltinKind,
+    pub(crate) realm: Option<Realm>,
 }
 
 // SAFETY: Temporary, TODO move back to derived Trace when possible
-unsafe impl Trace for Builtin {
+unsafe impl Trace for BuiltIn {
     custom_trace!(this, mark, {
         mark(&this.kind);
     });
 }
 
 // Implement the trait for JsData by overriding all internal_methods by calling init before calling into the underlying internel_method
-impl JsData for Builtin {
+impl JsData for BuiltIn {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
         &LAZY_INTERNAL_METHODS
     }
@@ -69,8 +70,10 @@ pub(crate) fn lazy_get_prototype_of(
     context: &mut Context,
 ) -> JsResult<JsPrototype> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -84,8 +87,10 @@ pub(crate) fn lazy_set_prototype_of(
 ) -> JsResult<bool> {
     // Check if initialized, and set if not
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
     ordinary_set_prototype_of(obj, prototype, context)
@@ -93,8 +98,10 @@ pub(crate) fn lazy_set_prototype_of(
 
 pub(crate) fn lazy_is_extensible(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -103,8 +110,10 @@ pub(crate) fn lazy_is_extensible(obj: &JsObject, context: &mut Context) -> JsRes
 
 pub(crate) fn lazy_prevent_extensions(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -117,8 +126,10 @@ pub(crate) fn lazy_get_own_property(
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -132,8 +143,10 @@ pub(crate) fn lazy_define_own_property(
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -146,8 +159,10 @@ pub(crate) fn lazy_has_property(
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -161,8 +176,10 @@ pub(crate) fn lazy_try_get(
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -176,8 +193,10 @@ pub(crate) fn lazy_get(
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<JsValue> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -192,8 +211,10 @@ pub(crate) fn lazy_set(
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -206,8 +227,10 @@ pub(crate) fn lazy_delete(
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -219,8 +242,10 @@ pub(crate) fn lazy_own_property_keys(
     context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    if builtin.is_initialized.get() {
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        dbg!("initializing!");
         (builtin.init)(realm);
     }
 
@@ -233,8 +258,11 @@ pub(crate) fn lazy_call(
     context: &mut Context,
 ) -> JsResult<CallValue> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    (builtin.init)(realm);
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        (builtin.init)(realm);
+    }
 
     if let BuiltinKind::Constructor(constructor) = &builtin.kind {
         return Ok(constructor.__call__(argument_count));
@@ -249,9 +277,11 @@ pub(crate) fn lazy_construct(
     context: &mut Context,
 ) -> JsResult<CallValue> {
     let realm = context.realm();
-    let builtin = obj.downcast_ref::<Builtin>().expect("obj is not a Builtin");
-    (builtin.init)(realm);
-
+    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
+    if !builtin.is_initialized.get() {
+        builtin.is_initialized.set(true);
+        (builtin.init)(realm);
+    }
     if let BuiltinKind::Constructor(constructor) = &builtin.kind {
         return Ok(constructor.__construct__(argument_count));
     }

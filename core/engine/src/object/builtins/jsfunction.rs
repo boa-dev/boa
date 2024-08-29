@@ -9,7 +9,7 @@ use std::cell::Cell;
 use std::marker::PhantomData;
 use std::ops::Deref;
 
-use super::lazy_builtin::{Builtin, BuiltinKind};
+use super::lazy_builtin::{BuiltIn, BuiltinKind};
 
 /// A trait for converting a tuple of Rust values into a vector of `JsValue`,
 /// to be used as arguments for a JavaScript function.
@@ -145,10 +145,11 @@ impl JsFunction {
         Self {
             inner: JsObject::from_proto_and_data(
                 None,
-                Builtin {
+                BuiltIn {
                     init,
                     is_initialized: Cell::new(false),
                     kind: BuiltinKind::Constructor(Self::empty_intrinsic_function(constructor)),
+                    realm: None,
                 },
             ),
         }

@@ -5,7 +5,7 @@ use crate::{
     native_function::{NativeFunctionObject, NativeFunctionPointer},
     object::{
         shape::{property_table::PropertyTableInner, slot::SlotAttributes},
-        FunctionBinding, JsFunction, JsPrototype, CONSTRUCTOR, PROTOTYPE,
+        BuiltIn, FunctionBinding, JsFunction, JsPrototype, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -391,12 +391,10 @@ impl BuiltInConstructorWithPrototype<'_> {
         }
 
         let mut object = self.object.borrow_mut();
-        let function = object
-            .downcast_mut::<NativeFunctionObject>()
+        let built_in = object
+            .downcast_mut::<BuiltIn>()
             .expect("Builtin must be a function object");
-        function.f = NativeFunction::from_fn_ptr(self.function);
-        function.constructor = Some(ConstructorKind::Base);
-        function.realm = Some(self.realm.clone());
+        built_in.realm = Some(self.realm.clone());
         object
             .properties_mut()
             .shape

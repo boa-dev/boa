@@ -34,3 +34,4 @@ pub use jsset::*;
 pub use jsset_iterator::*;
 pub use jssharedarraybuffer::*;
 pub use jstypedarray::*;
+pub use lazy_builtin::*;
