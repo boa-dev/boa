@@ -392,19 +392,31 @@ fn native_function_construct(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
+    native_function_construct_inner(
+        &obj.downcast_ref::<NativeFunctionObject>()
+            .expect("the object should be a native function object")
+            .clone(),
+        obj.clone(),
+        argument_count,
+        context,
+    )
+}
+
+pub(crate) fn native_function_construct_inner(
+    native_function: &NativeFunctionObject,
+    this_function_object: JsObject,
+    argument_count: usize,
+    context: &mut Context,
+) -> JsResult<CallValue> {
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
-    let this_function_object = obj.clone();
 
     let NativeFunctionObject {
         f: function,
         constructor,
         realm,
-    } = obj
-        .downcast_ref::<NativeFunctionObject>()
-        .expect("the object should be a native function object")
-        .clone();
+    } = native_function.clone();
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 

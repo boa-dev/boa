@@ -5,7 +5,7 @@
 use super::{
     internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
-    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
+    JsPrototype, LazyBuiltIn, LazyPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
     builtins::{
@@ -90,6 +90,11 @@ impl JsObject {
         Self {
             inner: coerce_gc(gc),
         }
+    }
+    /// Creates a new lazy `JsObject` from its inner object and its vtable.
+    /// This is used for built-in objects that are lazily initialized.
+    pub(crate) fn lazy_prototype(constructor: JsObject<LazyBuiltIn>) -> Self {
+        Self::from_proto_and_data(None, LazyPrototype { constructor })
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.

@@ -17,6 +17,8 @@ mod jsset;
 mod jsset_iterator;
 mod jssharedarraybuffer;
 mod jstypedarray;
+mod lazy_builtin;
+mod lazy_prototype;
 
 pub use jsarray::*;
 pub use jsarraybuffer::*;
@@ -33,3 +35,5 @@ pub use jsset::*;
 pub use jsset_iterator::*;
 pub use jssharedarraybuffer::*;
 pub use jstypedarray::*;
+pub use lazy_builtin::*;
+pub use lazy_prototype::*;

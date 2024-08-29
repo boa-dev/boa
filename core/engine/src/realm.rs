@@ -20,7 +20,7 @@ use crate::{
     environments::DeclarativeEnvironment,
     module::Module,
     object::shape::RootShape,
-    HostDefined, JsNativeError, JsObject, JsResult, JsString,
+    HostDefined, JsObject, JsResult, JsString,
 };
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 use boa_profiler::Profiler;
@@ -30,7 +30,9 @@ use boa_profiler::Profiler;
 /// In the specification these are called Realm Records.
 #[derive(Clone, Trace, Finalize)]
 pub struct Realm {
-    inner: Gc<Inner>,
+    /// The inner data of the realm, which includes the intrinsics, environment,
+    /// global object, and other realm-specific information.
+    pub inner: Gc<RealmInner>,
 }
 
 impl Eq for Realm {}
@@ -53,7 +55,12 @@ impl std::fmt::Debug for Realm {
 }
 
 #[derive(Trace, Finalize)]
-struct Inner {
+
+/// The inner data of a Realm.
+///
+/// This struct contains all the realm-specific information, including the intrinsics,
+/// environment, global object, and other necessary data for the execution context.
+pub struct RealmInner {
     intrinsics: Intrinsics,
 
     /// The global declarative environment of this realm.
@@ -70,29 +77,43 @@ struct Inner {
     template_map: GcRefCell<FxHashMap<u64, JsObject>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_classes: GcRefCell<FxHashMap<TypeId, StandardConstructor>>,
-
     host_defined: GcRefCell<HostDefined>,
 }
 
+#[allow(clippy::missing_fields_in_debug)]
+impl std::fmt::Debug for RealmInner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RealmInner")
+            .field("intrinsics", &self.intrinsics)
+            .field("environment", &self.environment)
+            .field("global_object", &self.global_object)
+            .field("global_this", &self.global_this)
+            .field("template_map", &self.template_map)
+            .field("loaded_modules", &self.loaded_modules)
+            .field("host_classes", &self.host_classes)
+            .finish()
+    }
+}
 impl Realm {
     /// Create a new [`Realm`].
     #[inline]
     pub fn create(hooks: &dyn HostHooks, root_shape: &RootShape) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
 
-        let intrinsics = Intrinsics::uninit(root_shape).ok_or_else(|| {
-            JsNativeError::typ().with_message("failed to create the realm intrinsics")
-        })?;
+        // Use Gc::new_cyclic to create the Realm with a cyclic reference
+        let inner = Gc::new_cyclic(|weak_realm| {
+            // Initialize intrinsics with a reference to the weak_realm
+            let intrinsics = Intrinsics::uninit(root_shape, weak_realm)
+                .expect("failed to create the realm intrinsics");
 
-        let global_object = hooks.create_global_object(&intrinsics);
-        let global_this = hooks
-            .create_global_this(&intrinsics)
-            .unwrap_or_else(|| global_object.clone());
-        let environment = Gc::new(DeclarativeEnvironment::global());
-        let scope = Scope::new_global();
+            let global_object = hooks.create_global_object(&intrinsics);
+            let global_this = hooks
+                .create_global_this(&intrinsics)
+                .unwrap_or_else(|| global_object.clone());
+            let environment = Gc::new(DeclarativeEnvironment::global());
+            let scope = Scope::new_global();
 
-        let realm = Self {
-            inner: Gc::new(Inner {
+            RealmInner {
                 intrinsics,
                 environment,
                 scope,
@@ -102,8 +123,10 @@ impl Realm {
                 loaded_modules: GcRefCell::default(),
                 host_classes: GcRefCell::default(),
                 host_defined: GcRefCell::default(),
-            }),
-        };
+            }
+        });
+
+        let realm = Self { inner };
 
         realm.initialize();
 

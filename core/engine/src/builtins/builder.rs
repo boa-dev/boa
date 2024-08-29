@@ -3,7 +3,7 @@ use crate::{
     native_function::{NativeFunctionObject, NativeFunctionPointer},
     object::{
         shape::{property_table::PropertyTableInner, slot::SlotAttributes},
-        FunctionBinding, JsFunction, JsPrototype, CONSTRUCTOR, PROTOTYPE,
+        FunctionBinding, JsFunction, JsPrototype, LazyBuiltIn, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -392,12 +392,25 @@ impl BuiltInConstructorWithPrototype<'_> {
         }
 
         let mut object = self.object.borrow_mut();
-        let function = object
-            .downcast_mut::<NativeFunctionObject>()
-            .expect("Builtin must be a function object");
-        function.f = NativeFunction::from_fn_ptr(self.function);
-        function.constructor = Some(ConstructorKind::Base);
-        function.realm = Some(self.realm.clone());
+        if object.is::<NativeFunctionObject>() {
+            let function = object
+                .downcast_mut::<NativeFunctionObject>()
+                .expect("Builtin must be a function object");
+            function.f = NativeFunction::from_fn_ptr(self.function);
+            function.constructor = Some(ConstructorKind::Base);
+            function.realm = Some(self.realm.clone());
+        } else if object.is::<LazyBuiltIn>() {
+            let lazy = object
+                .downcast_mut::<LazyBuiltIn>()
+                .expect("Builtin must be a lazy object");
+            lazy.set_constructor(
+                NativeFunction::from_fn_ptr(self.function),
+                self.realm.clone(),
+            );
+        } else {
+            unreachable!("The object must be a function or a lazy object");
+        }
+
         object
             .properties_mut()
             .shape
