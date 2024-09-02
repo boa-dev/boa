@@ -175,6 +175,9 @@ pub enum Expression {
     /// It is not a valid expression node.
     #[doc(hidden)]
     FormalParameterList(FormalParameterList),
+
+    #[doc(hidden)]
+    Debugger,
 }
 
 impl Expression {
@@ -220,6 +223,7 @@ impl Expression {
             Self::Parenthesized(expr) => expr.to_interned_string(interner),
             Self::RegExpLiteral(regexp) => regexp.to_interned_string(interner),
             Self::FormalParameterList(_) => unreachable!(),
+            Self::Debugger => "debugger".to_owned(),
         }
     }
 
@@ -326,7 +330,7 @@ impl VisitWith for Expression {
             Self::Yield(y) => visitor.visit_yield(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list(fpl),
-            Self::This | Self::NewTarget | Self::ImportMeta => {
+            Self::This | Self::NewTarget | Self::ImportMeta | Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }
@@ -369,7 +373,7 @@ impl VisitWith for Expression {
             Self::Yield(y) => visitor.visit_yield_mut(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized_mut(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list_mut(fpl),
-            Self::This | Self::NewTarget | Self::ImportMeta => {
+            Self::This | Self::NewTarget | Self::ImportMeta | Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }
