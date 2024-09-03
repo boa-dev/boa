@@ -21,7 +21,14 @@ use boa_profiler::Profiler;
 #[doc(inline)]
 pub use conversions::convert::Convert;
 
-use crate::object::{JsFunction, JsPromise};
+pub(crate) use self::conversions::IntoOrUndefined;
+#[doc(inline)]
+pub use self::{
+    conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
+    operations::*, r#type::Type,
+};
+use crate::builtins::RegExp;
+use crate::object::{JsFunction, JsPromise, JsRegExp};
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -33,13 +40,6 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
     Context, JsBigInt, JsResult, JsString,
-};
-
-pub(crate) use self::conversions::IntoOrUndefined;
-#[doc(inline)]
-pub use self::{
-    conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
-    operations::*, r#type::Type,
 };
 
 mod conversions;
@@ -219,6 +219,23 @@ impl JsValue {
         self.as_promise_object()
             .cloned()
             .and_then(|o| JsPromise::from_object(o).ok())
+    }
+
+    /// Returns true if the value is a regular expression object.
+    #[inline]
+    #[must_use]
+    pub fn is_regexp(&self) -> bool {
+        matches!(self, Self::Object(obj) if obj.is::<RegExp>())
+    }
+
+    /// Returns the value as a regular expression if the value is a regexp, otherwise `None`.
+    #[inline]
+    #[must_use]
+    pub fn as_regexp(&self) -> Option<JsRegExp> {
+        self.as_object()
+            .filter(|obj| obj.is::<RegExp>())
+            .cloned()
+            .and_then(|o| JsRegExp::from_object(o).ok())
     }
 
     /// Returns true if the value is a symbol.
