@@ -52,7 +52,7 @@ clap = "4.5.16"
 colored = "2.1.0"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.5", default-features = false }
-indexmap = { version = "2.4.0", default-features = false }
+indexmap = { version = "2.5.0", default-features = false }
 indoc = "2.0.5"
 jemallocator = "0.5.4"
 num-bigint = "0.4.6"
@@ -90,7 +90,7 @@ isahc = "1.7.2"
 rustyline = { version = "14.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.37"
-syn = { version = "2.0.76", default-features = false }
+syn = { version = "2.0.77", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "11.0.1"
@@ -105,7 +105,7 @@ dashmap = "5.5.3"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
 portable-atomic = "1.7.0"
-bytemuck = { version = "1.17.0", default-features = false }
+bytemuck = { version = "1.17.1", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.6"
 cfg-if = "1.0.0"
