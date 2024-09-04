@@ -6,6 +6,10 @@
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 
+// Clippy will warn about a dev-dependencies not being used, but we need to keep it for the tests.
+#[cfg(test)]
+use boa_engine as _;
+
 use proc_macro::TokenStream;
 use proc_macro2::Literal;
 use quote::{quote, ToTokens};
@@ -451,7 +455,7 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
                     let value = meta.value()?;
                     field_name = value.parse::<LitStr>()?.value();
                     Ok(())
-                }else{
+                } else {
                     Err(meta.error(
                         "invalid syntax in the `#[boa()]` attribute. \
                               Note that this attribute only accepts the following syntax: \
