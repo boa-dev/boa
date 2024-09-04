@@ -17,9 +17,6 @@ syn = { workspace = true, features = ["full"] }
 proc-macro2.workspace = true
 synstructure.workspace = true
 
-[dev-dependencies]
-boa_engine.workspace = true
-
 [lints]
 workspace = true
 
