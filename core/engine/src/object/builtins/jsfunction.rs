@@ -92,6 +92,13 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TryFromJs for TypedJsFunction<A, R> {
     }
 }
 
+impl<A: TryIntoJsArguments, R: TryFromJs> From<TypedJsFunction<A, R>> for JsValue {
+    #[inline]
+    fn from(o: TypedJsFunction<A, R>) -> Self {
+        o.into_inner().into()
+    }
+}
+
 /// JavaScript `Function` rust object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsFunction {
