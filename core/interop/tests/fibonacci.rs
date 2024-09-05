@@ -8,7 +8,8 @@ use boa_engine::{js_error, js_str, Context, JsResult, Module, Source};
 use boa_interop::IntoJsFunctionCopied;
 use std::path::PathBuf;
 
-fn fibonacci_rs(
+#[allow(clippy::needless_pass_by_value)]
+fn fibonacci(
     a: usize,
     cb_a: TypedJsFunction<(usize, JsFunction, JsFunction), usize>,
     cb_b: TypedJsFunction<(usize, JsFunction, JsFunction), usize>,
@@ -17,13 +18,13 @@ fn fibonacci_rs(
     if a <= 1 {
         Ok(a)
     } else {
-        let cb_a1 = cb_a.to_js_function();
-        let cb_b1 = cb_b.to_js_function();
-        let cb_a2 = cb_a1.clone();
-        let cb_b2 = cb_b1.clone();
-
-        Ok(cb_a.call(context, (a - 1, cb_b1, cb_a1))?
-            + cb_b.call(context, (a - 2, cb_b2, cb_a2))?)
+        Ok(cb_a.call(
+            context,
+            (a - 1, cb_b.to_js_function(), cb_a.to_js_function()),
+        )? + cb_b.call(
+            context,
+            (a - 2, cb_b.to_js_function(), cb_a.to_js_function()),
+        )?)
     }
 }
 
@@ -36,12 +37,12 @@ fn fibonacci_throw(
     if a < 5 {
         Err(js_error!("a is too small"))
     } else {
-        fibonacci_rs(a, cb_a, cb_b, context)
+        fibonacci(a, cb_a, cb_b, context)
     }
 }
 
 #[test]
-fn fibonacci() {
+fn fibonacci_test() {
     let assets_dir =
         PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("tests/assets");
 
@@ -61,7 +62,7 @@ fn fibonacci() {
         .get_typed_fn::<(usize, JsFunction, JsFunction), usize>(js_str!("fibonacci"), context)
         .unwrap();
 
-    let fibonacci_rs = fibonacci_rs
+    let fibonacci_rust = fibonacci
         .into_js_function_copied(context)
         .to_js_function(context.realm());
 
@@ -69,7 +70,7 @@ fn fibonacci() {
         fibonacci_js
             .call(
                 context,
-                (10, fibonacci_rs.clone(), fibonacci_js.to_js_function())
+                (10, fibonacci_rust.clone(), fibonacci_js.to_js_function())
             )
             .unwrap(),
         55

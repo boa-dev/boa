@@ -55,6 +55,7 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
     }
 
     /// Get the inner `JsFunction` without consuming this object.
+    #[must_use]
     pub fn to_js_function(&self) -> JsFunction {
         self.inner.clone()
     }
@@ -83,7 +84,7 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TryFromJs for TypedJsFunction<A, R> {
                         .with_message("object is not a function")
                         .into()
                 })
-                .and_then(|f| Ok(f.typed())),
+                .map(JsFunction::typed),
             _ => Err(JsNativeError::typ()
                 .with_message("value is not a Function object")
                 .into()),

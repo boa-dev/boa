@@ -1,5 +1,5 @@
 #![allow(unused_crate_dependencies)]
-//! A test that mimics the boa_engine's GCD test with a typed callback.
+//! A test that mimics the `boa_engine`'s GCD test with a typed callback.
 
 use boa_engine::object::builtins::JsFunction;
 use boa_engine::{js_str, Context, Module, Source};
