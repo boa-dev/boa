@@ -7,22 +7,22 @@
  * @throws {TypeError} If either {a} or {b} is not finite.
  */
 export function gcd_callback(a, b, callback) {
-    a = +a;
-    b = +b;
-    if (!Number.isFinite(a) || !Number.isFinite(b)) {
-        throw new TypeError("Invalid input");
-    }
+  a = +a;
+  b = +b;
+  if (!Number.isFinite(a) || !Number.isFinite(b)) {
+    throw new TypeError("Invalid input");
+  }
 
-    // Euclidean algorithm
-    function inner_gcd(a, b) {
-        while (b !== 0) {
-            let t = b;
-            b = a % b;
-            a = t;
-        }
-        return a;
+  // Euclidean algorithm
+  function inner_gcd(a, b) {
+    while (b !== 0) {
+      let t = b;
+      b = a % b;
+      a = t;
     }
+    return a;
+  }
 
-    let result = inner_gcd(a, b);
-    callback(result);
+  let result = inner_gcd(a, b);
+  callback(result);
 }

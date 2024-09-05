@@ -7,10 +7,13 @@
  * @returns {number} The {a}th fibonacci number.
  */
 export function fibonacci(a, callback_a, callback_b) {
-    if (a <= 1) {
-        return a;
-    }
+  if (a <= 1) {
+    return a;
+  }
 
-    // Switch the callbacks around.
-    return callback_a(a - 1, callback_b, callback_a) + callback_b(a - 2, callback_b, callback_a);
+  // Switch the callbacks around.
+  return (
+    callback_a(a - 1, callback_b, callback_a) +
+    callback_b(a - 2, callback_b, callback_a)
+  );
 }
