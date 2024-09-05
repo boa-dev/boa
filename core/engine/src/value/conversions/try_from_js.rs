@@ -36,6 +36,12 @@ impl TryFromJs for bool {
     }
 }
 
+impl TryFromJs for () {
+    fn try_from_js(_value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+        Ok(())
+    }
+}
+
 impl TryFromJs for String {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
         match value {
