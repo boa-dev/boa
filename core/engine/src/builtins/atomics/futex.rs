@@ -157,10 +157,20 @@ use crate::{
     JsNativeError, JsResult,
 };
 
+pub(crate) struct FutexWaiterMutex(Mutex<FutexWaiters>);
+
+impl FutexWaiterMutex {
+    pub(crate) const fn new() -> Self {
+        Self(Mutex::new(FutexWaiters {
+            waiters: SmallMap::new(),
+        }))
+    }
+}
+
+unsafe impl Sync for FutexWaiterMutex {}
+
 /// Map of shared data addresses and its corresponding list of agents waiting on that location.
-pub(crate) static CRITICAL_SECTION: Mutex<FutexWaiters> = Mutex::new(FutexWaiters {
-    waiters: SmallMap::new(),
-});
+pub(crate) static CRITICAL_SECTION: FutexWaiterMutex = FutexWaiterMutex::new();
 
 /// A waiter of a memory address.
 #[derive(Debug, Default)]
@@ -281,7 +291,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
     // 10. Let block be buffer.[[ArrayBufferData]].
     // 11. Let WL be GetWaiterList(block, indexedPosition).
     // 12. Perform EnterCriticalSection(WL).
-    let mut waiters = CRITICAL_SECTION.lock().map_err(|_| {
+    let mut waiters = CRITICAL_SECTION.0.lock().map_err(|_| {
         // avoids exposing internals of our implementation.
         JsNativeError::typ().with_message("failed to synchronize with the agent cluster")
     })?;
@@ -385,7 +395,7 @@ pub(super) fn notify(buffer: &SharedArrayBuffer, offset: usize, count: u64) -> J
 
     // 7. Let WL be GetWaiterList(block, indexedPosition).
     // 8. Perform EnterCriticalSection(WL).
-    let mut waiters = CRITICAL_SECTION.lock().map_err(|_| {
+    let mut waiters = CRITICAL_SECTION.0.lock().map_err(|_| {
         // avoids exposing internals of our implementation.
         JsNativeError::typ().with_message("failed to synchronize with the agent cluster")
     })?;
