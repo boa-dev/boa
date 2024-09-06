@@ -167,6 +167,7 @@ impl FutexWaiterMutex {
     }
 }
 
+// SAFETY: `FutexWaiterMutex` is `Sync` because its internals are protected by a `Mutex`.
 unsafe impl Sync for FutexWaiterMutex {}
 
 /// Map of shared data addresses and its corresponding list of agents waiting on that location.
