@@ -1155,7 +1155,7 @@ fn typed_iterators_uint8() {
 #[test]
 fn typed_iterators_uint32() {
     let context = &mut Context::default();
-    let vec = vec![1u32, 2, 0xFFFF, 4, 0xFF123456, 6, 7, 8];
+    let vec = vec![1u32, 2, 0xFFFF, 4, 0xFF12_3456, 6, 7, 8];
 
     let array = JsUint32Array::from_iter(vec.clone(), context).unwrap();
     let vec2 = array.iter(context).collect::<Vec<_>>();
