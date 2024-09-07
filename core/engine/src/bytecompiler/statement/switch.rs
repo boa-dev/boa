@@ -6,12 +6,16 @@ impl ByteCompiler<'_> {
     pub(crate) fn compile_switch(&mut self, switch: &Switch, use_expr: bool) {
         self.compile_expr(switch.val(), true);
 
-        let old_lex_env = self.lexical_environment.clone();
-        let env_index = self.push_compile_environment(false);
-        self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-        let env = self.lexical_environment.clone();
+        let outer_scope = if let Some(scope) = switch.scope() {
+            let outer_scope = self.lexical_scope.clone();
+            let scope_index = self.push_scope(scope);
+            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+            Some(outer_scope)
+        } else {
+            None
+        };
 
-        self.block_declaration_instantiation(switch, &env);
+        self.block_declaration_instantiation(switch);
 
         let start_address = self.next_opcode_location();
         self.push_switch_control_info(None, start_address, use_expr);
@@ -52,8 +56,10 @@ impl ByteCompiler<'_> {
 
         self.pop_switch_control_info();
 
-        self.pop_compile_environment();
-        self.lexical_environment = old_lex_env;
-        self.emit_opcode(Opcode::PopEnvironment);
+        if let Some(outer_scope) = outer_scope {
+            self.pop_scope();
+            self.lexical_scope = outer_scope;
+            self.emit_opcode(Opcode::PopEnvironment);
+        }
     }
 }

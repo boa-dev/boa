@@ -11,12 +11,14 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
+annex-b = []
 serde = ["dep:serde", "boa_interner/serde", "bitflags/serde", "num-bigint/serde"]
 arbitrary = ["dep:arbitrary", "boa_interner/arbitrary", "num-bigint/arbitrary"]
 
 [dependencies]
 boa_interner.workspace = true
 boa_macros.workspace = true
+boa_string.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 bitflags.workspace = true
 num-bigint.workspace = true

@@ -25,10 +25,10 @@ fn check_generator_function_expression() {
                         Some(gen.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![StatementListItem::Statement(Statement::Expression(
+                            [StatementListItem::Statement(Statement::Expression(
                                 Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
-                            ))]
-                            .into(),
+                            ))],
+                            false,
                         ),
                         false,
                     )
@@ -60,10 +60,10 @@ fn check_generator_function_delegate_yield_expression() {
                         Some(gen.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![StatementListItem::Statement(Statement::Expression(
+                            [StatementListItem::Statement(Statement::Expression(
                                 Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
-                            ))]
-                            .into(),
+                            ))],
+                            false,
                         ),
                         false,
                     )

@@ -28,11 +28,9 @@ impl ByteCompiler<'_> {
                 match unary.target().flatten() {
                     Expression::Identifier(identifier) => {
                         let identifier = identifier.to_js_string(self.interner());
-                        let binding = self
-                            .lexical_environment
-                            .get_identifier_reference(identifier);
-                        let index = self.get_or_insert_binding(binding.locator());
-                        self.emit_with_varying_operand(Opcode::GetNameOrUndefined, index);
+                        let binding = self.lexical_scope.get_identifier_reference(identifier);
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit_binding_access(Opcode::GetNameOrUndefined, &index);
                     }
                     expr => self.compile_expr(expr, true),
                 }

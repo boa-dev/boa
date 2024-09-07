@@ -455,7 +455,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionStatementList", "Parsing");
 
-        let statement_list = StatementList::new(
+        let body = StatementList::new(
             self.allow_yield,
             self.allow_await,
             true,
@@ -465,20 +465,20 @@ where
         )
         .parse(cursor, interner)?;
 
-        if let Err(error) = check_labels(&statement_list) {
+        if let Err(error) = check_labels(&body) {
             return Err(Error::lex(LexError::Syntax(
                 error.message(interner).into(),
                 Position::new(1, 1),
             )));
         }
 
-        if contains_invalid_object_literal(&statement_list) {
+        if contains_invalid_object_literal(&body) {
             return Err(Error::lex(LexError::Syntax(
                 "invalid object literal in function statement list".into(),
                 Position::new(1, 1),
             )));
         }
 
-        Ok(ast::function::FunctionBody::new(statement_list))
+        Ok(body.into())
     }
 }

@@ -10,6 +10,7 @@ use boa_ast::{
         FunctionExpression,
     },
     property::{MethodDefinitionKind, PropertyName},
+    scope::Scope,
     Expression,
 };
 use boa_gc::Gc;
@@ -32,6 +33,7 @@ pub(crate) struct ClassSpec<'a> {
     constructor: Option<&'a FunctionExpression>,
     elements: &'a [ClassElement],
     has_binding_identifier: bool,
+    name_scope: Option<&'a Scope>,
 }
 
 impl<'a> From<&'a ClassDeclaration> for ClassSpec<'a> {
@@ -42,6 +44,7 @@ impl<'a> From<&'a ClassDeclaration> for ClassSpec<'a> {
             constructor: class.constructor(),
             elements: class.elements(),
             has_binding_identifier: true,
+            name_scope: Some(class.name_scope()),
         }
     }
 }
@@ -54,6 +57,7 @@ impl<'a> From<&'a ClassExpression> for ClassSpec<'a> {
             constructor: class.constructor(),
             elements: class.elements(),
             has_binding_identifier: class.name().is_some(),
+            name_scope: class.name_scope(),
         }
     }
 }
@@ -75,13 +79,11 @@ impl ByteCompiler<'_> {
             .map_or(Sym::EMPTY_STRING, Identifier::sym)
             .to_js_string(self.interner());
 
-        let old_lex_env = if class.has_binding_identifier {
-            let old_lex_env = self.lexical_environment.clone();
-            let env_index = self.push_compile_environment(false);
-            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-            self.lexical_environment
-                .create_immutable_binding(class_name.clone(), true);
-            Some(old_lex_env)
+        let outer_scope = if let Some(name_scope) = class.name_scope {
+            let outer_scope = self.lexical_scope.clone();
+            let scope_index = self.push_scope(name_scope);
+            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+            Some(outer_scope)
         } else {
             None
         };
@@ -90,8 +92,8 @@ impl ByteCompiler<'_> {
             class_name.clone(),
             true,
             self.json_parse,
-            self.variable_environment.clone(),
-            self.lexical_environment.clone(),
+            self.variable_scope.clone(),
+            self.lexical_scope.clone(),
             false,
             false,
             self.interner,
@@ -100,10 +102,9 @@ impl ByteCompiler<'_> {
 
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
 
-        // Function environment
-        let _ = compiler.push_compile_environment(true);
-
         if let Some(expr) = &class.constructor {
+            let _ = compiler.push_scope(expr.scopes().function_scope());
+
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
 
@@ -113,15 +114,20 @@ impl ByteCompiler<'_> {
                 false,
                 true,
                 false,
+                expr.scopes(),
             );
 
-            compiler.compile_statement_list(expr.body().statements(), false, false);
+            compiler.compile_statement_list(expr.body().statement_list(), false, false);
 
             compiler.emit_opcode(Opcode::PushUndefined);
         } else if class.super_ref.is_some() {
+            // We push an empty, unused function scope since the compiler expects a function scope.
+            let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
             compiler.emit_opcode(Opcode::SuperCallDerived);
             compiler.emit_opcode(Opcode::BindThisValue);
         } else {
+            // We push an empty, unused function scope since the compiler expects a function scope.
+            let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
             compiler.emit_opcode(Opcode::PushUndefined);
         }
         compiler.emit_opcode(Opcode::SetReturnValue);
@@ -157,8 +163,12 @@ impl ByteCompiler<'_> {
                         self.emit_u32(index);
                     }
                 }
-                ClassElement::PrivateFieldDefinition(name, _)
-                | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                ClassElement::PrivateFieldDefinition(field) => {
+                    count += 1;
+                    let index = self.get_or_insert_private_name(*field.name());
+                    self.emit_u32(index);
+                }
+                ClassElement::PrivateStaticFieldDefinition(name, _) => {
                     count += 1;
                     let index = self.get_or_insert_private_name(*name);
                     self.emit_u32(index);
@@ -171,7 +181,7 @@ impl ByteCompiler<'_> {
         let mut static_elements = Vec::new();
         let mut static_field_name_count = 0;
 
-        if old_lex_env.is_some() {
+        if outer_scope.is_some() {
             self.emit_opcode(Opcode::Dup);
             self.emit_binding(BindingOpcode::InitLexical, class_name.clone());
         }
@@ -258,9 +268,9 @@ impl ByteCompiler<'_> {
                         self.emit_opcode(Opcode::Swap);
                     }
                 }
-                ClassElement::FieldDefinition(name, field) => {
+                ClassElement::FieldDefinition(field) => {
                     self.emit_opcode(Opcode::Dup);
-                    match name {
+                    match field.name() {
                         PropertyName::Literal(name) => {
                             self.emit_push_literal(Literal::String(
                                 self.interner().resolve_expect(*name).into_common(false),
@@ -274,8 +284,8 @@ impl ByteCompiler<'_> {
                         js_string!(),
                         true,
                         self.json_parse,
-                        self.variable_environment.clone(),
-                        self.lexical_environment.clone(),
+                        self.variable_scope.clone(),
+                        self.lexical_scope.clone(),
                         false,
                         false,
                         self.interner,
@@ -283,8 +293,8 @@ impl ByteCompiler<'_> {
                     );
 
                     // Function environment
-                    let _ = field_compiler.push_compile_environment(true);
-                    let is_anonymous_function = if let Some(node) = field {
+                    let _ = field_compiler.push_scope(field.scope());
+                    let is_anonymous_function = if let Some(node) = &field.field() {
                         field_compiler.compile_expr(node, true);
                         node.is_anonymous_function_definition()
                     } else {
@@ -303,22 +313,22 @@ impl ByteCompiler<'_> {
                         &[Operand::Bool(is_anonymous_function)],
                     );
                 }
-                ClassElement::PrivateFieldDefinition(name, field) => {
+                ClassElement::PrivateFieldDefinition(field) => {
                     self.emit_opcode(Opcode::Dup);
-                    let name_index = self.get_or_insert_private_name(*name);
+                    let name_index = self.get_or_insert_private_name(*field.name());
                     let mut field_compiler = ByteCompiler::new(
                         class_name.clone(),
                         true,
                         self.json_parse,
-                        self.variable_environment.clone(),
-                        self.lexical_environment.clone(),
+                        self.variable_scope.clone(),
+                        self.lexical_scope.clone(),
                         false,
                         false,
                         self.interner,
                         self.in_with,
                     );
-                    let _ = field_compiler.push_compile_environment(true);
-                    if let Some(node) = field {
+                    let _ = field_compiler.push_scope(field.scope());
+                    if let Some(node) = field.field() {
                         field_compiler.compile_expr(node, true);
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
@@ -332,8 +342,8 @@ impl ByteCompiler<'_> {
                     self.emit_with_varying_operand(Opcode::GetFunction, index);
                     self.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
                 }
-                ClassElement::StaticFieldDefinition(name, field) => {
-                    let name_index = match name {
+                ClassElement::StaticFieldDefinition(field) => {
+                    let name_index = match field.name() {
                         PropertyName::Literal(name) => {
                             Some(self.get_or_insert_name((*name).into()))
                         }
@@ -351,15 +361,15 @@ impl ByteCompiler<'_> {
                         class_name.clone(),
                         true,
                         self.json_parse,
-                        self.variable_environment.clone(),
-                        self.lexical_environment.clone(),
+                        self.variable_scope.clone(),
+                        self.lexical_scope.clone(),
                         false,
                         false,
                         self.interner,
                         self.in_with,
                     );
-                    let _ = field_compiler.push_compile_environment(true);
-                    let is_anonymous_function = if let Some(node) = field {
+                    let _ = field_compiler.push_scope(field.scope());
+                    let is_anonymous_function = if let Some(node) = &field.field() {
                         field_compiler.compile_expr(node, true);
                         node.is_anonymous_function_definition()
                     } else {
@@ -389,29 +399,34 @@ impl ByteCompiler<'_> {
                     let index = self.get_or_insert_private_name(*name);
                     self.emit_with_varying_operand(Opcode::DefinePrivateField, index);
                 }
-                ClassElement::StaticBlock(body) => {
+                ClassElement::StaticBlock(block) => {
                     let mut compiler = ByteCompiler::new(
                         Sym::EMPTY_STRING.to_js_string(self.interner()),
                         true,
                         false,
-                        self.variable_environment.clone(),
-                        self.lexical_environment.clone(),
+                        self.variable_scope.clone(),
+                        self.lexical_scope.clone(),
                         false,
                         false,
                         self.interner,
                         self.in_with,
                     );
-                    let _ = compiler.push_compile_environment(true);
+                    let _ = compiler.push_scope(block.scopes().function_scope());
 
                     compiler.function_declaration_instantiation(
-                        body,
+                        block.statements(),
                         &FormalParameterList::default(),
                         false,
                         true,
                         false,
+                        block.scopes(),
                     );
 
-                    compiler.compile_statement_list(body.statements(), false, false);
+                    compiler.compile_statement_list(
+                        block.statements().statement_list(),
+                        false,
+                        false,
+                    );
 
                     let code = Gc::new(compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));
@@ -459,9 +474,9 @@ impl ByteCompiler<'_> {
         self.emit_opcode(Opcode::Swap);
         self.emit_opcode(Opcode::Pop);
 
-        if let Some(old_lex_env) = old_lex_env {
-            self.pop_compile_environment();
-            self.lexical_environment = old_lex_env;
+        if let Some(outer_scope) = outer_scope {
+            self.pop_scope();
+            self.lexical_scope = outer_scope;
             self.emit_opcode(Opcode::PopEnvironment);
         }
 

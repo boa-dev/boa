@@ -1,8 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
+use std::cell::RefCell;
 
+use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace};
 
-use crate::{environments::CompileTimeEnvironment, module::Module, JsString, JsValue};
+use crate::{module::Module, JsString, JsValue};
 
 /// Type of accessor used to access an indirect binding.
 #[derive(Debug, Clone)]
@@ -39,12 +40,12 @@ pub(crate) struct ModuleEnvironment {
 
     // Safety: Nothing in CompileTimeEnvironment needs tracing.
     #[unsafe_ignore_trace]
-    compile: Rc<CompileTimeEnvironment>,
+    compile: Scope,
 }
 
 impl ModuleEnvironment {
     /// Creates a new `LexicalEnvironment`.
-    pub(crate) fn new(bindings: u32, compile: Rc<CompileTimeEnvironment>) -> Self {
+    pub(crate) fn new(bindings: u32, compile: Scope) -> Self {
         Self {
             bindings: GcRefCell::new(vec![BindingType::Direct(None); bindings as usize]),
             compile,
@@ -52,7 +53,7 @@ impl ModuleEnvironment {
     }
 
     /// Gets the compile time environment of this module environment.
-    pub(crate) const fn compile(&self) -> &Rc<CompileTimeEnvironment> {
+    pub(crate) const fn compile(&self) -> &Scope {
         &self.compile
     }
 

@@ -8,8 +8,10 @@ use crate::{
     },
     function::{FormalParameterList, FunctionBody},
     join_nodes,
+    operations::{contains, ContainsSymbol},
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinitionKind, PropertyName},
+    scope::FunctionScopes,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -401,27 +403,35 @@ impl VisitWith for PropertyDefinition {
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ObjectMethodDefinition {
-    name: PropertyName,
-    parameters: FormalParameterList,
-    body: FunctionBody,
+    pub(crate) name: PropertyName,
+    pub(crate) parameters: FormalParameterList,
+    pub(crate) body: FunctionBody,
+    pub(crate) contains_direct_eval: bool,
     kind: MethodDefinitionKind,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scopes: FunctionScopes,
 }
 
 impl ObjectMethodDefinition {
     /// Creates a new object method definition.
     #[inline]
     #[must_use]
-    pub const fn new(
+    pub fn new(
         name: PropertyName,
         parameters: FormalParameterList,
         body: FunctionBody,
         kind: MethodDefinitionKind,
     ) -> Self {
+        let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
+            || contains(&body, ContainsSymbol::DirectEval);
         Self {
             name,
             parameters,
             body,
+            contains_direct_eval,
             kind,
+            scopes: FunctionScopes::default(),
         }
     }
 
@@ -452,6 +462,13 @@ impl ObjectMethodDefinition {
     pub const fn kind(&self) -> MethodDefinitionKind {
         self.kind
     }
+
+    /// Gets the scopes of the object method definition.
+    #[inline]
+    #[must_use]
+    pub const fn scopes(&self) -> &FunctionScopes {
+        &self.scopes
+    }
 }
 
 impl ToIndentedString for ObjectMethodDefinition {
@@ -467,7 +484,7 @@ impl ToIndentedString for ObjectMethodDefinition {
         };
         let name = self.name.to_interned_string(interner);
         let parameters = join_nodes(interner, self.parameters.as_ref());
-        let body = block_to_string(self.body.statements(), interner, indent_n + 1);
+        let body = block_to_string(&self.body.statements, interner, indent_n + 1);
         format!("{indentation}{prefix}{name}({parameters}) {body},\n")
     }
 }
@@ -479,7 +496,7 @@ impl VisitWith for ObjectMethodDefinition {
     {
         try_break!(visitor.visit_property_name(&self.name));
         try_break!(visitor.visit_formal_parameter_list(&self.parameters));
-        visitor.visit_script(&self.body)
+        visitor.visit_function_body(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -488,6 +505,6 @@ impl VisitWith for ObjectMethodDefinition {
     {
         try_break!(visitor.visit_property_name_mut(&mut self.name));
         try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
-        visitor.visit_script_mut(&mut self.body)
+        visitor.visit_function_body_mut(&mut self.body)
     }
 }

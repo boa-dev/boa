@@ -1,12 +1,11 @@
-use std::rc::Rc;
-
+use boa_ast::scope::Scope;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use rustc_hash::FxHashSet;
 
 use crate::{
     builtins::promise::ResolvingFunctions,
     bytecompiler::ByteCompiler,
-    environments::{CompileTimeEnvironment, DeclarativeEnvironment, EnvironmentStack},
+    environments::{DeclarativeEnvironment, EnvironmentStack},
     js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
@@ -281,8 +280,8 @@ impl SyntheticModule {
         // 2. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 3. Set module.[[Environment]] to env.
         let global_env = module_self.realm().environment().clone();
-        let global_compile_env = module_self.realm().compile_environment();
-        let module_compile_env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
+        let global_scope = module_self.realm().scope().clone();
+        let module_scope = Scope::new(global_scope, true);
 
         // TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
@@ -290,8 +289,8 @@ impl SyntheticModule {
             js_string!("<main>"),
             true,
             false,
-            module_compile_env.clone(),
-            module_compile_env.clone(),
+            module_scope.clone(),
+            module_scope.clone(),
             false,
             false,
             context.interner_mut(),
@@ -304,19 +303,19 @@ impl SyntheticModule {
             .iter()
             .map(|name| {
                 //     a. Perform ! env.CreateMutableBinding(exportName, false).
-                module_compile_env.create_mutable_binding(name.clone(), false)
+                module_scope.create_mutable_binding(name.clone(), false)
             })
             .collect::<Vec<_>>();
 
         let cb = Gc::new(compiler.finish());
 
         let mut envs = EnvironmentStack::new(global_env);
-        envs.push_module(module_compile_env);
+        envs.push_module(module_scope);
 
         for locator in exports {
             //     b. Perform ! env.InitializeBinding(exportName, undefined).
             envs.put_lexical_value(
-                locator.environment(),
+                locator.scope(),
                 locator.binding_index(),
                 JsValue::undefined(),
             );

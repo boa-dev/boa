@@ -10,8 +10,8 @@ use boa_ast::{
         },
         Call, Identifier, Parenthesized, RegExpLiteral,
     },
-    function::{AsyncArrowFunction, FormalParameter, FormalParameterList},
-    Declaration, Expression, Script, Statement,
+    function::{AsyncArrowFunction, FormalParameter, FormalParameterList, FunctionBody},
+    Declaration, Expression, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -701,7 +701,7 @@ fn parse_async_arrow_function_named_of() {
                     ),
                     false,
                 )]),
-                Script::default(),
+                FunctionBody::default(),
             )))
             .into(),
         ],

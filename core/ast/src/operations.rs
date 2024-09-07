@@ -16,17 +16,17 @@ use crate::{
         access::{PrivatePropertyAccess, SuperPropertyAccess},
         literal::PropertyDefinition,
         operator::BinaryInPrivate,
-        Await, Identifier, OptionalOperationKind, SuperCall, Yield,
+        Await, Call, Identifier, OptionalOperationKind, SuperCall, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
         AsyncGeneratorDeclaration, AsyncGeneratorExpression, ClassDeclaration, ClassElement,
-        ClassElementName, ClassExpression, FormalParameterList, FunctionDeclaration,
-        FunctionExpression, GeneratorDeclaration, GeneratorExpression,
+        ClassElementName, ClassExpression, FormalParameterList, FunctionBody, FunctionDeclaration,
+        FunctionExpression, GeneratorDeclaration, GeneratorExpression, PrivateFieldDefinition,
     },
     statement::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
-        LabelledItem,
+        LabelledItem, With,
     },
     try_break,
     visitor::{NodeRef, VisitWith, Visitor},
@@ -61,6 +61,8 @@ pub enum ContainsSymbol {
     MethodDefinition,
     /// The `BindingIdentifier` "eval" or "arguments".
     EvalOrArguments,
+    /// A direct call to `eval`.
+    DirectEval,
 }
 
 /// Returns `true` if the node contains the given symbol.
@@ -79,6 +81,26 @@ where
 
     impl<'ast> Visitor<'ast> for ContainsVisitor {
         type BreakTy = ();
+
+        fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
+            try_break!(node.expression().visit_with(self));
+            node.statement().visit_with(self)
+        }
+
+        fn visit_call(&mut self, node: &'ast Call) -> ControlFlow<Self::BreakTy> {
+            if self.0 == ContainsSymbol::DirectEval {
+                if let Expression::Identifier(ident) = node.function().flatten() {
+                    if ident.sym() == Sym::EVAL {
+                        return ControlFlow::Break(());
+                    }
+                }
+            }
+            try_break!(node.function().visit_with(self));
+            for arg in node.args() {
+                try_break!(arg.visit_with(self));
+            }
+            ControlFlow::Continue(())
+        }
 
         fn visit_identifier(&mut self, node: &'ast Identifier) -> ControlFlow<Self::BreakTy> {
             if self.0 == ContainsSymbol::EvalOrArguments
@@ -179,14 +201,18 @@ where
         fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
             match node {
                 ClassElement::MethodDefinition(m) => {
+                    if self.0 == ContainsSymbol::DirectEval {
+                        return ControlFlow::Continue(());
+                    }
+
                     if let ClassElementName::PropertyName(name) = m.name() {
                         name.visit_with(self)
                     } else {
                         ControlFlow::Continue(())
                     }
                 }
-                ClassElement::FieldDefinition(name, _)
-                | ClassElement::StaticFieldDefinition(name, _) => name.visit_with(self),
+                ClassElement::FieldDefinition(field)
+                | ClassElement::StaticFieldDefinition(field) => field.name.visit_with(self),
                 _ => ControlFlow::Continue(()),
             }
         }
@@ -196,6 +222,10 @@ where
             node: &'ast PropertyDefinition,
         ) -> ControlFlow<Self::BreakTy> {
             if let PropertyDefinition::MethodDefinition(m) = node {
+                if self.0 == ContainsSymbol::DirectEval {
+                    return ControlFlow::Continue(());
+                }
+
                 if self.0 == ContainsSymbol::MethodDefinition {
                     return ControlFlow::Break(());
                 }
@@ -215,6 +245,7 @@ where
                 ContainsSymbol::SuperCall,
                 ContainsSymbol::Super,
                 ContainsSymbol::This,
+                ContainsSymbol::DirectEval,
             ]
             .contains(&self.0)
             {
@@ -234,6 +265,7 @@ where
                 ContainsSymbol::SuperCall,
                 ContainsSymbol::Super,
                 ContainsSymbol::This,
+                ContainsSymbol::DirectEval,
             ]
             .contains(&self.0)
             {
@@ -401,7 +433,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
 #[must_use]
 #[inline]
-pub fn has_direct_super_new(params: &FormalParameterList, body: &Script) -> bool {
+pub fn has_direct_super_new(params: &FormalParameterList, body: &FunctionBody) -> bool {
     contains(params, ContainsSymbol::SuperCall) || contains(body, ContainsSymbol::SuperCall)
 }
 
@@ -600,6 +632,11 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
         ControlFlow::Continue(())
     }
 
+    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+        top_level_lexicals(node.statement_list(), self.0);
+        ControlFlow::Continue(())
+    }
+
     fn visit_module_item(&mut self, node: &'ast ModuleItem) -> ControlFlow<Self::BreakTy> {
         match node {
             // ModuleItem : ImportDeclaration
@@ -655,72 +692,72 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
         &mut self,
         node: &'ast FunctionExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_function_declaration(
         &mut self,
         node: &'ast FunctionDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_function_expression(
         &mut self,
         node: &'ast AsyncFunctionExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_function_declaration(
         &mut self,
         node: &'ast AsyncFunctionDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_generator_expression(
         &mut self,
         node: &'ast GeneratorExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_generator_declaration(
         &mut self,
         node: &'ast GeneratorDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_expression(
         &mut self,
         node: &'ast AsyncGeneratorExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_declaration(
         &mut self,
         node: &'ast AsyncGeneratorDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_arrow_function(&mut self, node: &'ast ArrowFunction) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_arrow_function(
         &mut self,
         node: &'ast AsyncArrowFunction,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
-        if let ClassElement::StaticBlock(body) = node {
-            self.visit_script(body);
+        if let ClassElement::StaticBlock(block) = node {
+            self.visit_function_body(&block.body);
         }
         ControlFlow::Continue(())
     }
@@ -784,6 +821,11 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_script(&mut self, node: &'ast Script) -> ControlFlow<Self::BreakTy> {
         top_level_vars(node.statements(), self.0);
+        ControlFlow::Continue(())
+    }
+
+    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+        top_level_vars(node.statement_list(), self.0);
         ControlFlow::Continue(())
     }
 
@@ -898,7 +940,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         self.visit(node.body())
     }
 
-    fn visit_with(&mut self, node: &'ast crate::statement::With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement())
     }
 
@@ -933,61 +975,61 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         &mut self,
         node: &'ast FunctionExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_function_declaration(
         &mut self,
         node: &'ast FunctionDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_function_expression(
         &mut self,
         node: &'ast AsyncFunctionExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_function_declaration(
         &mut self,
         node: &'ast AsyncFunctionDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_generator_expression(
         &mut self,
         node: &'ast GeneratorExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_generator_declaration(
         &mut self,
         node: &'ast GeneratorDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_expression(
         &mut self,
         node: &'ast AsyncGeneratorExpression,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_async_generator_declaration(
         &mut self,
         node: &'ast AsyncGeneratorDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit_script(node.body())
+        self.visit_function_body(node.body())
     }
 
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
-        if let ClassElement::StaticBlock(body) = node {
-            self.visit_script(body);
+        if let ClassElement::StaticBlock(block) = node {
+            self.visit_function_body(&block.body);
         }
         node.visit_with(self)
     }
@@ -1138,7 +1180,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                         names.push(name.description());
                     }
                 }
-                ClassElement::PrivateFieldDefinition(name, _)
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
                 | ClassElement::PrivateStaticFieldDefinition(name, _) => {
                     names.push(name.description());
                 }
@@ -1161,21 +1203,21 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     try_break!(visitor.visit(m.parameters()));
                     try_break!(visitor.visit(m.body()));
                 }
-                ClassElement::FieldDefinition(name, expression)
-                | ClassElement::StaticFieldDefinition(name, expression) => {
-                    try_break!(visitor.visit(name));
-                    if let Some(expression) = expression {
+                ClassElement::FieldDefinition(field)
+                | ClassElement::StaticFieldDefinition(field) => {
+                    try_break!(visitor.visit(&field.name));
+                    if let Some(expression) = &field.field {
                         try_break!(visitor.visit(expression));
                     }
                 }
-                ClassElement::PrivateFieldDefinition(_, expression)
-                | ClassElement::PrivateStaticFieldDefinition(_, expression) => {
-                    if let Some(expression) = expression {
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { field, .. })
+                | ClassElement::PrivateStaticFieldDefinition(_, field) => {
+                    if let Some(expression) = field {
                         try_break!(visitor.visit(expression));
                     }
                 }
-                ClassElement::StaticBlock(statement_list) => {
-                    try_break!(visitor.visit(statement_list));
+                ClassElement::StaticBlock(block) => {
+                    try_break!(visitor.visit(&block.body));
                 }
             }
         }
@@ -1199,7 +1241,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                         names.push(name.description());
                     }
                 }
-                ClassElement::PrivateFieldDefinition(name, _)
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
                 | ClassElement::PrivateStaticFieldDefinition(name, _) => {
                     names.push(name.description());
                 }
@@ -1222,21 +1264,21 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     try_break!(visitor.visit(m.parameters()));
                     try_break!(visitor.visit(m.body()));
                 }
-                ClassElement::FieldDefinition(name, expression)
-                | ClassElement::StaticFieldDefinition(name, expression) => {
-                    try_break!(visitor.visit(name));
-                    if let Some(expression) = expression {
+                ClassElement::FieldDefinition(field)
+                | ClassElement::StaticFieldDefinition(field) => {
+                    try_break!(visitor.visit(&field.name));
+                    if let Some(expression) = &field.field {
                         try_break!(visitor.visit(expression));
                     }
                 }
-                ClassElement::PrivateFieldDefinition(_, expression)
-                | ClassElement::PrivateStaticFieldDefinition(_, expression) => {
-                    if let Some(expression) = expression {
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { field, .. })
+                | ClassElement::PrivateStaticFieldDefinition(_, field) => {
+                    if let Some(expression) = field {
                         try_break!(visitor.visit(expression));
                     }
                 }
-                ClassElement::StaticBlock(statement_list) => {
-                    try_break!(visitor.visit(statement_list));
+                ClassElement::StaticBlock(block) => {
+                    try_break!(visitor.visit(&block.body));
                 }
             }
         }
@@ -1755,6 +1797,12 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
         TopLevelLexicallyScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
     }
 
+    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+        // 1. Return TopLevelVarScopedDeclarations of StatementList.
+        TopLevelLexicallyScopedDeclarationsVisitor(self.0)
+            .visit_statement_list(node.statement_list())
+    }
+
     fn visit_export_declaration(
         &mut self,
         node: &'ast ExportDeclaration,
@@ -1974,6 +2022,11 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statements())
     }
 
+    fn visit_function_body(&mut self, node: &'ast FunctionBody) -> ControlFlow<Self::BreakTy> {
+        // 1. Return TopLevelVarScopedDeclarations of StatementList.
+        TopLevelVarScopedDeclarationsVisitor(self.0).visit_statement_list(node.statement_list())
+    }
+
     fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
         match node {
             Statement::Block(s) => self.visit(s),
@@ -2074,7 +2127,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_with(&mut self, node: &'ast crate::statement::With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement());
         ControlFlow::Continue(())
     }
@@ -2342,7 +2395,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         self.visit(node.body());
 
         if let Some(ForLoopInitializer::Lexical(node)) = node.init() {
-            let bound_names = bound_names(node);
+            let bound_names = bound_names(&node.declaration);
             self.0.retain(|name| !bound_names.contains(name));
         }
 
@@ -2395,7 +2448,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_with(&mut self, node: &'ast crate::statement::With) -> ControlFlow<Self::BreakTy> {
+    fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement())
     }
 }

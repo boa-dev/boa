@@ -6,8 +6,9 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
-use std::{any::TypeId, rc::Rc};
+use std::any::TypeId;
 
+use boa_ast::scope::Scope;
 use rustc_hash::FxHashMap;
 
 use crate::{
@@ -16,7 +17,7 @@ use crate::{
         intrinsics::{Intrinsics, StandardConstructor},
         HostHooks,
     },
-    environments::{CompileTimeEnvironment, DeclarativeEnvironment},
+    environments::DeclarativeEnvironment,
     module::Module,
     object::shape::RootShape,
     HostDefined, JsNativeError, JsObject, JsResult, JsString,
@@ -58,11 +59,11 @@ struct Inner {
     /// The global declarative environment of this realm.
     environment: Gc<DeclarativeEnvironment>,
 
-    /// The global compile time environment of this realm.
+    /// The global scope of this realm.
     /// This is directly related to the global declarative environment.
-    // Safety: Nothing in CompileTimeEnvironment needs tracing.
+    // Safety: Nothing in `Scope` needs tracing.
     #[unsafe_ignore_trace]
-    compile_environment: Rc<CompileTimeEnvironment>,
+    scope: Scope,
 
     global_object: JsObject,
     global_this: JsObject,
@@ -88,13 +89,13 @@ impl Realm {
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
         let environment = Gc::new(DeclarativeEnvironment::global());
-        let compile_environment = Rc::new(CompileTimeEnvironment::new_global());
+        let scope = Scope::new_global();
 
         let realm = Self {
             inner: Gc::new(Inner {
                 intrinsics,
                 environment,
-                compile_environment,
+                scope,
                 global_object,
                 global_this,
                 template_map: GcRefCell::default(),
@@ -167,8 +168,10 @@ impl Realm {
         &self.inner.environment
     }
 
-    pub(crate) fn compile_environment(&self) -> Rc<CompileTimeEnvironment> {
-        self.inner.compile_environment.clone()
+    /// Returns the scope of this realm.
+    #[must_use]
+    pub fn scope(&self) -> &Scope {
+        &self.inner.scope
     }
 
     pub(crate) fn global_object(&self) -> &JsObject {
@@ -185,7 +188,7 @@ impl Realm {
 
     /// Resizes the number of bindings on the global environment.
     pub(crate) fn resize_global_env(&self) {
-        let binding_number = self.compile_environment().num_bindings();
+        let binding_number = self.scope().num_bindings();
         let env = self
             .environment()
             .kind()

@@ -37,10 +37,14 @@ pub mod keyword;
 pub mod operations;
 pub mod pattern;
 pub mod property;
+pub mod scope;
+pub mod scope_analyzer;
 pub mod statement;
 pub mod visitor;
 
-use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
+use boa_string::{JsStr, JsString};
+use expression::Identifier;
 
 pub use self::{
     declaration::Declaration,
@@ -103,5 +107,30 @@ impl ToStringEscaped for [u16] {
                 Err(e) => format!("\\u{:04X}", e.unpaired_surrogate()),
             })
             .collect()
+    }
+}
+
+pub(crate) trait ToJsString {
+    fn to_js_string(&self, interner: &Interner) -> JsString;
+}
+
+impl ToJsString for Sym {
+    #[allow(clippy::cast_possible_truncation)]
+    fn to_js_string(&self, interner: &Interner) -> JsString {
+        // TODO: Identify latin1 encodeable strings during parsing to avoid this check.
+        let string = interner.resolve_expect(*self).utf16();
+        for c in string {
+            if u8::try_from(*c).is_err() {
+                return JsString::from(string);
+            }
+        }
+        let string = string.iter().map(|c| *c as u8).collect::<Vec<_>>();
+        JsString::from(JsStr::latin1(&string))
+    }
+}
+
+impl ToJsString for Identifier {
+    fn to_js_string(&self, interner: &Interner) -> JsString {
+        self.sym().to_js_string(interner)
     }
 }

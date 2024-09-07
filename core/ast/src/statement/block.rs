@@ -1,6 +1,8 @@
 //! Block AST node.
 
 use crate::{
+    operations::{contains, ContainsSymbol},
+    scope::Scope,
     visitor::{VisitWith, Visitor, VisitorMut},
     Statement, StatementList,
 };
@@ -27,7 +29,11 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq, Default)]
 pub struct Block {
     #[cfg_attr(feature = "serde", serde(flatten))]
-    statements: StatementList,
+    pub(crate) statements: StatementList,
+    pub(crate) contains_direct_eval: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Option<Scope>,
 }
 
 impl Block {
@@ -37,6 +43,13 @@ impl Block {
     pub const fn statement_list(&self) -> &StatementList {
         &self.statements
     }
+
+    /// Gets the scope of the block.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> Option<&Scope> {
+        self.scope.as_ref()
+    }
 }
 
 impl<T> From<T> for Block
@@ -44,8 +57,12 @@ where
     T: Into<StatementList>,
 {
     fn from(list: T) -> Self {
+        let statements = list.into();
+        let contains_direct_eval = contains(&statements, ContainsSymbol::DirectEval);
         Self {
-            statements: list.into(),
+            statements,
+            scope: None,
+            contains_direct_eval,
         }
     }
 }

@@ -63,7 +63,8 @@ fn main() {
     let mut parser = Parser::new(Source::from_filepath(Path::new("./scripts/calc.js")).unwrap());
     let mut ctx = Context::default();
 
-    let mut script = parser.parse_script(ctx.interner_mut()).unwrap();
+    let scope = ctx.realm().scope().clone();
+    let mut script = parser.parse_script(ctx.interner_mut(), &scope).unwrap();
 
     let mut visitor = CommutorVisitor::default();
 

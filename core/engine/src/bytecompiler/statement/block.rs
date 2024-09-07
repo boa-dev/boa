@@ -4,16 +4,22 @@ use boa_ast::statement::Block;
 impl ByteCompiler<'_> {
     /// Compile a [`Block`] `boa_ast` node
     pub(crate) fn compile_block(&mut self, block: &Block, use_expr: bool) {
-        let old_lex_env = self.lexical_environment.clone();
-        let env_index = self.push_compile_environment(false);
-        self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-        let env = self.lexical_environment.clone();
+        let outer_scope = if let Some(scope) = block.scope() {
+            let outer_scope = self.lexical_scope.clone();
+            let scope_index = self.push_scope(scope);
+            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+            Some(outer_scope)
+        } else {
+            None
+        };
 
-        self.block_declaration_instantiation(block, &env);
+        self.block_declaration_instantiation(block);
         self.compile_statement_list(block.statement_list(), use_expr, true);
 
-        self.pop_compile_environment();
-        self.lexical_environment = old_lex_env;
-        self.emit_opcode(Opcode::PopEnvironment);
+        if let Some(outer_scope) = outer_scope {
+            self.pop_scope();
+            self.lexical_scope = outer_scope;
+            self.emit_opcode(Opcode::PopEnvironment);
+        }
     }
 }

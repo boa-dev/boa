@@ -163,15 +163,17 @@ impl Module {
     ) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Module parsing", "Main");
         let path = src.path().map(Path::to_path_buf);
+        let realm = realm.unwrap_or_else(|| context.realm().clone());
+
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
-        let module = parser.parse_module(context.interner_mut())?;
+        let module = parser.parse_module(realm.scope(), context.interner_mut())?;
 
         let src = SourceTextModule::new(module, context.interner());
 
         Ok(Self {
             inner: Gc::new(ModuleRepr {
-                realm: realm.unwrap_or_else(|| context.realm().clone()),
+                realm,
                 namespace: GcRefCell::default(),
                 kind: ModuleKind::SourceText(src),
                 host_defined: HostDefined::default(),

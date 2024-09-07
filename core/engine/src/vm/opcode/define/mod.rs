@@ -23,7 +23,7 @@ impl DefVar {
         let binding_locator = context.vm.frame().code_block.bindings[index].clone();
 
         context.vm.environments.put_value_if_uninitialized(
-            binding_locator.environment(),
+            binding_locator.scope(),
             binding_locator.binding_index(),
             JsValue::undefined(),
         );
@@ -106,7 +106,7 @@ impl PutLexicalValue {
         let value = context.vm.pop();
         let binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.vm.environments.put_lexical_value(
-            binding_locator.environment(),
+            binding_locator.scope(),
             binding_locator.binding_index(),
             value,
         );

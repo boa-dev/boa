@@ -31,7 +31,7 @@ use crate::{
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
         AsyncGeneratorDeclaration, AsyncGeneratorExpression, ClassDeclaration, ClassElement,
-        ClassExpression, FormalParameter, FormalParameterList, FunctionDeclaration,
+        ClassExpression, FormalParameter, FormalParameterList, FunctionBody, FunctionDeclaration,
         FunctionExpression, GeneratorDeclaration, GeneratorExpression, PrivateName,
     },
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
@@ -126,6 +126,7 @@ macro_rules! node_ref {
 node_ref! {
     Script,
     Module,
+    FunctionBody,
     StatementList,
     StatementListItem,
     Statement,
@@ -234,6 +235,7 @@ pub trait Visitor<'ast>: Sized {
 
     define_visit!(visit_script, Script);
     define_visit!(visit_module, Module);
+    define_visit!(visit_function_body, FunctionBody);
     define_visit!(visit_statement_list, StatementList);
     define_visit!(visit_statement_list_item, StatementListItem);
     define_visit!(visit_statement, Statement);
@@ -339,6 +341,7 @@ pub trait Visitor<'ast>: Sized {
         match node {
             NodeRef::Script(n) => self.visit_script(n),
             NodeRef::Module(n) => self.visit_module(n),
+            NodeRef::FunctionBody(n) => self.visit_function_body(n),
             NodeRef::StatementList(n) => self.visit_statement_list(n),
             NodeRef::StatementListItem(n) => self.visit_statement_list_item(n),
             NodeRef::Statement(n) => self.visit_statement(n),
@@ -449,6 +452,7 @@ pub trait VisitorMut<'ast>: Sized {
 
     define_visit_mut!(visit_script_mut, Script);
     define_visit_mut!(visit_module_mut, Module);
+    define_visit_mut!(visit_function_body_mut, FunctionBody);
     define_visit_mut!(visit_statement_list_mut, StatementList);
     define_visit_mut!(visit_statement_list_item_mut, StatementListItem);
     define_visit_mut!(visit_statement_mut, Statement);
@@ -563,6 +567,7 @@ pub trait VisitorMut<'ast>: Sized {
         match node {
             NodeRefMut::Script(n) => self.visit_script_mut(n),
             NodeRefMut::Module(n) => self.visit_module_mut(n),
+            NodeRefMut::FunctionBody(n) => self.visit_function_body_mut(n),
             NodeRefMut::StatementList(n) => self.visit_statement_list_mut(n),
             NodeRefMut::StatementListItem(n) => self.visit_statement_list_item_mut(n),
             NodeRefMut::Statement(n) => self.visit_statement_mut(n),

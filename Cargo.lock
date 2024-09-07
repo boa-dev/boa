@@ -315,6 +315,7 @@ dependencies = [
  "bitflags 2.6.0",
  "boa_interner",
  "boa_macros",
+ "boa_string",
  "indexmap",
  "num-bigint",
  "rustc-hash 2.0.0",

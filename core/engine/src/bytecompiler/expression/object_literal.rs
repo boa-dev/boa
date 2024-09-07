@@ -56,7 +56,7 @@ impl ByteCompiler<'_> {
                                 MethodKind::Set => Opcode::SetPropertySetterByName,
                                 MethodKind::Ordinary => Opcode::DefineOwnPropertyByName,
                             };
-                            self.object_method((m, *name).into(), kind);
+                            self.object_method(m.into(), kind);
                             self.emit_opcode(Opcode::SetHomeObject);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit_with_varying_operand(opcode, index);

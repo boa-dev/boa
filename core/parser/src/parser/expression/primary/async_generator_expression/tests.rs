@@ -28,10 +28,10 @@ fn check_async_generator_expr() {
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![StatementListItem::Statement(Statement::Return(
+                            [StatementListItem::Statement(Statement::Return(
                                 Return::new(Some(Literal::from(1).into())),
-                            ))]
-                            .into(),
+                            ))],
+                            false,
                         ),
                         false,
                     )
@@ -66,7 +66,7 @@ fn check_nested_async_generator_expr() {
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![Declaration::Lexical(LexicalDeclaration::Const(
+                            [Declaration::Lexical(LexicalDeclaration::Const(
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
@@ -74,12 +74,10 @@ fn check_nested_async_generator_expr() {
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(
-                                                vec![StatementListItem::Statement(
-                                                    Statement::Return(Return::new(Some(
-                                                        Literal::from(1).into(),
-                                                    ))),
-                                                )]
-                                                .into(),
+                                                [StatementListItem::Statement(Statement::Return(
+                                                    Return::new(Some(Literal::from(1).into())),
+                                                ))],
+                                                false,
                                             ),
                                             false,
                                         )
@@ -89,8 +87,8 @@ fn check_nested_async_generator_expr() {
                                 .try_into()
                                 .unwrap(),
                             ))
-                            .into()]
-                            .into(),
+                            .into()],
+                            false,
                         ),
                         false,
                     )

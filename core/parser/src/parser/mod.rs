@@ -26,6 +26,7 @@ use boa_ast::{
         all_private_identifiers_valid, check_labels, contains, contains_invalid_object_literal,
         lexically_declared_names, var_declared_names, ContainsSymbol,
     },
+    scope::Scope,
     Position, StatementList,
 };
 use boa_interner::Interner;
@@ -139,9 +140,20 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Script
-    pub fn parse_script(&mut self, interner: &mut Interner) -> ParseResult<boa_ast::Script> {
+    pub fn parse_script(
+        &mut self,
+        interner: &mut Interner,
+        scope: &Scope,
+    ) -> ParseResult<boa_ast::Script> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
-        ScriptParser::new(false).parse(&mut self.cursor, interner)
+        let mut ast = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
+        if !ast.analyze_scope(scope, interner) {
+            return Err(Error::general(
+                "invalid scope analysis",
+                Position::new(1, 1),
+            ));
+        }
+        Ok(ast)
     }
 
     /// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation.
@@ -152,12 +164,23 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-Module
-    pub fn parse_module(&mut self, interner: &mut Interner) -> ParseResult<boa_ast::Module>
+    pub fn parse_module(
+        &mut self,
+        global_scope: &Scope,
+        interner: &mut Interner,
+    ) -> ParseResult<boa_ast::Module>
     where
         R: ReadChar,
     {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
-        ModuleParser.parse(&mut self.cursor, interner)
+        let mut module = ModuleParser.parse(&mut self.cursor, interner)?;
+        if !module.analyze_scope(global_scope, interner) {
+            return Err(Error::general(
+                "invalid scope analysis",
+                Position::new(1, 1),
+            ));
+        }
+        Ok(module)
     }
 
     /// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]

@@ -31,12 +31,15 @@ use boa_ast::{
         },
         Identifier,
     },
-    function::{ClassElementName as ClassElementNameNode, FormalParameterList, PrivateName},
+    function::{
+        ClassElementName as ClassElementNameNode, FormalParameterList,
+        FunctionBody as FunctionBodyAst, PrivateName,
+    },
     operations::{
         bound_names, contains, has_direct_super_new, lexically_declared_names, ContainsSymbol,
     },
     property::{MethodDefinitionKind, PropertyName as PropertyNameNode},
-    Expression, Keyword, Punctuator, Script,
+    Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -749,7 +752,7 @@ impl<R> TokenParser<R> for GeneratorMethod
 where
     R: ReadChar,
 {
-    type Output = (ClassElementNameNode, FormalParameterList, Script);
+    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("GeneratorMethod", "Parsing");
@@ -845,7 +848,7 @@ impl<R> TokenParser<R> for AsyncGeneratorMethod
 where
     R: ReadChar,
 {
-    type Output = (ClassElementNameNode, FormalParameterList, Script);
+    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncGeneratorMethod", "Parsing");
@@ -955,7 +958,7 @@ impl<R> TokenParser<R> for AsyncMethod
 where
     R: ReadChar,
 {
-    type Output = (ClassElementNameNode, FormalParameterList, Script);
+    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncMethod", "Parsing");

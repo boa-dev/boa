@@ -272,8 +272,7 @@ pub(crate) struct PoisonableEnvironment {
     bindings: GcRefCell<Vec<Option<JsValue>>>,
     #[unsafe_ignore_trace]
     poisoned: Cell<bool>,
-    #[unsafe_ignore_trace]
-    with: Cell<bool>,
+    with: bool,
 }
 
 impl PoisonableEnvironment {
@@ -282,7 +281,7 @@ impl PoisonableEnvironment {
         Self {
             bindings: GcRefCell::new(vec![None; bindings_count as usize]),
             poisoned: Cell::new(poisoned),
-            with: Cell::new(with),
+            with,
         }
     }
 
@@ -318,7 +317,7 @@ impl PoisonableEnvironment {
 
     /// Returns `true` if this environment is inside a `with` environment.
     fn with(&self) -> bool {
-        self.with.get()
+        self.with
     }
 
     /// Poisons this environment for future binding searches.
