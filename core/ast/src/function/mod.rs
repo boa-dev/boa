@@ -55,7 +55,7 @@ use crate::{
 
 /// A Function body.
 ///
-/// Since [`Script`] and `FunctionBody` has the same semantics, this is currently
+/// Since `Script` and `FunctionBody` have the same semantics, this is currently
 /// only an alias of the former.
 ///
 /// More information:

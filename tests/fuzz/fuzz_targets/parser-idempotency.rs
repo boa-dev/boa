@@ -4,6 +4,7 @@ mod common;
 
 use crate::common::FuzzData;
 use boa_interner::ToInternedString;
+use boa_ast::scope::Scope;
 use boa_parser::{Parser, Source};
 use libfuzzer_sys::{fuzz_target, Corpus};
 use std::{error::Error, io::Cursor};
@@ -15,11 +16,11 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
     let original = data.ast.to_interned_string(&data.interner);
 
     let mut parser = Parser::new(Source::from_reader(Cursor::new(&original), None));
-
+    let scope = Scope::new_global();
     let before = data.interner.len();
     // For a variety of reasons, we may not actually produce valid code here (e.g., nameless function).
     // Fail fast and only make the next checks if we were valid.
-    if let Ok(first) = parser.parse_script(&mut data.interner) {
+    if let Ok(first) = parser.parse_script(&mut data.interner, &scope) {
         let after_first = data.interner.len();
         let first_interned = first.to_interned_string(&data.interner);
 
@@ -33,10 +34,11 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
             first
         );
         let mut parser = Parser::new(Source::from_reader(Cursor::new(&first_interned), None));
+        let second_scope = Scope::new_global();
 
         // Now, we most assuredly should produce valid code. It has already gone through a first pass.
         let second = parser
-            .parse_script(&mut data.interner)
+            .parse_script(&mut data.interner, &second_scope)
             .expect("Could not parse the first-pass interned copy.");
         let second_interned = second.to_interned_string(&data.interner);
         let after_second = data.interner.len();
