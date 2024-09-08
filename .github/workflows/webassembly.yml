@@ -2,9 +2,11 @@ on:
   pull_request:
     branches:
       - main
+      - releases/**
   push:
     branches:
       - main
+      - releases/**
   merge_group:
     types: [checks_requested]
 
