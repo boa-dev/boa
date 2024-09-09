@@ -114,6 +114,8 @@ impl<'context> Optimizer<'context> {
     /// Apply optimizations inplace.
     pub(crate) fn apply(&mut self, statement_list: &mut StatementList) -> OptimizerStatistics {
         self.visit_statement_list_mut(statement_list);
+
+        #[allow(clippy::print_stdout)]
         if self
             .context
             .optimizer_options()

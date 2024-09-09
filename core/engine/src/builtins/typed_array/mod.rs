@@ -13,10 +13,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
 use crate::{
-    builtins::{
-        iterable::iterable_to_list, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
-        IntrinsicObject,
-    },
+    builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -199,13 +196,14 @@ impl<T: TypedArrayMarker> BuiltInConstructor for T {
         // either a [[TypedArrayName]] or an [[ArrayBufferData]] internal slot.
 
         // 2. Let usingIterator be ? GetMethod(firstArgument, @@iterator).
-
         let using_iterator = first_argument.get_method(JsSymbol::iterator(), context)?;
 
         // 3. If usingIterator is not undefined, then
         if let Some(using_iterator) = using_iterator {
-            // a. Let values be ? IterableToList(firstArgument, usingIterator).
-            let values = iterable_to_list(context, &first_argument.into(), Some(using_iterator))?;
+            // a. Let values be ? IteratorToList(? GetIteratorFromMethod(firstArgument, usingIterator)).
+            let values = JsValue::from(first_argument.clone())
+                .get_iterator_from_method(&using_iterator, context)?
+                .into_list(context)?;
 
             // b. Perform ? InitializeTypedArrayFromList(O, values).
             BuiltinTypedArray::initialize_from_list::<T>(proto, values, context)

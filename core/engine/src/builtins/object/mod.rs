@@ -17,7 +17,7 @@ use super::{
     error::ErrorObject, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
 };
 use crate::{
-    builtins::{map, BuiltInObject},
+    builtins::{iterable::IteratorHint, map, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -1339,7 +1339,7 @@ impl OrdinaryObject {
         let adder = closure.length(2).name("").build();
 
         // 6. Return ? AddEntriesFromIterable(obj, iterable, adder).
-        map::add_entries_from_iterable(&obj, iterable, &adder.into(), context)
+        map::add_entries_from_iterable(&obj, iterable, &adder, context)
     }
 
     /// [`Object.groupBy ( items, callbackfn )`][spec]
@@ -1362,7 +1362,7 @@ impl OrdinaryObject {
         // 1. Let groups be ? GroupBy(items, callbackfn, property).
 
         // `GroupBy`
-        // https://tc39.es/proposal-array-grouping/#sec-group-by
+        // https://tc39.es/ecma262/#sec-groupby
         // inlined to change the key type.
 
         // 1. Perform ? RequireObjectCoercible(items).
@@ -1377,8 +1377,8 @@ impl OrdinaryObject {
         let mut groups: IndexMap<PropertyKey, Vec<JsValue>, BuildHasherDefault<FxHasher>> =
             IndexMap::default();
 
-        // 4. Let iteratorRecord be ? GetIterator(items).
-        let mut iterator = items.get_iterator(context, None, None)?;
+        // 4. Let iteratorRecord be ? GetIterator(items, sync).
+        let mut iterator = items.get_iterator(IteratorHint::Sync, context)?;
 
         // 5. Let k be 0.
         let mut k = 0u64;
@@ -1396,17 +1396,15 @@ impl OrdinaryObject {
                 return iterator.close(Err(error), context);
             }
 
-            // b. Let next be ? IteratorStep(iteratorRecord).
-            let done = iterator.step(context)?;
-
-            // c. If next is false, then
-            if done {
+            // b. Let next be ? IteratorStepValue(iteratorRecord).
+            let Some(next) = iterator.step_value(context)? else {
+                // c. If next is false, then
                 // i. Return groups.
                 break;
-            }
+            };
 
-            // d. Let value be ? IteratorValue(next).
-            let value = iterator.value(context)?;
+            // d. Let value be next.
+            let value = next;
 
             // e. Let key be Completion(Call(callbackfn, undefined, « value, 𝔽(k) »)).
             let key = callback.call(&JsValue::undefined(), &[value.clone(), k.into()], context);

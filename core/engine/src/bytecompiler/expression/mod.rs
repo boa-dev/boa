@@ -363,6 +363,7 @@ impl ByteCompiler<'_> {
             }
             // TODO: try to remove this variant somehow
             Expression::FormalParameterList(_) => unreachable!(),
+            Expression::Debugger => (),
         }
     }
 }

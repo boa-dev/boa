@@ -21,7 +21,7 @@ use boa_profiler::Profiler;
 #[doc(inline)]
 pub use conversions::convert::Convert;
 
-use crate::object::JsFunction;
+use crate::object::{JsFunction, JsPromise};
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -205,11 +205,20 @@ impl JsValue {
         matches!(self, Self::Object(obj) if obj.is::<Promise>())
     }
 
-    /// Returns the promise if the value is a promise, otherwise `None`.
+    /// Returns the value as an object if the value is a promise, otherwise `None`.
     #[inline]
     #[must_use]
-    pub fn as_promise(&self) -> Option<&JsObject> {
+    pub(crate) fn as_promise_object(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is::<Promise>())
+    }
+
+    /// Returns the value as a promise if the value is a promise, otherwise `None`.
+    #[inline]
+    #[must_use]
+    pub fn as_promise(&self) -> Option<JsPromise> {
+        self.as_promise_object()
+            .cloned()
+            .and_then(|o| JsPromise::from_object(o).ok())
     }
 
     /// Returns true if the value is a symbol.
@@ -1018,6 +1027,40 @@ impl JsValue {
             }
         }
         .into()
+    }
+
+    /// Maps a `JsValue` into a `Option<T>` where T is the result of an
+    /// operation on a defined value. If the value is `JsValue::undefined`,
+    /// then `JsValue::map` will return None.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, Context};
+    ///
+    /// let mut context = Context::default();
+    ///
+    /// let defined_value = JsValue::from(5);
+    /// let undefined = JsValue::undefined();
+    ///
+    /// let defined_result = defined_value.map(|v| v.add(&JsValue::from(5), &mut context)).transpose().unwrap();
+    /// let undefined_result = undefined.map(|v| v.add(&JsValue::from(5), &mut context)).transpose().unwrap();
+    ///
+    /// assert_eq!(defined_result, Some(JsValue::Integer(10)));
+    /// assert_eq!(undefined_result, None);
+    ///
+    /// ```
+    ///
+    #[inline]
+    #[must_use]
+    pub fn map<T, F>(&self, f: F) -> Option<T>
+    where
+        F: FnOnce(&JsValue) -> T,
+    {
+        if self.is_undefined() {
+            return None;
+        }
+        Some(f(self))
     }
 
     /// Abstract operation `IsArray ( argument )`

@@ -1,4 +1,4 @@
-commit = "12307f5c20a4c4211e69823939fd1872212894c5"
+commit = "dde3050bdbfb8f425084077b6293563932d57ebc"
 
 [ignored]
 # Not implemented yet:
@@ -64,10 +64,6 @@ features = [
     # Uint8Array Base64
     # https://github.com/tc39/proposal-arraybuffer-base64
     "uint8array-base64",
-
-    # Atomics.pause
-    # https://github.com/tc39/proposal-atomics-microwait
-    "Atomics.pause",
 
     ### Non-standard
     "caller",

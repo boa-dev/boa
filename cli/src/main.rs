@@ -5,6 +5,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
+#![allow(clippy::print_stdout, clippy::print_stderr)]
 
 mod debug;
 mod helper;
