@@ -21,8 +21,7 @@ impl fmt::Display for JsStrDisplayEscaped<'_> {
             JsStrVariant::Utf16(_) => self.inner.code_points().try_for_each(|r| match r {
                 CodePoint::Unicode(c) => f.write_char(c),
                 CodePoint::UnpairedSurrogate(c) => {
-                    f.write_str("\\u")?;
-                    write!(f, "{c:04X}")
+                    write!(f, "\\u{c:04X}")
                 }
             }),
         }
