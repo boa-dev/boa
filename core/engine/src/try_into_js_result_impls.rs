@@ -17,11 +17,12 @@ where
     T: TryIntoJsResult,
 {
     fn try_into_js_result(self, cx: &mut Context) -> JsResult<JsValue> {
-        Ok(JsArray::from_iter(
-            self.into_iter().map(|value| value.try_into_js_result(cx)),
-            cx,
-        )
-        .into())
+        let array = JsArray::new(cx);
+        // We have to manually enumerate because we cannot return a Result from a map monad.
+        for value in self {
+            array.push(value.try_into_js_result(cx)?, cx)?;
+        }
+        Ok(array.into())
     }
 }
 
