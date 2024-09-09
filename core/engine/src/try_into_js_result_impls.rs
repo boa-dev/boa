@@ -1,5 +1,6 @@
 //! Declare implementations of [`TryIntoJsResult`] trait for various types.
 
+use crate::object::JsArray;
 use crate::{Context, JsResult, JsValue, TryIntoJsResult};
 
 impl<T> TryIntoJsResult for T
@@ -8,6 +9,19 @@ where
 {
     fn try_into_js_result(self, _cx: &mut Context) -> JsResult<JsValue> {
         Ok(self.into())
+    }
+}
+
+impl<T> TryIntoJsResult for Vec<T>
+where
+    T: TryIntoJsResult,
+{
+    fn try_into_js_result(self, cx: &mut Context) -> JsResult<JsValue> {
+        Ok(JsArray::from_iter(
+            self.into_iter().map(|value| value.try_into_js_result(cx)),
+            cx,
+        )
+        .into())
     }
 }
 
