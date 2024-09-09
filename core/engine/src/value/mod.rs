@@ -927,6 +927,11 @@ impl JsValue {
         }
     }
 
+    /// Converts a value to a 32 bit floating point.
+    pub fn to_f32(&self, context: &mut Context) -> JsResult<f32> {
+        self.to_number(context).map(|n| n as f32)
+    }
+
     /// This is a more specialized version of `to_numeric`, including `BigInt`.
     ///
     /// This function is equivalent to `Number(value)` in JavaScript
