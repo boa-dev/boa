@@ -1,4 +1,4 @@
-use crate::{is_trimmable_whitespace, is_trimmable_whitespace_latin1, Iter};
+use crate::{is_trimmable_whitespace, is_trimmable_whitespace_latin1, CodePoint, Iter};
 use std::{
     hash::{Hash, Hasher},
     slice::SliceIndex,
@@ -233,6 +233,16 @@ impl<'a> JsStr<'a> {
     pub fn ends_with(&self, needle: JsStr<'_>) -> bool {
         let (m, n) = (self.len(), needle.len());
         m >= n && needle == self.get(m - n..).expect("already checked size")
+    }
+
+    /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
+    /// This is not optimized for Latin1 strings.
+    #[inline]
+    pub(crate) fn code_points(self) -> impl Iterator<Item = CodePoint> + Clone + 'a {
+        char::decode_utf16(self.iter()).map(|res| match res {
+            Ok(c) => CodePoint::Unicode(c),
+            Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
+        })
     }
 }
 
