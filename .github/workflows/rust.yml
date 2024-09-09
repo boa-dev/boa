@@ -4,20 +4,23 @@ on:
   pull_request:
     branches:
       - main
+      - releases/**
   push:
     branches:
       - main
+      - releases/**
   merge_group:
     types: [checks_requested]
 
 env:
-  RUSTFLAGS: -Dwarnings
+  RUSTFLAGS: ${{ github.ref == 'refs/heads/main' && '-D warnings' || '' }}
 
 jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -149,7 +152,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      RUSTDOCFLAGS: -D warnings
+      RUSTDOCFLAGS: ${{ github.ref == 'refs/heads/main' && '-D warnings' || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
