@@ -12,7 +12,7 @@ pub struct JsStrDisplayEscaped<'a> {
 impl fmt::Display for JsStrDisplayEscaped<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.inner.variant() {
-            // SAFETY: `JsStrVariant::Latin1` is always valid utf8, so no need to check.
+            // SAFETY: `JsStrVariant::Latin1` does not contain any unpaired surrogates, so need to check.
             JsStrVariant::Latin1(v) => v
                 .iter()
                 .copied()
