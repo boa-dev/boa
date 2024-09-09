@@ -158,8 +158,7 @@ impl std::fmt::Display for CodePoint {
         match self {
             CodePoint::Unicode(c) => f.write_char(*c),
             CodePoint::UnpairedSurrogate(c) => {
-                f.write_str("\\u")?;
-                write!(f, "{c:04X}")
+                write!(f, "\\u{c:04X}")
             }
         }
     }
