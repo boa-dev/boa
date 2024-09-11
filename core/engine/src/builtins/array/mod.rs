@@ -193,8 +193,8 @@ impl BuiltInObject for Array {
 }
 
 impl BuiltInConstructor for Array {
-    const P: usize = 41;
-    const SP: usize = 5;
+    const PPOPERTY_COUNT: usize = 41;
+    const STATIC_PROPERTY_COUNT: usize = 5;
 
     const LENGTH: usize = 1;
 
