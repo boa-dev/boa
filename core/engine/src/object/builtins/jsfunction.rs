@@ -56,8 +56,8 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
 
     /// Get the inner `JsFunction` without consuming this object.
     #[must_use]
-    pub fn to_js_function(&self) -> JsFunction {
-        self.inner.clone()
+    pub fn as_js_function(&self) -> &JsFunction {
+        &self.inner
     }
 
     /// Call the function with the given arguments.
@@ -96,6 +96,12 @@ impl<A: TryIntoJsArguments, R: TryFromJs> From<TypedJsFunction<A, R>> for JsValu
     #[inline]
     fn from(o: TypedJsFunction<A, R>) -> Self {
         o.into_inner().into()
+    }
+}
+
+impl<A: TryIntoJsArguments, R: TryFromJs> From<TypedJsFunction<A, R>> for JsFunction {
+    fn from(value: TypedJsFunction<A, R>) -> Self {
+        value.inner.clone()
     }
 }
 
