@@ -80,19 +80,20 @@ impl Realm {
     pub fn create(hooks: &dyn HostHooks, root_shape: &RootShape) -> JsResult<Self> {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
 
-        let intrinsics = Intrinsics::uninit(root_shape).ok_or_else(|| {
-            JsNativeError::typ().with_message("failed to create the realm intrinsics")
-        })?;
+        // Use Gc::new_cyclic to create the Realm with a cyclic reference
+        let inner = Gc::new_cyclic(|weak_realm| {
+            // Initialize intrinsics with a reference to the weak_realm
+            let intrinsics =
+                Intrinsics::uninit(root_shape).expect("failed to create the realm intrinisics");
 
-        let global_object = hooks.create_global_object(&intrinsics);
-        let global_this = hooks
-            .create_global_this(&intrinsics)
-            .unwrap_or_else(|| global_object.clone());
-        let environment = Gc::new(DeclarativeEnvironment::global());
-        let scope = Scope::new_global();
+            let global_object = hooks.create_global_object(&intrinsics);
+            let global_this = hooks
+                .create_global_this(&intrinsics)
+                .unwrap_or_else(|| global_object.clone());
+            let environment = Gc::new(DeclarativeEnvironment::global());
+            let scope = Scope::new_global();
 
-        let realm = Self {
-            inner: Gc::new(Inner {
+            Inner {
                 intrinsics,
                 environment,
                 scope,
@@ -102,8 +103,10 @@ impl Realm {
                 loaded_modules: GcRefCell::default(),
                 host_classes: GcRefCell::default(),
                 host_defined: GcRefCell::default(),
-            }),
-        };
+            }
+        });
+
+        let realm = Self { inner };
 
         realm.initialize();
 

@@ -13,7 +13,7 @@ use crate::{
     },
     property::{PropertyDescriptor, PropertyKey},
     realm::Realm,
-    Context, JsData, JsObject, JsResult, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::cell::Cell;
@@ -44,6 +44,15 @@ unsafe impl Trace for BuiltIn {
 // Implement the trait for JsData by overriding all internal_methods by calling init before calling into the underlying internel_method
 impl JsData for BuiltIn {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
+        static CONSTRUCTOR: InternalObjectMethods = InternalObjectMethods {
+            __construct__: lazy_construct,
+            ..LAZY_INTERNAL_METHODS
+        };
+
+        if let BuiltinKind::Constructor(_) = self.kind {
+            return &CONSTRUCTOR;
+        }
+
         &LAZY_INTERNAL_METHODS
     }
 }
@@ -61,8 +70,8 @@ pub(crate) static LAZY_INTERNAL_METHODS: InternalObjectMethods = InternalObjectM
     __set__: lazy_set,
     __delete__: lazy_delete,
     __own_property_keys__: lazy_own_property_keys,
-    __call__: lazy_call,
-    __construct__: lazy_construct,
+    __call__: non_existant_call,
+    __construct__: non_existant_construct,
 };
 
 pub(crate) fn lazy_get_prototype_of(
@@ -252,25 +261,6 @@ pub(crate) fn lazy_own_property_keys(
     ordinary_own_property_keys(obj, context)
 }
 
-pub(crate) fn lazy_call(
-    obj: &JsObject,
-    argument_count: usize,
-    context: &mut Context,
-) -> JsResult<CallValue> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        (builtin.init)(realm);
-    }
-
-    if let BuiltinKind::Constructor(constructor) = &builtin.kind {
-        return Ok(constructor.__call__(argument_count));
-    }
-
-    non_existant_call(obj, argument_count, context)
-}
-
 pub(crate) fn lazy_construct(
     obj: &JsObject,
     argument_count: usize,
@@ -282,9 +272,12 @@ pub(crate) fn lazy_construct(
         builtin.is_initialized.set(true);
         (builtin.init)(realm);
     }
-    if let BuiltinKind::Constructor(constructor) = &builtin.kind {
-        return Ok(constructor.__construct__(argument_count));
-    }
 
-    non_existant_construct(obj, argument_count, context)
+    match &builtin.kind {
+        BuiltinKind::Ordinary => Err(JsNativeError::typ()
+            .with_message("not a constructor")
+            .with_realm(context.realm().clone())
+            .into()),
+        BuiltinKind::Constructor(constructor) => Ok(constructor.__construct__(argument_count)),
+    }
 }
