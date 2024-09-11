@@ -48,12 +48,19 @@ impl Register {
 }
 
 impl Drop for Register {
+    /// This method should never be called.
+    /// It is used to detect when a register has not been deallocated.
     fn drop(&mut self) {
         if self.flags.is_persistent() {
             return;
         }
 
-        unreachable!("forgot to deallocate a register! Or a panic happend which caused Reg's drop to be called after the panic!")
+        // Prevent double panic.
+        if std::thread::panicking() {
+            return;
+        }
+
+        unreachable!("forgot to deallocate a register!")
     }
 }
 
@@ -64,11 +71,13 @@ pub(crate) struct RegisterAllocator {
 
 impl RegisterAllocator {
     pub(crate) fn alloc(&mut self) -> Register {
-        for (i, register) in self.registers.iter_mut().enumerate() {
-            if register.flags.is_used() {
-                continue;
-            }
-
+        if let Some((i, register)) = self
+            .registers
+            .iter_mut()
+            .filter(|reg| !reg.flags.is_used())
+            .enumerate()
+            .next()
+        {
             assert!(!register.flags.is_persistent());
 
             register.flags |= RegisterFlags::USED;
