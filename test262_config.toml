@@ -1,4 +1,4 @@
-commit = "3a7a72aef5009eb22117231d40f9a5a66a9a595a"
+commit = "12307f5c20a4c4211e69823939fd1872212894c5"
 
 [ignored]
 # Not implemented yet:
@@ -50,12 +50,24 @@ features = [
     # https://github.com/tc39/proposal-json-parse-with-source
     "json-parse-with-source",
 
+    # RegExp.escape
+    # https://github.com/tc39/proposal-regex-escaping
+    "RegExp.escape",
+
     # https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers",
 
     # Set methods
     # https://github.com/tc39/proposal-set-methods
     "set-methods",
+
+    # Uint8Array Base64
+    # https://github.com/tc39/proposal-arraybuffer-base64
+    "uint8array-base64",
+
+    # Atomics.pause
+    # https://github.com/tc39/proposal-atomics-microwait
+    "Atomics.pause",
 
     ### Non-standard
     "caller",

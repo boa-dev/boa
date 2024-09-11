@@ -16,6 +16,8 @@ use crate::{
 use super::{function::ConstructorKind, BuiltInConstructor, IntrinsicObject};
 
 /// Marker for a constructor function.
+// TODO: Remove this marker and use `Constructor` directly.
+#[allow(dead_code)]
 pub(crate) struct Constructor {
     prototype: JsObject,
     inherits: JsPrototype,
@@ -23,6 +25,8 @@ pub(crate) struct Constructor {
 }
 
 /// Marker for a constructor function without a custom prototype for its instances.
+// TODO: Remove this marker and use `ConstructorNoProto` directly.
+#[allow(dead_code)]
 pub(crate) struct ConstructorNoProto;
 
 /// Marker for an ordinary function.
