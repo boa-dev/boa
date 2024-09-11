@@ -12,6 +12,58 @@ use boa_interop::js_class;
 #[cfg(test)]
 mod tests;
 
+/// The `TextDecoder`[mdn] class represents an encoder for a specific method, that is
+/// a specific character encoding, like `utf-8`.
+///
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/TextDecoder
+#[derive(Debug, Clone, JsData, Trace, Finalize)]
+pub struct TextDecoder;
+
+impl TextDecoder {
+    /// Register the `TextDecoder` class into the realm.
+    ///
+    /// # Errors
+    /// This will error if the context or realm cannot register the class.
+    pub fn register(context: &mut Context) -> JsResult<()> {
+        context.register_global_class::<Self>()?;
+        Ok(())
+    }
+
+    /// The `decode()` method of the `TextDecoder` interface returns a `JsString` containing
+    /// the given `Uint8Array` decoded in the specific method. This will replace any
+    /// invalid characters with the Unicode replacement character.
+    pub fn decode(text: &JsUint8Array, context: &mut Context) -> JsString {
+        let buffer = text.iter(context).collect::<Vec<u8>>();
+        let string = String::from_utf8_lossy(&buffer);
+        JsString::from(string.as_ref())
+    }
+}
+
+js_class! {
+    class TextDecoder {
+        property encoding {
+            fn get() -> JsString {
+                js_string!("utf-8")
+            }
+        }
+
+        // Creates a new `TextEncoder` object. Encoding is optional but MUST BE
+        // "utf-8" if specified. Options is ignored.
+        constructor(encoding: Option<JsString>, _options: Option<JsObject>) {
+            if let Some(e) = encoding {
+                if e != js_string!("utf-8") {
+                    return Err(JsNativeError::typ().with_message("Only utf-8 encoding is supported").into());
+                }
+            }
+            Ok(TextDecoder)
+        }
+
+        fn decode(array: JsUint8Array, context: &mut Context) -> JsString {
+            TextDecoder::decode(&array, context)
+        }
+    }
+}
+
 /// The `TextEncoder`[mdn] class represents an encoder for a specific method, that is
 /// a specific character encoding, like `utf-8`.
 ///

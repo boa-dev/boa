@@ -59,7 +59,7 @@ pub use console::{Console, Logger};
 mod text;
 
 #[doc(inline)]
-pub use text::TextEncoder;
+pub use text::{TextDecoder, TextEncoder};
 
 #[cfg(test)]
 pub(crate) mod test {
