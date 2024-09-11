@@ -55,7 +55,7 @@ Add the below dependency to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-boa_engine = "0.19.0"
+boa_engine = "0.19.1"
 ```
 
 Then in `main.rs`, copy the below:
