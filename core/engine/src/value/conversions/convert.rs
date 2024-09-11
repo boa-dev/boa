@@ -7,9 +7,10 @@
 //! if necessary).
 
 use boa_engine::JsNativeError;
+use boa_gc::{Finalize, Trace};
 
 use crate::value::TryFromJs;
-use crate::{Context, JsResult, JsString, JsValue};
+use crate::{Context, JsData, JsResult, JsString, JsValue};
 
 /// A wrapper type that allows converting a `JsValue` to a specific type.
 /// This is useful when you want to convert a `JsValue` to a Rust type.
@@ -42,7 +43,7 @@ use crate::{Context, JsResult, JsString, JsValue};
 /// assert_eq!(conv5, true);
 /// assert_eq!(conv_nan, false);
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize, JsData)]
 pub struct Convert<T: TryFromJs>(pub T);
 
 impl<T: TryFromJs> From<T> for Convert<T> {
