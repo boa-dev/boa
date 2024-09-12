@@ -104,6 +104,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
+          targets: ${{ matrix.target }}
 
       - name: Build
         run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
