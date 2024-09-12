@@ -8,6 +8,7 @@ mod expression;
 mod function;
 mod jump_control;
 mod module;
+mod register;
 mod statement;
 mod utils;
 
@@ -18,8 +19,8 @@ use crate::{
     environments::{BindingLocator, BindingLocatorError, CompileTimeEnvironment},
     js_string,
     vm::{
-        BindingOpcode, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler,
-        InlineCache, Opcode, VaryingOperandKind,
+        BindingOpcode, CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind,
+        Handler, InlineCache, Opcode, VaryingOperandKind,
     },
     JsBigInt, JsStr, JsString,
 };
@@ -54,6 +55,7 @@ pub(crate) use declarations::{
 };
 pub(crate) use function::FunctionCompiler;
 pub(crate) use jump_control::JumpControlInfo;
+pub(crate) use register::*;
 
 pub(crate) trait ToJsString {
     fn to_js_string(&self, interner: &Interner) -> JsString;
@@ -384,7 +386,7 @@ pub struct ByteCompiler<'ctx> {
     /// The number of arguments expected.
     pub(crate) length: u32,
 
-    pub(crate) register_count: u32,
+    pub(crate) register_allocator: RegisterAllocator,
 
     /// `[[ThisMode]]`
     pub(crate) this_mode: ThisMode,
@@ -408,7 +410,7 @@ pub struct ByteCompiler<'ctx> {
 
     pub(crate) current_open_environments_count: u32,
     current_stack_value_count: u32,
-    pub(crate) code_block_flags: CodeBlockFlags,
+    code_block_flags: CodeBlockFlags,
     handlers: ThinVec<Handler>,
     pub(crate) ic: Vec<InlineCache>,
     literals_map: FxHashMap<Literal, u32>,
@@ -441,18 +443,53 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     /// Creates a new [`ByteCompiler`].
     #[inline]
+    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::fn_params_excessive_bools)]
     pub(crate) fn new(
         name: JsString,
         strict: bool,
         json_parse: bool,
         variable_environment: Rc<CompileTimeEnvironment>,
         lexical_environment: Rc<CompileTimeEnvironment>,
+        is_async: bool,
+        is_generator: bool,
         interner: &'ctx mut Interner,
         in_with: bool,
     ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
+        code_block_flags.set(CodeBlockFlags::IS_ASYNC, is_async);
+        code_block_flags.set(CodeBlockFlags::IS_GENERATOR, is_generator);
         code_block_flags |= CodeBlockFlags::HAS_PROTOTYPE_PROPERTY;
+
+        let mut register_allocator = RegisterAllocator::default();
+        if is_async {
+            let promise_register = register_allocator.alloc_persistent();
+            let resolve_register = register_allocator.alloc_persistent();
+            let reject_register = register_allocator.alloc_persistent();
+
+            debug_assert_eq!(
+                promise_register.index(),
+                CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX
+            );
+            debug_assert_eq!(
+                resolve_register.index(),
+                CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX
+            );
+            debug_assert_eq!(
+                reject_register.index(),
+                CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX
+            );
+
+            if is_generator {
+                let async_function_object_register = register_allocator.alloc_persistent();
+                debug_assert_eq!(
+                    async_function_object_register.index(),
+                    CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX
+                );
+            }
+        }
+
         Self {
             function_name: name,
             length: 0,
@@ -463,7 +500,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             params: FormalParameterList::default(),
             current_open_environments_count: 0,
 
-            register_count: 0,
+            register_allocator,
             current_stack_value_count: 0,
             code_block_flags,
             handlers: ThinVec::default(),
@@ -638,6 +675,17 @@ impl<'ctx> ByteCompiler<'ctx> {
         for operand in operands {
             self.emit_operand(*operand, varying_kind);
         }
+    }
+
+    /// TODO: Temporary function, remove once transition is complete.
+    #[allow(unused)]
+    fn pop_into_register(&mut self, dst: &Register) {
+        self.emit(Opcode::PopIntoRegister, &[Operand::Varying(dst.index())]);
+    }
+    /// TODO: Temporary function, remove once transition is complete.
+    #[allow(unused)]
+    fn push_from_register(&mut self, src: &Register) {
+        self.emit(Opcode::PushFromRegister, &[Operand::Varying(src.index())]);
     }
 
     /// Emits an opcode with one varying operand.
@@ -1689,19 +1737,12 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
-        if self.is_async() {
-            // NOTE: +3 for the promise capability
-            self.register_count += 3;
-            if self.is_generator() {
-                // NOTE: +1 for the async generator function
-                self.register_count += 1;
-            }
-        }
+        let register_count = self.register_allocator.finish();
 
         // NOTE: Offset the handlers stack count so we don't pop the registers
         //       when a exception is thrown.
         for handler in &mut self.handlers {
-            handler.stack_count += self.register_count;
+            handler.stack_count += register_count;
         }
 
         let mapped_arguments_binding_indices = if self.emitted_mapped_arguments_object_opcode {
@@ -1713,7 +1754,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         CodeBlock {
             name: self.function_name,
             length: self.length,
-            register_count: self.register_count,
+            register_count,
             this_mode: self.this_mode,
             parameter_length: self.params.as_ref().len() as u32,
             mapped_arguments_binding_indices,

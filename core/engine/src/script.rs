@@ -134,6 +134,8 @@ impl Script {
             false,
             self.inner.realm.environment().compile_env(),
             self.inner.realm.environment().compile_env(),
+            false,
+            false,
             context.interner_mut(),
             false,
         );

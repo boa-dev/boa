@@ -114,3 +114,76 @@ impl Operation for SetReturnValue {
         Ok(CompletionType::Normal)
     }
 }
+
+/// TODO: doc
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PopIntoRegister;
+
+impl PopIntoRegister {
+    #[allow(clippy::unnecessary_wraps)]
+    #[allow(clippy::needless_pass_by_value)]
+    fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.pop();
+
+        let rp = context.vm.frame().rp;
+        context.vm.stack[(rp + dst) as usize] = value;
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for PopIntoRegister {
+    const NAME: &'static str = "PopIntoRegister";
+    const INSTRUCTION: &'static str = "INST - PopIntoRegister";
+    const COST: u8 = 2;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u8>());
+        Self::operation(dst, context)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u16>());
+        Self::operation(dst, context)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u32>();
+        Self::operation(dst, context)
+    }
+}
+
+/// TODO: doc
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PushFromRegister;
+
+impl PushFromRegister {
+    #[allow(clippy::unnecessary_wraps)]
+    #[allow(clippy::needless_pass_by_value)]
+    fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
+        let rp = context.vm.frame().rp;
+        let value = context.vm.stack[(rp + dst) as usize].clone();
+        context.vm.push(value);
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for PushFromRegister {
+    const NAME: &'static str = "PushFromRegister";
+    const INSTRUCTION: &'static str = "INST - PushFromRegister";
+    const COST: u8 = 2;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u8>());
+        Self::operation(dst, context)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = u32::from(context.vm.read::<u16>());
+        Self::operation(dst, context)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u32>();
+        Self::operation(dst, context)
+    }
+}

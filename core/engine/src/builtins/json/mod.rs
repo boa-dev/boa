@@ -120,6 +120,8 @@ impl Json {
                 true,
                 context.realm().environment().compile_env(),
                 context.realm().environment().compile_env(),
+                false,
+                false,
                 context.interner_mut(),
                 in_with,
             );
