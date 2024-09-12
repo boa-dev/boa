@@ -67,7 +67,11 @@ fn fibonacci_test() {
         fibonacci_js
             .call(
                 context,
-                (10, fibonacci_rust.clone(), fibonacci_js.to_js_function())
+                (
+                    10,
+                    fibonacci_rust.clone(),
+                    fibonacci_js.as_js_function().clone()
+                )
             )
             .unwrap(),
         55
@@ -80,7 +84,11 @@ fn fibonacci_test() {
         fibonacci_js
             .call(
                 context,
-                (10, fibonacci_throw.clone(), fibonacci_js.to_js_function())
+                (
+                    10,
+                    fibonacci_throw.clone(),
+                    fibonacci_js.as_js_function().clone()
+                )
             )
             .unwrap_err()
             .to_string(),
