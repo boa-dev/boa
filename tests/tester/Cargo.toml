@@ -17,7 +17,7 @@ boa_runtime.workspace = true
 boa_gc.workspace = true
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
-tc39-test262 = { path = "../../tools/tc39-test262"}
+test262 = { path = "../../tools/test262"}
 serde_json.workspace = true
 colored.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }

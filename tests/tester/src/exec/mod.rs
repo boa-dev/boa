@@ -19,7 +19,7 @@ use colored::Colorize;
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
 use std::{cell::RefCell, eprintln, path::Path, rc::Rc};
-use tc39_test262::{ErrorType, Harness, Outcome, Phase, SpecEdition, Test, TestSuite};
+use test262::{ErrorType, Harness, Outcome, Phase, SpecEdition, Test, TestSuite};
 
 use self::js262::WorkerHandles;
 

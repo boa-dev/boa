@@ -583,7 +583,7 @@ dependencies = [
  "rustc-hash 2.0.0",
  "serde",
  "serde_json",
- "tc39-test262",
+ "test262",
  "time",
  "toml 0.8.19",
 ]
@@ -3058,17 +3058,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_repr"
-version = "0.1.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c64451ba24fc7a6a2d60fc75dd9c83c90903b19028d4eff35e88fc1e86564e9"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "serde_spanned"
 version = "0.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3281,20 +3270,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
-name = "tc39-test262"
-version = "0.19.0"
-dependencies = [
- "bitflags 2.6.0",
- "clap",
- "color-eyre",
- "phf",
- "rustc-hash 2.0.0",
- "serde",
- "serde_repr",
- "serde_yaml",
-]
-
-[[package]]
 name = "temporal_rs"
 version = "0.0.3"
 source = "git+https://github.com/boa-dev/temporal.git?rev=1e7901d07a83211e62373ab94284a7d1ada4c913#1e7901d07a83211e62373ab94284a7d1ada4c913"
@@ -3354,6 +3329,19 @@ dependencies = [
  "quote",
  "syn",
  "test-case-core",
+]
+
+[[package]]
+name = "test262"
+version = "0.19.0"
+dependencies = [
+ "bitflags 2.6.0",
+ "color-eyre",
+ "phf",
+ "rustc-hash 2.0.0",
+ "serde",
+ "serde_json",
+ "serde_yaml",
 ]
 
 [[package]]

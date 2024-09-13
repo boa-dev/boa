@@ -4,7 +4,6 @@
 //! classify all tests per minimum required ECMAScript edition.
 
 use crate::{test_flags::TestFlag, MetaData};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::fmt::Display;
 
 /// Minimum edition required by a specific feature in the `test262` repository.
@@ -277,69 +276,104 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
 
 /// List of ECMAScript editions that can be tested in the `test262` repository.
 #[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Default,
-    Serialize_repr,
-    Deserialize_repr,
-    clap::ValueEnum,
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
 )]
-#[repr(u8)]
-pub enum SpecEdition {
+#[serde(transparent)]
+#[repr(transparent)]
+pub struct SpecEdition(u8);
+
+impl Default for SpecEdition {
+    fn default() -> Self {
+        SpecEdition::ESNext
+    }
+}
+
+impl SpecEdition {
+    /// Deserialize SpecEditon from string (label) for example `es5`
+    pub fn from_label(value: &str) -> Result<Self, String> {
+        match &*value.to_uppercase() {
+            "ES5" => Ok(SpecEdition::ES5),
+            "ES6" => Ok(SpecEdition::ES6),
+            "ES7" => Ok(SpecEdition::ES7),
+            "ES8" => Ok(SpecEdition::ES8),
+            "ES9" => Ok(SpecEdition::ES9),
+            "ES10" => Ok(SpecEdition::ES10),
+            "ES11" => Ok(SpecEdition::ES11),
+            "ES12" => Ok(SpecEdition::ES12),
+            "ES13" => Ok(SpecEdition::ES13),
+            "ES14" => Ok(SpecEdition::ES14),
+            "ES15" => Ok(SpecEdition::ES15),
+            "ESNEXT" => Ok(SpecEdition::ESNext),
+            _ => {
+                if let Ok(nr) = value.parse::<u8>() {
+                    if nr >= 5 && nr <= 15 {
+                        return Ok(SpecEdition(nr));
+                    }
+                }
+
+                Err("Invalid SpecEdition label".to_string())
+            }
+        }
+    }
+}
+
+// clap arg parser
+impl From<&str> for SpecEdition {
+    fn from(value: &str) -> Self {
+        SpecEdition::from_label(value).unwrap_or_default()
+    }
+}
+
+impl SpecEdition {
     /// ECMAScript 5.1 Edition
     ///
     /// <https://262.ecma-international.org/5.1>
-    ES5 = 5,
+    pub const ES5: SpecEdition = SpecEdition(5);
     /// ECMAScript 6th Edition
     ///
     /// <https://262.ecma-international.org/6.0>
-    ES6,
+    pub const ES6: SpecEdition = SpecEdition(6);
     /// ECMAScript 7th Edition
     ///
     /// <https://262.ecma-international.org/7.0>
-    ES7,
+    pub const ES7: SpecEdition = SpecEdition(7);
     /// ECMAScript 8th Edition
     ///
     /// <https://262.ecma-international.org/8.0>
-    ES8,
+    pub const ES8: SpecEdition = SpecEdition(8);
     /// ECMAScript 9th Edition
     ///
     /// <https://262.ecma-international.org/9.0>
-    ES9,
+    pub const ES9: SpecEdition = SpecEdition(9);
     /// ECMAScript 10th Edition
     ///
     /// <https://262.ecma-international.org/10.0>
-    ES10,
+    pub const ES10: SpecEdition = SpecEdition(10);
     /// ECMAScript 11th Edition
     ///
     /// <https://262.ecma-international.org/11.0>
-    ES11,
+    pub const ES11: SpecEdition = SpecEdition(11);
     /// ECMAScript 12th Edition
     ///
     /// <https://262.ecma-international.org/12.0>
-    ES12,
+    pub const ES12: SpecEdition = SpecEdition(12);
     /// ECMAScript 13th Edition
     ///
     /// <https://262.ecma-international.org/13.0>
-    ES13,
+    pub const ES13: SpecEdition = SpecEdition(13);
     /// ECMAScript 14th Edition
     ///
     /// <https://262.ecma-international.org/14.0>
-    ES14,
+    pub const ES14: SpecEdition = SpecEdition(14);
     /// ECMAScript 15th Edition
     ///
     /// <https://262.ecma-international.org/15.0>
-    ES15,
+    pub const ES15: SpecEdition = SpecEdition(15);
     /// The edition being worked on right now.
     ///
     /// A draft is currently available [here](https://tc39.es/ecma262).
-    #[default]
-    ESNext = 255,
+    #[allow(non_upper_case_globals)]
+    pub const ESNext: SpecEdition = SpecEdition(255);
 }
 
 impl Display for SpecEdition {
@@ -347,7 +381,7 @@ impl Display for SpecEdition {
         match *self {
             Self::ESNext => write!(f, "ECMAScript Next"),
             Self::ES5 => write!(f, "ECMAScript 5.1"),
-            v => write!(f, "ECMAScript {}", v as u8),
+            v => write!(f, "ECMAScript {}", v.0),
         }
     }
 }
@@ -405,5 +439,37 @@ impl SpecEdition {
             Self::ESNext,
         ]
         .into_iter()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use serde_json::json;
+
+    use super::SpecEdition;
+
+    #[test]
+    fn serialize_spec_edition() {
+        let spec: SpecEdition = serde_json::from_str("6").expect("SpecEdition from number");
+        assert_eq!(spec, SpecEdition::ES6);
+
+        let spec_nr = serde_json::to_value(SpecEdition::ES13).expect("SpecEdition to number");
+        assert_eq!(spec_nr, json!(13))
+    }
+
+    #[test]
+    fn deserialize_from_label() {
+        assert_eq!(
+            SpecEdition::from_label("es6").unwrap_or_default(),
+            SpecEdition::ES6
+        );
+        assert_eq!(
+            SpecEdition::from_label("ES6").unwrap_or_default(),
+            SpecEdition::ES6
+        );
+        assert_eq!(
+            SpecEdition::from_label("6").unwrap_or_default(),
+            SpecEdition::ES6
+        );
     }
 }

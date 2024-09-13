@@ -15,7 +15,7 @@ mod exec;
 mod results;
 
 use exec::{RunTest, RunTestSuite};
-use tc39_test262::{read, Ignored, SpecEdition, TestFlags};
+use test262::{read, Ignored, SpecEdition, TestFlags};
 
 use self::results::{compare_results, write_json};
 
@@ -175,8 +175,8 @@ fn main() -> Result<()> {
             let test262_path = if let Some(path) = test262_path.as_deref() {
                 path
             } else {
-                tc39_test262::clone_test262(test262_commit, verbose)?;
-                Path::new(tc39_test262::TEST262_DIRECTORY)
+                test262::clone_test262(test262_commit, verbose)?;
+                Path::new(test262::TEST262_DIRECTORY)
             }
             .canonicalize();
             let test262_path = &test262_path.wrap_err("could not get the Test262 path")?;
@@ -474,6 +474,7 @@ impl VersionedStats {
             SpecEdition::ES14 => self.es14,
             SpecEdition::ES15 => self.es15,
             SpecEdition::ESNext => return None,
+            _ => return None,
         };
         Some(stats)
     }
@@ -494,6 +495,7 @@ impl VersionedStats {
             SpecEdition::ES14 => &mut self.es14,
             SpecEdition::ES15 => &mut self.es15,
             SpecEdition::ESNext => return None,
+            _ => return None,
         };
         Some(stats)
     }

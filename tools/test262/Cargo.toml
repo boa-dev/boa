@@ -1,5 +1,5 @@
 [package]
-name = "tc39-test262"
+name = "test262"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -13,12 +13,13 @@ description.workspace = true
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 phf = { workspace = true, features = ["macros"] }
-clap = { workspace = true, features = ["derive"] }
 rustc-hash = { workspace = true, features = ["std"] }
 bitflags.workspace = true
-serde_repr.workspace = true
 color-eyre.workspace = true
 serde_yaml = "0.9.34" # TODO: Track https://github.com/saphyr-rs/saphyr.
+
+[dev-dependencies]
+serde_json = "1"
 
 [lints]
 workspace = true
