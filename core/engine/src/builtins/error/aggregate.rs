@@ -9,7 +9,7 @@
 
 use crate::{
     builtins::{
-        iterable::iterable_to_list, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
+        iterable::IteratorHint, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
         IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -56,7 +56,11 @@ impl BuiltInConstructor for AggregateError {
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::aggregate_error;
 
-    /// Create a new aggregate error object.
+    /// [`AggregateError ( errors, message [ , options ] )`][spec]
+    ///
+    /// Creates a new aggregate error object.
+    ///
+    /// [spec]: AggregateError ( errors, message [ , options ] )
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
@@ -102,9 +106,12 @@ impl BuiltInConstructor for AggregateError {
         // 4. Perform ? InstallErrorCause(O, options).
         Error::install_error_cause(&o, args.get_or_undefined(2), context)?;
 
-        // 5. Let errorsList be ? IterableToList(errors).
+        // 5. Let errorsList be ? IteratorToList(? GetIterator(errors, sync)).
         let errors = args.get_or_undefined(0);
-        let errors_list = iterable_to_list(context, errors, None)?;
+        let errors_list = errors
+            .get_iterator(IteratorHint::Sync, context)?
+            .into_list(context)?;
+
         // 6. Perform ! DefinePropertyOrThrow(O, "errors",
         //    PropertyDescriptor {
         //      [[Configurable]]: true,

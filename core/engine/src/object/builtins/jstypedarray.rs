@@ -542,7 +542,7 @@ impl JsTypedArray {
 
     /// Iterates the typed array in reverse order and returns the value of
     /// the first element that satisfies the provided testing function.
-    /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.  
+    /// If no elements satisfy the testing function, `JsResult::Ok(None)` is returned.
     ///
     /// Calls `TypedArray.prototype.findLast()`.
     ///
@@ -927,6 +927,7 @@ macro_rules! JsTypedArrayType {
         $constructor_function:ident,
         $checker_function:ident,
         $constructor_object:ident,
+        $value_to_elem:ident,
         $element:ty
     ) => {
 
@@ -1017,6 +1018,21 @@ macro_rules! JsTypedArrayType {
                     },
                 })
             }
+
+            /// Create an iterator over the typed array's elements.
+            pub fn iter<'a>(&'a self, context: &'a mut Context) -> impl Iterator<Item = $element> + 'a {
+                let length = self.length(context).unwrap_or(0);
+                let mut index = 0;
+                std::iter::from_fn(move || {
+                    if index < length {
+                        let value = self.get(index, context).ok()?;
+                        index += 1;
+                        value.$value_to_elem(context).ok()
+                    } else {
+                        None
+                    }
+                })
+            }
         }
 
         impl From<$name> for JsObject {
@@ -1066,6 +1082,7 @@ JsTypedArrayType!(
     Uint8Array,
     is_typed_uint8_array,
     typed_uint8_array,
+    to_uint8,
     u8
 );
 JsTypedArrayType!(
@@ -1073,6 +1090,7 @@ JsTypedArrayType!(
     Int8Array,
     is_typed_int8_array,
     typed_int8_array,
+    to_int8,
     i8
 );
 JsTypedArrayType!(
@@ -1080,6 +1098,7 @@ JsTypedArrayType!(
     Uint16Array,
     is_typed_uint16_array,
     typed_uint16_array,
+    to_uint16,
     u16
 );
 JsTypedArrayType!(
@@ -1087,6 +1106,7 @@ JsTypedArrayType!(
     Int16Array,
     is_typed_int16_array,
     typed_int16_array,
+    to_int16,
     i16
 );
 JsTypedArrayType!(
@@ -1094,6 +1114,7 @@ JsTypedArrayType!(
     Uint32Array,
     is_typed_uint32_array,
     typed_uint32_array,
+    to_u32,
     u32
 );
 JsTypedArrayType!(
@@ -1101,6 +1122,7 @@ JsTypedArrayType!(
     Int32Array,
     is_typed_int32_array,
     typed_int32_array,
+    to_i32,
     i32
 );
 JsTypedArrayType!(
@@ -1108,6 +1130,7 @@ JsTypedArrayType!(
     Float32Array,
     is_typed_float32_array,
     typed_float32_array,
+    to_f32,
     f32
 );
 JsTypedArrayType!(
@@ -1115,5 +1138,36 @@ JsTypedArrayType!(
     Float64Array,
     is_typed_float64_array,
     typed_float64_array,
+    to_number,
     f64
 );
+
+#[test]
+fn typed_iterators_uint8() {
+    let context = &mut Context::default();
+    let vec = vec![1u8, 2, 3, 4, 5, 6, 7, 8];
+
+    let array = JsUint8Array::from_iter(vec.clone(), context).unwrap();
+    let vec2 = array.iter(context).collect::<Vec<_>>();
+    assert_eq!(vec, vec2);
+}
+
+#[test]
+fn typed_iterators_uint32() {
+    let context = &mut Context::default();
+    let vec = vec![1u32, 2, 0xFFFF, 4, 0xFF12_3456, 6, 7, 8];
+
+    let array = JsUint32Array::from_iter(vec.clone(), context).unwrap();
+    let vec2 = array.iter(context).collect::<Vec<_>>();
+    assert_eq!(vec, vec2);
+}
+
+#[test]
+fn typed_iterators_f32() {
+    let context = &mut Context::default();
+    let vec = vec![0.1f32, 0.2, 0.3, 0.4, 1.1, 9.99999];
+
+    let array = JsFloat32Array::from_iter(vec.clone(), context).unwrap();
+    let vec2 = array.iter(context).collect::<Vec<_>>();
+    assert_eq!(vec, vec2);
+}

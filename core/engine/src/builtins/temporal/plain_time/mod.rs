@@ -17,7 +17,7 @@ use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
-    components::Time,
+    components::{PartialTime, Time},
     options::{ArithmeticOverflow, TemporalRoundingMode},
 };
 
@@ -112,6 +112,7 @@ impl IntrinsicObject for PlainTime {
             .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::with, js_string!("with"), 1)
             .method(Self::until, js_string!("until"), 1)
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
@@ -374,6 +375,33 @@ impl PlainTime {
         create_temporal_time(time.inner.subtract(&duration)?, None, context).map(Into::into)
     }
 
+    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1.Let temporalTime be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        // 3. If ? IsPartialTemporalObject(temporalTimeLike) is false, throw a TypeError exception.
+        // 4. Set options to ? GetOptionsObject(options).
+        let Some(partial_object) =
+            super::is_partial_temporal_object(args.get_or_undefined(0), context)?
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("with object was not a PartialTemporalObject.")
+                .into());
+        };
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let partial = to_partial_time_record(partial_object, context)?;
+
+        create_temporal_time(time.inner.with(partial, overflow)?, None, context).map(Into::into)
+    }
+
     /// 4.3.12 Temporal.PlainTime.prototype.until ( other [ , options ] )
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let time = this
@@ -598,8 +626,8 @@ pub(crate) fn create_temporal_time(
 
 pub(crate) fn to_temporal_time(
     value: &JsValue,
-    _overflow: Option<ArithmeticOverflow>,
-    _context: &mut Context,
+    overflow: Option<ArithmeticOverflow>,
+    context: &mut Context,
 ) -> JsResult<Time> {
     // 1.If overflow is not present, set overflow to "constrain".
     // 2. If item is an Object, then
@@ -625,23 +653,24 @@ pub(crate) fn to_temporal_time(
                 // i. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],
                 // item.[[ISOSecond]], item.[[ISOMillisecond]], item.[[ISOMicrosecond]],
                 // item.[[ISONanosecond]]).
-                return Ok(Time::new(
-                    dt.inner.hour().into(),
-                    dt.inner.minute().into(),
-                    dt.inner.second().into(),
-                    dt.inner.millisecond().into(),
-                    dt.inner.microsecond().into(),
-                    dt.inner.nanosecond().into(),
-                    ArithmeticOverflow::Reject,
-                )?);
+                return Ok(Time::from(dt.inner.clone()));
             }
             // d. Let result be ? ToTemporalTimeRecord(item).
             // e. Set result to ? RegulateTime(result.[[Hour]], result.[[Minute]],
             // result.[[Second]], result.[[Millisecond]], result.[[Microsecond]],
             // result.[[Nanosecond]], overflow).
-            Err(JsNativeError::range()
-                .with_message("Not yet implemented.")
-                .into())
+            let partial = to_partial_time_record(object, context)?;
+
+            Time::new(
+                partial.hour.unwrap_or(0),
+                partial.minute.unwrap_or(0),
+                partial.second.unwrap_or(0),
+                partial.millisecond.unwrap_or(0),
+                partial.microsecond.unwrap_or(0),
+                partial.nanosecond.unwrap_or(0),
+                overflow.unwrap_or(ArithmeticOverflow::Constrain),
+            )
+            .map_err(Into::into)
         }
         // 3. Else,
         JsValue::String(str) => {
@@ -658,4 +687,48 @@ pub(crate) fn to_temporal_time(
     }
 
     // 4. Return ! CreateTemporalTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]).
+}
+
+pub(crate) fn to_partial_time_record(
+    partial_object: &JsObject,
+    context: &mut Context,
+) -> JsResult<PartialTime> {
+    let hour = partial_object
+        .get(js_str!("hour"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+
+    let minute = partial_object
+        .get(js_str!("minute"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+
+    let second = partial_object
+        .get(js_str!("second"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+
+    let millisecond = partial_object
+        .get(js_str!("millisecond"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+
+    let microsecond = partial_object
+        .get(js_str!("microsecond"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+
+    let nanosecond = partial_object
+        .get(js_str!("nanosecond"), context)?
+        .map(|v| super::to_integer_if_integral(v, context))
+        .transpose()?;
+
+    Ok(PartialTime {
+        hour,
+        minute,
+        second,
+        millisecond,
+        microsecond,
+        nanosecond,
+    })
 }

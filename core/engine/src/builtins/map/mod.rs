@@ -11,11 +11,11 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
 use crate::{
-    builtins::BuiltInObject,
+    builtins::{iterable::IteratorHint, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{internal_methods::get_prototype_from_constructor, JsFunction, JsObject},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
@@ -26,7 +26,9 @@ use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
-use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+use super::{
+    iterable::if_abrupt_close_iterator, BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
+};
 
 mod map_iterator;
 pub(crate) use map_iterator::MapIterator;
@@ -149,9 +151,16 @@ impl BuiltInConstructor for Map {
         };
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get(js_str!("set"), context)?;
+        // 6. If IsCallable(adder) is false, throw a TypeError exception.
+        let adder = map
+            .get(js_str!("set"), context)?
+            .as_function()
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("Map: property `set` on new `Map` must be callable")
+            })?;
 
-        // 6. Return ? AddEntriesFromIterable(map, iterable, adder).
+        // 7. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)
     }
 }
@@ -547,8 +556,8 @@ impl Map {
         let mut groups: IndexMap<JsValue, Vec<JsValue>, BuildHasherDefault<FxHasher>> =
             IndexMap::default();
 
-        // 4. Let iteratorRecord be ? GetIterator(items).
-        let mut iterator = items.get_iterator(context, None, None)?;
+        // 4. Let iteratorRecord be ? GetIterator(items, sync).
+        let mut iterator = items.get_iterator(IteratorHint::Sync, context)?;
 
         // 5. Let k be 0.
         let mut k = 0u64;
@@ -566,17 +575,15 @@ impl Map {
                 return iterator.close(Err(error), context);
             }
 
-            // b. Let next be ? IteratorStep(iteratorRecord).
-            let done = iterator.step(context)?;
-
-            // c. If next is false, then
-            if done {
+            // b. Let next be ? IteratorStepValue(iteratorRecord).
+            let Some(next) = iterator.step_value(context)? else {
+                // c. If next is false, then
                 // i. Return groups.
                 break;
-            }
+            };
 
-            // d. Let value be ? IteratorValue(next).
-            let value = iterator.value(context)?;
+            // d. Let value be next.
+            let value = next;
 
             // e. Let key be Completion(Call(callbackfn, undefined, « value, 𝔽(k) »)).
             let key = callback.call(&JsValue::undefined(), &[value.clone(), k.into()], context);
@@ -585,8 +592,8 @@ impl Map {
             let mut key = if_abrupt_close_iterator!(key, iterator, context);
 
             // h. Else,
-            //     i. Assert: keyCoercion is zero.
-            //     ii. If key is -0𝔽, set key to +0𝔽.
+            //     i. Assert: keyCoercion is collection.
+            //     ii. Set key to CanonicalizeKeyedCollectionKey(key).
             if key.as_number() == Some(-0.0) {
                 key = 0.into();
             }
@@ -632,31 +639,20 @@ impl Map {
 pub(crate) fn add_entries_from_iterable(
     target: &JsObject,
     iterable: &JsValue,
-    adder: &JsValue,
+    adder: &JsFunction,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    // 1. If IsCallable(adder) is false, throw a TypeError exception.
-    let adder = adder.as_callable().ok_or_else(|| {
-        JsNativeError::typ().with_message("property `set` of `NewTarget` is not callable")
-    })?;
+    // 1. Let iteratorRecord be ? GetIterator(iterable, sync).
+    let mut iterator_record = iterable.get_iterator(IteratorHint::Sync, context)?;
 
-    // 2. Let iteratorRecord be ? GetIterator(iterable).
-    let mut iterator_record = iterable.get_iterator(context, None, None)?;
-
-    // 3. Repeat,
-    loop {
-        // a. Let next be ? IteratorStep(iteratorRecord).
-        // b. If next is false, return target.
-        // c. Let nextItem be ? IteratorValue(next).
-        if iterator_record.step(context)? {
-            return Ok(target.clone().into());
-        };
-
-        let next_item = iterator_record.value(context)?;
-
-        let Some(next_item) = next_item.as_object() else {
-            // d. If Type(nextItem) is not Object, then
-            // i. Let error be ThrowCompletion(a newly created TypeError object).
+    // 2. Repeat,
+    //     a. Let next be ? IteratorStepValue(iteratorRecord).
+    //     b. If next is done, return target.
+    while let Some(next) = iterator_record.step_value(context)? {
+        let Some(next) = next.as_object() else {
+            //     c. If next is not an Object, then
+            //         i. Let error be ThrowCompletion(a newly created TypeError object).
+            //         ii. Return ? IteratorClose(iteratorRecord, error).
             let err = Err(JsNativeError::typ()
                 .with_message("cannot get key and value from primitive item of `iterable`")
                 .into());
@@ -665,26 +661,19 @@ pub(crate) fn add_entries_from_iterable(
             return iterator_record.close(err, context);
         };
 
-        // e. Let k be Get(nextItem, "0").
-        // f. IfAbruptCloseIterator(k, iteratorRecord).
-        let key = match next_item.get(0, context) {
-            Ok(val) => val,
-            err => return iterator_record.close(err, context),
-        };
+        //     d. Let k be Completion(Get(next, "0")).
+        //     e. IfAbruptCloseIterator(k, iteratorRecord).
+        let key = if_abrupt_close_iterator!(next.get(0, context), iterator_record, context);
 
-        // g. Let v be Get(nextItem, "1").
-        // h. IfAbruptCloseIterator(v, iteratorRecord).
-        let value = match next_item.get(1, context) {
-            Ok(val) => val,
-            err => return iterator_record.close(err, context),
-        };
+        //     f. Let v be Completion(Get(next, "1")).
+        //     g. IfAbruptCloseIterator(v, iteratorRecord).
+        let value = if_abrupt_close_iterator!(next.get(1, context), iterator_record, context);
 
-        // i. Let status be Call(adder, target, « k, v »).
+        //     h. Let status be Completion(Call(adder, target, « k, v »)).
+        //     i. IfAbruptCloseIterator(status, iteratorRecord).
         let status = adder.call(&target.clone().into(), &[key, value], context);
-
-        // j. IfAbruptCloseIterator(status, iteratorRecord).
-        if status.is_err() {
-            return iterator_record.close(status, context);
-        }
+        if_abrupt_close_iterator!(status, iterator_record, context);
     }
+
+    Ok(target.clone().into())
 }

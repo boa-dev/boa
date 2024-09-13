@@ -15,10 +15,7 @@ use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use crate::{
-    builtins::{
-        iterable::{if_abrupt_close_iterator, IteratorHint},
-        BuiltInObject, Number,
-    },
+    builtins::{iterable::if_abrupt_close_iterator, BuiltInObject, Number},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
@@ -385,7 +382,7 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayfromlist
-    pub(crate) fn create_array_from_list<I>(elements: I, context: &mut Context) -> JsObject
+    pub(crate) fn create_array_from_list<I>(elements: I, context: &Context) -> JsObject
     where
         I: IntoIterator<Item = JsValue>,
     {
@@ -610,44 +607,41 @@ impl Array {
             _ => Self::array_create(0, None, context)?,
         };
 
-        // c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
-        let mut iterator_record =
-            items.get_iterator(context, Some(IteratorHint::Sync), Some(using_iterator))?;
+        // c. Let iteratorRecord be ? GetIteratorFromMethod(items, usingIterator).
+        let mut iterator_record = items.get_iterator_from_method(&using_iterator, context)?;
 
         // d. Let k be 0.
         // e. Repeat,
         //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
         //     ...
-        //     x. Set k to k + 1.
+        //     ix. Set k to k + 1.
         for k in 0..9_007_199_254_740_991_u64 {
-            // iii. Let next be ? IteratorStep(iteratorRecord).
-            if iterator_record.step(context)? {
-                // 1. Perform ? Set(A, "length", 𝔽(k), true).
+            // iii. Let next be ? IteratorStepValue(iteratorRecord).
+            let Some(next) = iterator_record.step_value(context)? else {
+                // iv. If next is done, then
+                //     1. Perform ? Set(A, "length", 𝔽(k), true).
                 a.set(StaticJsStrings::LENGTH, k, true, context)?;
-                // 2. Return A.
+                //     2. Return A.
                 return Ok(a.into());
-            }
+            };
 
-            // iv. If next is false, then
-            // v. Let nextValue be ? IteratorValue(next).
-            let next_value = iterator_record.value(context)?;
-
-            // vi. If mapping is true, then
+            // v. If mapping is true, then
             let mapped_value = if let Some(mapfn) = mapping {
-                // 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
-                let mapped_value = mapfn.call(this_arg, &[next_value, k.into()], context);
+                // 1. Let mappedValue be Completion(Call(mapper, thisArg, « next, 𝔽(k) »)).
+                let mapped_value = mapfn.call(this_arg, &[next, k.into()], context);
 
                 // 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
                 if_abrupt_close_iterator!(mapped_value, iterator_record, context)
             } else {
-                // vii. Else, let mappedValue be nextValue.
-                next_value
+                // vi. Else,
+                //     1. Let mappedValue be next.
+                next
             };
 
-            // viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
+            // vii. Let defineStatus be Completion(CreateDataPropertyOrThrow(A, Pk, mappedValue)).
             let define_status = a.create_data_property_or_throw(k, mapped_value, context);
 
-            // ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
+            // viii. IfAbruptCloseIterator(defineStatus, iteratorRecord).
             if_abrupt_close_iterator!(define_status, iterator_record, context);
         }
 

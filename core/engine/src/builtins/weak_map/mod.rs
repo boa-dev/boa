@@ -101,14 +101,11 @@ impl BuiltInConstructor for WeakMap {
         }
 
         // 5. Let adder be ? Get(map, "set").
-        let adder = map.get(js_str!("set"), context)?;
-
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
-        if !adder.is_callable() {
-            return Err(JsNativeError::typ()
-                .with_message("WeakMap: 'add' is not a function")
-                .into());
-        }
+        let adder = map
+            .get(js_str!("set"), context)?
+            .as_function()
+            .ok_or_else(|| JsNativeError::typ().with_message("WeakMap: 'add' is not a function"))?;
 
         // 7. Return ? AddEntriesFromIterable(map, iterable, adder).
         add_entries_from_iterable(&map, iterable, &adder, context)

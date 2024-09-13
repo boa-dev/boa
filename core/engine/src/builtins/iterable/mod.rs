@@ -225,7 +225,31 @@ pub enum IteratorHint {
 }
 
 impl JsValue {
-    /// `GetIterator ( obj [ , hint [ , method ] ] )`
+    /// `GetIteratorFromMethod ( obj, method )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getiteratorfrommethod
+    pub fn get_iterator_from_method(
+        &self,
+        method: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<IteratorRecord> {
+        // 1. Let iterator be ? Call(method, obj).
+        let iterator = method.call(self, &[], context)?;
+        // 2. If iterator is not an Object, throw a TypeError exception.
+        let iterator_obj = iterator.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("returned iterator is not an object")
+        })?;
+        // 3. Let nextMethod be ? Get(iterator, "next").
+        let next_method = iterator_obj.get(js_str!("next"), context)?;
+        // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
+        // 5. Return iteratorRecord.
+        Ok(IteratorRecord::new(iterator_obj.clone(), next_method))
+    }
+
+    /// `GetIterator ( obj, kind )`
     ///
     /// More information:
     ///  - [ECMA reference][spec]
@@ -233,60 +257,51 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
     pub fn get_iterator(
         &self,
+        hint: IteratorHint,
         context: &mut Context,
-        hint: Option<IteratorHint>,
-        method: Option<JsObject>,
     ) -> JsResult<IteratorRecord> {
-        // 1. If hint is not present, set hint to sync.
-        let hint = hint.unwrap_or(IteratorHint::Sync);
-
-        // 2. If method is not present, then
-        let method = if method.is_some() {
-            method
-        } else {
-            // a. If hint is async, then
-            if hint == IteratorHint::Async {
-                // i. Set method to ? GetMethod(obj, @@asyncIterator).
-                if let Some(method) = self.get_method(JsSymbol::async_iterator(), context)? {
-                    Some(method)
-                } else {
-                    // ii. If method is undefined, then
-                    // 1. Let syncMethod be ? GetMethod(obj, @@iterator).
-                    let sync_method = self.get_method(JsSymbol::iterator(), context)?;
-
-                    // 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
+        let method = match hint {
+            // 1. If kind is async, then
+            IteratorHint::Async => {
+                // a. Let method be ? GetMethod(obj, %Symbol.asyncIterator%).
+                let Some(method) = self.get_method(JsSymbol::async_iterator(), context)? else {
+                    // b. If method is undefined, then
+                    //     i. Let syncMethod be ? GetMethod(obj, %Symbol.iterator%).
+                    let sync_method =
+                        self.get_method(JsSymbol::iterator(), context)?
+                            .ok_or_else(|| {
+                                // ii. If syncMethod is undefined, throw a TypeError exception.
+                                JsNativeError::typ().with_message(format!(
+                                    "value with type `{}` is not iterable",
+                                    self.type_of()
+                                ))
+                            })?;
+                    // iii. Let syncIteratorRecord be ? GetIteratorFromMethod(obj, syncMethod).
                     let sync_iterator_record =
-                        self.get_iterator(context, Some(IteratorHint::Sync), sync_method)?;
-
-                    // 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).
+                        self.get_iterator_from_method(&sync_method, context)?;
+                    // iv. Return CreateAsyncFromSyncIterator(syncIteratorRecord).
                     return Ok(AsyncFromSyncIterator::create(sync_iterator_record, context));
-                }
-            } else {
-                // b. Otherwise, set method to ? GetMethod(obj, @@iterator).
+                };
+
+                Some(method)
+            }
+            // 2. Else,
+            IteratorHint::Sync => {
+                // a. Let method be ? GetMethod(obj, %Symbol.iterator%).
                 self.get_method(JsSymbol::iterator(), context)?
             }
-        }
-        .ok_or_else(|| {
+        };
+
+        let method = method.ok_or_else(|| {
+            // 3. If method is undefined, throw a TypeError exception.
             JsNativeError::typ().with_message(format!(
                 "value with type `{}` is not iterable",
                 self.type_of()
             ))
         })?;
 
-        // 3. Let iterator be ? Call(method, obj).
-        let iterator = method.call(self, &[], context)?;
-
-        // 4. If Type(iterator) is not Object, throw a TypeError exception.
-        let iterator_obj = iterator.as_object().ok_or_else(|| {
-            JsNativeError::typ().with_message("returned iterator is not an object")
-        })?;
-
-        // 5. Let nextMethod be ? GetV(iterator, "next").
-        let next_method = iterator.get_v(js_str!("next"), context)?;
-
-        // 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
-        // 7. Return iteratorRecord.
-        Ok(IteratorRecord::new(iterator_obj.clone(), next_method))
+        // 4. Return ? GetIteratorFromMethod(obj, method).
+        self.get_iterator_from_method(&method, context)
     }
 }
 
@@ -461,28 +476,35 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    pub(crate) fn step_with(
+    pub(crate) fn next(
         &mut self,
         value: Option<&JsValue>,
         context: &mut Context,
-    ) -> JsResult<bool> {
+    ) -> JsResult<IteratorResult> {
         let _timer = Profiler::global().start_event("IteratorRecord::step_with", "iterator");
 
+        // 1. If value is not present, then
+        //     a. Let result be Completion(Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]])).
+        // 2. Else,
+        //     a. Let result be Completion(Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »)).
+        // 3. If result is a throw completion, then
+        //     a. Set iteratorRecord.[[Done]] to true.
+        //     b. Return ? result.
+        // 4. Set result to ! result.
+        // 5. If result is not an Object, then
+        //     a. Set iteratorRecord.[[Done]] to true.
+        //     b. Throw a TypeError exception.
+        // 6. Return result.
+        // NOTE: In this case, `set_done_on_err` does all the heavylifting for us, which
+        // simplifies the instructions below.
         self.set_done_on_err(|iter| {
-            // 1. If value is not present, then
-            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
-            // 2. Else,
-            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-            let result = iter.next_method.call(
-                &iter.iterator.clone().into(),
-                value.map_or(&[], std::slice::from_ref),
-                context,
-            )?;
-
-            iter.update_result(result, context)?;
-
-            // 4. Return result.
-            Ok(iter.done)
+            iter.next_method
+                .call(
+                    &iter.iterator.clone().into(),
+                    value.map_or(&[], std::slice::from_ref),
+                    context,
+                )
+                .and_then(IteratorResult::from_value)
         })
     }
 
@@ -497,7 +519,49 @@ impl IteratorRecord {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
     pub(crate) fn step(&mut self, context: &mut Context) -> JsResult<bool> {
-        self.step_with(None, context)
+        self.set_done_on_err(|iter| {
+            // 1. Let result be ? IteratorNext(iteratorRecord).
+            let result = iter.next(None, context)?;
+
+            // 2. Let done be Completion(IteratorComplete(result)).
+            // 3. If done is a throw completion, then
+            //     a. Set iteratorRecord.[[Done]] to true.
+            //     b. Return ? done.
+            // 4. Set done to ! done.
+            // 5. If done is true, then
+            //     a. Set iteratorRecord.[[Done]] to true.
+            //     b. Return done.
+            iter.done = result.complete(context)?;
+
+            iter.last_result = result;
+
+            // 6. Return result.
+            Ok(iter.done)
+        })
+    }
+
+    /// `IteratorStepValue ( iteratorRecord )`
+    ///
+    /// Updates the `IteratorRecord` and returns `Some(value)` if the next result record returned
+    /// `done: true`, otherwise returns `None`.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorstepvalue
+    pub(crate) fn step_value(&mut self, context: &mut Context) -> JsResult<Option<JsValue>> {
+        // 1. Let result be ? IteratorStep(iteratorRecord).
+        if self.step(context)? {
+            // 2. If result is done, then
+            //     a. Return done.
+            Ok(None)
+        } else {
+            // 3. Let value be Completion(IteratorValue(result)).
+            // 4. If value is a throw completion, then
+            //     a. Set iteratorRecord.[[Done]] to true.
+            // 5. Return ? value.
+            self.value(context).map(Some)
+        }
     }
 
     /// `IteratorClose ( iteratorRecord, completion )`
@@ -565,40 +629,28 @@ impl IteratorRecord {
                 .into())
         }
     }
-}
 
-/// `IterableToList ( items [ , method ] )`
-///
-/// More information:
-///  - [ECMA reference][spec]
-///
-///  [spec]: https://tc39.es/ecma262/#sec-iterabletolist
-pub(crate) fn iterable_to_list(
-    context: &mut Context,
-    items: &JsValue,
-    method: Option<JsObject>,
-) -> JsResult<Vec<JsValue>> {
-    let _timer = Profiler::global().start_event("iterable_to_list", "iterator");
+    /// `IteratorToList ( iteratorRecord )`
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    ///  [spec]: https://tc39.es/ecma262/#sec-iteratortolist
+    pub(crate) fn into_list(mut self, context: &mut Context) -> JsResult<Vec<JsValue>> {
+        let _timer = Profiler::global().start_event("IteratorRecord::to_list", "iterator");
 
-    // 1. If method is present, then
-    // a. Let iteratorRecord be ? GetIterator(items, sync, method).
-    // 2. Else,
-    // a. Let iteratorRecord be ? GetIterator(items, sync).
-    let mut iterator_record = items.get_iterator(context, Some(IteratorHint::Sync), method)?;
+        // 1. Let values be a new empty List.
+        let mut values = Vec::new();
 
-    // 3. Let values be a new empty List.
-    let mut values = Vec::new();
+        // 2. Repeat,
+        //     a. Let next be ? IteratorStepValue(iteratorRecord).
+        while let Some(value) = self.step_value(context)? {
+            // c. Append next to values.
+            values.push(value);
+        }
 
-    // 4. Let next be true.
-    // 5. Repeat, while next is not false,
-    //     a. Set next to ? IteratorStep(iteratorRecord).
-    //     b. If next is not false, then
-    //         i. Let nextValue be ? IteratorValue(next).
-    //         ii. Append nextValue to the end of the List values.
-    while !iterator_record.step(context)? {
-        values.push(iterator_record.value(context)?);
+        //     b. If next is done, then
+        //         i. Return values.
+        Ok(values)
     }
-
-    // 6. Return values.
-    Ok(values)
 }
