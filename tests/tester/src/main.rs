@@ -586,7 +586,7 @@ mod tests {
     use assert_cmd::Command;
 
     fn cmd() -> Command {
-        let mut cmd: Command = assert_cmd::Command::cargo_bin("boa_tester").unwrap();
+        let mut cmd: Command = Command::cargo_bin("boa_tester").unwrap();
         cmd.current_dir("../../");
         cmd
     }

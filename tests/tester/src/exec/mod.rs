@@ -23,9 +23,9 @@ use tc39_test262::{ErrorType, Harness, Outcome, Phase, SpecEdition, Test, TestSu
 
 use self::js262::WorkerHandles;
 
-pub(crate) trait RunTest<TO, TR> {
+pub(crate) trait RunTest {
     /// Runs the test.
-    fn run(&self, harness: &Harness, verbose: u8, optimizer_options: TO, console: bool) -> TR;
+    fn run(&self, harness: &Harness, verbose: u8, optimizer_options: OptimizerOptions, console: bool) -> TestResult;
 
     /// Runs the test once, in strict or non-strict mode
     fn run_once(
@@ -38,7 +38,7 @@ pub(crate) trait RunTest<TO, TR> {
     ) -> TestResult;
 }
 
-pub(crate) trait RunTestSuite<TO, TR> {
+pub(crate) trait RunTestSuite{
     /// Runs the test suite.
     fn run(
         &self,
@@ -51,7 +51,7 @@ pub(crate) trait RunTestSuite<TO, TR> {
     ) -> SuiteResult;
 }
 
-impl RunTestSuite<OptimizerOptions, SuiteResult> for TestSuite {
+impl RunTestSuite for TestSuite {
     /// Runs the test suite.
     fn run(
         &self,
@@ -187,7 +187,7 @@ impl RunTestSuite<OptimizerOptions, SuiteResult> for TestSuite {
     }
 }
 
-impl RunTest<OptimizerOptions, TestResult> for Test {
+impl RunTest for Test {
     /// Runs the test.
     fn run(
         &self,
