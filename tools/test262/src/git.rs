@@ -55,7 +55,7 @@ fn reset_commit(directory: &str, commit: &str, verbose: u8) -> Result<()> {
 }
 
 /// Clone repository
-pub fn clone(
+pub(super) fn clone(
     directory: &str,
     repor_url: &str, // "https://github.com/tc39/test262"
     baranch: &str, // "origin/main"

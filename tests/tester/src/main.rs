@@ -15,7 +15,7 @@ mod exec;
 mod results;
 
 use exec::{RunTest, RunTestSuite};
-use test262::{read, Ignored, SpecEdition, TestFlags};
+use test262::{Harness, Ignored, SpecEdition, TestFlags};
 
 use self::results::{compare_results, write_json};
 
@@ -233,10 +233,10 @@ fn run_test_suite(
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read::read_harness(test262_path).wrap_err("could not read harness")?;
+    let harness = Harness::read(test262_path).wrap_err("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read::read_test(&test262_path.join(suite)).wrap_err_with(|| {
+        let test = test262::Test::read(&test262_path.join(suite)).wrap_err_with(|| {
             let suite = suite.display();
             format!("could not read the test {suite}")
         })?;
@@ -254,7 +254,7 @@ fn run_test_suite(
 
         println!();
     } else {
-        let suite = read::read_suite(&test262_path.join(suite), config.ignored(), false)
+        let suite = test262::TestSuite::read(&test262_path.join(suite), config.ignored(), false)
             .wrap_err_with(|| {
                 let suite = suite.display();
                 format!("could not read the suite {suite}")

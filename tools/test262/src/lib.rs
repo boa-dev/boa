@@ -3,10 +3,10 @@ mod edition;
 mod structs;
 mod test_files;
 mod test_flags;
+mod git;
+mod read;
 mod error;
 
-pub mod git;
-pub mod read;
 pub use error::Error262;
 pub use edition::SpecEdition;
 pub use structs::{ErrorType, Ignored, Outcome, Phase};
@@ -45,7 +45,7 @@ mod tests {
     #[test]
     #[ignore = "manual"]
     fn should_read_harness() {
-        let harness = super::read::read_harness(Path::new(TEST262_DIRECTORY)).unwrap();
+        let harness = super::Harness::read(Path::new(TEST262_DIRECTORY)).unwrap();
         assert!(harness.assert.path.is_file());
         assert!(harness.sta.path.is_file());
         assert!(harness.doneprint_handle.path.is_file());
@@ -58,12 +58,12 @@ mod tests {
             .join("test")
             .join("language")
             .join("import");
-        let test_suite = super::read::read_suite(&path, &Ignored::default(), false).unwrap();
+        let test_suite = super::TestSuite::read(&path, &Ignored::default(), false).unwrap();
         assert!(!test_suite.name.is_empty());
         assert!(!test_suite.tests.is_empty());
 
         let test_path = &test_suite.tests[0].path;
-        let test = super::read::read_test(test_path);
+        let test = super::Test::read(test_path);
         assert!(test.is_ok());
     }
 
