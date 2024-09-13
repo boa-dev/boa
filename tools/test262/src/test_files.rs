@@ -1,9 +1,9 @@
-use std::path::Path;
 use rustc_hash::{FxHashMap, FxHashSet};
 use serde::Deserialize;
+use std::path::Path;
 
-use crate::{TestFlags, SpecEdition};
 use super::structs::*;
+use crate::{SpecEdition, TestFlags};
 
 /// All the harness include files.
 #[allow(missing_docs)]
@@ -44,13 +44,14 @@ pub struct Test {
 
 impl Test {
     /// Creates a new test.
-    pub fn new<N, C>(name: N, path: C, metadata: MetaData) -> color_eyre::Result<Self>
+    pub fn new<N, C>(name: N, path: C, metadata: MetaData) -> Result<Self, crate::Error262>
     where
         N: Into<Box<str>>,
         C: Into<Box<Path>>,
     {
-        let edition = SpecEdition::from_test_metadata(&metadata)
-            .map_err(|feats| color_eyre::eyre::eyre!("test metadata contained unknown features: {feats:?}"))?;
+        let edition = SpecEdition::from_test_metadata(&metadata).map_err(|feats| {
+            crate::Error262::MetadataUnknownFeatures(feats.into_iter().map(String::from).collect())
+        })?;
 
         Ok(Self {
             edition,
@@ -80,7 +81,6 @@ impl Test {
         self.flags.contains(TestFlags::MODULE)
     }
 }
-
 
 /// Represents a test suite.
 #[allow(missing_docs)]
@@ -122,4 +122,3 @@ pub struct MetaData {
 pub struct Locale {
     locale: Box<[Box<str>]>,
 }
-

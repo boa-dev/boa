@@ -1,23 +1,21 @@
 //! Module to read the list of test suites from disk.
+use crate::{error::PathToString, Error262};
+
 use super::test_files::{Harness, HarnessFile, MetaData, Test, TestSuite};
 
+use rustc_hash::FxHashMap;
 use std::{
     ffi::OsStr,
     fs,
     path::{Path, PathBuf},
 };
 
-use color_eyre::{
-    eyre::{OptionExt, WrapErr},
-    Result,
-};
-use rustc_hash::FxHashMap;
-
 /// Reads the Test262 defined bindings.
-pub fn read_harness(test262_path: &Path) -> Result<Harness> {
-    fn read_harness_file(path: PathBuf) -> Result<HarnessFile> {
-        let content = fs::read_to_string(path.as_path())
-            .wrap_err_with(|| format!("error reading the harness file `{}`", path.display()))?;
+pub fn read_harness(test262_path: &Path) -> Result<Harness, Error262> {
+    fn read_harness_file(path: PathBuf) -> Result<HarnessFile, Error262> {
+        let content = fs::read_to_string(&path).map_err(|_| Error262::HarnessFileReadError {
+            path: path.string(),
+        })?;
 
         Ok(HarnessFile {
             content: content.into_boxed_str(),
@@ -26,10 +24,13 @@ pub fn read_harness(test262_path: &Path) -> Result<Harness> {
     }
     let mut includes = FxHashMap::default();
 
-    for entry in fs::read_dir(test262_path.join("harness"))
-        .wrap_err("error reading the harness directory")?
-    {
-        let entry = entry?;
+    let harness_dir = test262_path.join("harness");
+    for entry in fs::read_dir(&harness_dir).map_err(|_| Error262::InvalidHarnessDirecory {
+        path: harness_dir.string(),
+    })? {
+        let entry = entry.map_err(|_| Error262::InvalidHarnessDirecory {
+            path: harness_dir.string(),
+        })?;
         let file_name = entry.file_name();
         let file_name = file_name.to_string_lossy();
 
@@ -59,11 +60,11 @@ pub fn read_suite(
     path: &Path,
     ignored: &crate::structs::Ignored,
     mut ignore_suite: bool,
-) -> Result<TestSuite> {
+) -> Result<TestSuite, Error262> {
     let name = path
         .file_name()
         .and_then(OsStr::to_str)
-        .ok_or_eyre("invalid path for test suite")?;
+        .ok_or(Error262::InvalidPathToTestSuite)?;
 
     ignore_suite |= ignored.contains_test(name);
 
@@ -71,16 +72,25 @@ pub fn read_suite(
     let mut tests = Vec::new();
 
     // TODO: iterate in parallel
-    for entry in path.read_dir().wrap_err("could not retrieve entry")? {
-        let entry = entry?;
-        let filetype = entry.file_type().wrap_err("could not retrieve file type")?;
+    for entry in path
+        .read_dir()
+        .map_err(|_| Error262::InvalidPathToTestSuite)?
+    {
+        let entry = entry.map_err(|_| Error262::InvalidPathToTestSuite)?;
+        let filetype = entry
+            .file_type()
+            .map_err(|_| Error262::FailedToGetFileType {
+                path: entry.path().string(),
+            })?;
 
         if filetype.is_dir() {
             suites.push(
-                read_suite(entry.path().as_path(), ignored, ignore_suite).wrap_err_with(|| {
-                    let path = entry.path();
-                    let suite = path.display();
-                    format!("error reading sub-suite {suite}")
+                read_suite(entry.path().as_path(), ignored, ignore_suite).map_err(|e| {
+                    Error262::SubSuiteReadError {
+                        path: entry.path().string(),
+                        suite: path.string(),
+                        error: Box::new(e),
+                    }
                 })?,
             );
             continue;
@@ -101,10 +111,10 @@ pub fn read_suite(
             continue;
         }
 
-        let mut test = read_test(&path).wrap_err_with(|| {
-            let path = entry.path();
-            let suite = path.display();
-            format!("error reading test {suite}")
+        let mut test = read_test(&path).map_err(|e| Error262::SubTestReadError {
+            path: entry.path().string(),
+            suite: path.string(),
+            error: Box::new(e),
         })?;
 
         if ignore_suite
@@ -129,11 +139,11 @@ pub fn read_suite(
 }
 
 /// Reads information about a given test case.
-pub fn read_test(path: &Path) -> Result<Test> {
+pub fn read_test(path: &Path) -> Result<Test, Error262> {
     let name = path
         .file_stem()
         .and_then(OsStr::to_str)
-        .ok_or_eyre("invalid path for test")?;
+        .ok_or(Error262::InvalidPathToTest)?;
 
     let metadata = read_metadata(path)?;
 
@@ -141,16 +151,25 @@ pub fn read_test(path: &Path) -> Result<Test> {
 }
 
 /// Reads the metadata from the input test code.
-pub fn read_metadata(test: &Path) -> Result<MetaData> {
-    let code = fs::read_to_string(test)?;
+pub fn read_metadata(test: &Path) -> Result<MetaData, Error262> {
+    let code = fs::read_to_string(test).map_err(|_| Error262::MetadateReadError {
+        path: test.string(),
+    })?;
 
     let (_, metadata) = code
         .split_once("/*---")
-        .ok_or_eyre("invalid test metadata")?;
-    let (metadata, _) = metadata
-        .split_once("---*/")
-        .ok_or_eyre("invalid test metadata")?;
+        .ok_or_else(|| Error262::MetadateParseError {
+            path: test.string(),
+        })?;
+    let (metadata, _) =
+        metadata
+            .split_once("---*/")
+            .ok_or_else(|| Error262::MetadateParseError {
+                path: test.string(),
+            })?;
     let metadata = metadata.replace('\r', "\n");
 
-    serde_yaml::from_str(&metadata).map_err(Into::into)
+    serde_yaml::from_str(&metadata).map_err(|_| Error262::MetadateParseError {
+        path: test.string(),
+    })
 }

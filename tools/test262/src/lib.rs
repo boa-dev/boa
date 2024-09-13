@@ -3,13 +3,15 @@ mod edition;
 mod structs;
 mod test_files;
 mod test_flags;
+mod error;
 
 pub mod git;
 pub mod read;
-pub use structs::{ErrorType, Outcome, Phase, Ignored};
+pub use error::Error262;
+pub use edition::SpecEdition;
+pub use structs::{ErrorType, Ignored, Outcome, Phase};
 pub use test_files::{Harness, HarnessFile, MetaData, Test, TestSuite};
 pub use test_flags::TestFlags;
-pub use edition::SpecEdition;
 
 /// Repository Url
 pub const TEST262_REPOSITORY: &str = "https://github.com/tc39/test262";
@@ -30,9 +32,9 @@ pub fn clone_test262(commit: Option<&str>, verbose: u8) -> color_eyre::Result<()
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-    use crate::{Ignored, MetaData, TEST262_DIRECTORY};
     use crate::edition::SpecEdition;
+    use crate::{Ignored, MetaData, TEST262_DIRECTORY};
+    use std::path::Path;
 
     #[test]
     #[ignore = "manual"]
@@ -52,7 +54,10 @@ mod tests {
     #[test]
     #[ignore = "manual"]
     fn should_read_test_suite_and_test() {
-        let path = Path::new(TEST262_DIRECTORY).join("test").join("language").join("import");
+        let path = Path::new(TEST262_DIRECTORY)
+            .join("test")
+            .join("language")
+            .join("import");
         let test_suite = super::read::read_suite(&path, &Ignored::default(), false).unwrap();
         assert!(!test_suite.name.is_empty());
         assert!(!test_suite.tests.is_empty());
@@ -76,7 +81,10 @@ mod tests {
             negative: None,
             locale: Default::default(),
         };
-        assert_eq!(Ok(SpecEdition::ESNext), SpecEdition::from_test_metadata(&metadata));
+        assert_eq!(
+            Ok(SpecEdition::ESNext),
+            SpecEdition::from_test_metadata(&metadata)
+        );
     }
 
     #[test]
@@ -87,15 +95,20 @@ mod tests {
             es5id: None,
             es6id: None,
             info: String::into_boxed_str("test_example".to_string()),
-            features: Box::new([
-                String::into_boxed_str("TypedArray".to_string()), // ES6
-                String::into_boxed_str("well-formed-json-stringify".to_string())] // ES10
+            features: Box::new(
+                [
+                    String::into_boxed_str("TypedArray".to_string()), // ES6
+                    String::into_boxed_str("well-formed-json-stringify".to_string()),
+                ], // ES10
             ),
             includes: Box::new([]),
             flags: Box::new([]),
             negative: None,
             locale: Default::default(),
         };
-        assert_eq!(Ok(SpecEdition::ES10), SpecEdition::from_test_metadata(&metadata));
+        assert_eq!(
+            Ok(SpecEdition::ES10),
+            SpecEdition::from_test_metadata(&metadata)
+        );
     }
 }
