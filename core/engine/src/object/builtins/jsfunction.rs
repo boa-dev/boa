@@ -5,11 +5,12 @@ use crate::{
     value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
 };
 use boa_gc::{Finalize, Trace, WeakGc};
+use boa_string::JsString;
 use std::cell::Cell;
 use std::marker::PhantomData;
 use std::ops::Deref;
 
-use super::lazy_builtin::{BuiltIn, BuiltinKind};
+use super::lazy_builtin::{BuiltinKind, LazyBuiltIn};
 
 /// A trait for converting a tuple of Rust values into a vector of `JsValue`,
 /// to be used as arguments for a JavaScript function.
@@ -144,15 +145,23 @@ impl JsFunction {
     pub(crate) fn lazy_intrinsic_function(
         constructor: bool,
         init: fn(&Realm),
+        name: JsString,
         realm_inner: WeakGc<RealmInner>,
     ) -> Self {
+        let kind = if constructor {
+            BuiltinKind::Function(Self::empty_intrinsic_function(constructor))
+        } else {
+            BuiltinKind::Ordinary
+        };
+
         Self {
             inner: JsObject::from_proto_and_data(
                 None,
-                BuiltIn {
+                LazyBuiltIn {
                     init,
                     is_initialized: Cell::new(false),
-                    kind: BuiltinKind::Constructor(Self::empty_intrinsic_function(constructor)),
+                    kind,
+                    name,
                     realm_inner: Some(realm_inner),
                 },
             ),

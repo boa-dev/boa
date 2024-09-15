@@ -5,7 +5,7 @@ use crate::{
     native_function::{NativeFunctionObject, NativeFunctionPointer},
     object::{
         shape::{property_table::PropertyTableInner, slot::SlotAttributes},
-        BuiltIn, FunctionBinding, JsFunction, JsPrototype, CONSTRUCTOR, PROTOTYPE,
+        FunctionBinding, JsFunction, JsPrototype, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,

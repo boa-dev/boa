@@ -195,108 +195,107 @@ impl Realm {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createintrinsics
     pub(crate) fn initialize(&self) {
-        // BuiltInFunctionObject::init(self);
-        // OrdinaryObject::init(self);
-        // Iterator::init(self);
-        // AsyncIterator::init(self);
-        // AsyncFromSyncIterator::init(self);
-        // ForInIterator::init(self);
-        // Math::init(self);
-        // Json::init(self);
-        // Array::init(self);
-        // ArrayIterator::init(self);
-        // Proxy::init(self);
-        // ArrayBuffer::init(self);
-        // SharedArrayBuffer::init(self);
-        // BigInt::init(self);
-        // Boolean::init(self);
+        BuiltInFunctionObject::init(self);
+        OrdinaryObject::init(self);
+        Iterator::init(self);
+        AsyncIterator::init(self);
+        AsyncFromSyncIterator::init(self);
+        ForInIterator::init(self);
+        Math::init(self);
+        Json::init(self);
+        ArrayIterator::init(self);
+        Proxy::init(self);
+        ArrayBuffer::init(self);
+        SharedArrayBuffer::init(self);
+        BigInt::init(self);
+        Boolean::init(self);
         // Date::init(self);
-        // DataView::init(self);
-        // Map::init(self);
-        // MapIterator::init(self);
-        // IsFinite::init(self);
-        // IsNaN::init(self);
-        // ParseInt::init(self);
-        // ParseFloat::init(self);
-        // Number::init(self);
-        // Eval::init(self);
-        // Set::init(self);
-        // SetIterator::init(self);
-        // String::init(self);
-        // StringIterator::init(self);
-        // RegExp::init(self);
-        // RegExpStringIterator::init(self);
-        // BuiltinTypedArray::init(self);
-        // Int8Array::init(self);
-        // Uint8Array::init(self);
-        // Uint8ClampedArray::init(self);
-        // Int16Array::init(self);
-        // Uint16Array::init(self);
-        // Int32Array::init(self);
-        // Uint32Array::init(self);
-        // BigInt64Array::init(self);
-        // BigUint64Array::init(self);
-        // Float32Array::init(self);
-        // Float64Array::init(self);
-        // Symbol::init(self);
-        // Error::init(self);
-        // RangeError::init(self);
-        // ReferenceError::init(self);
-        // TypeError::init(self);
-        // ThrowTypeError::init(self);
-        // SyntaxError::init(self);
-        // EvalError::init(self);
-        // UriError::init(self);
-        // AggregateError::init(self);
-        // Reflect::init(self);
-        // Generator::init(self);
-        // GeneratorFunction::init(self);
-        // Promise::init(self);
-        // AsyncFunction::init(self);
-        // AsyncGenerator::init(self);
-        // AsyncGeneratorFunction::init(self);
-        // EncodeUri::init(self);
-        // EncodeUriComponent::init(self);
-        // DecodeUri::init(self);
-        // DecodeUriComponent::init(self);
-        // WeakRef::init(self);
-        // WeakMap::init(self);
-        // WeakSet::init(self);
-        // Atomics::init(self);
+        DataView::init(self);
+        Map::init(self);
+        MapIterator::init(self);
+        IsFinite::init(self);
+        IsNaN::init(self);
+        ParseInt::init(self);
+        ParseFloat::init(self);
+        Number::init(self);
+        Eval::init(self);
+        Set::init(self);
+        SetIterator::init(self);
+        String::init(self);
+        StringIterator::init(self);
+        RegExp::init(self);
+        RegExpStringIterator::init(self);
+        BuiltinTypedArray::init(self);
+        Int8Array::init(self);
+        Uint8Array::init(self);
+        Uint8ClampedArray::init(self);
+        Int16Array::init(self);
+        Uint16Array::init(self);
+        Int32Array::init(self);
+        Uint32Array::init(self);
+        BigInt64Array::init(self);
+        BigUint64Array::init(self);
+        Float32Array::init(self);
+        Float64Array::init(self);
+        Symbol::init(self);
+        Error::init(self);
+        RangeError::init(self);
+        ReferenceError::init(self);
+        TypeError::init(self);
+        ThrowTypeError::init(self);
+        SyntaxError::init(self);
+        EvalError::init(self);
+        UriError::init(self);
+        AggregateError::init(self);
+        Reflect::init(self);
+        Generator::init(self);
+        GeneratorFunction::init(self);
+        Promise::init(self);
+        AsyncFunction::init(self);
+        AsyncGenerator::init(self);
+        AsyncGeneratorFunction::init(self);
+        EncodeUri::init(self);
+        EncodeUriComponent::init(self);
+        DecodeUri::init(self);
+        DecodeUriComponent::init(self);
+        WeakRef::init(self);
+        WeakMap::init(self);
+        WeakSet::init(self);
+        Atomics::init(self);
 
-        // #[cfg(feature = "annex-b")]
-        // {
-        //     escape::Escape::init(self);
-        //     escape::Unescape::init(self);
-        // }
+        #[cfg(feature = "annex-b")]
+        {
+            escape::Escape::init(self);
+            escape::Unescape::init(self);
+        }
 
-        // #[cfg(feature = "intl")]
-        // {
-        //     intl::Intl::init(self);
-        //     intl::Collator::init(self);
-        //     intl::ListFormat::init(self);
-        //     intl::Locale::init(self);
-        //     intl::DateTimeFormat::init(self);
-        //     intl::Segmenter::init(self);
-        //     intl::segmenter::Segments::init(self);
-        //     intl::segmenter::SegmentIterator::init(self);
-        //     intl::PluralRules::init(self);
-        //     intl::NumberFormat::init(self);
-        // }
+        #[cfg(feature = "intl")]
+        {
+            intl::Intl::init(self);
+            intl::Collator::init(self);
+            intl::ListFormat::init(self);
+            intl::Locale::init(self);
+            intl::DateTimeFormat::init(self);
+            intl::Segmenter::init(self);
+            intl::segmenter::Segments::init(self);
+            intl::segmenter::SegmentIterator::init(self);
+            intl::PluralRules::init(self);
+            intl::NumberFormat::init(self);
+        }
 
-        // #[cfg(feature = "temporal")]
-        // {
-        //     temporal::Temporal::init(self);
-        //     temporal::Now::init(self);
-        //     temporal::Instant::init(self);
-        //     temporal::Duration::init(self);
-        //     temporal::PlainDate::init(self);
-        //     temporal::PlainTime::init(self);
-        //     temporal::PlainDateTime::init(self);
-        //     temporal::PlainMonthDay::init(self);
-        //     temporal::PlainYearMonth::init(self);
-        //     temporal::ZonedDateTime::init(self);
-        // }
+        #[cfg(feature = "temporal")]
+        {
+            temporal::Temporal::init(self);
+            temporal::Now::init(self);
+            temporal::Instant::init(self);
+            temporal::Duration::init(self);
+            temporal::PlainDate::init(self);
+            temporal::PlainTime::init(self);
+            temporal::PlainDateTime::init(self);
+            temporal::PlainMonthDay::init(self);
+            temporal::PlainYearMonth::init(self);
+            temporal::ZonedDateTime::init(self);
+        }
     }
 }
 

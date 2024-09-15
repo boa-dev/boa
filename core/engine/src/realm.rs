@@ -83,7 +83,7 @@ impl Realm {
         // Use Gc::new_cyclic to create the Realm with a cyclic reference
         let inner = Gc::new_cyclic(|weak_realm| {
             // Initialize intrinsics with a reference to the weak_realm
-            let intrinsics = Intrinsics::uninit(root_shape, weak_realm.to_owned())
+            let intrinsics = Intrinsics::uninit(root_shape, weak_realm)
                 .expect("failed to create the realm intrinsics");
 
             let global_object = hooks.create_global_object(&intrinsics);

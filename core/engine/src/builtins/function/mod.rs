@@ -26,7 +26,7 @@ use crate::{
             get_prototype_from_constructor, CallValue, InternalObjectMethods,
             ORDINARY_INTERNAL_METHODS,
         },
-        JsData, JsFunction, JsObject, PrivateElement, PrivateName,
+        JsData, JsFunction, JsObject, LazyBuiltIn, PrivateElement, PrivateName,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -859,6 +859,13 @@ impl BuiltInFunctionObject {
             );
         } else if object_borrow.is::<Proxy>() || object_borrow.is::<BoundFunction>() {
             return Ok(js_string!("function () { [native code] }").into());
+        } else if object_borrow.is::<LazyBuiltIn>() {
+            let name = object_borrow
+                .downcast_ref::<LazyBuiltIn>()
+                .map_or_else(|| js_string!(), |built_in| built_in.name.clone());
+            return Ok(
+                js_string!(js_str!("function "), &name, js_str!("() { [native code] }")).into(),
+            );
         }
 
         let function = object_borrow

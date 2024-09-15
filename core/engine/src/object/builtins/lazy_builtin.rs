@@ -16,41 +16,44 @@ use crate::{
     Context, JsData, JsNativeError, JsObject, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace, WeakGc};
+use boa_string::JsString;
 use std::cell::Cell;
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) enum BuiltinKind {
-    Constructor(JsFunction),
+    Function(JsFunction),
     Ordinary,
 }
 
 /// A builtin function. Used for lazy initialization of builtins.
 
 #[derive(Clone, Finalize)]
-pub struct BuiltIn {
+pub struct LazyBuiltIn {
     pub(crate) init: fn(&Realm),
     pub(crate) is_initialized: Cell<bool>,
     pub(crate) kind: BuiltinKind,
     pub(crate) realm_inner: Option<WeakGc<RealmInner>>,
+    pub(crate) name: JsString,
 }
 
 // SAFETY: Temporary, TODO move back to derived Trace when possible
-unsafe impl Trace for BuiltIn {
+unsafe impl Trace for LazyBuiltIn {
     custom_trace!(this, mark, {
         mark(&this.kind);
     });
 }
 
 // Implement the trait for JsData by overriding all internal_methods by calling init before calling into the underlying internel_method
-impl JsData for BuiltIn {
+impl JsData for LazyBuiltIn {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
-        static CONSTRUCTOR: InternalObjectMethods = InternalObjectMethods {
+        static FUNCTION: InternalObjectMethods = InternalObjectMethods {
             __construct__: lazy_construct,
+            __call__: lazy_call,
             ..LAZY_INTERNAL_METHODS
         };
 
-        if let BuiltinKind::Constructor(_) = self.kind {
-            return &CONSTRUCTOR;
+        if let BuiltinKind::Function(_) = self.kind {
+            return &FUNCTION;
         }
 
         &LAZY_INTERNAL_METHODS
@@ -78,7 +81,7 @@ pub(crate) fn lazy_get_prototype_of(
     obj: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsPrototype> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -104,7 +107,7 @@ pub(crate) fn lazy_set_prototype_of(
     prototype: JsPrototype,
     context: &mut Context,
 ) -> JsResult<bool> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -125,7 +128,7 @@ pub(crate) fn lazy_set_prototype_of(
     ordinary_set_prototype_of(obj, prototype, context)
 }
 pub(crate) fn lazy_is_extensible(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -147,7 +150,7 @@ pub(crate) fn lazy_is_extensible(obj: &JsObject, context: &mut Context) -> JsRes
 }
 
 pub(crate) fn lazy_prevent_extensions(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -173,7 +176,7 @@ pub(crate) fn lazy_get_own_property(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -200,7 +203,7 @@ pub(crate) fn lazy_define_own_property(
     desc: PropertyDescriptor,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -226,7 +229,7 @@ pub(crate) fn lazy_has_property(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -253,7 +256,7 @@ pub(crate) fn lazy_try_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<JsValue>> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -280,7 +283,7 @@ pub(crate) fn lazy_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<JsValue> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -308,7 +311,7 @@ pub(crate) fn lazy_set(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         builtin_borrow.data.is_initialized.set(true);
@@ -334,7 +337,7 @@ pub(crate) fn lazy_delete(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -359,7 +362,7 @@ pub(crate) fn lazy_own_property_keys(
     obj: &JsObject,
     context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
         let realm = &Realm {
@@ -385,7 +388,7 @@ pub(crate) fn lazy_construct(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
-    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
     let kind = &builtin.borrow().data.kind;
     if !builtin.borrow().data.is_initialized.get() {
         let builtin_borrow = builtin.borrow_mut();
@@ -409,6 +412,40 @@ pub(crate) fn lazy_construct(
             .with_message("not a constructor")
             .with_realm(context.realm().clone())
             .into()),
-        BuiltinKind::Constructor(constructor) => Ok(constructor.__construct__(argument_count)),
+        BuiltinKind::Function(constructor) => Ok(constructor.__construct__(argument_count)),
+    }
+}
+
+pub(crate) fn lazy_call(
+    obj: &JsObject,
+    argument_count: usize,
+    context: &mut Context,
+) -> JsResult<CallValue> {
+    let builtin: JsObject<LazyBuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let kind = &builtin.borrow().data.kind;
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
+    }
+
+    match kind {
+        BuiltinKind::Ordinary => Err(JsNativeError::typ()
+            .with_message("not a constructor")
+            .with_realm(context.realm().clone())
+            .into()),
+        BuiltinKind::Function(function) => Ok(function.__call__(argument_count)),
     }
 }
