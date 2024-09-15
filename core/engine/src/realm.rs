@@ -20,7 +20,7 @@ use crate::{
     environments::DeclarativeEnvironment,
     module::Module,
     object::shape::RootShape,
-    HostDefined, JsNativeError, JsObject, JsResult, JsString,
+    HostDefined, JsObject, JsResult, JsString,
 };
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 use boa_profiler::Profiler;
@@ -30,7 +30,7 @@ use boa_profiler::Profiler;
 /// In the specification these are called Realm Records.
 #[derive(Clone, Trace, Finalize)]
 pub struct Realm {
-    inner: Gc<Inner>,
+    pub inner: Gc<RealmInner>,
 }
 
 impl Eq for Realm {}
@@ -53,7 +53,7 @@ impl std::fmt::Debug for Realm {
 }
 
 #[derive(Trace, Finalize)]
-struct Inner {
+pub struct RealmInner {
     intrinsics: Intrinsics,
 
     /// The global declarative environment of this realm.
@@ -83,8 +83,8 @@ impl Realm {
         // Use Gc::new_cyclic to create the Realm with a cyclic reference
         let inner = Gc::new_cyclic(|weak_realm| {
             // Initialize intrinsics with a reference to the weak_realm
-            let intrinsics =
-                Intrinsics::uninit(root_shape).expect("failed to create the realm intrinisics");
+            let intrinsics = Intrinsics::uninit(root_shape, weak_realm.to_owned())
+                .expect("failed to create the realm intrinsics");
 
             let global_object = hooks.create_global_object(&intrinsics);
             let global_this = hooks
@@ -93,7 +93,7 @@ impl Realm {
             let environment = Gc::new(DeclarativeEnvironment::global());
             let scope = Scope::new_global();
 
-            Inner {
+            RealmInner {
                 intrinsics,
                 environment,
                 scope,

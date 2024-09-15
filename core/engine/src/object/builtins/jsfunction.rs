@@ -1,10 +1,10 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
-use crate::realm::Realm;
+use crate::realm::{Realm, RealmInner};
 use crate::{
     builtins::function::ConstructorKind, native_function::NativeFunctionObject, object::JsObject,
     value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, WeakGc};
 use std::cell::Cell;
 use std::marker::PhantomData;
 use std::ops::Deref;
@@ -141,7 +141,11 @@ impl JsFunction {
 
     /// Creates a new, lazy intrinsic functionobject with only its function internal methods set.
     /// When the function is accessed it will call init from the procided init function
-    pub(crate) fn lazy_intrinsic_function(constructor: bool, init: fn(&Realm)) -> Self {
+    pub(crate) fn lazy_intrinsic_function(
+        constructor: bool,
+        init: fn(&Realm),
+        realm_inner: WeakGc<RealmInner>,
+    ) -> Self {
         Self {
             inner: JsObject::from_proto_and_data(
                 None,
@@ -149,7 +153,7 @@ impl JsFunction {
                     init,
                     is_initialized: Cell::new(false),
                     kind: BuiltinKind::Constructor(Self::empty_intrinsic_function(constructor)),
-                    realm: None,
+                    realm_inner: Some(realm_inner),
                 },
             ),
         }

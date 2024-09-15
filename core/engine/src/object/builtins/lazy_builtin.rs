@@ -12,10 +12,10 @@ use crate::{
         JsPrototype,
     },
     property::{PropertyDescriptor, PropertyKey},
-    realm::Realm,
+    realm::{Realm, RealmInner},
     Context, JsData, JsNativeError, JsObject, JsResult, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, WeakGc};
 use std::cell::Cell;
 
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -26,12 +26,12 @@ pub(crate) enum BuiltinKind {
 
 /// A builtin function. Used for lazy initialization of builtins.
 
-#[derive(Debug, Clone, Finalize)]
+#[derive(Clone, Finalize)]
 pub struct BuiltIn {
     pub(crate) init: fn(&Realm),
     pub(crate) is_initialized: Cell<bool>,
     pub(crate) kind: BuiltinKind,
-    pub(crate) realm: Option<Realm>,
+    pub(crate) realm_inner: Option<WeakGc<RealmInner>>,
 }
 
 // SAFETY: Temporary, TODO move back to derived Trace when possible
@@ -78,12 +78,22 @@ pub(crate) fn lazy_get_prototype_of(
     obj: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsPrototype> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_get_prototype_of(obj, context)
@@ -94,36 +104,65 @@ pub(crate) fn lazy_set_prototype_of(
     prototype: JsPrototype,
     context: &mut Context,
 ) -> JsResult<bool> {
-    // Check if initialized, and set if not
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
+
     ordinary_set_prototype_of(obj, prototype, context)
 }
-
 pub(crate) fn lazy_is_extensible(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_is_extensible(obj, context)
 }
 
 pub(crate) fn lazy_prevent_extensions(obj: &JsObject, context: &mut Context) -> JsResult<bool> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_prevent_extensions(obj, context)
@@ -134,12 +173,22 @@ pub(crate) fn lazy_get_own_property(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_get_own_property(obj, key, context)
@@ -151,12 +200,22 @@ pub(crate) fn lazy_define_own_property(
     desc: PropertyDescriptor,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_define_own_property(obj, key, desc, context)
@@ -167,12 +226,22 @@ pub(crate) fn lazy_has_property(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_has_property(obj, key, context)
@@ -184,12 +253,22 @@ pub(crate) fn lazy_try_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<JsValue>> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_try_get(obj, key, receiver, context)
@@ -201,12 +280,22 @@ pub(crate) fn lazy_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<JsValue> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_get(obj, key, receiver, context)
@@ -219,12 +308,22 @@ pub(crate) fn lazy_set(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        builtin_borrow.data.is_initialized.set(true);
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_set(obj, key, value, receiver, context)
@@ -235,12 +334,22 @@ pub(crate) fn lazy_delete(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_delete(obj, key, context)
@@ -250,12 +359,22 @@ pub(crate) fn lazy_own_property_keys(
     obj: &JsObject,
     context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        dbg!("initializing!");
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
     ordinary_own_property_keys(obj, context)
@@ -266,14 +385,26 @@ pub(crate) fn lazy_construct(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
-    let realm = context.realm();
-    let builtin = obj.downcast_ref::<BuiltIn>().expect("obj is not a Builtin");
-    if !builtin.is_initialized.get() {
-        builtin.is_initialized.set(true);
-        (builtin.init)(realm);
+    let builtin: JsObject<BuiltIn> = obj.clone().downcast().expect("obj is not a Builtin");
+    let kind = &builtin.borrow().data.kind;
+    if !builtin.borrow().data.is_initialized.get() {
+        let builtin_borrow = builtin.borrow_mut();
+        let realm = &Realm {
+            inner: builtin_borrow
+                .data
+                .realm_inner
+                .as_ref()
+                .expect("realm_inner not set")
+                .upgrade()
+                .expect("realm_inner not set"),
+        };
+        builtin_borrow.data.is_initialized.set(true);
+        let init_fn = builtin_borrow.data.init;
+        drop(builtin_borrow);
+        init_fn(realm);
     }
 
-    match &builtin.kind {
+    match kind {
         BuiltinKind::Ordinary => Err(JsNativeError::typ()
             .with_message("not a constructor")
             .with_realm(context.realm().clone())

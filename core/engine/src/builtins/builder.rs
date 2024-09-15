@@ -391,10 +391,6 @@ impl BuiltInConstructorWithPrototype<'_> {
         }
 
         let mut object = self.object.borrow_mut();
-        let built_in = object
-            .downcast_mut::<BuiltIn>()
-            .expect("Builtin must be a function object");
-        built_in.realm = Some(self.realm.clone());
         object
             .properties_mut()
             .shape

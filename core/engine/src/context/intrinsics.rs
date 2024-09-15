@@ -1,6 +1,6 @@
 //! Data structures that contain intrinsic objects and constructors.
 
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, WeakGc};
 use boa_macros::js_str;
 
 use crate::{
@@ -14,7 +14,7 @@ use crate::{
         JsFunction, JsObject, Object, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
-    realm::Realm,
+    realm::{Realm, RealmInner},
     JsSymbol,
 };
 
@@ -43,8 +43,8 @@ impl Intrinsics {
     /// To initialize all the intrinsics with their spec properties, see [`Realm::initialize`].
     ///
     /// [`Realm::initialize`]: crate::realm::Realm::initialize
-    pub(crate) fn uninit(root_shape: &RootShape) -> Option<Self> {
-        let constructors = StandardConstructors::default();
+    pub(crate) fn uninit(root_shape: &RootShape, realm_inner: WeakGc<RealmInner>) -> Option<Self> {
+        let constructors = StandardConstructors::new(realm_inner);
         let templates = ObjectTemplates::new(root_shape, &constructors);
 
         Some(Self {
@@ -99,9 +99,9 @@ impl StandardConstructor {
     }
 
     /// Similar to `with_prototype`, but the prototype is lazily initialized.
-    fn with_lazy(init: fn(&Realm) -> ()) -> Self {
+    fn with_lazy(init: fn(&Realm) -> (), realm_inner: WeakGc<RealmInner>) -> Self {
         Self {
-            constructor: JsFunction::lazy_intrinsic_function(true, init),
+            constructor: JsFunction::lazy_intrinsic_function(true, init, realm_inner),
             prototype: JsObject::default(),
         }
     }
@@ -214,8 +214,8 @@ pub struct StandardConstructors {
     calendar: StandardConstructor,
 }
 
-impl Default for StandardConstructors {
-    fn default() -> Self {
+impl StandardConstructors {
+    fn new(realm_inner: WeakGc<RealmInner>) -> Self {
         Self {
             object: StandardConstructor::with_prototype(JsObject::from_object_and_vtable(
                 Object::<OrdinaryObject>::default(),
@@ -230,7 +230,7 @@ impl Default for StandardConstructors {
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::with_lazy(Array::init),
+            array: StandardConstructor::with_lazy(Array::init, realm_inner),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
