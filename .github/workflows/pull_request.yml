@@ -6,6 +6,10 @@ on:
       - main
       - releases/**
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   runBenchmark:
     if: contains(github.event.pull_request.labels.*.name, 'run-benchmark')
