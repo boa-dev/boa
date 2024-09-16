@@ -108,11 +108,7 @@ impl ByteCompiler<'_> {
     }
 
     pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, _has_finally: bool, use_expr: bool) {
-        // stack: exception
-
-        let outer_scope = self.lexical_scope.clone();
-        let scope_index = self.push_scope(catch.scope());
-        self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+        let outer_scope = self.push_declarative_scope(Some(catch.scope()));
 
         if let Some(binding) = catch.parameter() {
             match binding {
@@ -130,9 +126,7 @@ impl ByteCompiler<'_> {
 
         self.compile_catch_finally_block(catch.block(), use_expr);
 
-        self.pop_scope();
-        self.lexical_scope = outer_scope;
-        self.emit_opcode(Opcode::PopEnvironment);
+        self.pop_declarative_scope(outer_scope);
     }
 
     pub(crate) fn compile_finally_stmt(&mut self, finally: &Finally, has_catch: bool) {

@@ -1149,6 +1149,423 @@ impl BindingCollectorVisitor<'_> {
     }
 }
 
+/// Optimize scope indicies when scopes only contain local bindings.
+pub(crate) fn optimize_scope_indicies<'a, N>(node: &'a mut N, scope: &Scope)
+where
+    &'a mut N: Into<NodeRefMut<'a>>,
+{
+    let mut visitor = ScopeIndexVisitor {
+        index: scope.scope_index(),
+    };
+    visitor.visit(node.into());
+}
+
+struct ScopeIndexVisitor {
+    index: u32,
+}
+
+impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
+    type BreakTy = ();
+
+    fn visit_function_declaration_mut(
+        &mut self,
+        node: &'ast mut FunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut None,
+        )
+    }
+
+    fn visit_generator_declaration_mut(
+        &mut self,
+        node: &'ast mut GeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut None,
+        )
+    }
+
+    fn visit_async_function_declaration_mut(
+        &mut self,
+        node: &'ast mut AsyncFunctionDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut None,
+        )
+    }
+
+    fn visit_async_generator_declaration_mut(
+        &mut self,
+        node: &'ast mut AsyncGeneratorDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut None,
+        )
+    }
+
+    fn visit_function_expression_mut(
+        &mut self,
+        node: &'ast mut FunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut node.name_scope,
+        )
+    }
+
+    fn visit_generator_expression_mut(
+        &mut self,
+        node: &'ast mut GeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut node.name_scope,
+        )
+    }
+
+    fn visit_async_function_expression_mut(
+        &mut self,
+        node: &'ast mut AsyncFunctionExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut node.name_scope,
+        )
+    }
+
+    fn visit_async_generator_expression_mut(
+        &mut self,
+        node: &'ast mut AsyncGeneratorExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut node.name_scope,
+        )
+    }
+
+    fn visit_arrow_function_mut(
+        &mut self,
+        node: &'ast mut ArrowFunction,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut None,
+        )
+    }
+
+    fn visit_async_arrow_function_mut(
+        &mut self,
+        node: &'ast mut AsyncArrowFunction,
+    ) -> ControlFlow<Self::BreakTy> {
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut None,
+        )
+    }
+
+    fn visit_class_declaration_mut(
+        &mut self,
+        node: &'ast mut ClassDeclaration,
+    ) -> ControlFlow<Self::BreakTy> {
+        let index = self.index;
+        if !node.name_scope.all_bindings_local() {
+            self.index += 1;
+        }
+        node.name_scope.set_index(self.index);
+        if let Some(super_ref) = &mut node.super_ref {
+            try_break!(self.visit_expression_mut(super_ref));
+        }
+        if let Some(constructor) = &mut node.constructor {
+            try_break!(self.visit_function_expression_mut(constructor));
+        }
+        for element in &mut *node.elements {
+            try_break!(self.visit_class_element_mut(element));
+        }
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_class_expression_mut(
+        &mut self,
+        node: &'ast mut ClassExpression,
+    ) -> ControlFlow<Self::BreakTy> {
+        let index = self.index;
+        if let Some(scope) = &node.name_scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        if let Some(super_ref) = &mut node.super_ref {
+            try_break!(self.visit_expression_mut(super_ref));
+        }
+        if let Some(constructor) = &mut node.constructor {
+            try_break!(self.visit_function_expression_mut(constructor));
+        }
+        for element in &mut *node.elements {
+            try_break!(self.visit_class_element_mut(element));
+        }
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_class_element_mut(
+        &mut self,
+        node: &'ast mut ClassElement,
+    ) -> ControlFlow<Self::BreakTy> {
+        match node {
+            ClassElement::MethodDefinition(node) => self.visit_function_like(
+                &mut node.body,
+                &mut node.parameters,
+                &mut node.scopes,
+                &mut None,
+            ),
+            ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
+                try_break!(self.visit_property_name_mut(&mut field.name));
+                let index = self.index;
+                self.index += 1;
+                field.scope.set_index(self.index);
+                if let Some(e) = &mut field.field {
+                    try_break!(self.visit_expression_mut(e));
+                }
+                self.index = index;
+                ControlFlow::Continue(())
+            }
+            ClassElement::PrivateFieldDefinition(field) => {
+                let index = self.index;
+                self.index += 1;
+                field.scope.set_index(self.index);
+                if let Some(e) = &mut field.field {
+                    try_break!(self.visit_expression_mut(e));
+                }
+                self.index = index;
+                ControlFlow::Continue(())
+            }
+            ClassElement::PrivateStaticFieldDefinition(_, e) => {
+                if let Some(e) = e {
+                    try_break!(self.visit_expression_mut(e));
+                }
+                ControlFlow::Continue(())
+            }
+            ClassElement::StaticBlock(node) => self.visit_function_like(
+                &mut node.body,
+                &mut FormalParameterList::default(),
+                &mut node.scopes,
+                &mut None,
+            ),
+        }
+    }
+
+    fn visit_object_method_definition_mut(
+        &mut self,
+        node: &'ast mut ObjectMethodDefinition,
+    ) -> ControlFlow<Self::BreakTy> {
+        match &mut node.name {
+            PropertyName::Literal(_) => {}
+            PropertyName::Computed(name) => {
+                try_break!(self.visit_expression_mut(name));
+            }
+        }
+        self.visit_function_like(
+            &mut node.body,
+            &mut node.parameters,
+            &mut node.scopes,
+            &mut None,
+        )
+    }
+
+    fn visit_block_mut(&mut self, node: &'ast mut Block) -> ControlFlow<Self::BreakTy> {
+        let index = self.index;
+        if let Some(scope) = &node.scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        try_break!(self.visit_statement_list_mut(&mut node.statements));
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_switch_mut(&mut self, node: &'ast mut Switch) -> ControlFlow<Self::BreakTy> {
+        let index = self.index;
+        try_break!(self.visit_expression_mut(&mut node.val));
+        if let Some(scope) = &node.scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        for case in &mut *node.cases {
+            try_break!(self.visit_case_mut(case));
+        }
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut(&mut self, node: &'ast mut With) -> ControlFlow<Self::BreakTy> {
+        let index = self.index;
+        try_break!(self.visit_expression_mut(&mut node.expression));
+        self.index += 1;
+        node.scope.set_index(self.index);
+        try_break!(self.visit_statement_mut(&mut node.statement));
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_catch_mut(&mut self, node: &'ast mut Catch) -> ControlFlow<Self::BreakTy> {
+        let index = self.index;
+        if !node.scope.all_bindings_local() {
+            self.index += 1;
+        }
+        node.scope.set_index(self.index);
+        if let Some(binding) = &mut node.parameter {
+            try_break!(self.visit_binding_mut(binding));
+        }
+        try_break!(self.visit_block_mut(&mut node.block));
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_loop_mut(&mut self, node: &'ast mut ForLoop) -> ControlFlow<Self::BreakTy> {
+        let index = self.index;
+        if let Some(ForLoopInitializer::Lexical(decl)) = &mut node.inner.init {
+            if !decl.scope.all_bindings_local() {
+                self.index += 1;
+            }
+            decl.scope.set_index(self.index);
+        }
+        if let Some(fli) = &mut node.inner.init {
+            try_break!(self.visit_for_loop_initializer_mut(fli));
+        }
+        if let Some(expr) = &mut node.inner.condition {
+            try_break!(self.visit_expression_mut(expr));
+        }
+        if let Some(expr) = &mut node.inner.final_expr {
+            try_break!(self.visit_expression_mut(expr));
+        }
+        self.visit_statement_mut(&mut node.inner.body);
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_in_loop_mut(&mut self, node: &'ast mut ForInLoop) -> ControlFlow<Self::BreakTy> {
+        {
+            let index = self.index;
+            if let Some(scope) = &node.target_scope {
+                if !scope.all_bindings_local() {
+                    self.index += 1;
+                }
+                scope.set_index(self.index);
+            }
+            try_break!(self.visit_expression_mut(&mut node.target));
+            self.index = index;
+        }
+        let index = self.index;
+        if let Some(scope) = &node.scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        try_break!(self.visit_iterable_loop_initializer_mut(&mut node.initializer));
+        try_break!(self.visit_statement_mut(&mut node.body));
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+
+    fn visit_for_of_loop_mut(&mut self, node: &'ast mut ForOfLoop) -> ControlFlow<Self::BreakTy> {
+        {
+            let index = self.index;
+            if let Some(scope) = &node.iterable_scope {
+                if !scope.all_bindings_local() {
+                    self.index += 1;
+                }
+                scope.set_index(self.index);
+            }
+            try_break!(self.visit_expression_mut(&mut node.iterable));
+            self.index = index;
+        }
+        let index = self.index;
+        if let Some(scope) = &node.scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        try_break!(self.visit_iterable_loop_initializer_mut(&mut node.init));
+        try_break!(self.visit_statement_mut(&mut node.body));
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+}
+
+impl ScopeIndexVisitor {
+    fn visit_function_like(
+        &mut self,
+        body: &mut FunctionBody,
+        parameters: &mut FormalParameterList,
+        scopes: &mut FunctionScopes,
+        name_scope: &mut Option<Scope>,
+    ) -> ControlFlow<()> {
+        let index = self.index;
+        if let Some(scope) = name_scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        self.index += 1;
+        scopes.function_scope.set_index(self.index);
+        if let Some(scope) = &scopes.parameters_eval_scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        try_break!(self.visit_formal_parameter_list_mut(parameters));
+        if let Some(scope) = &scopes.parameters_scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        if let Some(scope) = &scopes.lexical_scope {
+            if !scope.all_bindings_local() {
+                self.index += 1;
+            }
+            scope.set_index(self.index);
+        }
+        try_break!(self.visit_function_body_mut(body));
+        self.index = index;
+        ControlFlow::Continue(())
+    }
+}
+
 /// `GlobalDeclarationInstantiation ( script, env )`
 ///
 /// More information:
