@@ -79,14 +79,7 @@ impl ByteCompiler<'_> {
             .map_or(Sym::EMPTY_STRING, Identifier::sym)
             .to_js_string(self.interner());
 
-        let outer_scope = if let Some(name_scope) = class.name_scope {
-            let outer_scope = self.lexical_scope.clone();
-            let scope_index = self.push_scope(name_scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-            Some(outer_scope)
-        } else {
-            None
-        };
+        let outer_scope = self.push_declarative_scope(class.name_scope);
 
         let mut compiler = ByteCompiler::new(
             class_name.clone(),
@@ -181,9 +174,11 @@ impl ByteCompiler<'_> {
         let mut static_elements = Vec::new();
         let mut static_field_name_count = 0;
 
-        if outer_scope.is_some() {
+        if let Some(scope) = class.name_scope {
+            let binding = scope.get_identifier_reference(class_name.clone());
+            let index = self.get_or_insert_binding(binding);
             self.emit_opcode(Opcode::Dup);
-            self.emit_binding(BindingOpcode::InitLexical, class_name.clone());
+            self.emit_binding_access(Opcode::PutLexicalValue, &index);
         }
 
         for element in class.elements {
@@ -474,12 +469,7 @@ impl ByteCompiler<'_> {
         self.emit_opcode(Opcode::Swap);
         self.emit_opcode(Opcode::Pop);
 
-        if let Some(outer_scope) = outer_scope {
-            self.pop_scope();
-            self.lexical_scope = outer_scope;
-            self.emit_opcode(Opcode::PopEnvironment);
-        }
-
+        self.pop_declarative_scope(outer_scope);
         self.emit_opcode(Opcode::PopPrivateEnvironment);
 
         if !expression {

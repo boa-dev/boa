@@ -963,10 +963,7 @@ impl ByteCompiler<'_> {
         }
 
         // 19-20
-        if let Some(scope) = scopes.parameters_eval_scope() {
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-        }
+        drop(self.push_declarative_scope(scopes.parameters_eval_scope()));
 
         let scope = self.lexical_scope.clone();
 
@@ -1057,8 +1054,7 @@ impl ByteCompiler<'_> {
                 //          visibility of declarations in the function body.
                 // b. Let varEnv be NewDeclarativeEnvironment(env).
                 // c. Set the VariableEnvironment of calleeContext to varEnv.
-                let scope_index = self.push_scope(scope);
-                self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+                drop(self.push_declarative_scope(Some(scope)));
 
                 let mut variable_scope = self.lexical_scope.clone();
 
@@ -1177,10 +1173,7 @@ impl ByteCompiler<'_> {
         }
 
         // 30-31
-        if let Some(scope) = scopes.lexical_scope() {
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-        }
+        drop(self.push_declarative_scope(scopes.lexical_scope()));
 
         // 35. Let privateEnv be the PrivateEnvironment of calleeContext.
         // 36. For each Parse Node f of functionsToInitialize, do

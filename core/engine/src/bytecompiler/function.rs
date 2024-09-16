@@ -129,8 +129,10 @@ impl FunctionCompiler {
         }
 
         if let Some(scope) = self.name_scope {
-            compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-            let _ = compiler.push_scope(&scope);
+            if !scope.all_bindings_local() {
+                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
+                let _ = compiler.push_scope(&scope);
+            }
         }
         // Function environment
         let _ = compiler.push_scope(scopes.function_scope());
