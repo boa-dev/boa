@@ -16,8 +16,9 @@ use crate::{
         FunctionExpression, GeneratorDeclaration, GeneratorExpression,
     },
     operations::{
-        bound_names, lexically_declared_names, lexically_scoped_declarations, var_declared_names,
-        var_scoped_declarations, LexicallyScopedDeclaration, VarScopedDeclaration,
+        bound_names, contains, lexically_declared_names, lexically_scoped_declarations,
+        var_declared_names, var_scoped_declarations, ContainsSymbol, LexicallyScopedDeclaration,
+        VarScopedDeclaration,
     },
     property::PropertyName,
     scope::{FunctionScopes, IdentifierReference, Scope},
@@ -1171,11 +1172,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut FunctionDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut None,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1183,11 +1187,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut GeneratorDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut None,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1195,11 +1202,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut AsyncFunctionDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut None,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1207,11 +1217,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut AsyncGeneratorDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut None,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1219,11 +1232,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut FunctionExpression,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut node.name_scope,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1231,11 +1247,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut GeneratorExpression,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut node.name_scope,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1243,11 +1262,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut AsyncFunctionExpression,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut node.name_scope,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1255,11 +1277,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut AsyncGeneratorExpression,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut node.name_scope,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1267,11 +1292,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut ArrowFunction,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut None,
+            true,
+            contains_direct_eval,
         )
     }
 
@@ -1279,11 +1307,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         &mut self,
         node: &'ast mut AsyncArrowFunction,
     ) -> ControlFlow<Self::BreakTy> {
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut None,
+            true,
+            contains_direct_eval,
         )
     }
 
@@ -1338,12 +1369,17 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         node: &'ast mut ClassElement,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
-            ClassElement::MethodDefinition(node) => self.visit_function_like(
-                &mut node.body,
-                &mut node.parameters,
-                &mut node.scopes,
-                &mut None,
-            ),
+            ClassElement::MethodDefinition(node) => {
+                let contains_direct_eval = node.contains_direct_eval();
+                self.visit_function_like(
+                    &mut node.body,
+                    &mut node.parameters,
+                    &mut node.scopes,
+                    &mut None,
+                    false,
+                    contains_direct_eval,
+                )
+            }
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
                 try_break!(self.visit_property_name_mut(&mut field.name));
                 let index = self.index;
@@ -1371,12 +1407,17 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 }
                 ControlFlow::Continue(())
             }
-            ClassElement::StaticBlock(node) => self.visit_function_like(
-                &mut node.body,
-                &mut FormalParameterList::default(),
-                &mut node.scopes,
-                &mut None,
-            ),
+            ClassElement::StaticBlock(node) => {
+                let contains_direct_eval = contains(node.statements(), ContainsSymbol::DirectEval);
+                self.visit_function_like(
+                    &mut node.body,
+                    &mut FormalParameterList::default(),
+                    &mut node.scopes,
+                    &mut None,
+                    false,
+                    contains_direct_eval,
+                )
+            }
         }
     }
 
@@ -1390,11 +1431,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 try_break!(self.visit_expression_mut(name));
             }
         }
+        let contains_direct_eval = node.contains_direct_eval();
         self.visit_function_like(
             &mut node.body,
             &mut node.parameters,
             &mut node.scopes,
             &mut None,
+            false,
+            contains_direct_eval,
         )
     }
 
@@ -1531,6 +1575,8 @@ impl ScopeIndexVisitor {
         parameters: &mut FormalParameterList,
         scopes: &mut FunctionScopes,
         name_scope: &mut Option<Scope>,
+        arrow: bool,
+        contains_direct_eval: bool,
     ) -> ControlFlow<()> {
         let index = self.index;
         if let Some(scope) = name_scope {
@@ -1539,7 +1585,9 @@ impl ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        self.index += 1;
+        if !(arrow && scopes.function_scope.all_bindings_local() && !contains_direct_eval) {
+            self.index += 1;
+        }
         scopes.function_scope.set_index(self.index);
         if let Some(scope) = &scopes.parameters_eval_scope {
             if !scope.all_bindings_local() {

@@ -94,6 +94,7 @@ impl FunctionCompiler {
     }
 
     /// Compile a function statement list and it's parameters into bytecode.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
         mut self,
         parameters: &FormalParameterList,
@@ -101,6 +102,7 @@ impl FunctionCompiler {
         variable_environment: Scope,
         lexical_environment: Scope,
         scopes: &FunctionScopes,
+        contains_direct_eval: bool,
         interner: &mut Interner,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
@@ -134,8 +136,14 @@ impl FunctionCompiler {
                 let _ = compiler.push_scope(&scope);
             }
         }
-        // Function environment
-        let _ = compiler.push_scope(scopes.function_scope());
+
+        if self.arrow && scopes.function_scope().all_bindings_local() && !contains_direct_eval {
+            compiler.variable_scope = scopes.function_scope().clone();
+            compiler.lexical_scope = scopes.function_scope().clone();
+        } else {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+            let _ = compiler.push_scope(scopes.function_scope());
+        }
 
         // Taken from:
         //  - 15.9.3 Runtime Semantics: EvaluateAsyncConciseBody: <https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncconcisebody>

@@ -66,6 +66,9 @@ bitflags! {
         /// Arrow and method functions don't have `"prototype"` property.
         const HAS_PROTOTYPE_PROPERTY = 0b1000_0000;
 
+        /// If the function requires a function scope.
+        const HAS_FUNCTION_SCOPE = 0b1_0000_0000;
+
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
         const TRACEABLE = 0b1000_0000_0000_0000;
@@ -269,6 +272,13 @@ impl CodeBlock {
         self.flags
             .get()
             .contains(CodeBlockFlags::HAS_PROTOTYPE_PROPERTY)
+    }
+
+    /// Returns true if this function requires a function scope.
+    pub(crate) fn has_function_scope(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::HAS_FUNCTION_SCOPE)
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
