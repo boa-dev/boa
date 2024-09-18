@@ -96,6 +96,7 @@ impl ByteCompiler<'_> {
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
 
         if let Some(expr) = &class.constructor {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(expr.scopes().function_scope());
 
             compiler.length = expr.parameters().length();
@@ -115,11 +116,13 @@ impl ByteCompiler<'_> {
             compiler.emit_opcode(Opcode::PushUndefined);
         } else if class.super_ref.is_some() {
             // We push an empty, unused function scope since the compiler expects a function scope.
+            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
             compiler.emit_opcode(Opcode::SuperCallDerived);
             compiler.emit_opcode(Opcode::BindThisValue);
         } else {
             // We push an empty, unused function scope since the compiler expects a function scope.
+            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
             compiler.emit_opcode(Opcode::PushUndefined);
         }
@@ -288,6 +291,7 @@ impl ByteCompiler<'_> {
                     );
 
                     // Function environment
+                    field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
                     let is_anonymous_function = if let Some(node) = &field.field() {
                         field_compiler.compile_expr(node, true);
@@ -322,6 +326,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                     );
+                    field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
                     if let Some(node) = field.field() {
                         field_compiler.compile_expr(node, true);
@@ -363,6 +368,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                     );
+                    field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
                     let is_anonymous_function = if let Some(node) = &field.field() {
                         field_compiler.compile_expr(node, true);
@@ -406,6 +412,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                     );
+                    compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = compiler.push_scope(block.scopes().function_scope());
 
                     compiler.function_declaration_instantiation(

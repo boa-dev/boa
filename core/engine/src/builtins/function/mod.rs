@@ -657,6 +657,7 @@ impl BuiltInFunctionObject {
                 context.realm().scope().clone(),
                 context.realm().scope().clone(),
                 function.scopes(),
+                function.contains_direct_eval(),
                 context.interner_mut(),
             );
 
@@ -1028,10 +1029,12 @@ pub(crate) fn function_call(
         last_env += 1;
     }
 
-    context.vm.environments.push_function(
-        code.constant_scope(last_env),
-        FunctionSlots::new(this, function_object.clone(), None),
-    );
+    if code.has_function_scope() {
+        context.vm.environments.push_function(
+            code.constant_scope(last_env),
+            FunctionSlots::new(this, function_object.clone(), None),
+        );
+    }
 
     Ok(CallValue::Ready)
 }
