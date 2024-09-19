@@ -1,7 +1,7 @@
 use boa_engine::{
-    js_str, js_string,
+    js_string,
     value::{TryFromJs, TryIntoJs},
-    Context, JsObject, JsResult, JsValue, Source,
+    Context, JsResult, JsValue, Source,
 };
 
 #[derive(TryIntoJs)]

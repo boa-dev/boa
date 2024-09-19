@@ -527,9 +527,9 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl ::boa_engine::value::TryIntoJs for #type_name {
             fn try_into_js(&self, context: &mut boa_engine::Context) -> boa_engine::JsResult<boa_engine::JsValue> {
-                let obj = JsObject::default();
+                let obj = boa_engine::JsObject::default();
                 #props
-                JsResult::Ok(obj.into())
+                boa_engine::JsResult::Ok(obj.into())
             }
         }
     };
@@ -595,10 +595,10 @@ fn generate_obj_properties(fields: FieldsNamed) -> Result<proc_macro2::TokenStre
             let into_js_with = Ident::new(&into_js_with.value(), into_js_with.span());
             quote! { #into_js_with(&self.#name, context)? }
         } else {
-            quote! { self.#name.try_into_js(context)? }
+            quote! { boa_engine::value::TryIntoJs::try_into_js(&self.#name, context)? }
         };
         prop_ctors.push(quote! {
-            obj.create_data_property_or_throw(js_str!(#prop_key), #value, context)?;
+            obj.create_data_property_or_throw(boa_engine::js_str!(#prop_key), #value, context)?;
         });
     }
 
