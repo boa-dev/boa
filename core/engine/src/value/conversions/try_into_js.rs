@@ -206,3 +206,91 @@ where
         JsResult::Ok(map.into())
     }
 }
+
+#[cfg(test)]
+mod try_into_js_tests {
+    use crate::value::{TryFromJs, TryIntoJs};
+    use crate::{Context, JsResult};
+
+    #[test]
+    fn big_int_err() -> JsResult<()> {
+        let mut context = Context::default();
+        let context = &mut context;
+
+        fn assert<T: TryIntoJs>(int: T, context: &mut Context) {
+            let expect_err = int.try_into_js(context);
+            assert!(expect_err.is_err());
+        }
+        let int = (1 << 55) + 17i64;
+        assert(int, context);
+
+        let int = (1 << 55) + 17u64;
+        assert(int, context);
+
+        let int = (1 << 55) + 17u128;
+        assert(int, context);
+
+        let int = (1 << 55) + 17i128;
+        assert(int, context);
+
+        Ok(())
+    }
+
+    #[test]
+    fn int_tuple() -> JsResult<()> {
+        let mut context = Context::default();
+        let context = &mut context;
+
+        let tuple_initial = (
+            -42i8,
+            42u8,
+            1764i16,
+            7641u16,
+            -((1 << 27) + 13),
+            (1 << 27) + 72u32,
+            (1 << 49) + 1793i64,
+            (1 << 49) + 1793u64,
+            -((1 << 49) + 7193i128),
+            (1 << 49) + 9173u128,
+        );
+
+        // it will rewrite without reading, so it's just for auto type resolving.
+        #[allow(unused_assignments)]
+        let mut tuple_after_transform = tuple_initial.clone();
+
+        let js_value = tuple_initial.try_into_js(context)?;
+        tuple_after_transform = TryFromJs::try_from_js(&js_value, context)?;
+
+        assert_eq!(tuple_initial, tuple_after_transform);
+        Ok(())
+    }
+
+    #[test]
+    fn string() -> JsResult<()> {
+        let mut context = Context::default();
+        let context = &mut context;
+
+        let s_init = "String".to_string();
+        let js_value = s_init.try_into_js(context)?;
+        let s: String = TryFromJs::try_from_js(&js_value, context)?;
+        assert_eq!(s_init, s);
+        Ok(())
+    }
+
+    #[test]
+    fn vec() -> JsResult<()> {
+        let mut context = Context::default();
+        let context = &mut context;
+
+        let vec_init = vec![(-4i64, 2u64), (15, 15), (32, 23)];
+        let js_value = vec_init.try_into_js(context)?;
+        println!("JsValue: {}", js_value.display());
+        let vec: Vec<(i64, u64)> = TryFromJs::try_from_js(&js_value, context)?;
+        assert_eq!(vec_init, vec);
+        Ok(())
+    }
+
+    // TODO: try_from_js don't convert JsMap into HashMap, is it ok?
+    //       but still not sure about convertion into js type:
+    //       HashMap --> Map([...])   OR   HashMap --> [k1: v1, ..., k2: v2]
+}
