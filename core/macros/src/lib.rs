@@ -499,6 +499,10 @@ fn to_compile_errors(errors: Vec<syn::Error>) -> proc_macro2::TokenStream {
 }
 
 /// Derives the `TryIntoJs` trait, with the `#[boa()]` attribute.
+///
+/// # Panics
+///
+/// It will panic if the user tries to derive the `TryIntoJs` trait in an `enum` or a tuple struct.
 #[proc_macro_derive(TryIntoJs, attributes(boa))]
 pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
@@ -513,7 +517,9 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
         panic!("you can only derive TryFromJs for named-field structs")
     };
 
-    let props = generate_obj_properties(fields).unwrap_or_else(to_compile_errors);
+    let props = generate_obj_properties(fields)
+        .map_err(|err| vec![err])
+        .unwrap_or_else(to_compile_errors);
 
     let type_name = input.ident;
 
@@ -533,9 +539,7 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
 }
 
 /// Generates property creation for object.
-fn generate_obj_properties(
-    fields: FieldsNamed,
-) -> Result<proc_macro2::TokenStream, Vec<syn::Error>> {
+fn generate_obj_properties(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, syn::Error> {
     use syn::spanned::Spanned;
 
     let mut prop_ctors = Vec::with_capacity(fields.named.len());
@@ -543,19 +547,20 @@ fn generate_obj_properties(
     for field in fields.named {
         let span = field.span();
         let name = field.ident.ok_or_else(|| {
-            vec![syn::Error::new(
+            syn::Error::new(
                 span,
                 "you can only derive `TryIntoJs` for named-field structs",
-            )]
+            )
         })?;
 
         let mut into_js_with = None;
         let mut prop_key = format!("{name}");
         let mut skip = false;
-        if let Some(attr) = field
+
+        for attr in field
             .attrs
             .into_iter()
-            .find(|attr| attr.path().is_ident("boa"))
+            .filter(|attr| attr.path().is_ident("boa"))
         {
             attr.parse_nested_meta(|meta| {
                 if meta.path.is_ident("into_js_with") {
@@ -579,8 +584,7 @@ fn generate_obj_properties(
                             ",
                     ))
                 }
-            })
-            .map_err(|err| vec![err])?;
+            })?;
         }
 
         if skip {
