@@ -56,6 +56,11 @@ mod console;
 #[doc(inline)]
 pub use console::{Console, Logger};
 
+mod text;
+
+#[doc(inline)]
+pub use text::{TextDecoder, TextEncoder};
+
 #[cfg(test)]
 pub(crate) mod test {
     use boa_engine::{builtins, Context, JsResult, JsValue, Source};
