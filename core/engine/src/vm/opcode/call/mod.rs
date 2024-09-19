@@ -74,8 +74,6 @@ impl CallEval {
 impl Operation for CallEval {
     const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
-    // TODO: Calls will require a big refactor in order to track
-    // the cost of the call.
     const COST: u8 = 5;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
@@ -173,8 +171,6 @@ impl CallEvalSpread {
 impl Operation for CallEvalSpread {
     const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
-    // TODO: Calls will require a big refactor in order to track
-    // the cost of the call.
     const COST: u8 = 5;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {

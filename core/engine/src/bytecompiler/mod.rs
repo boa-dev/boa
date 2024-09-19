@@ -1754,11 +1754,10 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
-        let mapped_arguments_binding_indices = if self.emitted_mapped_arguments_object_opcode {
-            MappedArguments::binding_indices(&self.params)
-        } else {
-            ThinVec::new()
-        };
+        let mapped_arguments_binding_indices = self
+            .emitted_mapped_arguments_object_opcode
+            .then(|| MappedArguments::binding_indices(&self.params))
+            .unwrap_or_default();
 
         let max_local_binding_register_index =
             self.local_binding_registers.values().max().unwrap_or(&0);
