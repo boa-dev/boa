@@ -101,6 +101,7 @@ impl ByteCompiler<'_> {
 
             compiler.length = expr.parameters().length();
             compiler.params = expr.parameters().clone();
+            compiler.parameter_scope = expr.scopes().parameter_scope();
 
             compiler.function_declaration_instantiation(
                 expr.body(),

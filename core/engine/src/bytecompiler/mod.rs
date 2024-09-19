@@ -401,6 +401,9 @@ pub struct ByteCompiler<'ctx> {
     /// Parameters passed to this function.
     pub(crate) params: FormalParameterList,
 
+    /// Scope of the function parameters.
+    pub(crate) parameter_scope: Scope,
+
     /// Bytecode
     pub(crate) bytecode: Vec<u8>,
 
@@ -513,6 +516,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             local_binding_registers: FxHashMap::default(),
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
+            parameter_scope: Scope::default(),
             current_open_environments_count: 0,
 
             register_allocator,
@@ -1772,7 +1776,9 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let mapped_arguments_binding_indices = self
             .emitted_mapped_arguments_object_opcode
-            .then(|| MappedArguments::binding_indices(&self.params))
+            .then(|| {
+                MappedArguments::binding_indices(&self.params, &self.parameter_scope, self.interner)
+            })
             .unwrap_or_default();
 
         let max_local_binding_register_index =

@@ -195,6 +195,7 @@ impl FunctionCompiler {
         compiler.compile_statement_list(body.statement_list(), false, false);
 
         compiler.params = parameters.clone();
+        compiler.parameter_scope = scopes.parameter_scope();
 
         let code = compiler.finish();
 
