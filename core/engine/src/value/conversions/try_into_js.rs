@@ -9,10 +9,7 @@ pub trait TryIntoJs: Sized {
 
 impl TryIntoJs for bool {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        JsResult::Ok(match *self {
-            true => JsValue::Boolean(true),
-            false => JsValue::Boolean(false),
-        })
+        JsResult::Ok(JsValue::Boolean(*self))
     }
 }
 
@@ -82,6 +79,7 @@ fn convert_safe_i64(value: i64) -> JsValue {
 impl TryIntoJs for i64 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
+        #[allow(clippy::manual_range_contains)]
         if value < MIN_SAFE_INTEGER_I64 || MAX_SAFE_INTEGER_I64 < value {
             JsResult::Err(err_outside_safe_range())
         } else {
@@ -102,7 +100,7 @@ impl TryIntoJs for u64 {
 impl TryIntoJs for i128 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
-        if value < (MIN_SAFE_INTEGER_I64 as i128) || (MAX_SAFE_INTEGER_I64 as i128) < value {
+        if value < i128::from(MIN_SAFE_INTEGER_I64) || i128::from(MAX_SAFE_INTEGER_I64) < value {
             JsResult::Err(err_outside_safe_range())
         } else {
             JsResult::Ok(convert_safe_i64(value as i64))
