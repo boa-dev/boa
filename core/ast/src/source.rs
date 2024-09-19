@@ -91,6 +91,10 @@ impl Script {
         if !analyze_binding_escapes(self, true, lexical_scope.clone(), interner) {
             return Err(String::from("Failed to analyze scope"));
         }
+        variable_scope.escape_all_bindings();
+        lexical_scope.escape_all_bindings();
+        variable_scope.reorder_binding_indices();
+        lexical_scope.reorder_binding_indices();
         optimize_scope_indicies(self, lexical_scope);
 
         Ok(bindings)

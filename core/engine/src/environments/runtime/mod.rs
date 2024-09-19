@@ -186,7 +186,7 @@ impl EnvironmentStack {
 
     /// Push a function environment on the environments stack.
     pub(crate) fn push_function(&mut self, scope: Scope, function_slots: FunctionSlots) {
-        let num_bindings = scope.num_bindings();
+        let num_bindings = scope.num_bindings_non_local();
 
         let (poisoned, with) = {
             // Check if the outer environment is a declarative environment.
@@ -214,7 +214,7 @@ impl EnvironmentStack {
 
     /// Push a module environment on the environments stack.
     pub(crate) fn push_module(&mut self, scope: Scope) {
-        let num_bindings = scope.num_bindings();
+        let num_bindings = scope.num_bindings_non_local();
         self.stack.push(Environment::Declarative(Gc::new(
             DeclarativeEnvironment::new(DeclarativeEnvironmentKind::Module(
                 ModuleEnvironment::new(num_bindings, scope),

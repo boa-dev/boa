@@ -17,7 +17,10 @@ impl PushScope {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
         let scope = context.vm.frame().code_block().constant_scope(index);
-        context.vm.environments.push_lexical(scope.num_bindings());
+        context
+            .vm
+            .environments
+            .push_lexical(scope.num_bindings_non_local());
         Ok(CompletionType::Normal)
     }
 }

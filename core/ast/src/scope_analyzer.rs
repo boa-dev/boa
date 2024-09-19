@@ -105,6 +105,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         try_break!(self.visit_statement_list_mut(&mut node.statements));
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
+            scope.reorder_binding_indices();
         }
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
@@ -125,6 +126,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         }
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
+            scope.reorder_binding_indices();
         }
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
@@ -140,6 +142,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         std::mem::swap(&mut self.scope, &mut node.scope);
         try_break!(self.visit_statement_mut(&mut node.statement));
         std::mem::swap(&mut self.scope, &mut node.scope);
+        node.scope.reorder_binding_indices();
         self.with = with;
         ControlFlow::Continue(())
     }
@@ -156,6 +159,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         }
         try_break!(self.visit_block_mut(&mut node.block));
         std::mem::swap(&mut self.scope, &mut node.scope);
+        node.scope.reorder_binding_indices();
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
     }
@@ -181,6 +185,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         try_break!(self.visit_statement_mut(&mut node.inner.body));
         if let Some(ForLoopInitializer::Lexical(decl)) = &mut node.inner.init {
             std::mem::swap(&mut self.scope, &mut decl.scope);
+            decl.scope.reorder_binding_indices();
         }
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
@@ -199,6 +204,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         if let Some(scope) = &mut node.target_scope {
             self.direct_eval = direct_eval_old;
             std::mem::swap(&mut self.scope, scope);
+            scope.reorder_binding_indices();
         }
         if let Some(scope) = &mut node.scope {
             self.direct_eval = node.contains_direct_eval || self.direct_eval;
@@ -211,6 +217,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         try_break!(self.visit_statement_mut(&mut node.body));
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
+            scope.reorder_binding_indices();
         }
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
@@ -229,6 +236,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         if let Some(scope) = &mut node.iterable_scope {
             self.direct_eval = direct_eval_old;
             std::mem::swap(&mut self.scope, scope);
+            scope.reorder_binding_indices();
         }
         if let Some(scope) = &mut node.scope {
             self.direct_eval = node.contains_direct_eval || self.direct_eval;
@@ -241,6 +249,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         try_break!(self.visit_statement_mut(&mut node.body));
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
+            scope.reorder_binding_indices();
         }
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
@@ -253,7 +262,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -265,7 +274,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -277,7 +286,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -289,7 +298,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -301,7 +310,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -313,7 +322,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -325,7 +334,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -337,7 +346,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -349,7 +358,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -361,7 +370,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -382,6 +391,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             try_break!(self.visit_class_element_mut(element));
         }
         std::mem::swap(&mut self.scope, &mut node.name_scope);
+        node.name_scope.reorder_binding_indices();
         ControlFlow::Continue(())
     }
 
@@ -407,6 +417,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         }
         if let Some(name_scope) = &mut node.name_scope {
             std::mem::swap(&mut self.scope, name_scope);
+            name_scope.reorder_binding_indices();
         }
         ControlFlow::Continue(())
     }
@@ -415,15 +426,41 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         &mut self,
         node: &'ast mut ClassElement,
     ) -> ControlFlow<Self::BreakTy> {
-        if let ClassElement::MethodDefinition(node) = node {
-            self.visit_function_like(
+        match node {
+            ClassElement::MethodDefinition(node) => self.visit_function_like(
                 &mut node.parameters,
                 &mut node.body,
-                &node.scopes,
+                &mut node.scopes,
                 node.contains_direct_eval,
-            )
-        } else {
-            ControlFlow::Continue(())
+            ),
+            ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
+                try_break!(self.visit_property_name_mut(&mut field.name));
+                if let Some(e) = &mut field.field {
+                    try_break!(self.visit_expression_mut(e));
+                }
+                ControlFlow::Continue(())
+            }
+            ClassElement::PrivateFieldDefinition(field) => {
+                if let Some(e) = &mut field.field {
+                    try_break!(self.visit_expression_mut(e));
+                }
+                ControlFlow::Continue(())
+            }
+            ClassElement::PrivateStaticFieldDefinition(_, e) => {
+                if let Some(e) = e {
+                    try_break!(self.visit_expression_mut(e));
+                }
+                ControlFlow::Continue(())
+            }
+            ClassElement::StaticBlock(node) => {
+                let contains_direct_eval = contains(node.statements(), ContainsSymbol::DirectEval);
+                self.visit_function_like(
+                    &mut FormalParameterList::default(),
+                    &mut node.body,
+                    &mut node.scopes,
+                    contains_direct_eval,
+                )
+            }
         }
     }
 
@@ -435,7 +472,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
-            &node.scopes,
+            &mut node.scopes,
             node.contains_direct_eval,
         )
     }
@@ -485,6 +522,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         std::mem::swap(&mut self.scope, &mut scope);
         try_break!(self.visit_module_item_list_mut(&mut node.items));
         std::mem::swap(&mut self.scope, &mut scope);
+        scope.reorder_binding_indices();
         ControlFlow::Continue(())
     }
 }
@@ -494,7 +532,7 @@ impl BindingEscapeAnalyzer<'_> {
         &mut self,
         parameters: &mut FormalParameterList,
         body: &mut FunctionBody,
-        scopes: &FunctionScopes,
+        scopes: &mut FunctionScopes,
         contains_direct_eval: bool,
     ) -> ControlFlow<&'static str> {
         let direct_eval_old = self.direct_eval;
@@ -510,6 +548,7 @@ impl BindingEscapeAnalyzer<'_> {
         std::mem::swap(&mut self.scope, &mut scope);
         try_break!(self.visit_function_body_mut(body));
         std::mem::swap(&mut self.scope, &mut scope);
+        scopes.reorder_binding_indices();
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
     }
