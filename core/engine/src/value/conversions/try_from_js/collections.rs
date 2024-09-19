@@ -31,7 +31,7 @@ where
                 );
                 Ok(())
             };
-            for_each_elem_in_js_map(js_map, f, context)?;
+            for_each_elem_in_js_map(&js_map, f, context)?;
             return Ok(map);
         }
 
@@ -75,7 +75,7 @@ where
                 );
                 Ok(())
             };
-            for_each_elem_in_js_map(js_map, f, context)?;
+            for_each_elem_in_js_map(&js_map, f, context)?;
             return Ok(map);
         }
 
@@ -96,7 +96,7 @@ where
     }
 }
 
-fn for_each_elem_in_js_map<F>(js_map: JsMap, mut f: F, context: &mut Context) -> JsResult<()>
+fn for_each_elem_in_js_map<F>(js_map: &JsMap, mut f: F, context: &mut Context) -> JsResult<()>
 where
     F: FnMut(JsValue, JsValue, &mut Context) -> JsResult<()>,
 {
