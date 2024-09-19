@@ -497,3 +497,106 @@ fn to_compile_errors(errors: Vec<syn::Error>) -> proc_macro2::TokenStream {
     let compile_errors = errors.iter().map(syn::Error::to_compile_error);
     quote!(#(#compile_errors)*)
 }
+
+/// Derives the `TryIntoJs` trait, with the `#[boa()]` attribute.
+#[proc_macro_derive(TryIntoJs, attributes(boa))]
+pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
+    // Parse the input tokens into a syntax tree
+    let input = parse_macro_input!(input as DeriveInput);
+
+    let Data::Struct(data) = input.data else {
+        panic!("you can only derive TryFromJs for structs");
+    };
+    // TODO: Enums ?
+
+    let Fields::Named(fields) = data.fields else {
+        panic!("you can only derive TryFromJs for named-field structs")
+    };
+
+    let props = generate_obj_properties(fields).unwrap_or_else(to_compile_errors);
+
+    let type_name = input.ident;
+
+    // Build the output, possibly using quasi-quotation
+    let expanded = quote! {
+        impl ::boa_engine::value::TryIntoJs for #type_name {
+            fn try_into_js(&self, context: &mut boa_engine::Context) -> boa_engine::JsResult<boa_engine::JsValue> {
+                let obj = JsObject::default();
+                #props
+                JsResult::Ok(obj.into())
+            }
+        }
+    };
+
+    // Hand the output tokens back to the compiler
+    expanded.into()
+}
+
+/// Generates property creation for object.
+fn generate_obj_properties(
+    fields: FieldsNamed,
+) -> Result<proc_macro2::TokenStream, Vec<syn::Error>> {
+    use syn::spanned::Spanned;
+
+    let mut prop_ctors = Vec::with_capacity(fields.named.len());
+
+    for field in fields.named {
+        let span = field.span();
+        let name = field.ident.ok_or_else(|| {
+            vec![syn::Error::new(
+                span,
+                "you can only derive `TryIntoJs` for named-field structs",
+            )]
+        })?;
+
+        let mut into_js_with = None;
+        let mut prop_key = format!("{name}");
+        let mut skip = false;
+        if let Some(attr) = field
+            .attrs
+            .into_iter()
+            .find(|attr| attr.path().is_ident("boa"))
+        {
+            attr.parse_nested_meta(|meta| {
+                if meta.path.is_ident("into_js_with") {
+                    let value = meta.value()?;
+                    into_js_with = Some(value.parse::<LitStr>()?);
+                    Ok(())
+                } else if meta.path.is_ident("rename") {
+                    let value = meta.value()?;
+                    prop_key = value.parse::<LitStr>()?.value();
+                    Ok(())
+                } else if meta.path.is_ident("skip") & meta.input.is_empty() {
+                    skip = true;
+                    Ok(())
+                } else {
+                    Err(meta.error(
+                        "invalid syntax in the `#[boa()]` attribute. \
+                              Note that this attribute only accepts the following syntax: \
+                            \n* `#[boa(into_js_with = \"fully::qualified::path\")]`\
+                            \n* `#[boa(rename = \"jsPropertyName\")]` \
+                            \n* `#[boa(skip)]` \
+                            ",
+                    ))
+                }
+            })
+            .map_err(|err| vec![err])?;
+        }
+
+        if skip {
+            continue;
+        }
+
+        let value = if let Some(into_js_with) = into_js_with {
+            let into_js_with = Ident::new(&into_js_with.value(), into_js_with.span());
+            quote! { #into_js_with(&self.#name, context)? }
+        } else {
+            quote! { self.#name.try_into_js(context)? }
+        };
+        prop_ctors.push(quote! {
+            obj.create_data_property_or_throw(js_str!(#prop_key), #value, context)?;
+        });
+    }
+
+    Ok(quote! { #(#prop_ctors)* })
+}
