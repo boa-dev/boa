@@ -72,7 +72,7 @@ impl From<Option<Negative>> for Outcome {
 
 /// Structure to allow defining ignored tests, features and files that should
 /// be ignored even when reading.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Ignored {
     #[serde(default)]
     tests: FxHashSet<Box<str>>,

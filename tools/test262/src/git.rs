@@ -54,6 +54,9 @@ fn reset_commit(directory: &str, commit: &str, verbose: u8) -> Result<()> {
     Ok(())
 }
 
+
+// Todo remove eyre
+
 /// Clone repository
 pub(super) fn clone(
     directory: &str,

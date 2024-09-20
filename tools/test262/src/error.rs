@@ -4,6 +4,13 @@ use std::path::{Path, PathBuf};
 /// Errors
 #[allow(missing_docs)]
 pub enum Error262 {
+    InvalidRepo262Path {
+        path: PathBuf
+    },
+    InvalidSuitePath {
+        path: PathBuf
+    },
+
     InvalidHarnessDirecory {
         path: String,
     },

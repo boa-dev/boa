@@ -175,7 +175,8 @@ fn main() -> Result<()> {
             let test262_path = if let Some(path) = test262_path.as_deref() {
                 path
             } else {
-                test262::clone_test262(test262_commit, verbose)?;
+                // TODO remove test262 fn (unused)
+                // test262::clone_test262(test262_commit, verbose)?;
                 Path::new(test262::TEST262_DIRECTORY)
             }
             .canonicalize();
@@ -185,6 +186,7 @@ fn main() -> Result<()> {
                 &config,
                 verbose,
                 !disable_parallelism,
+                test262_commit,
                 test262_path,
                 suite.as_path(),
                 output.as_deref(),
@@ -212,6 +214,7 @@ fn run_test_suite(
     config: &Config,
     verbose: u8,
     parallel: bool,
+    test262_commit: Option<&str>,
     test262_path: &Path,
     suite: &Path,
     output: Option<&Path>,
@@ -233,111 +236,118 @@ fn run_test_suite(
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = Harness::read(test262_path).wrap_err("could not read harness")?;
 
-    if suite.to_string_lossy().ends_with(".js") {
-        let test = test262::Test::read(&test262_path.join(suite)).wrap_err_with(|| {
-            let suite = suite.display();
-            format!("could not read the test {suite}")
-        })?;
-
-        if test.edition <= edition {
-            if verbose != 0 {
-                println!("Test loaded, starting...");
-            }
-            test.run(&harness, verbose, optimizer_options, console);
-        } else {
-            println!(
-                "Minimum spec edition of test is bigger than the specified edition. Skipping."
-            );
-        }
-
-        println!();
-    } else {
-        let suite = test262::TestSuite::read(&test262_path.join(suite), config.ignored(), false)
-            .wrap_err_with(|| {
-                let suite = suite.display();
-                format!("could not read the suite {suite}")
-            })?;
-
-        if verbose != 0 {
-            println!("Test suite loaded, starting tests...");
-        }
-        let results = suite.run(
-            &harness,
+    let result = test262::read(
+        suite.to_owned(),
+        test262::ReadOptions {
+            test262_path: test262_path.to_owned(),
+            test262_commit, // TODO - Some(config.commit().to_string()) - priority config/arg??
+            ignored: Some(config.ignored().clone()),
             verbose,
-            parallel,
-            edition,
-            optimizer_options,
-            console,
-        );
+            ..Default::default()
+        },
+    )
+    .wrap_err_with(|| {
+        let suite = suite.display();
+        format!("could not read the test {suite}")
+    })?;
 
-        if versioned {
-            let mut table = comfy_table::Table::new();
-            table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
-            table.set_header(vec![
-                "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
-            ]);
-            for column in table.column_iter_mut().skip(1) {
-                column.set_cell_alignment(comfy_table::CellAlignment::Right);
+    match result {
+        test262::ReadResult::Test(harness, test) => {
+            if test.edition <= edition {
+                if verbose != 0 {
+                    println!("Test loaded, starting...");
+                }
+                test.run(&harness, verbose, optimizer_options, console);
+            } else {
+                println!(
+                    "Minimum spec edition of test is bigger than the specified edition. Skipping."
+                );
             }
-            for (v, stats) in SpecEdition::all_editions()
-                .filter(|v| *v <= edition)
-                .map(|v| {
-                    let stats = results.versioned_stats.get(v).unwrap_or(results.stats);
-                    (v, stats)
-                })
-            {
+
+            println!();
+            Ok(())
+        }
+        test262::ReadResult::TestSuite(harness, suite) => {
+            if verbose != 0 {
+                println!("Test suite loaded, starting tests...");
+            }
+            let results = suite.run(
+                &harness,
+                verbose,
+                parallel,
+                edition,
+                optimizer_options,
+                console,
+            );
+
+            if versioned {
+                let mut table = comfy_table::Table::new();
+                table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
+                table.set_header(vec![
+                    "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
+                ]);
+                for column in table.column_iter_mut().skip(1) {
+                    column.set_cell_alignment(comfy_table::CellAlignment::Right);
+                }
+                for (v, stats) in SpecEdition::all_editions()
+                    .filter(|v| *v <= edition)
+                    .map(|v| {
+                        let stats = results.versioned_stats.get(v).unwrap_or(results.stats);
+                        (v, stats)
+                    })
+                {
+                    let Statistics {
+                        total,
+                        passed,
+                        ignored,
+                        panic,
+                    } = stats;
+                    let failed = total - passed - ignored;
+                    let conformance = (passed as f64 / total as f64) * 100.0;
+                    let conformance = format!("{conformance:.2}");
+                    table.add_row(vec![
+                        v.to_string(),
+                        total.to_string(),
+                        passed.to_string(),
+                        ignored.to_string(),
+                        failed.to_string(),
+                        panic.to_string(),
+                        conformance,
+                    ]);
+                }
+                println!("\n\nResults\n");
+                println!("{table}");
+            } else {
                 let Statistics {
                     total,
                     passed,
                     ignored,
                     panic,
-                } = stats;
-                let failed = total - passed - ignored;
-                let conformance = (passed as f64 / total as f64) * 100.0;
-                let conformance = format!("{conformance:.2}");
-                table.add_row(vec![
-                    v.to_string(),
-                    total.to_string(),
-                    passed.to_string(),
-                    ignored.to_string(),
-                    failed.to_string(),
-                    panic.to_string(),
-                    conformance,
-                ]);
-            }
-            println!("\n\nResults\n");
-            println!("{table}");
-        } else {
-            let Statistics {
-                total,
-                passed,
-                ignored,
-                panic,
-            } = results.stats;
-            println!("\n\nResults ({edition}):");
-            println!("Total tests: {total}");
-            println!("Passed tests: {}", passed.to_string().green());
-            println!("Ignored tests: {}", ignored.to_string().yellow());
-            println!(
-                "Failed tests: {} ({})",
-                (total - passed - ignored).to_string().red(),
-                format!("{panic} panics").red()
-            );
-            println!(
-                "Conformance: {:.2}%",
-                (passed as f64 / total as f64) * 100.0
-            );
-        }
+                } = results.stats;
+                println!("\n\nResults ({edition}):");
+                println!("Total tests: {total}");
+                println!("Passed tests: {}", passed.to_string().green());
+                println!("Ignored tests: {}", ignored.to_string().yellow());
+                println!(
+                    "Failed tests: {} ({})",
+                    (total - passed - ignored).to_string().red(),
+                    format!("{panic} panics").red()
+                );
+                println!(
+                    "Conformance: {:.2}%",
+                    (passed as f64 / total as f64) * 100.0
+                );
 
-        if let Some(output) = output {
-            write_json(results, output, verbose, test262_path)
-                .wrap_err("could not write the results to the output JSON file")?;
+                if let Some(output) = output {
+                    write_json(results, output, verbose, test262_path)
+                        .wrap_err("could not write the results to the output JSON file")?;
+                }
+            }
+
+            Ok(())
         }
     }
-
-    Ok(())
 }
 
 /// Represents a tests statistic
