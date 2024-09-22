@@ -79,6 +79,7 @@ impl UnmappedArguments {
 /// This struct stores all the data to access mapped function parameters in their environment.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) struct MappedArguments {
+    #[unsafe_ignore_trace]
     binding_indices: Vec<Option<u32>>,
     environment: Gc<DeclarativeEnvironment>,
 }

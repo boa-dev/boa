@@ -82,10 +82,10 @@ fn non_empty() {
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    vec![StatementListItem::Statement(Statement::Return(
+                    [StatementListItem::Statement(Statement::Return(
                         Return::new(Some(Literal::from(10).into())),
-                    ))]
-                    .into(),
+                    ))],
+                    false,
                 ),
             ))
             .into(),
@@ -139,10 +139,10 @@ fn hoisting() {
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    vec![StatementListItem::Statement(Statement::Return(
+                    [StatementListItem::Statement(Statement::Return(
                         Return::new(Some(Literal::from(10).into())),
-                    ))]
-                    .into(),
+                    ))],
+                    false,
                 ),
             ))
             .into(),

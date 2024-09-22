@@ -1,3 +1,5 @@
+use crate::operations::{contains, ContainsSymbol};
+use crate::scope::Scope;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
@@ -23,10 +25,18 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForOfLoop {
-    init: IterableLoopInitializer,
-    iterable: Expression,
-    body: Box<Statement>,
+    pub(crate) init: IterableLoopInitializer,
+    pub(crate) iterable: Expression,
+    pub(crate) body: Box<Statement>,
     r#await: bool,
+    pub(crate) iterable_contains_direct_eval: bool,
+    pub(crate) contains_direct_eval: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) iterable_scope: Option<Scope>,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Option<Scope>,
 }
 
 impl ForOfLoop {
@@ -39,11 +49,18 @@ impl ForOfLoop {
         body: Statement,
         r#await: bool,
     ) -> Self {
+        let iterable_contains_direct_eval = contains(&iterable, ContainsSymbol::DirectEval);
+        let contains_direct_eval = contains(&init, ContainsSymbol::DirectEval)
+            || contains(&body, ContainsSymbol::DirectEval);
         Self {
             init,
             iterable,
             body: body.into(),
+            iterable_contains_direct_eval,
+            contains_direct_eval,
             r#await,
+            iterable_scope: None,
+            scope: None,
         }
     }
 
@@ -73,6 +90,20 @@ impl ForOfLoop {
     #[must_use]
     pub const fn r#await(&self) -> bool {
         self.r#await
+    }
+
+    /// Return the iterable scope of the for...of loop.
+    #[inline]
+    #[must_use]
+    pub const fn iterable_scope(&self) -> Option<&Scope> {
+        self.iterable_scope.as_ref()
+    }
+
+    /// Return the scope of the for...of loop.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> Option<&Scope> {
+        self.scope.as_ref()
     }
 }
 

@@ -1,3 +1,4 @@
+use boa_ast::scope::Scope;
 use boa_gc::{custom_trace, Finalize, GcRefCell, Trace};
 
 use crate::{builtins::function::OrdinaryFunction, JsNativeError, JsObject, JsResult, JsValue};
@@ -8,20 +9,36 @@ use super::PoisonableEnvironment;
 pub(crate) struct FunctionEnvironment {
     inner: PoisonableEnvironment,
     slots: Box<FunctionSlots>,
+
+    // Safety: Nothing in `Scope` needs tracing.
+    #[unsafe_ignore_trace]
+    scope: Scope,
 }
 
 impl FunctionEnvironment {
     /// Creates a new `FunctionEnvironment`.
-    pub(crate) fn new(bindings: u32, poisoned: bool, with: bool, slots: FunctionSlots) -> Self {
+    pub(crate) fn new(
+        bindings: u32,
+        poisoned: bool,
+        with: bool,
+        slots: FunctionSlots,
+        scope: Scope,
+    ) -> Self {
         Self {
             inner: PoisonableEnvironment::new(bindings, poisoned, with),
             slots: Box::new(slots),
+            scope,
         }
     }
 
     /// Gets the slots of this function environment.
     pub(crate) const fn slots(&self) -> &FunctionSlots {
         &self.slots
+    }
+
+    /// Gets the compile time environment of this function environment.
+    pub(crate) const fn compile(&self) -> &Scope {
+        &self.scope
     }
 
     /// Gets the `poisonable_environment` of this function environment.

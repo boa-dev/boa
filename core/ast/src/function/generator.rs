@@ -2,7 +2,10 @@ use super::{FormalParameterList, FunctionBody};
 use crate::{
     block_to_string,
     expression::{Expression, Identifier},
-    join_nodes, try_break,
+    join_nodes,
+    operations::{contains, ContainsSymbol},
+    scope::{FunctionScopes, Scope},
+    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Declaration,
 };
@@ -22,23 +25,27 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub struct GeneratorDeclaration {
     name: Identifier,
-    parameters: FormalParameterList,
-    body: FunctionBody,
+    pub(crate) parameters: FormalParameterList,
+    pub(crate) body: FunctionBody,
+    pub(crate) contains_direct_eval: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scopes: FunctionScopes,
 }
 
 impl GeneratorDeclaration {
     /// Creates a new generator declaration.
     #[inline]
     #[must_use]
-    pub const fn new(
-        name: Identifier,
-        parameters: FormalParameterList,
-        body: FunctionBody,
-    ) -> Self {
+    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+        let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
+            || contains(&body, ContainsSymbol::DirectEval);
         Self {
             name,
             parameters,
             body,
+            contains_direct_eval,
+            scopes: FunctionScopes::default(),
         }
     }
 
@@ -62,6 +69,13 @@ impl GeneratorDeclaration {
     pub const fn body(&self) -> &FunctionBody {
         &self.body
     }
+
+    /// Returns the scopes of the generator declaration.
+    #[inline]
+    #[must_use]
+    pub const fn scopes(&self) -> &FunctionScopes {
+        &self.scopes
+    }
 }
 
 impl ToIndentedString for GeneratorDeclaration {
@@ -70,7 +84,7 @@ impl ToIndentedString for GeneratorDeclaration {
             "function* {}({}) {}",
             interner.resolve_expect(self.name.sym()),
             join_nodes(interner, self.parameters.as_ref()),
-            block_to_string(self.body.statements(), interner, indentation)
+            block_to_string(&self.body.statements, interner, indentation)
         )
     }
 }
@@ -82,7 +96,7 @@ impl VisitWith for GeneratorDeclaration {
     {
         try_break!(visitor.visit_identifier(&self.name));
         try_break!(visitor.visit_formal_parameter_list(&self.parameters));
-        visitor.visit_script(&self.body)
+        visitor.visit_function_body(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -91,7 +105,7 @@ impl VisitWith for GeneratorDeclaration {
     {
         try_break!(visitor.visit_identifier_mut(&mut self.name));
         try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
-        visitor.visit_script_mut(&mut self.body)
+        visitor.visit_function_body_mut(&mut self.body)
     }
 }
 
@@ -115,26 +129,38 @@ impl From<GeneratorDeclaration> for Declaration {
 #[derive(Clone, Debug, PartialEq)]
 pub struct GeneratorExpression {
     pub(crate) name: Option<Identifier>,
-    parameters: FormalParameterList,
-    body: FunctionBody,
-    has_binding_identifier: bool,
+    pub(crate) parameters: FormalParameterList,
+    pub(crate) body: FunctionBody,
+    pub(crate) has_binding_identifier: bool,
+    pub(crate) contains_direct_eval: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) name_scope: Option<Scope>,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scopes: FunctionScopes,
 }
 
 impl GeneratorExpression {
     /// Creates a new generator expression.
     #[inline]
     #[must_use]
-    pub const fn new(
+    pub fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
         has_binding_identifier: bool,
     ) -> Self {
+        let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
+            || contains(&body, ContainsSymbol::DirectEval);
         Self {
             name,
             parameters,
             body,
             has_binding_identifier,
+            name_scope: None,
+            contains_direct_eval,
+            scopes: FunctionScopes::default(),
         }
     }
 
@@ -165,6 +191,20 @@ impl GeneratorExpression {
     pub const fn has_binding_identifier(&self) -> bool {
         self.has_binding_identifier
     }
+
+    /// Gets the name scope of the generator expression.
+    #[inline]
+    #[must_use]
+    pub const fn name_scope(&self) -> Option<&Scope> {
+        self.name_scope.as_ref()
+    }
+
+    /// Gets the scopes of the generator expression.
+    #[inline]
+    #[must_use]
+    pub const fn scopes(&self) -> &FunctionScopes {
+        &self.scopes
+    }
 }
 
 impl ToIndentedString for GeneratorExpression {
@@ -178,7 +218,7 @@ impl ToIndentedString for GeneratorExpression {
         buf.push_str(&format!(
             "({}) {}",
             join_nodes(interner, self.parameters.as_ref()),
-            block_to_string(self.body.statements(), interner, indentation)
+            block_to_string(&self.body.statements, interner, indentation)
         ));
 
         buf
@@ -201,7 +241,7 @@ impl VisitWith for GeneratorExpression {
             try_break!(visitor.visit_identifier(ident));
         }
         try_break!(visitor.visit_formal_parameter_list(&self.parameters));
-        visitor.visit_script(&self.body)
+        visitor.visit_function_body(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -212,6 +252,6 @@ impl VisitWith for GeneratorExpression {
             try_break!(visitor.visit_identifier_mut(ident));
         }
         try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
-        visitor.visit_script_mut(&mut self.body)
+        visitor.visit_function_body_mut(&mut self.body)
     }
 }

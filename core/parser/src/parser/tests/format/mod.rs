@@ -17,6 +17,7 @@ fn test_formatting(source: &'static str) {
     // Remove preceding newline.
 
     use crate::{Parser, Source};
+    use boa_ast::scope::Scope;
     use boa_interner::{Interner, ToInternedString};
     let source = &source[1..];
 
@@ -33,7 +34,7 @@ fn test_formatting(source: &'static str) {
     let source = Source::from_bytes(source);
     let interner = &mut Interner::default();
     let result = Parser::new(source)
-        .parse_script(interner)
+        .parse_script(&Scope::new_global(), interner)
         .expect("parsing failed")
         .to_interned_string(interner);
     if scenario != result {

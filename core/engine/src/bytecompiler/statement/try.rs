@@ -4,7 +4,6 @@ use crate::{
 };
 use boa_ast::{
     declaration::Binding,
-    operations::bound_names,
     statement::{Block, Catch, Finally, Try},
     Statement, StatementListItem,
 };
@@ -111,23 +110,17 @@ impl ByteCompiler<'_> {
     pub(crate) fn compile_catch_stmt(&mut self, catch: &Catch, _has_finally: bool, use_expr: bool) {
         // stack: exception
 
-        let old_lex_env = self.lexical_environment.clone();
-        let env_index = self.push_compile_environment(false);
-        self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-        let env = self.lexical_environment.clone();
+        let outer_scope = self.lexical_scope.clone();
+        let scope_index = self.push_scope(catch.scope());
+        self.emit_with_varying_operand(Opcode::PushScope, scope_index);
 
         if let Some(binding) = catch.parameter() {
             match binding {
                 Binding::Identifier(ident) => {
                     let ident = ident.to_js_string(self.interner());
-                    env.create_mutable_binding(ident.clone(), false);
                     self.emit_binding(BindingOpcode::InitLexical, ident);
                 }
                 Binding::Pattern(pattern) => {
-                    for ident in bound_names(pattern) {
-                        let ident = ident.to_js_string(self.interner());
-                        env.create_mutable_binding(ident, false);
-                    }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitLexical);
                 }
             }
@@ -137,8 +130,8 @@ impl ByteCompiler<'_> {
 
         self.compile_catch_finally_block(catch.block(), use_expr);
 
-        self.pop_compile_environment();
-        self.lexical_environment = old_lex_env;
+        self.pop_scope();
+        self.lexical_scope = outer_scope;
         self.emit_opcode(Opcode::PopEnvironment);
     }
 

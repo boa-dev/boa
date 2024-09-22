@@ -3,7 +3,9 @@ use crate::{
     block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
+    operations::{contains, ContainsSymbol},
     property::{MethodDefinitionKind, PropertyName},
+    scope::{FunctionScopes, Scope},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Declaration,
@@ -25,9 +27,12 @@ use std::hash::Hash;
 #[derive(Clone, Debug, PartialEq)]
 pub struct ClassDeclaration {
     name: Identifier,
-    super_ref: Option<Expression>,
+    pub(crate) super_ref: Option<Expression>,
     pub(crate) constructor: Option<FunctionExpression>,
     pub(crate) elements: Box<[ClassElement]>,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) name_scope: Scope,
 }
 
 impl ClassDeclaration {
@@ -45,6 +50,7 @@ impl ClassDeclaration {
             super_ref,
             constructor,
             elements,
+            name_scope: Scope::default(),
         }
     }
 
@@ -75,6 +81,13 @@ impl ClassDeclaration {
     pub const fn elements(&self) -> &[ClassElement] {
         &self.elements
     }
+
+    /// Gets the scope containing the class name binding.
+    #[inline]
+    #[must_use]
+    pub const fn name_scope(&self) -> &Scope {
+        &self.name_scope
+    }
 }
 
 impl ToIndentedString for ClassDeclaration {
@@ -96,7 +109,7 @@ impl ToIndentedString for ClassDeclaration {
             buf.push_str(&format!(
                 "{indentation}constructor({}) {}\n",
                 join_nodes(interner, expr.parameters().as_ref()),
-                block_to_string(expr.body().statements(), interner, indent_n + 1)
+                block_to_string(&expr.body.statements, interner, indent_n + 1)
             ));
         }
         for element in &self.elements {
@@ -162,10 +175,12 @@ impl From<ClassDeclaration> for Declaration {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ClassExpression {
     pub(crate) name: Option<Identifier>,
-    super_ref: Option<Expression>,
+    pub(crate) super_ref: Option<Expression>,
     pub(crate) constructor: Option<FunctionExpression>,
     pub(crate) elements: Box<[ClassElement]>,
-    has_binding_identifier: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) name_scope: Option<Scope>,
 }
 
 impl ClassExpression {
@@ -179,12 +194,17 @@ impl ClassExpression {
         elements: Box<[ClassElement]>,
         has_binding_identifier: bool,
     ) -> Self {
+        let name_scope = if has_binding_identifier {
+            Some(Scope::default())
+        } else {
+            None
+        };
         Self {
             name,
             super_ref,
             constructor,
             elements,
-            has_binding_identifier,
+            name_scope,
         }
     }
 
@@ -215,12 +235,19 @@ impl ClassExpression {
     pub const fn elements(&self) -> &[ClassElement] {
         &self.elements
     }
+
+    /// Gets the scope containing the class name binding if it exists.
+    #[inline]
+    #[must_use]
+    pub const fn name_scope(&self) -> Option<&Scope> {
+        self.name_scope.as_ref()
+    }
 }
 
 impl ToIndentedString for ClassExpression {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "class".to_string();
-        if self.has_binding_identifier {
+        if self.name_scope.is_some() {
             if let Some(name) = self.name {
                 buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
             }
@@ -241,7 +268,7 @@ impl ToIndentedString for ClassExpression {
             buf.push_str(&format!(
                 "{indentation}constructor({}) {}\n",
                 join_nodes(interner, expr.parameters().as_ref()),
-                block_to_string(expr.body().statements(), interner, indent_n + 1)
+                block_to_string(&expr.body.statements, interner, indent_n + 1)
             ));
         }
         for element in &self.elements {
@@ -303,7 +330,41 @@ impl VisitWith for ClassExpression {
 /// Just an alias for [`Script`](crate::Script), since it has the same exact semantics.
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassStaticBlockBody
-type StaticBlockBody = crate::Script;
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct StaticBlockBody {
+    pub(crate) body: FunctionBody,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scopes: FunctionScopes,
+}
+
+impl StaticBlockBody {
+    /// Creates a new static block body.
+    #[inline]
+    #[must_use]
+    pub fn new(body: FunctionBody) -> Self {
+        Self {
+            body,
+            scopes: FunctionScopes::default(),
+        }
+    }
+
+    /// Gets the body static block.
+    #[inline]
+    #[must_use]
+    pub const fn statements(&self) -> &FunctionBody {
+        &self.body
+    }
+
+    /// Gets the scopes of the static block body.
+    #[inline]
+    #[must_use]
+    pub const fn scopes(&self) -> &FunctionScopes {
+        &self.scopes
+    }
+}
 
 /// An element that can be within a class.
 ///
@@ -319,13 +380,13 @@ pub enum ClassElement {
     MethodDefinition(ClassMethodDefinition),
 
     /// A field definition.
-    FieldDefinition(PropertyName, Option<Expression>),
+    FieldDefinition(ClassFieldDefinition),
 
     /// A static field definition, accessible from the class constructor object
-    StaticFieldDefinition(PropertyName, Option<Expression>),
+    StaticFieldDefinition(ClassFieldDefinition),
 
     /// A private field definition, only accessible inside the class declaration.
-    PrivateFieldDefinition(PrivateName, Option<Expression>),
+    PrivateFieldDefinition(PrivateFieldDefinition),
 
     /// A private static field definition, only accessible from static methods and fields inside the
     /// class declaration.
@@ -335,39 +396,145 @@ pub enum ClassElement {
     StaticBlock(StaticBlockBody),
 }
 
+/// A non-private class element field definition.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FieldDefinition
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct ClassFieldDefinition {
+    pub(crate) name: PropertyName,
+    pub(crate) field: Option<Expression>,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Scope,
+}
+
+impl ClassFieldDefinition {
+    /// Creates a new class field definition.
+    #[inline]
+    #[must_use]
+    pub fn new(name: PropertyName, field: Option<Expression>) -> Self {
+        Self {
+            name,
+            field,
+            scope: Scope::default(),
+        }
+    }
+
+    /// Returns the name of the class field definition.
+    #[inline]
+    #[must_use]
+    pub const fn name(&self) -> &PropertyName {
+        &self.name
+    }
+
+    /// Returns the field of the class field definition.
+    #[inline]
+    #[must_use]
+    pub const fn field(&self) -> Option<&Expression> {
+        self.field.as_ref()
+    }
+
+    /// Returns the scope of the class field definition.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> &Scope {
+        &self.scope
+    }
+}
+
+/// A private class element field definition.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FieldDefinition
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct PrivateFieldDefinition {
+    pub(crate) name: PrivateName,
+    pub(crate) field: Option<Expression>,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Scope,
+}
+
+impl PrivateFieldDefinition {
+    /// Creates a new private field definition.
+    #[inline]
+    #[must_use]
+    pub fn new(name: PrivateName, field: Option<Expression>) -> Self {
+        Self {
+            name,
+            field,
+            scope: Scope::default(),
+        }
+    }
+
+    /// Returns the name of the private field definition.
+    #[inline]
+    #[must_use]
+    pub const fn name(&self) -> &PrivateName {
+        &self.name
+    }
+
+    /// Returns the field of the private field definition.
+    #[inline]
+    #[must_use]
+    pub const fn field(&self) -> Option<&Expression> {
+        self.field.as_ref()
+    }
+
+    /// Returns the scope of the private field definition.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> &Scope {
+        &self.scope
+    }
+}
+
 impl ToIndentedString for ClassElement {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let indentation = "    ".repeat(indent_n + 1);
         match self {
             Self::MethodDefinition(m) => m.to_indented_string(interner, indent_n),
-            Self::FieldDefinition(name, field) => match field {
+            Self::FieldDefinition(field) => match &field.field {
                 Some(expr) => {
                     format!(
                         "{indentation}{} = {};\n",
-                        name.to_interned_string(interner),
+                        field.name.to_interned_string(interner),
                         expr.to_no_indent_string(interner, indent_n + 1)
                     )
                 }
                 None => {
-                    format!("{indentation}{};\n", name.to_interned_string(interner),)
+                    format!(
+                        "{indentation}{};\n",
+                        field.name.to_interned_string(interner),
+                    )
                 }
             },
-            Self::StaticFieldDefinition(name, field) => match field {
+            Self::StaticFieldDefinition(field) => match &field.field {
                 Some(expr) => {
                     format!(
                         "{indentation}static {} = {};\n",
-                        name.to_interned_string(interner),
+                        field.name.to_interned_string(interner),
                         expr.to_no_indent_string(interner, indent_n + 1)
                     )
                 }
                 None => {
                     format!(
                         "{indentation}static {};\n",
-                        name.to_interned_string(interner),
+                        field.name.to_interned_string(interner),
                     )
                 }
             },
-            Self::PrivateFieldDefinition(name, field) => match field {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. }) => match field
+            {
                 Some(expr) => {
                     format!(
                         "{indentation}#{} = {};\n",
@@ -397,10 +564,10 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::StaticBlock(body) => {
+            Self::StaticBlock(block) => {
                 format!(
                     "{indentation}static {}\n",
-                    block_to_string(body.statements(), interner, indent_n + 1)
+                    block_to_string(&block.body.statements, interner, indent_n + 1)
                 )
             }
         }
@@ -423,26 +590,26 @@ impl VisitWith for ClassElement {
                     }
                 }
                 try_break!(visitor.visit_formal_parameter_list(&m.parameters));
-                visitor.visit_script(&m.body)
+                visitor.visit_function_body(&m.body)
             }
-            Self::FieldDefinition(pn, maybe_expr) | Self::StaticFieldDefinition(pn, maybe_expr) => {
-                try_break!(visitor.visit_property_name(pn));
-                if let Some(expr) = maybe_expr {
+            Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
+                try_break!(visitor.visit_property_name(&field.name));
+                if let Some(expr) = &field.field {
                     visitor.visit_expression(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(name, maybe_expr)
-            | Self::PrivateStaticFieldDefinition(name, maybe_expr) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
+            | Self::PrivateStaticFieldDefinition(name, field) => {
                 try_break!(visitor.visit_private_name(name));
-                if let Some(expr) = maybe_expr {
+                if let Some(expr) = field {
                     visitor.visit_expression(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::StaticBlock(sl) => visitor.visit_script(sl),
+            Self::StaticBlock(block) => visitor.visit_function_body(&block.body),
         }
     }
 
@@ -461,26 +628,26 @@ impl VisitWith for ClassElement {
                     }
                 }
                 try_break!(visitor.visit_formal_parameter_list_mut(&mut m.parameters));
-                visitor.visit_script_mut(&mut m.body)
+                visitor.visit_function_body_mut(&mut m.body)
             }
-            Self::FieldDefinition(pn, maybe_expr) | Self::StaticFieldDefinition(pn, maybe_expr) => {
-                try_break!(visitor.visit_property_name_mut(pn));
-                if let Some(expr) = maybe_expr {
+            Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
+                try_break!(visitor.visit_property_name_mut(&mut field.name));
+                if let Some(expr) = &mut field.field {
                     visitor.visit_expression_mut(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(name, maybe_expr)
-            | Self::PrivateStaticFieldDefinition(name, maybe_expr) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
+            | Self::PrivateStaticFieldDefinition(name, field) => {
                 try_break!(visitor.visit_private_name_mut(name));
-                if let Some(expr) = maybe_expr {
+                if let Some(expr) = field {
                     visitor.visit_expression_mut(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::StaticBlock(sl) => visitor.visit_script_mut(sl),
+            Self::StaticBlock(block) => visitor.visit_function_body_mut(&mut block.body),
         }
     }
 }
@@ -499,29 +666,37 @@ impl VisitWith for ClassElement {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ClassMethodDefinition {
     name: ClassElementName,
-    parameters: FormalParameterList,
-    body: FunctionBody,
+    pub(crate) parameters: FormalParameterList,
+    pub(crate) body: FunctionBody,
+    pub(crate) contains_direct_eval: bool,
     kind: MethodDefinitionKind,
     is_static: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scopes: FunctionScopes,
 }
 
 impl ClassMethodDefinition {
     /// Creates a new class method definition.
     #[inline]
     #[must_use]
-    pub const fn new(
+    pub fn new(
         name: ClassElementName,
         parameters: FormalParameterList,
         body: FunctionBody,
         kind: MethodDefinitionKind,
         is_static: bool,
     ) -> Self {
+        let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
+            || contains(&body, ContainsSymbol::DirectEval);
         Self {
             name,
             parameters,
             body,
+            contains_direct_eval,
             kind,
             is_static,
+            scopes: FunctionScopes::default(),
         }
     }
 
@@ -566,6 +741,13 @@ impl ClassMethodDefinition {
     pub const fn is_private(&self) -> bool {
         self.name.is_private()
     }
+
+    /// Gets the scopes of the class method definition.
+    #[inline]
+    #[must_use]
+    pub const fn scopes(&self) -> &FunctionScopes {
+        &self.scopes
+    }
 }
 
 impl ToIndentedString for ClassMethodDefinition {
@@ -587,7 +769,7 @@ impl ToIndentedString for ClassMethodDefinition {
         };
         let name = self.name.to_interned_string(interner);
         let parameters = join_nodes(interner, self.parameters.as_ref());
-        let body = block_to_string(self.body.statements(), interner, indent_n + 1);
+        let body = block_to_string(&self.body.statements, interner, indent_n + 1);
         format!("{indentation}{prefix}{name}({parameters}) {body}\n")
     }
 }

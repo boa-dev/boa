@@ -45,8 +45,6 @@ impl ByteCompiler<'_> {
                     ExportDeclaration::DefaultClassDeclaration(cl) => self.class(cl.into(), false),
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
                         let name = Sym::DEFAULT_EXPORT.to_js_string(self.interner());
-                        self.lexical_environment
-                            .create_mutable_binding(name.clone(), false);
                         self.compile_expr(expr, true);
 
                         if expr.is_anonymous_function_definition() {

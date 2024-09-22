@@ -1,33 +1,28 @@
+use boa_ast::scope::Scope;
+
 use super::ByteCompiler;
-use crate::environments::CompileTimeEnvironment;
-use std::rc::Rc;
 
 impl ByteCompiler<'_> {
-    /// Push either a new declarative or function environment on the compile time environment stack.
+    /// Push either a new declarative or function scope on the environment stack.
     #[must_use]
-    pub(crate) fn push_compile_environment(&mut self, function_scope: bool) -> u32 {
+    pub(crate) fn push_scope(&mut self, scope: &Scope) -> u32 {
         self.current_open_environments_count += 1;
-
-        let env = Rc::new(CompileTimeEnvironment::new(
-            self.lexical_environment.clone(),
-            function_scope,
-        ));
 
         let index = self.constants.len() as u32;
         self.constants
-            .push(crate::vm::Constant::CompileTimeEnvironment(env.clone()));
+            .push(crate::vm::Constant::Scope(scope.clone()));
 
-        if function_scope {
-            self.variable_environment = env.clone();
+        if scope.is_function() {
+            self.variable_scope = scope.clone();
         }
 
-        self.lexical_environment = env;
+        self.lexical_scope = scope.clone();
 
         index
     }
 
-    /// Pops the top compile time environment and returns its index in the compile time environments array.
-    pub(crate) fn pop_compile_environment(&mut self) {
+    /// Pops the top scope.
+    pub(crate) fn pop_scope(&mut self) {
         self.current_open_environments_count -= 1;
     }
 }

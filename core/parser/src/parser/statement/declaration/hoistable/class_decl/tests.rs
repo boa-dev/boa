@@ -7,11 +7,11 @@ use boa_ast::{
         Call, Identifier,
     },
     function::{
-        ClassDeclaration, ClassElement, ClassMethodDefinition, FormalParameterList, FunctionBody,
-        FunctionExpression,
+        ClassDeclaration, ClassElement, ClassFieldDefinition, ClassMethodDefinition,
+        FormalParameterList, FunctionBody, FunctionExpression,
     },
     property::{MethodDefinitionKind, PropertyName},
-    Declaration, Expression, Statement, StatementList, StatementListItem,
+    Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -50,10 +50,10 @@ fn check_async_ordinary_method() {
 fn check_async_field_initialization() {
     let interner = &mut Interner::default();
 
-    let elements = vec![ClassElement::FieldDefinition(
+    let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
         PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
         Some(Literal::from(1).into()),
-    )];
+    ))];
 
     check_script_parser(
         "class A {
@@ -76,10 +76,10 @@ fn check_async_field_initialization() {
 fn check_async_field() {
     let interner = &mut Interner::default();
 
-    let elements = vec![ClassElement::FieldDefinition(
+    let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
         PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
         None,
-    )];
+    ))];
 
     check_script_parser(
         "class A {
@@ -121,10 +121,7 @@ fn check_new_target_with_property_access() {
     let constructor = FunctionExpression::new(
         Some(interner.get_or_intern_static("A", utf16!("A")).into()),
         FormalParameterList::default(),
-        FunctionBody::new(StatementList::new(
-            [Statement::Expression(console).into()],
-            false,
-        )),
+        FunctionBody::new([Statement::Expression(console).into()], false),
         false,
     );
 

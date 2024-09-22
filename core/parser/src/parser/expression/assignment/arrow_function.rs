@@ -26,7 +26,7 @@ use boa_ast::{
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
     statement::Return,
-    Expression, Punctuator, StatementList,
+    Expression, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -98,18 +98,6 @@ where
                 )
             };
 
-        cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
-
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::Arrow),
-            "arrow function",
-            interner,
-        )?;
-        let arrow = cursor.arrow();
-        cursor.set_arrow(true);
-        let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
-        cursor.set_arrow(arrow);
-
         // Early Error: ArrowFormalParameters are UniqueFormalParameters.
         if params.has_duplicates() {
             return Err(Error::lex(LexError::Syntax(
@@ -133,6 +121,18 @@ where
                 params_start_position,
             )));
         }
+
+        cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
+
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::Arrow),
+            "arrow function",
+            interner,
+        )?;
+        let arrow = cursor.arrow();
+        cursor.set_arrow(true);
+        let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
+        cursor.set_arrow(arrow);
 
         // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
         // and IsSimpleParameterList of ArrowParameters is false.
@@ -182,23 +182,23 @@ where
     type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let stmts =
-            match cursor.peek(0, interner).or_abrupt()?.kind() {
-                TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                    cursor.advance(interner);
-                    let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                    cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
-                    body
-                }
-                _ => ast::function::FunctionBody::new(StatementList::from(vec![
-                    ast::Statement::Return(Return::new(
-                        ExpressionBody::new(self.allow_in, false)
-                            .parse(cursor, interner)?
-                            .into(),
-                    ))
-                    .into(),
-                ])),
-            };
+        let stmts = match cursor.peek(0, interner).or_abrupt()?.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                cursor.advance(interner);
+                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
+                body
+            }
+            _ => ast::function::FunctionBody::new(
+                [ast::Statement::Return(Return::new(
+                    ExpressionBody::new(self.allow_in, false)
+                        .parse(cursor, interner)?
+                        .into(),
+                ))
+                .into()],
+                false,
+            ),
+        };
 
         Ok(stmts)
     }

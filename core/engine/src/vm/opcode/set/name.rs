@@ -1,5 +1,7 @@
+use boa_ast::scope::{BindingLocator, BindingLocatorScope};
+
 use crate::{
-    environments::{BindingLocator, BindingLocatorEnvironment, Environment},
+    environments::Environment,
     vm::{opcode::Operation, CompletionType},
     Context, JsNativeError, JsResult,
 };
@@ -125,17 +127,17 @@ fn verify_initialized(locator: &BindingLocator, context: &mut Context) -> JsResu
         let key = locator.name();
         let strict = context.vm.frame().code_block.strict();
 
-        let message = match locator.environment() {
-            BindingLocatorEnvironment::GlobalObject if strict => Some(format!(
+        let message = match locator.scope() {
+            BindingLocatorScope::GlobalObject if strict => Some(format!(
                 "cannot assign to uninitialized global property `{}`",
                 key.to_std_string_escaped()
             )),
-            BindingLocatorEnvironment::GlobalObject => None,
-            BindingLocatorEnvironment::GlobalDeclarative => Some(format!(
+            BindingLocatorScope::GlobalObject => None,
+            BindingLocatorScope::GlobalDeclarative => Some(format!(
                 "cannot assign to uninitialized binding `{}`",
                 key.to_std_string_escaped()
             )),
-            BindingLocatorEnvironment::Stack(index) => match context.environment_expect(index) {
+            BindingLocatorScope::Stack(index) => match context.environment_expect(index) {
                 Environment::Declarative(_) => Some(format!(
                     "cannot assign to uninitialized binding `{}`",
                     key.to_std_string_escaped()

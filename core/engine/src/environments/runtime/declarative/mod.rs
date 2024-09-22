@@ -8,9 +8,9 @@ pub(crate) use global::GlobalEnvironment;
 pub(crate) use lexical::LexicalEnvironment;
 pub(crate) use module::ModuleEnvironment;
 
-use crate::{environments::CompileTimeEnvironment, JsResult, JsValue};
+use crate::{JsResult, JsValue};
 use boa_gc::{Finalize, GcRefCell, Trace};
-use std::{cell::Cell, rc::Rc};
+use std::cell::Cell;
 
 /// A declarative environment holds binding values at runtime.
 ///
@@ -35,10 +35,6 @@ use std::{cell::Cell, rc::Rc};
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct DeclarativeEnvironment {
     kind: DeclarativeEnvironmentKind,
-
-    // Safety: Nothing in CompileTimeEnvironment needs tracing.
-    #[unsafe_ignore_trace]
-    compile: Rc<CompileTimeEnvironment>,
 }
 
 impl DeclarativeEnvironment {
@@ -46,26 +42,22 @@ impl DeclarativeEnvironment {
     pub(crate) fn global() -> Self {
         Self {
             kind: DeclarativeEnvironmentKind::Global(GlobalEnvironment::new()),
-            compile: Rc::new(CompileTimeEnvironment::new_global()),
         }
     }
 
     /// Creates a new `DeclarativeEnvironment` from its kind and compile environment.
-    pub(crate) fn new(
-        kind: DeclarativeEnvironmentKind,
-        compile: Rc<CompileTimeEnvironment>,
-    ) -> Self {
-        Self { kind, compile }
-    }
-
-    /// Gets the compile time environment of this environment.
-    pub(crate) fn compile_env(&self) -> Rc<CompileTimeEnvironment> {
-        self.compile.clone()
+    pub(crate) fn new(kind: DeclarativeEnvironmentKind) -> Self {
+        Self { kind }
     }
 
     /// Returns a reference to the the kind of the environment.
     pub(crate) const fn kind(&self) -> &DeclarativeEnvironmentKind {
         &self.kind
+    }
+
+    /// Returns whether this environment is a function environment.
+    pub(crate) fn is_function(&self) -> bool {
+        matches!(self.kind(), DeclarativeEnvironmentKind::Function(_))
     }
 
     /// Gets the binding value from the environment by index.
@@ -130,7 +122,7 @@ impl DeclarativeEnvironment {
     /// Extends the environment with the bindings from the compile time environment.
     pub(crate) fn extend_from_compile(&self) {
         if let Some(env) = self.kind().as_function() {
-            let compile_bindings_number = self.compile_env().num_bindings() as usize;
+            let compile_bindings_number = env.compile().num_bindings() as usize;
             let mut bindings = env.poisonable_environment().bindings().borrow_mut();
             if compile_bindings_number > bindings.len() {
                 bindings.resize(compile_bindings_number, None);
@@ -280,8 +272,7 @@ pub(crate) struct PoisonableEnvironment {
     bindings: GcRefCell<Vec<Option<JsValue>>>,
     #[unsafe_ignore_trace]
     poisoned: Cell<bool>,
-    #[unsafe_ignore_trace]
-    with: Cell<bool>,
+    with: bool,
 }
 
 impl PoisonableEnvironment {
@@ -290,7 +281,7 @@ impl PoisonableEnvironment {
         Self {
             bindings: GcRefCell::new(vec![None; bindings_count as usize]),
             poisoned: Cell::new(poisoned),
-            with: Cell::new(with),
+            with,
         }
     }
 
@@ -326,7 +317,7 @@ impl PoisonableEnvironment {
 
     /// Returns `true` if this environment is inside a `with` environment.
     fn with(&self) -> bool {
-        self.with.get()
+        self.with
     }
 
     /// Poisons this environment for future binding searches.

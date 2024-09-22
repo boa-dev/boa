@@ -1,5 +1,6 @@
 use crate::{
     expression::Expression,
+    scope::Scope,
     statement::Statement,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -19,8 +20,11 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct With {
-    expression: Expression,
-    statement: Box<Statement>,
+    pub(crate) expression: Expression,
+    pub(crate) statement: Box<Statement>,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Scope,
 }
 
 impl With {
@@ -30,6 +34,7 @@ impl With {
         Self {
             expression,
             statement: Box::new(statement),
+            scope: Scope::default(),
         }
     }
 
@@ -43,6 +48,12 @@ impl With {
     #[must_use]
     pub const fn statement(&self) -> &Statement {
         &self.statement
+    }
+
+    /// Returns the scope of the `With` statement.
+    #[must_use]
+    pub const fn scope(&self) -> &Scope {
+        &self.scope
     }
 }
 

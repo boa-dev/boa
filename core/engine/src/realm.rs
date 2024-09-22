@@ -8,6 +8,7 @@
 
 use std::any::TypeId;
 
+use boa_ast::scope::Scope;
 use rustc_hash::FxHashMap;
 
 use crate::{
@@ -54,7 +55,16 @@ impl std::fmt::Debug for Realm {
 #[derive(Trace, Finalize)]
 struct Inner {
     intrinsics: Intrinsics,
+
+    /// The global declarative environment of this realm.
     environment: Gc<DeclarativeEnvironment>,
+
+    /// The global scope of this realm.
+    /// This is directly related to the global declarative environment.
+    // Safety: Nothing in `Scope` needs tracing.
+    #[unsafe_ignore_trace]
+    scope: Scope,
+
     global_object: JsObject,
     global_this: JsObject,
     template_map: GcRefCell<FxHashMap<u64, JsObject>>,
@@ -79,11 +89,13 @@ impl Realm {
             .create_global_this(&intrinsics)
             .unwrap_or_else(|| global_object.clone());
         let environment = Gc::new(DeclarativeEnvironment::global());
+        let scope = Scope::new_global();
 
         let realm = Self {
             inner: Gc::new(Inner {
                 intrinsics,
                 environment,
+                scope,
                 global_object,
                 global_this,
                 template_map: GcRefCell::default(),
@@ -156,6 +168,12 @@ impl Realm {
         &self.inner.environment
     }
 
+    /// Returns the scope of this realm.
+    #[must_use]
+    pub fn scope(&self) -> &Scope {
+        &self.inner.scope
+    }
+
     pub(crate) fn global_object(&self) -> &JsObject {
         &self.inner.global_object
     }
@@ -170,7 +188,7 @@ impl Realm {
 
     /// Resizes the number of bindings on the global environment.
     pub(crate) fn resize_global_env(&self) {
-        let binding_number = self.environment().compile_env().num_bindings();
+        let binding_number = self.scope().num_bindings();
         let env = self
             .environment()
             .kind()

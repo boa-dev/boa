@@ -1,8 +1,14 @@
 use std::ops::ControlFlow;
 
-use boa_interner::ToIndentedString;
+use boa_interner::{Interner, ToIndentedString};
 
 use crate::{
+    expression::Identifier,
+    scope::Scope,
+    scope_analyzer::{
+        analyze_binding_escapes, collect_bindings, eval_declaration_instantiation_scope,
+        EvalDeclarationBindings,
+    },
     visitor::{VisitWith, Visitor, VisitorMut},
     ModuleItemList, StatementList,
 };
@@ -44,6 +50,47 @@ impl Script {
     pub const fn strict(&self) -> bool {
         self.statements.strict()
     }
+
+    /// Analyze the scope of the script.
+    pub fn analyze_scope(&mut self, scope: &Scope, interner: &Interner) -> bool {
+        if !collect_bindings(self, self.strict(), false, scope, interner) {
+            return false;
+        }
+        analyze_binding_escapes(self, false, scope.clone(), interner)
+    }
+
+    /// Analyze the scope of the script in eval mode.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the scope analysis fails with a syntax error.
+    pub fn analyze_scope_eval(
+        &mut self,
+        strict: bool,
+        variable_scope: &Scope,
+        lexical_scope: &Scope,
+        annex_b_function_names: &[Identifier],
+        interner: &Interner,
+    ) -> Result<EvalDeclarationBindings, String> {
+        let bindings = eval_declaration_instantiation_scope(
+            self,
+            strict,
+            variable_scope,
+            lexical_scope,
+            annex_b_function_names,
+            interner,
+        )?;
+
+        if !collect_bindings(self, strict, true, lexical_scope, interner) {
+            return Err(String::from("Failed to analyze scope"));
+        }
+
+        if !analyze_binding_escapes(self, true, lexical_scope.clone(), interner) {
+            return Err(String::from("Failed to analyze scope"));
+        }
+
+        Ok(bindings)
+    }
 }
 
 impl VisitWith for Script {
@@ -63,7 +110,7 @@ impl VisitWith for Script {
 }
 
 impl ToIndentedString for Script {
-    fn to_indented_string(&self, interner: &boa_interner::Interner, indentation: usize) -> String {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.statements.to_indented_string(interner, indentation)
     }
 }
@@ -77,20 +124,41 @@ impl ToIndentedString for Script {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Module {
-    items: ModuleItemList,
+    pub(crate) items: ModuleItemList,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Scope,
 }
 
 impl Module {
     /// Creates a new `ModuleNode`.
     #[must_use]
-    pub const fn new(items: ModuleItemList) -> Self {
-        Self { items }
+    pub fn new(items: ModuleItemList) -> Self {
+        Self {
+            items,
+            scope: Scope::default(),
+        }
     }
 
     /// Gets the list of itemos of this `ModuleNode`.
     #[must_use]
     pub const fn items(&self) -> &ModuleItemList {
         &self.items
+    }
+
+    /// Gets the scope of this `ModuleNode`.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> &Scope {
+        &self.scope
+    }
+
+    /// Analyze the scope of the module.
+    pub fn analyze_scope(&mut self, scope: &Scope, interner: &Interner) -> bool {
+        if !collect_bindings(self, true, false, scope, interner) {
+            return false;
+        }
+        analyze_binding_escapes(self, false, scope.clone(), interner)
     }
 }
 

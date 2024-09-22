@@ -1,13 +1,10 @@
-use std::rc::Rc;
-
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    environments::CompileTimeEnvironment,
     vm::{BindingOpcode, Opcode},
     Context, JsNativeError, JsResult,
 };
 use boa_ast::{
-    declaration::{Binding, LexicalDeclaration, VariableList},
+    declaration::Binding,
     expression::Identifier,
     function::{FormalParameterList, FunctionBody},
     operations::{
@@ -15,8 +12,10 @@ use boa_ast::{
         lexically_scoped_declarations, var_declared_names, var_scoped_declarations,
         LexicallyScopedDeclaration, VarScopedDeclaration,
     },
+    scope::{FunctionScopes, Scope},
+    scope_analyzer::EvalDeclarationBindings,
     visitor::NodeRef,
-    Declaration, Script, StatementListItem,
+    Script,
 };
 use boa_interner::{JStrRef, Sym};
 
@@ -40,7 +39,7 @@ use super::{Operand, ToJsString};
 pub(crate) fn global_declaration_instantiation_context(
     _annex_b_function_names: &mut Vec<Identifier>,
     _script: &Script,
-    _env: &Rc<CompileTimeEnvironment>,
+    _env: &Scope,
     _context: &mut Context,
 ) -> JsResult<()> {
     Ok(())
@@ -59,7 +58,7 @@ pub(crate) fn global_declaration_instantiation_context(
 pub(crate) fn global_declaration_instantiation_context(
     annex_b_function_names: &mut Vec<Identifier>,
     script: &Script,
-    env: &Rc<CompileTimeEnvironment>,
+    env: &Scope,
     context: &mut Context,
 ) -> JsResult<()> {
     // SKIP: 1. Let lexNames be the LexicallyDeclaredNames of script.
@@ -202,8 +201,8 @@ pub(crate) fn eval_declaration_instantiation_context(
     #[allow(unused, clippy::ptr_arg)] annex_b_function_names: &mut Vec<Identifier>,
     body: &Script,
     #[allow(unused)] strict: bool,
-    #[allow(unused)] var_env: &Rc<CompileTimeEnvironment>,
-    #[allow(unused)] lex_env: &Rc<CompileTimeEnvironment>,
+    #[allow(unused)] var_env: &Scope,
+    #[allow(unused)] lex_env: &Scope,
     context: &mut Context,
 ) -> JsResult<()> {
     // SKIP: 3. If strict is false, then
@@ -293,7 +292,7 @@ pub(crate) fn eval_declaration_instantiation_context(
 
                 // 3. Assert: The following loop will terminate.
                 // 4. Repeat, while thisEnv is not varEnv,
-                while this_env.environment_index() != lex_env.environment_index() {
+                while this_env.scope_index() != lex_env.scope_index() {
                     let f = f.to_js_string(context.interner());
 
                     // a. If thisEnv is not an Object Environment Record, then
@@ -381,28 +380,14 @@ impl ByteCompiler<'_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
-    pub(crate) fn global_declaration_instantiation(
-        &mut self,
-        script: &Script,
-        env: &Rc<CompileTimeEnvironment>,
-    ) {
+    pub(crate) fn global_declaration_instantiation(&mut self, script: &Script) {
         // 1. Let lexNames be the LexicallyDeclaredNames of script.
         let lex_names = lexically_declared_names(script);
 
         // 2. Let varNames be the VarDeclaredNames of script.
-        let var_names = var_declared_names(script);
-
         // 3. For each element name of lexNames, do
         for name in lex_names {
             let name = name.to_js_string(self.interner());
-
-            // Note: Our implementation differs from the spec here.
-            // a. If env.HasVarDeclaration(name) is true, throw a SyntaxError exception.
-            // b. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            if env.has_binding(&name) {
-                self.emit_syntax_error("duplicate lexical declaration");
-                return;
-            }
 
             // c. Let hasRestrictedGlobal be ? env.HasRestrictedGlobalProperty(name).
             let index = self.get_or_insert_string(name);
@@ -412,17 +397,6 @@ impl ByteCompiler<'_> {
             let exit = self.jump_if_false();
             self.emit_syntax_error("cannot redefine non-configurable global property");
             self.patch_jump(exit);
-        }
-
-        // 4. For each element name of varNames, do
-        for name in var_names {
-            let name = name.to_js_string(self.interner());
-
-            // a. If env.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-            if env.has_lex_binding(&name) {
-                self.emit_syntax_error("duplicate lexical declaration");
-                return;
-            }
         }
 
         // 5. Let varDeclarations be the VarScopedDeclarations of script.
@@ -502,67 +476,42 @@ impl ByteCompiler<'_> {
             }
         }
 
-        // NOTE: These steps depend on the global object are done before bytecode compilation.
-        //
-        // SKIP: 11. NOTE: No abnormal terminations occur after this algorithm step if the global object is an ordinary object.
-        //     However, if the global object is a Proxy exotic object it may exhibit behaviours
-        //     that cause abnormal terminations in some of the following steps.
-        // SKIP: 12. NOTE: Annex B.3.2.2 adds additional steps at this point.
-        // SKIP: 12. Perform the following steps:
-        // SKIP: a. Let strict be IsStrict of script.
-        // SKIP: b. If strict is false, then
-
-        // 13. Let lexDeclarations be the LexicallyScopedDeclarations of script.
-        // 14. Let privateEnv be null.
-        // 15. For each element d of lexDeclarations, do
-        for statement in &**script.statements() {
-            // a. NOTE: Lexically declared names are only instantiated here but not initialized.
-            // b. For each element dn of the BoundNames of d, do
-            //     i. If IsConstantDeclaration of d is true, then
-            //         1. Perform ? env.CreateImmutableBinding(dn, true).
-            //     ii. Else,
-            //         1. Perform ? env.CreateMutableBinding(dn, false).
-            if let StatementListItem::Declaration(declaration) = statement {
-                match declaration {
-                    Declaration::ClassDeclaration(class) => {
-                        for name in bound_names(class) {
-                            let name = name.to_js_string(self.interner());
-                            env.create_mutable_binding(name, false);
-                        }
-                    }
-                    Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
-                        for name in bound_names(declaration) {
-                            let name = name.to_js_string(self.interner());
-                            env.create_mutable_binding(name, false);
-                        }
-                    }
-                    Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
-                        for name in bound_names(declaration) {
-                            let name = name.to_js_string(self.interner());
-                            env.create_immutable_binding(name, true);
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-
         // 16. For each Parse Node f of functionsToInitialize, do
         for function in functions_to_initialize {
             // a. Let fn be the sole element of the BoundNames of f.
-            let (name, generator, r#async, parameters, body) = match &function {
-                VarScopedDeclaration::FunctionDeclaration(f) => {
-                    (f.name(), false, false, f.parameters(), f.body())
-                }
-                VarScopedDeclaration::GeneratorDeclaration(f) => {
-                    (f.name(), true, false, f.parameters(), f.body())
-                }
-                VarScopedDeclaration::AsyncFunctionDeclaration(f) => {
-                    (f.name(), false, true, f.parameters(), f.body())
-                }
-                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => {
-                    (f.name(), true, true, f.parameters(), f.body())
-                }
+            let (name, generator, r#async, parameters, body, scopes) = match &function {
+                VarScopedDeclaration::FunctionDeclaration(f) => (
+                    f.name(),
+                    false,
+                    false,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
+                VarScopedDeclaration::GeneratorDeclaration(f) => (
+                    f.name(),
+                    true,
+                    false,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => (
+                    f.name(),
+                    false,
+                    true,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => (
+                    f.name(),
+                    true,
+                    true,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
                 VarScopedDeclaration::VariableDeclaration(_) => continue,
             };
 
@@ -572,12 +521,12 @@ impl ByteCompiler<'_> {
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
-                .binding_identifier(None)
                 .compile(
                     parameters,
                     body,
-                    self.variable_environment.clone(),
-                    self.lexical_environment.clone(),
+                    self.variable_scope.clone(),
+                    self.lexical_scope.clone(),
+                    &scopes,
                     self.interner,
                 );
 
@@ -614,50 +563,12 @@ impl ByteCompiler<'_> {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-blockdeclarationinstantiation
-    pub(crate) fn block_declaration_instantiation<'a, N>(
-        &mut self,
-        block: &'a N,
-        env: &Rc<CompileTimeEnvironment>,
-    ) where
+    pub(crate) fn block_declaration_instantiation<'a, N>(&mut self, block: &'a N)
+    where
         &'a N: Into<NodeRef<'a>>,
     {
         // 1. Let declarations be the LexicallyScopedDeclarations of code.
         let declarations = lexically_scoped_declarations(block);
-
-        // 2. Let privateEnv be the running execution context's PrivateEnvironment.
-        // Note: Private environments are currently handled differently.
-
-        // 3. For each element d of declarations, do
-        for d in &declarations {
-            // i. If IsConstantDeclaration of d is true, then
-            if let LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(d)) = d
-            {
-                // a. For each element dn of the BoundNames of d, do
-                for dn in bound_names::<'_, VariableList>(d) {
-                    // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                    let dn = dn.to_js_string(self.interner());
-                    env.create_immutable_binding(dn, true);
-                }
-            }
-            // ii. Else,
-            else {
-                // a. For each element dn of the BoundNames of d, do
-                for dn in d.bound_names() {
-                    let dn = dn.to_js_string(self.interner());
-
-                    #[cfg(not(feature = "annex-b"))]
-                    // 1. Perform ! env.CreateMutableBinding(dn, false). NOTE: This step is replaced in section B.3.2.6.
-                    env.create_mutable_binding(dn, false);
-
-                    #[cfg(feature = "annex-b")]
-                    // 1. If ! env.HasBinding(dn) is false, then
-                    if !env.has_binding(&dn) {
-                        // a. Perform  ! env.CreateMutableBinding(dn, false).
-                        env.create_mutable_binding(dn, false);
-                    }
-                }
-            }
-        }
 
         // Note: Not sure if the spec is wrong here or if our implementation just differs too much,
         //       but we need 3.a to be finished for all declarations before 3.b can be done.
@@ -697,65 +608,14 @@ impl ByteCompiler<'_> {
     pub(crate) fn eval_declaration_instantiation(
         &mut self,
         body: &Script,
-        strict: bool,
-        var_env: &Rc<CompileTimeEnvironment>,
-        lex_env: &Rc<CompileTimeEnvironment>,
+        #[allow(unused_variables)] strict: bool,
+        var_env: &Scope,
+        bindings: EvalDeclarationBindings,
     ) {
         // 2. Let varDeclarations be the VarScopedDeclarations of body.
         let var_declarations = var_scoped_declarations(body);
 
-        // 3. If strict is false, then
-        if !strict {
-            // 1. Let varNames be the VarDeclaredNames of body.
-            let var_names = var_declared_names(body);
-
-            // a. If varEnv is a Global Environment Record, then
-            if var_env.is_global() {
-                // i. For each element name of varNames, do
-                for name in &var_names {
-                    let name = name.to_js_string(self.interner());
-
-                    // 1. If varEnv.HasLexicalDeclaration(name) is true, throw a SyntaxError exception.
-                    // 2. NOTE: eval will not create a global var declaration that would be shadowed by a global lexical declaration.
-                    if var_env.has_lex_binding(&name) {
-                        self.emit_syntax_error("duplicate lexical declaration");
-                        return;
-                    }
-                }
-            }
-
-            // b. Let thisEnv be lexEnv.
-            let mut this_env = lex_env.clone();
-
-            // c. Assert: The following loop will terminate.
-            // d. Repeat, while thisEnv is not varEnv,
-            while this_env.environment_index() != var_env.environment_index() {
-                // i. If thisEnv is not an Object Environment Record, then
-                // 1. NOTE: The environment of with statements cannot contain any lexical
-                //    declaration so it doesn't need to be checked for var/let hoisting conflicts.
-                // 2. For each element name of varNames, do
-                for name in &var_names {
-                    let name = self.interner().resolve_expect(name.sym()).utf16().into();
-
-                    // a. If ! thisEnv.HasBinding(name) is true, then
-                    if this_env.has_binding(&name) {
-                        // i. Throw a SyntaxError exception.
-                        // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
-                        let msg = format!("variable declaration {} in eval function already exists as a lexical variable", name.to_std_string_escaped());
-                        self.emit_syntax_error(&msg);
-                        return;
-                    }
-                    // b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
-                }
-
-                // ii. Set thisEnv to thisEnv.[[OuterEnv]].
-                if let Some(outer) = this_env.outer() {
-                    this_env = outer;
-                } else {
-                    break;
-                }
-            }
-        }
+        // SKIP: 3. If strict is false, then
 
         // NOTE: These steps depend on the current environment state are done before bytecode compilation,
         //       in `eval_declaration_instantiation_context`.
@@ -820,18 +680,14 @@ impl ByteCompiler<'_> {
             // NOTE: This diviates from the specification, we split the first part of defining the annex-b names
             //       in `eval_declaration_instantiation_context`, because it depends on the context.
             if !var_env.is_global() {
-                for name in self.annex_b_function_names.clone() {
-                    let f = name.to_js_string(self.interner());
+                for binding in bindings.new_annex_b_function_names {
                     // i. Let bindingExists be ! varEnv.HasBinding(F).
                     // ii. If bindingExists is false, then
-                    if !var_env.has_binding(&f) {
-                        // i. Perform ! varEnv.CreateMutableBinding(F, true).
-                        // ii. Perform ! varEnv.InitializeBinding(F, undefined).
-                        let binding = var_env.create_mutable_binding(f, true);
-                        let index = self.get_or_insert_binding(binding);
-                        self.emit_opcode(Opcode::PushUndefined);
-                        self.emit_with_varying_operand(Opcode::DefInitVar, index);
-                    }
+                    // i. Perform ! varEnv.CreateMutableBinding(F, true).
+                    // ii. Perform ! varEnv.InitializeBinding(F, undefined).
+                    let index = self.get_or_insert_binding(binding);
+                    self.emit_opcode(Opcode::PushUndefined);
+                    self.emit_binding_access(Opcode::DefInitVar, &index);
                 }
             }
         }
@@ -877,54 +733,43 @@ impl ByteCompiler<'_> {
 
         // 15. Let lexDeclarations be the LexicallyScopedDeclarations of body.
         // 16. For each element d of lexDeclarations, do
-        for statement in &**body.statements() {
-            // a. NOTE: Lexically declared names are only instantiated here but not initialized.
-            // b. For each element dn of the BoundNames of d, do
-            //     i. If IsConstantDeclaration of d is true, then
-            //         1. Perform ? lexEnv.CreateImmutableBinding(dn, true).
-            //     ii. Else,
-            //         1. Perform ? lexEnv.CreateMutableBinding(dn, false).
-            if let StatementListItem::Declaration(declaration) = statement {
-                match declaration {
-                    Declaration::ClassDeclaration(class) => {
-                        for name in bound_names(class) {
-                            let name = name.to_js_string(self.interner());
-                            lex_env.create_mutable_binding(name, false);
-                        }
-                    }
-                    Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
-                        for name in bound_names(declaration) {
-                            let name = name.to_js_string(self.interner());
-                            lex_env.create_mutable_binding(name, false);
-                        }
-                    }
-                    Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
-                        for name in bound_names(declaration) {
-                            let name = name.to_js_string(self.interner());
-                            lex_env.create_immutable_binding(name, true);
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
 
         // 17. For each Parse Node f of functionsToInitialize, do
         for function in functions_to_initialize {
             // a. Let fn be the sole element of the BoundNames of f.
-            let (name, generator, r#async, parameters, body) = match &function {
-                VarScopedDeclaration::FunctionDeclaration(f) => {
-                    (f.name(), false, false, f.parameters(), f.body())
-                }
-                VarScopedDeclaration::GeneratorDeclaration(f) => {
-                    (f.name(), true, false, f.parameters(), f.body())
-                }
-                VarScopedDeclaration::AsyncFunctionDeclaration(f) => {
-                    (f.name(), false, true, f.parameters(), f.body())
-                }
-                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => {
-                    (f.name(), true, true, f.parameters(), f.body())
-                }
+            let (name, generator, r#async, parameters, body, scopes) = match &function {
+                VarScopedDeclaration::FunctionDeclaration(f) => (
+                    f.name(),
+                    false,
+                    false,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
+                VarScopedDeclaration::GeneratorDeclaration(f) => (
+                    f.name(),
+                    true,
+                    false,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => (
+                    f.name(),
+                    false,
+                    true,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => (
+                    f.name(),
+                    true,
+                    true,
+                    f.parameters(),
+                    f.body(),
+                    f.scopes().clone(),
+                ),
                 VarScopedDeclaration::VariableDeclaration(_) => {
                     continue;
                 }
@@ -936,12 +781,13 @@ impl ByteCompiler<'_> {
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
-                .binding_identifier(Some(name.sym().to_js_string(self.interner())))
+                .name_scope(None)
                 .compile(
                     parameters,
                     body,
-                    self.variable_environment.clone(),
-                    self.lexical_environment.clone(),
+                    self.variable_scope.clone(),
+                    self.lexical_scope.clone(),
+                    &scopes,
                     self.interner,
                 );
 
@@ -966,25 +812,24 @@ impl ByteCompiler<'_> {
                 let index = self.push_function_to_constants(code);
                 self.emit_with_varying_operand(Opcode::GetFunction, index);
 
-                let name = name.to_js_string(self.interner());
-
                 // i. Let bindingExists be ! varEnv.HasBinding(fn).
-                let binding_exists = var_env.has_binding(&name);
+                let (binding, binding_exists) = bindings
+                    .new_function_names
+                    .get(&name)
+                    .expect("binding must exist");
 
                 // ii. If bindingExists is false, then
                 // iii. Else,
-                if binding_exists {
+                if *binding_exists {
                     // 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-                    let binding = var_env.set_mutable_binding(name).expect("must not fail");
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::SetName, index);
+                    let index = self.get_or_insert_binding(binding.clone());
+                    self.emit_binding_access(Opcode::SetName, &index);
                 } else {
                     // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(fn, true).
                     // 3. Perform ! varEnv.InitializeBinding(fn, fo).
-                    let binding = var_env.create_mutable_binding(name, !strict);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                    let index = self.get_or_insert_binding(binding.clone());
+                    self.emit_binding_access(Opcode::DefInitVar, &index);
                 }
             }
         }
@@ -1001,24 +846,17 @@ impl ByteCompiler<'_> {
                     &[Operand::Bool(true), Operand::Varying(index)],
                 );
             }
-            // b. Else,
-            else {
-                let name = name.to_js_string(self.interner());
-
-                // i. Let bindingExists be ! varEnv.HasBinding(vn).
-                let binding_exists = var_env.has_binding(&name);
-
-                // ii. If bindingExists is false, then
-                if !binding_exists {
-                    // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
-                    // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
-                    // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
-                    let binding = var_env.create_mutable_binding(name, true);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
-                }
-            }
+        }
+        // 18.b
+        for binding in bindings.new_var_names {
+            // i. Let bindingExists be ! varEnv.HasBinding(vn).
+            // ii. If bindingExists is false, then
+            // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
+            // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
+            // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
+            let index = self.get_or_insert_binding(binding);
+            self.emit_opcode(Opcode::PushUndefined);
+            self.emit_binding_access(Opcode::DefInitVar, &index);
         }
 
         // 19. Return unused.
@@ -1037,6 +875,7 @@ impl ByteCompiler<'_> {
         arrow: bool,
         strict: bool,
         generator: bool,
+        scopes: &FunctionScopes,
     ) {
         // 1. Let calleeContext be the running execution context.
         // 2. Let code be func.[[ECMAScriptCode]].
@@ -1123,25 +962,13 @@ impl ByteCompiler<'_> {
             }
         }
 
-        // 19. If strict is true or hasParameterExpressions is false, then
-        if strict || !has_parameter_expressions {
-            // a. NOTE: Only a single Environment Record is needed for the parameters,
-            //    since calls to eval in strict mode code cannot create new bindings which are visible outside of the eval.
-            // b. Let env be the LexicalEnvironment of calleeContext.
+        // 19-20
+        if let Some(scope) = scopes.parameters_eval_scope() {
+            let scope_index = self.push_scope(scope);
+            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
         }
-        // 20. Else,
-        else {
-            // a. NOTE: A separate Environment Record is needed to ensure that bindings created by
-            //    direct eval calls in the formal parameter list are outside the environment where parameters are declared.
-            // b. Let calleeEnv be the LexicalEnvironment of calleeContext.
-            // c. Let env be NewDeclarativeEnvironment(calleeEnv).
-            // d. Assert: The VariableEnvironment of calleeContext is calleeEnv.
-            // e. Set the LexicalEnvironment of calleeContext to env.
-            let env_index = self.push_compile_environment(false);
-            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-        };
 
-        let env = self.lexical_environment.clone();
+        let scope = self.lexical_scope.clone();
 
         // 22. If argumentsObjectNeeded is true, then
         //
@@ -1165,42 +992,8 @@ impl ByteCompiler<'_> {
                 self.emitted_mapped_arguments_object_opcode = true;
             }
 
-            // c. If strict is true, then
-            if strict {
-                // i. Perform ! env.CreateImmutableBinding("arguments", false).
-                // ii. NOTE: In strict mode code early errors prevent attempting to assign
-                //           to this binding, so its mutability is not observable.
-                env.create_immutable_binding(arguments.clone(), false);
-            }
-            // d. Else,
-            else {
-                // i. Perform ! env.CreateMutableBinding("arguments", false).
-                env.create_mutable_binding(arguments.clone(), false);
-            }
-
             // e. Perform ! env.InitializeBinding("arguments", ao).
             self.emit_binding(BindingOpcode::InitLexical, arguments);
-        }
-
-        // 21. For each String paramName of parameterNames, do
-        for param_name in &parameter_names {
-            let param_name = param_name.to_js_string(self.interner());
-
-            // a. Let alreadyDeclared be ! env.HasBinding(paramName).
-            let already_declared = env.has_binding(&param_name);
-
-            // b. NOTE: Early errors ensure that duplicate parameter names can only occur in non-strict
-            //    functions that do not have parameter default values or rest parameters.
-
-            // c. If alreadyDeclared is false, then
-            if !already_declared {
-                // i. Perform ! env.CreateMutableBinding(paramName, false).
-                env.create_mutable_binding(param_name, false);
-
-                // Note: These steps are not necessary in our implementation.
-                // ii. If hasDuplicates is true, then
-                //     1. Perform ! env.InitializeBinding(paramName, undefined).
-            }
         }
 
         // 22. If argumentsObjectNeeded is true, then
@@ -1257,82 +1050,87 @@ impl ByteCompiler<'_> {
         // 27. If hasParameterExpressions is false, then
         // 28. Else,
         #[allow(unused_variables, unused_mut)]
-        let (mut instantiated_var_names, mut var_env) = if has_parameter_expressions {
-            // a. NOTE: A separate Environment Record is needed to ensure that closures created by
-            //          expressions in the formal parameter list do not have
-            //          visibility of declarations in the function body.
-            // b. Let varEnv be NewDeclarativeEnvironment(env).
-            // c. Set the VariableEnvironment of calleeContext to varEnv.
-            let env_index = self.push_compile_environment(false);
-            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        let (mut instantiated_var_names, mut variable_scope) =
+            if let Some(scope) = scopes.parameters_scope() {
+                // a. NOTE: A separate Environment Record is needed to ensure that closures created by
+                //          expressions in the formal parameter list do not have
+                //          visibility of declarations in the function body.
+                // b. Let varEnv be NewDeclarativeEnvironment(env).
+                // c. Set the VariableEnvironment of calleeContext to varEnv.
+                let scope_index = self.push_scope(scope);
+                self.emit_with_varying_operand(Opcode::PushScope, scope_index);
 
-            let mut var_env = self.lexical_environment.clone();
+                let mut variable_scope = self.lexical_scope.clone();
 
-            // d. Let instantiatedVarNames be a new empty List.
-            let mut instantiated_var_names = Vec::new();
+                // d. Let instantiatedVarNames be a new empty List.
+                let mut instantiated_var_names = Vec::new();
 
-            // e. For each element n of varNames, do
-            for n in var_names {
-                // i. If instantiatedVarNames does not contain n, then
-                if !instantiated_var_names.contains(&n) {
-                    // 1. Append n to instantiatedVarNames.
-                    instantiated_var_names.push(n);
+                // e. For each element n of varNames, do
+                for n in var_names {
+                    // i. If instantiatedVarNames does not contain n, then
+                    if !instantiated_var_names.contains(&n) {
+                        // 1. Append n to instantiatedVarNames.
+                        instantiated_var_names.push(n);
 
-                    let n_string = n.to_js_string(self.interner());
+                        let n_string = n.to_js_string(self.interner());
 
-                    // 2. Perform ! varEnv.CreateMutableBinding(n, false).
-                    let binding = var_env.create_mutable_binding(n_string.clone(), false);
+                        // 2. Perform ! varEnv.CreateMutableBinding(n, false).
+                        let binding = variable_scope
+                            .get_binding_reference(&n_string)
+                            .expect("must have binding");
 
-                    // 3. If parameterBindings does not contain n, or if functionNames contains n, then
-                    if !parameter_bindings.contains(&n) || function_names.contains(&n) {
-                        // a. Let initialValue be undefined.
-                        self.emit_opcode(Opcode::PushUndefined);
-                    }
-                    // 4. Else,
-                    else {
-                        // a. Let initialValue be ! env.GetBindingValue(n, false).
-                        let binding = env.get_binding(&n_string).expect("must have binding");
+                        // 3. If parameterBindings does not contain n, or if functionNames contains n, then
+                        if !parameter_bindings.contains(&n) || function_names.contains(&n) {
+                            // a. Let initialValue be undefined.
+                            self.emit_opcode(Opcode::PushUndefined);
+                        }
+                        // 4. Else,
+                        else {
+                            // a. Let initialValue be ! env.GetBindingValue(n, false).
+                            let binding = scope
+                                .get_binding_reference(&n_string)
+                                .expect("must have binding");
+                            let index = self.get_or_insert_binding(binding);
+                            self.emit_binding_access(Opcode::GetName, &index);
+                        }
+
+                        // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
                         let index = self.get_or_insert_binding(binding);
-                        self.emit_with_varying_operand(Opcode::GetName, index);
+                        self.emit_opcode(Opcode::PushUndefined);
+                        self.emit_binding_access(Opcode::DefInitVar, &index);
+
+                        // 6. NOTE: A var with the same name as a formal parameter initially has
+                        //          the same value as the corresponding initialized parameter.
                     }
-
-                    // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
-
-                    // 6. NOTE: A var with the same name as a formal parameter initially has
-                    //          the same value as the corresponding initialized parameter.
                 }
-            }
 
-            (instantiated_var_names, var_env)
-        } else {
-            // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
-            // b. Let instantiatedVarNames be a copy of the List parameterBindings.
-            let mut instantiated_var_names = parameter_bindings;
+                (instantiated_var_names, variable_scope)
+            } else {
+                // a. NOTE: Only a single Environment Record is needed for the parameters and top-level vars.
+                // b. Let instantiatedVarNames be a copy of the List parameterBindings.
+                let mut instantiated_var_names = parameter_bindings;
 
-            // c. For each element n of varNames, do
-            for n in var_names {
-                // i. If instantiatedVarNames does not contain n, then
-                if !instantiated_var_names.contains(&n) {
-                    // 1. Append n to instantiatedVarNames.
-                    instantiated_var_names.push(n);
+                // c. For each element n of varNames, do
+                for n in var_names {
+                    // i. If instantiatedVarNames does not contain n, then
+                    if !instantiated_var_names.contains(&n) {
+                        // 1. Append n to instantiatedVarNames.
+                        instantiated_var_names.push(n);
 
-                    let n = n.to_js_string(self.interner());
+                        let n = n.to_js_string(self.interner());
 
-                    // 2. Perform ! env.CreateMutableBinding(n, false).
-                    // 3. Perform ! env.InitializeBinding(n, undefined).
-                    let binding = env.create_mutable_binding(n, true);
-                    let index = self.get_or_insert_binding(binding);
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                        // 2. Perform ! env.CreateMutableBinding(n, false).
+                        // 3. Perform ! env.InitializeBinding(n, undefined).
+                        let binding = scope.get_binding_reference(&n).expect("binding must exist");
+                        let index = self.get_or_insert_binding(binding);
+                        self.emit_opcode(Opcode::PushUndefined);
+                        self.emit_binding_access(Opcode::DefInitVar, &index);
+                    }
                 }
-            }
 
-            // d. Let varEnv be env.
-            (instantiated_var_names, env)
-        };
+                // d. Let varEnv be env.
+                (instantiated_var_names, scope)
+            };
 
         // 29. NOTE: Annex B.3.2.1 adds additional steps at this point.
         // 29. If strict is false, then
@@ -1355,10 +1153,12 @@ impl ByteCompiler<'_> {
 
                         // a. Perform ! varEnv.CreateMutableBinding(F, false).
                         // b. Perform ! varEnv.InitializeBinding(F, undefined).
-                        let binding = var_env.create_mutable_binding(f_string, false);
+                        let binding = variable_scope
+                            .get_binding_reference(&f_string)
+                            .expect("binding must exist");
                         let index = self.get_or_insert_binding(binding);
                         self.emit_opcode(Opcode::PushUndefined);
-                        self.emit_with_varying_operand(Opcode::DefInitVar, index);
+                        self.emit_binding_access(Opcode::DefInitVar, &index);
 
                         // c. Append F to instantiatedVarNames.
                         instantiated_var_names.push(f);
@@ -1376,58 +1176,10 @@ impl ByteCompiler<'_> {
             }
         }
 
-        // 30. If strict is false, then
-        // 31. Else,
-        let lex_env = if strict {
-            // a. Let lexEnv be varEnv.
-            var_env
-        } else {
-            // a. Let lexEnv be NewDeclarativeEnvironment(varEnv).
-            // b. NOTE: Non-strict functions use a separate Environment Record for top-level lexical
-            //    declarations so that a direct eval can determine whether any var scoped declarations
-            //    introduced by the eval code conflict with pre-existing top-level lexically scoped declarations.
-            //    This is not needed for strict functions because a strict direct eval always
-            //    places all declarations into a new Environment Record.
-            let env_index = self.push_compile_environment(false);
-            self.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
-            self.lexical_environment.clone()
-        };
-
-        // 32. Set the LexicalEnvironment of calleeContext to lexEnv.
-
-        // 33. Let lexDeclarations be the LexicallyScopedDeclarations of code.
-        // 34. For each element d of lexDeclarations, do
-        //     a. NOTE: A lexically declared name cannot be the same as a function/generator declaration,
-        //        formal parameter, or a var name. Lexically declared names are only instantiated here but not initialized.
-        //     b. For each element dn of the BoundNames of d, do
-        //         i. If IsConstantDeclaration of d is true, then
-        //             1. Perform ! lexEnv.CreateImmutableBinding(dn, true).
-        //         ii. Else,
-        //             1. Perform ! lexEnv.CreateMutableBinding(dn, false).
-        for statement in &**body.statements() {
-            if let StatementListItem::Declaration(declaration) = statement {
-                match declaration {
-                    Declaration::ClassDeclaration(class) => {
-                        for name in bound_names(class) {
-                            let name = name.to_js_string(self.interner());
-                            lex_env.create_mutable_binding(name, false);
-                        }
-                    }
-                    Declaration::Lexical(LexicalDeclaration::Let(declaration)) => {
-                        for name in bound_names(declaration) {
-                            let name = name.to_js_string(self.interner());
-                            lex_env.create_mutable_binding(name, false);
-                        }
-                    }
-                    Declaration::Lexical(LexicalDeclaration::Const(declaration)) => {
-                        for name in bound_names(declaration) {
-                            let name = name.to_js_string(self.interner());
-                            lex_env.create_immutable_binding(name, true);
-                        }
-                    }
-                    _ => {}
-                }
-            }
+        // 30-31
+        if let Some(scope) = scopes.lexical_scope() {
+            let scope_index = self.push_scope(scope);
+            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
         }
 
         // 35. Let privateEnv be the PrivateEnvironment of calleeContext.

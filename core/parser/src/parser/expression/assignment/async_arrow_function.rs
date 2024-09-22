@@ -27,7 +27,7 @@ use boa_ast::{
     declaration::Variable,
     function::{FormalParameter, FormalParameterList},
     statement::Return,
-    Punctuator, StatementList,
+    Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -173,23 +173,23 @@ where
     type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let body =
-            match cursor.peek(0, interner).or_abrupt()?.kind() {
-                TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                    cursor.advance(interner);
-                    let body = FunctionBody::new(false, true).parse(cursor, interner)?;
-                    cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
-                    body
-                }
-                _ => ast::function::FunctionBody::new(StatementList::from(vec![
-                    ast::Statement::Return(Return::new(
-                        ExpressionBody::new(self.allow_in, true)
-                            .parse(cursor, interner)?
-                            .into(),
-                    ))
-                    .into(),
-                ])),
-            };
+        let body = match cursor.peek(0, interner).or_abrupt()?.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                cursor.advance(interner);
+                let body = FunctionBody::new(false, true).parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
+                body
+            }
+            _ => ast::function::FunctionBody::new(
+                [ast::Statement::Return(Return::new(
+                    ExpressionBody::new(self.allow_in, true)
+                        .parse(cursor, interner)?
+                        .into(),
+                ))
+                .into()],
+                false,
+            ),
+        };
 
         Ok(body)
     }

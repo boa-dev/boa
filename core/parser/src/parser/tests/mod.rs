@@ -22,6 +22,7 @@ use boa_ast::{
         ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags,
         FunctionBody, FunctionDeclaration,
     },
+    scope::Scope,
     statement::{If, Return},
     Expression, Script, Statement, StatementList, StatementListItem,
 };
@@ -34,11 +35,14 @@ pub(super) fn check_script_parser<L>(js: &str, expr: L, interner: &mut Interner)
 where
     L: Into<Box<[StatementListItem]>>,
 {
+    let mut script = Script::new(StatementList::from(expr.into()));
+    let scope = Scope::new_global();
+    script.analyze_scope(&scope, interner);
     assert_eq!(
         Parser::new(Source::from_bytes(js))
-            .parse_script(interner)
+            .parse_script(&Scope::new_global(), interner)
             .expect("failed to parse"),
-        Script::new(StatementList::from(expr.into()))
+        script,
     );
 }
 
@@ -46,7 +50,7 @@ where
 #[track_caller]
 pub(super) fn check_invalid_script(js: &str) {
     assert!(Parser::new(Source::from_bytes(js))
-        .parse_script(&mut Interner::default())
+        .parse_script(&Scope::new_global(), &mut Interner::default())
         .is_err());
 }
 
@@ -126,8 +130,8 @@ fn hoisting() {
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()]
-                        .into(),
+                    [Statement::Return(Return::new(Some(Literal::from(10).into()))).into()],
+                    false,
                 ),
             ))
             .into(),
@@ -508,7 +512,8 @@ fn spread_in_arrow_function() {
             None,
             params,
             FunctionBody::new(
-                vec![Statement::Expression(Expression::from(Identifier::from(b))).into()].into(),
+                [Statement::Expression(Expression::from(Identifier::from(b))).into()],
+                false,
             ),
         )))
         .into()],

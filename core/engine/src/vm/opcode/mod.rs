@@ -19,6 +19,7 @@ mod generator;
 mod get;
 mod global;
 mod iteration;
+mod locals;
 mod meta;
 mod modifier;
 mod new;
@@ -64,6 +65,8 @@ pub(crate) use get::*;
 pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
+#[doc(inline)]
+pub(crate) use locals::*;
 #[doc(inline)]
 pub(crate) use meta::*;
 #[doc(inline)]
@@ -1698,17 +1701,17 @@ generate_opcodes! {
 
     /// Call a function named "eval".
     ///
-    /// Operands: argument_count: `VaryingOperand`
+    /// Operands: argument_count: `VaryingOperand`, scope_index: `VaryingOperand`
     ///
     /// Stack: this, func, argument_1, ... argument_n **=>** result
-    CallEval { argument_count: VaryingOperand },
+    CallEval { argument_count: VaryingOperand, scope_index: VaryingOperand },
 
     /// Call a function named "eval" where the arguments contain spreads.
     ///
     /// Operands:
     ///
     /// Stack: this, func, arguments_array **=>** result
-    CallEvalSpread,
+    CallEvalSpread { index: VaryingOperand },
 
     /// Call a function.
     ///
@@ -1794,12 +1797,26 @@ generate_opcodes! {
     /// Stack: **=>** value
     PushFromRegister { src: VaryingOperand },
 
+    /// Pop value from the stack and push to a local binding register `dst`.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>**
+    PopIntoLocal { dst: VaryingOperand },
+
+    /// Copy value at local binding register `src` and push it into the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>** value
+    PushFromLocal { src: VaryingOperand },
+
     /// Push a declarative environment.
     ///
-    /// Operands: compile_environments_index: `VaryingOperand`
+    /// Operands: index: `VaryingOperand`
     ///
     /// Stack: **=>**
-    PushDeclarativeEnvironment { compile_environments_index: VaryingOperand },
+    PushScope { index: VaryingOperand },
 
     /// Push an object environment.
     ///
@@ -2265,10 +2282,6 @@ generate_opcodes! {
     Reserved48 => Reserved,
     /// Reserved [`Opcode`].
     Reserved49 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved50 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved51 => Reserved,
 }
 
 /// Specific opcodes for bindings.

@@ -26,8 +26,9 @@ use boa_ast::{
     self as ast,
     expression::Identifier,
     function::{
-        self, ClassDeclaration as ClassDeclarationNode, ClassElementName, ClassMethodDefinition,
-        FormalParameterList, FunctionExpression,
+        self, ClassDeclaration as ClassDeclarationNode, ClassElementName, ClassFieldDefinition,
+        ClassMethodDefinition, FormalParameterList, FunctionExpression, PrivateFieldDefinition,
+        StaticBlockBody,
     },
     operations::{contains, contains_arguments, ContainsSymbol},
     Expression, Keyword, Punctuator,
@@ -414,8 +415,8 @@ where
                         }
                     }
                 }
-                function::ClassElement::PrivateFieldDefinition(name, init) => {
-                    if let Some(node) = init {
+                function::ClassElement::PrivateFieldDefinition(field) => {
+                    if let Some(node) = field.field() {
                         if contains(node, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
@@ -424,7 +425,7 @@ where
                         }
                     }
                     if private_elements_names
-                        .insert(name.description(), PrivateElement::Value)
+                        .insert(field.name().description(), PrivateElement::Value)
                         .is_some()
                     {
                         return Err(Error::general(
@@ -452,16 +453,18 @@ where
                         ));
                     }
                 }
-                function::ClassElement::FieldDefinition(_, Some(node))
-                | function::ClassElement::StaticFieldDefinition(_, Some(node)) => {
-                    if contains(node, ContainsSymbol::SuperCall) {
-                        return Err(Error::lex(LexError::Syntax(
-                            "invalid super usage".into(),
-                            position,
-                        )));
+                function::ClassElement::FieldDefinition(field)
+                | function::ClassElement::StaticFieldDefinition(field) => {
+                    if let Some(field) = field.field() {
+                        if contains(field, ContainsSymbol::SuperCall) {
+                            return Err(Error::lex(LexError::Syntax(
+                                "invalid super usage".into(),
+                                position,
+                            )));
+                        }
                     }
                 }
-                _ => {}
+                function::ClassElement::StaticBlock(_) => {}
             }
             elements.push(element);
         }
@@ -675,7 +678,7 @@ where
                     cursor.set_strict(strict);
                     statement_list
                 };
-                function::ClassElement::StaticBlock(function::FunctionBody::new(statement_list))
+                function::ClassElement::StaticBlock(StaticBlockBody::new(statement_list.into()))
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner).or_abrupt()?;
@@ -937,16 +940,14 @@ where
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = ClassFieldDefinition::new(
+                            ast::property::PropertyName::Literal(Sym::GET),
+                            None,
+                        );
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::GET),
-                                None,
-                            )
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::GET),
-                                None,
-                            )
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                 }
@@ -1055,16 +1056,14 @@ where
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = ClassFieldDefinition::new(
+                            ast::property::PropertyName::Literal(Sym::SET),
+                            None,
+                        );
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::SET),
-                                None,
-                            )
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::SET),
-                                None,
-                            )
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                 }
@@ -1102,8 +1101,7 @@ where
                             )
                         } else {
                             function::ClassElement::PrivateFieldDefinition(
-                                PrivateName::new(name),
-                                Some(rhs),
+                                PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs)),
                             )
                         }
                     }
@@ -1150,8 +1148,7 @@ where
                             )
                         } else {
                             function::ClassElement::PrivateFieldDefinition(
-                                PrivateName::new(name),
-                                None,
+                                PrivateFieldDefinition::new(PrivateName::new(name), None),
                             )
                         }
                     }
@@ -1195,10 +1192,11 @@ where
                         if let Some(name) = name.literal() {
                             rhs.set_anonymous_function_definition_name(&Identifier::new(name));
                         }
+                        let field = ClassFieldDefinition::new(name, Some(rhs));
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(name, Some(rhs))
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(name, Some(rhs))
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1259,10 +1257,11 @@ where
                             }
                         }
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = ClassFieldDefinition::new(name, None);
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(name, None)
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(name, None)
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                 }
@@ -1273,10 +1272,28 @@ where
         match &element {
             // FieldDefinition : ClassElementName Initializer [opt]
             // It is a Syntax Error if Initializer is present and ContainsArguments of Initializer is true.
-            function::ClassElement::FieldDefinition(_, Some(node))
-            | function::ClassElement::StaticFieldDefinition(_, Some(node))
-            | function::ClassElement::PrivateFieldDefinition(_, Some(node))
-            | function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
+            function::ClassElement::FieldDefinition(field)
+            | function::ClassElement::StaticFieldDefinition(field) => {
+                if let Some(field) = field.field() {
+                    if contains_arguments(field) {
+                        return Err(Error::general(
+                            "'arguments' not allowed in class field definition",
+                            position,
+                        ));
+                    }
+                }
+            }
+            function::ClassElement::PrivateFieldDefinition(field) => {
+                if let Some(node) = field.field() {
+                    if contains_arguments(node) {
+                        return Err(Error::general(
+                            "'arguments' not allowed in class field definition",
+                            position,
+                        ));
+                    }
+                }
+            }
+            function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
                 if contains_arguments(node) {
                     return Err(Error::general(
                         "'arguments' not allowed in class field definition",

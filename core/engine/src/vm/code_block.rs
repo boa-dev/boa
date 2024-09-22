@@ -7,14 +7,14 @@ use crate::{
         function::{OrdinaryFunction, ThisMode},
         OrdinaryObject,
     },
-    environments::{BindingLocator, CompileTimeEnvironment},
     object::JsObject,
     Context, JsBigInt, JsString, JsValue,
 };
 use bitflags::bitflags;
+use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{cell::Cell, fmt::Display, mem::size_of, rc::Rc};
+use std::{cell::Cell, fmt::Display, mem::size_of};
 use thin_vec::ThinVec;
 
 use super::{InlineCache, Instruction, InstructionIterator};
@@ -112,11 +112,9 @@ pub(crate) enum Constant {
     Function(Gc<CodeBlock>),
     BigInt(#[unsafe_ignore_trace] JsBigInt),
 
-    /// Compile time environments in this function.
-    // Safety: Nothing in CompileTimeEnvironment needs tracing, so this is safe.
-    //
-    // TODO(#3034): Maybe changing this to Gc after garbage collection would be better than Rc.
-    CompileTimeEnvironment(#[unsafe_ignore_trace] Rc<CompileTimeEnvironment>),
+    /// Declarative or function scope.
+    // Safety: Nothing in `Scope` needs tracing, so this is safe.
+    Scope(#[unsafe_ignore_trace] Scope),
 }
 
 /// The internal representation of a JavaScript function.
@@ -157,6 +155,8 @@ pub struct CodeBlock {
     #[unsafe_ignore_trace]
     pub(crate) bindings: Box<[BindingLocator]>,
 
+    pub(crate) local_bindings_initialized: Box<[bool]>,
+
     /// Exception [`Handler`]s.
     #[unsafe_ignore_trace]
     pub(crate) handlers: ThinVec<Handler>,
@@ -176,6 +176,7 @@ impl CodeBlock {
             bytecode: Box::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
+            local_bindings_initialized: Box::default(),
             name,
             flags: Cell::new(flags),
             length,
@@ -308,21 +309,18 @@ impl CodeBlock {
         panic!("expected function constant at index {index}")
     }
 
-    /// Get the [`CompileTimeEnvironment`] constant from the [`CodeBlock`].
+    /// Get the [`Scope`] constant from the [`CodeBlock`].
     ///
     /// # Panics
     ///
-    /// If the type of the [`Constant`] is not [`Constant::CompileTimeEnvironment`].
+    /// If the type of the [`Constant`] is not [`Constant::Scope`].
     /// Or `index` is greater or equal to length of `constants`.
-    pub(crate) fn constant_compile_time_environment(
-        &self,
-        index: usize,
-    ) -> Rc<CompileTimeEnvironment> {
-        if let Some(Constant::CompileTimeEnvironment(value)) = self.constants.get(index) {
+    pub(crate) fn constant_scope(&self, index: usize) -> Scope {
+        if let Some(Constant::Scope(value)) = self.constants.get(index) {
             return value.clone();
         }
 
-        panic!("expected compile time environment constant at index {index}")
+        panic!("expected scope constant at index {index}")
     }
 }
 
@@ -416,8 +414,11 @@ impl CodeBlock {
             | Instruction::Coalesce { exit: value } => value.to_string(),
             Instruction::CallEval {
                 argument_count: value,
+                scope_index,
+            } => {
+                format!("{}, {}", value.value(), scope_index.value())
             }
-            | Instruction::Call {
+            Instruction::Call {
                 argument_count: value,
             }
             | Instruction::New {
@@ -428,9 +429,9 @@ impl CodeBlock {
             }
             | Instruction::ConcatToString { value_count: value }
             | Instruction::GetArgument { index: value } => value.value().to_string(),
-            Instruction::PushDeclarativeEnvironment {
-                compile_environments_index,
-            } => compile_environments_index.value().to_string(),
+            Instruction::PushScope { index } | Instruction::CallEvalSpread { index } => {
+                index.value().to_string()
+            }
             Instruction::CopyDataProperties {
                 excluded_key_count: value1,
                 excluded_key_count_computed: value2,
@@ -549,8 +550,12 @@ impl CodeBlock {
             } => {
                 format!("is_anonymous_function: {is_anonymous_function}")
             }
-            Instruction::PopIntoRegister { dst } => format!("dst:reg{}", dst.value()),
-            Instruction::PushFromRegister { src } => format!("src:reg{}", src.value()),
+            Instruction::PopIntoRegister { dst } | Instruction::PopIntoLocal { dst } => {
+                format!("dst:reg{}", dst.value())
+            }
+            Instruction::PushFromRegister { src } | Instruction::PushFromLocal { src } => {
+                format!("src:reg{}", src.value())
+            }
             Instruction::Pop
             | Instruction::Dup
             | Instruction::Swap
@@ -657,7 +662,6 @@ impl CodeBlock {
             | Instruction::NewTarget
             | Instruction::ImportMeta
             | Instruction::SuperCallPrepare
-            | Instruction::CallEvalSpread
             | Instruction::CallSpread
             | Instruction::NewSpread
             | Instruction::SuperCallSpread
@@ -724,9 +728,7 @@ impl CodeBlock {
             | Instruction::Reserved46
             | Instruction::Reserved47
             | Instruction::Reserved48
-            | Instruction::Reserved49
-            | Instruction::Reserved50
-            | Instruction::Reserved51 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved49 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
@@ -800,11 +802,11 @@ impl Display for CodeBlock {
                         code.name().to_std_string_escaped(),
                         code.length
                     )?,
-                    Constant::CompileTimeEnvironment(v) => {
+                    Constant::Scope(v) => {
                         writeln!(
                             f,
-                            "[ENVIRONMENT] index: {}, bindings: {}",
-                            v.environment_index(),
+                            "[SCOPE] index: {}, bindings: {}",
+                            v.scope_index(),
                             v.num_bindings()
                         )?;
                     }

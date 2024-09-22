@@ -227,7 +227,7 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::PushDeclarativeEnvironment { .. } => {
+                Instruction::PushScope { .. } => {
                     let random = rand::random();
 
                     graph.add_node(
@@ -434,7 +434,7 @@ impl CodeBlock {
                 | Instruction::Await
                 | Instruction::NewTarget
                 | Instruction::ImportMeta
-                | Instruction::CallEvalSpread
+                | Instruction::CallEvalSpread { .. }
                 | Instruction::CallSpread
                 | Instruction::NewSpread
                 | Instruction::SuperCallSpread
@@ -457,6 +457,8 @@ impl CodeBlock {
                 | Instruction::CreateGlobalVarBinding { .. }
                 | Instruction::PopIntoRegister { .. }
                 | Instruction::PushFromRegister { .. }
+                | Instruction::PopIntoLocal { .. }
+                | Instruction::PushFromLocal { .. }
                 | Instruction::Nop => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
@@ -514,9 +516,7 @@ impl CodeBlock {
                 | Instruction::Reserved46
                 | Instruction::Reserved47
                 | Instruction::Reserved48
-                | Instruction::Reserved49
-                | Instruction::Reserved50
-                | Instruction::Reserved51 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved49 => unreachable!("Reserved opcodes are unrechable"),
             }
         }
 
