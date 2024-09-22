@@ -28,7 +28,7 @@ fn main() {
     let mut ctx = Context::default();
 
     let scope = ctx.realm().scope().clone();
-    let script = parser.parse_script(ctx.interner_mut(), &scope).unwrap();
+    let script = parser.parse_script(&scope, ctx.interner_mut()).unwrap();
 
     let mut visitor = SymbolVisitor::default();
 

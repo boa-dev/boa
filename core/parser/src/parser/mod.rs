@@ -142,8 +142,8 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     /// [spec]: https://tc39.es/ecma262/#prod-Script
     pub fn parse_script(
         &mut self,
-        interner: &mut Interner,
         scope: &Scope,
+        interner: &mut Interner,
     ) -> ParseResult<boa_ast::Script> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         let mut ast = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
@@ -166,7 +166,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     /// [spec]: https://tc39.es/ecma262/#prod-Module
     pub fn parse_module(
         &mut self,
-        global_scope: &Scope,
+        scope: &Scope,
         interner: &mut Interner,
     ) -> ParseResult<boa_ast::Module>
     where
@@ -174,7 +174,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         let mut module = ModuleParser.parse(&mut self.cursor, interner)?;
-        if !module.analyze_scope(global_scope, interner) {
+        if !module.analyze_scope(scope, interner) {
             return Err(Error::general(
                 "invalid scope analysis",
                 Position::new(1, 1),

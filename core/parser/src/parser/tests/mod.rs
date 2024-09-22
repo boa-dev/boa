@@ -40,7 +40,7 @@ where
     script.analyze_scope(&scope, interner);
     assert_eq!(
         Parser::new(Source::from_bytes(js))
-            .parse_script(interner, &Scope::new_global())
+            .parse_script(&Scope::new_global(), interner)
             .expect("failed to parse"),
         script,
     );
@@ -50,7 +50,7 @@ where
 #[track_caller]
 pub(super) fn check_invalid_script(js: &str) {
     assert!(Parser::new(Source::from_bytes(js))
-        .parse_script(&mut Interner::default(), &Scope::new_global())
+        .parse_script(&Scope::new_global(), &mut Interner::default())
         .is_err());
 }
 

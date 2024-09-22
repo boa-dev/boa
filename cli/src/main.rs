@@ -205,7 +205,7 @@ where
             } else {
                 let scope = context.realm().scope().clone();
                 let mut script = parser
-                    .parse_script(context.interner_mut(), &scope)
+                    .parse_script(&scope, context.interner_mut())
                     .map_err(|e| format!("Uncaught SyntaxError: {e}"))?;
 
                 if args.optimize {

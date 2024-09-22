@@ -34,7 +34,7 @@ fn test_formatting(source: &'static str) {
     let source = Source::from_bytes(source);
     let interner = &mut Interner::default();
     let result = Parser::new(source)
-        .parse_script(interner, &Scope::new_global())
+        .parse_script(&Scope::new_global(), interner)
         .expect("parsing failed")
         .to_interned_string(interner);
     if scenario != result {

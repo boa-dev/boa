@@ -91,7 +91,7 @@ impl Script {
             parser.set_strict();
         }
         let scope = context.realm().scope().clone();
-        let mut code = parser.parse_script(context.interner_mut(), &scope)?;
+        let mut code = parser.parse_script(&scope, context.interner_mut())?;
         if !context.optimizer_options().is_empty() {
             context.optimize_statement_list(code.statements_mut());
         }
