@@ -160,7 +160,8 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
     }
 }
 
-/// An argument that would be ignored in a JS function.
+/// An argument that would be ignored in a JS function. This is equivalent of typing
+/// `()` in Rust functions argument, but more explicit.
 #[derive(Debug, Clone, Copy)]
 pub struct Ignore;
 

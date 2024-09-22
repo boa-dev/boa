@@ -54,6 +54,12 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
         self.inner.clone()
     }
 
+    /// Get the inner `JsFunction` without consuming this object.
+    #[must_use]
+    pub fn as_js_function(&self) -> &JsFunction {
+        &self.inner
+    }
+
     /// Call the function with the given arguments.
     #[inline]
     pub fn call(&self, context: &mut Context, args: A) -> JsResult<R> {
@@ -66,6 +72,36 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
         let arguments = args.into_js_args(context)?;
         let result = self.inner.call(this, &arguments, context)?;
         R::try_from_js(&result, context)
+    }
+}
+
+impl<A: TryIntoJsArguments, R: TryFromJs> TryFromJs for TypedJsFunction<A, R> {
+    fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+        match value {
+            JsValue::Object(o) => JsFunction::from_object(o.clone())
+                .ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("object is not a function")
+                        .into()
+                })
+                .map(JsFunction::typed),
+            _ => Err(JsNativeError::typ()
+                .with_message("value is not a Function object")
+                .into()),
+        }
+    }
+}
+
+impl<A: TryIntoJsArguments, R: TryFromJs> From<TypedJsFunction<A, R>> for JsValue {
+    #[inline]
+    fn from(o: TypedJsFunction<A, R>) -> Self {
+        o.into_inner().into()
+    }
+}
+
+impl<A: TryIntoJsArguments, R: TryFromJs> From<TypedJsFunction<A, R>> for JsFunction {
+    fn from(value: TypedJsFunction<A, R>) -> Self {
+        value.inner.clone()
     }
 }
 
