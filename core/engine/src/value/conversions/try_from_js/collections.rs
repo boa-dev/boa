@@ -5,6 +5,7 @@ use std::hash::Hash;
 
 use boa_macros::js_str;
 
+use crate::builtins::iterable::IteratorResult;
 use crate::object::{JsArray, JsMap};
 use crate::value::TryFromJs;
 use crate::{Context, JsNativeError, JsResult, JsValue};
@@ -110,10 +111,8 @@ where
 
     let iter = js_map.entries(context)?;
     loop {
-        let next = iter.next(context)?;
-        let Some(iter_obj) = next.as_object() else {
-            return unexp_obj_err();
-        };
+        let next = iter.next(context).and_then(IteratorResult::from_value)?;
+        let iter_obj = next.object();
 
         let done = iter_obj.get(js_str!("done"), context)?;
         let Some(done) = done.as_boolean() else {
