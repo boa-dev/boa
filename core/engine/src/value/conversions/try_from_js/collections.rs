@@ -3,10 +3,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::hash::Hash;
 
-use boa_macros::js_str;
-
-use crate::builtins::iterable::IteratorResult;
-use crate::object::{JsArray, JsMap};
+use crate::object::JsMap;
 use crate::value::TryFromJs;
 use crate::{Context, JsNativeError, JsResult, JsValue};
 
@@ -25,14 +22,13 @@ where
         // JsMap case
         if let Ok(js_map) = JsMap::from_object(object.clone()) {
             let mut map = Self::default();
-            let f = |key, value, context: &mut _| {
+            js_map.rust_for_each(|key, value| {
                 map.insert(
-                    K::try_from_js(&key, context)?,
-                    V::try_from_js(&value, context)?,
+                    K::try_from_js(key, context)?,
+                    V::try_from_js(value, context)?,
                 );
                 Ok(())
-            };
-            for_each_elem_in_js_map(&js_map, f, context)?;
+            })?;
             return Ok(map);
         }
 
@@ -69,14 +65,13 @@ where
         // JsMap case
         if let Ok(js_map) = JsMap::from_object(object.clone()) {
             let mut map = Self::default();
-            let f = |key, value, context: &mut _| {
+            js_map.rust_for_each(|key, value| {
                 map.insert(
-                    K::try_from_js(&key, context)?,
-                    V::try_from_js(&value, context)?,
+                    K::try_from_js(key, context)?,
+                    V::try_from_js(value, context)?,
                 );
                 Ok(())
-            };
-            for_each_elem_in_js_map(&js_map, f, context)?;
+            })?;
             return Ok(map);
         }
 
@@ -95,43 +90,4 @@ where
             })
             .collect()
     }
-}
-
-fn for_each_elem_in_js_map<F>(js_map: &JsMap, mut f: F, context: &mut Context) -> JsResult<()>
-where
-    F: FnMut(JsValue, JsValue, &mut Context) -> JsResult<()>,
-{
-    let unexp_obj_err = || {
-        JsResult::Err(
-            JsNativeError::typ()
-                .with_message("MapIterator return unexpected object")
-                .into(),
-        )
-    };
-
-    let iter = js_map.entries(context)?;
-    loop {
-        let next = iter.next(context).and_then(IteratorResult::from_value)?;
-        let iter_obj = next.object();
-
-        let done = iter_obj.get(js_str!("done"), context)?;
-        let Some(done) = done.as_boolean() else {
-            return unexp_obj_err();
-        };
-        if done {
-            break;
-        }
-
-        let value = iter_obj.get(js_str!("value"), context)?;
-        let Some(js_obj) = value.as_object() else {
-            return unexp_obj_err();
-        };
-        let arr = JsArray::from_object(js_obj.clone())?;
-
-        let key = arr.at(0, context)?;
-        let value = arr.at(1, context)?;
-
-        f(key, value, context)?;
-    }
-    Ok(())
 }

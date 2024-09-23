@@ -573,7 +573,7 @@ fn js_map_into_rust_map() -> JsResult<()> {
     let hash_map = HashMap::<String, i32>::try_from_js(&js_value, &mut context)?;
     let btree_map = BTreeMap::<String, i32>::try_from_js(&js_value, &mut context)?;
 
-    let expect = vec![("a".into(), 1), ("aboba".into(), 42024), ("b".into(), 3)];
+    let expect = [("a".into(), 1), ("aboba".into(), 42024), ("b".into(), 3)];
 
     let expected_hash_map: HashMap<String, _> = expect.iter().cloned().collect();
     assert_eq!(expected_hash_map, hash_map);

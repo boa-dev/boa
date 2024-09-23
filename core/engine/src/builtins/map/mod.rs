@@ -501,6 +501,38 @@ impl Map {
         }
     }
 
+    /// Call `f` for each `(key, value)` in the `Map`.
+    ///
+    /// Can not be used in [`Self::for_each`] because in that case will be
+    /// incorrect order for next steps of the algo:
+    /// ```txt
+    /// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+    /// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+    /// ```
+    pub(crate) fn rust_for_each<F>(this: &JsValue, mut f: F) -> JsResult<()>
+    where
+        F: FnMut(&JsValue, &JsValue) -> JsResult<()>,
+    {
+        // See `Self::for_each` for comments on the algo.
+
+        let map = this
+            .as_object()
+            .filter(|obj| obj.is::<OrderedMap<JsValue>>())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
+        let _lock = map
+            .downcast_mut::<OrderedMap<JsValue>>()
+            .expect("checked that `this` was a map")
+            .lock(map.clone());
+
+        let map = map
+            .downcast_ref::<OrderedMap<JsValue>>()
+            .expect("checked that `this` was a map");
+
+        let mut map_iter = map.iter();
+        map_iter.try_for_each(|(k, v)| f(k, v))
+    }
+
     /// `Map.prototype.values()`
     ///
     /// Returns a new Iterator object that contains the values for each element in the Map object in insertion order.
