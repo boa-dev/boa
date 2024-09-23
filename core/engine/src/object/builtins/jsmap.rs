@@ -406,7 +406,7 @@ impl JsMap {
     #[inline]
     pub fn rust_for_each<F>(&self, f: F) -> JsResult<()>
     where
-        F: FnMut(&JsValue, &JsValue) -> JsResult<()>,
+        F: FnMut(JsValue, JsValue) -> JsResult<()>,
     {
         let this = self.inner.clone().into();
         Map::rust_for_each(&this, f)

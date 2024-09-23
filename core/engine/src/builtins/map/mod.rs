@@ -511,7 +511,7 @@ impl Map {
     /// ```
     pub(crate) fn rust_for_each<F>(this: &JsValue, mut f: F) -> JsResult<()>
     where
-        F: FnMut(&JsValue, &JsValue) -> JsResult<()>,
+        F: FnMut(JsValue, JsValue) -> JsResult<()>,
     {
         // See `Self::for_each` for comments on the algo.
 
@@ -525,12 +525,27 @@ impl Map {
             .expect("checked that `this` was a map")
             .lock(map.clone());
 
-        let map = map
-            .downcast_ref::<OrderedMap<JsValue>>()
-            .expect("checked that `this` was a map");
+        let mut index = 0;
+        loop {
+            let (k, v) = {
+                let map = map
+                    .downcast_ref::<OrderedMap<JsValue>>()
+                    .expect("checked that `this` was a map");
 
-        let mut map_iter = map.iter();
-        map_iter.try_for_each(|(k, v)| f(k, v))
+                if index < map.full_len() {
+                    if let Some((k, v)) = map.get_index(index) {
+                        (k.clone(), v.clone())
+                    } else {
+                        continue;
+                    }
+                } else {
+                    return Ok(());
+                }
+            };
+
+            f(k, v)?;
+            index += 1;
+        }
     }
 
     /// `Map.prototype.values()`

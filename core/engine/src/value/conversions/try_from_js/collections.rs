@@ -24,8 +24,8 @@ where
             let mut map = Self::default();
             js_map.rust_for_each(|key, value| {
                 map.insert(
-                    K::try_from_js(key, context)?,
-                    V::try_from_js(value, context)?,
+                    K::try_from_js(&key, context)?,
+                    V::try_from_js(&value, context)?,
                 );
                 Ok(())
             })?;
@@ -67,8 +67,8 @@ where
             let mut map = Self::default();
             js_map.rust_for_each(|key, value| {
                 map.insert(
-                    K::try_from_js(key, context)?,
-                    V::try_from_js(value, context)?,
+                    K::try_from_js(&key, context)?,
+                    V::try_from_js(&value, context)?,
                 );
                 Ok(())
             })?;
