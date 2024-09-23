@@ -61,6 +61,53 @@ mod text;
 #[doc(inline)]
 pub use text::{TextDecoder, TextEncoder};
 
+pub mod url;
+
+/// Options used when registering all built-in objects and functions of the WebAPI runtime.
+#[derive(Debug)]
+pub struct RegisterOptions<L: Logger> {
+    console_logger: L,
+}
+
+impl Default for RegisterOptions<console::DefaultLogger> {
+    fn default() -> Self {
+        Self {
+            console_logger: console::DefaultLogger,
+        }
+    }
+}
+
+impl RegisterOptions<console::DefaultLogger> {
+    /// Create a new `RegisterOptions` with the default options.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<L: Logger> RegisterOptions<L> {
+    /// Set the logger for the console object.
+    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptions<L2> {
+        RegisterOptions::<L2> {
+            console_logger: logger,
+        }
+    }
+}
+
+/// Register all the built-in objects and functions of the WebAPI runtime.
+pub fn register(
+    ctx: &mut boa_engine::Context,
+    options: RegisterOptions<impl Logger + 'static>,
+) -> boa_engine::JsResult<()> {
+    Console::register_with_logger(ctx, options.console_logger)?;
+    TextDecoder::register(ctx)?;
+    TextEncoder::register(ctx)?;
+
+    #[cfg(feature = "url")]
+    url::Url::register(ctx)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 pub(crate) mod test {
     use boa_engine::{builtins, Context, JsResult, JsValue, Source};
