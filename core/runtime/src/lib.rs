@@ -63,7 +63,7 @@ pub use text::{TextDecoder, TextEncoder};
 
 pub mod url;
 
-/// Options used when registering all built-in objects and functions of the WebAPI runtime.
+/// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
 #[derive(Debug)]
 pub struct RegisterOptions<L: Logger> {
     console_logger: L,
@@ -79,6 +79,7 @@ impl Default for RegisterOptions<console::DefaultLogger> {
 
 impl RegisterOptions<console::DefaultLogger> {
     /// Create a new `RegisterOptions` with the default options.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -93,7 +94,10 @@ impl<L: Logger> RegisterOptions<L> {
     }
 }
 
-/// Register all the built-in objects and functions of the WebAPI runtime.
+/// Register all the built-in objects and functions of the `WebAPI` runtime.
+///
+/// # Errors
+/// This will error is any of the built-in objects or functions cannot be registered.
 pub fn register(
     ctx: &mut boa_engine::Context,
     options: RegisterOptions<impl Logger + 'static>,
@@ -110,7 +114,7 @@ pub fn register(
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::register;
+    use crate::{register, RegisterOptions};
     use boa_engine::{builtins, Context, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
@@ -174,7 +178,7 @@ pub(crate) mod test {
     #[track_caller]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
-        register(context, Default::default()).expect("failed to register WebAPI objects");
+        register(context, RegisterOptions::default()).expect("failed to register WebAPI objects");
         run_test_actions_with(actions, context);
     }
 

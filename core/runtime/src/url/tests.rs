@@ -1,6 +1,6 @@
 use crate::test::{run_test_actions, TestAction};
 
-const TEST_HARNESS: &'static str = r#"
+const TEST_HARNESS: &str = r#"
 function assert(condition, message) {
     if (!condition) {
         if (!message) {

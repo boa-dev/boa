@@ -39,9 +39,9 @@ impl Url {
     ///
     /// # Errors
     /// Any errors that might occur during URL parsing.
-    fn js_new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
-        if let Some(Convert(ref base)) = base {
-            let base_url = url::Url::parse(&base)
+    fn js_new(Convert(ref url): Convert<String>, base: &Option<Convert<String>>) -> JsResult<Self> {
+        if let Some(Convert(base)) = base {
+            let base_url = url::Url::parse(base)
                 .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
             if base_url.cannot_be_a_base() {
                 return Err(js_error!(TypeError: "Base URL {} cannot be a base", base));
@@ -144,7 +144,7 @@ js_class! {
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                let _ = url::quirks::set_pathname(&mut this.borrow_mut().0, &value.0);
+                let () = url::quirks::set_pathname(&mut this.borrow_mut().0, &value.0);
             }
         }
 
@@ -195,7 +195,7 @@ js_class! {
         }
 
         constructor(url: Convert<String>, base: Option<Convert<String>>) {
-            Self::js_new(url, base)
+            Self::js_new(url, &base)
         }
 
         init(class: &mut ClassBuilder) -> JsResult<()> {
@@ -204,11 +204,11 @@ js_class! {
                 })
                 .into_js_function_copied(class.context());
             let can_parse = (|url: Convert<String>, base: Option<Convert<String>>| {
-                    Url::js_new(url, base).is_ok()
+                    Url::js_new(url, &base).is_ok()
                 })
                 .into_js_function_copied(class.context());
             let parse = (|url: Convert<String>, base: Option<Convert<String>>, context: &mut Context| {
-                    Url::js_new(url, base)
+                    Url::js_new(url, &base)
                         .map_or(Ok(JsValue::null()), |u| Url::from_data(u, context).map(JsValue::from))
                 })
                 .into_js_function_copied(class.context());
