@@ -44,7 +44,7 @@
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
 //! [ecma-402]: https://tc39.es/ecma402
-//! [examples]: https://github.com/boa-dev/boa/tree/main/boa_examples
+//! [examples]: https://github.com/boa-dev/boa/tree/main/examples
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
