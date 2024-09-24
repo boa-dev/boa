@@ -54,7 +54,7 @@
 mod console;
 
 #[doc(inline)]
-pub use console::{Console, Logger};
+pub use console::{Console, ConsoleState, Logger};
 
 mod text;
 
