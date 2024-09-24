@@ -1,4 +1,4 @@
-use super::{formatter, Console};
+use super::{formatter, Console, ConsoleState};
 use crate::test::{run_test_actions, run_test_actions_with, TestAction};
 use crate::Logger;
 use boa_engine::{js_string, property::Attribute, Context, JsError, JsResult, JsValue};
@@ -120,22 +120,22 @@ struct RecordingLogger {
 }
 
 impl Logger for RecordingLogger {
-    fn log(&self, msg: String, state: &Console) -> JsResult<()> {
+    fn log(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
         use std::fmt::Write;
-        let indent = 2 * state.groups.len();
+        let indent = state.indent();
         writeln!(self.log.borrow_mut(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
 
-    fn info(&self, msg: String, state: &Console) -> JsResult<()> {
-        self.log(msg, state)
+    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
     }
 
-    fn warn(&self, msg: String, state: &Console) -> JsResult<()> {
-        self.log(msg, state)
+    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
     }
 
-    fn error(&self, msg: String, state: &Console) -> JsResult<()> {
-        self.log(msg, state)
+    fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
     }
 }
 

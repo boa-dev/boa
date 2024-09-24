@@ -32,25 +32,25 @@ pub trait Logger: Trace + Sized {
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn log(&self, msg: String, state: &Console) -> JsResult<()>;
+    fn log(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
 
     /// Log an info message (`console.info`).
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn info(&self, msg: String, state: &Console) -> JsResult<()>;
+    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
 
     /// Log a warning message (`console.warn`).
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn warn(&self, msg: String, state: &Console) -> JsResult<()>;
+    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
 
     /// Log an error message (`console.error`).
     ///
     /// # Errors
     /// Returning an error will throw an exception in JavaScript.
-    fn error(&self, msg: String, state: &Console) -> JsResult<()>;
+    fn error(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()>;
 }
 
 /// The default implementation for logging from the console.
@@ -63,24 +63,24 @@ struct DefaultLogger;
 
 impl Logger for DefaultLogger {
     #[inline]
-    fn log(&self, msg: String, state: &Console) -> JsResult<()> {
-        let indent = 2 * state.groups.len();
+    fn log(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
+        let indent = state.indent();
         writeln!(std::io::stdout(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
 
     #[inline]
-    fn info(&self, msg: String, state: &Console) -> JsResult<()> {
-        self.log(msg, state)
+    fn info(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
     }
 
     #[inline]
-    fn warn(&self, msg: String, state: &Console) -> JsResult<()> {
-        self.log(msg, state)
+    fn warn(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
     }
 
     #[inline]
-    fn error(&self, msg: String, state: &Console) -> JsResult<()> {
-        let indent = 2 * state.groups.len();
+    fn error(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
+        let indent = state.indent();
         writeln!(std::io::stderr(), "{msg:>indent$}").map_err(JsError::from_rust)
     }
 }
@@ -181,19 +181,53 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     }
 }
 
-/// This is the internal console object state.
-#[derive(Debug, Default, Trace, Finalize, JsData)]
-pub struct Console {
+/// The current state of the console, passed to the logger backend.
+/// This should not be copied or cloned. References are only valid
+/// for the current logging call.
+#[derive(Debug, Default, Trace, Finalize)]
+pub struct ConsoleState {
     /// The map of console counters, used in `console.count()`.
-    pub count_map: FxHashMap<JsString, u32>,
+    count_map: FxHashMap<JsString, u32>,
 
     /// The map of console timers, used in `console.time`, `console.timeLog`
     /// and `console.timeEnd`.
-    pub timer_map: FxHashMap<JsString, u128>,
+    timer_map: FxHashMap<JsString, u128>,
 
     /// The current list of groups. Groups should be indented, but some logging
     /// libraries may want to use them in a different way.
-    pub groups: Vec<String>,
+    groups: Vec<String>,
+}
+
+impl ConsoleState {
+    /// Returns the indentation level that should be applied to logging.
+    #[must_use]
+    pub fn indent(&self) -> usize {
+        2 * self.groups.len()
+    }
+
+    /// Returns the current list of groups.
+    #[must_use]
+    pub fn groups(&self) -> &Vec<String> {
+        &self.groups
+    }
+
+    /// Returns the count map.
+    #[must_use]
+    pub fn count_map(&self) -> &FxHashMap<JsString, u32> {
+        &self.count_map
+    }
+
+    /// Returns the timer map.
+    #[must_use]
+    pub fn timer_map(&self) -> &FxHashMap<JsString, u128> {
+        &self.timer_map
+    }
+}
+
+/// This is the internal console object state.
+#[derive(Debug, Default, Trace, Finalize, JsData)]
+pub struct Console {
+    state: ConsoleState,
 }
 
 impl Console {
@@ -394,7 +428,7 @@ impl Console {
                 args[0] = JsValue::new(concat);
             }
 
-            logger.error(formatter(&args, context)?, console)?;
+            logger.error(formatter(&args, context)?, &console.state, context)?;
         }
 
         Ok(JsValue::undefined())
@@ -418,7 +452,7 @@ impl Console {
         _: &impl Logger,
         _: &mut Context,
     ) -> JsResult<JsValue> {
-        console.groups.clear();
+        console.state.groups.clear();
         Ok(JsValue::undefined())
     }
 
@@ -439,7 +473,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.log(formatter(args, context)?, console)?;
+        logger.log(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -460,7 +494,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.error(formatter(args, context)?, console)?;
+        logger.error(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -481,7 +515,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.info(formatter(args, context)?, console)?;
+        logger.info(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -502,7 +536,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.log(formatter(args, context)?, console)?;
+        logger.log(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -524,7 +558,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if !args.is_empty() {
-            logger.log(formatter(args, context)?, console)?;
+            logger.log(formatter(args, context)?, &console.state, context)?;
         }
 
         let stack_trace_dump = context
@@ -535,7 +569,7 @@ impl Console {
             .map(JsString::to_std_string_escaped)
             .collect::<Vec<_>>()
             .join("\n");
-        logger.log(stack_trace_dump, console)?;
+        logger.log(stack_trace_dump, &console.state, context)?;
 
         Ok(JsValue::undefined())
     }
@@ -557,7 +591,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.warn(formatter(args, context)?, console)?;
+        logger.warn(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -584,10 +618,10 @@ impl Console {
         };
 
         let msg = format!("count {}:", label.to_std_string_escaped());
-        let c = console.count_map.entry(label).or_insert(0);
+        let c = console.state.count_map.entry(label).or_insert(0);
         *c += 1;
 
-        logger.info(format!("{msg} {c}"), console)?;
+        logger.info(format!("{msg} {c}"), &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -613,11 +647,12 @@ impl Console {
             None => "default".into(),
         };
 
-        console.count_map.remove(&label);
+        console.state.count_map.remove(&label);
 
         logger.warn(
             format!("countReset {}", label.to_std_string_escaped()),
-            console,
+            &console.state,
+            context,
         )?;
 
         Ok(JsValue::undefined())
@@ -653,13 +688,14 @@ impl Console {
             None => "default".into(),
         };
 
-        if let Entry::Vacant(e) = console.timer_map.entry(label.clone()) {
+        if let Entry::Vacant(e) = console.state.timer_map.entry(label.clone()) {
             let time = Self::system_time_in_ms();
             e.insert(time);
         } else {
             logger.warn(
                 format!("Timer '{}' already exist", label.to_std_string_escaped()),
-                console,
+                &console.state,
+                context,
             )?;
         }
 
@@ -688,22 +724,20 @@ impl Console {
             None => "default".into(),
         };
 
-        console.timer_map.get(&label).map_or_else(
-            || {
-                logger.warn(
-                    format!("Timer '{}' doesn't exist", label.to_std_string_escaped()),
-                    console,
-                )
-            },
-            |t| {
-                let time = Self::system_time_in_ms();
-                let mut concat = format!("{}: {} ms", label.to_std_string_escaped(), time - t);
-                for msg in args.iter().skip(1) {
-                    concat = concat + " " + &msg.display().to_string();
-                }
-                logger.log(concat, console)
-            },
-        )?;
+        if let Some(t) = console.state.timer_map.get(&label) {
+            let time = Self::system_time_in_ms();
+            let mut concat = format!("{}: {} ms", label.to_std_string_escaped(), time - t);
+            for msg in args.iter().skip(1) {
+                concat = concat + " " + &msg.display().to_string();
+            }
+            logger.log(concat, &console.state, context)?;
+        } else {
+            logger.warn(
+                format!("Timer '{}' doesn't exist", label.to_std_string_escaped()),
+                &console.state,
+                context,
+            )?;
+        }
 
         Ok(JsValue::undefined())
     }
@@ -730,25 +764,24 @@ impl Console {
             None => "default".into(),
         };
 
-        console.timer_map.remove(&label).map_or_else(
-            || {
-                logger.warn(
-                    format!("Timer '{}' doesn't exist", label.to_std_string_escaped()),
-                    console,
-                )
-            },
-            |t| {
-                let time = Self::system_time_in_ms();
-                logger.info(
-                    format!(
-                        "{}: {} ms - timer removed",
-                        label.to_std_string_escaped(),
-                        time - t
-                    ),
-                    console,
-                )
-            },
-        )?;
+        if let Some(t) = console.state.timer_map.remove(&label) {
+            let time = Self::system_time_in_ms();
+            logger.info(
+                format!(
+                    "{}: {} ms - timer removed",
+                    label.to_std_string_escaped(),
+                    time - t
+                ),
+                &console.state,
+                context,
+            )?;
+        } else {
+            logger.warn(
+                format!("Timer '{}' doesn't exist", label.to_std_string_escaped()),
+                &console.state,
+                context,
+            )?;
+        };
 
         Ok(JsValue::undefined())
     }
@@ -772,8 +805,8 @@ impl Console {
     ) -> JsResult<JsValue> {
         let group_label = formatter(args, context)?;
 
-        logger.info(format!("group: {group_label}"), console)?;
-        console.groups.push(group_label);
+        logger.info(format!("group: {group_label}"), &console.state, context)?;
+        console.state.groups.push(group_label);
 
         Ok(JsValue::undefined())
     }
@@ -816,7 +849,7 @@ impl Console {
         _: &impl Logger,
         _: &mut Context,
     ) -> JsResult<JsValue> {
-        console.groups.pop();
+        console.state.groups.pop();
 
         Ok(JsValue::undefined())
     }
@@ -837,9 +870,13 @@ impl Console {
         args: &[JsValue],
         console: &Self,
         logger: &impl Logger,
-        _: &mut Context,
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.info(args.get_or_undefined(0).display_obj(true), console)?;
+        logger.info(
+            args.get_or_undefined(0).display_obj(true),
+            &console.state,
+            context,
+        )?;
         Ok(JsValue::undefined())
     }
 }
