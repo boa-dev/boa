@@ -110,6 +110,7 @@ pub fn register(
 
 #[cfg(test)]
 pub(crate) mod test {
+    use crate::register;
     use boa_engine::{builtins, Context, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
@@ -173,6 +174,7 @@ pub(crate) mod test {
     #[track_caller]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
+        register(context, Default::default()).expect("failed to register WebAPI objects");
         run_test_actions_with(actions, context);
     }
 
