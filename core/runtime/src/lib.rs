@@ -81,7 +81,8 @@ impl Default for RegisterOptions<DefaultLogger> {
 
 impl RegisterOptions<DefaultLogger> {
     /// Create a new `RegisterOptions` with the default options.
-    #[must_use] pub fn new() -> Self {
+    #[must_use]
+    pub fn new() -> Self {
         Self::default()
     }
 }
@@ -96,6 +97,9 @@ impl<L: Logger> RegisterOptions<L> {
 }
 
 /// Register all the built-in objects and functions of the `WebAPI` runtime.
+///
+/// # Errors
+/// This will error is any of the built-in objects or functions cannot be registered.
 pub fn register(
     ctx: &mut boa_engine::Context,
     options: RegisterOptions<impl Logger + 'static>,
@@ -112,6 +116,7 @@ pub fn register(
 
 #[cfg(test)]
 pub(crate) mod test {
+    use crate::{register, RegisterOptions};
     use boa_engine::{builtins, Context, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
@@ -175,6 +180,7 @@ pub(crate) mod test {
     #[track_caller]
     pub(crate) fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
         let context = &mut Context::default();
+        register(context, RegisterOptions::default()).expect("failed to register WebAPI objects");
         run_test_actions_with(actions, context);
     }
 

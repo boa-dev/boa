@@ -11,6 +11,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/URL
 #![cfg(feature = "url")]
 
+#[cfg(test)]
+mod tests;
+
 use boa_engine::value::Convert;
 use boa_engine::{
     js_error, js_string, Context, Finalize, JsData, JsResult, JsString, JsValue, Trace,
@@ -33,6 +36,9 @@ impl Url {
     }
 
     /// Create a new `URL` object from a `url::Url`.
+    ///
+    /// # Errors
+    /// Any errors that might occur during URL parsing.
     pub fn new<T: TryInto<url::Url>>(url: T) -> Result<Self, T::Error> {
         url.try_into().map(Self)
     }
@@ -41,8 +47,8 @@ impl Url {
     ///
     /// # Errors
     /// Any errors that might occur during URL parsing.
-    fn js_new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
-        if let Some(Convert(ref base)) = base {
+    fn js_new(Convert(ref url): Convert<String>, base: &Option<Convert<String>>) -> JsResult<Self> {
+        if let Some(Convert(base)) = base {
             let base_url = url::Url::parse(base)
                 .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
             if base_url.cannot_be_a_base() {
@@ -85,139 +91,98 @@ js_class! {
     class Url as "URL" {
         property hash {
             fn get(this: JsClass<Url>) -> JsString {
-                if let Some(f) = this.borrow().0.fragment() {
-                    JsString::from(format!("#{f}"))
-                } else {
-                    js_string!("")
-                }
+                JsString::from(url::quirks::hash(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                if value.0.is_empty() {
-                    this.borrow_mut().0.set_fragment(None);
-                }  else if let Some(fragment) = value.0.strip_prefix('#') {
-                    this.borrow_mut().0.set_fragment(Some(fragment));
-                } else {
-                    this.borrow_mut().0.set_fragment(Some(&value.0));
-                }
-            }
-        }
-
-        property host {
-            fn get(this: JsClass<Url>) -> JsString {
-                JsString::from(this.borrow().0.host_str().unwrap_or(""))
-            }
-
-            fn set(this: JsClass<Url>, value: Convert<String>) {
-                if value.0.is_empty() {
-                    let _ = this.borrow_mut().0.set_host(None);
-                } else {
-                    let _ = this.borrow_mut().0.set_host(Some(&value.0));
-                }
+                url::quirks::set_hash(&mut this.borrow_mut().0, &value.0);
             }
         }
 
         property hostname {
             fn get(this: JsClass<Url>) -> JsString {
-                let host = this.borrow().0.host_str().unwrap_or("").to_string();
-                if let Some(port) = this.borrow().0.port() {
-                    JsString::from(format!("{host}:{port}"))
-                } else {
-                    JsString::from(host)
-                }
+                JsString::from(url::quirks::hostname(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                if value.0.is_empty() {
-                    let _ = this.borrow_mut().0.set_host(None);
-                } else {
-                    let _ = this.borrow_mut().0.set_host(Some(&value.0));
-                }
+                let _ = url::quirks::set_hostname(&mut this.borrow_mut().0, &value.0);
+            }
+        }
+
+        property host {
+            fn get(this: JsClass<Url>) -> JsString {
+                JsString::from(url::quirks::host(&this.borrow().0))
+            }
+
+            fn set(this: JsClass<Url>, value: Convert<String>) {
+                let _ = url::quirks::set_host(&mut this.borrow_mut().0, &value.0);
             }
         }
 
         property href {
             fn get(this: JsClass<Url>) -> JsString {
-                JsString::from(format!("{}", this.borrow().0))
+                JsString::from(url::quirks::href(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) -> JsResult<()> {
-                let url = url::Url::parse(&value.0)
-                    .map_err(|e| js_error!(TypeError: "Failed to parse URL: {}", e))?;
-                *this.borrow_mut() = url.into();
-                Ok(())
+                url::quirks::set_href(&mut this.borrow_mut().0, &value.0)
+                    .map_err(|e| js_error!(TypeError: "Failed to set href: {}", e))
             }
         }
 
         property origin {
             fn get(this: JsClass<Url>) -> JsString {
-                JsString::from(this.borrow().0.origin().ascii_serialization())
+                JsString::from(url::quirks::origin(&this.borrow().0))
             }
         }
 
         property password {
             fn get(this: JsClass<Url>) -> JsString {
-                JsString::from(this.borrow().0.password().unwrap_or("").to_string())
+                JsString::from(url::quirks::password(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                let _ = this.borrow_mut().0.set_password(Some(&value.0));
+                let _ = url::quirks::set_password(&mut this.borrow_mut().0, &value.0);
             }
         }
 
         property pathname {
             fn get(this: JsClass<Url>) -> JsString {
-                JsString::from(this.borrow().0.path())
+                JsString::from(url::quirks::pathname(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                this.borrow_mut().0.set_path(&value.0);
+                url::quirks::set_pathname(&mut this.borrow_mut().0, &value.0);
             }
         }
 
         property port {
             fn get(this: JsClass<Url>) -> JsString {
-                JsString::from(this.borrow().0.port().map_or(String::new(), |p| p.to_string()).to_string())
+                JsString::from(url::quirks::port(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<JsString>) {
-                if value.0.is_empty() {
-                    let _ = this.borrow_mut().0.set_port(None);
-                } else if let Ok(value) = value.0.to_std_string_lossy().parse::<u16>() {
-                    let _ = this.borrow_mut().0.set_port(Some(value));
-                }
+                let _ = url::quirks::set_port(&mut this.borrow_mut().0, &value.0.to_std_string_escaped());
             }
         }
 
         property protocol {
             fn get(this: JsClass<Url>) -> JsString {
-                // The URL crate returns without a colon, but the web API requires it.
-                JsString::from(format!("{}:", this.borrow().0.scheme()))
+                JsString::from(url::quirks::protocol(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                // Ignore errors.
-                let _ = this.borrow_mut().0.set_scheme(&value.0);
+                let _ = url::quirks::set_protocol(&mut this.borrow_mut().0, &value.0);
             }
         }
 
         property search {
             fn get(this: JsClass<Url>) -> JsString {
-                if let Some(query) = this.borrow().0.query() {
-                    JsString::from(format!("?{query}"))
-                } else {
-                    js_string!("")
-                }
+                JsString::from(url::quirks::search(&this.borrow().0))
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                if value.0.is_empty() {
-                    this.borrow_mut().0.set_query(None);
-                } else if let Some(query) = value.0.strip_prefix('?') {
-                    this.borrow_mut().0.set_query(Some(query));
-                } else {
-                    this.borrow_mut().0.set_query(Some(&value.0));
-                }
+                url::quirks::set_search(&mut this.borrow_mut().0, &value.0);
             }
         }
 
@@ -238,7 +203,7 @@ js_class! {
         }
 
         constructor(url: Convert<String>, base: Option<Convert<String>>) {
-            Self::js_new(url, base)
+            Self::js_new(url, &base)
         }
 
         init(class: &mut ClassBuilder) -> JsResult<()> {
@@ -247,11 +212,11 @@ js_class! {
                 })
                 .into_js_function_copied(class.context());
             let can_parse = (|url: Convert<String>, base: Option<Convert<String>>| {
-                    Url::js_new(url, base).is_ok()
+                    Url::js_new(url, &base).is_ok()
                 })
                 .into_js_function_copied(class.context());
             let parse = (|url: Convert<String>, base: Option<Convert<String>>, context: &mut Context| {
-                    Url::js_new(url, base)
+                    Url::js_new(url, &base)
                         .map_or(Ok(JsValue::null()), |u| Url::from_data(u, context).map(JsValue::from))
                 })
                 .into_js_function_copied(class.context());
