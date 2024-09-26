@@ -4,6 +4,7 @@
 #![allow(unused_crate_dependencies)]
 #![cfg(feature = "wpt-tests")]
 
+use crate::logger::RecordingLogEvent;
 use boa_engine::class::Class;
 use boa_engine::parser::source::UTF8Input;
 use boa_engine::property::Attribute;
@@ -93,7 +94,7 @@ impl TestSuiteSource {
         for line in content.lines() {
             if let Some(kv) = line.strip_prefix("// META:") {
                 let kv = kv.trim();
-                if let Some((key, value)) = kv.split_once("=") {
+                if let Some((key, value)) = kv.split_once('=') {
                     meta.entry(key.to_string())
                         .or_default()
                         .push(value.to_string());
@@ -148,40 +149,35 @@ fn result_callback__(
     context: &mut Context,
 ) -> JsResult<()> {
     // Check the logs if the test succeeded.
-    if test.status != TestStatus::Pass {
-        panic!(
-            "Test {:?} failed with message:\n  {:?}",
-            test.name.to_std_string_lossy(),
-            test.message.unwrap_or_default()
-        )
-    }
+    assert_eq!(
+        test.status,
+        TestStatus::Pass,
+        "Test {:?} failed with message:\n  {:?}",
+        test.name.to_std_string_lossy(),
+        test.message.unwrap_or_default()
+    );
 
     // Check the logs.
     let logs = logger.all_logs();
     if let Some(log_regex) = test.properties.get(&js_string!("logs")) {
         if let Ok(logs_re) = log_regex.try_js_into::<Vec<JsValue>>(context) {
             for re in logs_re {
-                if let Some(re) = re.as_regexp() {
-                    if !logs.iter().any(|log| {
+                let passes = if let Some(re) = re.as_regexp() {
+                    logs.iter().any(|log: &RecordingLogEvent| -> bool {
                         let s = JsString::from(log.msg.clone());
                         re.test(s, context).unwrap_or(false)
-                    }) {
-                        panic!(
-                            "Test {:?} failed to find log regex: {}",
-                            test.name.to_std_string_lossy(),
-                            re.to_string(context).unwrap()
-                        );
-                    }
+                    })
                 } else {
                     let re_str = re.to_string(context)?.to_std_string_escaped();
-                    if !logs.iter().any(|log| log.msg.contains(&re_str)) {
-                        panic!(
-                            "Test {:?} failed to find log: {:#?}",
-                            test.name.to_std_string_lossy(),
-                            re
-                        );
-                    }
-                }
+                    logs.iter()
+                        .any(|log: &RecordingLogEvent| -> bool { log.msg.contains(&re_str) })
+                };
+                assert!(
+                    passes,
+                    "Test {:?} failed to find log: {}",
+                    test.name.to_std_string_lossy(),
+                    re.display()
+                );
             }
         }
     }
@@ -249,13 +245,8 @@ fn execute_test_file(path: &Path) {
 
     // Load the test.
     let source = TestSuiteSource::new(path);
-    const EMPTY: Vec<String> = vec![];
-    for script in source
-        .meta()
-        .expect("Could not get meta from source")
-        .get("script")
-        .unwrap_or(&EMPTY)
-    {
+    let meta = source.meta().expect("Could not get meta from source");
+    for script in meta.get("script").unwrap_or(&Vec::new()) {
         // Resolve the source path relative to the script path, but under the wpt_path.
         let script_path = Path::new(script);
         let path = if script_path.is_relative() {
@@ -286,9 +277,11 @@ fn execute_test_file(path: &Path) {
     let start = std::time::Instant::now();
     while !test_done.is_done() {
         context.run_jobs();
-        if start.elapsed().as_secs() > 10 {
-            panic!("Test did not complete in 10 seconds.");
-        }
+
+        assert!(
+            start.elapsed().as_secs() < 10,
+            "Test did not complete in 10 seconds."
+        );
     }
 }
 
@@ -332,6 +325,8 @@ fn url(
     #[exclude("url-origin.any.js")]
     #[exclude("url-setters.any.js")]
     #[exclude("url-constructor.any.js")]
+    // Issue https://github.com/servo/rust-url/issues/974
+    #[exclude("url-setters-stripping.any.js")]
     path: PathBuf,
 ) {
     execute_test_file(&path);
