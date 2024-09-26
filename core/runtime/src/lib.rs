@@ -45,6 +45,8 @@
 )]
 #![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+// Currently throws a false positive regarding dependencies that are only used in tests.
+#![allow(unused_crate_dependencies)]
 #![allow(
     clippy::module_name_repetitions,
     clippy::redundant_pub_crate,
@@ -54,12 +56,59 @@
 mod console;
 
 #[doc(inline)]
-pub use console::{Console, ConsoleState, Logger};
+pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 mod text;
 
 #[doc(inline)]
 pub use text::{TextDecoder, TextEncoder};
+
+pub mod url;
+
+/// Options used when registering all built-in objects and functions of the WebAPI runtime.
+#[derive(Debug)]
+pub struct RegisterOptions<L: Logger> {
+    console_logger: L,
+}
+
+impl Default for RegisterOptions<DefaultLogger> {
+    fn default() -> Self {
+        Self {
+            console_logger: DefaultLogger,
+        }
+    }
+}
+
+impl RegisterOptions<DefaultLogger> {
+    /// Create a new `RegisterOptions` with the default options.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<L: Logger> RegisterOptions<L> {
+    /// Set the logger for the console object.
+    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptions<L2> {
+        RegisterOptions::<L2> {
+            console_logger: logger,
+        }
+    }
+}
+
+/// Register all the built-in objects and functions of the WebAPI runtime.
+pub fn register(
+    ctx: &mut boa_engine::Context,
+    options: RegisterOptions<impl Logger + 'static>,
+) -> boa_engine::JsResult<()> {
+    Console::register_with_logger(ctx, options.console_logger)?;
+    TextDecoder::register(ctx)?;
+    TextEncoder::register(ctx)?;
+
+    #[cfg(feature = "url")]
+    url::Url::register(ctx)?;
+
+    Ok(())
+}
 
 #[cfg(test)]
 pub(crate) mod test {

@@ -58,8 +58,8 @@ pub trait Logger: Trace + Sized {
 /// Implements the [`Logger`] trait and output errors to stderr and all
 /// the others to stdout. Will add indentation based on the number of
 /// groups.
-#[derive(Trace, Finalize)]
-struct DefaultLogger;
+#[derive(Debug, Trace, Finalize)]
+pub struct DefaultLogger;
 
 impl Logger for DefaultLogger {
     #[inline]
@@ -82,6 +82,32 @@ impl Logger for DefaultLogger {
     fn error(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
         let indent = state.indent();
         writeln!(std::io::stderr(), "{msg:>indent$}").map_err(JsError::from_rust)
+    }
+}
+
+/// A logger that drops all logging. Useful for testing.
+#[derive(Debug, Trace, Finalize)]
+pub struct NullLogger;
+
+impl Logger for NullLogger {
+    #[inline]
+    fn log(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn info(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn warn(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn error(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
     }
 }
 

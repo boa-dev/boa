@@ -14,15 +14,12 @@ use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
     job::{FutureJob, JobQueue, NativeJob},
-    js_string,
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
-    property::Attribute,
     script::Script,
     vm::flowgraph::{Direction, Graph},
     Context, JsError, JsNativeError, JsResult, Source,
 };
-use boa_runtime::Console;
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::Colorize;
 use debug::init_boa_debug_object;
@@ -442,12 +439,10 @@ fn main() -> Result<(), io::Error> {
     Ok(())
 }
 
-/// Adds the CLI runtime to the context.
+/// Adds the CLI runtime to the context with default options.
 fn add_runtime(context: &mut Context) {
-    let console = Console::init(context);
-    context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
-        .expect("the console object shouldn't exist");
+    boa_runtime::register(context, boa_runtime::RegisterOptions::new())
+        .expect("should not fail while registering the runtime");
 }
 
 #[derive(Default)]

@@ -454,6 +454,19 @@ impl JsString {
         self.to_string_escaped()
     }
 
+    /// Decodes a [`JsString`] into a [`String`], replacing invalid data with the
+    /// replacement character U+FFFD.
+    #[inline]
+    #[must_use]
+    pub fn to_std_string_lossy(&self) -> String {
+        self.code_points()
+            .map(|cp| match cp {
+                CodePoint::Unicode(c) => c,
+                CodePoint::UnpairedSurrogate(_) => '\u{FFFD}',
+            })
+            .collect()
+    }
+
     /// Decodes a [`JsString`] into a [`String`], returning
     ///
     /// # Errors
