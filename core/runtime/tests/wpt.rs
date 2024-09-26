@@ -207,6 +207,9 @@ impl TestCompletion {
 }
 
 /// Load and execute the test file.
+// This can be marked as allow unused because it would give false positives
+// in clippy.
+#[allow(unused)]
 fn execute_test_file(path: &Path) {
     let dir = path.parent().unwrap();
     let wpt_path = PathBuf::from(
@@ -286,6 +289,7 @@ fn execute_test_file(path: &Path) {
 }
 
 /// Test the console with the WPT test suite.
+#[cfg(not(feature = "wpt-tests-do-not-use"))]
 #[rstest::rstest]
 fn console(
     #[base_dir = "${WPT_ROOT}"]
@@ -300,6 +304,7 @@ fn console(
 
 /// Test the text encoder/decoder with the WPT test suite.
 #[ignore] // TODO: support all encodings.
+#[cfg(not(feature = "wpt-tests-do-not-use"))]
 #[rstest::rstest]
 fn encoding(
     #[base_dir = "${WPT_ROOT}"]
@@ -313,6 +318,7 @@ fn encoding(
 /// Test the URL class with the WPT test suite.
 // A bunch of these tests are failing due to lack of support in the URL class,
 // or missing APIs such as fetch.
+#[cfg(not(feature = "wpt-tests-do-not-use"))]
 #[rstest::rstest]
 fn url(
     #[base_dir = "${WPT_ROOT}"]
