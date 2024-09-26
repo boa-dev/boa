@@ -65,7 +65,7 @@ pub use text::{TextDecoder, TextEncoder};
 
 pub mod url;
 
-/// Options used when registering all built-in objects and functions of the WebAPI runtime.
+/// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
 #[derive(Debug)]
 pub struct RegisterOptions<L: Logger> {
     console_logger: L,
@@ -81,7 +81,7 @@ impl Default for RegisterOptions<DefaultLogger> {
 
 impl RegisterOptions<DefaultLogger> {
     /// Create a new `RegisterOptions` with the default options.
-    pub fn new() -> Self {
+    #[must_use] pub fn new() -> Self {
         Self::default()
     }
 }
@@ -95,7 +95,7 @@ impl<L: Logger> RegisterOptions<L> {
     }
 }
 
-/// Register all the built-in objects and functions of the WebAPI runtime.
+/// Register all the built-in objects and functions of the `WebAPI` runtime.
 pub fn register(
     ctx: &mut boa_engine::Context,
     options: RegisterOptions<impl Logger + 'static>,

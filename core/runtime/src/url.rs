@@ -43,7 +43,7 @@ impl Url {
     /// Any errors that might occur during URL parsing.
     fn js_new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
         if let Some(Convert(ref base)) = base {
-            let base_url = url::Url::parse(&base)
+            let base_url = url::Url::parse(base)
                 .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
             if base_url.cannot_be_a_base() {
                 return Err(js_error!(TypeError: "Base URL {} cannot be a base", base));
@@ -86,7 +86,7 @@ js_class! {
         property hash {
             fn get(this: JsClass<Url>) -> JsString {
                 if let Some(f) = this.borrow().0.fragment() {
-                    JsString::from(format!("#{}", f))
+                    JsString::from(format!("#{f}"))
                 } else {
                     js_string!("")
                 }
@@ -95,12 +95,10 @@ js_class! {
             fn set(this: JsClass<Url>, value: Convert<String>) {
                 if value.0.is_empty() {
                     this.borrow_mut().0.set_fragment(None);
-                }  else {
-                    if let Some(fragment) = value.0.strip_prefix('#') {
-                        this.borrow_mut().0.set_fragment(Some(fragment));
-                    } else {
-                        this.borrow_mut().0.set_fragment(Some(&value.0));
-                    }
+                }  else if let Some(fragment) = value.0.strip_prefix('#') {
+                    this.borrow_mut().0.set_fragment(Some(fragment));
+                } else {
+                    this.borrow_mut().0.set_fragment(Some(&value.0));
                 }
             }
         }
@@ -123,7 +121,7 @@ js_class! {
             fn get(this: JsClass<Url>) -> JsString {
                 let host = this.borrow().0.host_str().unwrap_or("").to_string();
                 if let Some(port) = this.borrow().0.port() {
-                    JsString::from(format!("{}:{}", host, port))
+                    JsString::from(format!("{host}:{port}"))
                 } else {
                     JsString::from(host)
                 }
@@ -206,7 +204,7 @@ js_class! {
         property search {
             fn get(this: JsClass<Url>) -> JsString {
                 if let Some(query) = this.borrow().0.query() {
-                    JsString::from(format!("?{}", query))
+                    JsString::from(format!("?{query}"))
                 } else {
                     js_string!("")
                 }
@@ -215,12 +213,10 @@ js_class! {
             fn set(this: JsClass<Url>, value: Convert<String>) {
                 if value.0.is_empty() {
                     this.borrow_mut().0.set_query(None);
+                } else if let Some(query) = value.0.strip_prefix('?') {
+                    this.borrow_mut().0.set_query(Some(query));
                 } else {
-                    if let Some(query) = value.0.strip_prefix('?') {
-                        this.borrow_mut().0.set_query(Some(query));
-                    } else {
-                        this.borrow_mut().0.set_query(Some(&value.0));
-                    }
+                    this.borrow_mut().0.set_query(Some(&value.0));
                 }
             }
         }
