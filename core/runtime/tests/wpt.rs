@@ -6,7 +6,7 @@
 
 use crate::logger::RecordingLogEvent;
 use boa_engine::class::Class;
-use boa_engine::parser::source::UTF8Input;
+use boa_engine::parser::source::UTF16Input;
 use boa_engine::property::Attribute;
 use boa_engine::value::TryFromJs;
 use boa_engine::{
@@ -17,9 +17,8 @@ use boa_gc::Gc;
 use boa_interop::{ContextData, IntoJsFunctionCopied};
 use boa_runtime::url::Url;
 use boa_runtime::RegisterOptions;
+use std::cell::OnceCell;
 use std::collections::BTreeMap;
-use std::fs::File;
-use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
 
@@ -72,25 +71,87 @@ struct Test {
 /// A Test suite source code.
 struct TestSuiteSource {
     path: PathBuf,
+    bytes: OnceCell<Vec<u16>>,
 }
+
+const REWRITE_RULES: &[(&str, &str)] = &[(
+    "/resources/WebIDLParser.js",
+    "/resources/webidl2/webidl2.js",
+)];
 
 impl TestSuiteSource {
     /// Create a new test suite source.
     fn new(source: impl AsRef<Path>) -> Self {
         Self {
             path: source.as_ref().to_path_buf(),
+            bytes: OnceCell::new(),
         }
     }
 
-    fn source(&self) -> Result<Source<'_, UTF8Input<BufReader<File>>>, Box<dyn std::error::Error>> {
-        Ok(Source::from_filepath(&self.path)?)
+    fn read_to_string(&self) -> Result<String, Box<dyn std::error::Error>> {
+        fn read_string(slice: &[u8], size: usize) -> Option<String> {
+            assert!(2 * size <= slice.len());
+            let iter = (0..size).map(|i| u16::from_be_bytes([slice[2 * i], slice[2 * i + 1]]));
+
+            std::char::decode_utf16(iter)
+                .collect::<Result<String, _>>()
+                .ok()
+        }
+        let buffer = std::fs::read(&self.path)?;
+        // Check if buffer contains UTF8 or UTF16.
+        let maybe_utf8 = String::from_utf8(buffer.clone());
+        if let Ok(utf8) = maybe_utf8 {
+            Ok(utf8)
+        } else if let Some(utf16) = read_string(&buffer, buffer.len() / 2) {
+            Ok(utf16)
+        } else {
+            Err("Could not determine encoding".into())
+        }
+    }
+
+    fn source(&self) -> Result<Source<'_, UTF16Input<'_>>, Box<dyn std::error::Error>> {
+        let b = self.bytes.get_or_init(|| {
+            self.read_to_string()
+                .unwrap()
+                .encode_utf16()
+                .collect::<Vec<u16>>()
+        });
+        Ok(Source::from_utf16(b).with_path(&self.path))
+    }
+
+    fn scripts(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+        let mut scripts: Vec<String> = Vec::new();
+        let dir = self.path.parent().expect("Could not get parent directory");
+
+        'outer: for script in self.meta()?.get("script").unwrap_or(&Vec::new()) {
+            let script = script
+                .split_once('?')
+                .map_or(script.to_string(), |(s, _)| s.to_string());
+
+            // Resolve the source path relative to the script path, but under the wpt_path.
+            let script_path = Path::new(&script);
+            let path = if script_path.is_relative() {
+                dir.join(script_path)
+            } else {
+                script_path.to_path_buf()
+            };
+
+            for (from, to) in REWRITE_RULES {
+                if path.to_string_lossy().as_ref() == *from {
+                    scripts.push(to.to_string());
+                    continue 'outer;
+                }
+            }
+            scripts.push(path.to_string_lossy().to_string());
+        }
+        Ok(scripts)
     }
 
     fn meta(&self) -> Result<BTreeMap<String, Vec<String>>, Box<dyn std::error::Error>> {
         let mut meta: BTreeMap<String, Vec<String>> = BTreeMap::new();
 
         // Read the whole file and extract the metadata.
-        let content = std::fs::read_to_string(&self.path)?;
+        let content = self.read_to_string()?;
         for line in content.lines() {
             if let Some(kv) = line.strip_prefix("// META:") {
                 let kv = kv.trim();
@@ -248,10 +309,9 @@ fn execute_test_file(path: &Path) {
 
     // Load the test.
     let source = TestSuiteSource::new(path);
-    let meta = source.meta().expect("Could not get meta from source");
-    for script in meta.get("script").unwrap_or(&Vec::new()) {
+    for script in source.scripts().expect("Could not get scripts") {
         // Resolve the source path relative to the script path, but under the wpt_path.
-        let script_path = Path::new(script);
+        let script_path = Path::new(&script);
         let path = if script_path.is_relative() {
             dir.join(script_path)
         } else {
@@ -331,8 +391,6 @@ fn url(
     #[exclude("url-origin.any.js")]
     #[exclude("url-setters.any.js")]
     #[exclude("url-constructor.any.js")]
-    // Issue https://github.com/servo/rust-url/issues/974
-    #[exclude("url-setters-stripping.any.js")]
     path: PathBuf,
 ) {
     execute_test_file(&path);
