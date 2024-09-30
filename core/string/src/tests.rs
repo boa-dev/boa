@@ -4,7 +4,7 @@ use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
 use crate::{
     CommonJsStringBuilder, JsStr, JsString, Latin1StringBuilder, StaticJsString, StaticJsStrings,
-    Utf16StringBuilder,
+    ToStringEscaped, Utf16StringBuilder,
 };
 
 use rustc_hash::FxHasher;
