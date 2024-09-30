@@ -23,6 +23,7 @@ use std::fmt::Display;
 
 /// The `URL` class represents a (properly parsed) Uniform Resource Locator.
 #[derive(Debug, Clone, JsData, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct Url(#[unsafe_ignore_trace] url::Url);
 
 impl Url {
@@ -73,9 +74,7 @@ impl From<url::Url> for Url {
 
 impl From<Url> for url::Url {
     fn from(url: Url) -> url::Url {
-        // Cannot avoid cloning here, unfortunately, as we would need to replace
-        // the internal URL with something else.
-        url.0.clone()
+        url.0
     }
 }
 
