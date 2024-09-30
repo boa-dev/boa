@@ -247,9 +247,9 @@ where
                 Ok(node)
             }
             TokenKind::Punctuator(Punctuator::Div) => {
-                let position = tok.span().start();
+                let start_pos_group = tok.start_group();
                 cursor.advance(interner);
-                let tok = cursor.lex_regex(position, interner)?;
+                let tok = cursor.lex_regex(start_pos_group, interner)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
                     Ok(AstRegExp::new(body, flags).into())
@@ -272,7 +272,7 @@ where
                 let parser = TemplateLiteral::new(
                     self.allow_yield,
                     self.allow_await,
-                    tok.span().start(),
+                    tok.start_group(),
                     cooked,
                 );
                 cursor.advance(interner);

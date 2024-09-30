@@ -2,7 +2,7 @@
 
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
-use boa_ast::{Position, Span};
+use boa_ast::PositionGroup;
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -22,7 +22,7 @@ impl<R> Tokenizer<R> for SingleLineComment {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -39,9 +39,10 @@ impl<R> Tokenizer<R> for SingleLineComment {
             };
             cursor.next_char().expect("Comment character vanished");
         }
-        Ok(Token::new(
+        Ok(Token::new_by_position_group(
             TokenKind::Comment,
-            Span::new(start_pos, cursor.pos()),
+            start_pos,
+            cursor.pos_group(),
         ))
     }
 }
@@ -62,7 +63,7 @@ impl<R> Tokenizer<R> for MultiLineComment {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -75,13 +76,14 @@ impl<R> Tokenizer<R> for MultiLineComment {
             let tried_ch = char::try_from(ch);
             match tried_ch {
                 Ok(c) if c == '*' && cursor.next_if(0x2F /* / */)? => {
-                    return Ok(Token::new(
+                    return Ok(Token::new_by_position_group(
                         if new_line {
                             TokenKind::LineTerminator
                         } else {
                             TokenKind::Comment
                         },
-                        Span::new(start_pos, cursor.pos()),
+                        start_pos,
+                        cursor.pos_group(),
                     ))
                 }
                 Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
@@ -111,7 +113,7 @@ impl<R> Tokenizer<R> for HashbangComment {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -127,9 +129,10 @@ impl<R> Tokenizer<R> for HashbangComment {
             };
         }
 
-        Ok(Token::new(
+        Ok(Token::new_by_position_group(
             TokenKind::Comment,
-            Span::new(start_pos, cursor.pos()),
+            start_pos,
+            cursor.pos_group(),
         ))
     }
 }

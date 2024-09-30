@@ -140,13 +140,14 @@ impl Error {
     }
 
     /// Creates a "general" parsing error.
-    pub(crate) fn general<S>(message: S, position: Position) -> Self
+    pub(crate) fn general<S, P>(message: S, position: P) -> Self
     where
         S: Into<Box<str>>,
+        P: Into<Position>,
     {
         Self::General {
             message: message.into(),
-            position,
+            position: position.into(),
         }
     }
 

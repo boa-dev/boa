@@ -3,10 +3,10 @@
 use crate::lexer::{
     template::TemplateString,
     token::{ContainsEscapeSequence, EscapeSequence, Numeric},
-    Cursor, Error, Interner, Lexer, Position, Punctuator, Span, TokenKind,
+    Cursor, Error, Interner, Lexer, Punctuator, TokenKind,
 };
 use crate::source::ReadChar;
-use boa_ast::Keyword;
+use boa_ast::{Keyword, Position, Span};
 use boa_interner::Sym;
 use boa_macros::utf16;
 use std::str;

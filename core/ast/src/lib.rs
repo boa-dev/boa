@@ -28,6 +28,7 @@ mod module_item_list;
 mod position;
 mod punctuator;
 mod source;
+mod source_text;
 mod statement_list;
 
 pub mod declaration;
@@ -51,9 +52,10 @@ pub use self::{
     expression::Expression,
     keyword::Keyword,
     module_item_list::{ModuleItem, ModuleItemList},
-    position::{Position, Span},
+    position::{LinearPosition, LinearSpan, Position, PositionGroup, Span},
     punctuator::Punctuator,
     source::{Module, Script},
+    source_text::SourceText,
     statement::Statement,
     statement_list::{StatementList, StatementListItem},
 };

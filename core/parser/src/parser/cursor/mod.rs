@@ -7,7 +7,7 @@ use crate::{
     source::ReadChar,
     Error,
 };
-use boa_ast::{Position, Punctuator};
+use boa_ast::{PositionGroup, Punctuator};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
 
@@ -70,7 +70,7 @@ where
 
     pub(super) fn lex_regex(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> ParseResult<Token> {
         self.buffered_lexer.lex_regex(start, interner)
@@ -78,7 +78,7 @@ where
 
     pub(super) fn lex_template(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> ParseResult<Token> {
         self.buffered_lexer.lex_template(start, interner)

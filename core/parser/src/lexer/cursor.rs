@@ -1,7 +1,7 @@
 //! Boa's lexer cursor that manages the input byte stream.
 
 use crate::source::{ReadChar, UTF8Input};
-use boa_ast::Position;
+use boa_ast::{LinearPosition, Position, PositionGroup, SourceText};
 use boa_profiler::Profiler;
 use std::io::{self, Error, ErrorKind};
 
@@ -13,13 +13,31 @@ pub(super) struct Cursor<R> {
     module: bool,
     strict: bool,
     peeked: [Option<u32>; 4],
+    source_collector: SourceText,
 }
 
 impl<R> Cursor<R> {
     /// Gets the current position of the cursor in the source code.
+    #[inline]
+    pub(super) fn pos_group(&self) -> PositionGroup {
+        PositionGroup::new(self.pos, self.linear_pos())
+    }
+
+    /// Gets the current position of the cursor in the source code.
     pub(super) const fn pos(&self) -> Position {
         self.pos
     }
+
+    /// Gets the current linear position of the cursor in the source code.
+    #[inline]
+    pub(super) fn linear_pos(&self) -> LinearPosition {
+        self.source_collector.cur_linear_position()
+    }
+
+    // /// Gets the current linear position of the cursor in the source code.
+    // pub(super) fn source_text(&self) -> &SourceText {
+    //     &self.source_collector
+    // }
 
     /// Advances the position to the next column.
     fn next_column(&mut self) {
@@ -65,6 +83,7 @@ impl<R: ReadChar> Cursor<R> {
             strict: false,
             module: false,
             peeked: [None; 4],
+            source_collector: SourceText::default(),
         }
     }
 
@@ -184,6 +203,10 @@ impl<R: ReadChar> Cursor<R> {
             self.iter.next_char()?
         };
 
+        if let Some(ch) = ch {
+            self.source_collector.collect_code_point(ch);
+        }
+
         match ch {
             Some(0xD) => {
                 // Try to take a newline if it's next, for windows "\r\n" newlines
@@ -191,6 +214,7 @@ impl<R: ReadChar> Cursor<R> {
                 if self.peek_char()? == Some(0xA) {
                     self.peeked[0] = None;
                     self.peeked.rotate_left(1);
+                    self.source_collector.collect_code_point(0xA);
                 }
                 self.next_line();
             }

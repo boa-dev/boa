@@ -4,7 +4,7 @@ use crate::{
     source::{ReadChar, UTF8Input},
     Error,
 };
-use boa_ast::Position;
+use boa_ast::PositionGroup;
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -84,7 +84,7 @@ where
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     pub(super) fn lex_regex(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> ParseResult<Token> {
         let _timer = Profiler::global().start_event("cursor::lex_regex()", "Parsing");
@@ -98,7 +98,7 @@ where
     /// '}' has already been consumed.
     pub(super) fn lex_template(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> ParseResult<Token> {
         self.lexer

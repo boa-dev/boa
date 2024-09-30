@@ -2,7 +2,7 @@
 
 use crate::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
-use boa_ast::{Position, Span};
+use boa_ast::PositionGroup;
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use num_bigint::BigInt;
@@ -185,7 +185,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -260,9 +260,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         cursor.next_char()?.expect("n character vanished");
 
                         // DecimalBigIntegerLiteral '0n'
-                        return Ok(Token::new(
+                        return Ok(Token::new_by_position_group(
                             TokenKind::NumericLiteral(Numeric::BigInt(BigInt::zero().into())),
-                            Span::new(start_pos, cursor.pos()),
+                            start_pos,
+                            cursor.pos_group(),
                         ));
                     }
                     byte => {
@@ -309,9 +310,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
             } else {
                 // DecimalLiteral lexing.
                 // Indicates that the number is just a single 0.
-                return Ok(Token::new(
+                return Ok(Token::new_by_position_group(
                     TokenKind::NumericLiteral(Numeric::Integer(0)),
-                    Span::new(start_pos, cursor.pos()),
+                    start_pos,
+                    cursor.pos_group(),
                 ));
             }
         }
@@ -426,9 +428,10 @@ impl<R> Tokenizer<R> for NumberLiteral {
             }
         };
 
-        Ok(Token::new(
+        Ok(Token::new_by_position_group(
             TokenKind::NumericLiteral(num),
-            Span::new(start_pos, cursor.pos()),
+            start_pos,
+            cursor.pos_group(),
         ))
     }
 }
