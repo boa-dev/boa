@@ -336,7 +336,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can read to its pointed memory.
         let data = unsafe {
-            std::slice::from_raw_parts(self.data() as *mut u8, self.allocated_data_byte_len())
+            std::slice::from_raw_parts(self.data().cast::<u8>(), self.allocated_data_byte_len())
         };
         data.is_ascii()
     }
@@ -529,7 +529,7 @@ impl From<char> for Segment<'_> {
 
 /// Originally based on [kiesel-js](https://codeberg.org/kiesel-js/kiesel/src/branch/main/src/types/language/String/Builder.zig)
 ///
-/// Common JsString builder that accepts multiple variant of string or character.
+/// Common `JsString` builder that accepts multiple variant of string or character.
 #[derive(Clone, Debug, Default)]
 pub struct CommonJsStringBuilder<'a> {
     segments: Vec<Segment<'a>>,
@@ -564,7 +564,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     #[inline]
     #[must_use]
     fn is_latin1(&self) -> bool {
-        self.segments.iter().all(|seg| seg.is_latin1())
+        self.segments.iter().all(Segment::is_latin1)
     }
 
     /// Returns the number of string segment in inner vector.
@@ -584,6 +584,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     /// build `JsString` from latin1 segments.
     #[inline]
     #[must_use]
+    #[allow(clippy::cast_lossless)]
     fn build_from_latin1(self) -> JsString {
         let mut builder = Latin1StringBuilder::new();
         for seg in self.segments {
@@ -611,6 +612,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     /// build `JsString` from utf16 segments
     #[inline]
     #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     fn build_from_utf16(self) -> JsString {
         let mut builder = Utf16StringBuilder::new();
         for seg in self.segments {
@@ -626,7 +628,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                     JsStrVariant::Latin1(s) => builder.extend(s.iter().copied().map(u16::from)),
                     JsStrVariant::Utf16(s) => builder.extend_from_slice(s),
                 },
-                Segment::Latin1(latin1) => builder.push(latin1 as u16),
+                Segment::Latin1(latin1) => builder.push(u16::from(latin1)),
                 Segment::CodePoint(code_point) => {
                     // inline char::encode_utf16 here for better performance
                     let mut code_point = code_point as u32;
@@ -637,7 +639,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                         builder.extend_from_slice(&[
                             0xD800 | ((code_point >> 10) as u16),
                             0xDC00 | ((code_point as u16) & 0x3FF),
-                        ])
+                        ]);
                     }
                 }
             }
