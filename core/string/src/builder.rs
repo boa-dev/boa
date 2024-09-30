@@ -431,7 +431,7 @@ impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
     }
 }
 
-/// **1 byte** encoded [`JsStringBuilder`]
+/// **1 byte** encoded `JsStringBuilder`
 /// # Warning
 /// If you are not sure the characters that will be added and don't want to preprocess them,
 /// use [`CommonJsStringBuilder`] instead.
@@ -447,7 +447,7 @@ impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
 /// ```
 pub type Latin1StringBuilder = JsStringBuilder<u8>;
 
-/// **2 bytes** encoded [`JsStringBuilder`]
+/// **2 bytes** encoded `JsStringBuilder`
 /// # Warning
 /// If you are not sure the characters that will be added and don't want to preprocess them,
 /// use [`CommonJsStringBuilder`] instead.
