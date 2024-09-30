@@ -57,10 +57,10 @@ indoc = "2.0.5"
 jemallocator = "0.5.4"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
-once_cell = { version = "1.19.0", default-features = false }
+once_cell = { version = "1.20.1", default-features = false }
 phf = { version = "0.11.2", default-features = false }
 pollster = "0.3.0"
-regex = "1.10.6"
+regex = "1.11.0"
 regress = { version = "0.10.1", features = ["utf16"] }
 rustc-hash = { version = "2.0.0", default-features = false }
 serde_json = "1.0.128"
@@ -90,7 +90,7 @@ isahc = "1.7.2"
 rustyline = { version = "14.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.37"
-syn = { version = "2.0.77", default-features = false }
+syn = { version = "2.0.79", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "11.0.1"
@@ -104,7 +104,7 @@ thiserror = "1.0.64"
 dashmap = "5.5.3"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
-portable-atomic = "1.8.0"
+portable-atomic = "1.9.0"
 bytemuck = { version = "1.18.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
