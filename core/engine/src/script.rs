@@ -90,7 +90,8 @@ impl Script {
         if context.is_strict() {
             parser.set_strict();
         }
-        let mut code = parser.parse_script(context.interner_mut())?;
+        let scope = context.realm().scope().clone();
+        let mut code = parser.parse_script(&scope, context.interner_mut())?;
         if !context.optimizer_options().is_empty() {
             context.optimize_statement_list(code.statements_mut());
         }
@@ -124,7 +125,7 @@ impl Script {
         global_declaration_instantiation_context(
             &mut annex_b_function_names,
             &self.inner.source,
-            &self.inner.realm.environment().compile_env(),
+            self.inner.realm.scope(),
             context,
         )?;
 
@@ -132,8 +133,10 @@ impl Script {
             js_string!("<main>"),
             self.inner.source.strict(),
             false,
-            self.inner.realm.environment().compile_env(),
-            self.inner.realm.environment().compile_env(),
+            self.inner.realm.scope().clone(),
+            self.inner.realm.scope().clone(),
+            false,
+            false,
             context.interner_mut(),
             false,
         );
@@ -144,10 +147,7 @@ impl Script {
         }
 
         // TODO: move to `Script::evaluate` to make this operation infallible.
-        compiler.global_declaration_instantiation(
-            &self.inner.source,
-            &self.inner.realm.environment().compile_env(),
-        );
+        compiler.global_declaration_instantiation(&self.inner.source);
         compiler.compile_statement_list(self.inner.source.statements(), true, false);
 
         let cb = Gc::new(compiler.finish());

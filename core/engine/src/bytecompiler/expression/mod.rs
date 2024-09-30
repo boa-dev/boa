@@ -4,6 +4,8 @@ mod object_literal;
 mod unary;
 mod update;
 
+use std::ops::Deref;
+
 use super::{Access, Callable, NodeKind, Operand, ToJsString};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
@@ -133,7 +135,7 @@ impl ByteCompiler<'_> {
                 self.access_get(Access::This, use_expr);
             }
             Expression::Spread(spread) => self.compile_expr(spread.target(), true),
-            Expression::Function(function) => {
+            Expression::FunctionExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::ArrowFunction(function) => {
@@ -142,13 +144,13 @@ impl ByteCompiler<'_> {
             Expression::AsyncArrowFunction(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
-            Expression::Generator(function) => {
+            Expression::GeneratorExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
-            Expression::AsyncFunction(function) => {
+            Expression::AsyncFunctionExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
-            Expression::AsyncGenerator(function) => {
+            Expression::AsyncGeneratorExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, use_expr);
             }
             Expression::Call(call) => self.call(Callable::Call(call), use_expr),
@@ -289,7 +291,7 @@ impl ByteCompiler<'_> {
 
                 self.emit_with_varying_operand(Opcode::Call, template.exprs().len() as u32 + 1);
             }
-            Expression::Class(class) => self.class(class, true),
+            Expression::ClassExpression(class) => self.class(class.deref().into(), true),
             Expression::SuperCall(super_call) => {
                 self.emit_opcode(Opcode::SuperCallPrepare);
 
@@ -361,6 +363,7 @@ impl ByteCompiler<'_> {
             }
             // TODO: try to remove this variant somehow
             Expression::FormalParameterList(_) => unreachable!(),
+            Expression::Debugger => (),
         }
     }
 }

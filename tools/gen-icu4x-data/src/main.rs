@@ -1,51 +1,50 @@
 #![allow(missing_docs, rustdoc::missing_crate_level_docs)]
 
-use std::{error::Error, fs::File, path::Path};
+use std::path::Path;
+use std::{error::Error, fs::File};
 
 use icu_datagen::blob_exporter::BlobExporter;
 use icu_datagen::prelude::*;
-use icu_provider::data_key;
 
-const KEYS_LEN: usize = 129;
+/// Path to the directory where the exported data lives.
+const EXPORT_PATH: &str = "core/icu_provider/data";
 
-/// List of keys used by `Intl` components.
+/// List of services used by `Intl` components.
 ///
-/// This must be kept in sync with the list of implemented components of `Intl`.
-const KEYS: [DataKey; KEYS_LEN] = {
-    const CENTINEL_KEY: DataKey = data_key!("centinel@1");
-    const SERVICES: [&[DataKey]; 9] = [
-        icu_casemap::provider::KEYS,
-        icu_collator::provider::KEYS,
-        icu_datetime::provider::KEYS,
-        icu_decimal::provider::KEYS,
-        icu_list::provider::KEYS,
-        icu_locid_transform::provider::KEYS,
-        icu_normalizer::provider::KEYS,
-        icu_plurals::provider::KEYS,
-        icu_segmenter::provider::KEYS,
-    ];
+/// This must be kept in sync with the list of implemented services of `Intl`.
+const SERVICES: &[(&str, &[DataKey])] = &[
+    ("icu_casemap", icu_casemap::provider::KEYS),
+    ("icu_collator", icu_collator::provider::KEYS),
+    ("icu_datetime", icu_datetime::provider::KEYS),
+    ("icu_decimal", icu_decimal::provider::KEYS),
+    ("icu_list", icu_list::provider::KEYS),
+    ("icu_locid_transform", icu_locid_transform::provider::KEYS),
+    ("icu_normalizer", icu_normalizer::provider::KEYS),
+    ("icu_plurals", icu_plurals::provider::KEYS),
+    ("icu_segmenter", icu_segmenter::provider::KEYS),
+];
 
-    let mut array = [CENTINEL_KEY; KEYS_LEN];
+fn export_for_service(
+    service: &str,
+    keys: &[DataKey],
+    provider: &DatagenProvider,
+    driver: DatagenDriver,
+) -> Result<(), Box<dyn Error>> {
+    log::info!(
+        "Generating ICU4X data for service `{service}` with keys: {:#?}",
+        keys
+    );
 
-    let mut offset = 0;
-    let mut service_idx = 0;
+    let export_path = Path::new(EXPORT_PATH);
+    let export_file = export_path.join(format!("{service}.postcard"));
 
-    while service_idx < SERVICES.len() {
-        let service = SERVICES[service_idx];
-        let mut idx = 0;
-        while idx < service.len() {
-            array[offset + idx] = service[idx];
-            idx += 1;
-        }
+    driver.with_keys(keys.iter().copied()).export(
+        provider,
+        BlobExporter::new_v2_with_sink(Box::new(File::create(export_file)?)),
+    )?;
 
-        offset += service.len();
-        service_idx += 1;
-    }
-
-    assert!(offset == array.len());
-
-    array
-};
+    Ok(())
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
     simple_logger::SimpleLogger::new()
@@ -53,34 +52,29 @@ fn main() -> Result<(), Box<dyn Error>> {
         .with_level(log::LevelFilter::Info)
         .init()?;
 
-    let path = Path::new("core/icu_provider/data");
-
     // Removal will throw an error if the directory doesn't exist, hence
     // why we can ignore the error.
-    let _unused = std::fs::remove_dir_all(path);
-    std::fs::create_dir_all(path)?;
+    let _unused = std::fs::remove_dir_all(EXPORT_PATH);
+    std::fs::create_dir_all(EXPORT_PATH)?;
 
-    log::info!("Generating ICU4X data for keys: {:#?}", KEYS);
-
-    let provider = DatagenProvider::new_latest_tested();
+    let provider = &DatagenProvider::new_latest_tested();
     let locales = provider
         .locales_for_coverage_levels([CoverageLevel::Modern])?
         .into_iter()
         .chain([langid!("en-US")]);
 
-    DatagenDriver::new()
-        .with_keys(KEYS)
+    let driver = DatagenDriver::new()
         .with_locales_and_fallback(locales.map(LocaleFamily::with_descendants), {
             let mut options = FallbackOptions::default();
             options.deduplication_strategy = Some(DeduplicationStrategy::None);
             options
         })
         .with_additional_collations([String::from("search*")])
-        .with_recommended_segmenter_models()
-        .export(
-            &provider,
-            BlobExporter::new_v2_with_sink(Box::new(File::create(path.join("icudata.postcard"))?)),
-        )?;
+        .with_recommended_segmenter_models();
+
+    for (service, keys) in SERVICES {
+        export_for_service(service, keys, provider, driver.clone())?;
+    }
 
     Ok(())
 }

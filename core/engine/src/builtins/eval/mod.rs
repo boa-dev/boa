@@ -9,22 +9,23 @@
 //! [spec]: https://tc39.es/ecma262/#sec-eval-x
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
-use std::rc::Rc;
-
 use crate::{
     builtins::{function::OrdinaryFunction, BuiltInObject},
     bytecompiler::{eval_declaration_instantiation_context, ByteCompiler},
     context::intrinsics::Intrinsics,
-    environments::{CompileTimeEnvironment, Environment},
+    environments::Environment,
     error::JsNativeError,
     js_string,
     object::JsObject,
     realm::Realm,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Opcode},
+    vm::{CallFrame, CallFrameFlags, Constant, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_ast::operations::{contains, contains_arguments, ContainsSymbol};
+use boa_ast::{
+    operations::{contains, contains_arguments, ContainsSymbol},
+    scope::Scope,
+};
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
@@ -62,7 +63,7 @@ impl Eval {
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
     fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
-        Self::perform_eval(args.get_or_undefined(0), false, false, context)
+        Self::perform_eval(args.get_or_undefined(0), false, None, false, context)
     }
 
     /// `19.2.1.1 PerformEval ( x, strictCaller, direct )`
@@ -74,6 +75,7 @@ impl Eval {
     pub(crate) fn perform_eval(
         x: &JsValue,
         direct: bool,
+        lexical_scope: Option<Scope>,
         mut strict: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
@@ -128,7 +130,7 @@ impl Eval {
         if strict {
             parser.set_strict();
         }
-        let body = parser.parse_eval(direct, context.interner_mut())?;
+        let mut body = parser.parse_eval(direct, context.interner_mut())?;
 
         // 6. Let inFunction be false.
         // 7. Let inMethod be false.
@@ -229,11 +231,18 @@ impl Eval {
             }
         });
 
-        let var_environment = context.vm.environments.outer_function_environment().clone();
-        let mut var_env = var_environment.compile_env();
+        let (var_environment, mut variable_scope) =
+            if let Some(e) = context.vm.environments.outer_function_environment() {
+                (e.0, e.1)
+            } else {
+                (
+                    context.realm().environment().clone(),
+                    context.realm().scope().clone(),
+                )
+            };
 
-        let lex_env = context.vm.environments.current_compile_environment();
-        let lex_env = Rc::new(CompileTimeEnvironment::new(lex_env, strict));
+        let lexical_scope = lexical_scope.unwrap_or(context.realm().scope().clone());
+        let lexical_scope = Scope::new(lexical_scope, strict);
 
         let mut annex_b_function_names = Vec::new();
 
@@ -241,8 +250,12 @@ impl Eval {
             &mut annex_b_function_names,
             &body,
             strict,
-            if strict { &lex_env } else { &var_env },
-            &lex_env,
+            if strict {
+                &lexical_scope
+            } else {
+                &variable_scope
+            },
+            &lexical_scope,
             context,
         )?;
 
@@ -252,31 +265,46 @@ impl Eval {
             js_string!("<main>"),
             body.strict(),
             false,
-            var_env.clone(),
-            lex_env.clone(),
+            variable_scope.clone(),
+            lexical_scope.clone(),
+            false,
+            false,
             context.interner_mut(),
             in_with,
         );
 
         compiler.current_open_environments_count += 1;
 
-        let env_index = compiler.constants.len() as u32;
+        let scope_index = compiler.constants.len() as u32;
         compiler
             .constants
-            .push(crate::vm::Constant::CompileTimeEnvironment(lex_env.clone()));
+            .push(Constant::Scope(lexical_scope.clone()));
 
-        compiler.emit_with_varying_operand(Opcode::PushDeclarativeEnvironment, env_index);
+        compiler.emit_with_varying_operand(Opcode::PushScope, scope_index);
         if strict {
-            var_env = lex_env.clone();
-            compiler.variable_environment = lex_env.clone();
+            variable_scope = lexical_scope.clone();
+            compiler.variable_scope = lexical_scope.clone();
         }
 
         #[cfg(feature = "annex-b")]
         {
-            compiler.annex_b_function_names = annex_b_function_names;
+            compiler
+                .annex_b_function_names
+                .clone_from(&annex_b_function_names);
         }
 
-        compiler.eval_declaration_instantiation(&body, strict, &var_env, &lex_env);
+        let bindings = body
+            .analyze_scope_eval(
+                strict,
+                &variable_scope,
+                &lexical_scope,
+                &annex_b_function_names,
+                compiler.interner(),
+            )
+            .map_err(|e| JsNativeError::syntax().with_message(e))?;
+
+        compiler.eval_declaration_instantiation(&body, strict, &variable_scope, bindings);
+
         compiler.compile_statement_list(body.statements(), true, false);
 
         let code_block = Gc::new(compiler.finish());

@@ -156,7 +156,7 @@ impl Statement {
     pub fn is_labelled_function(&self) -> bool {
         match self {
             Self::Labelled(stmt) => match stmt.item() {
-                LabelledItem::Function(_) => true,
+                LabelledItem::FunctionDeclaration(_) => true,
                 LabelledItem::Statement(stmt) => stmt.is_labelled_function(),
             },
             _ => false,

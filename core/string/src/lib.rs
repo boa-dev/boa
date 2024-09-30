@@ -18,6 +18,7 @@
 
 mod builder;
 mod common;
+mod display;
 mod iter;
 mod str;
 mod tagged;
@@ -26,6 +27,7 @@ mod tagged;
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
+use crate::display::JsStrDisplayEscaped;
 use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
@@ -34,6 +36,7 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
+use std::fmt::Write;
 use std::{
     alloc::{alloc, dealloc, Layout},
     cell::Cell,
@@ -147,6 +150,17 @@ impl CodePoint {
             Self::UnpairedSurrogate(surr) => {
                 dst[0] = surr;
                 &mut dst[0..=0]
+            }
+        }
+    }
+}
+
+impl std::fmt::Display for CodePoint {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CodePoint::Unicode(c) => f.write_char(*c),
+            CodePoint::UnpairedSurrogate(c) => {
+                write!(f, "\\u{c:04X}")
             }
         }
     }
@@ -530,10 +544,7 @@ impl JsString {
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
     #[inline]
     pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + '_ {
-        char::decode_utf16(self.iter()).map(|res| match res {
-            Ok(c) => CodePoint::Unicode(c),
-            Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
-        })
+        self.as_str().code_points()
     }
 
     /// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
@@ -937,6 +948,15 @@ impl JsString {
             UnwrappedTagged::Tag(_inner) => None,
         }
     }
+
+    /// Gets a displayable escaped string. This may be faster and has less
+    /// allocations than `format!("{}", str.to_string_escaped())` when
+    /// displaying.
+    #[inline]
+    #[must_use]
+    pub fn display_escaped(&self) -> JsStrDisplayEscaped<'_> {
+        JsStrDisplayEscaped::from(self.as_str())
+    }
 }
 
 impl Clone for JsString {
@@ -1038,10 +1058,7 @@ impl Drop for JsString {
 impl ToStringEscaped for JsString {
     #[inline]
     fn to_string_escaped(&self) -> String {
-        match self.as_str().variant() {
-            JsStrVariant::Latin1(v) => v.iter().copied().map(char::from).collect(),
-            JsStrVariant::Utf16(v) => v.to_string_escaped(),
-        }
+        format!("{}", self.display_escaped())
     }
 }
 
@@ -1234,11 +1251,6 @@ pub(crate) trait ToStringEscaped {
 impl ToStringEscaped for [u16] {
     #[inline]
     fn to_string_escaped(&self) -> String {
-        char::decode_utf16(self.iter().copied())
-            .map(|r| match r {
-                Ok(c) => String::from(c),
-                Err(e) => format!("\\u{:04X}", e.unpaired_surrogate()),
-            })
-            .collect()
+        JsString::from(self).to_string_escaped()
     }
 }

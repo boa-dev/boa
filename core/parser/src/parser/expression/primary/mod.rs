@@ -71,21 +71,18 @@ pub(in crate::parser) use object_initializer::Initializer;
 /// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PrimaryExpression {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl PrimaryExpression {
     /// Creates a new `PrimaryExpression` parser.
-    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -121,20 +118,24 @@ where
                 cursor.advance(interner);
                 let next_token = cursor.peek(0, interner).or_abrupt()?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
-                    GeneratorExpression::new(self.name)
+                    GeneratorExpression::new()
                         .parse(cursor, interner)
                         .map(Into::into)
                 } else {
-                    FunctionExpression::new(self.name)
+                    FunctionExpression::new()
                         .parse(cursor, interner)
                         .map(Into::into)
                 }
             }
             TokenKind::Keyword((Keyword::Class, _)) => {
                 cursor.advance(interner);
-                ClassExpression::new(self.name, self.allow_yield, self.allow_await)
+                ClassExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
+            }
+            TokenKind::Keyword((Keyword::Debugger, _)) => {
+                cursor.advance(interner);
+                Ok(ast::Expression::Debugger)
             }
             TokenKind::Keyword((Keyword::Async, contain_escaped_char)) => {
                 let contain_escaped_char = *contain_escaped_char;
@@ -154,11 +155,11 @@ where
                         cursor.advance(interner);
                         match cursor.peek(1, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
-                                AsyncGeneratorExpression::new(self.name)
+                                AsyncGeneratorExpression::new()
                                     .parse(cursor, interner)
                                     .map(Into::into)
                             }
-                            _ => AsyncFunctionExpression::new(self.name)
+                            _ => AsyncFunctionExpression::new()
                                 .parse(cursor, interner)
                                 .map(Into::into),
                         }
@@ -172,7 +173,6 @@ where
                 cursor.advance(interner);
                 cursor.set_goal(InputElement::RegExp);
                 let expr = CoverParenthesizedExpressionAndArrowParameterList::new(
-                    self.name,
                     self.allow_yield,
                     self.allow_await,
                 )
@@ -295,21 +295,18 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
 #[derive(Debug, Clone, Copy)]
 pub(super) struct CoverParenthesizedExpressionAndArrowParameterList {
-    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl CoverParenthesizedExpressionAndArrowParameterList {
     /// Creates a new `CoverParenthesizedExpressionAndArrowParameterList` parser.
-    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -379,9 +376,8 @@ where
                     .span()
             }
             _ => {
-                let expression =
-                    Expression::new(self.name, true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                let expression = Expression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
                 expressions.push(InnerExpression::Expression(expression));
 
                 let next = cursor.peek(0, interner).or_abrupt()?;

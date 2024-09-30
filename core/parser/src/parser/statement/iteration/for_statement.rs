@@ -144,14 +144,14 @@ where
                 }
 
                 Some(
-                    Expression::new(None, false, self.allow_yield, self.allow_await)
+                    Expression::new(false, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                         .into(),
                 )
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
-                Expression::new(None, false, self.allow_yield, self.allow_await)
+                Expression::new(false, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
                     .into(),
             ),
@@ -203,10 +203,10 @@ where
 
                 cursor.advance(interner);
                 let expr = if in_loop {
-                    Expression::new(None, true, self.allow_yield, self.allow_await)
+                    Expression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                 } else {
-                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                 };
 
@@ -262,16 +262,15 @@ where
             (init, _) => init,
         };
 
-        if let Some(ForLoopInitializer::Lexical(ast::declaration::LexicalDeclaration::Const(
-            ref list,
-        ))) = init
-        {
-            for decl in list.as_ref() {
-                if decl.init().is_none() {
-                    return Err(Error::general(
-                        "Expected initializer for const declaration",
-                        position,
-                    ));
+        if let Some(ForLoopInitializer::Lexical(initializer)) = &init {
+            if let ast::declaration::LexicalDeclaration::Const(list) = initializer.declaration() {
+                for decl in list.as_ref() {
+                    if decl.init().is_none() {
+                        return Err(Error::general(
+                            "Expected initializer for const declaration",
+                            position,
+                        ));
+                    }
                 }
             }
         }
@@ -281,7 +280,7 @@ where
         let cond = if cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {
             None
         } else {
-            let step = Expression::new(None, true, self.allow_yield, self.allow_await)
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
             Some(step)
@@ -290,7 +289,7 @@ where
         let step = if cursor.next_if(Punctuator::CloseParen, interner)?.is_some() {
             None
         } else {
-            let step = Expression::new(None, true, self.allow_yield, self.allow_await)
+            let step = Expression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
@@ -313,9 +312,9 @@ where
         // Early Error: It is a Syntax Error if any element of the BoundNames of
         // LexicalDeclaration also occurs in the VarDeclaredNames of Statement.
         // Note: only applies to lexical bindings.
-        if let Some(ForLoopInitializer::Lexical(ref decl)) = init {
+        if let Some(ForLoopInitializer::Lexical(initializer)) = &init {
             let vars = var_declared_names(&body);
-            for name in bound_names(decl) {
+            for name in bound_names(initializer.declaration()) {
                 if vars.contains(&name) {
                     return Err(Error::general(
                         "For loop initializer declared in loop body",
@@ -381,30 +380,32 @@ fn initializer_to_iterable_loop_initializer(
                 ))),
             }
         }
-        ForLoopInitializer::Lexical(decl) => match decl.variable_list().as_ref() {
-            [declaration] => {
-                if declaration.init().is_some() {
-                    return Err(Error::lex(LexError::Syntax(
+        ForLoopInitializer::Lexical(initializer) => {
+            match initializer.declaration().variable_list().as_ref() {
+                [decl] => {
+                    if decl.init().is_some() {
+                        return Err(Error::lex(LexError::Syntax(
                         format!("a lexical declaration in the head of a {loop_type} loop can't have an initializer")
                             .into(),
                         position,
                     )));
+                    }
+                    Ok(match initializer.declaration() {
+                        ast::declaration::LexicalDeclaration::Const(_) => {
+                            IterableLoopInitializer::Const(decl.binding().clone())
+                        }
+                        ast::declaration::LexicalDeclaration::Let(_) => {
+                            IterableLoopInitializer::Let(decl.binding().clone())
+                        }
+                    })
                 }
-                Ok(match decl {
-                    ast::declaration::LexicalDeclaration::Const(_) => {
-                        IterableLoopInitializer::Const(declaration.binding().clone())
-                    }
-                    ast::declaration::LexicalDeclaration::Let(_) => {
-                        IterableLoopInitializer::Let(declaration.binding().clone())
-                    }
-                })
+                _ => Err(Error::lex(LexError::Syntax(
+                    format!("only one variable can be declared in the head of a {loop_type} loop")
+                        .into(),
+                    position,
+                ))),
             }
-            _ => Err(Error::lex(LexError::Syntax(
-                format!("only one variable can be declared in the head of a {loop_type} loop")
-                    .into(),
-                position,
-            ))),
-        },
+        }
         ForLoopInitializer::Var(decl) => match decl.0.as_ref() {
             [declaration] => {
                 // https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads

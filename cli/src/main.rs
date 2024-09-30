@@ -5,6 +5,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
+#![allow(clippy::print_stdout, clippy::print_stderr)]
 
 mod debug;
 mod helper;
@@ -189,8 +190,9 @@ where
         let mut parser = boa_parser::Parser::new(Source::from_bytes(src));
         let dump =
             if args.module {
+                let scope = context.realm().scope().clone();
                 let module = parser
-                    .parse_module(context.interner_mut())
+                    .parse_module(&scope, context.interner_mut())
                     .map_err(|e| format!("Uncaught SyntaxError: {e}"))?;
 
                 match arg {
@@ -201,8 +203,9 @@ where
                     DumpFormat::Debug => format!("{module:#?}"),
                 }
             } else {
+                let scope = context.realm().scope().clone();
                 let mut script = parser
-                    .parse_script(context.interner_mut())
+                    .parse_script(&scope, context.interner_mut())
                     .map_err(|e| format!("Uncaught SyntaxError: {e}"))?;
 
                 if args.optimize {

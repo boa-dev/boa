@@ -10,7 +10,6 @@ license.workspace = true
 description.workspace = true
 
 [dependencies]
-icu_provider.workspace = true
 icu_datagen = { workspace = true, features = [
     "networking",
     "use_wasm",

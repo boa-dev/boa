@@ -1039,6 +1039,78 @@ impl JsPromise {
 
         JsFuture { inner: state }
     }
+
+    /// Run jobs until this promise is resolved or rejected. This could
+    /// result in an infinite loop if the promise is never resolved or
+    /// rejected (e.g. with a [`boa_engine::job::JobQueue`] that does
+    /// not prioritize properly). If you need more control over how
+    /// the promise handles timing out, consider using
+    /// [`Context::run_jobs`] directly.
+    ///
+    /// Returns [`Result::Ok`] if the promise resolved, or [`Result::Err`]
+    /// if the promise was rejected. If the promise was already resolved,
+    /// [`Context::run_jobs`] is guaranteed to not be executed.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::{Context, JsArgs, JsValue, NativeFunction};
+    /// # use boa_engine::object::builtins::{JsFunction, JsPromise};
+    /// let context = &mut Context::default();
+    ///
+    /// let p1 = JsPromise::new(|fns, context| {
+    ///     fns.resolve.call(&JsValue::undefined(), &[JsValue::new(1)], context)
+    /// }, context);
+    /// let p2 = p1.then(
+    ///     Some(
+    ///         NativeFunction::from_fn_ptr(|_, args, context| {
+    ///             assert_eq!(*args.get_or_undefined(0), JsValue::new(1));
+    ///             Ok(JsValue::new(2))
+    ///         })
+    ///         .to_js_function(context.realm()),
+    ///     ),
+    ///     None,
+    ///     context,);
+    ///
+    /// assert_eq!(p2.await_blocking(context), Ok(JsValue::new(2)));
+    /// ```
+    ///
+    /// This will not panic as `run_jobs()` is not executed.
+    /// ```
+    /// # use boa_engine::{Context, JsValue, NativeFunction};
+    /// # use boa_engine::object::builtins::JsPromise;
+    ///
+    /// let context = &mut Context::default();
+    /// let p1 = JsPromise::new(|fns, context| {
+    ///     fns.resolve.call(&JsValue::Undefined, &[], context)
+    /// }, context)
+    ///     .then(
+    ///         Some(
+    ///             NativeFunction::from_fn_ptr(|_, _, _| {
+    ///                 panic!("This will not happen.");
+    ///             })
+    ///             .to_js_function(context.realm())
+    ///         ),
+    ///         None,
+    ///         context,
+    ///     );
+    /// let p2 = JsPromise::resolve(1, context);
+    ///
+    /// assert_eq!(p2.await_blocking(context), Ok(JsValue::new(1)));
+    /// // Uncommenting the following line would panic.
+    /// // context.run_jobs();
+    /// ```
+    pub fn await_blocking(&self, context: &mut Context) -> Result<JsValue, JsValue> {
+        loop {
+            match self.state() {
+                PromiseState::Pending => {
+                    context.run_jobs();
+                }
+                PromiseState::Fulfilled(f) => break Ok(f),
+                PromiseState::Rejected(r) => break Err(r),
+            }
+        }
+    }
 }
 
 impl From<JsPromise> for JsObject {

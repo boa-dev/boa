@@ -1,11 +1,13 @@
 use crate::{
     bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
-    environments::BindingLocatorError,
     vm::Opcode,
 };
-use boa_ast::expression::{
-    access::{PropertyAccess, PropertyAccessField},
-    operator::{update::UpdateOp, Update},
+use boa_ast::{
+    expression::{
+        access::{PropertyAccess, PropertyAccessField},
+        operator::{update::UpdateOp, Update},
+    },
+    scope::BindingLocatorError,
 };
 
 impl ByteCompiler<'_> {
@@ -24,15 +26,14 @@ impl ByteCompiler<'_> {
         match Access::from_update_target(update.target()) {
             Access::Variable { name } => {
                 let name = name.to_js_string(self.interner());
-                let binding = self
-                    .lexical_environment
-                    .get_identifier_reference(name.clone());
-                let index = self.get_or_insert_binding(binding.locator());
+                let binding = self.lexical_scope.get_identifier_reference(name.clone());
+                let is_lexical = binding.is_lexical();
+                let index = self.get_or_insert_binding(binding);
 
-                if binding.is_lexical() {
-                    self.emit_with_varying_operand(Opcode::GetName, index);
+                if is_lexical {
+                    self.emit_binding_access(Opcode::GetName, &index);
                 } else {
-                    self.emit_with_varying_operand(Opcode::GetNameAndLocator, index);
+                    self.emit_binding_access(Opcode::GetNameAndLocator, &index);
                 }
 
                 self.emit_opcode(opcode);
@@ -42,11 +43,11 @@ impl ByteCompiler<'_> {
                     self.emit_opcode(Opcode::Dup);
                 }
 
-                if binding.is_lexical() {
-                    match self.lexical_environment.set_mutable_binding(name.clone()) {
+                if is_lexical {
+                    match self.lexical_scope.set_mutable_binding(name.clone()) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
-                            self.emit_with_varying_operand(Opcode::SetName, index);
+                            self.emit_binding_access(Opcode::SetName, &index);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_string(name);
@@ -57,7 +58,7 @@ impl ByteCompiler<'_> {
                         }
                     }
                 } else {
-                    self.emit_opcode(Opcode::SetNameByLocator);
+                    self.emit_binding_access(Opcode::SetNameByLocator, &index);
                 }
             }
             Access::Property { access } => match access {

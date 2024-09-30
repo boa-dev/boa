@@ -38,7 +38,7 @@ impl IntrinsicObject for Atomics {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        BuiltInBuilder::with_intrinsic::<Self>(realm)
+        let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
                 Self::NAME,
@@ -55,8 +55,12 @@ impl IntrinsicObject for Atomics {
             .static_method(Atomics::sub, js_string!("sub"), 3)
             .static_method(Atomics::wait, js_string!("wait"), 4)
             .static_method(Atomics::notify, js_string!("notify"), 3)
-            .static_method(Atomics::bit_xor, js_string!("xor"), 3)
-            .build();
+            .static_method(Atomics::bit_xor, js_string!("xor"), 3);
+
+        #[cfg(feature = "experimental")]
+        let builder = builder.static_method(Atomics::pause, js_string!("pause"), 0);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -511,6 +515,50 @@ impl Atomics {
         // 12. Let n be the number of elements in S.
         // 13. Return 𝔽(n).
         Ok(count.into())
+    }
+
+    /// [`Atomics.pause ( [ iterationNumber ] )`][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-atomics-microwait/#Atomics.pause
+    #[cfg(feature = "experimental")]
+    fn pause(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        use super::Number;
+
+        let iteration_number = args.get_or_undefined(0);
+
+        // 1. If iterationNumber is not undefined, then
+        let iterations = if iteration_number.is_undefined() {
+            1
+        } else {
+            // a. If iterationNumber is not an integral Number, throw a TypeError exception.
+            if !Number::is_integer(iteration_number) {
+                return Err(JsNativeError::typ()
+                    .with_message("`iterationNumber` must be an integral Number")
+                    .into());
+            }
+
+            // b. If ℝ(iterationNumber) < 0, throw a RangeError exception.
+            let iteration_number = iteration_number.to_number(context)? as i16;
+            if iteration_number < 0 {
+                return Err(JsNativeError::range()
+                    .with_message("`iterationNumber` must be a positive integer")
+                    .into());
+            }
+
+            // Clamp to u16 so that the main thread cannot block using this.
+            iteration_number as u16
+        };
+
+        // 2. If the execution environment of the ECMAScript implementation supports a signal that the current executing code
+        //    is in a spin-wait loop, send that signal. An ECMAScript implementation may send that signal multiple times,
+        //    determined by iterationNumber when not undefined. The number of times the signal is sent for an integral Number
+        //    N is at most the number of times it is sent for N + 1.
+        for _ in 0..iterations {
+            std::hint::spin_loop();
+        }
+
+        // 3. Return undefined.
+        Ok(JsValue::undefined())
     }
 }
 

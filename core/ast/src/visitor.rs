@@ -16,7 +16,10 @@ use crate::{
             PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SimplePropertyAccess,
             SuperPropertyAccess,
         },
-        literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral},
+        literal::{
+            ArrayLiteral, Literal, ObjectLiteral, ObjectMethodDefinition, PropertyDefinition,
+            TemplateElement, TemplateLiteral,
+        },
         operator::{
             assign::{Assign, AssignTarget},
             Binary, BinaryInPrivate, Conditional, Unary, Update,
@@ -26,11 +29,13 @@ use crate::{
         Yield,
     },
     function::{
-        ArrowFunction, AsyncArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement,
-        FormalParameter, FormalParameterList, Function, Generator, PrivateName,
+        ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
+        AsyncGeneratorDeclaration, AsyncGeneratorExpression, ClassDeclaration, ClassElement,
+        ClassExpression, FormalParameter, FormalParameterList, FunctionBody, FunctionDeclaration,
+        FunctionExpression, GeneratorDeclaration, GeneratorExpression, PrivateName,
     },
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
-    property::{MethodDefinition, PropertyDefinition, PropertyName},
+    property::PropertyName,
     statement::{
         iteration::{
             Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForLoopInitializer, ForOfLoop,
@@ -121,15 +126,21 @@ macro_rules! node_ref {
 node_ref! {
     Script,
     Module,
+    FunctionBody,
     StatementList,
     StatementListItem,
     Statement,
     Declaration,
-    Function,
-    Generator,
-    AsyncFunction,
-    AsyncGenerator,
-    Class,
+    FunctionExpression,
+    FunctionDeclaration,
+    GeneratorExpression,
+    GeneratorDeclaration,
+    AsyncFunctionExpression,
+    AsyncFunctionDeclaration,
+    AsyncGeneratorExpression,
+    AsyncGeneratorDeclaration,
+    ClassExpression,
+    ClassDeclaration,
     LexicalDeclaration,
     Block,
     VarDeclaration,
@@ -189,7 +200,7 @@ node_ref! {
     Finally,
     FormalParameter,
     PropertyName,
-    MethodDefinition,
+    ObjectMethodDefinition,
     ObjectPattern,
     ArrayPattern,
     PropertyDefinition,
@@ -224,15 +235,21 @@ pub trait Visitor<'ast>: Sized {
 
     define_visit!(visit_script, Script);
     define_visit!(visit_module, Module);
+    define_visit!(visit_function_body, FunctionBody);
     define_visit!(visit_statement_list, StatementList);
     define_visit!(visit_statement_list_item, StatementListItem);
     define_visit!(visit_statement, Statement);
     define_visit!(visit_declaration, Declaration);
-    define_visit!(visit_function, Function);
-    define_visit!(visit_generator, Generator);
-    define_visit!(visit_async_function, AsyncFunction);
-    define_visit!(visit_async_generator, AsyncGenerator);
-    define_visit!(visit_class, Class);
+    define_visit!(visit_function_expression, FunctionExpression);
+    define_visit!(visit_function_declaration, FunctionDeclaration);
+    define_visit!(visit_generator_expression, GeneratorExpression);
+    define_visit!(visit_generator_declaration, GeneratorDeclaration);
+    define_visit!(visit_async_function_expression, AsyncFunctionExpression);
+    define_visit!(visit_async_function_declaration, AsyncFunctionDeclaration);
+    define_visit!(visit_async_generator_expression, AsyncGeneratorExpression);
+    define_visit!(visit_async_generator_declaration, AsyncGeneratorDeclaration);
+    define_visit!(visit_class_expression, ClassExpression);
+    define_visit!(visit_class_declaration, ClassDeclaration);
     define_visit!(visit_lexical_declaration, LexicalDeclaration);
     define_visit!(visit_block, Block);
     define_visit!(visit_var_declaration, VarDeclaration);
@@ -292,7 +309,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_finally, Finally);
     define_visit!(visit_formal_parameter, FormalParameter);
     define_visit!(visit_property_name, PropertyName);
-    define_visit!(visit_method_definition, MethodDefinition);
+    define_visit!(visit_object_method_definition, ObjectMethodDefinition);
     define_visit!(visit_object_pattern, ObjectPattern);
     define_visit!(visit_array_pattern, ArrayPattern);
     define_visit!(visit_property_definition, PropertyDefinition);
@@ -324,15 +341,21 @@ pub trait Visitor<'ast>: Sized {
         match node {
             NodeRef::Script(n) => self.visit_script(n),
             NodeRef::Module(n) => self.visit_module(n),
+            NodeRef::FunctionBody(n) => self.visit_function_body(n),
             NodeRef::StatementList(n) => self.visit_statement_list(n),
             NodeRef::StatementListItem(n) => self.visit_statement_list_item(n),
             NodeRef::Statement(n) => self.visit_statement(n),
             NodeRef::Declaration(n) => self.visit_declaration(n),
-            NodeRef::Function(n) => self.visit_function(n),
-            NodeRef::Generator(n) => self.visit_generator(n),
-            NodeRef::AsyncFunction(n) => self.visit_async_function(n),
-            NodeRef::AsyncGenerator(n) => self.visit_async_generator(n),
-            NodeRef::Class(n) => self.visit_class(n),
+            NodeRef::FunctionExpression(n) => self.visit_function_expression(n),
+            NodeRef::FunctionDeclaration(n) => self.visit_function_declaration(n),
+            NodeRef::GeneratorExpression(n) => self.visit_generator_expression(n),
+            NodeRef::GeneratorDeclaration(n) => self.visit_generator_declaration(n),
+            NodeRef::AsyncFunctionExpression(n) => self.visit_async_function_expression(n),
+            NodeRef::AsyncFunctionDeclaration(n) => self.visit_async_function_declaration(n),
+            NodeRef::AsyncGeneratorExpression(n) => self.visit_async_generator_expression(n),
+            NodeRef::AsyncGeneratorDeclaration(n) => self.visit_async_generator_declaration(n),
+            NodeRef::ClassExpression(n) => self.visit_class_expression(n),
+            NodeRef::ClassDeclaration(n) => self.visit_class_declaration(n),
             NodeRef::LexicalDeclaration(n) => self.visit_lexical_declaration(n),
             NodeRef::Block(n) => self.visit_block(n),
             NodeRef::VarDeclaration(n) => self.visit_var_declaration(n),
@@ -392,7 +415,7 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::Finally(n) => self.visit_finally(n),
             NodeRef::FormalParameter(n) => self.visit_formal_parameter(n),
             NodeRef::PropertyName(n) => self.visit_property_name(n),
-            NodeRef::MethodDefinition(n) => self.visit_method_definition(n),
+            NodeRef::ObjectMethodDefinition(n) => self.visit_object_method_definition(n),
             NodeRef::ObjectPattern(n) => self.visit_object_pattern(n),
             NodeRef::ArrayPattern(n) => self.visit_array_pattern(n),
             NodeRef::PropertyDefinition(n) => self.visit_property_definition(n),
@@ -429,15 +452,30 @@ pub trait VisitorMut<'ast>: Sized {
 
     define_visit_mut!(visit_script_mut, Script);
     define_visit_mut!(visit_module_mut, Module);
+    define_visit_mut!(visit_function_body_mut, FunctionBody);
     define_visit_mut!(visit_statement_list_mut, StatementList);
     define_visit_mut!(visit_statement_list_item_mut, StatementListItem);
     define_visit_mut!(visit_statement_mut, Statement);
     define_visit_mut!(visit_declaration_mut, Declaration);
-    define_visit_mut!(visit_function_mut, Function);
-    define_visit_mut!(visit_generator_mut, Generator);
-    define_visit_mut!(visit_async_function_mut, AsyncFunction);
-    define_visit_mut!(visit_async_generator_mut, AsyncGenerator);
-    define_visit_mut!(visit_class_mut, Class);
+    define_visit_mut!(visit_function_expression_mut, FunctionExpression);
+    define_visit_mut!(visit_function_declaration_mut, FunctionDeclaration);
+    define_visit_mut!(visit_generator_expression_mut, GeneratorExpression);
+    define_visit_mut!(visit_generator_declaration_mut, GeneratorDeclaration);
+    define_visit_mut!(visit_async_function_expression_mut, AsyncFunctionExpression);
+    define_visit_mut!(
+        visit_async_function_declaration_mut,
+        AsyncFunctionDeclaration
+    );
+    define_visit_mut!(
+        visit_async_generator_expression_mut,
+        AsyncGeneratorExpression
+    );
+    define_visit_mut!(
+        visit_async_generator_declaration_mut,
+        AsyncGeneratorDeclaration
+    );
+    define_visit_mut!(visit_class_expression_mut, ClassExpression);
+    define_visit_mut!(visit_class_declaration_mut, ClassDeclaration);
     define_visit_mut!(visit_lexical_declaration_mut, LexicalDeclaration);
     define_visit_mut!(visit_block_mut, Block);
     define_visit_mut!(visit_var_declaration_mut, VarDeclaration);
@@ -497,7 +535,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_finally_mut, Finally);
     define_visit_mut!(visit_formal_parameter_mut, FormalParameter);
     define_visit_mut!(visit_property_name_mut, PropertyName);
-    define_visit_mut!(visit_method_definition_mut, MethodDefinition);
+    define_visit_mut!(visit_object_method_definition_mut, ObjectMethodDefinition);
     define_visit_mut!(visit_object_pattern_mut, ObjectPattern);
     define_visit_mut!(visit_array_pattern_mut, ArrayPattern);
     define_visit_mut!(visit_property_definition_mut, PropertyDefinition);
@@ -529,15 +567,23 @@ pub trait VisitorMut<'ast>: Sized {
         match node {
             NodeRefMut::Script(n) => self.visit_script_mut(n),
             NodeRefMut::Module(n) => self.visit_module_mut(n),
+            NodeRefMut::FunctionBody(n) => self.visit_function_body_mut(n),
             NodeRefMut::StatementList(n) => self.visit_statement_list_mut(n),
             NodeRefMut::StatementListItem(n) => self.visit_statement_list_item_mut(n),
             NodeRefMut::Statement(n) => self.visit_statement_mut(n),
             NodeRefMut::Declaration(n) => self.visit_declaration_mut(n),
-            NodeRefMut::Function(n) => self.visit_function_mut(n),
-            NodeRefMut::Generator(n) => self.visit_generator_mut(n),
-            NodeRefMut::AsyncFunction(n) => self.visit_async_function_mut(n),
-            NodeRefMut::AsyncGenerator(n) => self.visit_async_generator_mut(n),
-            NodeRefMut::Class(n) => self.visit_class_mut(n),
+            NodeRefMut::FunctionExpression(n) => self.visit_function_expression_mut(n),
+            NodeRefMut::FunctionDeclaration(n) => self.visit_function_declaration_mut(n),
+            NodeRefMut::GeneratorExpression(n) => self.visit_generator_expression_mut(n),
+            NodeRefMut::GeneratorDeclaration(n) => self.visit_generator_declaration_mut(n),
+            NodeRefMut::AsyncFunctionExpression(n) => self.visit_async_function_expression_mut(n),
+            NodeRefMut::AsyncFunctionDeclaration(n) => self.visit_async_function_declaration_mut(n),
+            NodeRefMut::AsyncGeneratorExpression(n) => self.visit_async_generator_expression_mut(n),
+            NodeRefMut::AsyncGeneratorDeclaration(n) => {
+                self.visit_async_generator_declaration_mut(n)
+            }
+            NodeRefMut::ClassExpression(n) => self.visit_class_expression_mut(n),
+            NodeRefMut::ClassDeclaration(n) => self.visit_class_declaration_mut(n),
             NodeRefMut::LexicalDeclaration(n) => self.visit_lexical_declaration_mut(n),
             NodeRefMut::Block(n) => self.visit_block_mut(n),
             NodeRefMut::VarDeclaration(n) => self.visit_var_declaration_mut(n),
@@ -597,7 +643,7 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::Finally(n) => self.visit_finally_mut(n),
             NodeRefMut::FormalParameter(n) => self.visit_formal_parameter_mut(n),
             NodeRefMut::PropertyName(n) => self.visit_property_name_mut(n),
-            NodeRefMut::MethodDefinition(n) => self.visit_method_definition_mut(n),
+            NodeRefMut::ObjectMethodDefinition(n) => self.visit_object_method_definition_mut(n),
             NodeRefMut::ObjectPattern(n) => self.visit_object_pattern_mut(n),
             NodeRefMut::ArrayPattern(n) => self.visit_array_pattern_mut(n),
             NodeRefMut::PropertyDefinition(n) => self.visit_property_definition_mut(n),

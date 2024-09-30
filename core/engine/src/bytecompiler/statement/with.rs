@@ -6,8 +6,8 @@ impl ByteCompiler<'_> {
     pub(crate) fn compile_with(&mut self, with: &With, use_expr: bool) {
         self.compile_expr(with.expression(), true);
 
-        let old_lex_env = self.lexical_environment.clone();
-        let _ = self.push_compile_environment(false);
+        let outer_scope = self.lexical_scope.clone();
+        let _ = self.push_scope(with.scope());
         self.emit_opcode(Opcode::PushObjectEnvironment);
 
         let in_with = self.in_with;
@@ -15,8 +15,8 @@ impl ByteCompiler<'_> {
         self.compile_stmt(with.statement(), use_expr, true);
         self.in_with = in_with;
 
-        self.pop_compile_environment();
-        self.lexical_environment = old_lex_env;
+        self.pop_scope();
+        self.lexical_scope = outer_scope;
         self.emit_opcode(Opcode::PopEnvironment);
     }
 }

@@ -2,7 +2,20 @@
 
 ## What's Changed
 
-<!-- Release notes generated using configuration in .github/release.yml at main -->
+# [0.19.1 (2024-09-11)](https://github.com/boa-dev/boa/compare/v0.19...v0.19.1)
+
+### Bug Fixes
+
+- Implement new spec changes for `AsyncGenerator` by @jedel1043 in https://github.com/boa-dev/boa/pull/3950
+- Allow dead code for code that is newly detected as unused by @hansl in https://github.com/boa-dev/boa/pull/3984
+- Allow warnings when running CI on release branches by @jedel1043 in https://github.com/boa-dev/boa/pull/3990
+
+### Internal Improvements
+
+- Add spec edition 15 to the tester by @jedel1043 in https://github.com/boa-dev/boa/pull/3957
+- Enable CI for release branches by @jedel1043 in https://github.com/boa-dev/boa/pull/3987
+
+**Full Changelog**: https://github.com/boa-dev/boa/compare/v0.19...v0.19.1
 
 # [0.19.0 (2024-07-08)](https://github.com/boa-dev/boa/compare/v0.18...v0.19)
 

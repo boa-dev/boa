@@ -26,16 +26,19 @@ use crate::{
 };
 use boa_ast::{
     expression::{
-        literal::{self, Literal},
+        literal::{
+            self, Literal, ObjectMethodDefinition, PropertyDefinition as PropertyDefinitionNode,
+        },
         Identifier,
     },
     function::{
-        AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator, PrivateName,
+        ClassElementName as ClassElementNameNode, FormalParameterList,
+        FunctionBody as FunctionBodyAst, PrivateName,
     },
     operations::{
-        bound_names, contains, has_direct_super, lexically_declared_names, ContainsSymbol,
+        bound_names, contains, has_direct_super_new, lexically_declared_names, ContainsSymbol,
     },
-    property::{self, MethodDefinition},
+    property::{MethodDefinitionKind, PropertyName as PropertyNameNode},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
@@ -94,10 +97,7 @@ where
 
             if matches!(
                 property,
-                property::PropertyDefinition::Property(
-                    property::PropertyName::Literal(Sym::__PROTO__),
-                    _
-                )
+                PropertyDefinitionNode::Property(PropertyNameNode::Literal(Sym::__PROTO__), _)
             ) {
                 if has_proto && duplicate_proto_position.is_none() {
                     duplicate_proto_position = Some(position);
@@ -170,7 +170,7 @@ impl<R> TokenParser<R> for PropertyDefinition
 where
     R: ReadChar,
 {
-    type Output = property::PropertyDefinition;
+    type Output = PropertyDefinitionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("PropertyDefinition", "Parsing");
@@ -179,7 +179,7 @@ where
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) => {
                 let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                return Ok(property::PropertyDefinition::IdentifierReference(ident));
+                return Ok(PropertyDefinitionNode::IdentifierReference(ident));
             }
             TokenKind::Punctuator(Punctuator::Assign) => {
                 return CoverInitializedName::new(self.allow_yield, self.allow_await)
@@ -190,9 +190,9 @@ where
 
         //  ... AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
-            let node = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+            let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
-            return Ok(property::PropertyDefinition::SpreadObject(node));
+            return Ok(PropertyDefinitionNode::SpreadObject(node));
         }
 
         //Async [AsyncMethod, AsyncGeneratorMethod] object methods
@@ -217,17 +217,11 @@ where
                 let position = token.span().start();
 
                 if token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
-                    let (class_element_name, method) =
+                    let (class_element_name, params, body) =
                         AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
 
-                    // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                    if has_direct_super(&method) {
-                        return Err(Error::general("invalid super usage", position));
-                    }
-
-                    let property::ClassElementName::PropertyName(property_name) =
-                        class_element_name
+                    let ClassElementNameNode::PropertyName(property_name) = class_element_name
                     else {
                         return Err(Error::general(
                             "private identifiers not allowed in object literal",
@@ -235,30 +229,48 @@ where
                         ));
                     };
 
-                    return Ok(property::PropertyDefinition::MethodDefinition(
-                        property_name,
-                        method,
+                    // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                    if has_direct_super_new(&params, &body) {
+                        return Err(Error::lex(LexError::Syntax(
+                            "invalid super call usage".into(),
+                            position,
+                        )));
+                    }
+
+                    return Ok(PropertyDefinitionNode::MethodDefinition(
+                        ObjectMethodDefinition::new(
+                            property_name,
+                            params,
+                            body,
+                            MethodDefinitionKind::AsyncGenerator,
+                        ),
                     ));
                 }
-                let (class_element_name, method) =
+                let (class_element_name, params, body) =
                     AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-                let property::ClassElementName::PropertyName(property_name) = class_element_name
-                else {
+                let ClassElementNameNode::PropertyName(property_name) = class_element_name else {
                     return Err(Error::general(
                         "private identifiers not allowed in object literal",
                         position,
                     ));
                 };
 
-                // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if has_direct_super(&method) {
-                    return Err(Error::general("invalid super usage", position));
+                // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                if has_direct_super_new(&params, &body) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid super call usage".into(),
+                        position,
+                    )));
                 }
 
-                return Ok(property::PropertyDefinition::MethodDefinition(
-                    property_name,
-                    method,
+                return Ok(PropertyDefinitionNode::MethodDefinition(
+                    ObjectMethodDefinition::new(
+                        property_name,
+                        params,
+                        body,
+                        MethodDefinitionKind::Async,
+                    ),
                 ));
             }
             _ => {}
@@ -268,28 +280,32 @@ where
 
         if token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
             let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-            let (class_element_name, method) =
+            let (class_element_name, params, body) =
                 GeneratorMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-            // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-            if has_direct_super(&method) {
-                return Err(Error::general("invalid super usage", position));
+            let ClassElementNameNode::PropertyName(property_name) = class_element_name else {
+                return Err(Error::general(
+                    "private identifier not allowed in object literal",
+                    position,
+                ));
+            };
+
+            // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+            if has_direct_super_new(&params, &body) {
+                return Err(Error::lex(LexError::Syntax(
+                    "invalid super call usage".into(),
+                    position,
+                )));
             }
 
-            match class_element_name {
-                property::ClassElementName::PropertyName(property_name) => {
-                    return Ok(property::PropertyDefinition::MethodDefinition(
-                        property_name,
-                        method,
-                    ))
-                }
-                property::ClassElementName::PrivateIdentifier(_) => {
-                    return Err(Error::general(
-                        "private identifier not allowed in object literal",
-                        position,
-                    ))
-                }
-            }
+            return Ok(PropertyDefinitionNode::MethodDefinition(
+                ObjectMethodDefinition::new(
+                    property_name,
+                    params,
+                    body,
+                    MethodDefinitionKind::Generator,
+                ),
+            ));
         }
 
         let set_or_get_escaped_position = match token.kind() {
@@ -304,15 +320,16 @@ where
 
         //  PropertyName[?Yield, ?Await] : AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Colon, interner)?.is_some() {
-            let name = property_name
-                .literal()
-                .filter(|name| *name != Sym::__PROTO__)
-                .map(Into::into);
-
-            let value = AssignmentExpression::new(name, true, self.allow_yield, self.allow_await)
+            let mut value = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
-            return Ok(property::PropertyDefinition::Property(property_name, value));
+            if let Some(name) = property_name.literal() {
+                if name != Sym::__PROTO__ {
+                    value.set_anonymous_function_definition_name(&Identifier::new(name));
+                }
+            }
+
+            return Ok(PropertyDefinitionNode::Property(property_name, value));
         }
 
         let ordinary_method = cursor.peek(0, interner).or_abrupt()?.kind()
@@ -320,7 +337,7 @@ where
 
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
-            property::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
+            PropertyNameNode::Literal(str) if str == Sym::GET && !ordinary_method => {
                 if let Some(position) = set_or_get_escaped_position {
                     return Err(Error::general(
                         "Keyword must not contain escaped characters",
@@ -356,24 +373,25 @@ where
                     interner,
                 )?;
 
-                let method = MethodDefinition::Get(Function::new(
-                    None,
-                    FormalParameterList::default(),
-                    body,
-                ));
-
-                // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if has_direct_super(&method) {
-                    return Err(Error::general("invalid super usage", position));
+                // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                if has_direct_super_new(&FormalParameterList::default(), &body) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid super call usage".into(),
+                        position,
+                    )));
                 }
 
-                Ok(property::PropertyDefinition::MethodDefinition(
-                    property_name,
-                    method,
+                Ok(PropertyDefinitionNode::MethodDefinition(
+                    ObjectMethodDefinition::new(
+                        property_name,
+                        FormalParameterList::default(),
+                        body,
+                        MethodDefinitionKind::Get,
+                    ),
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
-            property::PropertyName::Literal(str) if str == Sym::SET && !ordinary_method => {
+            PropertyNameNode::Literal(str) if str == Sym::SET && !ordinary_method => {
                 if let Some(position) = set_or_get_escaped_position {
                     return Err(Error::general(
                         "Keyword must not contain escaped characters",
@@ -392,7 +410,7 @@ where
                     )?
                     .span()
                     .end();
-                let parameters: FormalParameterList = FormalParameter::new(false, false)
+                let params: FormalParameterList = FormalParameter::new(false, false)
                     .parse(cursor, interner)?
                     .into();
                 cursor.expect(
@@ -414,7 +432,7 @@ where
                 )?;
 
                 // Catch early error for BindingIdentifier.
-                if body.strict() && contains(&parameters, ContainsSymbol::EvalOrArguments) {
+                if body.strict() && contains(&params, ContainsSymbol::EvalOrArguments) {
                     return Err(Error::lex(LexError::Syntax(
                         "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
                         params_start_position,
@@ -424,7 +442,7 @@ where
                 // It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of PropertySetParameterList is false.
                 // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
-                if body.strict() && !parameters.is_simple() {
+                if body.strict() && !params.is_simple() {
                     return Err(Error::lex(LexError::Syntax(
                         "Illegal 'use strict' directive in function with non-simple parameter list"
                             .into(),
@@ -436,23 +454,27 @@ where
                 // occurs in the LexicallyDeclaredNames of FunctionBody.
                 // https://tc39.es/ecma262/#sec-method-definitions-static-semantics-early-errors
                 name_in_lexically_declared_names(
-                    &bound_names(&parameters),
+                    &bound_names(&params),
                     &lexically_declared_names(&body),
                     params_start_position,
                     interner,
                 )?;
 
-                let method = MethodDefinition::Set(Function::new(None, parameters, body));
-
-                // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                // https://tc39.es/ecma262/#sec-object-initializer-static-semantics-early-errors
-                if has_direct_super(&method) {
-                    return Err(Error::general("invalid super usage", params_start_position));
+                // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                if has_direct_super_new(&params, &body) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid super call usage".into(),
+                        params_start_position,
+                    )));
                 }
 
-                Ok(property::PropertyDefinition::MethodDefinition(
-                    property_name,
-                    method,
+                Ok(PropertyDefinitionNode::MethodDefinition(
+                    ObjectMethodDefinition::new(
+                        property_name,
+                        params,
+                        body,
+                        MethodDefinitionKind::Set,
+                    ),
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> ClassElementName[?Yield, ?Await] ( UniqueFormalParameters[~Yield, ~Await] ) { FunctionBody[~Yield, ~Await] }
@@ -511,16 +533,21 @@ where
                     interner,
                 )?;
 
-                let method = MethodDefinition::Ordinary(Function::new(None, params, body));
-
-                // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if has_direct_super(&method) {
-                    return Err(Error::general("invalid super usage", params_start_position));
+                // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                if has_direct_super_new(&params, &body) {
+                    return Err(Error::lex(LexError::Syntax(
+                        "invalid super call usage".into(),
+                        params_start_position,
+                    )));
                 }
 
-                Ok(property::PropertyDefinition::MethodDefinition(
-                    property_name,
-                    method,
+                Ok(PropertyDefinitionNode::MethodDefinition(
+                    ObjectMethodDefinition::new(
+                        property_name,
+                        params,
+                        body,
+                        MethodDefinitionKind::Ordinary,
+                    ),
                 ))
             }
         }
@@ -557,7 +584,7 @@ impl<R> TokenParser<R> for PropertyName
 where
     R: ReadChar,
 {
-    type Output = property::PropertyName;
+    type Output = PropertyNameNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("PropertyName", "Parsing");
@@ -566,9 +593,8 @@ where
         let name = match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.advance(interner);
-                let node =
-                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
                 cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
                 return Ok(node.into());
             }
@@ -633,7 +659,7 @@ impl<R> TokenParser<R> for ClassElementName
 where
     R: ReadChar,
 {
-    type Output = property::ClassElementName;
+    type Output = ClassElementNameNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassElementName", "Parsing");
@@ -643,11 +669,9 @@ where
             TokenKind::PrivateIdentifier(ident) => {
                 let ident = *ident;
                 cursor.advance(interner);
-                Ok(property::ClassElementName::PrivateIdentifier(
-                    PrivateName::new(ident),
-                ))
+                Ok(ClassElementNameNode::PrivateName(PrivateName::new(ident)))
             }
-            _ => Ok(property::ClassElementName::PropertyName(
+            _ => Ok(ClassElementNameNode::PropertyName(
                 PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
             )),
         }
@@ -662,7 +686,6 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-Initializer
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct Initializer {
-    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -670,20 +693,13 @@ pub(in crate::parser) struct Initializer {
 
 impl Initializer {
     /// Creates a new `Initializer` parser.
-    pub(in crate::parser) fn new<N, I, Y, A>(
-        name: N,
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
+    pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -701,7 +717,7 @@ where
         let _timer = Profiler::global().start_event("Initializer", "Parsing");
 
         cursor.expect(Punctuator::Assign, "initializer", interner)?;
-        AssignmentExpression::new(self.name, self.allow_in, self.allow_yield, self.allow_await)
+        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)
     }
 }
@@ -736,7 +752,7 @@ impl<R> TokenParser<R> for GeneratorMethod
 where
     R: ReadChar,
 {
-    type Output = (property::ClassElementName, MethodDefinition);
+    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("GeneratorMethod", "Parsing");
@@ -790,16 +806,15 @@ where
             interner,
         )?;
 
-        let method = MethodDefinition::Generator(Generator::new(None, params, body, false));
-
-        if contains(&method, ContainsSymbol::Super) {
+        // Early Error: It is a Syntax Error if HasDirectSuper of AsyncMethod is true.
+        if has_direct_super_new(&params, &body) {
             return Err(Error::lex(LexError::Syntax(
-                "invalid super usage".into(),
+                "invalid super call usage".into(),
                 body_start,
             )));
         }
 
-        Ok((class_element_name, method))
+        Ok((class_element_name, params, body))
     }
 }
 
@@ -833,7 +848,7 @@ impl<R> TokenParser<R> for AsyncGeneratorMethod
 where
     R: ReadChar,
 {
-    type Output = (property::ClassElementName, MethodDefinition);
+    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncGeneratorMethod", "Parsing");
@@ -850,7 +865,7 @@ where
 
         let params = UniqueFormalParameters::new(true, true).parse(cursor, interner)?;
 
-        // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        // Early Error: It is a Syntax Error if UniqueFormalParameters Contains YieldExpression is true.
         if contains(&params, ContainsSymbol::YieldExpression) {
             return Err(Error::lex(LexError::Syntax(
                 "yield expression not allowed in async generator method definition parameters"
@@ -859,7 +874,7 @@ where
             )));
         }
 
-        // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
+        // Early Error: It is a Syntax Error if UniqueFormalParameters Contains AwaitExpression is true.
         if contains(&params, ContainsSymbol::AwaitExpression) {
             return Err(Error::lex(LexError::Syntax(
                 "await expression not allowed in async generator method definition parameters"
@@ -892,8 +907,8 @@ where
             )));
         }
 
-        // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
-        // occurs in the LexicallyDeclaredNames of GeneratorBody.
+        // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters
+        // also occurs in the LexicallyDeclaredNames of AsyncGeneratorBody.
         name_in_lexically_declared_names(
             &bound_names(&params),
             &lexically_declared_names(&body),
@@ -901,17 +916,15 @@ where
             interner,
         )?;
 
-        let method =
-            MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body, false));
-
-        if contains(&method, ContainsSymbol::Super) {
+        // Early Error: It is a Syntax Error if HasDirectSuper of AsyncMethod is true.
+        if has_direct_super_new(&params, &body) {
             return Err(Error::lex(LexError::Syntax(
-                "invalid super usage".into(),
+                "invalid super call usage".into(),
                 body_start,
             )));
         }
 
-        Ok((name, method))
+        Ok((name, params, body))
     }
 }
 
@@ -945,7 +958,7 @@ impl<R> TokenParser<R> for AsyncMethod
 where
     R: ReadChar,
 {
-    type Output = (property::ClassElementName, MethodDefinition);
+    type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncMethod", "Parsing");
@@ -972,8 +985,8 @@ where
             interner,
         )?;
 
-        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
-        // and IsSimpleParameterList of UniqueFormalParameters is false.
+        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of AsyncFunctionBody
+        // is true and IsSimpleParameterList of UniqueFormalParameters is false.
         if body.strict() && !params.is_simple() {
             return Err(Error::lex(LexError::Syntax(
                 "Illegal 'use strict' directive in function with non-simple parameter list".into(),
@@ -981,8 +994,8 @@ where
             )));
         }
 
-        // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
-        // occurs in the LexicallyDeclaredNames of GeneratorBody.
+        // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters
+        // also occurs in the LexicallyDeclaredNames of AsyncFunctionBody.
         name_in_lexically_declared_names(
             &bound_names(&params),
             &lexically_declared_names(&body),
@@ -990,16 +1003,15 @@ where
             interner,
         )?;
 
-        let method = MethodDefinition::Async(AsyncFunction::new(None, params, body, false));
-
-        if contains(&method, ContainsSymbol::Super) {
+        // Early Error: It is a Syntax Error if HasDirectSuper of AsyncMethod is true.
+        if has_direct_super_new(&params, &body) {
             return Err(Error::lex(LexError::Syntax(
-                "invalid super usage".into(),
+                "invalid super call usage".into(),
                 body_start,
             )));
         }
 
-        Ok((class_element_name, method))
+        Ok((class_element_name, params, body))
     }
 }
 
@@ -1033,7 +1045,7 @@ impl<R> TokenParser<R> for CoverInitializedName
 where
     R: ReadChar,
 {
-    type Output = property::PropertyDefinition;
+    type Output = PropertyDefinitionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("CoverInitializedName", "Parsing");
@@ -1043,11 +1055,9 @@ where
 
         cursor.expect(Punctuator::Assign, "CoverInitializedName", interner)?;
 
-        let expr = AssignmentExpression::new(ident, true, self.allow_yield, self.allow_await)
+        let expr = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
-        Ok(property::PropertyDefinition::CoverInitializedName(
-            ident, expr,
-        ))
+        Ok(PropertyDefinitionNode::CoverInitializedName(ident, expr))
     }
 }

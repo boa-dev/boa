@@ -1,3 +1,5 @@
+use crate::operations::{contains, ContainsSymbol};
+use crate::scope::Scope;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
@@ -23,7 +25,7 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForLoop {
     #[cfg_attr(feature = "serde", serde(flatten))]
-    inner: Box<InnerForLoop>,
+    pub(crate) inner: Box<InnerForLoop>,
 }
 
 impl ForLoop {
@@ -138,27 +140,39 @@ impl VisitWith for ForLoop {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-struct InnerForLoop {
-    init: Option<ForLoopInitializer>,
-    condition: Option<Expression>,
-    final_expr: Option<Expression>,
-    body: Statement,
+pub(crate) struct InnerForLoop {
+    pub(crate) init: Option<ForLoopInitializer>,
+    pub(crate) condition: Option<Expression>,
+    pub(crate) final_expr: Option<Expression>,
+    pub(crate) body: Statement,
+    pub(crate) contains_direct_eval: bool,
 }
 
 impl InnerForLoop {
     /// Creates a new inner for loop.
     #[inline]
-    const fn new(
+    fn new(
         init: Option<ForLoopInitializer>,
         condition: Option<Expression>,
         final_expr: Option<Expression>,
         body: Statement,
     ) -> Self {
+        let mut contains_direct_eval = contains(&body, ContainsSymbol::DirectEval);
+        if let Some(init) = &init {
+            contains_direct_eval |= contains(init, ContainsSymbol::DirectEval);
+        }
+        if let Some(condition) = &condition {
+            contains_direct_eval |= contains(condition, ContainsSymbol::DirectEval);
+        }
+        if let Some(final_expr) = &final_expr {
+            contains_direct_eval |= contains(final_expr, ContainsSymbol::DirectEval);
+        }
         Self {
             init,
             condition,
             final_expr,
             body,
+            contains_direct_eval,
         }
     }
 
@@ -204,14 +218,48 @@ pub enum ForLoopInitializer {
     /// A var declaration initializer.
     Var(VarDeclaration),
     /// A lexical declaration initializer.
-    Lexical(LexicalDeclaration),
+    Lexical(ForLoopInitializerLexical),
+}
+
+/// A lexical declaration initializer for a `ForLoop`.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct ForLoopInitializerLexical {
+    pub(crate) declaration: LexicalDeclaration,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Scope,
+}
+
+impl ForLoopInitializerLexical {
+    /// Creates a new lexical declaration initializer.
+    #[inline]
+    #[must_use]
+    pub fn new(declaration: LexicalDeclaration, scope: Scope) -> Self {
+        Self { declaration, scope }
+    }
+
+    /// Returns the declaration of the lexical initializer.
+    #[inline]
+    #[must_use]
+    pub const fn declaration(&self) -> &LexicalDeclaration {
+        &self.declaration
+    }
+
+    /// Returns the scope of the lexical initializer.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> &Scope {
+        &self.scope
+    }
 }
 
 impl ToInternedString for ForLoopInitializer {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Var(var) => var.to_interned_string(interner),
-            Self::Lexical(lex) => lex.to_interned_string(interner),
+            Self::Lexical(lex) => lex.declaration.to_interned_string(interner),
             Self::Expression(expr) => expr.to_interned_string(interner),
         }
     }
@@ -227,7 +275,10 @@ impl From<Expression> for ForLoopInitializer {
 impl From<LexicalDeclaration> for ForLoopInitializer {
     #[inline]
     fn from(list: LexicalDeclaration) -> Self {
-        Self::Lexical(list)
+        Self::Lexical(ForLoopInitializerLexical {
+            declaration: list,
+            scope: Scope::default(),
+        })
     }
 }
 
@@ -246,7 +297,7 @@ impl VisitWith for ForLoopInitializer {
         match self {
             Self::Expression(expr) => visitor.visit_expression(expr),
             Self::Var(vd) => visitor.visit_var_declaration(vd),
-            Self::Lexical(ld) => visitor.visit_lexical_declaration(ld),
+            Self::Lexical(ld) => visitor.visit_lexical_declaration(&ld.declaration),
         }
     }
 
@@ -257,7 +308,7 @@ impl VisitWith for ForLoopInitializer {
         match self {
             Self::Expression(expr) => visitor.visit_expression_mut(expr),
             Self::Var(vd) => visitor.visit_var_declaration_mut(vd),
-            Self::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
+            Self::Lexical(ld) => visitor.visit_lexical_declaration_mut(&mut ld.declaration),
         }
     }
 }

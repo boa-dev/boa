@@ -15,6 +15,7 @@
 
 use std::{borrow::Cow, iter::once};
 
+use boa_ast::scope::Scope;
 use boa_macros::{js_str, utf16};
 use itertools::Itertools;
 
@@ -111,15 +112,17 @@ impl Json {
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
-        let script = parser.parse_script(context.interner_mut())?;
+        let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
             let in_with = context.vm.environments.has_object_environment();
             let mut compiler = ByteCompiler::new(
                 js_string!("<main>"),
                 script.strict(),
                 true,
-                context.realm().environment().compile_env(),
-                context.realm().environment().compile_env(),
+                context.realm().scope().clone(),
+                context.realm().scope().clone(),
+                false,
+                false,
                 context.interner_mut(),
                 in_with,
             );

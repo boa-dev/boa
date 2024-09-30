@@ -958,7 +958,7 @@ impl ContextBuilder {
         mut self,
         provider: T,
     ) -> Result<Self, IcuError> {
-        self.icu = Some(icu::IntlProvider::try_new_with_buffer_provider(provider)?);
+        self.icu = Some(icu::IntlProvider::try_new_with_buffer_provider(provider));
         Ok(self)
     }
 
@@ -992,7 +992,7 @@ impl ContextBuilder {
         mut self,
         provider: T,
     ) -> Result<Self, IcuError> {
-        self.icu = Some(icu::IntlProvider::try_new_with_any_provider(provider)?);
+        self.icu = Some(icu::IntlProvider::try_new_with_any_provider(provider));
         Ok(self)
     }
 
@@ -1093,7 +1093,6 @@ impl ContextBuilder {
                 cfg_if::cfg_if! {
                     if #[cfg(feature = "intl_bundled")] {
                         icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
-                            .expect("Failed to initialize default icu data.")
                     } else {
                         return Err(JsNativeError::typ()
                             .with_message("missing Intl provider for context")

@@ -160,7 +160,8 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
     }
 }
 
-/// An argument that would be ignored in a JS function.
+/// An argument that would be ignored in a JS function. This is equivalent of typing
+/// `()` in Rust functions argument, but more explicit.
 #[derive(Debug, Clone, Copy)]
 pub struct Ignore;
 
@@ -387,6 +388,18 @@ impl<T: NativeObject> JsClass<T> {
     #[must_use]
     pub fn borrow_mut(&self) -> GcRefMut<'_, Object<T>, T> {
         GcRefMut::map(self.inner.borrow_mut(), |obj| obj.data_mut())
+    }
+}
+
+impl<T: NativeObject + Clone> JsClass<T> {
+    /// Clones the inner class instance.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the inner object is currently borrowed mutably.
+    #[must_use]
+    pub fn clone_inner(&self) -> T {
+        self.inner.borrow().data().clone()
     }
 }
 

@@ -17,7 +17,7 @@ impl Default for RuntimeLimits {
         Self {
             loop_iteration_limit: u64::MAX,
             resursion_limit: 512,
-            stack_size_limit: 1024,
+            stack_size_limit: 1024 * 10,
         }
     }
 }

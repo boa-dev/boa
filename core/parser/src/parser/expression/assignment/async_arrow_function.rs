@@ -25,10 +25,9 @@ use ast::{
 use boa_ast::{
     self as ast,
     declaration::Variable,
-    expression::Identifier,
     function::{FormalParameter, FormalParameterList},
     statement::Return,
-    Punctuator, StatementList,
+    Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -43,21 +42,18 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncArrowFunction
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct AsyncArrowFunction {
-    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
 }
 
 impl AsyncArrowFunction {
     /// Creates a new `AsyncArrowFunction` parser.
-    pub(in crate::parser) fn new<N, I, Y>(name: N, allow_in: I, allow_yield: Y) -> Self
+    pub(in crate::parser) fn new<I, Y>(allow_in: I, allow_yield: Y) -> Self
     where
-        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
     {
         Self {
-            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
         }
@@ -148,9 +144,7 @@ where
             interner,
         )?;
 
-        Ok(ast::function::AsyncArrowFunction::new(
-            self.name, params, body,
-        ))
+        Ok(ast::function::AsyncArrowFunction::new(None, params, body))
     }
 }
 
@@ -179,23 +173,23 @@ where
     type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let body =
-            match cursor.peek(0, interner).or_abrupt()?.kind() {
-                TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                    cursor.advance(interner);
-                    let body = FunctionBody::new(false, true).parse(cursor, interner)?;
-                    cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
-                    body
-                }
-                _ => ast::function::FunctionBody::new(StatementList::from(vec![
-                    ast::Statement::Return(Return::new(
-                        ExpressionBody::new(self.allow_in, true)
-                            .parse(cursor, interner)?
-                            .into(),
-                    ))
-                    .into(),
-                ])),
-            };
+        let body = match cursor.peek(0, interner).or_abrupt()?.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                cursor.advance(interner);
+                let body = FunctionBody::new(false, true).parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
+                body
+            }
+            _ => ast::function::FunctionBody::new(
+                [ast::Statement::Return(Return::new(
+                    ExpressionBody::new(self.allow_in, true)
+                        .parse(cursor, interner)?
+                        .into(),
+                ))
+                .into()],
+                false,
+            ),
+        };
 
         Ok(body)
     }

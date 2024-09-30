@@ -309,7 +309,10 @@ fn module_namespace_exotic_try_get(
         };
 
         let locator = env
-            .compile_env()
+            .kind()
+            .as_module()
+            .expect("must be module environment")
+            .compile()
             .get_binding(&name)
             .expect("checked before that the name was reachable");
 
@@ -386,7 +389,10 @@ fn module_namespace_exotic_get(
         };
 
         let locator = env
-            .compile_env()
+            .kind()
+            .as_module()
+            .expect("must be module environment")
+            .compile()
             .get_binding(&name)
             .expect("checked before that the name was reachable");
 

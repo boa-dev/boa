@@ -20,13 +20,17 @@ use ast::{
     operations::{
         check_labels, contains_invalid_object_literal, lexically_declared_names, var_declared_names,
     },
+    property::MethodDefinitionKind,
 };
 use boa_ast::{
     self as ast,
     expression::Identifier,
-    function::{self, Class, FormalParameterList, Function},
-    operations::{contains, contains_arguments, has_direct_super, ContainsSymbol},
-    property::{ClassElementName, MethodDefinition},
+    function::{
+        self, ClassDeclaration as ClassDeclarationNode, ClassElementName, ClassFieldDefinition,
+        ClassMethodDefinition, FormalParameterList, FunctionExpression, PrivateFieldDefinition,
+        StaticBlockBody,
+    },
+    operations::{contains, contains_arguments, ContainsSymbol},
     Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
@@ -68,19 +72,17 @@ impl<R> TokenParser<R> for ClassDeclaration
 where
     R: ReadChar,
 {
-    type Output = Class;
+    type Output = ClassDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Class, false), "class declaration", interner)?;
         let strict = cursor.strict();
         cursor.set_strict(true);
 
-        let mut has_binding_identifier = false;
         let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::IdentifierName(_)
             | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
-                has_binding_identifier = true;
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
@@ -95,13 +97,15 @@ where
         };
         cursor.set_strict(strict);
 
-        ClassTail::new(
+        let (super_ref, constructor, elements) =
+            ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        Ok(ClassDeclarationNode::new(
             name,
-            has_binding_identifier,
-            self.allow_yield,
-            self.allow_await,
-        )
-        .parse(cursor, interner)
+            super_ref,
+            constructor,
+            elements.into_boxed_slice(),
+        ))
     }
 }
 
@@ -114,19 +118,13 @@ where
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct ClassTail {
     name: Option<Identifier>,
-    has_binding_identifier: bool,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassTail {
     /// Creates a new `ClassTail` parser.
-    pub(in crate::parser) fn new<N, Y, A>(
-        name: N,
-        has_binding_identifier: bool,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
+    pub(in crate::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
         N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
@@ -134,7 +132,6 @@ impl ClassTail {
     {
         Self {
             name: name.into(),
-            has_binding_identifier,
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -145,7 +142,11 @@ impl<R> TokenParser<R> for ClassTail
 where
     R: ReadChar,
 {
-    type Output = Class;
+    type Output = (
+        Option<Expression>,
+        Option<FunctionExpression>,
+        Vec<function::ClassElement>,
+    );
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -173,13 +174,7 @@ where
 
         if is_close_block {
             cursor.advance(interner);
-            Ok(Class::new(
-                self.name,
-                super_ref,
-                None,
-                Box::default(),
-                self.has_binding_identifier,
-            ))
+            Ok((super_ref, None, Vec::new()))
         } else {
             let body_start = cursor.peek(0, interner).or_abrupt()?.span().start();
             let (constructor, elements) =
@@ -198,13 +193,7 @@ where
                 }
             }
 
-            Ok(Class::new(
-                self.name,
-                super_ref,
-                constructor,
-                elements.into(),
-                self.has_binding_identifier,
-            ))
+            Ok((super_ref, constructor, elements))
         }
     }
 }
@@ -250,7 +239,7 @@ where
 
         let strict = cursor.strict();
         cursor.set_strict(true);
-        let lhs = LeftHandSideExpression::new(None, self.allow_yield, self.allow_await)
+        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
         cursor.set_strict(strict);
 
@@ -291,7 +280,7 @@ impl<R> TokenParser<R> for ClassBody
 where
     R: ReadChar,
 {
-    type Output = (Option<Function>, Vec<function::ClassElement>);
+    type Output = (Option<FunctionExpression>, Vec<function::ClassElement>);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut constructor = None;
@@ -305,221 +294,179 @@ where
         loop {
             let token = cursor.peek(0, interner).or_abrupt()?;
             let position = token.span().start();
-            match token.kind() {
+            let (parsed_constructor, element) = match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => break,
-                _ => match ClassElement::new(self.name, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?
-                {
-                    (Some(_), None) if constructor.is_some() => {
+                _ => ClassElement::new(self.name, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?,
+            };
+            if let Some(c) = parsed_constructor {
+                if constructor.is_some() {
+                    return Err(Error::general(
+                        "a class may only have one constructor",
+                        position,
+                    ));
+                }
+                constructor = Some(c);
+            }
+            let Some(element) = element else {
+                continue;
+            };
+
+            match &element {
+                function::ClassElement::MethodDefinition(m) => {
+                    // It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
+                    if let ClassElementName::PropertyName(name) = m.name() {
+                        if contains(name, ContainsSymbol::SuperCall) {
+                            return Err(Error::lex(LexError::Syntax(
+                                "invalid super call usage".into(),
+                                position,
+                            )));
+                        }
+                    }
+                    if contains(m.parameters(), ContainsSymbol::SuperCall)
+                        || contains(m.body(), ContainsSymbol::SuperCall)
+                    {
+                        return Err(Error::lex(LexError::Syntax(
+                            "invalid super call usage".into(),
+                            position,
+                        )));
+                    }
+
+                    if let ClassElementName::PrivateName(name) = m.name() {
+                        match m.kind() {
+                            MethodDefinitionKind::Get => {
+                                match private_elements_names.get(&name.description()) {
+                                    Some(PrivateElement::StaticSetter) if m.is_static() => {
+                                        private_elements_names.insert(
+                                            name.description(),
+                                            PrivateElement::StaticValue,
+                                        );
+                                    }
+                                    Some(PrivateElement::Setter) if !m.is_static() => {
+                                        private_elements_names
+                                            .insert(name.description(), PrivateElement::Value);
+                                    }
+                                    Some(_) => {
+                                        return Err(Error::general(
+                                            "private identifier has already been declared",
+                                            position,
+                                        ));
+                                    }
+                                    None => {
+                                        private_elements_names.insert(
+                                            name.description(),
+                                            if m.is_static() {
+                                                PrivateElement::StaticGetter
+                                            } else {
+                                                PrivateElement::Getter
+                                            },
+                                        );
+                                    }
+                                }
+                            }
+                            MethodDefinitionKind::Set => {
+                                match private_elements_names.get(&name.description()) {
+                                    Some(PrivateElement::StaticGetter) if m.is_static() => {
+                                        private_elements_names.insert(
+                                            name.description(),
+                                            PrivateElement::StaticValue,
+                                        );
+                                    }
+                                    Some(PrivateElement::Getter) if !m.is_static() => {
+                                        private_elements_names
+                                            .insert(name.description(), PrivateElement::Value);
+                                    }
+                                    Some(_) => {
+                                        return Err(Error::general(
+                                            "private identifier has already been declared",
+                                            position,
+                                        ));
+                                    }
+                                    None => {
+                                        private_elements_names.insert(
+                                            name.description(),
+                                            if m.is_static() {
+                                                PrivateElement::StaticSetter
+                                            } else {
+                                                PrivateElement::Setter
+                                            },
+                                        );
+                                    }
+                                }
+                            }
+                            _ => {
+                                if private_elements_names
+                                    .insert(
+                                        name.description(),
+                                        if m.is_static() {
+                                            PrivateElement::StaticValue
+                                        } else {
+                                            PrivateElement::Value
+                                        },
+                                    )
+                                    .is_some()
+                                {
+                                    return Err(Error::general(
+                                        "private identifier has already been declared",
+                                        position,
+                                    ));
+                                }
+                            }
+                        }
+                    }
+                }
+                function::ClassElement::PrivateFieldDefinition(field) => {
+                    if let Some(node) = field.field() {
+                        if contains(node, ContainsSymbol::SuperCall) {
+                            return Err(Error::lex(LexError::Syntax(
+                                "invalid super usage".into(),
+                                position,
+                            )));
+                        }
+                    }
+                    if private_elements_names
+                        .insert(field.name().description(), PrivateElement::Value)
+                        .is_some()
+                    {
                         return Err(Error::general(
-                            "a class may only have one constructor",
+                            "private identifier has already been declared",
                             position,
                         ));
                     }
-                    (Some(c), None) => {
-                        constructor = Some(c);
-                    }
-                    (None, Some(element)) => {
-                        match &element {
-                            function::ClassElement::PrivateMethodDefinition(name, method) => {
-                                // It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
-                                if has_direct_super(method) {
-                                    return Err(Error::lex(LexError::Syntax(
-                                        "invalid super usage".into(),
-                                        position,
-                                    )));
-                                }
-                                match method {
-                                    MethodDefinition::Get(_) => {
-                                        match private_elements_names.get(&name.description()) {
-                                            Some(PrivateElement::Setter) => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::Value,
-                                                );
-                                            }
-                                            Some(_) => {
-                                                return Err(Error::general(
-                                                    "private identifier has already been declared",
-                                                    position,
-                                                ));
-                                            }
-                                            None => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::Getter,
-                                                );
-                                            }
-                                        }
-                                    }
-                                    MethodDefinition::Set(_) => {
-                                        match private_elements_names.get(&name.description()) {
-                                            Some(PrivateElement::Getter) => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::Value,
-                                                );
-                                            }
-                                            Some(_) => {
-                                                return Err(Error::general(
-                                                    "private identifier has already been declared",
-                                                    position,
-                                                ));
-                                            }
-                                            None => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::Setter,
-                                                );
-                                            }
-                                        }
-                                    }
-                                    _ => {
-                                        if private_elements_names
-                                            .insert(name.description(), PrivateElement::Value)
-                                            .is_some()
-                                        {
-                                            return Err(Error::general(
-                                                "private identifier has already been declared",
-                                                position,
-                                            ));
-                                        }
-                                    }
-                                }
-                            }
-                            function::ClassElement::PrivateStaticMethodDefinition(name, method) => {
-                                // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                                if has_direct_super(method) {
-                                    return Err(Error::lex(LexError::Syntax(
-                                        "invalid super usage".into(),
-                                        position,
-                                    )));
-                                }
-                                match method {
-                                    MethodDefinition::Get(_) => {
-                                        match private_elements_names.get(&name.description()) {
-                                            Some(PrivateElement::StaticSetter) => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::StaticValue,
-                                                );
-                                            }
-                                            Some(_) => {
-                                                return Err(Error::general(
-                                                    "private identifier has already been declared",
-                                                    position,
-                                                ));
-                                            }
-                                            None => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::StaticGetter,
-                                                );
-                                            }
-                                        }
-                                    }
-                                    MethodDefinition::Set(_) => {
-                                        match private_elements_names.get(&name.description()) {
-                                            Some(PrivateElement::StaticGetter) => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::StaticValue,
-                                                );
-                                            }
-                                            Some(_) => {
-                                                return Err(Error::general(
-                                                    "private identifier has already been declared",
-                                                    position,
-                                                ));
-                                            }
-                                            None => {
-                                                private_elements_names.insert(
-                                                    name.description(),
-                                                    PrivateElement::StaticSetter,
-                                                );
-                                            }
-                                        }
-                                    }
-                                    _ => {
-                                        if private_elements_names
-                                            .insert(name.description(), PrivateElement::StaticValue)
-                                            .is_some()
-                                        {
-                                            return Err(Error::general(
-                                                "private identifier has already been declared",
-                                                position,
-                                            ));
-                                        }
-                                    }
-                                }
-                            }
-                            function::ClassElement::PrivateFieldDefinition(name, init) => {
-                                if let Some(node) = init {
-                                    if contains(node, ContainsSymbol::SuperCall) {
-                                        return Err(Error::lex(LexError::Syntax(
-                                            "invalid super usage".into(),
-                                            position,
-                                        )));
-                                    }
-                                }
-                                if private_elements_names
-                                    .insert(name.description(), PrivateElement::Value)
-                                    .is_some()
-                                {
-                                    return Err(Error::general(
-                                        "private identifier has already been declared",
-                                        position,
-                                    ));
-                                }
-                            }
-                            function::ClassElement::PrivateStaticFieldDefinition(name, init) => {
-                                if let Some(node) = init {
-                                    if contains(node, ContainsSymbol::SuperCall) {
-                                        return Err(Error::lex(LexError::Syntax(
-                                            "invalid super usage".into(),
-                                            position,
-                                        )));
-                                    }
-                                }
-                                if private_elements_names
-                                    .insert(name.description(), PrivateElement::StaticValue)
-                                    .is_some()
-                                {
-                                    return Err(Error::general(
-                                        "private identifier has already been declared",
-                                        position,
-                                    ));
-                                }
-                            }
-                            function::ClassElement::MethodDefinition(_, method)
-                            | function::ClassElement::StaticMethodDefinition(_, method) => {
-                                // ClassElement : MethodDefinition:
-                                //  It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
-                                // ClassElement : static MethodDefinition:
-                                //  It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                                if has_direct_super(method) {
-                                    return Err(Error::lex(LexError::Syntax(
-                                        "invalid super usage".into(),
-                                        position,
-                                    )));
-                                }
-                            }
-                            function::ClassElement::FieldDefinition(_, Some(node))
-                            | function::ClassElement::StaticFieldDefinition(_, Some(node)) => {
-                                if contains(node, ContainsSymbol::SuperCall) {
-                                    return Err(Error::lex(LexError::Syntax(
-                                        "invalid super usage".into(),
-                                        position,
-                                    )));
-                                }
-                            }
-                            _ => {}
+                }
+                function::ClassElement::PrivateStaticFieldDefinition(name, init) => {
+                    if let Some(node) = init {
+                        if contains(node, ContainsSymbol::SuperCall) {
+                            return Err(Error::lex(LexError::Syntax(
+                                "invalid super usage".into(),
+                                position,
+                            )));
                         }
-                        elements.push(element);
                     }
-                    _ => {}
-                },
+                    if private_elements_names
+                        .insert(name.description(), PrivateElement::StaticValue)
+                        .is_some()
+                    {
+                        return Err(Error::general(
+                            "private identifier has already been declared",
+                            position,
+                        ));
+                    }
+                }
+                function::ClassElement::FieldDefinition(field)
+                | function::ClassElement::StaticFieldDefinition(field) => {
+                    if let Some(field) = field.field() {
+                        if contains(field, ContainsSymbol::SuperCall) {
+                            return Err(Error::lex(LexError::Syntax(
+                                "invalid super usage".into(),
+                                position,
+                            )));
+                        }
+                    }
+                }
+                function::ClassElement::StaticBlock(_) => {}
             }
+            elements.push(element);
         }
 
         cursor.set_strict(strict);
@@ -572,7 +519,7 @@ impl<R> TokenParser<R> for ClassElement
 where
     R: ReadChar,
 {
-    type Output = (Option<Function>, Option<function::ClassElement>);
+    type Output = (Option<FunctionExpression>, Option<function::ClassElement>);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -643,7 +590,10 @@ where
                 )?;
                 cursor.set_strict(strict);
 
-                return Ok((Some(Function::new(self.name, parameters, body)), None));
+                return Ok((
+                    Some(FunctionExpression::new(self.name, parameters, body, false)),
+                    None,
+                ));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) if r#static => {
                 cursor.advance(interner);
@@ -728,7 +678,7 @@ where
                     cursor.set_strict(strict);
                     statement_list
                 };
-                function::ClassElement::StaticBlock(function::FunctionBody::new(statement_list))
+                function::ClassElement::StaticBlock(StaticBlockBody::new(statement_list.into()))
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner).or_abrupt()?;
@@ -743,39 +693,38 @@ where
                 }
                 let strict = cursor.strict();
                 cursor.set_strict(true);
-                let (class_element_name, method) =
+                let (class_element_name, params, body) =
                     GeneratorMethod::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                 cursor.set_strict(strict);
 
-                match class_element_name {
-                    ClassElementName::PropertyName(property_name) if r#static => {
-                        if property_name.literal() == Some(Sym::PROTOTYPE) {
+                let name = match class_element_name {
+                    ClassElementName::PropertyName(name) => {
+                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
                             return Err(Error::general(
                                 "class may not have static method definitions named 'prototype'",
                                 name_position,
                             ));
                         }
-                        function::ClassElement::StaticMethodDefinition(property_name, method)
+                        ClassElementName::PropertyName(name)
                     }
-                    ClassElementName::PropertyName(property_name) => {
-                        function::ClassElement::MethodDefinition(property_name, method)
+                    ClassElementName::PrivateName(name) => {
+                        if name.description() == Sym::CONSTRUCTOR {
+                            return Err(Error::general(
+                                "class constructor may not be a private method",
+                                name_position,
+                            ));
+                        }
+                        ClassElementName::PrivateName(name)
                     }
-                    ClassElementName::PrivateIdentifier(name)
-                        if name.description() == Sym::CONSTRUCTOR =>
-                    {
-                        return Err(Error::general(
-                            "class constructor may not be a private method",
-                            name_position,
-                        ))
-                    }
-                    ClassElementName::PrivateIdentifier(private_ident) if r#static => {
-                        function::ClassElement::PrivateStaticMethodDefinition(private_ident, method)
-                    }
-                    ClassElementName::PrivateIdentifier(private_ident) => {
-                        function::ClassElement::PrivateMethodDefinition(private_ident, method)
-                    }
-                }
+                };
+                function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                    name,
+                    params,
+                    body,
+                    MethodDefinitionKind::Generator,
+                    r#static,
+                ))
             }
             TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
                 return Err(Error::general(
@@ -808,39 +757,33 @@ where
                         }
                         let strict = cursor.strict();
                         cursor.set_strict(true);
-                        let (class_element_name, method) =
+                        let (class_element_name, params, body) =
                             AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
                         cursor.set_strict(strict);
-                        match class_element_name {
-                            ClassElementName::PropertyName(property_name) if r#static => {
-                                if property_name.literal() == Some(Sym::PROTOTYPE) {
+
+                        let name = match class_element_name {
+                            ClassElementName::PropertyName(name) => {
+                                if r#static && name.literal() == Some(Sym::PROTOTYPE) {
                                     return Err(Error::general(
                                         "class may not have static method definitions named 'prototype'",
                                         name_position,
                                     ));
                                 }
-                                function::ClassElement::StaticMethodDefinition(
-                                    property_name,
-                                    method,
-                                )
+                                ClassElementName::PropertyName(name)
                             }
-                            ClassElementName::PropertyName(property_name) => {
-                                function::ClassElement::MethodDefinition(property_name, method)
+                            ClassElementName::PrivateName(name) => {
+                                ClassElementName::PrivateName(name)
                             }
-                            ClassElementName::PrivateIdentifier(private_ident) if r#static => {
-                                function::ClassElement::PrivateStaticMethodDefinition(
-                                    private_ident,
-                                    method,
-                                )
-                            }
-                            ClassElementName::PrivateIdentifier(private_ident) => {
-                                function::ClassElement::PrivateMethodDefinition(
-                                    private_ident,
-                                    method,
-                                )
-                            }
-                        }
+                        };
+
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            name,
+                            params,
+                            body,
+                            MethodDefinitionKind::AsyncGenerator,
+                            r#static,
+                        ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
@@ -852,44 +795,38 @@ where
                         let name_position = token.span().start();
                         let strict = cursor.strict();
                         cursor.set_strict(true);
-                        let (class_element_name, method) =
+                        let (class_element_name, params, body) =
                             AsyncMethod::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
                         cursor.set_strict(strict);
 
-                        match class_element_name {
-                            ClassElementName::PropertyName(property_name) if r#static => {
-                                if property_name.literal() == Some(Sym::PROTOTYPE) {
+                        let name = match class_element_name {
+                            ClassElementName::PropertyName(name) => {
+                                if r#static && name.literal() == Some(Sym::PROTOTYPE) {
                                     return Err(Error::general(
                                         "class may not have static method definitions named 'prototype'",
                                         name_position,
                                     ));
                                 }
-                                function::ClassElement::StaticMethodDefinition(
-                                    property_name,
-                                    method,
-                                )
+                                ClassElementName::PropertyName(name)
                             }
-                            ClassElementName::PropertyName(property_name) => {
-                                function::ClassElement::MethodDefinition(property_name, method)
+                            ClassElementName::PrivateName(name) => {
+                                if r#static && name.description() == Sym::CONSTRUCTOR {
+                                    return Err(Error::general(
+                                        "class constructor may not be a private method",
+                                        name_position,
+                                    ));
+                                }
+                                ClassElementName::PrivateName(name)
                             }
-                            ClassElementName::PrivateIdentifier(name)
-                                if name.description() == Sym::CONSTRUCTOR && r#static =>
-                            {
-                                return Err(Error::general(
-                                    "class constructor may not be a private method",
-                                    name_position,
-                                ))
-                            }
-                            ClassElementName::PrivateIdentifier(identifier) if r#static => {
-                                function::ClassElement::PrivateStaticMethodDefinition(
-                                    identifier, method,
-                                )
-                            }
-                            ClassElementName::PrivateIdentifier(identifier) => {
-                                function::ClassElement::PrivateMethodDefinition(identifier, method)
-                            }
-                        }
+                        };
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            name,
+                            params,
+                            body,
+                            MethodDefinitionKind::Async,
+                            r#static,
+                        ))
                     }
                 }
             }
@@ -940,18 +877,13 @@ where
                         )));
                         }
                         cursor.set_strict(strict);
-                        let method = MethodDefinition::Get(Function::new(None, params, body));
-                        if r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(
-                                PrivateName::new(name),
-                                method,
-                            )
-                        } else {
-                            function::ClassElement::PrivateMethodDefinition(
-                                PrivateName::new(name),
-                                method,
-                            )
-                        }
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            ClassElementName::PrivateName(PrivateName::new(name)),
+                            params,
+                            body,
+                            MethodDefinitionKind::Get,
+                            r#static,
+                        ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
@@ -992,36 +924,30 @@ where
                             "class getter",
                             interner,
                         )?;
-
-                        let method = MethodDefinition::Get(Function::new(
-                            None,
+                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                            return Err(Error::general(
+                                "class may not have static method definitions named 'prototype'",
+                                name_position,
+                            ));
+                        }
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            ClassElementName::PropertyName(name),
                             FormalParameterList::default(),
                             body,
-                        ));
-                        if r#static {
-                            if name.literal() == Some(Sym::PROTOTYPE) {
-                                return Err(Error::general(
-                                    "class may not have static method definitions named 'prototype'",
-                                    name_position,
-                                ));
-                            }
-                            function::ClassElement::StaticMethodDefinition(name, method)
-                        } else {
-                            function::ClassElement::MethodDefinition(name, method)
-                        }
+                            MethodDefinitionKind::Get,
+                            r#static,
+                        ))
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = ClassFieldDefinition::new(
+                            ast::property::PropertyName::Literal(Sym::GET),
+                            None,
+                        );
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::GET),
-                                None,
-                            )
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::GET),
-                                None,
-                            )
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                 }
@@ -1065,18 +991,13 @@ where
                         )));
                         }
                         cursor.set_strict(strict);
-                        let method = MethodDefinition::Set(Function::new(None, params, body));
-                        if r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(
-                                PrivateName::new(name),
-                                method,
-                            )
-                        } else {
-                            function::ClassElement::PrivateMethodDefinition(
-                                PrivateName::new(name),
-                                method,
-                            )
-                        }
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            ClassElementName::PrivateName(PrivateName::new(name)),
+                            params,
+                            body,
+                            MethodDefinitionKind::Set,
+                            r#static,
+                        ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
                         return Err(Error::general(
@@ -1119,31 +1040,30 @@ where
                         )));
                         }
                         cursor.set_strict(strict);
-                        let method = MethodDefinition::Set(Function::new(None, params, body));
-                        if r#static {
-                            if name.literal() == Some(Sym::PROTOTYPE) {
-                                return Err(Error::general(
-                                    "class may not have static method definitions named 'prototype'",
-                                    name_position,
-                                ));
-                            }
-                            function::ClassElement::StaticMethodDefinition(name, method)
-                        } else {
-                            function::ClassElement::MethodDefinition(name, method)
+                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                            return Err(Error::general(
+                                "class may not have static method definitions named 'prototype'",
+                                name_position,
+                            ));
                         }
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            ClassElementName::PropertyName(name),
+                            params,
+                            body,
+                            MethodDefinitionKind::Set,
+                            r#static,
+                        ))
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = ClassFieldDefinition::new(
+                            ast::property::PropertyName::Literal(Sym::SET),
+                            None,
+                        );
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::SET),
-                                None,
-                            )
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(
-                                ast::property::PropertyName::Literal(Sym::SET),
-                                None,
-                            )
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                 }
@@ -1156,11 +1076,6 @@ where
             }
             TokenKind::PrivateIdentifier(name) => {
                 let name = *name;
-                let name_private = interner.get_or_intern(
-                    [utf16!("#"), interner.resolve_expect(name).utf16()]
-                        .concat()
-                        .as_slice(),
-                );
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 match token.kind() {
@@ -1168,15 +1083,17 @@ where
                         cursor.advance(interner);
                         let strict = cursor.strict();
                         cursor.set_strict(true);
-                        let rhs = AssignmentExpression::new(
-                            Some(name_private.into()),
-                            true,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?;
+                        let mut rhs =
+                            AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?;
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         cursor.set_strict(strict);
+                        let function_name = interner.get_or_intern(
+                            [utf16!("#"), interner.resolve_expect(name).utf16()]
+                                .concat()
+                                .as_slice(),
+                        );
+                        rhs.set_anonymous_function_definition_name(&Identifier::new(function_name));
                         if r#static {
                             function::ClassElement::PrivateStaticFieldDefinition(
                                 PrivateName::new(name),
@@ -1184,8 +1101,7 @@ where
                             )
                         } else {
                             function::ClassElement::PrivateFieldDefinition(
-                                PrivateName::new(name),
-                                Some(rhs),
+                                PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs)),
                             )
                         }
                     }
@@ -1210,24 +1126,18 @@ where
                         // and IsSimpleParameterList of UniqueFormalParameters is false.
                         if body.strict() && !params.is_simple() {
                             return Err(Error::lex(LexError::Syntax(
-                            "Illegal 'use strict' directive in function with non-simple parameter list"
-                                .into(),
+                                "Illegal 'use strict' directive in function with non-simple parameter list".into(),
                                 token.span().start(),
-                        )));
+                            )));
                         }
-                        let method = MethodDefinition::Ordinary(Function::new(None, params, body));
                         cursor.set_strict(strict);
-                        if r#static {
-                            function::ClassElement::PrivateStaticMethodDefinition(
-                                PrivateName::new(name),
-                                method,
-                            )
-                        } else {
-                            function::ClassElement::PrivateMethodDefinition(
-                                PrivateName::new(name),
-                                method,
-                            )
-                        }
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            ClassElementName::PrivateName(PrivateName::new(name)),
+                            params,
+                            body,
+                            MethodDefinitionKind::Ordinary,
+                            r#static,
+                        ))
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
@@ -1238,8 +1148,7 @@ where
                             )
                         } else {
                             function::ClassElement::PrivateFieldDefinition(
-                                PrivateName::new(name),
-                                None,
+                                PrivateFieldDefinition::new(PrivateName::new(name), None),
                             )
                         }
                     }
@@ -1275,19 +1184,19 @@ where
                         cursor.advance(interner);
                         let strict = cursor.strict();
                         cursor.set_strict(true);
-                        let rhs = AssignmentExpression::new(
-                            name.literal().map(Into::into),
-                            true,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?;
+                        let mut rhs =
+                            AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?;
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         cursor.set_strict(strict);
+                        if let Some(name) = name.literal() {
+                            rhs.set_anonymous_function_definition_name(&Identifier::new(name));
+                        }
+                        let field = ClassFieldDefinition::new(name, Some(rhs));
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(name, Some(rhs))
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(name, Some(rhs))
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1322,13 +1231,14 @@ where
                                 token.span().start(),
                         )));
                         }
-                        let method = MethodDefinition::Ordinary(Function::new(None, params, body));
                         cursor.set_strict(strict);
-                        if r#static {
-                            function::ClassElement::StaticMethodDefinition(name, method)
-                        } else {
-                            function::ClassElement::MethodDefinition(name, method)
-                        }
+                        function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
+                            ClassElementName::PropertyName(name),
+                            params,
+                            body,
+                            MethodDefinitionKind::Ordinary,
+                            r#static,
+                        ))
                     }
                     _ => {
                         if let Some(name) = name.literal() {
@@ -1347,10 +1257,11 @@ where
                             }
                         }
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = ClassFieldDefinition::new(name, None);
                         if r#static {
-                            function::ClassElement::StaticFieldDefinition(name, None)
+                            function::ClassElement::StaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::FieldDefinition(name, None)
+                            function::ClassElement::FieldDefinition(field)
                         }
                     }
                 }
@@ -1361,10 +1272,28 @@ where
         match &element {
             // FieldDefinition : ClassElementName Initializer [opt]
             // It is a Syntax Error if Initializer is present and ContainsArguments of Initializer is true.
-            function::ClassElement::FieldDefinition(_, Some(node))
-            | function::ClassElement::StaticFieldDefinition(_, Some(node))
-            | function::ClassElement::PrivateFieldDefinition(_, Some(node))
-            | function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
+            function::ClassElement::FieldDefinition(field)
+            | function::ClassElement::StaticFieldDefinition(field) => {
+                if let Some(field) = field.field() {
+                    if contains_arguments(field) {
+                        return Err(Error::general(
+                            "'arguments' not allowed in class field definition",
+                            position,
+                        ));
+                    }
+                }
+            }
+            function::ClassElement::PrivateFieldDefinition(field) => {
+                if let Some(node) = field.field() {
+                    if contains_arguments(node) {
+                        return Err(Error::general(
+                            "'arguments' not allowed in class field definition",
+                            position,
+                        ));
+                    }
+                }
+            }
+            function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
                 if contains_arguments(node) {
                     return Err(Error::general(
                         "'arguments' not allowed in class field definition",

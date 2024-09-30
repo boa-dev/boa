@@ -56,7 +56,7 @@ flowgraph = []
 trace = ["js"]
 
 # Enable Boa's additional ECMAScript features for web browsers.
-annex-b = ["boa_parser/annex-b"]
+annex-b = ["boa_ast/annex-b", "boa_parser/annex-b"]
 
 # Enable Boa's Temporal proposal implementation
 temporal = ["dep:icu_calendar", "dep:temporal_rs"]

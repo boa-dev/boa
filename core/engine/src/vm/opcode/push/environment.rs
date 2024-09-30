@@ -6,47 +6,40 @@ use crate::{
 };
 use boa_gc::Gc;
 
-/// `PushDeclarativeEnvironment` implements the Opcode Operation for `Opcode::PushDeclarativeEnvironment`
+/// `PushScope` implements the Opcode Operation for `Opcode::PushScope`
 ///
 /// Operation:
 ///  - Push a declarative environment
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct PushDeclarativeEnvironment;
+pub(crate) struct PushScope;
 
-impl PushDeclarativeEnvironment {
+impl PushScope {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        context: &mut Context,
-        compile_environments_index: usize,
-    ) -> JsResult<CompletionType> {
-        let compile_environment = context
-            .vm
-            .frame()
-            .code_block()
-            .constant_compile_time_environment(compile_environments_index);
-        context.vm.environments.push_lexical(compile_environment);
+    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+        let scope = context.vm.frame().code_block().constant_scope(index);
+        context.vm.environments.push_lexical(scope.num_bindings());
         Ok(CompletionType::Normal)
     }
 }
 
-impl Operation for PushDeclarativeEnvironment {
-    const NAME: &'static str = "PushDeclarativeEnvironment";
-    const INSTRUCTION: &'static str = "INST - PushDeclarativeEnvironment";
+impl Operation for PushScope {
+    const NAME: &'static str = "PushScope";
+    const INSTRUCTION: &'static str = "INST - PushScope";
     const COST: u8 = 3;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let compile_environments_index = context.vm.read::<u8>() as usize;
-        Self::operation(context, compile_environments_index)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
     }
 
     fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let compile_environments_index = context.vm.read::<u16>() as usize;
-        Self::operation(context, compile_environments_index)
+        let index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index)
     }
 
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let compile_environments_index = context.vm.read::<u32>() as usize;
-        Self::operation(context, compile_environments_index)
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
     }
 }
 

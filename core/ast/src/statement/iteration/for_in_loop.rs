@@ -1,3 +1,5 @@
+use crate::operations::{contains, ContainsSymbol};
+use crate::scope::Scope;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
@@ -18,9 +20,17 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForInLoop {
-    initializer: IterableLoopInitializer,
-    target: Expression,
-    body: Box<Statement>,
+    pub(crate) initializer: IterableLoopInitializer,
+    pub(crate) target: Expression,
+    pub(crate) body: Box<Statement>,
+    pub(crate) target_contains_direct_eval: bool,
+    pub(crate) contains_direct_eval: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) target_scope: Option<Scope>,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Option<Scope>,
 }
 
 impl ForInLoop {
@@ -28,10 +38,17 @@ impl ForInLoop {
     #[inline]
     #[must_use]
     pub fn new(initializer: IterableLoopInitializer, target: Expression, body: Statement) -> Self {
+        let target_contains_direct_eval = contains(&target, ContainsSymbol::DirectEval);
+        let contains_direct_eval = contains(&initializer, ContainsSymbol::DirectEval)
+            || contains(&body, ContainsSymbol::DirectEval);
         Self {
             initializer,
             target,
             body: body.into(),
+            target_contains_direct_eval,
+            contains_direct_eval,
+            target_scope: None,
+            scope: None,
         }
     }
 
@@ -54,6 +71,20 @@ impl ForInLoop {
     #[must_use]
     pub const fn body(&self) -> &Statement {
         &self.body
+    }
+
+    /// Returns the target scope of the for...in loop.
+    #[inline]
+    #[must_use]
+    pub const fn target_scope(&self) -> Option<&Scope> {
+        self.target_scope.as_ref()
+    }
+
+    /// Returns the scope of the for...in loop.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> Option<&Scope> {
+        self.scope.as_ref()
     }
 }
 

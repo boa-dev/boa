@@ -2,14 +2,11 @@ use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{
-        literal::{Literal, ObjectLiteral},
+        literal::{Literal, ObjectLiteral, ObjectMethodDefinition, PropertyDefinition},
         Identifier,
     },
-    function::{
-        AsyncFunction, AsyncGenerator, FormalParameter, FormalParameterList,
-        FormalParameterListFlags, Function, FunctionBody,
-    },
-    property::{MethodDefinition, PropertyDefinition, PropertyName},
+    function::{FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionBody},
+    property::{MethodDefinitionKind, PropertyName},
     Declaration,
 };
 use boa_interner::{Interner, Sym};
@@ -60,14 +57,12 @@ fn check_object_short_function() {
             interner.get_or_intern_static("a", utf16!("a")).into(),
             Literal::from(true).into(),
         ),
-        PropertyDefinition::MethodDefinition(
+        PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Ordinary(Function::new(
-                None,
-                FormalParameterList::default(),
-                FunctionBody::default(),
-            )),
-        ),
+            FormalParameterList::default(),
+            FunctionBody::default(),
+            MethodDefinitionKind::Ordinary,
+        )),
     ];
 
     check_script_parser(
@@ -110,10 +105,12 @@ fn check_object_short_function_arguments() {
             interner.get_or_intern_static("a", utf16!("a")).into(),
             Literal::from(true).into(),
         ),
-        PropertyDefinition::MethodDefinition(
+        PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Ordinary(Function::new(None, parameters, FunctionBody::default())),
-        ),
+            parameters,
+            FunctionBody::default(),
+            MethodDefinitionKind::Ordinary,
+        )),
     ];
 
     check_script_parser(
@@ -144,14 +141,12 @@ fn check_object_getter() {
             interner.get_or_intern_static("a", utf16!("a")).into(),
             Literal::from(true).into(),
         ),
-        PropertyDefinition::MethodDefinition(
+        PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Get(Function::new(
-                None,
-                FormalParameterList::default(),
-                FunctionBody::default(),
-            )),
-        ),
+            FormalParameterList::default(),
+            FunctionBody::default(),
+            MethodDefinitionKind::Get,
+        )),
     ];
 
     check_script_parser(
@@ -193,10 +188,12 @@ fn check_object_setter() {
             interner.get_or_intern_static("a", utf16!("a")).into(),
             Literal::from(true).into(),
         ),
-        PropertyDefinition::MethodDefinition(
+        PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Set(Function::new(None, params, FunctionBody::default())),
-        ),
+            params,
+            FunctionBody::default(),
+            MethodDefinitionKind::Set,
+        )),
     ];
 
     check_script_parser(
@@ -223,12 +220,12 @@ fn check_object_short_function_get() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
-        Sym::GET.into(),
-        MethodDefinition::Ordinary(Function::new(
-            None,
+        ObjectMethodDefinition::new(
+            Sym::GET.into(),
             FormalParameterList::default(),
             FunctionBody::default(),
-        )),
+            MethodDefinitionKind::Ordinary,
+        ),
     )];
 
     check_script_parser(
@@ -254,12 +251,12 @@ fn check_object_short_function_set() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
-        Sym::SET.into(),
-        MethodDefinition::Ordinary(Function::new(
-            None,
+        ObjectMethodDefinition::new(
+            Sym::SET.into(),
             FormalParameterList::default(),
             FunctionBody::default(),
-        )),
+            MethodDefinitionKind::Ordinary,
+        ),
     )];
 
     check_script_parser(
@@ -402,13 +399,12 @@ fn check_async_method() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
-        interner.get_or_intern_static("dive", utf16!("dive")).into(),
-        MethodDefinition::Async(AsyncFunction::new(
-            None,
+        ObjectMethodDefinition::new(
+            PropertyName::Literal(interner.get_or_intern_static("dive", utf16!("dive"))),
             FormalParameterList::default(),
             FunctionBody::default(),
-            false,
-        )),
+            MethodDefinitionKind::Async,
+        ),
     )];
 
     check_script_parser(
@@ -434,15 +430,12 @@ fn check_async_generator_method() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
-        interner
-            .get_or_intern_static("vroom", utf16!("vroom"))
-            .into(),
-        MethodDefinition::AsyncGenerator(AsyncGenerator::new(
-            None,
+        ObjectMethodDefinition::new(
+            PropertyName::Literal(interner.get_or_intern_static("vroom", utf16!("vroom"))),
             FormalParameterList::default(),
             FunctionBody::default(),
-            false,
-        )),
+            MethodDefinitionKind::AsyncGenerator,
+        ),
     )];
 
     check_script_parser(
@@ -490,12 +483,12 @@ fn check_async_ordinary_method() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
-        MethodDefinition::Ordinary(Function::new(
-            None,
+        ObjectMethodDefinition::new(
+            PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
             FormalParameterList::default(),
             FunctionBody::default(),
-        )),
+            MethodDefinitionKind::Ordinary,
+        ),
     )];
 
     check_script_parser(

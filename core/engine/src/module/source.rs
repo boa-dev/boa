@@ -2,13 +2,14 @@ use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, rc::Rc};
 
 use boa_ast::{
     declaration::{
-        ExportEntry, ImportEntry, ImportName, IndirectExportEntry, LexicalDeclaration,
-        LocalExportEntry, ReExportImportName,
+        ExportEntry, ImportEntry, ImportName, IndirectExportEntry, LocalExportEntry,
+        ReExportImportName,
     },
     operations::{
         bound_names, contains, lexically_scoped_declarations, var_scoped_declarations,
         ContainsSymbol, LexicallyScopedDeclaration,
     },
+    scope::BindingLocator,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
@@ -19,16 +20,14 @@ use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 use crate::{
     builtins::{promise::PromiseCapability, Promise},
     bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
-    environments::{
-        BindingLocator, CompileTimeEnvironment, DeclarativeEnvironment, EnvironmentStack,
-    },
+    environments::{DeclarativeEnvironment, EnvironmentStack},
     js_string,
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise},
     realm::Realm,
     vm::{
         create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
-        CodeBlockFlags, CompletionRecord, Opcode,
+        CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
@@ -1423,20 +1422,20 @@ impl SourceTextModule {
         // 5. Let env be NewModuleEnvironment(realm.[[GlobalEnv]]).
         // 6. Set module.[[Environment]] to env.
         let global_env = realm.environment().clone();
-        let global_compile_env = global_env.compile_env();
-        let env = Rc::new(CompileTimeEnvironment::new(global_compile_env, true));
+        let env = self.code.source.scope().clone();
 
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
             false,
-            env.clone(),
-            env.clone(),
+            self.code.source.scope().clone(),
+            self.code.source.scope().clone(),
+            true,
+            false,
             context.interner_mut(),
             false,
         );
 
-        compiler.code_block_flags |= CodeBlockFlags::IS_ASYNC;
         compiler.async_handler = Some(compiler.push_handler());
 
         let mut imports = Vec::new();
@@ -1470,7 +1469,7 @@ impl SourceTextModule {
                     // 2. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     // 3. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
                     let local_name = entry.local_name().to_js_string(compiler.interner());
-                    let locator = env.create_immutable_binding(local_name, true);
+                    let locator = env.get_binding(&local_name).expect("binding must exist");
 
                     if let BindingName::Name(_) = resolution.binding_name {
                         // 1. Perform env.CreateImportBinding(in.[[LocalName]], resolution.[[Module]],
@@ -1492,10 +1491,8 @@ impl SourceTextModule {
                     // b. If in.[[ImportName]] is namespace-object, then
                     //    ii. Perform ! env.CreateImmutableBinding(in.[[LocalName]], true).
                     //    iii. Perform ! env.InitializeBinding(in.[[LocalName]], namespace).
-                    let locator = env.create_immutable_binding(
-                        entry.local_name().to_js_string(compiler.interner()),
-                        true,
-                    );
+                    let name = entry.local_name().to_js_string(compiler.interner());
+                    let locator = env.get_binding(&name).expect("binding must exist");
 
                     //    i. Let namespace be GetModuleNamespace(importedModule).
                     //       deferred to initialization below
@@ -1521,10 +1518,12 @@ impl SourceTextModule {
                     if !declared_var_names.contains(&name) {
                         // 1. Perform ! env.CreateMutableBinding(dn, false).
                         // 2. Perform ! env.InitializeBinding(dn, undefined).
-                        let binding = env.create_mutable_binding(name.clone(), false);
+                        let binding = env
+                            .get_binding_reference(&name)
+                            .expect("binding must exist");
                         let index = compiler.get_or_insert_binding(binding);
                         compiler.emit_opcode(Opcode::PushUndefined);
-                        compiler.emit_with_varying_operand(Opcode::DefInitVar, index);
+                        compiler.emit_binding_access(Opcode::DefInitVar, &index);
 
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
@@ -1548,67 +1547,37 @@ impl SourceTextModule {
                 // 2. Perform ! env.InitializeBinding(dn, fo).
                 //
                 // deferred to below.
-                let (mut spec, locator): (FunctionSpec<'_>, _) = match declaration {
-                    LexicallyScopedDeclaration::Function(f) => {
+                let (spec, locator): (FunctionSpec<'_>, _) = match declaration {
+                    LexicallyScopedDeclaration::FunctionDeclaration(f) => {
                         let name = bound_names(f)[0].to_js_string(compiler.interner());
-                        let locator = env.create_mutable_binding(name, false);
+                        let locator = env.get_binding(&name).expect("binding must exist");
 
                         (f.into(), locator)
                     }
-                    LexicallyScopedDeclaration::Generator(g) => {
+                    LexicallyScopedDeclaration::GeneratorDeclaration(g) => {
                         let name = bound_names(g)[0].to_js_string(compiler.interner());
-                        let locator = env.create_mutable_binding(name, false);
+                        let locator = env.get_binding(&name).expect("binding must exist");
 
                         (g.into(), locator)
                     }
-                    LexicallyScopedDeclaration::AsyncFunction(af) => {
+                    LexicallyScopedDeclaration::AsyncFunctionDeclaration(af) => {
                         let name = bound_names(af)[0].to_js_string(compiler.interner());
-                        let locator = env.create_mutable_binding(name, false);
+                        let locator = env.get_binding(&name).expect("binding must exist");
 
                         (af.into(), locator)
                     }
-                    LexicallyScopedDeclaration::AsyncGenerator(ag) => {
+                    LexicallyScopedDeclaration::AsyncGeneratorDeclaration(ag) => {
                         let name = bound_names(ag)[0].to_js_string(compiler.interner());
-                        let locator = env.create_mutable_binding(name, false);
+                        let locator = env.get_binding(&name).expect("binding must exist");
 
                         (ag.into(), locator)
                     }
-                    LexicallyScopedDeclaration::Class(class) => {
-                        for name in bound_names(class) {
-                            let name = name.to_js_string(compiler.interner());
-                            env.create_mutable_binding(name, false);
-                        }
-                        continue;
-                    }
-                    // i. If IsConstantDeclaration of d is true, then
-                    LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(
-                        c,
-                    )) => {
-                        // a. For each element dn of the BoundNames of d, do
-                        for name in bound_names(c) {
-                            let name = name.to_js_string(compiler.interner());
-                            // 1. Perform ! env.CreateImmutableBinding(dn, true).
-                            env.create_immutable_binding(name, true);
-                        }
-                        continue;
-                    }
-                    LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) => {
-                        for name in bound_names(l) {
-                            let name = name.to_js_string(compiler.interner());
-                            env.create_mutable_binding(name, false);
-                        }
-                        continue;
-                    }
-                    LexicallyScopedDeclaration::AssignmentExpression(expr) => {
-                        for name in bound_names(expr) {
-                            let name = name.to_js_string(compiler.interner());
-                            env.create_mutable_binding(name, false);
-                        }
+                    LexicallyScopedDeclaration::ClassDeclaration(_)
+                    | LexicallyScopedDeclaration::LexicalDeclaration(_)
+                    | LexicallyScopedDeclaration::AssignmentExpression(_) => {
                         continue;
                     }
                 };
-
-                spec.has_binding_identifier = false;
 
                 functions.push((spec, locator));
             }
@@ -1627,7 +1596,7 @@ impl SourceTextModule {
 
         // 8. Let moduleContext be a new ECMAScript code execution context.
         let mut envs = EnvironmentStack::new(global_env);
-        envs.push_module(env);
+        envs.push_module(self.code.source.scope().clone());
 
         // 9. Set the Function of moduleContext to null.
         // 10. Assert: module.[[Realm]] is not undefined.
@@ -1655,7 +1624,7 @@ impl SourceTextModule {
                     // i. Let namespace be GetModuleNamespace(importedModule).
                     let namespace = module.namespace(context);
                     context.vm.environments.put_lexical_value(
-                        locator.environment(),
+                        locator.scope(),
                         locator.binding_index(),
                         namespace.into(),
                     );
@@ -1676,7 +1645,7 @@ impl SourceTextModule {
                     BindingName::Namespace => {
                         let namespace = export_locator.module.namespace(context);
                         context.vm.environments.put_lexical_value(
-                            locator.environment(),
+                            locator.scope(),
                             locator.binding_index(),
                             namespace.into(),
                         );
@@ -1692,7 +1661,7 @@ impl SourceTextModule {
             let function = create_function_object_fast(code, context);
 
             context.vm.environments.put_lexical_value(
-                locator.environment(),
+                locator.scope(),
                 locator.binding_index(),
                 function.into(),
             );

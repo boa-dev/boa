@@ -18,7 +18,7 @@ use core::ops::ControlFlow;
 pub use self::{
     do_while_loop::DoWhileLoop,
     for_in_loop::ForInLoop,
-    for_loop::{ForLoop, ForLoopInitializer},
+    for_loop::{ForLoop, ForLoopInitializer, ForLoopInitializerLexical},
     for_of_loop::ForOfLoop,
     r#break::Break,
     r#continue::Continue,

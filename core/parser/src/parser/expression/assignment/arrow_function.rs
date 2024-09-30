@@ -23,11 +23,10 @@ use ast::operations::{bound_names, lexically_declared_names};
 use boa_ast::{
     self as ast,
     declaration::Variable,
-    expression::Identifier,
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
     statement::Return,
-    Expression, Punctuator, StatementList,
+    Expression, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -42,7 +41,6 @@ use boa_profiler::Profiler;
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 #[derive(Debug, Clone, Copy)]
 pub(in crate::parser) struct ArrowFunction {
-    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -50,20 +48,13 @@ pub(in crate::parser) struct ArrowFunction {
 
 impl ArrowFunction {
     /// Creates a new `ArrowFunction` parser.
-    pub(in crate::parser) fn new<N, I, Y, A>(
-        name: N,
-        allow_in: I,
-        allow_yield: Y,
-        allow_await: A,
-    ) -> Self
+    pub(in crate::parser) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -107,18 +98,6 @@ where
                 )
             };
 
-        cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
-
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::Arrow),
-            "arrow function",
-            interner,
-        )?;
-        let arrow = cursor.arrow();
-        cursor.set_arrow(true);
-        let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
-        cursor.set_arrow(arrow);
-
         // Early Error: ArrowFormalParameters are UniqueFormalParameters.
         if params.has_duplicates() {
             return Err(Error::lex(LexError::Syntax(
@@ -143,6 +122,18 @@ where
             )));
         }
 
+        cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
+
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::Arrow),
+            "arrow function",
+            interner,
+        )?;
+        let arrow = cursor.arrow();
+        cursor.set_arrow(true);
+        let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
+        cursor.set_arrow(arrow);
+
         // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
         // and IsSimpleParameterList of ArrowParameters is false.
         if body.strict() && !params.is_simple() {
@@ -162,7 +153,7 @@ where
             interner,
         )?;
 
-        Ok(ast::function::ArrowFunction::new(self.name, params, body))
+        Ok(ast::function::ArrowFunction::new(None, params, body))
     }
 }
 
@@ -191,23 +182,23 @@ where
     type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let stmts =
-            match cursor.peek(0, interner).or_abrupt()?.kind() {
-                TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                    cursor.advance(interner);
-                    let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                    cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
-                    body
-                }
-                _ => ast::function::FunctionBody::new(StatementList::from(vec![
-                    ast::Statement::Return(Return::new(
-                        ExpressionBody::new(self.allow_in, false)
-                            .parse(cursor, interner)?
-                            .into(),
-                    ))
-                    .into(),
-                ])),
-            };
+        let stmts = match cursor.peek(0, interner).or_abrupt()?.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                cursor.advance(interner);
+                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
+                body
+            }
+            _ => ast::function::FunctionBody::new(
+                [ast::Statement::Return(Return::new(
+                    ExpressionBody::new(self.allow_in, false)
+                        .parse(cursor, interner)?
+                        .into(),
+                ))
+                .into()],
+                false,
+            ),
+        };
 
         Ok(stmts)
     }
@@ -241,7 +232,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        AssignmentExpression::new(None, self.allow_in, false, self.allow_await)
-            .parse(cursor, interner)
+        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor, interner)
     }
 }

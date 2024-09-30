@@ -12,7 +12,7 @@ use boa_ast::{
         },
         Call, Identifier,
     },
-    function::{FormalParameterList, Function, FunctionBody},
+    function::{FormalParameterList, FunctionBody, FunctionDeclaration},
     statement::{Block, Return},
     Declaration, Expression, Statement, StatementListItem,
 };
@@ -78,16 +78,15 @@ fn non_empty() {
             a++;
         }",
         vec![
-            Declaration::Function(Function::new_with_binding_identifier(
-                Some(hello.into()),
+            Declaration::FunctionDeclaration(FunctionDeclaration::new(
+                hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    vec![StatementListItem::Statement(Statement::Return(
+                    [StatementListItem::Statement(Statement::Return(
                         Return::new(Some(Literal::from(10).into())),
-                    ))]
-                    .into(),
+                    ))],
+                    false,
                 ),
-                true,
             ))
             .into(),
             Statement::Var(VarDeclaration(
@@ -136,16 +135,15 @@ fn hoisting() {
                 UpdateTarget::Identifier(Identifier::new(a)),
             )))
             .into(),
-            Declaration::Function(Function::new_with_binding_identifier(
-                Some(hello.into()),
+            Declaration::FunctionDeclaration(FunctionDeclaration::new(
+                hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    vec![StatementListItem::Statement(Statement::Return(
+                    [StatementListItem::Statement(Statement::Return(
                         Return::new(Some(Literal::from(10).into())),
-                    ))]
-                    .into(),
+                    ))],
+                    false,
                 ),
-                true,
             ))
             .into(),
         ],

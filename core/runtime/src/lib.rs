@@ -54,7 +54,12 @@
 mod console;
 
 #[doc(inline)]
-pub use console::Console;
+pub use console::{Console, ConsoleState, Logger};
+
+mod text;
+
+#[doc(inline)]
+pub use text::{TextDecoder, TextEncoder};
 
 #[cfg(test)]
 pub(crate) mod test {

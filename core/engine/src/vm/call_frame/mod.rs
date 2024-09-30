@@ -7,12 +7,13 @@ use crate::{
         iterable::IteratorRecord,
         promise::{PromiseCapability, ResolvingFunctions},
     },
-    environments::{BindingLocator, EnvironmentStack},
+    environments::EnvironmentStack,
     object::{JsFunction, JsObject},
     realm::Realm,
     vm::CodeBlock,
     JsValue,
 };
+use boa_ast::scope::BindingLocator;
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
 
@@ -43,6 +44,7 @@ pub struct CallFrame {
     pub(crate) code_block: Gc<CodeBlock>,
     pub(crate) pc: u32,
     /// The register pointer, points to the first register in the stack.
+    ///
     // TODO: Check if storing the frame pointer instead of argument count and computing the
     //       argument count based on the pointers would be better for accessing the arguments
     //       and the elements before the register pointer.
@@ -54,7 +56,13 @@ pub struct CallFrame {
     pub(crate) iterators: ThinVec<IteratorRecord>,
 
     // The stack of bindings being updated.
+    // SAFETY: Nothing in `BindingLocator` requires tracing, so this is safe.
+    #[unsafe_ignore_trace]
     pub(crate) binding_stack: Vec<BindingLocator>,
+
+    // SAFETY: Nothing requires tracing, so this is safe.
+    #[unsafe_ignore_trace]
+    pub(crate) local_binings_initialized: Box<[bool]>,
 
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
@@ -119,10 +127,10 @@ impl CallFrame {
     ///     caller prologue    caller arguments   callee prologue   callee arguments
     ///   ┌─────────────────┐   ┌─────────┐   ┌─────────────────┐  ┌──────┐
     ///   ▼                 ▼   ▼         ▼   │                 ▼  ▼      ▼
-    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3  |
-    /// ▲                                   ▲                            ▲
-    /// │       caller register pointer ────┤                            │
-    /// │                                   │                callee register pointer
+    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3 |
+    /// ▲                                   ▲                             ▲
+    /// │       caller register pointer ────┤                             │
+    /// │                                   │                 callee register pointer
     /// │                             callee frame pointer
     /// │
     /// └─────  caller frame pointer
@@ -146,6 +154,7 @@ impl CallFrame {
         environments: EnvironmentStack,
         realm: Realm,
     ) -> Self {
+        let local_binings_initialized = code_block.local_bindings_initialized.clone();
         Self {
             code_block,
             pc: 0,
@@ -154,6 +163,7 @@ impl CallFrame {
             argument_count: 0,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
+            local_binings_initialized,
             loop_iteration_count: 0,
             active_runnable,
             environments,

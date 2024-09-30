@@ -14,7 +14,17 @@ rust-version.workspace = true
 icu_provider = { workspace = true, features = ["sync"] }
 icu_provider_blob.workspace = true
 icu_provider_adapters = { workspace = true, features = ["serde"] }
+icu_casemap = { workspace = true, features = ["serde", "datagen"] }
+icu_collator = { workspace = true, features = ["serde", "datagen"] }
+icu_datetime = { workspace = true, features = ["serde", "datagen"] }
+icu_decimal = { workspace = true, features = ["serde", "datagen"] }
+icu_list = { workspace = true, features = ["serde", "datagen"] }
+icu_locid_transform = { workspace = true, features = ["serde", "datagen"] }
+icu_normalizer = { workspace = true, features = ["serde", "datagen"] }
+icu_plurals = { workspace = true, features = ["serde", "datagen", "experimental"] }
+icu_segmenter = { workspace = true, features = ["serde", "datagen"] }
 once_cell = { workspace = true, default-features = false, features = ["critical-section"] }
+paste.workspace = true
 
 [features]
 default = ["std"]

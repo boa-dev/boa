@@ -248,7 +248,7 @@ impl BuiltInConstructor for Locale {
             // 10. Set tag to ! CanonicalizeUnicodeLocaleId(tag).
             context
                 .intl_provider()
-                .locale_canonicalizer()
+                .locale_canonicalizer()?
                 .canonicalize(&mut tag);
 
             // Skipping some boilerplate since this is easier to do using the `Locale` type, but putting the
@@ -282,7 +282,7 @@ impl BuiltInConstructor for Locale {
             // 17. Return ! CanonicalizeUnicodeLocaleId(tag).
             context
                 .intl_provider()
-                .locale_canonicalizer()
+                .locale_canonicalizer()?
                 .canonicalize(&mut tag);
         }
 
@@ -368,7 +368,7 @@ impl BuiltInConstructor for Locale {
 
         context
             .intl_provider()
-            .locale_canonicalizer()
+            .locale_canonicalizer()?
             .canonicalize(&mut tag);
 
         // 6. Let locale be ? OrdinaryCreateFromConstructor(NewTarget, "%Locale.prototype%", internalSlotsList).
@@ -409,7 +409,10 @@ impl Locale {
             .clone();
 
         // 3. Let maximal be the result of the Add Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set maximal to loc.[[Locale]].
-        context.intl_provider().locale_expander().maximize(&mut loc);
+        context
+            .intl_provider()
+            .locale_expander()?
+            .maximize(&mut loc);
 
         // 4. Return ! Construct(%Locale%, maximal).
         let prototype = context.intrinsics().constructors().locale().prototype();
@@ -445,7 +448,10 @@ impl Locale {
             .clone();
 
         // 3. Let minimal be the result of the Remove Likely Subtags algorithm applied to loc.[[Locale]]. If an error is signaled, set minimal to loc.[[Locale]].
-        context.intl_provider().locale_expander().minimize(&mut loc);
+        context
+            .intl_provider()
+            .locale_expander()?
+            .minimize(&mut loc);
 
         // 4. Return ! Construct(%Locale%, minimal).
         let prototype = context.intrinsics().constructors().locale().prototype();

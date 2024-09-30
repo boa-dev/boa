@@ -15,7 +15,7 @@ use crate::{
         opcode::{Operation, ReThrow},
         CallFrame, CompletionType,
     },
-    Context, JsError, JsObject, JsResult, JsValue,
+    Context, JsError, JsObject, JsResult,
 };
 
 pub(crate) use yield_stm::*;
@@ -128,15 +128,17 @@ impl Operation for AsyncGeneratorClose {
 
         let mut gen = generator.borrow_mut();
 
-        gen.data.state = AsyncGeneratorState::Completed;
-        gen.data.context = None;
+        // e. Assert: If we return here, the async generator either threw an exception or performed either an implicit or explicit return.
+        // f. Remove acGenContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
 
-        let next = gen.data.queue.pop_front().expect("must have item in queue");
+        // g. Set acGenerator.[[AsyncGeneratorState]] to draining-queue.
+        gen.data.state = AsyncGeneratorState::DrainingQueue;
 
-        let return_value = context.vm.get_return_value();
-        context.vm.set_return_value(JsValue::undefined());
+        // h. If result is a normal completion, set result to NormalCompletion(undefined).
+        // i. If result is a return completion, set result to NormalCompletion(result.[[Value]]).
+        let return_value = context.vm.take_return_value();
 
-        let completion = context
+        let result = context
             .vm
             .pending_exception
             .take()
@@ -144,10 +146,12 @@ impl Operation for AsyncGeneratorClose {
 
         drop(gen);
 
-        AsyncGenerator::complete_step(&next, completion, true, None, context);
-        // TODO: Upgrade to the latest spec when the problem is fixed.
-        AsyncGenerator::resume_next(&generator, context);
+        // j. Perform AsyncGeneratorCompleteStep(acGenerator, result, true).
+        AsyncGenerator::complete_step(&generator, result, true, None, context);
+        // k. Perform AsyncGeneratorDrainQueue(acGenerator).
+        AsyncGenerator::drain_queue(&generator, context);
 
+        // l. Return undefined.
         Ok(CompletionType::Normal)
     }
 }

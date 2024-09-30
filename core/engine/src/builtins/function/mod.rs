@@ -17,10 +17,7 @@ use crate::{
     },
     bytecompiler::FunctionCompiler,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    environments::{
-        BindingLocatorEnvironment, EnvironmentStack, FunctionSlots, PrivateEnvironment,
-        ThisBindingStatus,
-    },
+    environments::{EnvironmentStack, FunctionSlots, PrivateEnvironment, ThisBindingStatus},
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
@@ -45,6 +42,7 @@ use boa_ast::{
         all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
         ContainsSymbol,
     },
+    scope::BindingLocatorScope,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
@@ -140,7 +138,7 @@ impl ConstructorKind {
 #[derive(Clone, Debug, Finalize)]
 pub enum ClassFieldDefinition {
     /// A class field definition with a `string` or `symbol` as a name.
-    Public(PropertyKey, JsFunction),
+    Public(PropertyKey, JsFunction, Option<PropertyKey>),
 
     /// A class field definition with a private name.
     Private(PrivateName, JsFunction),
@@ -149,7 +147,7 @@ pub enum ClassFieldDefinition {
 unsafe impl Trace for ClassFieldDefinition {
     custom_trace! {this, mark, {
         match this {
-            Self::Public(_key, func) => {
+            Self::Public(_key, func, _) => {
                 mark(func);
             }
             Self::Private(_, func) => {
@@ -265,8 +263,14 @@ impl OrdinaryFunction {
     }
 
     /// Pushes a value to the `[[Fields]]` internal slot if present.
-    pub(crate) fn push_field(&mut self, key: PropertyKey, value: JsFunction) {
-        self.fields.push(ClassFieldDefinition::Public(key, value));
+    pub(crate) fn push_field(
+        &mut self,
+        key: PropertyKey,
+        value: JsFunction,
+        function_name: Option<PropertyKey>,
+    ) {
+        self.fields
+            .push(ClassFieldDefinition::Public(key, value, function_name));
     }
 
     /// Pushes a private value to the `[[Fields]]` internal slot if present.
@@ -401,6 +405,8 @@ impl BuiltInFunctionObject {
         } else {
             new_target.clone()
         };
+
+        let strict = context.is_strict();
 
         let default = if r#async && generator {
             // 5. Else,
@@ -629,6 +635,14 @@ impl BuiltInFunctionObject {
             body
         };
 
+        let mut function =
+            boa_ast::function::FunctionExpression::new(None, parameters, body, false);
+        if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
+            return Err(JsNativeError::syntax()
+                .with_message("failed to analyze function scope")
+                .into());
+        }
+
         let in_with = context.vm.environments.has_object_environment();
         let code = FunctionCompiler::new()
             .name(js_string!("anonymous"))
@@ -636,10 +650,11 @@ impl BuiltInFunctionObject {
             .r#async(r#async)
             .in_with(in_with)
             .compile(
-                &parameters,
-                &body,
-                context.realm().environment().compile_env(),
-                context.realm().environment().compile_env(),
+                function.parameters(),
+                function.body(),
+                context.realm().scope().clone(),
+                context.realm().scope().clone(),
+                function.scopes(),
                 context.interner_mut(),
             );
 
@@ -1002,12 +1017,9 @@ pub(crate) fn function_call(
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context
-            .vm
-            .environments
-            .push_lexical(code.constant_compile_time_environment(last_env));
+        let index = context.vm.environments.push_lexical(1);
         context.vm.environments.put_lexical_value(
-            BindingLocatorEnvironment::Stack(index),
+            BindingLocatorScope::Stack(index),
             0,
             function_object.clone().into(),
         );
@@ -1015,7 +1027,7 @@ pub(crate) fn function_call(
     }
 
     context.vm.environments.push_function(
-        code.constant_compile_time_environment(last_env),
+        code.constant_scope(last_env),
         FunctionSlots::new(this, function_object.clone(), None),
     );
 
@@ -1095,12 +1107,9 @@ fn function_construct(
     let mut last_env = 0;
 
     if code.has_binding_identifier() {
-        let index = context
-            .vm
-            .environments
-            .push_lexical(code.constant_compile_time_environment(last_env));
+        let index = context.vm.environments.push_lexical(1);
         context.vm.environments.put_lexical_value(
-            BindingLocatorEnvironment::Stack(index),
+            BindingLocatorScope::Stack(index),
             0,
             this_function_object.clone().into(),
         );
@@ -1108,7 +1117,7 @@ fn function_construct(
     }
 
     context.vm.environments.push_function(
-        code.constant_compile_time_environment(last_env),
+        code.constant_scope(last_env),
         FunctionSlots::new(
             this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
                 ThisBindingStatus::Initialized(o.into())

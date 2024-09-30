@@ -7,6 +7,7 @@
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 
 use proc_macro::TokenStream;
+use proc_macro2::Literal;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
@@ -185,24 +186,25 @@ pub fn utf16(input: TokenStream) -> TokenStream {
 #[proc_macro]
 pub fn js_str(input: TokenStream) -> TokenStream {
     let literal = parse_macro_input!(input as LitStr);
-    let utf8 = literal.value();
 
     let mut is_latin1 = true;
-    let utf16 = utf8
+    let codepoints = literal
+        .value()
         .encode_utf16()
-        .inspect(|x| {
-            if *x > u8::MAX.into() {
+        .map(|x| {
+            if x > u8::MAX.into() {
                 is_latin1 = false;
             }
+            Literal::u16_unsuffixed(x)
         })
         .collect::<Vec<_>>();
     if is_latin1 {
         quote! {
-            ::boa_engine::string::JsStr::latin1(#utf8.as_bytes())
+            ::boa_engine::string::JsStr::latin1([#(#codepoints),*].as_slice())
         }
     } else {
         quote! {
-            ::boa_engine::string::JsStr::utf16([#(#utf16),*].as_slice())
+            ::boa_engine::string::JsStr::utf16([#(#codepoints),*].as_slice())
         }
     }
     .into()
@@ -431,12 +433,10 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
             )]
         })?;
 
-        let name_str = format!("{name}");
         field_list.push(name.clone());
 
-        let error_str = format!("cannot get property {name_str} of value");
-
         let mut from_js_with = None;
+        let mut field_name = format!("{name}");
         if let Some(attr) = field
             .attrs
             .into_iter()
@@ -446,6 +446,10 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
                 if meta.path.is_ident("from_js_with") {
                     let value = meta.value()?;
                     from_js_with = Some(value.parse::<LitStr>()?);
+                    Ok(())
+                } else if meta.path.is_ident("rename") {
+                    let value = meta.value()?;
+                    field_name = value.parse::<LitStr>()?.value();
                     Ok(())
                 } else {
                     Err(meta.error(
@@ -458,8 +462,9 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
             .map_err(|err| vec![err])?;
         }
 
+        let error_str = format!("cannot get property {name} of value");
         final_fields.push(quote! {
-            let #name = match props.get(&::boa_engine::js_string!(#name_str).into()) {
+            let #name = match props.get(&::boa_engine::js_string!(#field_name).into()) {
                 Some(pd) => pd.value().ok_or_else(|| ::boa_engine::JsError::from(
                         ::boa_engine::JsNativeError::typ().with_message(#error_str)
                     ))?.clone().try_js_into(context)?,

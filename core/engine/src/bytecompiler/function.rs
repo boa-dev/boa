@@ -1,14 +1,14 @@
-use std::rc::Rc;
-
 use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
-    environments::CompileTimeEnvironment,
     js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
     JsString,
 };
-use boa_ast::function::{FormalParameterList, FunctionBody};
+use boa_ast::{
+    function::{FormalParameterList, FunctionBody},
+    scope::{FunctionScopes, Scope},
+};
 use boa_gc::Gc;
 use boa_interner::Interner;
 
@@ -23,7 +23,7 @@ pub(crate) struct FunctionCompiler {
     arrow: bool,
     method: bool,
     in_with: bool,
-    binding_identifier: Option<JsString>,
+    name_scope: Option<Scope>,
 }
 
 impl FunctionCompiler {
@@ -37,7 +37,7 @@ impl FunctionCompiler {
             arrow: false,
             method: false,
             in_with: false,
-            binding_identifier: None,
+            name_scope: None,
         }
     }
 
@@ -81,9 +81,9 @@ impl FunctionCompiler {
         self
     }
 
-    /// Indicate if the function has a binding identifier.
-    pub(crate) fn binding_identifier(mut self, binding_identifier: Option<JsString>) -> Self {
-        self.binding_identifier = binding_identifier;
+    /// Provide the name scope of the function.
+    pub(crate) fn name_scope(mut self, name_scope: Option<Scope>) -> Self {
+        self.name_scope = name_scope;
         self
     }
 
@@ -98,8 +98,9 @@ impl FunctionCompiler {
         mut self,
         parameters: &FormalParameterList,
         body: &FunctionBody,
-        variable_environment: Rc<CompileTimeEnvironment>,
-        lexical_environment: Rc<CompileTimeEnvironment>,
+        variable_environment: Scope,
+        lexical_environment: Scope,
+        scopes: &FunctionScopes,
         interner: &mut Interner,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
@@ -112,16 +113,12 @@ impl FunctionCompiler {
             false,
             variable_environment,
             lexical_environment,
+            self.r#async,
+            self.generator,
             interner,
             self.in_with,
         );
         compiler.length = length;
-        compiler
-            .code_block_flags
-            .set(CodeBlockFlags::IS_ASYNC, self.r#async);
-        compiler
-            .code_block_flags
-            .set(CodeBlockFlags::IS_GENERATOR, self.generator);
         compiler.code_block_flags.set(
             CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,
             !self.arrow && !self.method && !self.r#async && !self.generator,
@@ -131,16 +128,12 @@ impl FunctionCompiler {
             compiler.this_mode = ThisMode::Lexical;
         }
 
-        if let Some(binding_identifier) = self.binding_identifier {
+        if let Some(scope) = self.name_scope {
             compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-            let _ = compiler.push_compile_environment(false);
-            compiler
-                .lexical_environment
-                .create_immutable_binding(binding_identifier, self.strict);
+            let _ = compiler.push_scope(&scope);
         }
-
         // Function environment
-        let _ = compiler.push_compile_environment(true);
+        let _ = compiler.push_scope(scopes.function_scope());
 
         // Taken from:
         //  - 15.9.3 Runtime Semantics: EvaluateAsyncConciseBody: <https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncconcisebody>
@@ -173,6 +166,7 @@ impl FunctionCompiler {
             self.arrow,
             self.strict,
             self.generator,
+            scopes,
         );
 
         // Taken from:
@@ -188,10 +182,12 @@ impl FunctionCompiler {
             }
         }
 
-        compiler.compile_statement_list(body.statements(), false, false);
+        compiler.compile_statement_list(body.statement_list(), false, false);
 
         compiler.params = parameters.clone();
 
-        Gc::new(compiler.finish())
+        let code = compiler.finish();
+
+        Gc::new(code)
     }
 }

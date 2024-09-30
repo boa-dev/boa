@@ -6,9 +6,12 @@ use boa_ast::{
         literal::Literal,
         Call, Identifier,
     },
-    function::{Class, ClassElement, FormalParameterList, Function, FunctionBody},
-    property::{MethodDefinition, PropertyName},
-    Declaration, Expression, Statement, StatementList, StatementListItem,
+    function::{
+        ClassDeclaration, ClassElement, ClassFieldDefinition, ClassMethodDefinition,
+        FormalParameterList, FunctionBody, FunctionExpression,
+    },
+    property::{MethodDefinitionKind, PropertyName},
+    Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -17,26 +20,26 @@ use boa_macros::utf16;
 fn check_async_ordinary_method() {
     let interner = &mut Interner::default();
 
-    let elements = vec![ClassElement::MethodDefinition(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
-        MethodDefinition::Ordinary(Function::new(
-            None,
-            FormalParameterList::default(),
-            FunctionBody::default(),
+    let elements = vec![ClassElement::MethodDefinition(ClassMethodDefinition::new(
+        boa_ast::function::ClassElementName::PropertyName(PropertyName::Literal(
+            interner.get_or_intern_static("async", utf16!("async")),
         )),
-    )];
+        FormalParameterList::default(),
+        FunctionBody::default(),
+        MethodDefinitionKind::Ordinary,
+        false,
+    ))];
 
     check_script_parser(
         "class A {
             async() { }
          }
         ",
-        [Declaration::Class(Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+        [Declaration::ClassDeclaration(ClassDeclaration::new(
+            interner.get_or_intern_static("A", utf16!("A")).into(),
             None,
             None,
             elements.into(),
-            true,
         ))
         .into()],
         interner,
@@ -47,10 +50,10 @@ fn check_async_ordinary_method() {
 fn check_async_field_initialization() {
     let interner = &mut Interner::default();
 
-    let elements = vec![ClassElement::FieldDefinition(
+    let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
         PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
         Some(Literal::from(1).into()),
-    )];
+    ))];
 
     check_script_parser(
         "class A {
@@ -58,12 +61,11 @@ fn check_async_field_initialization() {
               = 1
          }
         ",
-        [Declaration::Class(Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+        [Declaration::ClassDeclaration(ClassDeclaration::new(
+            interner.get_or_intern_static("A", utf16!("A")).into(),
             None,
             None,
             elements.into(),
-            true,
         ))
         .into()],
         interner,
@@ -74,22 +76,21 @@ fn check_async_field_initialization() {
 fn check_async_field() {
     let interner = &mut Interner::default();
 
-    let elements = vec![ClassElement::FieldDefinition(
+    let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
         PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
         None,
-    )];
+    ))];
 
     check_script_parser(
         "class A {
             async
          }
         ",
-        [Declaration::Class(Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+        [Declaration::ClassDeclaration(ClassDeclaration::new(
+            interner.get_or_intern_static("A", utf16!("A")).into(),
             None,
             None,
             elements.into(),
-            true,
         ))
         .into()],
         interner,
@@ -117,21 +118,18 @@ fn check_new_target_with_property_access() {
         [new_target].into(),
     ));
 
-    let constructor = Function::new(
+    let constructor = FunctionExpression::new(
         Some(interner.get_or_intern_static("A", utf16!("A")).into()),
         FormalParameterList::default(),
-        FunctionBody::new(StatementList::new(
-            [Statement::Expression(console).into()],
-            false,
-        )),
+        FunctionBody::new([Statement::Expression(console).into()], false),
+        false,
     );
 
-    let class = Class::new(
-        Some(interner.get("A").unwrap().into()),
+    let class = ClassDeclaration::new(
+        interner.get("A").unwrap().into(),
         None,
         Some(constructor),
         Box::default(),
-        true,
     );
 
     let instantiation = Expression::New(

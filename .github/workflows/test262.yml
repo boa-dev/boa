@@ -3,8 +3,13 @@ on:
   pull_request:
     branches:
       - main
+      - releases/**
   merge_group:
     types: [checks_requested]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   run_test262:

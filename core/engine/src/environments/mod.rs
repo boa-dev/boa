@@ -24,15 +24,11 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-environment-records
 
-mod compile;
 mod runtime;
 
-pub(crate) use {
-    compile::CompileTimeEnvironment,
-    runtime::{
-        BindingLocator, BindingLocatorEnvironment, BindingLocatorError, DeclarativeEnvironment,
-        Environment, EnvironmentStack, FunctionSlots, PrivateEnvironment, ThisBindingStatus,
-    },
+pub(crate) use runtime::{
+    DeclarativeEnvironment, Environment, EnvironmentStack, FunctionSlots, PrivateEnvironment,
+    ThisBindingStatus,
 };
 
 #[cfg(test)]

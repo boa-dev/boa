@@ -1,5 +1,7 @@
 //! Error handling statements
 
+use crate::operations::{contains, ContainsSymbol};
+use crate::scope::Scope;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
@@ -142,16 +144,29 @@ impl VisitWith for Try {
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Catch {
-    parameter: Option<Binding>,
-    block: Block,
+    pub(crate) parameter: Option<Binding>,
+    pub(crate) block: Block,
+    pub(crate) contains_direct_eval: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Scope,
 }
 
 impl Catch {
     /// Creates a new catch block.
     #[inline]
     #[must_use]
-    pub const fn new(parameter: Option<Binding>, block: Block) -> Self {
-        Self { parameter, block }
+    pub fn new(parameter: Option<Binding>, block: Block) -> Self {
+        let mut contains_direct_eval = contains(&block, ContainsSymbol::DirectEval);
+        if let Some(param) = &parameter {
+            contains_direct_eval |= contains(param, ContainsSymbol::DirectEval);
+        }
+        Self {
+            parameter,
+            block,
+            contains_direct_eval,
+            scope: Scope::default(),
+        }
     }
 
     /// Gets the parameter of the catch block.
@@ -166,6 +181,13 @@ impl Catch {
     #[must_use]
     pub const fn block(&self) -> &Block {
         &self.block
+    }
+
+    /// Returns the scope of the catch block.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> &Scope {
+        &self.scope
     }
 }
 

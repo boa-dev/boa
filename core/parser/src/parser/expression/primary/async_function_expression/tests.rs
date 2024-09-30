@@ -2,7 +2,7 @@ use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{Declaration, LexicalDeclaration, Variable},
     expression::literal::Literal,
-    function::{AsyncFunction, FormalParameterList, FunctionBody},
+    function::{AsyncFunctionExpression, FormalParameterList, FunctionBody},
     statement::Return,
     Statement, StatementListItem,
 };
@@ -23,14 +23,14 @@ fn check_async_expression() {
             vec![Variable::from_identifier(
                 add.into(),
                 Some(
-                    AsyncFunction::new(
+                    AsyncFunctionExpression::new(
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![StatementListItem::Statement(Statement::Return(
+                            [StatementListItem::Statement(Statement::Return(
                                 Return::new(Some(Literal::from(1).into())),
-                            ))]
-                            .into(),
+                            ))],
+                            false,
                         ),
                         false,
                     )
@@ -61,23 +61,23 @@ fn check_nested_async_expression() {
             vec![Variable::from_identifier(
                 a.into(),
                 Some(
-                    AsyncFunction::new(
+                    AsyncFunctionExpression::new(
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![Declaration::Lexical(LexicalDeclaration::Const(
+                            [Declaration::Lexical(LexicalDeclaration::Const(
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
-                                        AsyncFunction::new(
+                                        AsyncFunctionExpression::new(
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(
-                                                vec![Statement::Return(Return::new(Some(
+                                                [Statement::Return(Return::new(Some(
                                                     Literal::from(1).into(),
                                                 )))
-                                                .into()]
-                                                .into(),
+                                                .into()],
+                                                false,
                                             ),
                                             false,
                                         )
@@ -87,8 +87,8 @@ fn check_nested_async_expression() {
                                 .try_into()
                                 .unwrap(),
                             ))
-                            .into()]
-                            .into(),
+                            .into()],
+                            false,
                         ),
                         false,
                     )

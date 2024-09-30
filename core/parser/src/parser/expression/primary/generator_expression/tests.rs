@@ -2,7 +2,7 @@ use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{literal::Literal, Yield},
-    function::{FormalParameterList, FunctionBody, Generator},
+    function::{FormalParameterList, FunctionBody, GeneratorExpression},
     Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
@@ -21,14 +21,14 @@ fn check_generator_function_expression() {
             vec![Variable::from_identifier(
                 gen.into(),
                 Some(
-                    Generator::new(
+                    GeneratorExpression::new(
                         Some(gen.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![StatementListItem::Statement(Statement::Expression(
+                            [StatementListItem::Statement(Statement::Expression(
                                 Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
-                            ))]
-                            .into(),
+                            ))],
+                            false,
                         ),
                         false,
                     )
@@ -56,14 +56,14 @@ fn check_generator_function_delegate_yield_expression() {
             vec![Variable::from_identifier(
                 gen.into(),
                 Some(
-                    Generator::new(
+                    GeneratorExpression::new(
                         Some(gen.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![StatementListItem::Statement(Statement::Expression(
+                            [StatementListItem::Statement(Statement::Expression(
                                 Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
-                            ))]
-                            .into(),
+                            ))],
+                            false,
                         ),
                         false,
                     )

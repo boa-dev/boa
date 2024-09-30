@@ -1,6 +1,8 @@
 //! Switch node.
 use crate::{
     expression::Expression,
+    operations::{contains, ContainsSymbol},
+    scope::Scope,
     statement::Statement,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -114,8 +116,12 @@ impl VisitWith for Case {
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Switch {
-    val: Expression,
-    cases: Box<[Case]>,
+    pub(crate) val: Expression,
+    pub(crate) cases: Box<[Case]>,
+    pub(crate) contains_direct_eval: bool,
+
+    #[cfg_attr(feature = "serde", serde(skip))]
+    pub(crate) scope: Option<Scope>,
 }
 
 impl Switch {
@@ -123,7 +129,16 @@ impl Switch {
     #[inline]
     #[must_use]
     pub fn new(val: Expression, cases: Box<[Case]>) -> Self {
-        Self { val, cases }
+        let mut contains_direct_eval = false;
+        for case in &cases {
+            contains_direct_eval |= contains(case, ContainsSymbol::DirectEval);
+        }
+        Self {
+            val,
+            cases,
+            contains_direct_eval,
+            scope: None,
+        }
     }
 
     /// Gets the value to switch.
@@ -150,6 +165,13 @@ impl Switch {
             }
         }
         None
+    }
+
+    /// Gets the scope of the switch statement.
+    #[inline]
+    #[must_use]
+    pub const fn scope(&self) -> Option<&Scope> {
+        self.scope.as_ref()
     }
 }
 

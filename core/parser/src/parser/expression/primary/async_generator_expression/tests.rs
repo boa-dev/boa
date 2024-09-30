@@ -2,7 +2,7 @@ use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::literal::Literal,
-    function::{AsyncGenerator, FormalParameterList, FunctionBody},
+    function::{AsyncGeneratorExpression, FormalParameterList, FunctionBody},
     statement::Return,
     Declaration, Statement, StatementListItem,
 };
@@ -24,14 +24,14 @@ fn check_async_generator_expr() {
             vec![Variable::from_identifier(
                 add.into(),
                 Some(
-                    AsyncGenerator::new(
+                    AsyncGeneratorExpression::new(
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![StatementListItem::Statement(Statement::Return(
+                            [StatementListItem::Statement(Statement::Return(
                                 Return::new(Some(Literal::from(1).into())),
-                            ))]
-                            .into(),
+                            ))],
+                            false,
                         ),
                         false,
                     )
@@ -62,24 +62,22 @@ fn check_nested_async_generator_expr() {
             vec![Variable::from_identifier(
                 a.into(),
                 Some(
-                    AsyncGenerator::new(
+                    AsyncGeneratorExpression::new(
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            vec![Declaration::Lexical(LexicalDeclaration::Const(
+                            [Declaration::Lexical(LexicalDeclaration::Const(
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
-                                        AsyncGenerator::new(
+                                        AsyncGeneratorExpression::new(
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(
-                                                vec![StatementListItem::Statement(
-                                                    Statement::Return(Return::new(Some(
-                                                        Literal::from(1).into(),
-                                                    ))),
-                                                )]
-                                                .into(),
+                                                [StatementListItem::Statement(Statement::Return(
+                                                    Return::new(Some(Literal::from(1).into())),
+                                                ))],
+                                                false,
                                             ),
                                             false,
                                         )
@@ -89,8 +87,8 @@ fn check_nested_async_generator_expr() {
                                 .try_into()
                                 .unwrap(),
                             ))
-                            .into()]
-                            .into(),
+                            .into()],
+                            false,
                         ),
                         false,
                     )
