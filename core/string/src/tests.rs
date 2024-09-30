@@ -2,7 +2,10 @@
 
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
-use crate::{JsStr, JsString, JsStringBuilder, StaticJsString, StaticJsStrings};
+use crate::{
+    CommonJsStringBuilder, JsStr, JsString, Latin1StringBuilder, StaticJsString, StaticJsStrings,
+    Utf16StringBuilder,
+};
 
 use rustc_hash::FxHasher;
 
@@ -243,7 +246,7 @@ fn js_string_builder() {
     let s_js_string = JsString::from(JsStr::latin1(s_utf8));
 
     // push
-    let mut builder: JsStringBuilder<u8> = JsStringBuilder::new();
+    let mut builder = Latin1StringBuilder::new();
     for &code in s_utf8 {
         builder.push(code);
     }
@@ -254,12 +257,12 @@ fn js_string_builder() {
     let s_builder = s_utf8
         .iter()
         .copied()
-        .collect::<JsStringBuilder<_>>()
+        .collect::<Latin1StringBuilder>()
         .build();
     assert_eq!(s_js_string, s_builder);
 
     // extend_from_slice
-    let mut builder = JsStringBuilder::new();
+    let mut builder = Latin1StringBuilder::new();
     builder.extend_from_slice(s_utf8);
     let s_builder = builder.build();
     assert_eq!(s_js_string, s_builder);
@@ -268,7 +271,7 @@ fn js_string_builder() {
     let s_js_string = JsString::from(s_utf16);
 
     // push
-    let mut builder = JsStringBuilder::new();
+    let mut builder = Utf16StringBuilder::new();
     for &code in s_utf16 {
         builder.push(code);
     }
@@ -279,13 +282,35 @@ fn js_string_builder() {
     let s_builder = s_utf16
         .iter()
         .copied()
-        .collect::<JsStringBuilder<_>>()
+        .collect::<Utf16StringBuilder>()
         .build();
     assert_eq!(s_js_string, s_builder);
 
     // extend_from_slice
-    let mut builder = JsStringBuilder::new();
+    let mut builder = Utf16StringBuilder::new();
     builder.extend_from_slice(s_utf16);
     let s_builder = builder.build();
     assert_eq!(s_js_string, s_builder);
+}
+
+#[test]
+fn common_js_string_builder() {
+    let utf16 = "2024年5月21日".encode_utf16().collect::<Vec<_>>();
+    let s_utf16 = utf16.as_slice();
+    let s = "Lorem ipsum dolor sit amet";
+    let js_str_utf16 = JsStr::utf16(s_utf16);
+    let js_str_latin1 = JsStr::latin1(s.as_bytes());
+    let ch = '🎹';
+    let mut builder = CommonJsStringBuilder::with_capacity(10);
+    builder += ch;
+    builder += s;
+    builder += js_str_utf16;
+    builder += js_str_latin1;
+    builder += ch;
+    assert_eq!(builder.len(), 5);
+    let js_string = builder.build();
+    assert_eq!(
+        JsString::from("🎹Lorem ipsum dolor sit amet2024年5月21日Lorem ipsum dolor sit amet🎹"),
+        js_string
+    );
 }

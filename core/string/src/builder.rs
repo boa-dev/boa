@@ -1,13 +1,16 @@
 use crate::{
-    alloc_overflow, tagged::Tagged, JsString, RawJsString, RefCount, TaggedLen, DATA_OFFSET,
+    alloc_overflow, tagged::Tagged, JsStr, JsStrVariant, JsString, RawJsString, RefCount,
+    TaggedLen, DATA_OFFSET,
 };
+
 use std::{
     alloc::{alloc, dealloc, realloc, Layout},
     cell::Cell,
     marker::PhantomData,
     mem::ManuallyDrop,
     ops::AddAssign,
-    ptr::{self, addr_of, addr_of_mut, NonNull},
+    ptr::{self, addr_of_mut, NonNull},
+    str::{self},
 };
 
 #[doc(hidden)]
@@ -26,16 +29,6 @@ impl JsStringData for u16 {}
 
 /// A mutable builder to create instance of `JsString`.
 ///
-/// # Examples
-///
-/// ```rust
-/// use boa_string::JsStringBuilder;
-/// let mut s = JsStringBuilder::new();
-/// s.push(b'x');
-/// s.extend_from_slice(&[b'1', b'2', b'3']);
-/// s.extend([b'1', b'2', b'3']);
-/// let js_string = s.build();
-/// ```
 #[derive(Debug)]
 pub struct JsStringBuilder<T: JsStringData> {
     cap: usize,
@@ -134,7 +127,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
         (layout.size() - DATA_OFFSET) / Self::DATA_SIZE
     }
 
-    /// create a new `JsStringBuilder` with specific capacity
+    /// Create a new `JsStringBuilder` with specific capacity
     #[inline]
     #[must_use]
     pub fn with_capacity(cap: usize) -> Self {
@@ -230,7 +223,8 @@ impl<D: JsStringData> JsStringBuilder<D> {
     /// Appends an element to the inner of `JsStringBuilder`.
     #[inline]
     pub fn push(&mut self, v: D) {
-        self.allocate_if_needed(self.len() + 1);
+        let required_cap = self.len() + 1;
+        self.allocate_if_needed(required_cap);
         // SAFETY:
         // Capacity has been expanded to be large enough to hold elements.
         unsafe {
@@ -338,15 +332,11 @@ impl<D: JsStringData> JsStringBuilder<D> {
 
     /// Checks if all bytes in this inner is ascii.
     fn is_ascii(&self) -> bool {
-        let ptr = self.inner.as_ptr();
         // SAFETY:
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can read to its pointed memory.
         let data = unsafe {
-            std::slice::from_raw_parts(
-                addr_of!((*ptr).data).cast::<u8>(),
-                self.allocated_data_byte_len(),
-            )
+            std::slice::from_raw_parts(self.data() as *mut u8, self.allocated_data_byte_len())
         };
         data.is_ascii()
     }
@@ -438,5 +428,239 @@ impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
         let mut builder = Self::new();
         builder.extend(iter);
         builder
+    }
+}
+
+/// **1 byte** encoded [`JsStringBuilder`]
+/// # Warning
+/// If you are not sure the characters that will be added and don't want to preprocess them,
+/// use [`CommonJsStringBuilder`] instead.
+/// ## Examples
+///
+/// ```rust
+/// use boa_string::Latin1StringBuilder;
+/// let mut s = Latin1StringBuilder::new();
+/// s.push(b'x');
+/// s.extend_from_slice(&[b'1', b'2', b'3']);
+/// s.extend([b'1', b'2', b'3']);
+/// let js_string = s.build();
+/// ```
+pub type Latin1StringBuilder = JsStringBuilder<u8>;
+
+/// **2 bytes** encoded [`JsStringBuilder`]
+/// # Warning
+/// If you are not sure the characters that will be added and don't want to preprocess them,
+/// use [`CommonJsStringBuilder`] instead.
+/// ## Examples
+///
+/// ```rust
+/// use boa_string::Utf16StringBuilder;
+/// let mut s = Utf16StringBuilder::new();
+/// s.push(b'x' as u16);
+/// s.extend_from_slice(&[b'1', b'2', b'3'].map(u16::from));
+/// s.extend([0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,]); // 🎹🎶🎵
+/// let js_string = s.build();
+/// ```
+pub type Utf16StringBuilder = JsStringBuilder<u16>;
+
+/// String segment to build [`JsString`]
+#[derive(Clone, Debug)]
+pub enum Segment<'a> {
+    String(JsString),
+    Str(JsStr<'a>),
+    Latin1(u8),
+    CodePoint(char),
+}
+
+impl Segment<'_> {
+    #[inline]
+    #[must_use]
+    fn is_latin1(&self) -> bool {
+        match self {
+            Segment::String(s) => s.as_str().is_latin1(),
+            Segment::Str(s) => s.is_latin1(),
+            Segment::Latin1(_) => true,
+            Segment::CodePoint(ch) => *ch as u32 <= 0xFF,
+        }
+    }
+}
+
+impl From<JsString> for Segment<'_> {
+    fn from(value: JsString) -> Self {
+        Self::String(value)
+    }
+}
+
+impl From<String> for Segment<'_> {
+    fn from(value: String) -> Self {
+        Self::String(value.into())
+    }
+}
+
+impl From<&[u16]> for Segment<'_> {
+    fn from(value: &[u16]) -> Self {
+        Self::String(value.into())
+    }
+}
+
+impl From<&str> for Segment<'_> {
+    fn from(value: &str) -> Self {
+        Self::String(value.into())
+    }
+}
+
+impl<'seg, 'ref_str: 'seg> From<JsStr<'ref_str>> for Segment<'seg> {
+    fn from(value: JsStr<'ref_str>) -> Self {
+        Self::Str(value)
+    }
+}
+
+impl From<u8> for Segment<'_> {
+    fn from(value: u8) -> Self {
+        Self::Latin1(value)
+    }
+}
+
+impl From<char> for Segment<'_> {
+    fn from(value: char) -> Self {
+        Self::CodePoint(value)
+    }
+}
+
+/// Originally based on [kiesel-js](https://codeberg.org/kiesel-js/kiesel/src/branch/main/src/types/language/String/Builder.zig)
+///
+/// Common JsString builder that accepts multiple variant of string or character.
+#[derive(Clone, Debug, Default)]
+pub struct CommonJsStringBuilder<'a> {
+    segments: Vec<Segment<'a>>,
+}
+
+impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
+    /// Create a new `CommonJsStringBuilder` with capacity of zero.
+    #[inline]
+    #[must_use]
+    pub const fn new() -> Self {
+        Self {
+            segments: Vec::new(),
+        }
+    }
+
+    /// Create a new `CommonJsStringBuilder` with specific capacity
+    #[inline]
+    #[must_use]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            segments: Vec::with_capacity(capacity),
+        }
+    }
+
+    /// Appends string segments to the back of the inner vector.
+    #[inline]
+    pub fn push<T: Into<Segment<'ref_str>>>(&mut self, seg: T) {
+        self.segments.push(seg.into());
+    }
+
+    /// Checks if all string segments are latin1.
+    #[inline]
+    #[must_use]
+    fn is_latin1(&self) -> bool {
+        self.segments.iter().all(|seg| seg.is_latin1())
+    }
+
+    /// Returns the number of string segment in inner vector.
+    #[inline]
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.segments.len()
+    }
+
+    /// Returns true if this `CommonJsStringBuilder` has a length of zero, and false otherwise.
+    #[inline]
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// build `JsString` from latin1 segments.
+    #[inline]
+    #[must_use]
+    fn build_from_latin1(self) -> JsString {
+        let mut builder = Latin1StringBuilder::new();
+        for seg in self.segments {
+            match seg {
+                Segment::String(s) => {
+                    let js_str = s.as_str();
+                    let Some(s) = js_str.as_latin1() else {
+                        unreachable!("all string segments are checked to be latin1")
+                    };
+                    builder.extend_from_slice(s);
+                }
+                Segment::Str(s) => {
+                    let Some(s) = s.as_latin1() else {
+                        unreachable!("all string segments are checked to be latin1")
+                    };
+                    builder.extend_from_slice(s);
+                }
+                Segment::Latin1(latin1) => builder.push(latin1),
+                Segment::CodePoint(code_point) => builder.push(code_point as u8),
+            }
+        }
+        builder.build()
+    }
+
+    /// build `JsString` from utf16 segments
+    #[inline]
+    #[must_use]
+    fn build_from_utf16(self) -> JsString {
+        let mut builder = Utf16StringBuilder::new();
+        for seg in self.segments {
+            match seg {
+                Segment::String(s) => {
+                    let js_str = s.as_str();
+                    match js_str.variant() {
+                        JsStrVariant::Latin1(s) => builder.extend(s.iter().copied().map(u16::from)),
+                        JsStrVariant::Utf16(s) => builder.extend_from_slice(s),
+                    }
+                }
+                Segment::Str(s) => match s.variant() {
+                    JsStrVariant::Latin1(s) => builder.extend(s.iter().copied().map(u16::from)),
+                    JsStrVariant::Utf16(s) => builder.extend_from_slice(s),
+                },
+                Segment::Latin1(latin1) => builder.push(latin1 as u16),
+                Segment::CodePoint(code_point) => {
+                    // inline char::encode_utf16 here for better performance
+                    let mut code_point = code_point as u32;
+                    if code_point < 0x10000 {
+                        builder.push(code_point as u16);
+                    } else {
+                        code_point -= 0x10000;
+                        builder.extend_from_slice(&[
+                            0xD800 | ((code_point >> 10) as u16),
+                            0xDC00 | ((code_point as u16) & 0x3FF),
+                        ])
+                    }
+                }
+            }
+        }
+        builder.build()
+    }
+
+    /// build `JsString` from `CommonJsStringBuilder`
+    #[inline]
+    #[must_use]
+    pub fn build(self) -> JsString {
+        if self.is_empty() {
+            JsString::default()
+        } else if self.is_latin1() {
+            self.build_from_latin1()
+        } else {
+            self.build_from_utf16()
+        }
+    }
+}
+
+impl<'ref_str, T: Into<Segment<'ref_str>>> AddAssign<T> for CommonJsStringBuilder<'ref_str> {
+    fn add_assign(&mut self, rhs: T) {
+        self.push(rhs);
     }
 }
