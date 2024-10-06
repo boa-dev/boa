@@ -1,6 +1,7 @@
-use super::JsFunction;
 use crate::{
+    builtins::function::ConstructorKind,
     gc::custom_trace,
+    native_function::NativeFunctionObject,
     object::{
         internal_methods::{
             non_existant_call, non_existant_construct, ordinary_define_own_property,
@@ -13,13 +14,13 @@ use crate::{
     },
     property::{PropertyDescriptor, PropertyKey},
     realm::{Realm, RealmInner},
-    Context, JsData, JsNativeError, JsObject, JsResult, JsValue,
+    Context, JsData, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 use boa_gc::{Finalize, Trace, WeakGc};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) enum BuiltinKind {
-    Function(JsFunction),
+    Function(NativeFunctionObject),
     Ordinary,
 }
 
@@ -30,6 +31,18 @@ pub(crate) enum BuiltinKind {
 pub struct LazyBuiltIn {
     pub(crate) init_and_realm: Option<(fn(&Realm), WeakGc<RealmInner>)>,
     pub(crate) kind: BuiltinKind,
+}
+
+impl LazyBuiltIn {
+    pub(crate) fn set_constructor(&mut self, function: NativeFunction, realm: Realm) {
+        if let BuiltinKind::Function(ref mut native_function) = self.kind {
+            native_function.f = function;
+            native_function.constructor = Some(ConstructorKind::Base);
+            native_function.realm = Some(realm);
+        } else {
+            panic!("Expected BuiltinKind::Function");
+        }
+    }
 }
 
 // SAFETY: Temporary, TODO move back to derived Trace when possible
@@ -395,7 +408,11 @@ pub(crate) fn lazy_construct(
             .with_message("not a constructor")
             .with_realm(context.realm().clone())
             .into()),
-        BuiltinKind::Function(constructor) => Ok(constructor.__construct__(argument_count)),
+        BuiltinKind::Function(constructor) => Ok((constructor.internal_methods().__construct__)(
+            obj,
+            argument_count,
+            context,
+        )?),
     }
 }
 
@@ -427,6 +444,10 @@ pub(crate) fn lazy_call(
             .with_message("not a constructor")
             .with_realm(context.realm().clone())
             .into()),
-        BuiltinKind::Function(function) => Ok(function.__call__(argument_count)),
+        BuiltinKind::Function(function) => Ok((function.internal_methods().__call__)(
+            obj,
+            argument_count,
+            context,
+        )?),
     }
 }

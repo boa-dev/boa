@@ -145,18 +145,16 @@ impl JsFunction {
         init: fn(&Realm),
         realm_inner: WeakGc<RealmInner>,
     ) -> Self {
-        let kind = if constructor {
-            BuiltinKind::Function(Self::empty_intrinsic_function(constructor))
-        } else {
-            BuiltinKind::Ordinary
-        };
-
         Self {
             inner: JsObject::from_proto_and_data(
                 None,
                 LazyBuiltIn {
                     init_and_realm: Some((init, realm_inner)),
-                    kind,
+                    kind: BuiltinKind::Function(NativeFunctionObject {
+                        f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+                        constructor: constructor.then_some(ConstructorKind::Base),
+                        realm: None,
+                    }),
                 },
             ),
         }
