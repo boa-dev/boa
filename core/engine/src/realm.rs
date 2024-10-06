@@ -70,10 +70,23 @@ pub struct RealmInner {
     template_map: GcRefCell<FxHashMap<u64, JsObject>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_classes: GcRefCell<FxHashMap<TypeId, StandardConstructor>>,
-
     host_defined: GcRefCell<HostDefined>,
 }
 
+#[allow(clippy::missing_fields_in_debug)]
+impl std::fmt::Debug for RealmInner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RealmInner")
+            .field("intrinsics", &self.intrinsics)
+            .field("environment", &self.environment)
+            .field("global_object", &self.global_object)
+            .field("global_this", &self.global_this)
+            .field("template_map", &self.template_map)
+            .field("loaded_modules", &self.loaded_modules)
+            .field("host_classes", &self.host_classes)
+            .finish()
+    }
+}
 impl Realm {
     /// Create a new [`Realm`].
     #[inline]

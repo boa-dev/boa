@@ -25,7 +25,8 @@ pub(crate) enum BuiltinKind {
 
 /// A builtin function. Used for lazy initialization of builtins.
 
-#[derive(Clone, Finalize)]
+#[derive(Clone, Finalize, Debug)]
+#[allow(clippy::type_complexity)]
 pub struct LazyBuiltIn {
     pub(crate) init_and_realm: Option<(fn(&Realm), WeakGc<RealmInner>)>,
     pub(crate) kind: BuiltinKind,
