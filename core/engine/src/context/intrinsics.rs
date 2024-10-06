@@ -5,7 +5,7 @@ use boa_macros::js_str;
 
 use crate::{
     builtins::{
-        iterable::IteratorPrototypes, uri::UriFunctions, Array, Date, IntrinsicObject,
+        iterable::IteratorPrototypes, uri::UriFunctions, Array, Date, IntrinsicObject, Math,
         OrdinaryObject,
     },
     js_string,
@@ -50,7 +50,7 @@ impl Intrinsics {
 
         Some(Self {
             constructors,
-            objects: IntrinsicObjects::uninit()?,
+            objects: IntrinsicObjects::uninit(realm_inner)?,
             templates,
         })
     }
@@ -1132,10 +1132,10 @@ impl IntrinsicObjects {
     ///
     /// [`Realm::initialize`]: crate::realm::Realm::initialize
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn uninit() -> Option<Self> {
+    pub(crate) fn uninit(realm_inner: &WeakGc<RealmInner>) -> Option<Self> {
         Some(Self {
             reflect: JsObject::default(),
-            math: JsObject::default(),
+            math: JsObject::lazy(Math::init, realm_inner),
             json: JsObject::default(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),

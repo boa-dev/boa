@@ -201,7 +201,7 @@ impl Realm {
         AsyncIterator::init(self);
         AsyncFromSyncIterator::init(self);
         ForInIterator::init(self);
-        Math::init(self);
+        // Math::init(self);
         Json::init(self);
         ArrayIterator::init(self);
         Proxy::init(self);

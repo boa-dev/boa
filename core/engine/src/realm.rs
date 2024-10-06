@@ -30,6 +30,8 @@ use boa_profiler::Profiler;
 /// In the specification these are called Realm Records.
 #[derive(Clone, Trace, Finalize)]
 pub struct Realm {
+    /// The inner data of the realm, which includes the intrinsics, environment,
+    /// global object, and other realm-specific information.
     pub inner: Gc<RealmInner>,
 }
 
@@ -53,6 +55,11 @@ impl std::fmt::Debug for Realm {
 }
 
 #[derive(Trace, Finalize)]
+
+/// The inner data of a Realm.
+///
+/// This struct contains all the realm-specific information, including the intrinsics,
+/// environment, global object, and other necessary data for the execution context.
 pub struct RealmInner {
     intrinsics: Intrinsics,
 
