@@ -2,12 +2,11 @@
 
 use boa_gc::{Finalize, Trace, WeakGc};
 use boa_macros::js_str;
-use boa_string::JsString;
 
 use crate::{
     builtins::{
-        iterable::IteratorPrototypes, uri::UriFunctions, Array, BuiltInObject, Date,
-        IntrinsicObject, OrdinaryObject,
+        iterable::IteratorPrototypes, uri::UriFunctions, Array, Date, IntrinsicObject,
+        OrdinaryObject,
     },
     js_string,
     object::{
@@ -101,9 +100,9 @@ impl StandardConstructor {
     }
 
     /// Similar to `with_prototype`, but the prototype is lazily initialized.
-    fn lazy(init: fn(&Realm) -> (), name: JsString, realm_inner: WeakGc<RealmInner>) -> Self {
+    fn lazy(init: fn(&Realm) -> (), realm_inner: WeakGc<RealmInner>) -> Self {
         Self {
-            constructor: JsFunction::lazy_intrinsic_function(true, init, name, realm_inner),
+            constructor: JsFunction::lazy_intrinsic_function(true, init, realm_inner),
             prototype: JsObject::default(),
         }
     }
@@ -225,14 +224,14 @@ impl StandardConstructors {
             )),
             async_generator_function: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
-            date: StandardConstructor::lazy(Date::init, Date::NAME, realm_inner.clone()),
+            date: StandardConstructor::lazy(Date::init, realm_inner.clone()),
             function: StandardConstructor {
                 constructor: JsFunction::empty_intrinsic_function(true),
                 prototype: JsFunction::empty_intrinsic_function(false).into(),
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::lazy(Array::init, Array::NAME, realm_inner.clone()),
+            array: StandardConstructor::lazy(Array::init, realm_inner.clone()),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(

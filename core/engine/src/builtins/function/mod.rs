@@ -843,7 +843,7 @@ impl BuiltInFunctionObject {
         };
 
         let object_borrow = object.borrow();
-        if object_borrow.is::<NativeFunctionObject>() {
+        if object_borrow.is::<NativeFunctionObject>() || object_borrow.is::<LazyBuiltIn>() {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
@@ -859,13 +859,6 @@ impl BuiltInFunctionObject {
             );
         } else if object_borrow.is::<Proxy>() || object_borrow.is::<BoundFunction>() {
             return Ok(js_string!("function () { [native code] }").into());
-        } else if object_borrow.is::<LazyBuiltIn>() {
-            let name = object_borrow
-                .downcast_ref::<LazyBuiltIn>()
-                .map_or_else(|| js_string!(), |built_in| built_in.name.clone());
-            return Ok(
-                js_string!(js_str!("function "), &name, js_str!("() { [native code] }")).into(),
-            );
         }
 
         let function = object_borrow

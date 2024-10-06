@@ -5,8 +5,6 @@ use crate::{
     value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
 };
 use boa_gc::{Finalize, Trace, WeakGc};
-use boa_string::JsString;
-use std::cell::Cell;
 use std::marker::PhantomData;
 use std::ops::Deref;
 
@@ -145,7 +143,6 @@ impl JsFunction {
     pub(crate) fn lazy_intrinsic_function(
         constructor: bool,
         init: fn(&Realm),
-        name: JsString,
         realm_inner: WeakGc<RealmInner>,
     ) -> Self {
         let kind = if constructor {
@@ -158,11 +155,8 @@ impl JsFunction {
             inner: JsObject::from_proto_and_data(
                 None,
                 LazyBuiltIn {
-                    init,
-                    is_initialized: Cell::new(false),
+                    init_and_realm: Some((init, realm_inner)),
                     kind,
-                    name,
-                    realm_inner: Some(realm_inner),
                 },
             ),
         }
