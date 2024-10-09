@@ -540,6 +540,7 @@ dependencies = [
  "indoc",
  "rustc-hash 2.0.0",
  "textwrap",
+ "url",
 ]
 
 [[package]]

@@ -58,8 +58,8 @@ pub trait Logger: Trace + Sized {
 /// Implements the [`Logger`] trait and output errors to stderr and all
 /// the others to stdout. Will add indentation based on the number of
 /// groups.
-#[derive(Trace, Finalize)]
-struct DefaultLogger;
+#[derive(Debug, Trace, Finalize)]
+pub struct DefaultLogger;
 
 impl Logger for DefaultLogger {
     #[inline]
