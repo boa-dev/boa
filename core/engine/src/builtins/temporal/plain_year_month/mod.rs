@@ -167,6 +167,8 @@ impl IntrinsicObject for PlainYearMonth {
 
 impl BuiltInConstructor for PlainYearMonth {
     const LENGTH: usize = 2;
+    const P: usize = 16;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_year_month;

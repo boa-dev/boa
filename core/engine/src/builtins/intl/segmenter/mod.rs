@@ -119,6 +119,8 @@ impl BuiltInObject for Segmenter {
 
 impl BuiltInConstructor for Segmenter {
     const LENGTH: usize = 0;
+    const P: usize = 3;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::segmenter;

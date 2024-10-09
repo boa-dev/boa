@@ -155,6 +155,8 @@ impl BuiltInObject for SharedArrayBuffer {
 
 impl BuiltInConstructor for SharedArrayBuffer {
     const LENGTH: usize = 1;
+    const P: usize = 6;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::shared_array_buffer;

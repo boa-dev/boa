@@ -1,11 +1,9 @@
-use std::{cell::RefCell, rc::Rc};
-
-use rustc_hash::FxHashMap;
-
 use crate::{
     object::shape::slot::{Slot, SlotAttributes},
     property::PropertyKey,
 };
+use rustc_hash::{FxBuildHasher, FxHashMap};
+use std::{cell::RefCell, rc::Rc};
 
 /// The internal representation of [`PropertyTable`].
 #[derive(Default, Debug, Clone)]
@@ -15,6 +13,14 @@ pub(crate) struct PropertyTableInner {
 }
 
 impl PropertyTableInner {
+    /// Returns a new table with a given minimum capacity.
+    pub(crate) fn with_capacity(capacity: usize) -> Self {
+        Self {
+            map: FxHashMap::with_capacity_and_hasher(capacity, FxBuildHasher),
+            keys: Vec::with_capacity(capacity),
+        }
+    }
+
     /// Returns all the keys, in insertion order.
     pub(crate) fn keys(&self) -> Vec<PropertyKey> {
         self.keys_cloned_n(self.keys.len() as u32)
@@ -74,6 +80,13 @@ pub(crate) struct PropertyTable {
 }
 
 impl PropertyTable {
+    /// Creates a new `PropertyTable` with the specified capacity.
+    pub(crate) fn with_capacity(capacity: usize) -> Self {
+        Self {
+            inner: Rc::new(RefCell::new(PropertyTableInner::with_capacity(capacity))),
+        }
+    }
+
     /// Returns the inner representation of a [`PropertyTable`].
     pub(super) fn inner(&self) -> &RefCell<PropertyTableInner> {
         &self.inner

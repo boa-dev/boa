@@ -135,6 +135,9 @@ impl ApplyToObject for OrdinaryObject {
     fn apply_to(self, _: &JsObject) {}
 }
 
+// The number of properties that are always present in a standard constructor. See build method
+const OWN_PROPS: usize = 3;
+
 /// Builder for creating built-in objects, like `Array`.
 ///
 /// The marker `ObjectType` restricts the methods that can be called depending on the
@@ -528,6 +531,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
 }
 
 impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
+    /// Create a new builder for a constructor function setting the properties ahead of time for optimizations (less reallocations)
     pub(crate) fn from_standard_constructor<SC: BuiltInConstructor>(
         realm: &'ctx Realm,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
@@ -537,11 +541,11 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
             function: SC::constructor,
             name: js_string!(SC::NAME),
             length: SC::LENGTH,
-            object_property_table: PropertyTableInner::default(),
-            object_storage: Vec::default(),
+            object_property_table: PropertyTableInner::with_capacity(SC::SP + OWN_PROPS),
+            object_storage: Vec::with_capacity(SC::SP + OWN_PROPS),
             object: constructor.constructor(),
-            prototype_property_table: PropertyTableInner::default(),
-            prototype_storage: Vec::default(),
+            prototype_property_table: PropertyTableInner::with_capacity(SC::P),
+            prototype_storage: Vec::with_capacity(SC::P),
             prototype: constructor.prototype(),
             __proto__: Some(realm.intrinsics().constructors().function().prototype()),
             inherits: Some(realm.intrinsics().constructors().object().prototype()),

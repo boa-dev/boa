@@ -167,6 +167,8 @@ impl BuiltInObject for DataView {
 
 impl BuiltInConstructor for DataView {
     const LENGTH: usize = 1;
+    const P: usize = 24;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::data_view;

@@ -37,6 +37,7 @@ pub mod weak_set;
 mod builder;
 
 use boa_macros::js_str;
+use boa_profiler::Profiler;
 use builder::BuiltInBuilder;
 
 #[cfg(feature = "annex-b")]
@@ -157,6 +158,10 @@ pub(crate) trait BuiltInObject: IntrinsicObject {
 ///
 /// [built-in object]: https://tc39.es/ecma262/#sec-built-in-object
 pub(crate) trait BuiltInConstructor: BuiltInObject {
+    /// Const Generic `P` is the minimum storage capacity for the prototype's Property table.
+    const P: usize;
+    /// Const Generic `SP` is the minimum storage capacity for the object's Static Property table.
+    const SP: usize;
     /// The amount of arguments this function object takes.
     const LENGTH: usize;
 
@@ -304,6 +309,8 @@ impl Realm {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
 pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()> {
+    let _timer =
+        Profiler::global().start_event("Builtins::set_default_global_bindings", "Builtins");
     let global_object = context.global_object();
 
     global_object.define_property_or_throw(

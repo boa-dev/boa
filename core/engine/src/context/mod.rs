@@ -1052,6 +1052,7 @@ impl ContextBuilder {
     // TODO: try to use a custom error here, since most of the `JsError` APIs
     // require having a `Context` in the first place.
     pub fn build(self) -> JsResult<Context> {
+        let _timer = Profiler::global().start_event("Ctx::build", "context");
         if self.can_block {
             if CANNOT_BLOCK_COUNTER.get() > 0 {
                 return Err(JsNativeError::typ()

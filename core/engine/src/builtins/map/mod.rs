@@ -108,6 +108,8 @@ impl BuiltInObject for Map {
 
 impl BuiltInConstructor for Map {
     const LENGTH: usize = 0;
+    const P: usize = 11;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::map;

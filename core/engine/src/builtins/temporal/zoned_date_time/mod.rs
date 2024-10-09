@@ -42,6 +42,8 @@ impl IntrinsicObject for ZonedDateTime {
 
 impl BuiltInConstructor for ZonedDateTime {
     const LENGTH: usize = 2;
+    const P: usize = 1;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::zoned_date_time;

@@ -52,6 +52,8 @@ impl BuiltInObject for AsyncFunction {
 
 impl BuiltInConstructor for AsyncFunction {
     const LENGTH: usize = 1;
+    const P: usize = 1;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::async_function;

@@ -129,6 +129,8 @@ impl IntrinsicObject for PlainTime {
 
 impl BuiltInConstructor for PlainTime {
     const LENGTH: usize = 0;
+    const P: usize = 15;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_time;

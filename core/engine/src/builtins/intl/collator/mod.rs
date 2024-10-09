@@ -188,6 +188,8 @@ impl BuiltInObject for Collator {
 
 impl BuiltInConstructor for Collator {
     const LENGTH: usize = 0;
+    const P: usize = 3;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::collator;

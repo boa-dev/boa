@@ -190,6 +190,9 @@ impl BuiltInObject for Array {
 }
 
 impl BuiltInConstructor for Array {
+    const PPOPERTY_COUNT: usize = 41;
+    const STATIC_PROPERTY_COUNT: usize = 5;
+
     const LENGTH: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =

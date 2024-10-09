@@ -177,6 +177,8 @@ impl BuiltInObject for RegExp {
 
 impl BuiltInConstructor for RegExp {
     const LENGTH: usize = 2;
+    const P: usize = 19;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::regexp;

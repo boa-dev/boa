@@ -60,6 +60,8 @@ impl BuiltInObject for TypeError {
 
 impl BuiltInConstructor for TypeError {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::type_error;

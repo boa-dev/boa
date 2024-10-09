@@ -356,6 +356,8 @@ impl BuiltInObject for BuiltInFunctionObject {
 
 impl BuiltInConstructor for BuiltInFunctionObject {
     const LENGTH: usize = 1;
+    const P: usize = 7;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::function;

@@ -298,6 +298,8 @@ impl IntrinsicObject for PlainDateTime {
 
 impl BuiltInConstructor for PlainDateTime {
     const LENGTH: usize = 3;
+    const P: usize = 29;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_date_time;

@@ -65,6 +65,8 @@ impl BuiltInObject for BigInt {
 
 impl BuiltInConstructor for BigInt {
     const LENGTH: usize = 1;
+    const P: usize = 3;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::bigint;
