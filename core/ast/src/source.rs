@@ -7,7 +7,7 @@ use crate::{
     scope::Scope,
     scope_analyzer::{
         analyze_binding_escapes, collect_bindings, eval_declaration_instantiation_scope,
-        EvalDeclarationBindings,
+        optimize_scope_indicies, EvalDeclarationBindings,
     },
     visitor::{VisitWith, Visitor, VisitorMut},
     ModuleItemList, StatementList,
@@ -56,7 +56,11 @@ impl Script {
         if !collect_bindings(self, self.strict(), false, scope, interner) {
             return false;
         }
-        analyze_binding_escapes(self, false, scope.clone(), interner)
+        if !analyze_binding_escapes(self, false, scope.clone(), interner) {
+            return false;
+        }
+        optimize_scope_indicies(self, scope);
+        true
     }
 
     /// Analyze the scope of the script in eval mode.
@@ -84,10 +88,14 @@ impl Script {
         if !collect_bindings(self, strict, true, lexical_scope, interner) {
             return Err(String::from("Failed to analyze scope"));
         }
-
         if !analyze_binding_escapes(self, true, lexical_scope.clone(), interner) {
             return Err(String::from("Failed to analyze scope"));
         }
+        variable_scope.escape_all_bindings();
+        lexical_scope.escape_all_bindings();
+        variable_scope.reorder_binding_indices();
+        lexical_scope.reorder_binding_indices();
+        optimize_scope_indicies(self, lexical_scope);
 
         Ok(bindings)
     }
@@ -158,7 +166,11 @@ impl Module {
         if !collect_bindings(self, true, false, scope, interner) {
             return false;
         }
-        analyze_binding_escapes(self, false, scope.clone(), interner)
+        if !analyze_binding_escapes(self, false, scope.clone(), interner) {
+            return false;
+        }
+        optimize_scope_indicies(self, &self.scope.clone());
+        true
     }
 }
 

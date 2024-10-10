@@ -94,6 +94,7 @@ impl FunctionCompiler {
     }
 
     /// Compile a function statement list and it's parameters into bytecode.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
         mut self,
         parameters: &FormalParameterList,
@@ -101,6 +102,7 @@ impl FunctionCompiler {
         variable_environment: Scope,
         lexical_environment: Scope,
         scopes: &FunctionScopes,
+        contains_direct_eval: bool,
         interner: &mut Interner,
     ) -> Gc<CodeBlock> {
         self.strict = self.strict || body.strict();
@@ -129,11 +131,19 @@ impl FunctionCompiler {
         }
 
         if let Some(scope) = self.name_scope {
-            compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-            let _ = compiler.push_scope(&scope);
+            if !scope.all_bindings_local() {
+                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
+                let _ = compiler.push_scope(&scope);
+            }
         }
-        // Function environment
-        let _ = compiler.push_scope(scopes.function_scope());
+
+        if self.arrow && scopes.function_scope().all_bindings_local() && !contains_direct_eval {
+            compiler.variable_scope = scopes.function_scope().clone();
+            compiler.lexical_scope = scopes.function_scope().clone();
+        } else {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+            let _ = compiler.push_scope(scopes.function_scope());
+        }
 
         // Taken from:
         //  - 15.9.3 Runtime Semantics: EvaluateAsyncConciseBody: <https://tc39.es/ecma262/#sec-runtime-semantics-evaluateasyncconcisebody>
@@ -185,6 +195,7 @@ impl FunctionCompiler {
         compiler.compile_statement_list(body.statement_list(), false, false);
 
         compiler.params = parameters.clone();
+        compiler.parameter_scope = scopes.parameter_scope();
 
         let code = compiler.finish();
 

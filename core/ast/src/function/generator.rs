@@ -76,6 +76,13 @@ impl GeneratorDeclaration {
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
     }
+
+    /// Returns `true` if the generator declaration contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for GeneratorDeclaration {
@@ -204,6 +211,13 @@ impl GeneratorExpression {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Returns `true` if the generator expression contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
     }
 }
 
