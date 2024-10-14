@@ -48,7 +48,7 @@ boa_string = { version = "~0.19.0", path = "core/string" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.5.0"
-clap = "4.5.19"
+clap = "4.5.20"
 colored = "2.1.0"
 fast-float = "0.2.0"
 hashbrown = { version = "0.14.5", default-features = false }
@@ -80,10 +80,10 @@ color-eyre = "0.6.3"
 comfy-table = "7.1.1"
 serde_repr = "0.1.19"
 bus = "2.4.1"
-wasm-bindgen = { version = "0.2.93", default-features = false }
+wasm-bindgen = { version = "0.2.95", default-features = false }
 getrandom = { version = "0.2.15", default-features = false }
 console_error_panic_hook = "0.1.7"
-wasm-bindgen-test = "0.3.43"
+wasm-bindgen-test = "0.3.45"
 smol = "2.0.2"
 futures-util = "0.3.31"
 isahc = "1.7.2"
@@ -105,7 +105,7 @@ dashmap = "5.5.3"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
 portable-atomic = "1.9.0"
-bytemuck = { version = "1.18.0", default-features = false }
+bytemuck = { version = "1.19.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
