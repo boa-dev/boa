@@ -316,6 +316,8 @@ impl<D: JsStringData> JsStringBuilder<D> {
     /// Note that the allocator may give the collection more space than it
     /// requests. Therefore, capacity can not be relied upon to be precisely
     /// minimal. Prefer [`reserve`] if future insertions are expected.
+    ///
+    /// [`reserve`]: JsStringBuilder::reserve
     #[inline]
     pub fn reserve_exact(&mut self, additional: usize) {
         if additional > self.capacity().wrapping_sub(self.len) {
@@ -551,9 +553,9 @@ impl From<char> for Segment<'_> {
     }
 }
 
-/// Originally based on [kiesel-js](https://codeberg.org/kiesel-js/kiesel/src/branch/main/src/types/language/String/Builder.zig)
-///
 /// Common `JsString` builder that accepts multiple variant of string or character.
+///
+/// Originally based on [kiesel-js](https://codeberg.org/kiesel-js/kiesel/src/branch/main/src/types/language/String/Builder.zig)
 #[derive(Clone, Debug, Default)]
 pub struct CommonJsStringBuilder<'a> {
     segments: Vec<Segment<'a>>,
