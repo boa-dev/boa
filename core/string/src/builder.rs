@@ -287,6 +287,8 @@ impl<D: JsStringData> JsStringBuilder<D> {
         iterator.for_each(|c| self.push(c));
     }
 
+    /// Similar to [`Vec::reserve`]
+    ///
     /// Reserves capacity for at least `additional` more elements to be inserted
     /// in the given `JsStringBuilder<D>`. The collection may reserve more space to
     /// speculatively avoid frequent reallocations. After calling `reserve`,
@@ -299,6 +301,29 @@ impl<D: JsStringData> JsStringBuilder<D> {
                 alloc_overflow()
             };
             self.allocate(cap);
+        }
+    }
+
+    /// Similar to [`Vec::reserve_exact`]
+    ///
+    /// Reserves the minimum capacity for at least `additional` more elements to
+    /// be inserted in the given `JsStringBuilder<D>`. Unlike [`reserve`], this will not
+    /// deliberately over-allocate to speculatively avoid frequent allocations.
+    /// After calling `reserve_exact`, capacity will be greater than or equal to
+    /// `self.len() + additional`. Does nothing if the capacity is already
+    /// sufficient.
+    ///
+    /// Note that the allocator may give the collection more space than it
+    /// requests. Therefore, capacity can not be relied upon to be precisely
+    /// minimal. Prefer [`reserve`] if future insertions are expected.
+    #[inline]
+    pub fn reserve_exact(&mut self, additional: usize) {
+        if additional > self.capacity().wrapping_sub(self.len) {
+            vec![].reserve_exact(additional);
+            let Some(cap) = self.len().checked_add(additional) else {
+                alloc_overflow()
+            };
+            self.allocate_inner(cap);
         }
     }
 
@@ -552,6 +577,18 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         Self {
             segments: Vec::with_capacity(capacity),
         }
+    }
+
+    /// Calls the same method of inner vec.
+    #[inline]
+    pub fn reserve(&mut self, additional: usize) {
+        self.segments.reserve(additional);
+    }
+
+    /// Calls the same method of inner vec.
+    #[inline]
+    pub fn reserve_exact(&mut self, additional: usize) {
+        self.segments.reserve_exact(additional);
     }
 
     /// Appends string segments to the back of the inner vector.
