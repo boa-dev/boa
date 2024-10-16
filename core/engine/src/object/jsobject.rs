@@ -5,7 +5,7 @@
 use super::{
     internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
-    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
+    BuiltinKind, JsPrototype, LazyBuiltIn, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
     builtins::{
@@ -17,10 +17,11 @@ use crate::{
     error::JsNativeError,
     js_string,
     property::{PropertyDescriptor, PropertyKey},
+    realm::{Realm, RealmInner},
     value::PreferredType,
     Context, JsResult, JsString, JsValue,
 };
-use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace};
+use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace, WeakGc};
 use boa_macros::js_str;
 use std::{
     cell::RefCell,
@@ -91,6 +92,17 @@ impl JsObject {
         Self {
             inner: coerce_gc(gc),
         }
+    }
+    /// Creates a new lazy `JsObject` from its inner object and its vtable.
+    /// This is used for built-in objects that are lazily initialized.
+    pub(crate) fn lazy(init: fn(&Realm) -> (), realm_inner: &WeakGc<RealmInner>) -> Self {
+        Self::from_proto_and_data(
+            None,
+            LazyBuiltIn {
+                init_and_realm: Some((init, realm_inner.clone())),
+                kind: BuiltinKind::Ordinary,
+            },
+        )
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.

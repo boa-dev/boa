@@ -1,11 +1,14 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
+use crate::realm::{Realm, RealmInner};
 use crate::{
     builtins::function::ConstructorKind, native_function::NativeFunctionObject, object::JsObject,
     value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, WeakGc};
 use std::marker::PhantomData;
 use std::ops::Deref;
+
+use super::lazy_builtin::{BuiltinKind, LazyBuiltIn};
 
 /// A trait for converting a tuple of Rust values into a vector of `JsValue`,
 /// to be used as arguments for a JavaScript function.
@@ -130,6 +133,28 @@ impl JsFunction {
                     f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
                     constructor: constructor.then_some(ConstructorKind::Base),
                     realm: None,
+                },
+            ),
+        }
+    }
+
+    /// Creates a new, lazy intrinsic functionobject with only its function internal methods set.
+    /// When the function is accessed it will call init from the procided init function
+    pub(crate) fn lazy_intrinsic_function(
+        constructor: bool,
+        init: fn(&Realm),
+        realm_inner: WeakGc<RealmInner>,
+    ) -> Self {
+        Self {
+            inner: JsObject::from_proto_and_data(
+                None,
+                LazyBuiltIn {
+                    init_and_realm: Some((init, realm_inner)),
+                    kind: BuiltinKind::Function(NativeFunctionObject {
+                        f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+                        constructor: constructor.then_some(ConstructorKind::Base),
+                        realm: None,
+                    }),
                 },
             ),
         }

@@ -1,10 +1,13 @@
 //! Data structures that contain intrinsic objects and constructors.
 
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Trace, WeakGc};
 use boa_macros::js_str;
 
 use crate::{
-    builtins::{iterable::IteratorPrototypes, uri::UriFunctions, Array, OrdinaryObject},
+    builtins::{
+        iterable::IteratorPrototypes, uri::UriFunctions, Array, Date, IntrinsicObject, Math,
+        OrdinaryObject,
+    },
     js_string,
     object::{
         internal_methods::immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
@@ -12,6 +15,7 @@ use crate::{
         JsFunction, JsObject, Object, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
+    realm::{Realm, RealmInner},
     JsSymbol,
 };
 
@@ -40,13 +44,13 @@ impl Intrinsics {
     /// To initialize all the intrinsics with their spec properties, see [`Realm::initialize`].
     ///
     /// [`Realm::initialize`]: crate::realm::Realm::initialize
-    pub(crate) fn uninit(root_shape: &RootShape) -> Option<Self> {
-        let constructors = StandardConstructors::default();
+    pub(crate) fn uninit(root_shape: &RootShape, realm_inner: &WeakGc<RealmInner>) -> Option<Self> {
+        let constructors = StandardConstructors::new(realm_inner);
         let templates = ObjectTemplates::new(root_shape, &constructors);
 
         Some(Self {
             constructors,
-            objects: IntrinsicObjects::uninit()?,
+            objects: IntrinsicObjects::uninit(realm_inner)?,
             templates,
         })
     }
@@ -92,6 +96,14 @@ impl StandardConstructor {
         Self {
             constructor,
             prototype,
+        }
+    }
+
+    /// Similar to `with_prototype`, but the prototype is lazily initialized.
+    fn lazy(init: fn(&Realm) -> (), realm_inner: WeakGc<RealmInner>) -> Self {
+        Self {
+            constructor: JsFunction::lazy_intrinsic_function(true, init, realm_inner),
+            prototype: JsObject::default(),
         }
     }
 
@@ -203,8 +215,8 @@ pub struct StandardConstructors {
     calendar: StandardConstructor,
 }
 
-impl Default for StandardConstructors {
-    fn default() -> Self {
+impl StandardConstructors {
+    fn new(realm_inner: &WeakGc<RealmInner>) -> Self {
         Self {
             object: StandardConstructor::with_prototype(JsObject::from_object_and_vtable(
                 Object::<OrdinaryObject>::default(),
@@ -212,14 +224,14 @@ impl Default for StandardConstructors {
             )),
             async_generator_function: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
-            date: StandardConstructor::default(),
+            date: StandardConstructor::lazy(Date::init, realm_inner.clone()),
             function: StandardConstructor {
                 constructor: JsFunction::empty_intrinsic_function(true),
                 prototype: JsFunction::empty_intrinsic_function(false).into(),
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, Array)),
+            array: StandardConstructor::lazy(Array::init, realm_inner.clone()),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
@@ -1120,10 +1132,10 @@ impl IntrinsicObjects {
     ///
     /// [`Realm::initialize`]: crate::realm::Realm::initialize
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn uninit() -> Option<Self> {
+    pub(crate) fn uninit(realm_inner: &WeakGc<RealmInner>) -> Option<Self> {
         Some(Self {
             reflect: JsObject::default(),
-            math: JsObject::default(),
+            math: JsObject::lazy(Math::init, realm_inner),
             json: JsObject::default(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
