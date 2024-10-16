@@ -165,6 +165,8 @@ impl<D: JsStringData> JsStringBuilder<D> {
     /// Caller should ensure that the inner is allocated.
     #[must_use]
     unsafe fn current_layout(&self) -> Layout {
+        // SAFETY:
+        // Caller should ensure that the inner is allocated.
         unsafe {
             Layout::for_value(self.inner.as_ref())
                 .extend(Layout::array::<D>(self.capacity()).unwrap_unchecked())
