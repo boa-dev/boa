@@ -1007,7 +1007,7 @@ impl Array {
             // b. Let element be ? Get(O, ! ToString(𝔽(k))).
             let element = o.get(k, context)?;
             // c. If element is undefined, null or the array itself, let next be the empty String; otherwise, let next be ? ToString(element).
-            let next = if element.is_null_or_undefined() || &element == this {
+            let next: JsString = if element.is_null_or_undefined() || &element == this {
                 js_string!()
             } else {
                 element.to_string(context)?
