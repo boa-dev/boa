@@ -319,11 +319,10 @@ impl<D: JsStringData> JsStringBuilder<D> {
     #[inline]
     pub fn reserve_exact(&mut self, additional: usize) {
         if additional > self.capacity().wrapping_sub(self.len) {
-            vec![].reserve_exact(additional);
             let Some(cap) = self.len().checked_add(additional) else {
                 alloc_overflow()
             };
-            self.allocate_inner(cap);
+            self.allocate_inner(Self::new_layout(cap));
         }
     }
 
