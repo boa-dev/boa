@@ -121,7 +121,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
         self.len() * Self::DATA_SIZE
     }
 
-    /// Returns the capacity calculted from given layout.
+    /// Returns the capacity calculated from given layout.
     #[must_use]
     const fn capacity_from_layout(layout: Layout) -> usize {
         (layout.size() - DATA_OFFSET) / Self::DATA_SIZE
@@ -196,7 +196,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
 
     /// Inner logic of `allocate`.
     ///
-    /// Use `realloc` here because it has a better performance than using `alloc`, `copy` and `dealloc`.
+    /// Use `realloc` here because it has a better performance than using combination of `alloc`, `copy` and `dealloc`.
     #[allow(clippy::cast_ptr_alignment)]
     fn allocate_inner(&mut self, new_layout: Layout) {
         let new_ptr = if self.is_allocated() {
@@ -232,7 +232,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
         }
     }
 
-    /// Push elements from slice to `JsStringBuilder` without doing capacity check.
+    /// Pushes elements from slice to `JsStringBuilder` without doing capacity check.
     ///
     /// Unlike the standard vector, our holded element types are only `u8` and `u16`, which is [`Copy`] derived,
     ///
@@ -250,7 +250,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
         self.len += v.len();
     }
 
-    /// push elements from slice to `JsStringBuilder`.
+    /// Pushes elements from slice to `JsStringBuilder`.
     #[inline]
     pub fn extend_from_slice(&mut self, v: &[D]) {
         let required_cap = self.len() + v.len();
@@ -379,7 +379,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
         }
     }
 
-    /// build `JsString` from `JsStringBuilder`
+    /// Builds `JsString` from `JsStringBuilder`
     #[inline]
     #[must_use]
     pub fn build(mut self) -> JsString {
@@ -561,7 +561,7 @@ pub struct CommonJsStringBuilder<'a> {
 }
 
 impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
-    /// Create a new `CommonJsStringBuilder` with capacity of zero.
+    /// Creates a new `CommonJsStringBuilder` with capacity of zero.
     #[inline]
     #[must_use]
     pub const fn new() -> Self {
@@ -570,7 +570,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         }
     }
 
-    /// Create a new `CommonJsStringBuilder` with specific capacity
+    /// Creates a new `CommonJsStringBuilder` with specific capacity.
     #[inline]
     #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
@@ -618,7 +618,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.len() == 0
     }
 
-    /// build `JsString` from latin1 segments.
+    /// Builds `JsString` from latin1 segments.
     #[inline]
     #[must_use]
     #[allow(clippy::cast_lossless)]
@@ -646,7 +646,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         builder.build()
     }
 
-    /// build `JsString` from utf16 segments
+    /// Builds `JsString` from utf16 segments.
     #[inline]
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
@@ -667,7 +667,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                 },
                 Segment::Latin1(latin1) => builder.push(u16::from(latin1)),
                 Segment::CodePoint(code_point) => {
-                    // inline char::encode_utf16 here for better performance
+                    // Inline char::encode_utf16 here for better performance
                     let mut code_point = code_point as u32;
                     if code_point < 0x10000 {
                         builder.push(code_point as u16);
@@ -684,7 +684,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         builder.build()
     }
 
-    /// build `JsString` from `CommonJsStringBuilder`
+    /// Builds `JsString` from `CommonJsStringBuilder`
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
