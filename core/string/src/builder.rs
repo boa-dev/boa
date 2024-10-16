@@ -159,11 +159,12 @@ impl<D: JsStringData> JsStringBuilder<D> {
     }
 
     /// Returns the inner's layout.
+    ///
+    /// # Safety
+    ///
+    /// Caller should ensure that the inner is allocated.
     #[must_use]
-    fn current_layout(&self) -> Layout {
-        // SAFETY:
-        // All the checks for the validity of the layout have already been made on `new_layout`,
-        // so we can skip the unwrap.
+    unsafe fn current_layout(&self) -> Layout {
         unsafe {
             Layout::for_value(self.inner.as_ref())
                 .extend(Layout::array::<D>(self.capacity()).unwrap_unchecked())
@@ -201,7 +202,9 @@ impl<D: JsStringData> JsStringBuilder<D> {
     fn allocate_inner(&mut self, new_layout: Layout) {
         let new_ptr = if self.is_allocated() {
             let old_ptr = self.inner.as_ptr();
-            let old_layout = self.current_layout();
+            // SAFETY:
+            // Allocation check has been made above.
+            let old_layout = unsafe { self.current_layout() };
             // SAFETY:
             // Valid pointer is required by `realloc` and pointer is checked above to be valid.
             // The layout size of `RawJsString` is never zero, since it has to store
@@ -425,7 +428,9 @@ impl<D: JsStringData> Drop for JsStringBuilder<D> {
     #[inline]
     fn drop(&mut self) {
         if self.is_allocated() {
-            let layout = self.current_layout();
+            // SAFETY:
+            // Allocation check has been made above.
+            let layout = unsafe { self.current_layout() };
             // SAFETY:
             // layout: All the checks for the validity of the layout have already been made on `allocate_inner`.
             // `NonNull` verified for us that the pointer returned by `alloc` is valid,
