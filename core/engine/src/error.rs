@@ -734,7 +734,7 @@ impl JsNativeError {
     pub const URI: Self = Self::uri();
     #[cfg(feature = "fuzz")]
     /// Default `NoInstructionsRemain` kind `JsNativeError`.
-    pub const IS_NO_INSTRUCTIONS_REMAIN: Self = Self::is_no_instructions_remain();
+    pub const NO_INSTRUCTIONS_REMAIN: Self = Self::no_instructions_remain();
     /// Default `error` kind `JsNativeError`.
     pub const RUNTIME_LIMIT: Self = Self::runtime_limit();
 
