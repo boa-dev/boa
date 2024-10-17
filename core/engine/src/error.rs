@@ -59,80 +59,80 @@ use thiserror::Error;
 macro_rules! js_error {
     (Error: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::error().with_message($value)
+            $crate::JsNativeError::ERROR.with_message($value)
         )
     };
     (Error: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::error()
+            $crate::JsNativeError::ERROR
                 .with_message(format!($value $(, $args)*))
         )
     };
 
     (TypeError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::typ().with_message($value)
+            $crate::JsNativeError::TYP.with_message($value)
         )
     };
     (TypeError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::typ()
+            $crate::JsNativeError::TYP
                 .with_message(format!($value $(, $args)*))
         )
     };
 
     (SyntaxError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::syntax().with_message($value)
+            $crate::JsNativeError::SYNTAX.with_message($value)
         )
     };
     (SyntaxError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::syntax().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::SYNTAX.with_message(format!($value $(, $args)*))
         )
     };
 
     (RangeError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::range().with_message($value)
+            $crate::JsNativeError::RANGE.with_message($value)
         )
     };
     (RangeError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::range().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::RANGE.with_message(format!($value $(, $args)*))
         )
     };
 
     (EvalError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::eval().with_message($value)
+            $crate::JsNativeError::EVAL.with_message($value)
         )
     };
     (EvalError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::eval().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::EVAL.with_message(format!($value $(, $args)*))
         )
     };
 
     (ReferenceError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::reference().with_message($value)
+            $crate::JsNativeError::REFERENCE.with_message($value)
         )
     };
     (ReferenceError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::reference().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::REFERENCE.with_message(format!($value $(, $args)*))
         )
     };
 
     (URIError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::uri().with_message($value)
+            $crate::JsNativeError::URI.with_message($value)
         )
     };
     (URIError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::uri().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::URI.with_message(format!($value $(, $args)*))
         )
     };
 
