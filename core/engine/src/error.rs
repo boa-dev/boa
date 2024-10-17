@@ -709,9 +709,15 @@ impl fmt::Debug for JsNativeError {
     }
 }
 
+// FIXME(const-hack): replaced with Box::default once it is `const`
+const fn new_str() -> Box<str> {
+    // SAFETY: miri safe and works in stable
+    unsafe { std::mem::transmute("") }
+}
+
 impl JsNativeError {
     /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
-    fn new(kind: JsNativeErrorKind, message: Box<str>, cause: Option<Box<JsError>>) -> Self {
+    const fn new(kind: JsNativeErrorKind, message: Box<str>, cause: Option<Box<JsError>>) -> Self {
         Self {
             kind,
             message,
@@ -740,8 +746,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn aggregate(errors: Vec<JsError>) -> Self {
-        Self::new(JsNativeErrorKind::Aggregate(errors), Box::default(), None)
+    pub const fn aggregate(errors: Vec<JsError>) -> Self {
+        Self::new(JsNativeErrorKind::Aggregate(errors), new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Aggregate`].
@@ -763,8 +769,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn error() -> Self {
-        Self::new(JsNativeErrorKind::Error, Box::default(), None)
+    pub const fn error() -> Self {
+        Self::new(JsNativeErrorKind::Error, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Error`].
@@ -786,8 +792,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn eval() -> Self {
-        Self::new(JsNativeErrorKind::Eval, Box::default(), None)
+    pub const fn eval() -> Self {
+        Self::new(JsNativeErrorKind::Eval, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Eval`].
@@ -809,8 +815,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn range() -> Self {
-        Self::new(JsNativeErrorKind::Range, Box::default(), None)
+    pub const fn range() -> Self {
+        Self::new(JsNativeErrorKind::Range, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Range`].
@@ -832,8 +838,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn reference() -> Self {
-        Self::new(JsNativeErrorKind::Reference, Box::default(), None)
+    pub const fn reference() -> Self {
+        Self::new(JsNativeErrorKind::Reference, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Reference`].
@@ -855,8 +861,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn syntax() -> Self {
-        Self::new(JsNativeErrorKind::Syntax, Box::default(), None)
+    pub const fn syntax() -> Self {
+        Self::new(JsNativeErrorKind::Syntax, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Syntax`].
@@ -878,8 +884,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn typ() -> Self {
-        Self::new(JsNativeErrorKind::Type, Box::default(), None)
+    pub const fn typ() -> Self {
+        Self::new(JsNativeErrorKind::Type, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Type`].
@@ -901,8 +907,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn uri() -> Self {
-        Self::new(JsNativeErrorKind::Uri, Box::default(), None)
+    pub const fn uri() -> Self {
+        Self::new(JsNativeErrorKind::Uri, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Uri`].
@@ -916,12 +922,8 @@ impl JsNativeError {
     /// is only used in a fuzzing context.
     #[cfg(feature = "fuzz")]
     #[must_use]
-    pub fn no_instructions_remain() -> Self {
-        Self::new(
-            JsNativeErrorKind::NoInstructionsRemain,
-            Box::default(),
-            None,
-        )
+    pub const fn no_instructions_remain() -> Self {
+        Self::new(JsNativeErrorKind::NoInstructionsRemain, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::NoInstructionsRemain`].
@@ -935,8 +937,8 @@ impl JsNativeError {
     /// Creates a new `JsNativeError` that indicates that the context exceeded the runtime limits.
     #[must_use]
     #[inline]
-    pub fn runtime_limit() -> Self {
-        Self::new(JsNativeErrorKind::RuntimeLimit, Box::default(), None)
+    pub const fn runtime_limit() -> Self {
+        Self::new(JsNativeErrorKind::RuntimeLimit, new_str(), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::RuntimeLimit`].
