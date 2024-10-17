@@ -716,6 +716,28 @@ const fn new_str() -> Box<str> {
 }
 
 impl JsNativeError {
+    /// Default `AggregateError` kind `JsNativeError`.
+    pub const AGGREGATE: Self = Self::aggregate(Vec::new());
+    /// Default `Error` kind `JsNativeError`.
+    pub const ERROR: Self = Self::error();
+    /// Default `EvalError` kind `JsNativeError`.
+    pub const EVAL: Self = Self::eval();
+    /// Default `RangeError` kind `JsNativeError`.
+    pub const RANGE: Self = Self::range();
+    /// Default `ReferenceError` kind `JsNativeError`.
+    pub const REFERENCE: Self = Self::reference();
+    /// Default `SyntaxError` kind `JsNativeError`.
+    pub const SYNTAX: Self = Self::syntax();
+    /// Default `error` kind `JsNativeError`.
+    pub const TYP: Self = Self::typ();
+    /// Default `UriError` kind `JsNativeError`.
+    pub const URI: Self = Self::uri();
+    #[cfg(feature = "fuzz")]
+    /// Default `NoInstructionsRemain` kind `JsNativeError`.
+    pub const IS_NO_INSTRUCTIONS_REMAIN: Self = Self::is_no_instructions_remain();
+    /// Default `error` kind `JsNativeError`.
+    pub const RUNTIME_LIMIT: Self = Self::runtime_limit();
+
     /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
     const fn new(kind: JsNativeErrorKind, message: Box<str>, cause: Option<Box<JsError>>) -> Self {
         Self {
