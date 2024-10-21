@@ -383,7 +383,6 @@ fn encoding(
 fn url(
     #[base_dir = "${WPT_ROOT}"]
     #[files("url/url-*.any.js")]
-    // #[files("url/url-statics-*.any.js")]
     #[exclude("idlharness")]
     // "Base URL about:blank cannot be a base"
     #[exclude("url-searchparams.any.js")]
