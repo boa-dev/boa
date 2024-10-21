@@ -24,7 +24,7 @@ exclude = [
 [workspace.package]
 edition = "2021"
 version = "0.19.0"
-rust-version = "1.80.0"
+rust-version = "1.82.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense OR MIT"
