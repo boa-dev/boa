@@ -17,6 +17,7 @@ use once_cell::sync::Lazy;
 use boa_gc::{custom_trace, Finalize, Trace};
 #[doc(inline)]
 pub use boa_macros::TryFromJs;
+pub use boa_macros::TryIntoJs;
 use boa_profiler::Profiler;
 #[doc(inline)]
 pub use conversions::convert::Convert;
@@ -24,8 +25,8 @@ pub use conversions::convert::Convert;
 pub(crate) use self::conversions::IntoOrUndefined;
 #[doc(inline)]
 pub use self::{
-    conversions::try_from_js::TryFromJs, display::ValueDisplay, integer::IntegerOrInfinity,
-    operations::*, r#type::Type,
+    conversions::try_from_js::TryFromJs, conversions::try_into_js::TryIntoJs,
+    display::ValueDisplay, integer::IntegerOrInfinity, operations::*, r#type::Type,
 };
 use crate::builtins::RegExp;
 use crate::object::{JsFunction, JsPromise, JsRegExp};
