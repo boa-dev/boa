@@ -374,8 +374,9 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         buf.push(b'E');
 
                         take_signed_integer(&mut buf, cursor, kind)?;
+                    } else {
+                        // Finished lexing.
                     }
-                    // Finished lexing.
                 }
             }
             Some(0x0065 /*e */ | 0x0045 /* E */) => {
