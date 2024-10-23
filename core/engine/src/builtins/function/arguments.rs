@@ -1,4 +1,5 @@
 use crate::{
+    bytecompiler::ToJsString,
     environments::DeclarativeEnvironment,
     object::{
         internal_methods::{
@@ -11,8 +12,9 @@ use crate::{
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     Context, JsData, JsResult, JsValue,
 };
-use boa_ast::{function::FormalParameterList, operations::bound_names};
+use boa_ast::{function::FormalParameterList, operations::bound_names, scope::Scope};
 use boa_gc::{Finalize, Gc, Trace};
+use boa_interner::Interner;
 use rustc_hash::FxHashMap;
 use thin_vec::{thin_vec, ThinVec};
 
@@ -141,7 +143,11 @@ impl MappedArguments {
 }
 
 impl MappedArguments {
-    pub(crate) fn binding_indices(formals: &FormalParameterList) -> ThinVec<Option<u32>> {
+    pub(crate) fn binding_indices(
+        formals: &FormalParameterList,
+        scope: &Scope,
+        interner: &Interner,
+    ) -> ThinVec<Option<u32>> {
         // Section 17-19 are done first, for easier object creation in 11.
         //
         // The section 17-19 differs from the spec, due to the way the runtime environments work.
@@ -180,8 +186,10 @@ impl MappedArguments {
         let mut bindings = FxHashMap::default();
         let mut property_index = 0;
         for name in bound_names(formals) {
-            // NOTE(HalidOdat): Offset by +1 to account for the first binding ("argument").
-            let binding_index = bindings.len() as u32 + 1;
+            let binding_index = scope
+                .get_binding(&name.to_js_string(interner))
+                .expect("binding must exist")
+                .binding_index();
 
             let entry = bindings
                 .entry(name)
