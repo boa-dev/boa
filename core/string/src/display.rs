@@ -34,7 +34,6 @@ impl<'a> From<JsStr<'a>> for JsStrDisplayEscaped<'a> {
     }
 }
 
-
 /// Display implementation for [`crate::JsString`] that escapes unicode characters.
 #[derive(Debug)]
 pub struct JsStrDisplayLossy<'a> {
@@ -44,7 +43,9 @@ pub struct JsStrDisplayLossy<'a> {
 impl fmt::Display for JsStrDisplayLossy<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // No need to optimize latin1.
-        self.inner.code_points_lossy().try_for_each(|c| f.write_char(c))
+        self.inner
+            .code_points_lossy()
+            .try_for_each(|c| f.write_char(c))
     }
 }
 
