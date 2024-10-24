@@ -26,7 +26,7 @@ mod tagged;
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
-use crate::display::JsStrDisplayEscaped;
+use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy};
 use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
@@ -960,13 +960,21 @@ impl JsString {
         }
     }
 
-    /// Gets a displayable escaped string. This may be faster and has less
+    /// Gets a displayable escaped string. This may be faster and has fewer
     /// allocations than `format!("{}", str.to_string_escaped())` when
     /// displaying.
     #[inline]
     #[must_use]
     pub fn display_escaped(&self) -> JsStrDisplayEscaped<'_> {
         JsStrDisplayEscaped::from(self.as_str())
+    }
+
+    /// Gets a displayable lossy string. This may be faster and has fewer
+    /// allocations than `format!("{}", str.to_string_lossy())` when displaying.
+    #[inline]
+    #[must_use]
+    pub fn display_lossy(&self) -> JsStrDisplayLossy<'_> {
+        JsStrDisplayLossy::from(self.as_str())
     }
 }
 
