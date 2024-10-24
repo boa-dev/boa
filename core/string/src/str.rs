@@ -235,6 +235,14 @@ impl<'a> JsStr<'a> {
         m >= n && needle == self.get(m - n..).expect("already checked size")
     }
 
+    /// Gets an iterator of all the Unicode codepoints of a [`JsStr`], replacing
+    /// unpaired surrogates with the replacement character. This is faster than
+    /// using [`Self::code_points`].
+    #[inline]
+    pub(crate) fn code_points_lossy(self) -> impl Iterator<Item = char> + 'a {
+        char::decode_utf16(self.iter()).map(|res| res.unwrap_or('\u{FFFD}'))
+    }
+
     /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
     /// This is not optimized for Latin1 strings.
     #[inline]
