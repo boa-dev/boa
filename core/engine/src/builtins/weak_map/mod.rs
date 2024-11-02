@@ -60,6 +60,8 @@ impl BuiltInObject for WeakMap {
 impl BuiltInConstructor for WeakMap {
     /// The amount of arguments the `WeakMap` constructor takes.
     const LENGTH: usize = 0;
+    const P: usize = 5;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_map;

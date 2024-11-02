@@ -1,5 +1,6 @@
 use std::{cell::OnceCell, fmt::Debug};
 
+use boa_profiler::Profiler;
 use icu_casemap::CaseMapper;
 use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer, NormalizerError};
@@ -89,6 +90,7 @@ impl IntlProvider {
     pub(crate) fn try_new_with_buffer_provider(
         provider: (impl BufferProvider + 'static),
     ) -> IntlProvider {
+        let _timer = Profiler::global().start_event("ICU::try_new_with_buffer_provider", "ICU");
         Self {
             locale_canonicalizer: OnceCell::new(),
             locale_expander: OnceCell::new(),
@@ -106,6 +108,7 @@ impl IntlProvider {
     pub(crate) fn try_new_with_any_provider(
         provider: (impl AnyProvider + 'static),
     ) -> IntlProvider {
+        let _timer = Profiler::global().start_event("ICU::try_new_with_any_provider", "ICU");
         Self {
             locale_canonicalizer: OnceCell::new(),
             locale_expander: OnceCell::new(),

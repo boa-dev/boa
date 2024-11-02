@@ -52,6 +52,8 @@ impl BuiltInObject for RangeError {
 
 impl BuiltInConstructor for RangeError {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::range_error;

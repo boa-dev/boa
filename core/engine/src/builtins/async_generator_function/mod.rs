@@ -57,6 +57,8 @@ impl BuiltInObject for AsyncGeneratorFunction {
 
 impl BuiltInConstructor for AsyncGeneratorFunction {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::async_generator_function;

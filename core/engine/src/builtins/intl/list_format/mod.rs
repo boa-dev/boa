@@ -83,6 +83,8 @@ impl BuiltInObject for ListFormat {
 
 impl BuiltInConstructor for ListFormat {
     const LENGTH: usize = 0;
+    const P: usize = 4;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::list_format;
