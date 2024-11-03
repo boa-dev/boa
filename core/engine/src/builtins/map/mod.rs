@@ -509,7 +509,7 @@ impl Map {
     /// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
     /// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
     /// ```
-    pub(crate) fn rust_for_each<F>(this: &JsValue, mut f: F) -> JsResult<()>
+    pub(crate) fn for_each_native<F>(this: &JsValue, mut f: F) -> JsResult<()>
     where
         F: FnMut(JsValue, JsValue) -> JsResult<()>,
     {
