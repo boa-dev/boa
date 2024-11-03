@@ -402,6 +402,16 @@ impl JsMap {
         )
     }
 
+    /// Executes the provided callback function for each key-value pair within the [`JsMap`].
+    #[inline]
+    pub fn for_each_native<F>(&self, f: F) -> JsResult<()>
+    where
+        F: FnMut(JsValue, JsValue) -> JsResult<()>,
+    {
+        let this = self.inner.clone().into();
+        Map::for_each_native(&this, f)
+    }
+
     /// Returns a new [`JsMapIterator`] object that yields the `value` for each element within the [`JsMap`] in insertion order.
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsMapIterator> {

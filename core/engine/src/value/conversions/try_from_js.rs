@@ -565,3 +565,26 @@ fn value_into_map() {
         }),
     ]);
 }
+
+#[test]
+fn js_map_into_rust_map() -> JsResult<()> {
+    use boa_engine::Source;
+    use std::collections::{BTreeMap, HashMap};
+
+    let js_code = "new Map([['a', 1], ['b', 3], ['aboba', 42024]])";
+    let mut context = Context::default();
+
+    let js_value = context.eval(Source::from_bytes(js_code))?;
+
+    let hash_map = HashMap::<String, i32>::try_from_js(&js_value, &mut context)?;
+    let btree_map = BTreeMap::<String, i32>::try_from_js(&js_value, &mut context)?;
+
+    let expect = [("a".into(), 1), ("aboba".into(), 42024), ("b".into(), 3)];
+
+    let expected_hash_map: HashMap<String, _> = expect.iter().cloned().collect();
+    assert_eq!(expected_hash_map, hash_map);
+
+    let expected_btree_map: BTreeMap<String, _> = expect.iter().cloned().collect();
+    assert_eq!(expected_btree_map, btree_map);
+    Ok(())
+}
