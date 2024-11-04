@@ -9,14 +9,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Check out the repository
       uses: actions/checkout@v4
-
     - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
+      uses: dtolnay/rust-toolchain@stable
+      with:
           toolchain: stable
 
     - name: Install Dependencies
@@ -28,14 +26,14 @@ jobs:
         cargo build --release
 
     - name: Set File Name
-        id: vars
-        run: |
-          DATE=$(date +'%Y%m%d')
-          COMMIT_HASH=$(git rev-parse --short HEAD)
-          echo "FILE_NAME=boa-nightly-linux-${DATE}-${COMMIT_HASH}" >> $GITHUB_ENV
+      id: vars
+      run: |
+        DATE=$(date +'%Y%m%d')
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+        echo "FILE_NAME=boa-nightly-linux-${DATE}-${COMMIT_HASH}" >> $GITHUB_ENV
 
     - name: Rename Binary
-        run: mv target/release/boa target/release/$FILE_NAME
+      run: mv target/release/boa target/release/$FILE_NAME
 
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
