@@ -179,7 +179,7 @@ simple_empty_finalize_trace![
     char,
     TypeId,
     String,
-    Box<str>,
+    str,
     Rc<str>,
     Path,
     PathBuf,
