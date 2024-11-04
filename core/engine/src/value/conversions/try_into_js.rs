@@ -9,18 +9,18 @@ pub trait TryIntoJs: Sized {
 
 impl TryIntoJs for bool {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        JsResult::Ok(JsValue::Boolean(*self))
+        Ok(JsValue::Boolean(*self))
     }
 }
 
 impl TryIntoJs for &str {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        JsResult::Ok(JsValue::String(JsString::from(*self)))
+        Ok(JsValue::String(JsString::from(*self)))
     }
 }
 impl TryIntoJs for String {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        JsResult::Ok(JsValue::String(JsString::from(self.as_str())))
+        Ok(JsValue::String(JsString::from(self.as_str())))
     }
 }
 
@@ -28,7 +28,7 @@ macro_rules! impl_try_into_js_by_from {
     ($t:ty) => {
         impl TryIntoJs for $t {
             fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-                JsResult::Ok(JsValue::from(self.clone()))
+                Ok(JsValue::from(self.clone()))
             }
         }
     };
@@ -81,9 +81,9 @@ impl TryIntoJs for i64 {
         let value = *self;
         #[allow(clippy::manual_range_contains)]
         if value < MIN_SAFE_INTEGER_I64 || MAX_SAFE_INTEGER_I64 < value {
-            JsResult::Err(err_outside_safe_range())
+            Err(err_outside_safe_range())
         } else {
-            JsResult::Ok(convert_safe_i64(value))
+            Ok(convert_safe_i64(value))
         }
     }
 }
@@ -91,9 +91,9 @@ impl TryIntoJs for u64 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
         if (MAX_SAFE_INTEGER_I64 as u64) < value {
-            JsResult::Err(err_outside_safe_range())
+            Err(err_outside_safe_range())
         } else {
-            JsResult::Ok(convert_safe_i64(value as i64))
+            Ok(convert_safe_i64(value as i64))
         }
     }
 }
@@ -101,9 +101,9 @@ impl TryIntoJs for i128 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
         if value < i128::from(MIN_SAFE_INTEGER_I64) || i128::from(MAX_SAFE_INTEGER_I64) < value {
-            JsResult::Err(err_outside_safe_range())
+            Err(err_outside_safe_range())
         } else {
-            JsResult::Ok(convert_safe_i64(value as i64))
+            Ok(convert_safe_i64(value as i64))
         }
     }
 }
@@ -111,9 +111,9 @@ impl TryIntoJs for u128 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;
         if (MAX_SAFE_INTEGER_I64 as u128) < value {
-            JsResult::Err(err_outside_safe_range())
+            Err(err_outside_safe_range())
         } else {
-            JsResult::Ok(convert_safe_i64(value as i64))
+            Ok(convert_safe_i64(value as i64))
         }
     }
 }
@@ -125,7 +125,7 @@ where
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
         match self {
             Some(x) => x.try_into_js(context),
-            None => JsResult::Ok(JsValue::Null),
+            None => Ok(JsValue::Undefined),
         }
     }
 }
@@ -140,7 +140,7 @@ where
             let value = value.try_into_js(context)?;
             arr.push(value, context)?;
         }
-        JsResult::Ok(arr.into())
+        Ok(arr.into())
     }
 }
 
@@ -151,7 +151,7 @@ macro_rules! impl_try_into_js_for_tuples {
                 let ($($names,)+) = self;
                 let arr = crate::object::JsArray::new(context);
                 $(arr.push($names.try_into_js(context)?, context)?;)+
-                JsResult::Ok(arr.into())
+                Ok(arr.into())
             }
         }
     };
@@ -171,7 +171,7 @@ impl_try_into_js_for_tuples!(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: 
 
 impl TryIntoJs for () {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        JsResult::Ok(JsValue::Null)
+        Ok(JsValue::Null)
     }
 }
 
@@ -185,7 +185,7 @@ where
             let value = value.try_into_js(context)?;
             set.add(value, context)?;
         }
-        JsResult::Ok(set.into())
+        Ok(set.into())
     }
 }
 
@@ -201,7 +201,7 @@ where
             let value = value.try_into_js(context)?;
             map.set(key, value, context)?;
         }
-        JsResult::Ok(map.into())
+        Ok(map.into())
     }
 }
 
