@@ -71,15 +71,15 @@ pub struct RegisterOptions<L: Logger> {
     console_logger: L,
 }
 
-impl Default for RegisterOptions<console::DefaultLogger> {
+impl Default for RegisterOptions<DefaultLogger> {
     fn default() -> Self {
         Self {
-            console_logger: console::DefaultLogger,
+            console_logger: DefaultLogger,
         }
     }
 }
 
-impl RegisterOptions<console::DefaultLogger> {
+impl RegisterOptions<DefaultLogger> {
     /// Create a new `RegisterOptions` with the default options.
     #[must_use]
     pub fn new() -> Self {
