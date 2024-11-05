@@ -109,14 +109,14 @@ impl TestSuiteSource {
         }
     }
 
-    fn source(&self) -> Result<Source<'_, UTF16Input<'_>>, Box<dyn std::error::Error>> {
+    fn source(&self) -> Source<'_, UTF16Input<'_>> {
         let b = self.bytes.get_or_init(|| {
             self.read_to_string()
                 .unwrap()
                 .encode_utf16()
                 .collect::<Vec<u16>>()
         });
-        Ok(Source::from_utf16(b).with_path(&self.path))
+        Source::from_utf16(b).with_path(&self.path)
     }
 
     fn scripts(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
@@ -138,7 +138,7 @@ impl TestSuiteSource {
 
             for (from, to) in REWRITE_RULES {
                 if path.to_string_lossy().as_ref() == *from {
-                    scripts.push(to.to_string());
+                    scripts.push((*to).to_string());
                     continue 'outer;
                 }
             }
@@ -328,8 +328,8 @@ fn execute_test_file(path: &Path) {
         }
     }
     context
-        .eval(source.source().expect("Could not get source"))
-        .unwrap();
+        .eval(source.source())
+        .expect("Could not evaluate source");
     context.run_jobs();
 
     // Done()
