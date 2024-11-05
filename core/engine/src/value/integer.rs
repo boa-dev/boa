@@ -74,10 +74,7 @@ impl PartialEq<i64> for IntegerOrInfinity {
 
 impl PartialEq<IntegerOrInfinity> for i64 {
     fn eq(&self, other: &IntegerOrInfinity) -> bool {
-        match other {
-            IntegerOrInfinity::Integer(i) => i == other,
-            _ => false,
-        }
+        other.eq(self)
     }
 }
 
@@ -93,10 +90,44 @@ impl PartialOrd<i64> for IntegerOrInfinity {
 
 impl PartialOrd<IntegerOrInfinity> for i64 {
     fn partial_cmp(&self, other: &IntegerOrInfinity) -> Option<Ordering> {
-        match other {
-            IntegerOrInfinity::PositiveInfinity => Some(Ordering::Less),
-            IntegerOrInfinity::Integer(i) => self.partial_cmp(i),
-            IntegerOrInfinity::NegativeInfinity => Some(Ordering::Greater),
-        }
+        other.partial_cmp(self).map(Ordering::reverse)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_eq() {
+        let int: i64 = 42;
+        let int_or_inf = IntegerOrInfinity::Integer(10);
+        assert!(int != int_or_inf);
+        assert!(int_or_inf != int);
+
+        let int: i64 = 10;
+        assert!(int == int_or_inf);
+        assert!(int_or_inf == int);
+    }
+
+    #[test]
+    fn test_ord() {
+        let int: i64 = 42;
+
+        let int_or_inf = IntegerOrInfinity::Integer(10);
+        assert!(int_or_inf < int);
+        assert!(int > int_or_inf);
+
+        let int_or_inf = IntegerOrInfinity::Integer(100);
+        assert!(int_or_inf > int);
+        assert!(int < int_or_inf);
+
+        let int_or_inf = IntegerOrInfinity::PositiveInfinity;
+        assert!(int_or_inf > int);
+        assert!(int < int_or_inf);
+
+        let int_or_inf = IntegerOrInfinity::NegativeInfinity;
+        assert!(int_or_inf < int);
+        assert!(int > int_or_inf);
     }
 }

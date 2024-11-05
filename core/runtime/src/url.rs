@@ -23,6 +23,7 @@ use std::fmt::Display;
 
 /// The `URL` class represents a (properly parsed) Uniform Resource Locator.
 #[derive(Debug, Clone, JsData, Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
 pub struct Url(#[unsafe_ignore_trace] url::Url);
 
 impl Url {
@@ -81,9 +82,7 @@ impl From<url::Url> for Url {
 
 impl From<Url> for url::Url {
     fn from(url: Url) -> url::Url {
-        // Cannot avoid cloning here, unfortunately, as we would need to replace
-        // the internal URL with something else.
-        url.0.clone()
+        url.0
     }
 }
 
@@ -152,7 +151,7 @@ js_class! {
             }
 
             fn set(this: JsClass<Url>, value: Convert<String>) {
-                url::quirks::set_pathname(&mut this.borrow_mut().0, &value.0);
+                let () = url::quirks::set_pathname(&mut this.borrow_mut().0, &value.0);
             }
         }
 
@@ -162,7 +161,7 @@ js_class! {
             }
 
             fn set(this: JsClass<Url>, value: Convert<JsString>) {
-                let _ = url::quirks::set_port(&mut this.borrow_mut().0, &value.0.to_std_string_escaped());
+                let _ = url::quirks::set_port(&mut this.borrow_mut().0, &value.0.to_std_string_lossy());
             }
         }
 

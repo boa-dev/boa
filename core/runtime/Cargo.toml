@@ -15,8 +15,7 @@ boa_engine.workspace = true
 boa_gc.workspace = true
 boa_interop.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
-# We need a new release to fix the URL bug.
-url = { git = "https://github.com/servo/rust-url.git", rev = "7eccac9a0b763145ab1bb67a50576a34cc750567", optional = true }
+url = { version = "2.5.3", optional = true }
 
 [dev-dependencies]
 boa_interop.workspace = true
