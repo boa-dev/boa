@@ -535,7 +535,11 @@ impl JsValue {
         match self {
             Self::Null => Ok(js_string!("null")),
             Self::Undefined => Ok(js_string!("undefined")),
-            Self::Boolean(boolean) => Ok(boolean.to_string().into()),
+            Self::Boolean(boolean) => Ok(if *boolean {
+                js_string!("true")
+            } else {
+                js_string!("false")
+            }),
             Self::Rational(rational) => Ok(Number::to_js_string(*rational)),
             Self::Integer(integer) => Ok(integer.to_string().into()),
             Self::String(string) => Ok(string.clone()),
