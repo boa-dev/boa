@@ -52,6 +52,8 @@ impl BuiltInObject for AggregateError {
 
 impl BuiltInConstructor for AggregateError {
     const LENGTH: usize = 2;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::aggregate_error;

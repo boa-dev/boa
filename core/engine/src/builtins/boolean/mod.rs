@@ -51,6 +51,8 @@ impl BuiltInObject for Boolean {
 
 impl BuiltInConstructor for Boolean {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::boolean;

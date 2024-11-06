@@ -3,6 +3,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::hash::Hash;
 
+use crate::object::JsMap;
 use crate::value::TryFromJs;
 use crate::{Context, JsNativeError, JsResult, JsValue};
 
@@ -18,6 +19,20 @@ where
                 .into());
         };
 
+        // JsMap case
+        if let Ok(js_map) = JsMap::from_object(object.clone()) {
+            let mut map = Self::default();
+            js_map.for_each_native(|key, value| {
+                map.insert(
+                    K::try_from_js(&key, context)?,
+                    V::try_from_js(&value, context)?,
+                );
+                Ok(())
+            })?;
+            return Ok(map);
+        }
+
+        // key-valued JsObject case:
         let keys = object.__own_property_keys__(context)?;
 
         keys.into_iter()
@@ -47,6 +62,20 @@ where
                 .into());
         };
 
+        // JsMap case
+        if let Ok(js_map) = JsMap::from_object(object.clone()) {
+            let mut map = Self::default();
+            js_map.for_each_native(|key, value| {
+                map.insert(
+                    K::try_from_js(&key, context)?,
+                    V::try_from_js(&value, context)?,
+                );
+                Ok(())
+            })?;
+            return Ok(map);
+        }
+
+        // key-valued JsObject case:
         let keys = object.__own_property_keys__(context)?;
 
         keys.into_iter()

@@ -1,0 +1,45 @@
+name: Nightly Build
+
+# Schedule this workflow to run at midnight every day
+on:
+  schedule:
+    - cron: "0 0 * * *"  
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v4
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+          toolchain: stable
+
+    - name: Install Dependencies
+      run: |
+        cargo fetch
+
+    - name: Build Project
+      run: |
+        cargo build --release
+
+    - name: Set File Name
+      id: vars
+      run: |
+        DATE=$(date +'%Y%m%d')
+        COMMIT_HASH=$(git rev-parse --short HEAD)
+        echo "FILE_NAME=boa-nightly-linux-${DATE}-${COMMIT_HASH}" >> $GITHUB_ENV
+
+    - name: Rename Binary
+      run: mv target/release/boa target/release/$FILE_NAME
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/release/$FILE_NAME
+        asset_name: ${{ env.FILE_NAME }}
+        tag: nightly
+        overwrite: true

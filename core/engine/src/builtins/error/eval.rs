@@ -54,6 +54,8 @@ impl BuiltInObject for EvalError {
 
 impl BuiltInConstructor for EvalError {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::eval_error;

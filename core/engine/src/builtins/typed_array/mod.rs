@@ -94,6 +94,8 @@ impl<T: TypedArrayMarker> BuiltInObject for T {
 
 impl<T: TypedArrayMarker> BuiltInConstructor for T {
     const LENGTH: usize = 3;
+    const P: usize = 1;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         <Self as TypedArrayMarker>::ERASED.standard_constructor();

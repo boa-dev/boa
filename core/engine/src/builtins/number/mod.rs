@@ -108,6 +108,8 @@ impl BuiltInObject for Number {
 
 impl BuiltInConstructor for Number {
     const LENGTH: usize = 1;
+    const P: usize = 6;
+    const SP: usize = 14;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::number;

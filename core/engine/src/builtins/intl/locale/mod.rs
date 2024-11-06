@@ -157,6 +157,8 @@ impl BuiltInObject for Locale {
 
 impl BuiltInConstructor for Locale {
     const LENGTH: usize = 1;
+    const P: usize = 14;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::locale;

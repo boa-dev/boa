@@ -1,4 +1,12 @@
-#![allow(unused_crate_dependencies)]
+#![expect(
+    unused_crate_dependencies,
+    reason = "https://github.com/rust-lang/rust/issues/95513"
+)]
+#![cfg(all(
+    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_os = "unknown"
+))]
+
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
