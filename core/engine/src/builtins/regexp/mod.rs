@@ -1262,7 +1262,9 @@ impl RegExp {
                 // 3. If matchStr is the empty String, then
                 if match_str.is_empty() {
                     // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                    let this_index = rx.get(js_string!("lastIndex"), context)?.to_length(context)?;
+                    let this_index = rx
+                        .get(js_string!("lastIndex"), context)?
+                        .to_length(context)?;
 
                     // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                     let next_index = advance_string_index(&arg_str, this_index, full_unicode);
@@ -1313,10 +1315,14 @@ impl RegExp {
         })?;
 
         // 3. Let pattern be ? ToString(? Get(R, "source")).
-        let pattern = regexp.get(js_string!("source"), context)?.to_string(context)?;
+        let pattern = regexp
+            .get(js_string!("source"), context)?
+            .to_string(context)?;
 
         // 4. Let flags be ? ToString(? Get(R, "flags")).
-        let flags = regexp.get(js_string!("flags"), context)?.to_string(context)?;
+        let flags = regexp
+            .get(js_string!("flags"), context)?
+            .to_string(context)?;
 
         // 5. Let result be the string-concatenation of "/", pattern, "/", and flags.
         // 6. Return result.
@@ -1352,7 +1358,9 @@ impl RegExp {
         let c = regexp.species_constructor(StandardConstructors::regexp, context)?;
 
         // 5. Let flags be ? ToString(? Get(R, "flags")).
-        let flags = regexp.get(js_string!("flags"), context)?.to_string(context)?;
+        let flags = regexp
+            .get(js_string!("flags"), context)?
+            .to_string(context)?;
 
         // 6. Let matcher be ? Construct(C, « R, flags »).
         let matcher = c.construct(&[this.clone(), flags.clone().into()], Some(&c), context)?;
@@ -1487,7 +1495,9 @@ impl RegExp {
             //    2. If matchStr is the empty String, then
             if match_str.is_empty() {
                 // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                let this_index = rx.get(js_string!("lastIndex"), context)?.to_length(context)?;
+                let this_index = rx
+                    .get(js_string!("lastIndex"), context)?
+                    .to_length(context)?;
 
                 // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                 let next_index = advance_string_index(&s, this_index, full_unicode);

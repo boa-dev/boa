@@ -314,7 +314,7 @@ impl JsMap {
     /// ```
     /// # use boa_engine::{
     /// #    object::builtins::JsMap,
-    /// #    Context, JsValue, JsResult, js_str
+    /// #    Context, JsValue, JsResult, js_string
     /// # };
     /// # fn main() -> JsResult<()> {
     /// # let context = &mut Context::default();

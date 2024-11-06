@@ -3,7 +3,10 @@ use crate::{
     builtins::{
         error::ErrorObject, map::ordered_map::OrderedMap, promise::PromiseState,
         set::ordered_set::OrderedSet, Array, Promise,
-    }, js_string, property::PropertyDescriptor, JsError, JsString
+    },
+    js_string,
+    property::PropertyDescriptor,
+    JsError, JsString,
 };
 use std::borrow::Cow;
 

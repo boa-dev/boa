@@ -1,4 +1,3 @@
-
 use crate::{
     js_string,
     native_function::{NativeFunctionObject, NativeFunctionPointer},

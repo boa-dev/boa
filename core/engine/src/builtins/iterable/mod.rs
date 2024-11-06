@@ -1,7 +1,14 @@
 //! Boa's implementation of ECMAScript's `IteratorRecord` and iterator prototype objects.
 
 use crate::{
-    builtins::{BuiltInBuilder, IntrinsicObject}, context::intrinsics::Intrinsics, error::JsNativeError, js_string, object::JsObject, realm::Realm, symbol::JsSymbol, Context, JsResult, JsValue
+    builtins::{BuiltInBuilder, IntrinsicObject},
+    context::intrinsics::Intrinsics,
+    error::JsNativeError,
+    js_string,
+    object::JsObject,
+    realm::Realm,
+    symbol::JsSymbol,
+    Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
