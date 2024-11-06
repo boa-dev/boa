@@ -647,7 +647,7 @@ impl Number {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_js_string(x: f64) -> JsString {
         let mut buffer = ryu_js::Buffer::new();
-        js_string!(buffer.format(x).to_string())
+        js_string!(buffer.format(x))
     }
 
     /// `Number.prototype.toString( [radix] )`
