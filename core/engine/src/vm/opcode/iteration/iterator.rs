@@ -1,6 +1,6 @@
 use crate::{
     builtins::{iterable::create_iter_result_object, Array},
-    js_str,
+    js_string,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
     Context, JsResult, JsValue,
 };
@@ -248,7 +248,10 @@ impl Operation for IteratorReturn {
             return Ok(CompletionType::Normal);
         }
 
-        let Some(ret) = record.iterator().get_method(js_str!("return"), context)? else {
+        let Some(ret) = record
+            .iterator()
+            .get_method(js_string!("return"), context)?
+        else {
             context.vm.push(false);
             return Ok(CompletionType::Normal);
         };

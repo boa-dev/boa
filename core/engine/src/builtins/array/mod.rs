@@ -10,7 +10,6 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
@@ -2169,12 +2168,12 @@ impl Array {
             #[cfg(feature = "intl")]
             {
                 // TODO: this should eventually return a locale-sensitive separator.
-                js_str!(", ")
+                js_string!(", ")
             }
 
             #[cfg(not(feature = "intl"))]
             {
-                js_str!(", ")
+                js_string!(", ")
             }
         };
 
@@ -2197,7 +2196,7 @@ impl Array {
             if !next.is_null_or_undefined() {
                 // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
                 let s = next
-                    .invoke(js_str!("toLocaleString"), args, context)?
+                    .invoke(js_string!("toLocaleString"), args, context)?
                     .to_string(context)?;
 
                 // ii. Set R to the string-concatenation of R and S.
@@ -3258,37 +3257,37 @@ impl Array {
         {
             let mut obj = unscopable_list.borrow_mut();
             // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
-            obj.insert(js_str!("at"), true_prop.clone());
+            obj.insert(js_string!("at"), true_prop.clone());
             // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
-            obj.insert(js_str!("copyWithin"), true_prop.clone());
+            obj.insert(js_string!("copyWithin"), true_prop.clone());
             // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
-            obj.insert(js_str!("entries"), true_prop.clone());
+            obj.insert(js_string!("entries"), true_prop.clone());
             // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
-            obj.insert(js_str!("fill"), true_prop.clone());
+            obj.insert(js_string!("fill"), true_prop.clone());
             // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
-            obj.insert(js_str!("find"), true_prop.clone());
+            obj.insert(js_string!("find"), true_prop.clone());
             // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
-            obj.insert(js_str!("findIndex"), true_prop.clone());
+            obj.insert(js_string!("findIndex"), true_prop.clone());
             // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLast", true).
-            obj.insert(js_str!("findLast"), true_prop.clone());
+            obj.insert(js_string!("findLast"), true_prop.clone());
             // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "findLastIndex", true).
-            obj.insert(js_str!("findLastIndex"), true_prop.clone());
+            obj.insert(js_string!("findLastIndex"), true_prop.clone());
             // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
-            obj.insert(js_str!("flat"), true_prop.clone());
+            obj.insert(js_string!("flat"), true_prop.clone());
             // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
-            obj.insert(js_str!("flatMap"), true_prop.clone());
+            obj.insert(js_string!("flatMap"), true_prop.clone());
             // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
-            obj.insert(js_str!("includes"), true_prop.clone());
+            obj.insert(js_string!("includes"), true_prop.clone());
             // 13. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
-            obj.insert(js_str!("keys"), true_prop.clone());
+            obj.insert(js_string!("keys"), true_prop.clone());
             // 14. Perform ! CreateDataPropertyOrThrow(unscopableList, "toReversed", true).
-            obj.insert(js_str!("toReversed"), true_prop.clone());
+            obj.insert(js_string!("toReversed"), true_prop.clone());
             // 15. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSorted", true).
-            obj.insert(js_str!("toSorted"), true_prop.clone());
+            obj.insert(js_string!("toSorted"), true_prop.clone());
             // 16. Perform ! CreateDataPropertyOrThrow(unscopableList, "toSpliced", true).
-            obj.insert(js_str!("toSpliced"), true_prop.clone());
+            obj.insert(js_string!("toSpliced"), true_prop.clone());
             // 17. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
-            obj.insert(js_str!("values"), true_prop);
+            obj.insert(js_string!("values"), true_prop);
         }
 
         // 13. Return unscopableList.

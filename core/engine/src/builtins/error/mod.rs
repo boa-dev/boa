@@ -214,9 +214,9 @@ impl Error {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         // 1.a. Let cause be ? Get(options, "cause").
         if let Some(options) = options.as_object() {
-            if let Some(cause) = options.try_get(js_str!("cause"), context)? {
+            if let Some(cause) = options.try_get(js_string!("cause"), context)? {
                 // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
-                o.create_non_enumerable_data_property_or_throw(js_str!("cause"), cause, context);
+                o.create_non_enumerable_data_property_or_throw(js_string!("cause"), cause, context);
             }
         }
 
@@ -247,7 +247,7 @@ impl Error {
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not an Object"))?;
 
         // 3. Let name be ? Get(O, "name").
-        let name = o.get(js_str!("name"), context)?;
+        let name = o.get(js_string!("name"), context)?;
 
         // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
         let name = if name.is_undefined() {
@@ -257,7 +257,7 @@ impl Error {
         };
 
         // 5. Let msg be ? Get(O, "message").
-        let msg = o.get(js_str!("message"), context)?;
+        let msg = o.get(js_string!("message"), context)?;
 
         // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
         let msg = if msg.is_undefined() {

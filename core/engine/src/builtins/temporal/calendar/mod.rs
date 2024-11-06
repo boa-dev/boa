@@ -3,7 +3,7 @@
 use std::str::FromStr;
 
 use super::extract_from_temporal_type;
-use crate::{js_str, Context, JsNativeError, JsObject, JsResult, JsValue};
+use crate::{js_string, Context, JsNativeError, JsObject, JsResult, JsValue};
 use temporal_rs::components::calendar::Calendar;
 
 // -- `Calendar` Abstract Operations --
@@ -32,7 +32,7 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
     }
 
     // 2. Let calendarLike be ? Get(item, "calendar").
-    let calendar_like = item.get(js_str!("calendar"), context)?;
+    let calendar_like = item.get(js_string!("calendar"), context)?;
 
     // 3. Return ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
     to_temporal_calendar_slot_value(&calendar_like)

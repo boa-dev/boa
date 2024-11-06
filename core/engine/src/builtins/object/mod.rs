@@ -575,42 +575,42 @@ impl OrdinaryObject {
         // 4. If Desc has a [[Value]] field, then
         if let Some(value) = desc.value() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "value", Desc.[[Value]]).
-            obj.create_data_property_or_throw(js_str!("value"), value.clone(), context)
+            obj.create_data_property_or_throw(js_string!("value"), value.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 5. If Desc has a [[Writable]] field, then
         if let Some(writable) = desc.writable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "writable", Desc.[[Writable]]).
-            obj.create_data_property_or_throw(js_str!("writable"), writable, context)
+            obj.create_data_property_or_throw(js_string!("writable"), writable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 6. If Desc has a [[Get]] field, then
         if let Some(get) = desc.get() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "get", Desc.[[Get]]).
-            obj.create_data_property_or_throw(js_str!("get"), get.clone(), context)
+            obj.create_data_property_or_throw(js_string!("get"), get.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 7. If Desc has a [[Set]] field, then
         if let Some(set) = desc.set() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "set", Desc.[[Set]]).
-            obj.create_data_property_or_throw(js_str!("set"), set.clone(), context)
+            obj.create_data_property_or_throw(js_string!("set"), set.clone(), context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 8. If Desc has an [[Enumerable]] field, then
         if let Some(enumerable) = desc.enumerable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "enumerable", Desc.[[Enumerable]]).
-            obj.create_data_property_or_throw(js_str!("enumerable"), enumerable, context)
+            obj.create_data_property_or_throw(js_string!("enumerable"), enumerable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
         // 9. If Desc has a [[Configurable]] field, then
         if let Some(configurable) = desc.configurable() {
             // a. Perform ! CreateDataPropertyOrThrow(obj, "configurable", Desc.[[Configurable]]).
-            obj.create_data_property_or_throw(js_str!("configurable"), configurable, context)
+            obj.create_data_property_or_throw(js_string!("configurable"), configurable, context)
                 .expect("CreateDataPropertyOrThrow cannot fail here");
         }
 
@@ -826,11 +826,11 @@ impl OrdinaryObject {
     pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. If the this value is undefined, return "[object Undefined]".
         if this.is_undefined() {
-            return Ok(js_str!("[object Undefined]").into());
+            return Ok(js_string!("[object Undefined]").into());
         }
         // 2. If the this value is null, return "[object Null]".
         if this.is_null() {
-            return Ok(js_str!("[object Null]").into());
+            return Ok(js_string!("[object Null]").into());
         }
         // 3. Let O be ! ToObject(this value).
         let o = this.to_object(context).expect("toObject cannot fail here");
@@ -898,7 +898,7 @@ impl OrdinaryObject {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Return ? Invoke(O, "toString").
-        this.invoke(js_str!("toString"), &[], context)
+        this.invoke(js_string!("toString"), &[], context)
     }
 
     /// `Object.prototype.hasOwnProperty( property )`

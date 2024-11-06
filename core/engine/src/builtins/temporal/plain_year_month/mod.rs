@@ -16,7 +16,6 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use temporal_rs::{
@@ -226,26 +225,27 @@ impl PlainYearMonth {
             {
                 // Perform ? [GetTemporalOverflowOption](https://tc39.es/proposal-temporal/#sec-temporal-gettemporaloverflowoption)(options).
                 let options = get_options_object(args.get_or_undefined(1))?;
-                let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+                let _ =
+                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
                 data.inner.clone()
             } else {
                 let options = get_options_object(args.get_or_undefined(1))?;
-                let overflow = get_option(&options, js_str!("overflow"), context)?
+                let overflow = get_option(&options, js_string!("overflow"), context)?
                     .unwrap_or(ArithmeticOverflow::Constrain);
 
                 // a. Let calendar be ? ToTemporalCalendar(item).
                 let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
                 InnerYearMonth::new(
                     super::to_integer_with_truncation(
-                        &item.get_v(js_str!("year"), context)?,
+                        &item.get_v(js_string!("year"), context)?,
                         context,
                     )?,
                     super::to_integer_with_truncation(
-                        &item.get_v(js_str!("month"), context)?,
+                        &item.get_v(js_string!("month"), context)?,
                         context,
                     )?,
                     super::to_integer_with_truncation(
-                        &item.get_v(js_str!("day"), context)?,
+                        &item.get_v(js_string!("day"), context)?,
                         context,
                     )
                     .ok(),
@@ -414,8 +414,9 @@ impl PlainYearMonth {
         let options = get_options_object(args.get_or_undefined(0))?;
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
-        let show_calendar = get_option::<CalendarName>(&options, js_str!("calendarName"), context)?
-            .unwrap_or(CalendarName::Auto);
+        let show_calendar =
+            get_option::<CalendarName>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(CalendarName::Auto);
 
         Ok(year_month_to_string(inner, show_calendar))
     }
@@ -484,8 +485,8 @@ fn add_or_subtract_duration(
             .into());
     };
 
-    let overflow =
-        get_option(options, js_str!("overflow"), context)?.unwrap_or(ArithmeticOverflow::Constrain);
+    let overflow = get_option(options, js_string!("overflow"), context)?
+        .unwrap_or(ArithmeticOverflow::Constrain);
 
     let year_month = this
         .as_object()

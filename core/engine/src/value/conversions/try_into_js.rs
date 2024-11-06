@@ -1,5 +1,4 @@
-use crate::{Context, JsNativeError, JsResult, JsValue};
-use boa_string::JsString;
+use crate::{Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// This trait adds a conversions from a Rust Type into [`JsValue`].
 pub trait TryIntoJs: Sized {

@@ -1,6 +1,6 @@
 use crate::{
     builtins::array::Array,
-    js_str,
+    js_string,
     object::IntegrityLevel,
     property::PropertyDescriptor,
     vm::{opcode::Operation, CompletionType},
@@ -79,7 +79,7 @@ impl TemplateCreate {
             .expect("should never fail per spec");
         template
             .define_property_or_throw(
-                js_str!("raw"),
+                js_string!("raw"),
                 PropertyDescriptor::builder()
                     .value(raw_obj)
                     .writable(false)

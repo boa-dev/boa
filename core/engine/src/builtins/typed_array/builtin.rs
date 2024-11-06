@@ -3,7 +3,7 @@ use std::{
     sync::atomic::Ordering,
 };
 
-use boa_macros::{js_str, utf16};
+use boa_macros::utf16;
 use num_traits::Zero;
 
 use super::{
@@ -2484,7 +2484,7 @@ impl BuiltinTypedArray {
             if is_fixed_len || !next_element.is_undefined() {
                 let s = next_element
                     .invoke(
-                        js_str!("toLocaleString"),
+                        js_string!("toLocaleString"),
                         &[
                             args.get_or_undefined(0).clone(),
                             args.get_or_undefined(1).clone(),

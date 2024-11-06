@@ -392,12 +392,12 @@ impl UnitFormatOptions {
     pub(crate) fn from_options(options: &JsObject, context: &mut Context) -> JsResult<Self> {
         // 1. Let style be ? GetOption(options, "style", string, « "decimal", "percent", "currency", "unit" », "decimal").
         // 2. Set intlObj.[[Style]] to style.
-        let style: Style = get_option(options, js_str!("style"), context)?.unwrap_or_default();
+        let style: Style = get_option(options, js_string!("style"), context)?.unwrap_or_default();
 
         // 3. Let currency be ? GetOption(options, "currency", string, empty, undefined).
         // 5. Else,
         //     a. If IsWellFormedCurrencyCode(currency) is false, throw a RangeError exception.
-        let currency = get_option(options, js_str!("currency"), context)?;
+        let currency = get_option(options, js_string!("currency"), context)?;
 
         // 4. If currency is undefined, then
         if currency.is_none() {
@@ -413,16 +413,16 @@ impl UnitFormatOptions {
 
         // 6. Let currencyDisplay be ? GetOption(options, "currencyDisplay", string, « "code", "symbol", "narrowSymbol", "name" », "symbol").
         let currency_display =
-            get_option(options, js_str!("currencyDisplay"), context)?.unwrap_or_default();
+            get_option(options, js_string!("currencyDisplay"), context)?.unwrap_or_default();
 
         // 7. Let currencySign be ? GetOption(options, "currencySign", string, « "standard", "accounting" », "standard").
         let currency_sign =
-            get_option(options, js_str!("currencySign"), context)?.unwrap_or_default();
+            get_option(options, js_string!("currencySign"), context)?.unwrap_or_default();
 
         // 8. Let unit be ? GetOption(options, "unit", string, empty, undefined).
         // 10. Else,
         //     a. If IsWellFormedUnitIdentifier(unit) is false, throw a RangeError exception.
-        let unit = get_option(options, js_str!("unit"), context)?;
+        let unit = get_option(options, js_string!("unit"), context)?;
         // 9. If unit is undefined, then
         if unit.is_none() {
             // a. If style is "unit", throw a TypeError exception.
@@ -437,7 +437,7 @@ impl UnitFormatOptions {
 
         // 11. Let unitDisplay be ? GetOption(options, "unitDisplay", string, « "short", "narrow", "long" », "short").
         let unit_display =
-            get_option(options, js_str!("unitDisplay"), context)?.unwrap_or_default();
+            get_option(options, js_string!("unitDisplay"), context)?.unwrap_or_default();
 
         // 14. Return unused.
         Ok(match style {
@@ -492,25 +492,25 @@ impl DigitFormatOptions {
     ) -> JsResult<Self> {
         // 1. Let mnid be ? GetNumberOption(options, "minimumIntegerDigits,", 1, 21, 1).
         let minimum_integer_digits =
-            get_number_option(options, js_str!("minimumIntegerDigits"), 1, 21, context)?
+            get_number_option(options, js_string!("minimumIntegerDigits"), 1, 21, context)?
                 .unwrap_or(1);
         // 2. Let mnfd be ? Get(options, "minimumFractionDigits").
-        let min_float_digits = options.get(js_str!("minimumFractionDigits"), context)?;
+        let min_float_digits = options.get(js_string!("minimumFractionDigits"), context)?;
         // 3. Let mxfd be ? Get(options, "maximumFractionDigits").
-        let max_float_digits = options.get(js_str!("maximumFractionDigits"), context)?;
+        let max_float_digits = options.get(js_string!("maximumFractionDigits"), context)?;
         // 4. Let mnsd be ? Get(options, "minimumSignificantDigits").
-        let min_sig_digits = options.get(js_str!("minimumSignificantDigits"), context)?;
+        let min_sig_digits = options.get(js_string!("minimumSignificantDigits"), context)?;
         // 5. Let mxsd be ? Get(options, "maximumSignificantDigits").
-        let max_sig_digits = options.get(js_str!("maximumSignificantDigits"), context)?;
+        let max_sig_digits = options.get(js_string!("maximumSignificantDigits"), context)?;
 
         // 7. Let roundingPriority be ? GetOption(options, "roundingPriority", string, « "auto", "morePrecision", "lessPrecision" », "auto").
         let mut rounding_priority =
-            get_option(options, js_str!("roundingPriority"), context)?.unwrap_or_default();
+            get_option(options, js_string!("roundingPriority"), context)?.unwrap_or_default();
 
         // 8. Let roundingIncrement be ? GetNumberOption(options, "roundingIncrement", 1, 5000, 1).
         // 9. If roundingIncrement is not in « 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 », throw a RangeError exception.
         let rounding_increment =
-            get_number_option(options, js_str!("roundingIncrement"), 1, 5000, context)?
+            get_number_option(options, js_string!("roundingIncrement"), 1, 5000, context)?
                 .unwrap_or(1);
 
         let rounding_increment =
@@ -520,11 +520,11 @@ impl DigitFormatOptions {
 
         // 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
         let rounding_mode =
-            get_option(options, js_str!("roundingMode"), context)?.unwrap_or_default();
+            get_option(options, js_string!("roundingMode"), context)?.unwrap_or_default();
 
         // 11. Let trailingZeroDisplay be ? GetOption(options, "trailingZeroDisplay", string, « "auto", "stripIfInteger" », "auto").
         let trailing_zero_display =
-            get_option(options, js_str!("trailingZeroDisplay"), context)?.unwrap_or_default();
+            get_option(options, js_string!("trailingZeroDisplay"), context)?.unwrap_or_default();
 
         // 12. NOTE: All fields required by SetNumberFormatDigitOptions have now been read from options. The remainder of this AO interprets the options and may throw exceptions.
 

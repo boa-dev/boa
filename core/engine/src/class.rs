@@ -56,7 +56,7 @@
 //!         let age = args.get_or_undefined(1).to_number(context)?;
 //!
 //!         // Roughly equivalent to `this.age = Number(age)`.
-//!         instance.set(js_str!("age"), age, true, context)?;
+//!         instance.set(js_string!("age"), age, true, context)?;
 //!
 //!         Ok(())
 //!     }
@@ -70,9 +70,9 @@
 //!                 if let Some(object) = this.as_object() {
 //!                     if let Some(animal) = object.downcast_ref::<Animal>() {
 //!                         return Ok(match &*animal {
-//!                             Self::Cat => js_str!("meow"),
-//!                             Self::Dog => js_str!("woof"),
-//!                             Self::Other => js_str!(r"¯\_(ツ)_/¯"),
+//!                             Self::Cat => js_string!("meow"),
+//!                             Self::Dog => js_string!("woof"),
+//!                             Self::Other => js_string!(r"¯\_(ツ)_/¯"),
 //!                         }.into());
 //!                     }
 //!                 }

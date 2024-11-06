@@ -30,7 +30,6 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
@@ -146,7 +145,7 @@ impl BuiltInConstructor for Set {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = set.get(js_str!("add"), context)?;
+        let adder = set.get(js_string!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder.as_callable().ok_or_else(|| {

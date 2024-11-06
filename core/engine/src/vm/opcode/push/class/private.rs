@@ -36,7 +36,7 @@ impl PushClassPrivateMethod {
             .build();
         method_object
             .__define_own_property__(
-                &js_str!("name").into(),
+                &js_string!("name").into(),
                 desc,
                 &mut InternalMethodContext::new(context),
             )

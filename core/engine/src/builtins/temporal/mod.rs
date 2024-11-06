@@ -30,13 +30,12 @@ use crate::{
     builtins::{iterable::IteratorRecord, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
-    property::{Attribute, PropertyKey},
+    property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::{Date as TemporalDate, ZonedDateTime as TemporalZonedDateTime},
@@ -246,7 +245,7 @@ pub(crate) fn to_relative_temporal_object(
     options: &JsObject,
     context: &mut Context,
 ) -> RelativeTemporalObjectResult {
-    let relative_to = options.get(PropertyKey::from(js_str!("relativeTo")), context)?;
+    let relative_to = options.get(js_string!("relativeTo"), context)?;
     let plain_date = match relative_to {
         JsValue::String(relative_to_str) => JsValue::from(relative_to_str),
         JsValue::Object(relative_to_obj) => JsValue::from(relative_to_obj),
@@ -297,13 +296,13 @@ pub(crate) fn is_partial_temporal_object<'value>(
     }
 
     // 3. Let calendarProperty be ? Get(value, "calendar").
-    let calendar_property = obj.get(js_str!("calendar"), context)?;
+    let calendar_property = obj.get(js_string!("calendar"), context)?;
     // 4. If calendarProperty is not undefined, return false.
     if !calendar_property.is_undefined() {
         return Ok(None);
     }
     // 5. Let timeZoneProperty be ? Get(value, "timeZone").
-    let time_zone_property = obj.get(js_str!("timeZone"), context)?;
+    let time_zone_property = obj.get(js_string!("timeZone"), context)?;
     // 6. If timeZoneProperty is not undefined, return false.
     if !time_zone_property.is_undefined() {
         return Ok(None);

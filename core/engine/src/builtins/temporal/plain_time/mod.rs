@@ -14,7 +14,6 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::{PartialTime, Time},
@@ -304,7 +303,7 @@ impl PlainTime {
         // 2. Let overflow be ? GetTemporalOverflowOption(options).
         let overflow = get_option::<ArithmeticOverflow>(
             &get_options_object(args.get_or_undefined(1))?,
-            js_str!("overflow"),
+            js_string!("overflow"),
             context,
         )?;
         // 3. If item is an Object and item has an [[InitializedTemporalTime]] internal slot, then
@@ -398,7 +397,7 @@ impl PlainTime {
         };
 
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
         let partial = to_partial_time_record(partial_object, context)?;
 
         create_temporal_time(time.inner.with(partial, overflow)?, None, context).map(Into::into)
@@ -468,7 +467,7 @@ impl PlainTime {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    js_str!("smallestUnit"),
+                    js_string!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -484,16 +483,16 @@ impl PlainTime {
         // 6. NOTE: The following steps read options and perform independent validation in alphabetical order (ToTemporalRoundingIncrement reads "roundingIncrement" and ToTemporalRoundingMode reads "roundingMode").
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         let rounding_increment =
-            get_option::<f64>(&round_to, js_str!("roundingIncrement"), context)?;
+            get_option::<f64>(&round_to, js_string!("roundingIncrement"), context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
+            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", time, required).
         let smallest_unit = get_temporal_unit(
             &round_to,
-            js_str!("smallestUnit"),
+            js_string!("smallestUnit"),
             TemporalUnitGroup::Time,
             None,
             context,
@@ -550,29 +549,37 @@ impl PlainTime {
         let fields = JsObject::with_object_proto(context.intrinsics());
 
         // 4. Perform ! CreateDataPropertyOrThrow(fields, "isoHour", 𝔽(temporalTime.[[ISOHour]])).
-        fields.create_data_property_or_throw(js_str!("isoHour"), time.inner.hour(), context)?;
+        fields.create_data_property_or_throw(js_string!("isoHour"), time.inner.hour(), context)?;
         // 5. Perform ! CreateDataPropertyOrThrow(fields, "isoMicrosecond", 𝔽(temporalTime.[[ISOMicrosecond]])).
         fields.create_data_property_or_throw(
-            js_str!("isoMicrosecond"),
+            js_string!("isoMicrosecond"),
             time.inner.microsecond(),
             context,
         )?;
         // 6. Perform ! CreateDataPropertyOrThrow(fields, "isoMillisecond", 𝔽(temporalTime.[[ISOMillisecond]])).
         fields.create_data_property_or_throw(
-            js_str!("isoMillisecond"),
+            js_string!("isoMillisecond"),
             time.inner.millisecond(),
             context,
         )?;
         // 7. Perform ! CreateDataPropertyOrThrow(fields, "isoMinute", 𝔽(temporalTime.[[ISOMinute]])).
-        fields.create_data_property_or_throw(js_str!("isoMinute"), time.inner.minute(), context)?;
+        fields.create_data_property_or_throw(
+            js_string!("isoMinute"),
+            time.inner.minute(),
+            context,
+        )?;
         // 8. Perform ! CreateDataPropertyOrThrow(fields, "isoNanosecond", 𝔽(temporalTime.[[ISONanosecond]])).
         fields.create_data_property_or_throw(
-            js_str!("isoNanosecond"),
+            js_string!("isoNanosecond"),
             time.inner.nanosecond(),
             context,
         )?;
         // 9. Perform ! CreateDataPropertyOrThrow(fields, "isoSecond", 𝔽(temporalTime.[[ISOSecond]])).
-        fields.create_data_property_or_throw(js_str!("isoSecond"), time.inner.second(), context)?;
+        fields.create_data_property_or_throw(
+            js_string!("isoSecond"),
+            time.inner.second(),
+            context,
+        )?;
 
         // 10. Return fields.
         Ok(fields.into())
@@ -696,32 +703,32 @@ pub(crate) fn to_partial_time_record(
     context: &mut Context,
 ) -> JsResult<PartialTime> {
     let hour = partial_object
-        .get(js_str!("hour"), context)?
+        .get(js_string!("hour"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
 
     let minute = partial_object
-        .get(js_str!("minute"), context)?
+        .get(js_string!("minute"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
 
     let second = partial_object
-        .get(js_str!("second"), context)?
+        .get(js_string!("second"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
 
     let millisecond = partial_object
-        .get(js_str!("millisecond"), context)?
+        .get(js_string!("millisecond"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
 
     let microsecond = partial_object
-        .get(js_str!("microsecond"), context)?
+        .get(js_string!("microsecond"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
 
     let nanosecond = partial_object
-        .get(js_str!("nanosecond"), context)?
+        .get(js_string!("nanosecond"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
 

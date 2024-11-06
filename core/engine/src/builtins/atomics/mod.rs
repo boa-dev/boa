@@ -21,7 +21,6 @@ use crate::{
     JsString, JsValue,
 };
 
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::{
@@ -468,9 +467,9 @@ impl Atomics {
         };
 
         Ok(match result {
-            futex::AtomicsWaitResult::NotEqual => js_str!("not-equal"),
-            futex::AtomicsWaitResult::TimedOut => js_str!("timed-out"),
-            futex::AtomicsWaitResult::Ok => js_str!("ok"),
+            futex::AtomicsWaitResult::NotEqual => js_string!("not-equal"),
+            futex::AtomicsWaitResult::TimedOut => js_string!("timed-out"),
+            futex::AtomicsWaitResult::Ok => js_string!("ok"),
         }
         .into())
     }

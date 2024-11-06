@@ -36,7 +36,6 @@ pub mod weak_set;
 
 mod builder;
 
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use builder::BuiltInBuilder;
 
@@ -107,6 +106,7 @@ use crate::{
         weak_set::WeakSet,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::JsObject,
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
@@ -314,7 +314,7 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
     let global_object = context.global_object();
 
     global_object.define_property_or_throw(
-        js_str!("globalThis"),
+        js_string!("globalThis"),
         PropertyDescriptor::builder()
             .value(context.realm().global_this().clone())
             .writable(true)
@@ -327,17 +327,17 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
         .enumerable(false)
         .configurable(false);
     global_object.define_property_or_throw(
-        js_str!("Infinity"),
+        js_string!("Infinity"),
         restricted.clone().value(f64::INFINITY),
         context,
     )?;
     global_object.define_property_or_throw(
-        js_str!("NaN"),
+        js_string!("NaN"),
         restricted.clone().value(f64::NAN),
         context,
     )?;
     global_object.define_property_or_throw(
-        js_str!("undefined"),
+        js_string!("undefined"),
         restricted.value(JsValue::undefined()),
         context,
     )?;

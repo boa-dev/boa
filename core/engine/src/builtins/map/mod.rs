@@ -22,7 +22,6 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
@@ -155,7 +154,7 @@ impl BuiltInConstructor for Map {
         // 5. Let adder be ? Get(map, "set").
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = map
-            .get(js_str!("set"), context)?
+            .get(js_string!("set"), context)?
             .as_function()
             .ok_or_else(|| {
                 JsNativeError::typ()

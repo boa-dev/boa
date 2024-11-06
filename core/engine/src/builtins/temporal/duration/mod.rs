@@ -14,7 +14,6 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::{duration::PartialDuration, Duration as InnerDuration},
@@ -659,7 +658,7 @@ impl Duration {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    js_str!("smallestUnit"),
+                    js_string!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -681,7 +680,7 @@ impl Duration {
         // 9. Let largestUnit be ? GetTemporalUnit(roundTo, "largestUnit", datetime, undefined, « "auto" »).
         options.largest_unit = get_temporal_unit(
             &round_to,
-            js_str!("largestUnit"),
+            js_string!("largestUnit"),
             TemporalUnitGroup::DateTime,
             Some([TemporalUnit::Auto].into()),
             context,
@@ -695,16 +694,16 @@ impl Duration {
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         options.increment =
-            get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
+            get_option::<RoundingIncrement>(&round_to, js_string!("roundingIncrement"), context)?;
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         options.rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
+            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         options.smallest_unit = get_temporal_unit(
             &round_to,
-            js_str!("smallestUnit"),
+            js_string!("smallestUnit"),
             TemporalUnitGroup::DateTime,
             None,
             context,
@@ -754,7 +753,7 @@ impl Duration {
                 let total_of = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(totalOf, "unit", paramString).
                 total_of.create_data_property_or_throw(
-                    js_str!("unit"),
+                    js_string!("unit"),
                     param_string.clone(),
                     context,
                 )?;
@@ -777,7 +776,7 @@ impl Duration {
         // 10. Let unit be ? GetTemporalUnit(totalOf, "unit", datetime, required).
         let _unit = get_temporal_unit(
             &total_of,
-            js_str!("unit"),
+            js_string!("unit"),
             TemporalUnitGroup::DateTime,
             None,
             context,
@@ -935,7 +934,7 @@ pub(crate) fn to_temporal_partial_duration(
 
     // 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
     // 4. Let days be ? Get(temporalDurationLike, "days").
-    let days = unknown_object.get(js_str!("days"), context)?;
+    let days = unknown_object.get(js_string!("days"), context)?;
     if !days.is_undefined() {
         // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
         let _ = result
@@ -944,7 +943,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 6. Let hours be ? Get(temporalDurationLike, "hours").
-    let hours = unknown_object.get(js_str!("hours"), context)?;
+    let hours = unknown_object.get(js_string!("hours"), context)?;
     // 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
     if !hours.is_undefined() {
         let _ = result
@@ -953,7 +952,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
-    let microseconds = unknown_object.get(js_str!("microseconds"), context)?;
+    let microseconds = unknown_object.get(js_string!("microseconds"), context)?;
     // 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
     if !microseconds.is_undefined() {
         let _ = result
@@ -965,7 +964,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
-    let milliseconds = unknown_object.get(js_str!("milliseconds"), context)?;
+    let milliseconds = unknown_object.get(js_string!("milliseconds"), context)?;
     // 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
     if !milliseconds.is_undefined() {
         let _ = result
@@ -977,7 +976,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 12. Let minutes be ? Get(temporalDurationLike, "minutes").
-    let minutes = unknown_object.get(js_str!("minutes"), context)?;
+    let minutes = unknown_object.get(js_string!("minutes"), context)?;
     // 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
     if !minutes.is_undefined() {
         let _ = result
@@ -986,7 +985,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 14. Let months be ? Get(temporalDurationLike, "months").
-    let months = unknown_object.get(js_str!("months"), context)?;
+    let months = unknown_object.get(js_string!("months"), context)?;
     // 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
     if !months.is_undefined() {
         let _ = result
@@ -995,7 +994,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
-    let nanoseconds = unknown_object.get(js_str!("nanoseconds"), context)?;
+    let nanoseconds = unknown_object.get(js_string!("nanoseconds"), context)?;
     // 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
     if !nanoseconds.is_undefined() {
         let _ = result
@@ -1007,7 +1006,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 18. Let seconds be ? Get(temporalDurationLike, "seconds").
-    let seconds = unknown_object.get(js_str!("seconds"), context)?;
+    let seconds = unknown_object.get(js_string!("seconds"), context)?;
     // 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
     if !seconds.is_undefined() {
         let _ = result
@@ -1016,7 +1015,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 20. Let weeks be ? Get(temporalDurationLike, "weeks").
-    let weeks = unknown_object.get(js_str!("weeks"), context)?;
+    let weeks = unknown_object.get(js_string!("weeks"), context)?;
     // 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
     if !weeks.is_undefined() {
         let _ = result
@@ -1025,7 +1024,7 @@ pub(crate) fn to_temporal_partial_duration(
     }
 
     // 22. Let years be ? Get(temporalDurationLike, "years").
-    let years = unknown_object.get(js_str!("years"), context)?;
+    let years = unknown_object.get(js_string!("years"), context)?;
     // 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
     if !years.is_undefined() {
         let _ = result

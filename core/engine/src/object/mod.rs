@@ -2,7 +2,6 @@
 //!
 //! For the builtin object wrappers, please see [`object::builtins`][builtins] for implementors.
 
-use boa_macros::js_str;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
@@ -24,7 +23,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsStr, JsString, JsSymbol, JsValue,
+    Context, JsString, JsSymbol, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -51,10 +50,10 @@ pub use datatypes::JsData;
 pub use jsobject::*;
 
 /// Const `constructor`, usually set on prototypes as a key to point to their respective constructor object.
-pub const CONSTRUCTOR: JsStr<'_> = js_str!("constructor");
+pub const CONSTRUCTOR: JsString = js_string!("constructor");
 
 /// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
-pub const PROTOTYPE: JsStr<'_> = js_str!("prototype");
+pub const PROTOTYPE: JsString = js_string!("prototype");
 
 /// Common field names.
 
@@ -1023,7 +1022,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             };
 
             constructor.insert(StaticJsStrings::LENGTH, length);
-            constructor.insert(js_str!("name"), name);
+            constructor.insert(js_string!("name"), name);
 
             if let Some(proto) = self.custom_prototype.take() {
                 constructor.set_prototype(proto);

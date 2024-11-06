@@ -241,12 +241,12 @@ impl BuiltInConstructor for RegExp {
             (p, f)
         } else if let Some(pattern) = pattern_is_regexp {
             // a. Let P be ? Get(pattern, "source").
-            let p = pattern.get(js_str!("source"), context)?;
+            let p = pattern.get(js_string!("source"), context)?;
 
             // b. If flags is undefined, then
             let f = if flags.is_undefined() {
                 // i. Let F be ? Get(pattern, "flags").
-                pattern.get(js_str!("flags"), context)?
+                pattern.get(js_string!("flags"), context)?
             // c. Else,
             } else {
                 // i. Let F be flags.
@@ -643,49 +643,49 @@ impl RegExp {
 
         // 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
         // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) to codeUnits.
-        if object.get(js_str!("hasIndices"), context)?.to_boolean() {
+        if object.get(js_string!("hasIndices"), context)?.to_boolean() {
             code_units.push('d');
         }
 
         // 6. Let global be ToBoolean(? Get(R, "global")).
         // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) to codeUnits.
-        if object.get(js_str!("global"), context)?.to_boolean() {
+        if object.get(js_string!("global"), context)?.to_boolean() {
             code_units.push('g');
         }
 
         // 8. Let ignoreCase be ToBoolean(? Get(R, "ignoreCase")).
         // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) to codeUnits.
-        if object.get(js_str!("ignoreCase"), context)?.to_boolean() {
+        if object.get(js_string!("ignoreCase"), context)?.to_boolean() {
             code_units.push('i');
         }
 
         // 10. Let multiline be ToBoolean(? Get(R, "multiline")).
         // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) to codeUnits.
-        if object.get(js_str!("multiline"), context)?.to_boolean() {
+        if object.get(js_string!("multiline"), context)?.to_boolean() {
             code_units.push('m');
         }
 
         // 12. Let dotAll be ToBoolean(? Get(R, "dotAll")).
         // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) to codeUnits.
-        if object.get(js_str!("dotAll"), context)?.to_boolean() {
+        if object.get(js_string!("dotAll"), context)?.to_boolean() {
             code_units.push('s');
         }
 
         // 14. Let unicode be ToBoolean(? Get(R, "unicode")).
         // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) to codeUnits.
-        if object.get(js_str!("unicode"), context)?.to_boolean() {
+        if object.get(js_string!("unicode"), context)?.to_boolean() {
             code_units.push('u');
         }
 
         // 16. Let unicodeSets be ToBoolean(? Get(R, "unicodeSets")).
         // 17. If unicodeSets is true, append the code unit 0x0076 (LATIN SMALL LETTER V) to codeUnits.
-        if object.get(js_str!("unicodeSets"), context)?.to_boolean() {
+        if object.get(js_string!("unicodeSets"), context)?.to_boolean() {
             code_units.push('v');
         }
 
         // 18. Let sticky be ToBoolean(? Get(R, "sticky")).
         // 19. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) to codeUnits.
-        if object.get(js_str!("sticky"), context)?.to_boolean() {
+        if object.get(js_string!("sticky"), context)?.to_boolean() {
             code_units.push('y');
         }
 
@@ -727,7 +727,7 @@ impl RegExp {
                     this,
                     &JsValue::new(context.intrinsics().constructors().regexp().prototype()),
                 ) {
-                    Ok(JsValue::new(js_str!("(?:)")))
+                    Ok(JsValue::new(js_string!("(?:)")))
                 } else {
                     Err(JsNativeError::typ()
                         .with_message("RegExp.prototype.source method called on incompatible value")
@@ -755,7 +755,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern
     fn escape_pattern(src: &JsString, _flags: &JsString) -> JsValue {
         if src.is_empty() {
-            js_str!("(?:)").into()
+            js_string!("(?:)").into()
         } else {
             let mut s = Vec::with_capacity(src.len());
             let mut buf = [0; 2];
@@ -866,7 +866,7 @@ impl RegExp {
         // 2. Assert: Type(S) is String.
 
         // 3. Let exec be ? Get(R, "exec").
-        let exec = this.get(js_str!("exec"), context)?;
+        let exec = this.get(js_string!("exec"), context)?;
 
         // 4. If IsCallable(exec) is true, then
         if let Some(exec) = exec.as_callable() {
@@ -919,7 +919,7 @@ impl RegExp {
 
         // 2. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
         let mut last_index = this
-            .get(js_str!("lastIndex"), context)?
+            .get(js_string!("lastIndex"), context)?
             .to_length(context)?;
 
         // 3. Let flags be R.[[OriginalFlags]].
@@ -957,7 +957,7 @@ impl RegExp {
             // i. If global is true or sticky is true, then
             if global || sticky {
                 // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                this.set(js_str!("lastIndex"), 0, true, context)?;
+                this.set(js_string!("lastIndex"), 0, true, context)?;
             }
 
             // ii. Return null.
@@ -990,7 +990,7 @@ impl RegExp {
             //       13.a.i. If global is true or sticky is true, then
             if global || sticky {
                 // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                this.set(js_str!("lastIndex"), 0, true, context)?;
+                this.set(js_string!("lastIndex"), 0, true, context)?;
             }
 
             // MOVE: ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
@@ -1009,7 +1009,7 @@ impl RegExp {
         // NOTE: regress currently doesn't support the sticky flag so we have to emulate it.
         if sticky && match_value.start() != last_index as usize {
             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-            this.set(js_str!("lastIndex"), 0, true, context)?;
+            this.set(js_string!("lastIndex"), 0, true, context)?;
 
             // 2. Return null.
             return Ok(None);
@@ -1027,7 +1027,7 @@ impl RegExp {
         // 16. If global is true or sticky is true, then
         if global || sticky {
             // a. Perform ? Set(R, "lastIndex", 𝔽(e), true).
-            this.set(js_str!("lastIndex"), e, true, context)?;
+            this.set(js_string!("lastIndex"), e, true, context)?;
         }
 
         // 17. Let n be the number of elements in r's captures List.
@@ -1041,11 +1041,11 @@ impl RegExp {
         let a = Array::array_create(n + 1, None, context)?;
 
         // 22. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
-        a.create_data_property_or_throw(js_str!("index"), last_index, context)
+        a.create_data_property_or_throw(js_string!("index"), last_index, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "input", S).
-        a.create_data_property_or_throw(js_str!("input"), input.clone(), context)
+        a.create_data_property_or_throw(js_string!("input"), input.clone(), context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 24. Let match be the Match Record { [[StartIndex]]: lastIndex, [[EndIndex]]: e }.
@@ -1141,11 +1141,11 @@ impl RegExp {
         // 22.2.7.8 MakeMatchIndicesIndexPairArray ( S, indices, groupNames, hasGroups )
         // 8. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
         indices
-            .create_data_property_or_throw(js_str!("groups"), group_names, context)
+            .create_data_property_or_throw(js_string!("groups"), group_names, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 32. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
-        a.create_data_property_or_throw(js_str!("groups"), groups, context)
+        a.create_data_property_or_throw(js_string!("groups"), groups, context)
             .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
@@ -1186,7 +1186,7 @@ impl RegExp {
         // a. Let indicesArray be MakeMatchIndicesIndexPairArray(S, indices, groupNames, hasGroups).
         // b. Perform ! CreateDataPropertyOrThrow(A, "indices", indicesArray).
         if has_indices {
-            a.create_data_property_or_throw(js_str!("indices"), indices, context)
+            a.create_data_property_or_throw(js_string!("indices"), indices, context)
                 .expect("this CreateDataPropertyOrThrow call must not fail");
         }
 
@@ -1221,7 +1221,7 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let flags be ? ToString(? Get(rx, "flags")).
-        let flags = rx.get(js_str!("flags"), context)?.to_string(context)?;
+        let flags = rx.get(js_string!("flags"), context)?.to_string(context)?;
 
         // 5. If flags does not contain "g", then
         if !flags.contains(b'g') {
@@ -1236,7 +1236,7 @@ impl RegExp {
         let full_unicode = flags.contains(b'u') || flags.contains(b'v');
 
         // b. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-        rx.set(js_str!("lastIndex"), 0, true, context)?;
+        rx.set(js_string!("lastIndex"), 0, true, context)?;
 
         // c. Let A be ! ArrayCreate(0).
         let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
@@ -1262,14 +1262,14 @@ impl RegExp {
                 // 3. If matchStr is the empty String, then
                 if match_str.is_empty() {
                     // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                    let this_index = rx.get(js_str!("lastIndex"), context)?.to_length(context)?;
+                    let this_index = rx.get(js_string!("lastIndex"), context)?.to_length(context)?;
 
                     // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                     let next_index = advance_string_index(&arg_str, this_index, full_unicode);
 
                     // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
                     rx.set(
-                        js_str!("lastIndex"),
+                        js_string!("lastIndex"),
                         JsValue::new(next_index),
                         true,
                         context,
@@ -1313,10 +1313,10 @@ impl RegExp {
         })?;
 
         // 3. Let pattern be ? ToString(? Get(R, "source")).
-        let pattern = regexp.get(js_str!("source"), context)?.to_string(context)?;
+        let pattern = regexp.get(js_string!("source"), context)?.to_string(context)?;
 
         // 4. Let flags be ? ToString(? Get(R, "flags")).
-        let flags = regexp.get(js_str!("flags"), context)?.to_string(context)?;
+        let flags = regexp.get(js_string!("flags"), context)?.to_string(context)?;
 
         // 5. Let result be the string-concatenation of "/", pattern, "/", and flags.
         // 6. Return result.
@@ -1352,18 +1352,18 @@ impl RegExp {
         let c = regexp.species_constructor(StandardConstructors::regexp, context)?;
 
         // 5. Let flags be ? ToString(? Get(R, "flags")).
-        let flags = regexp.get(js_str!("flags"), context)?.to_string(context)?;
+        let flags = regexp.get(js_string!("flags"), context)?.to_string(context)?;
 
         // 6. Let matcher be ? Construct(C, « R, flags »).
         let matcher = c.construct(&[this.clone(), flags.clone().into()], Some(&c), context)?;
 
         // 7. Let lastIndex be ? ToLength(? Get(R, "lastIndex")).
         let last_index = regexp
-            .get(js_str!("lastIndex"), context)?
+            .get(js_string!("lastIndex"), context)?
             .to_length(context)?;
 
         // 8. Perform ? Set(matcher, "lastIndex", lastIndex, true).
-        matcher.set(js_str!("lastIndex"), last_index, true, context)?;
+        matcher.set(js_string!("lastIndex"), last_index, true, context)?;
 
         // 9. If flags contains "g", let global be true.
         // 10. Else, let global be false.
@@ -1434,7 +1434,7 @@ impl RegExp {
         };
 
         // 7. Let flags be ? ToString(? Get(rx, "flags")).
-        let flags = rx.get(js_str!("flags"), context)?.to_string(context)?;
+        let flags = rx.get(js_string!("flags"), context)?.to_string(context)?;
 
         // 8. If flags contains "g", let global be true. Otherwise, let global be false.
         let global = flags.contains(b'g');
@@ -1445,7 +1445,7 @@ impl RegExp {
             let full_unicode = flags.contains(b'u');
 
             // b. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            rx.set(js_str!("lastIndex"), 0, true, context)?;
+            rx.set(js_string!("lastIndex"), 0, true, context)?;
 
             full_unicode
         } else {
@@ -1487,14 +1487,14 @@ impl RegExp {
             //    2. If matchStr is the empty String, then
             if match_str.is_empty() {
                 // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                let this_index = rx.get(js_str!("lastIndex"), context)?.to_length(context)?;
+                let this_index = rx.get(js_string!("lastIndex"), context)?.to_length(context)?;
 
                 // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                 let next_index = advance_string_index(&s, this_index, full_unicode);
 
                 // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
                 rx.set(
-                    js_str!("lastIndex"),
+                    js_string!("lastIndex"),
                     JsValue::new(next_index),
                     true,
                     context,
@@ -1527,7 +1527,7 @@ impl RegExp {
 
             // e. Let position be ? ToIntegerOrInfinity(? Get(result, "index")).
             let position = result
-                .get(js_str!("index"), context)?
+                .get(js_string!("index"), context)?
                 .to_integer_or_infinity(context)?;
 
             // f. Set position to the result of clamping position between 0 and lengthS.
@@ -1559,7 +1559,7 @@ impl RegExp {
             }
 
             // j. Let namedCaptures be ? Get(result, "groups").
-            let mut named_captures = result.get(js_str!("groups"), context)?;
+            let mut named_captures = result.get(js_string!("groups"), context)?;
 
             let replacement = match replace_value {
                 // k. If functionalReplace is true, then
@@ -1659,31 +1659,31 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
-        let previous_last_index = rx.get(js_str!("lastIndex"), context)?;
+        let previous_last_index = rx.get(js_string!("lastIndex"), context)?;
 
         // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
         if !JsValue::same_value(&previous_last_index, &JsValue::new(0)) {
             // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            rx.set(js_str!("lastIndex"), 0, true, context)?;
+            rx.set(js_string!("lastIndex"), 0, true, context)?;
         }
 
         // 6. Let result be ? RegExpExec(rx, S).
         let result = Self::abstract_exec(rx, arg_str, context)?;
 
         // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
-        let current_last_index = rx.get(js_str!("lastIndex"), context)?;
+        let current_last_index = rx.get(js_string!("lastIndex"), context)?;
 
         // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
         if !JsValue::same_value(&current_last_index, &previous_last_index) {
             // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
-            rx.set(js_str!("lastIndex"), previous_last_index, true, context)?;
+            rx.set(js_string!("lastIndex"), previous_last_index, true, context)?;
         }
 
         // 9. If result is null, return -1𝔽.
         // 10. Return ? Get(result, "index").
         result.map_or_else(
             || Ok(JsValue::new(-1)),
-            |result| result.get(js_str!("index"), context),
+            |result| result.get(js_string!("index"), context),
         )
     }
 
@@ -1716,7 +1716,7 @@ impl RegExp {
         let constructor = rx.species_constructor(StandardConstructors::regexp, context)?;
 
         // 5. Let flags be ? ToString(? Get(rx, "flags")).
-        let flags = rx.get(js_str!("flags"), context)?.to_string(context)?;
+        let flags = rx.get(js_string!("flags"), context)?.to_string(context)?;
 
         // 6. If flags contains "u", let unicodeMatching be true.
         // 7. Else, let unicodeMatching be false.
@@ -1785,7 +1785,7 @@ impl RegExp {
         // 19. Repeat, while q < size,
         while q < size {
             // a. Perform ? Set(splitter, "lastIndex", 𝔽(q), true).
-            splitter.set(js_str!("lastIndex"), JsValue::new(q), true, context)?;
+            splitter.set(js_string!("lastIndex"), JsValue::new(q), true, context)?;
 
             // b. Let z be ? RegExpExec(splitter, S).
             let result = Self::abstract_exec(&splitter, arg_str.clone(), context)?;
@@ -1795,7 +1795,7 @@ impl RegExp {
             if let Some(result) = result {
                 // i. Let e be ℝ(? ToLength(? Get(splitter, "lastIndex"))).
                 let mut e = splitter
-                    .get(js_str!("lastIndex"), context)?
+                    .get(js_string!("lastIndex"), context)?
                     .to_length(context)?;
 
                 // ii. Set e to min(e, size).
@@ -1919,7 +1919,7 @@ impl RegExp {
                 .expect("already checked that the object was a RegExp") = regexp;
         }
 
-        this.set(js_str!("lastIndex"), 0, true, context)?;
+        this.set(js_string!("lastIndex"), 0, true, context)?;
 
         Ok(this.into())
     }
