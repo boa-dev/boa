@@ -32,8 +32,10 @@ jobs:
         COMMIT_HASH=$(git rev-parse --short HEAD)
         echo "FILE_NAME=boa-nightly-linux-${DATE}-${COMMIT_HASH}" >> $GITHUB_ENV
 
-    - name: Rename Binary
-      run: mv target/release/boa target/release/$FILE_NAME
+    - name: Rename binary to file name
+      run: |
+        echo "Renaming binary to $FILE_NAME"
+        mv target/release/boa "target/release/$FILE_NAME"
 
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v2
