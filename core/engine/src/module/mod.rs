@@ -36,7 +36,6 @@ use boa_interner::Interner;
 use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
-use boa_string::JsStr;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
@@ -625,6 +624,7 @@ impl Module {
 
     /// Get an exported function, typed, from the module.
     #[inline]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn get_typed_fn<A, R>(
         &self,
         name: JsString,

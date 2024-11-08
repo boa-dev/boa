@@ -3,7 +3,7 @@
 
 use std::{error::Error, path::Path};
 
-use boa_engine::{js_string, property::Attribute, Context, Source};
+use boa_engine::{property::Attribute, Context, Source};
 use boa_runtime::Console;
 
 /// Adds the custom runtime to the context.
