@@ -598,7 +598,7 @@ fn generate_obj_properties(fields: FieldsNamed) -> Result<proc_macro2::TokenStre
             quote! { boa_engine::value::TryIntoJs::try_into_js(&self.#name, context)? }
         };
         prop_ctors.push(quote! {
-            obj.create_data_property_or_throw(boa_engine::js_str!(#prop_key), #value, context)?;
+            obj.create_data_property_or_throw(boa_engine::js_string!(#prop_key), #value, context)?;
         });
     }
 
