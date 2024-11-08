@@ -22,7 +22,10 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::{js_str, utf16};
+#[cfg(feature = "annex-b")]
+use boa_macros::js_str;
+use boa_macros::utf16;
+
 use boa_profiler::Profiler;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::cmp::{max, min};
