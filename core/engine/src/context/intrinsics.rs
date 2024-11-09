@@ -3,7 +3,7 @@
 use crate::{
     builtins::{
         function::ConstructorKind, iterable::IteratorPrototypes, uri::UriFunctions, Array, Date,
-        IntrinsicObject, OrdinaryObject,
+        IntrinsicObject, Math, OrdinaryObject,
     },
     js_string,
     native_function::NativeFunctionObject,
@@ -1166,7 +1166,7 @@ impl IntrinsicObjects {
     pub(crate) fn uninit(realm_inner: &WeakGc<RealmInner>) -> Option<Self> {
         Some(Self {
             reflect: JsObject::default(),
-            math: JsObject::default(),
+            math: JsObject::lazy(Math::init, realm_inner),
             json: JsObject::default(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
