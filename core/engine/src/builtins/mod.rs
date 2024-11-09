@@ -206,7 +206,6 @@ impl Realm {
         AsyncIterator::init(self);
         AsyncFromSyncIterator::init(self);
         ForInIterator::init(self);
-        Json::init(self);
         ArrayIterator::init(self);
         Proxy::init(self);
         ArrayBuffer::init(self);
@@ -224,9 +223,7 @@ impl Realm {
         Eval::init(self);
         Set::init(self);
         SetIterator::init(self);
-        String::init(self);
         StringIterator::init(self);
-        RegExp::init(self);
         RegExpStringIterator::init(self);
         BuiltinTypedArray::init(self);
         Int8Array::init(self);

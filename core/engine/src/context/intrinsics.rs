@@ -3,7 +3,7 @@
 use crate::{
     builtins::{
         function::ConstructorKind, iterable::IteratorPrototypes, uri::UriFunctions, Array, Date,
-        IntrinsicObject, Math, OrdinaryObject,
+        IntrinsicObject, Json, Math, OrdinaryObject, RegExp, String,
     },
     js_string,
     native_function::NativeFunctionObject,
@@ -268,11 +268,8 @@ impl StandardConstructors {
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 None, false,
             )),
-            string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                js_string!(),
-            )),
-            regexp: StandardConstructor::default(),
+            string: StandardConstructor::lazy(String::init, realm_inner),
+            regexp: StandardConstructor::lazy(RegExp::init, realm_inner),
             symbol: StandardConstructor::default(),
             error: StandardConstructor::default(),
             type_error: StandardConstructor::default(),
@@ -1167,7 +1164,7 @@ impl IntrinsicObjects {
         Some(Self {
             reflect: JsObject::default(),
             math: JsObject::lazy(Math::init, realm_inner),
-            json: JsObject::default(),
+            json: JsObject::lazy(Json::init, realm_inner),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
             array_prototype_to_string: JsFunction::empty_intrinsic_function(false),
