@@ -206,7 +206,7 @@ impl Realm {
         AsyncIterator::init(self);
         AsyncFromSyncIterator::init(self);
         ForInIterator::init(self);
-        // Math::init(self);
+        Math::init(self);
         Json::init(self);
         ArrayIterator::init(self);
         Proxy::init(self);
@@ -214,7 +214,6 @@ impl Realm {
         SharedArrayBuffer::init(self);
         BigInt::init(self);
         Boolean::init(self);
-        // Date::init(self);
         DataView::init(self);
         Map::init(self);
         MapIterator::init(self);
