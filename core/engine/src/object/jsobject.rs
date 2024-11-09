@@ -95,7 +95,7 @@ impl JsObject {
     }
 
     /// Creates a new lazy `JsObject` from its inner object and its vtable.
-    /// This object will call init([realm]) when it's first accessed
+    /// This object will call `init(realm)` when it's first accessed
     pub(crate) fn lazy(init: fn(&Realm) -> (), realm_inner: &WeakGc<RealmInner>) -> Self {
         let data = LazyBuiltIn {
             init_and_realm: Some((init, realm_inner.clone())),
