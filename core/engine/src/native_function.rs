@@ -343,6 +343,28 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
+    native_function_call_inner(
+        obj,
+        &obj.downcast_ref::<NativeFunctionObject>()
+            .expect("the object should be a native function object")
+            .clone(),
+        argument_count,
+        context,
+    )
+}
+
+/// Call this object.
+///
+/// # Panics
+///
+/// Panics if the object is currently mutably borrowed.
+// <https://tc39.es/ecma262/#sec-built-in-function-objects-call-thisargument-argumentslist>
+pub(crate) fn native_function_call_inner(
+    obj: &JsObject,
+    native_function: &NativeFunctionObject,
+    argument_count: usize,
+    context: &mut Context,
+) -> JsResult<CallValue> {
     let args = context.vm.pop_n_values(argument_count);
     let _func = context.vm.pop();
     let this = context.vm.pop();
@@ -356,10 +378,7 @@ pub(crate) fn native_function_call(
         f: function,
         constructor,
         realm,
-    } = obj
-        .downcast_ref::<NativeFunctionObject>()
-        .expect("the object should be a native function object")
-        .clone();
+    } = native_function.clone();
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -380,7 +399,6 @@ pub(crate) fn native_function_call(
 
     Ok(CallValue::Complete)
 }
-
 /// Construct an instance of this object with the specified arguments.
 ///
 /// # Panics

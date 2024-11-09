@@ -1,7 +1,9 @@
 use crate::{
     builtins::function::ConstructorKind,
     gc::custom_trace,
-    native_function::{native_function_construct_inner, NativeFunctionObject},
+    native_function::{
+        native_function_call_inner, native_function_construct_inner, NativeFunctionObject,
+    },
     object::{
         internal_methods::{
             non_existant_call, non_existant_construct, ordinary_define_own_property,
@@ -248,10 +250,9 @@ pub(crate) fn lazy_call(
             .with_realm(context.realm().clone())
             .into()),
         BuiltinKind::Function(function) => {
-            let call = function.internal_methods().__call__;
             // builtin needs to be dropped before calling the constructor to avoid a double borrow
             drop(builtin);
-            Ok(call(obj, argument_count, context)?)
+            native_function_call_inner(obj, function, argument_count, context)
         }
     }
 }
