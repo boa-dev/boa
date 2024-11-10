@@ -19,12 +19,8 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    components::{
-        calendar::{Calendar, GetTemporalCalendar},
-        DateTime, MonthDay as InnerMonthDay,
-    },
-    iso::IsoDateSlots,
     options::{ArithmeticOverflow, CalendarName},
+    PlainDateTime, PlainMonthDay as InnerMonthDay,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
@@ -118,17 +114,18 @@ impl PlainMonthDay {
         Ok(month_day_to_string(inner, show_calendar))
     }
 }
-impl IsoDateSlots for JsObject<PlainMonthDay> {
-    fn iso_date(&self) -> temporal_rs::iso::IsoDate {
-        self.borrow().data().inner.iso_date()
-    }
-}
 
-impl GetTemporalCalendar for JsObject<PlainMonthDay> {
-    fn get_calendar(&self) -> Calendar {
-        self.borrow().data().inner.get_calendar()
-    }
-}
+// impl IsoDateSlots for JsObject<PlainMonthDay> {
+//     fn iso_date(&self) -> temporal_rs::iso::IsoDate {
+//         self.borrow().data().inner.iso_date()
+//     }
+// }
+
+// impl GetTemporalCalendar for JsObject<PlainMonthDay> {
+//     fn get_calendar(&self) -> Calendar {
+//         self.borrow().data().inner.get_calendar()
+//     }
+// }
 
 impl BuiltInObject for PlainMonthDay {
     const NAME: JsString = StaticJsStrings::PLAIN_MD_NAME;
@@ -245,7 +242,7 @@ pub(crate) fn create_temporal_month_day(
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if !DateTime::validate(&inner) {
+    if !PlainDateTime::validate(&inner) {
         return Err(JsNativeError::range()
             .with_message("PlainMonthDay does not hold a valid ISO date time.")
             .into());
@@ -301,7 +298,7 @@ fn to_temporal_month_day(
     } else if let Some(item_string) = item.as_string() {
         InnerMonthDay::from_str(item_string.to_std_string_escaped().as_str())?
     } else if item.is_object() {
-        InnerMonthDay::new(
+        InnerMonthDay::new_with_overflow(
             item.get_v(js_string!("month"), context)
                 .expect("Month not found")
                 .to_i32(context)

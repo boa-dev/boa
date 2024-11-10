@@ -26,18 +26,6 @@ where
     }
 }
 
-impl<T> TryIntoJsResult for Option<T>
-where
-    T: TryIntoJsResult,
-{
-    fn try_into_js_result(self, cx: &mut Context) -> JsResult<JsValue> {
-        match self {
-            Some(value) => value.try_into_js_result(cx),
-            None => Ok(JsValue::undefined()),
-        }
-    }
-}
-
 impl<T> TryIntoJsResult for JsResult<T>
 where
     T: TryIntoJsResult,

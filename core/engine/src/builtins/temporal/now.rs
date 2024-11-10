@@ -11,7 +11,7 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use temporal_rs::components::tz::TimeZone;
+use temporal_rs::TimeZone;
 
 use super::{ns_max_instant, ns_min_instant, time_zone::default_time_zone};
 

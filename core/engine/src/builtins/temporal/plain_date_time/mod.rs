@@ -22,13 +22,9 @@ use boa_profiler::Profiler;
 mod tests;
 
 use temporal_rs::{
-    components::{
-        calendar::{Calendar, GetTemporalCalendar},
-        DateTime as InnerDateTime, PartialDateTime, Time,
-    },
-    iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
-    TemporalFields,
+    partial::PartialDateTime,
+    PlainDateTime as InnerDateTime, PlainTime,
 };
 
 use super::{
@@ -55,17 +51,17 @@ impl PlainDateTime {
     }
 }
 
-impl IsoDateSlots for JsObject<PlainDateTime> {
-    fn iso_date(&self) -> IsoDate {
-        self.borrow().data().inner.iso_date()
-    }
-}
+// impl IsoDateSlots for JsObject<PlainDateTime> {
+//     fn iso_date(&self) -> IsoDate {
+//         self.borrow().data().inner.iso_date()
+//     }
+// }
 
-impl GetTemporalCalendar for JsObject<PlainDateTime> {
-    fn get_calendar(&self) -> Calendar {
-        self.borrow().data().inner.get_calendar()
-    }
-}
+// impl GetTemporalCalendar for JsObject<PlainDateTime> {
+//     fn get_calendar(&self) -> Calendar {
+//         self.borrow().data().inner.get_calendar()
+//     }
+// }
 
 impl BuiltInObject for PlainDateTime {
     const NAME: JsString = StaticJsStrings::PLAIN_DATETIME_NAME;
@@ -1034,18 +1030,17 @@ pub(crate) fn to_temporal_datetime(
         }
         // g. Let result be ? InterpretTemporalDateTimeFields(calendarRec, fields, resolvedOptions).
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
-        let date = calendar.date_from_fields(
-            &mut TemporalFields::from(partial_date),
+        let date = calendar.date_from_partial(
+            &partial_date,
             overflow.unwrap_or(ArithmeticOverflow::Constrain),
         )?;
-        let time = Time::new(
+        let time = PlainTime::new(
             partial_time.hour.unwrap_or(0),
             partial_time.minute.unwrap_or(0),
             partial_time.second.unwrap_or(0),
             partial_time.millisecond.unwrap_or(0),
             partial_time.microsecond.unwrap_or(0),
             partial_time.nanosecond.unwrap_or(0),
-            ArithmeticOverflow::Constrain,
         )?;
 
         return InnerDateTime::new(

@@ -16,8 +16,9 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    components::{PartialTime, Time},
     options::{ArithmeticOverflow, TemporalRoundingMode},
+    partial::PartialTime,
+    PlainTime as PlainTimeInner,
 };
 
 use super::{
@@ -31,7 +32,7 @@ use super::{
 // Safety: Time does not contain any traceable types.
 #[boa_gc(unsafe_empty_trace)]
 pub struct PlainTime {
-    inner: Time,
+    inner: PlainTimeInner,
 }
 
 impl BuiltInObject for PlainTime {
@@ -184,15 +185,8 @@ impl BuiltInConstructor for PlainTime {
             .transpose()?
             .unwrap_or(0);
 
-        let inner = Time::new(
-            hour,
-            minute,
-            second,
-            millisecond,
-            microsecond,
-            nanosecond,
-            ArithmeticOverflow::Reject,
-        )?;
+        let inner =
+            PlainTimeInner::new(hour, minute, second, millisecond, microsecond, nanosecond)?;
 
         // 8. Return ? CreateTemporalTime(hour, minute, second, millisecond, microsecond, nanosecond, NewTarget).
         create_temporal_time(inner, Some(new_target), context).map(Into::into)
@@ -597,7 +591,7 @@ impl PlainTime {
 // ==== PlainTime Abstract Operations ====
 
 pub(crate) fn create_temporal_time(
-    inner: Time,
+    inner: PlainTimeInner,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsObject> {
@@ -633,12 +627,14 @@ pub(crate) fn create_temporal_time(
     Ok(obj)
 }
 
+/// 4.5.3 `ToTemporalTime ( item [ , overflow ] )`
 pub(crate) fn to_temporal_time(
     value: &JsValue,
     overflow: Option<ArithmeticOverflow>,
     context: &mut Context,
-) -> JsResult<Time> {
+) -> JsResult<PlainTimeInner> {
     // 1.If overflow is not present, set overflow to "constrain".
+    let resolved_overflow = overflow.unwrap_or(ArithmeticOverflow::Constrain);
     // 2. If item is an Object, then
     match value {
         JsValue::Object(object) => {
@@ -662,7 +658,7 @@ pub(crate) fn to_temporal_time(
                 // i. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],
                 // item.[[ISOSecond]], item.[[ISOMillisecond]], item.[[ISOMicrosecond]],
                 // item.[[ISONanosecond]]).
-                return Ok(Time::from(dt.inner.clone()));
+                return Ok(PlainTimeInner::from(dt.inner.clone()));
             }
             // d. Let result be ? ToTemporalTimeRecord(item).
             // e. Set result to ? RegulateTime(result.[[Hour]], result.[[Minute]],
@@ -670,14 +666,14 @@ pub(crate) fn to_temporal_time(
             // result.[[Nanosecond]], overflow).
             let partial = to_partial_time_record(object, context)?;
 
-            Time::new(
+            PlainTimeInner::new_with_overflow(
                 partial.hour.unwrap_or(0),
                 partial.minute.unwrap_or(0),
                 partial.second.unwrap_or(0),
                 partial.millisecond.unwrap_or(0),
                 partial.microsecond.unwrap_or(0),
                 partial.nanosecond.unwrap_or(0),
-                overflow.unwrap_or(ArithmeticOverflow::Constrain),
+                resolved_overflow,
             )
             .map_err(Into::into)
         }
@@ -686,7 +682,7 @@ pub(crate) fn to_temporal_time(
             // b. Let result be ? ParseTemporalTimeString(item).
             // c. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
             str.to_std_string_escaped()
-                .parse::<Time>()
+                .parse::<PlainTimeInner>()
                 .map_err(Into::into)
         }
         // a. If item is not a String, throw a TypeError exception.

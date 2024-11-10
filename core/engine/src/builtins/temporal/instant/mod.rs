@@ -24,8 +24,8 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
 use temporal_rs::{
-    components::Instant as InnerInstant,
     options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+    Instant as InnerInstant,
 };
 
 use super::options::get_difference_settings;
@@ -150,7 +150,7 @@ impl BuiltInConstructor for Instant {
 
         // 3. If ! IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
         // NOTE: temporal_rs::Instant asserts that the epochNanoseconds are valid.
-        let instant = InnerInstant::new(epoch_nanos.as_inner().to_i128().unwrap_or(i128::MAX))?;
+        let instant = InnerInstant::try_new(epoch_nanos.as_inner().to_i128().unwrap_or(i128::MAX))?;
         // 4. Return ? CreateTemporalInstant(epochNanoseconds, NewTarget).
         create_temporal_instant(instant, Some(new_target.clone()), context)
     }
@@ -201,7 +201,7 @@ impl Instant {
         // 3. Return ! CreateTemporalInstant(epochNanoseconds).
         let nanos = epoch_nanos.as_inner().to_i128();
         create_temporal_instant(
-            InnerInstant::new(nanos.unwrap_or(i128::MAX))?,
+            InnerInstant::try_new(nanos.unwrap_or(i128::MAX))?,
             None,
             context,
         )
