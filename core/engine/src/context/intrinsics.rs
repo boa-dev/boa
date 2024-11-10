@@ -2,8 +2,8 @@
 
 use crate::{
     builtins::{
-        function::ConstructorKind, iterable::IteratorPrototypes, uri::UriFunctions, Array, Date,
-        IntrinsicObject, Json, Math, OrdinaryObject, RegExp, String,
+        function::ConstructorKind, iterable::IteratorPrototypes, uri::UriFunctions, Array,
+        IntrinsicObject, OrdinaryObject,
     },
     js_string,
     native_function::NativeFunctionObject,
@@ -49,7 +49,7 @@ impl Intrinsics {
 
         Some(Self {
             constructors,
-            objects: IntrinsicObjects::uninit(realm_inner)?,
+            objects: IntrinsicObjects::uninit()?,
             templates,
         })
     }
@@ -118,7 +118,7 @@ impl StandardConstructor {
     /// array[0] = 42; // Sets the first element to 42
     /// console.log(array[0]); // Logs 42
     /// ```
-    fn lazy(init: fn(&Realm) -> (), realm_inner: &WeakGc<RealmInner>) -> Self {
+    fn lazy_array(init: fn(&Realm) -> (), realm_inner: &WeakGc<RealmInner>) -> Self {
         let obj: JsObject<LazyBuiltIn> = JsObject::new_unique(
             None,
             LazyBuiltIn {
@@ -134,7 +134,7 @@ impl StandardConstructor {
 
         Self {
             constructor: constructor.clone(),
-            prototype: JsObject::lazy_prototype(obj),
+            prototype: JsObject::lazy_array_prototype(obj),
         }
     }
 
@@ -262,7 +262,7 @@ impl StandardConstructors {
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::lazy(Array::init, realm_inner),
+            array: StandardConstructor::lazy_array(Array::init, realm_inner),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
@@ -1163,7 +1163,7 @@ impl IntrinsicObjects {
     ///
     /// [`Realm::initialize`]: crate::realm::Realm::initialize
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn uninit(realm_inner: &WeakGc<RealmInner>) -> Option<Self> {
+    pub(crate) fn uninit() -> Option<Self> {
         Some(Self {
             reflect: JsObject::default(),
             math: JsObject::default(),

@@ -23,6 +23,7 @@ use boa_gc::{Finalize, Trace, WeakGc};
 #[derive(Debug, Clone, Trace, Finalize)]
 pub(crate) enum BuiltinKind {
     Function(NativeFunctionObject),
+    #[allow(dead_code)]
     Ordinary,
 }
 
