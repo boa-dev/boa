@@ -22,8 +22,6 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-#[cfg(feature = "annex-b")]
-use boa_macros::js_str;
 use boa_macros::utf16;
 
 use boa_profiler::Profiler;
@@ -36,7 +34,7 @@ mod string_iterator;
 pub(crate) use string_iterator::StringIterator;
 
 #[cfg(feature = "annex-b")]
-pub use crate::JsStr;
+pub use crate::{js_str, JsStr};
 
 /// The set of normalizers required for the `String.prototype.normalize` function.
 #[derive(Debug)]
