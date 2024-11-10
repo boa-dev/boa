@@ -255,7 +255,7 @@ impl StandardConstructors {
             )),
             async_generator_function: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
-            date: StandardConstructor::lazy(Date::init, realm_inner),
+            date: StandardConstructor::default(),
             function: StandardConstructor {
                 constructor: JsFunction::empty_intrinsic_function(true),
                 prototype: JsFunction::empty_intrinsic_function(false).into(),
@@ -268,8 +268,11 @@ impl StandardConstructors {
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
                 None, false,
             )),
-            string: StandardConstructor::lazy(String::init, realm_inner),
-            regexp: StandardConstructor::lazy(RegExp::init, realm_inner),
+            string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
+                None,
+                js_string!(),
+            )),
+            regexp: StandardConstructor::default(),
             symbol: StandardConstructor::default(),
             error: StandardConstructor::default(),
             type_error: StandardConstructor::default(),
@@ -1163,8 +1166,8 @@ impl IntrinsicObjects {
     pub(crate) fn uninit(realm_inner: &WeakGc<RealmInner>) -> Option<Self> {
         Some(Self {
             reflect: JsObject::default(),
-            math: JsObject::lazy(Math::init, realm_inner),
-            json: JsObject::lazy(Json::init, realm_inner),
+            math: JsObject::default(),
+            json: JsObject::default(),
             throw_type_error: JsFunction::empty_intrinsic_function(false),
             array_prototype_values: JsFunction::empty_intrinsic_function(false),
             array_prototype_to_string: JsFunction::empty_intrinsic_function(false),

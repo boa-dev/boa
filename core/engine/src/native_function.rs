@@ -343,14 +343,14 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
-    native_function_call_inner(
-        obj,
-        &obj.downcast_ref::<NativeFunctionObject>()
-            .expect("the object should be a native function object")
-            .clone(),
-        argument_count,
-        context,
-    )
+    let native_function = &obj
+        .clone()
+        .downcast::<NativeFunctionObject>()
+        .expect("the object should be a native function object")
+        .borrow_mut()
+        .data
+        .clone();
+    native_function_call_inner(obj, native_function, argument_count, context)
 }
 
 /// Call this object.
