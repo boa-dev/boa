@@ -100,7 +100,7 @@ rand = "0.8.5"
 num-integer = "0.1.46"
 ryu-js = "1.0.1"
 tap = "1.0.1"
-thiserror = "1.0.67"
+thiserror = "1.0.69"
 dashmap = "5.5.3"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
