@@ -23,7 +23,6 @@ use temporal_rs::{
     options::ArithmeticOverflow, partial::PartialDate, Calendar, PlainDate as InnerDate,
     TinyAsciiStr,
 };
-use tinystr::TinyStr4;
 
 use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
@@ -968,7 +967,7 @@ pub(crate) fn to_partial_date_record(
                     .with_message("The monthCode field value must be a string.")
                     .into());
             };
-            TinyStr4::from_str(&month_code.to_std_string_escaped())
+            TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped())
                 .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
         })
         .transpose()?;
