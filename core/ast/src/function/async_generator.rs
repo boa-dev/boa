@@ -1,13 +1,13 @@
 //! Async Generator Expression
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::{FunctionScopes, Scope};
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     block_to_string,
     expression::{Expression, Identifier},
     join_nodes, Declaration,
 };
+use crate::{try_break, LinearSpan};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -23,7 +23,7 @@ use super::{FormalParameterList, FunctionBody};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function*
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct AsyncGeneratorDeclaration {
     name: Identifier,
     pub(crate) parameters: FormalParameterList,
@@ -32,13 +32,30 @@ pub struct AsyncGeneratorDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpan,
+}
+
+impl PartialEq for AsyncGeneratorDeclaration {
+    fn eq(&self, other: &Self) -> bool {
+        // all fields except for `linear_span`
+        self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.contains_direct_eval == other.contains_direct_eval
+            && self.scopes == other.scopes
+    }
 }
 
 impl AsyncGeneratorDeclaration {
     /// Creates a new async generator declaration.
     #[inline]
     #[must_use]
-    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+    pub fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
@@ -47,6 +64,7 @@ impl AsyncGeneratorDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span,
         }
     }
 
@@ -76,6 +94,13 @@ impl AsyncGeneratorDeclaration {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span
     }
 }
 
@@ -127,7 +152,7 @@ impl From<AsyncGeneratorDeclaration> for Declaration {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function*
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct AsyncGeneratorExpression {
     pub(crate) name: Option<Identifier>,
     pub(crate) parameters: FormalParameterList,
@@ -140,6 +165,20 @@ pub struct AsyncGeneratorExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpan,
+}
+
+impl PartialEq for AsyncGeneratorExpression {
+    fn eq(&self, other: &Self) -> bool {
+        // all fields except for `linear_span`
+        self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.has_binding_identifier == other.has_binding_identifier
+            && self.contains_direct_eval == other.contains_direct_eval
+            && self.name_scope == other.name_scope
+            && self.scopes == other.scopes
+    }
 }
 
 impl AsyncGeneratorExpression {
@@ -150,6 +189,7 @@ impl AsyncGeneratorExpression {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
         has_binding_identifier: bool,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -162,6 +202,7 @@ impl AsyncGeneratorExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span,
         }
     }
 
@@ -205,6 +246,13 @@ impl AsyncGeneratorExpression {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span
     }
 }
 

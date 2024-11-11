@@ -7,6 +7,18 @@ use boa_ast::{
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+
+fn stmt_block_continue_only(continue_stmt: Continue) -> Statement {
+    Block::from((
+        vec![StatementListItem::Statement(Statement::Continue(
+            continue_stmt,
+        ))],
+        PSEUDO_LINEAR_POS,
+    ))
+    .into()
+}
+
 #[test]
 fn inline() {
     check_script_parser(
@@ -40,10 +52,7 @@ fn inline_block_semicolon_insertion() {
         "while (true) {continue}",
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                Continue::new(None),
-            ))])
-            .into(),
+            stmt_block_continue_only(Continue::new(None)),
         ))
         .into()],
         &mut Interner::default(),
@@ -60,10 +69,9 @@ fn new_line_semicolon_insertion() {
         vec![Statement::Labelled(Labelled::new(
             LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
                 Literal::from(true).into(),
-                Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                    Continue::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
-                ))])
-                .into(),
+                stmt_block_continue_only(Continue::new(Some(
+                    interner.get_or_intern_static("test", utf16!("test")),
+                ))),
             ))),
             interner.get_or_intern_static("test", utf16!("test")),
         ))
@@ -78,10 +86,7 @@ fn inline_block() {
         "while (true) {continue;}",
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                Continue::new(None),
-            ))])
-            .into(),
+            stmt_block_continue_only(Continue::new(None)),
         ))
         .into()],
         &mut Interner::default(),
@@ -98,10 +103,9 @@ fn new_line_block() {
         vec![Statement::Labelled(Labelled::new(
             LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
                 Literal::from(true).into(),
-                Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                    Continue::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
-                ))])
-                .into(),
+                stmt_block_continue_only(Continue::new(Some(
+                    interner.get_or_intern_static("test", utf16!("test")),
+                ))),
             ))),
             interner.get_or_intern_static("test", utf16!("test")),
         ))
@@ -120,10 +124,7 @@ fn reserved_label() {
         vec![Statement::Labelled(Labelled::new(
             LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
                 Literal::from(true).into(),
-                Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                    Continue::new(Some(Sym::AWAIT)),
-                ))])
-                .into(),
+                stmt_block_continue_only(Continue::new(Some(Sym::AWAIT))),
             ))),
             Sym::AWAIT,
         ))
@@ -139,10 +140,7 @@ fn reserved_label() {
         vec![Statement::Labelled(Labelled::new(
             LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
                 Literal::from(true).into(),
-                Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                    Continue::new(Some(Sym::YIELD)),
-                ))])
-                .into(),
+                stmt_block_continue_only(Continue::new(Some(Sym::YIELD))),
             ))),
             Sym::YIELD,
         ))
@@ -159,10 +157,7 @@ fn new_line_block_empty() {
         }",
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                Continue::new(None),
-            ))])
-            .into(),
+            stmt_block_continue_only(Continue::new(None)),
         ))
         .into()],
         &mut Interner::default(),
@@ -177,10 +172,7 @@ fn new_line_block_empty_semicolon_insertion() {
         }",
         vec![Statement::WhileLoop(WhileLoop::new(
             Literal::from(true).into(),
-            Block::from(vec![StatementListItem::Statement(Statement::Continue(
-                Continue::new(None),
-            ))])
-            .into(),
+            stmt_block_continue_only(Continue::new(None)),
         ))
         .into()],
         &mut Interner::default(),

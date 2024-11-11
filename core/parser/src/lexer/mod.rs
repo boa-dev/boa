@@ -42,7 +42,7 @@ use self::{
     template::TemplateLiteral,
 };
 use crate::source::{ReadChar, UTF8Input};
-use boa_ast::{PositionGroup, Punctuator};
+use boa_ast::{LinearPosition, Position, PositionGroup, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -393,6 +393,22 @@ impl<R> Lexer<R> {
         R: ReadChar,
     {
         TemplateLiteral.lex(&mut self.cursor, start, interner)
+    }
+
+    /// Gets current position in the source code.
+    #[inline]
+    pub(super) fn pos(&self) -> Position {
+        self.cursor.pos()
+    }
+
+    /// Gets current linear position in the source code.
+    #[inline]
+    pub(super) fn linear_pos(&self) -> LinearPosition {
+        self.cursor.linear_pos()
+    }
+
+    pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
+        self.cursor.take_source()
     }
 }
 

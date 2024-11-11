@@ -515,12 +515,21 @@ impl ByteCompiler<'_> {
                 VarScopedDeclaration::VariableDeclaration(_) => continue,
             };
 
+            let func_span = match &function {
+                VarScopedDeclaration::FunctionDeclaration(f) => Some(f.linear_span()),
+                VarScopedDeclaration::GeneratorDeclaration(f) => Some(f.linear_span()),
+                VarScopedDeclaration::AsyncFunctionDeclaration(f) => Some(f.linear_span()),
+                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => Some(f.linear_span()),
+                _ => None,
+            };
+
             let code = FunctionCompiler::new()
                 .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
+                .linear_span(func_span, self.source_text_inner.clone())
                 .compile(
                     parameters,
                     body,

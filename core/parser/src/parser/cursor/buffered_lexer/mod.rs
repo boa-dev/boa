@@ -4,7 +4,7 @@ use crate::{
     source::{ReadChar, UTF8Input},
     Error,
 };
-use boa_ast::PositionGroup;
+use boa_ast::{LinearPosition, Position, PositionGroup};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -262,5 +262,21 @@ where
         };
 
         Ok(res_token)
+    }
+
+    /// Gets current position in the source code.
+    #[inline]
+    pub(super) fn pos(&self) -> Position {
+        self.lexer.pos()
+    }
+
+    /// Gets current linear position in the source code.
+    #[inline]
+    pub(super) fn linear_pos(&self) -> LinearPosition {
+        self.lexer.linear_pos()
+    }
+
+    pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
+        self.lexer.take_source()
     }
 }

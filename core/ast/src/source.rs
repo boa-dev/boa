@@ -10,7 +10,7 @@ use crate::{
         EvalDeclarationBindings,
     },
     visitor::{VisitWith, Visitor, VisitorMut},
-    ModuleItemList, StatementList,
+    ModuleItemList, SourceText, StatementList,
 };
 
 /// A Script source.
@@ -21,16 +21,17 @@ use crate::{
 /// [spec]: https://tc39.es/ecma262/#sec-scripts
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default)]
 pub struct Script {
     statements: StatementList,
+    source: Option<SourceText>,
 }
 
 impl Script {
     /// Creates a new `ScriptNode`.
     #[must_use]
-    pub const fn new(statements: StatementList) -> Self {
-        Self { statements }
+    pub const fn new(statements: StatementList, source: Option<SourceText>) -> Self {
+        Self { statements, source }
     }
 
     /// Gets the list of statements of this `ScriptNode`.
@@ -91,6 +92,11 @@ impl Script {
 
         Ok(bindings)
     }
+
+    /// Takes the source text.
+    pub fn take_source(&mut self) -> Option<SourceText> {
+        self.source.take()
+    }
 }
 
 impl VisitWith for Script {
@@ -112,6 +118,12 @@ impl VisitWith for Script {
 impl ToIndentedString for Script {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.statements.to_indented_string(interner, indentation)
+    }
+}
+
+impl PartialEq for Script {
+    fn eq(&self, other: &Self) -> bool {
+        self.statements == other.statements
     }
 }
 

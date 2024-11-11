@@ -115,8 +115,7 @@ where
                 Ok(ast::Expression::This)
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
-                cursor.advance(interner);
-                let next_token = cursor.peek(0, interner).or_abrupt()?;
+                let next_token = cursor.peek(1, interner).or_abrupt()?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new()
                         .parse(cursor, interner)
@@ -152,8 +151,7 @@ where
                     Some(TokenKind::Keyword((Keyword::Function, _)))
                         if !is_line_terminator && !contain_escaped_char =>
                     {
-                        cursor.advance(interner);
-                        match cursor.peek(1, interner)?.map(Token::kind) {
+                        match cursor.peek(2, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
                                 AsyncGeneratorExpression::new()
                                     .parse(cursor, interner)

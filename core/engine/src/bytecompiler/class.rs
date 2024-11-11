@@ -100,6 +100,10 @@ impl ByteCompiler<'_> {
             self.in_with,
         );
 
+        if let Some(gc) = &self.source_text_inner {
+            compiler.set_source_text_inner(Some(gc.clone()));
+        }
+
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
 
         if let Some(expr) = &class.constructor {

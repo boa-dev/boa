@@ -14,6 +14,7 @@ use crate::{
     scope::FunctionScopes,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
+    LinearPosition, LinearSpan,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -401,7 +402,7 @@ impl VisitWith for PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct ObjectMethodDefinition {
     pub(crate) name: PropertyName,
     pub(crate) parameters: FormalParameterList,
@@ -411,6 +412,18 @@ pub struct ObjectMethodDefinition {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpan,
+}
+
+impl PartialEq for ObjectMethodDefinition {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.contains_direct_eval == other.contains_direct_eval
+            && self.kind == other.kind
+            && self.scopes == other.scopes
+    }
 }
 
 impl ObjectMethodDefinition {
@@ -422,9 +435,12 @@ impl ObjectMethodDefinition {
         parameters: FormalParameterList,
         body: FunctionBody,
         kind: MethodDefinitionKind,
+        start_linear_pos: LinearPosition,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
+        let linear_span = LinearSpan::new(start_linear_pos, body.linear_pos_end());
+
         Self {
             name,
             parameters,
@@ -432,6 +448,7 @@ impl ObjectMethodDefinition {
             contains_direct_eval,
             kind,
             scopes: FunctionScopes::default(),
+            linear_span,
         }
     }
 
@@ -468,6 +485,13 @@ impl ObjectMethodDefinition {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span
     }
 }
 

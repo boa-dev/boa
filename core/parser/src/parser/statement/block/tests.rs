@@ -19,6 +19,10 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+const PSEUDO_LINEAR_SPAN: boa_ast::LinearSpan =
+    boa_ast::LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
+
 /// Helper function to check a block.
 #[track_caller]
 fn check_block<B>(js: &str, block: B, interner: &mut Interner)
@@ -27,7 +31,7 @@ where
 {
     check_script_parser(
         js,
-        vec![Statement::Block(Block::from(block.into())).into()],
+        vec![Statement::Block(Block::from((block.into(), PSEUDO_LINEAR_POS))).into()],
         interner,
     );
 }
@@ -85,8 +89,10 @@ fn non_empty() {
                     [StatementListItem::Statement(Statement::Return(
                         Return::new(Some(Literal::from(10).into())),
                     ))],
+                    PSEUDO_LINEAR_POS,
                     false,
                 ),
+                PSEUDO_LINEAR_SPAN,
             ))
             .into(),
             Statement::Var(VarDeclaration(
@@ -142,8 +148,10 @@ fn hoisting() {
                     [StatementListItem::Statement(Statement::Return(
                         Return::new(Some(Literal::from(10).into())),
                     ))],
+                    PSEUDO_LINEAR_POS,
                     false,
                 ),
+                PSEUDO_LINEAR_SPAN,
             ))
             .into(),
         ],

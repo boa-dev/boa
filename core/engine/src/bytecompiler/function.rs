@@ -3,11 +3,12 @@ use crate::{
     bytecompiler::ByteCompiler,
     js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    JsString,
+    JsString, SourceTextInner, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
     scope::{FunctionScopes, Scope},
+    LinearSpan,
 };
 use boa_gc::Gc;
 use boa_interner::Interner;
@@ -24,6 +25,8 @@ pub(crate) struct FunctionCompiler {
     method: bool,
     in_with: bool,
     name_scope: Option<Scope>,
+    source_text_inner: Option<Gc<SourceTextInner>>,
+    source_text_span: Option<LinearSpan>,
 }
 
 impl FunctionCompiler {
@@ -38,6 +41,8 @@ impl FunctionCompiler {
             method: false,
             in_with: false,
             name_scope: None,
+            source_text_inner: None,
+            source_text_span: None,
         }
     }
 
@@ -93,6 +98,17 @@ impl FunctionCompiler {
         self
     }
 
+    /// Indicate if the function is in a `with` statement.
+    pub(crate) fn linear_span(
+        mut self,
+        linear_span: Option<LinearSpan>,
+        source_text: Option<Gc<SourceTextInner>>,
+    ) -> Self {
+        self.source_text_inner = source_text;
+        self.source_text_span = linear_span;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     pub(crate) fn compile(
         mut self,
@@ -118,6 +134,15 @@ impl FunctionCompiler {
             interner,
             self.in_with,
         );
+
+        if let Some(gc) = self.source_text_inner {
+            compiler.set_source_text_inner(Some(gc.clone()));
+            if let Some(span) = self.source_text_span {
+                let source_text_spanned = SpannedSourceText::new(gc, span);
+                compiler.set_source_text_spanned(source_text_spanned);
+            }
+        }
+
         compiler.length = length;
         compiler.code_block_flags.set(
             CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,

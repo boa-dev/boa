@@ -69,7 +69,9 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncArrowFunction", "Parsing");
 
-        cursor.expect((Keyword::Async, false), "async arrow function", interner)?;
+        let async_token =
+            cursor.expect((Keyword::Async, false), "async arrow function", interner)?;
+        let start_linear_span = async_token.linear_span();
         cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
 
         let next_token = cursor.peek(0, interner).or_abrupt()?;
@@ -144,7 +146,12 @@ where
             interner,
         )?;
 
-        Ok(ast::function::AsyncArrowFunction::new(None, params, body))
+        let linear_pos_end = body.linear_pos_end();
+        let span = start_linear_span.union(linear_pos_end);
+
+        Ok(ast::function::AsyncArrowFunction::new(
+            None, params, body, span,
+        ))
     }
 }
 
@@ -187,6 +194,7 @@ where
                         .into(),
                 ))
                 .into()],
+                cursor.linear_pos(),
                 false,
             ),
         };

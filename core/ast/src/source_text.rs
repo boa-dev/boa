@@ -1,7 +1,9 @@
-use crate::LinearPosition;
+use crate::{LinearPosition, LinearSpan};
 
 /// Source text.
-#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug)]
 pub struct SourceText {
     source_text: Vec<u16>,
 }
@@ -19,10 +21,15 @@ impl SourceText {
     pub fn cur_linear_position(&self) -> LinearPosition {
         LinearPosition::new(self.source_text.len())
     }
-    /// Get source from  `pos` to current end.
+    /// Get code points from `pos` to the current end.
     #[must_use]
-    pub fn get_source_text_from_pos(&self, pos: LinearPosition) -> &[u16] {
+    pub fn get_code_points_from_pos(&self, pos: LinearPosition) -> &[u16] {
         &self.source_text[pos.pos()..]
+    }
+    /// Get code points within `span`.
+    #[must_use]
+    pub fn get_code_points_from_span(&self, span: LinearSpan) -> &[u16] {
+        &self.source_text[span.start().pos()..span.end().pos()]
     }
     /// Remove last code point.
     #[inline]
@@ -30,9 +37,9 @@ impl SourceText {
         self.source_text.pop();
     }
     /// Collect code point.
-    /// 
+    ///
     /// # Panics
-    /// 
+    ///
     /// On invalid code point.
     #[inline]
     pub fn collect_code_point(&mut self, cp: u32) {

@@ -71,6 +71,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0, interner).or_abrupt()?;
+        let start_linear_span = next_token.linear_span();
 
         let (params, params_start_position) =
             if next_token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
@@ -153,7 +154,10 @@ where
             interner,
         )?;
 
-        Ok(ast::function::ArrowFunction::new(None, params, body))
+        let linear_pos_end = body.linear_pos_end();
+        let span = start_linear_span.union(linear_pos_end);
+
+        Ok(ast::function::ArrowFunction::new(None, params, body, span))
     }
 }
 
@@ -196,6 +200,7 @@ where
                         .into(),
                 ))
                 .into()],
+                cursor.linear_pos(),
                 false,
             ),
         };

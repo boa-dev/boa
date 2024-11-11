@@ -24,6 +24,7 @@ impl<R> Cursor<R> {
     }
 
     /// Gets the current position of the cursor in the source code.
+    #[inline]
     pub(super) const fn pos(&self) -> Position {
         self.pos
     }
@@ -34,6 +35,12 @@ impl<R> Cursor<R> {
         self.source_collector.cur_linear_position()
     }
 
+    pub(super) fn take_source(&mut self) -> SourceText {
+        let replace_with = SourceText::with_capacity(0);
+        std::mem::replace(&mut self.source_collector, replace_with)
+    }
+
+    // TODO:
     // /// Gets the current linear position of the cursor in the source code.
     // pub(super) fn source_text(&self) -> &SourceText {
     //     &self.source_collector

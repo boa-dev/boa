@@ -635,8 +635,10 @@ impl BuiltInFunctionObject {
             body
         };
 
+        // TODO: create SourceText : "anonymous(" parameters \n ") {" body_parse "}"
+
         let mut function =
-            boa_ast::function::FunctionExpression::new(None, parameters, body, false);
+            boa_ast::function::FunctionExpression::new(None, parameters, body, None, false);
         if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
             return Err(JsNativeError::syntax()
                 .with_message("failed to analyze function scope")
@@ -866,6 +868,11 @@ impl BuiltInFunctionObject {
             .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
 
         let code = function.codeblock();
+        if let Some(source) = &code.source_text_spanned {
+            if !source.is_empty() {
+                return Ok(JsString::from(source.to_code_points()).into());
+            }
+        }
 
         Ok(js_string!(
             js_str!("function "),

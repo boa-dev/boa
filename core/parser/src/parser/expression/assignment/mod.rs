@@ -156,7 +156,9 @@ where
 
         cursor.set_goal(InputElement::Div);
 
-        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
+        let peek_token = cursor.peek(0, interner).or_abrupt()?;
+        let position = peek_token.span().start();
+        let start_linear_span = peek_token.linear_span();
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
@@ -218,7 +220,10 @@ where
                 interner,
             )?;
 
-            return Ok(boa_ast::function::ArrowFunction::new(None, parameters, body).into());
+            let linear_pos_end = body.linear_pos_end();
+            let span = start_linear_span.union(linear_pos_end);
+
+            return Ok(boa_ast::function::ArrowFunction::new(None, parameters, body, span).into());
         }
 
         // Review if we are trying to assign to an invalid left hand side expression.

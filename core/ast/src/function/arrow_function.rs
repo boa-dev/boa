@@ -1,11 +1,11 @@
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::FunctionScopes;
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::{Expression, Identifier},
     join_nodes,
 };
+use crate::{try_break, LinearSpan};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -22,7 +22,7 @@ use super::{FormalParameterList, FunctionBody};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct ArrowFunction {
     pub(crate) name: Option<Identifier>,
     pub(crate) parameters: FormalParameterList,
@@ -31,6 +31,18 @@ pub struct ArrowFunction {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpan,
+}
+
+impl PartialEq for ArrowFunction {
+    fn eq(&self, other: &Self) -> bool {
+        // all fields except `linear_span`
+        self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.contains_direct_eval == other.contains_direct_eval
+            && self.scopes == other.scopes
+    }
 }
 
 impl ArrowFunction {
@@ -41,6 +53,7 @@ impl ArrowFunction {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -50,6 +63,7 @@ impl ArrowFunction {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span,
         }
     }
 
@@ -85,6 +99,13 @@ impl ArrowFunction {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span
     }
 }
 

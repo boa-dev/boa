@@ -9,7 +9,7 @@ use crate::{
     scope::{FunctionScopes, Scope},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration,
+    Declaration, LinearSpan,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
@@ -24,7 +24,7 @@ use core::ops::ControlFlow;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct AsyncFunctionDeclaration {
     name: Identifier,
     pub(crate) parameters: FormalParameterList,
@@ -33,13 +33,30 @@ pub struct AsyncFunctionDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpan,
+}
+
+impl PartialEq for AsyncFunctionDeclaration {
+    fn eq(&self, other: &Self) -> bool {
+        // All fields except for `linear_span`
+        self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.contains_direct_eval == other.contains_direct_eval
+            && self.scopes == other.scopes
+    }
 }
 
 impl AsyncFunctionDeclaration {
     /// Creates a new async function declaration.
     #[inline]
     #[must_use]
-    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+    pub fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
@@ -48,6 +65,7 @@ impl AsyncFunctionDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span,
         }
     }
 
@@ -77,6 +95,13 @@ impl AsyncFunctionDeclaration {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span
     }
 }
 
@@ -128,7 +153,7 @@ impl From<AsyncFunctionDeclaration> for Declaration {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct AsyncFunctionExpression {
     pub(crate) name: Option<Identifier>,
     pub(crate) parameters: FormalParameterList,
@@ -141,6 +166,20 @@ pub struct AsyncFunctionExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpan,
+}
+
+impl PartialEq for AsyncFunctionExpression {
+    fn eq(&self, other: &Self) -> bool {
+        // all fields except for `linear_span`
+        self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.has_binding_identifier == other.has_binding_identifier
+            && self.contains_direct_eval == other.contains_direct_eval
+            && self.name_scope == other.name_scope
+            && self.scopes == other.scopes
+    }
 }
 
 impl AsyncFunctionExpression {
@@ -151,6 +190,7 @@ impl AsyncFunctionExpression {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
         has_binding_identifier: bool,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -163,6 +203,7 @@ impl AsyncFunctionExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span,
         }
     }
 
@@ -206,6 +247,13 @@ impl AsyncFunctionExpression {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span
     }
 }
 

@@ -62,7 +62,8 @@ impl From<PositionGroup> for Position {
 ///
 /// Stores linear position in the source code.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct LinearPosition {
     pos: usize,
 }
@@ -175,6 +176,7 @@ impl fmt::Display for Span {
 /// Note that linear spans are of the form [start, end) i.e. that the
 /// start position is inclusive and the end position is exclusive.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct LinearSpan {
     start: LinearPosition,
@@ -198,6 +200,13 @@ impl LinearSpan {
         Self { start, end }
     }
 
+    /// Test if the span is empty.
+    #[inline]
+    #[must_use]
+    pub fn is_empty(self) -> bool {
+        self.start == self.end
+    }
+
     /// Gets the starting position of the span.
     #[inline]
     #[must_use]
@@ -219,6 +228,17 @@ impl LinearSpan {
     {
         let other = other.into();
         self.start <= other.start && self.end >= other.end
+    }
+
+    /// Gets the starting position of the span.
+    #[inline]
+    #[must_use]
+    pub fn union(self, other: impl Into<Self>) -> Self {
+        let other: Self = other.into();
+        Self {
+            start: LinearPosition::new(self.start.pos.min(other.start.pos)),
+            end: LinearPosition::new(self.end.pos.max(other.end.pos)),
+        }
     }
 }
 
@@ -558,6 +578,34 @@ mod tests {
         assert!(span_cd > span_ab);
         assert_eq!(span_bd.partial_cmp(&span_ac), None);
         assert_eq!(span_ac.partial_cmp(&span_bd), None);
+    }
+
+    /// Checks that the ordering of linear spans is correct.
+    #[test]
+    fn linear_union() {
+        let a = LinearPosition::new(1050);
+        let b = LinearPosition::new(1052);
+        let c = LinearPosition::new(1120);
+        let d = LinearPosition::new(1125);
+
+        let span_ab = LinearSpan::new(a, b);
+        let span_ad = LinearSpan::new(a, d);
+        let span_bc = LinearSpan::new(b, c);
+        let span_cd = LinearSpan::new(c, d);
+        let span_ac = LinearSpan::new(a, c);
+        let span_bd = LinearSpan::new(b, d);
+
+        assert_eq!(span_bd.union(a), span_ad);
+        assert_eq!(span_ab.union(a), span_ab);
+        assert_eq!(span_bd.union(span_ac), span_ad);
+        assert_eq!(span_ac.union(span_bd), span_ad);
+        assert_eq!(span_ac.union(span_bd), span_ad);
+        assert_eq!(span_ac.union(b), span_ac);
+        assert_eq!(span_bc.union(span_ab), span_ac);
+        assert_eq!(span_ab.union(span_bc), span_ac);
+        assert_eq!(span_ac.union(span_ab), span_ac);
+        assert_eq!(span_cd.union(a), span_ad);
+        assert_eq!(span_cd.union(span_bc), span_bd);
     }
 }
 
