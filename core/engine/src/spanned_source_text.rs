@@ -25,7 +25,7 @@ impl SpannedSourceText {
     pub(crate) fn new(gc: Gc<SourceTextInner>, span: LinearSpan) -> Self {
         Self { gc, span }
     }
-    
+
     /// Test if the span is empty.
     #[inline]
     #[must_use]

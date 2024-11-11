@@ -5,7 +5,7 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes,
 };
-use crate::{try_break, LinearSpan};
+use crate::{try_break, LinearSpan, LinearSpanIgnoreEq};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -22,7 +22,7 @@ use super::{FormalParameterList, FunctionBody};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArrowFunction {
     pub(crate) name: Option<Identifier>,
     pub(crate) parameters: FormalParameterList,
@@ -31,18 +31,7 @@ pub struct ArrowFunction {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
-    linear_span: LinearSpan,
-}
-
-impl PartialEq for ArrowFunction {
-    fn eq(&self, other: &Self) -> bool {
-        // all fields except `linear_span`
-        self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
-            && self.contains_direct_eval == other.contains_direct_eval
-            && self.scopes == other.scopes
-    }
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl ArrowFunction {
@@ -63,7 +52,7 @@ impl ArrowFunction {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
-            linear_span,
+            linear_span: linear_span.into(),
         }
     }
 
@@ -105,7 +94,7 @@ impl ArrowFunction {
     #[inline]
     #[must_use]
     pub const fn linear_span(&self) -> LinearSpan {
-        self.linear_span
+        self.linear_span.0
     }
 }
 

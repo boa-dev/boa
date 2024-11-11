@@ -9,7 +9,7 @@ use crate::{
     scope::{FunctionScopes, Scope},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan,
+    Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
@@ -24,7 +24,7 @@ use core::ops::ControlFlow;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AsyncFunctionDeclaration {
     name: Identifier,
     pub(crate) parameters: FormalParameterList,
@@ -33,18 +33,7 @@ pub struct AsyncFunctionDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
-    linear_span: LinearSpan,
-}
-
-impl PartialEq for AsyncFunctionDeclaration {
-    fn eq(&self, other: &Self) -> bool {
-        // All fields except for `linear_span`
-        self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
-            && self.contains_direct_eval == other.contains_direct_eval
-            && self.scopes == other.scopes
-    }
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl AsyncFunctionDeclaration {
@@ -65,7 +54,7 @@ impl AsyncFunctionDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
-            linear_span,
+            linear_span: linear_span.into(),
         }
     }
 
@@ -101,7 +90,7 @@ impl AsyncFunctionDeclaration {
     #[inline]
     #[must_use]
     pub const fn linear_span(&self) -> LinearSpan {
-        self.linear_span
+        self.linear_span.0
     }
 }
 
@@ -153,7 +142,7 @@ impl From<AsyncFunctionDeclaration> for Declaration {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct AsyncFunctionExpression {
     pub(crate) name: Option<Identifier>,
     pub(crate) parameters: FormalParameterList,
@@ -166,20 +155,7 @@ pub struct AsyncFunctionExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
-    linear_span: LinearSpan,
-}
-
-impl PartialEq for AsyncFunctionExpression {
-    fn eq(&self, other: &Self) -> bool {
-        // all fields except for `linear_span`
-        self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
-            && self.has_binding_identifier == other.has_binding_identifier
-            && self.contains_direct_eval == other.contains_direct_eval
-            && self.name_scope == other.name_scope
-            && self.scopes == other.scopes
-    }
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl AsyncFunctionExpression {
@@ -203,7 +179,7 @@ impl AsyncFunctionExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
-            linear_span,
+            linear_span: linear_span.into(),
         }
     }
 
@@ -253,7 +229,7 @@ impl AsyncFunctionExpression {
     #[inline]
     #[must_use]
     pub const fn linear_span(&self) -> LinearSpan {
-        self.linear_span
+        self.linear_span.0
     }
 }
 

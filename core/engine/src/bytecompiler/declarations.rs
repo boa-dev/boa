@@ -520,7 +520,7 @@ impl ByteCompiler<'_> {
                 VarScopedDeclaration::GeneratorDeclaration(f) => Some(f.linear_span()),
                 VarScopedDeclaration::AsyncFunctionDeclaration(f) => Some(f.linear_span()),
                 VarScopedDeclaration::AsyncGeneratorDeclaration(f) => Some(f.linear_span()),
-                _ => None,
+                VarScopedDeclaration::VariableDeclaration(_) => None,
             };
 
             let code = FunctionCompiler::new()

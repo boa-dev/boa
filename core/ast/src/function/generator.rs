@@ -7,7 +7,7 @@ use crate::{
     scope::{FunctionScopes, Scope},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan,
+    Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
@@ -22,7 +22,7 @@ use core::ops::ControlFlow;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneratorDeclaration {
     name: Identifier,
     pub(crate) parameters: FormalParameterList,
@@ -31,18 +31,7 @@ pub struct GeneratorDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
-    linear_span: LinearSpan,
-}
-
-impl PartialEq for GeneratorDeclaration {
-    fn eq(&self, other: &Self) -> bool {
-        // all fields except for `linear_span`
-        self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
-            && self.contains_direct_eval == other.contains_direct_eval
-            && self.scopes == other.scopes
-    }
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl GeneratorDeclaration {
@@ -63,7 +52,7 @@ impl GeneratorDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
-            linear_span,
+            linear_span: linear_span.into(),
         }
     }
 
@@ -99,7 +88,7 @@ impl GeneratorDeclaration {
     #[inline]
     #[must_use]
     pub const fn linear_span(&self) -> LinearSpan {
-        self.linear_span
+        self.linear_span.0
     }
 }
 
@@ -151,7 +140,7 @@ impl From<GeneratorDeclaration> for Declaration {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneratorExpression {
     pub(crate) name: Option<Identifier>,
     pub(crate) parameters: FormalParameterList,
@@ -164,20 +153,7 @@ pub struct GeneratorExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
-    linear_span: LinearSpan,
-}
-
-impl PartialEq for GeneratorExpression {
-    fn eq(&self, other: &Self) -> bool {
-        // all fields except for `linear_span`
-        self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
-            && self.has_binding_identifier == other.has_binding_identifier
-            && self.contains_direct_eval == other.contains_direct_eval
-            && self.name_scope == other.name_scope
-            && self.scopes == other.scopes
-    }
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl GeneratorExpression {
@@ -201,7 +177,7 @@ impl GeneratorExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
-            linear_span,
+            linear_span: linear_span.into(),
         }
     }
 
@@ -251,7 +227,7 @@ impl GeneratorExpression {
     #[inline]
     #[must_use]
     pub const fn linear_span(&self) -> LinearSpan {
-        self.linear_span
+        self.linear_span.0
     }
 }
 

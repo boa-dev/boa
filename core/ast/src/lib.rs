@@ -52,7 +52,7 @@ pub use self::{
     expression::Expression,
     keyword::Keyword,
     module_item_list::{ModuleItem, ModuleItemList},
-    position::{LinearPosition, LinearSpan, Position, PositionGroup, Span},
+    position::{LinearPosition, LinearSpan, LinearSpanIgnoreEq, Position, PositionGroup, Span},
     punctuator::Punctuator,
     source::{Module, Script},
     source_text::SourceText,

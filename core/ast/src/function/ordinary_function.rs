@@ -8,7 +8,7 @@ use crate::{
     scope_analyzer::{analyze_binding_escapes, collect_bindings},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan,
+    Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
@@ -23,7 +23,7 @@ use core::ops::ControlFlow;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FunctionDeclaration {
     name: Identifier,
     pub(crate) parameters: FormalParameterList,
@@ -32,18 +32,7 @@ pub struct FunctionDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
-    linear_span: LinearSpan,
-}
-
-impl PartialEq for FunctionDeclaration {
-    fn eq(&self, other: &Self) -> bool {
-        // all fields except `linear_span`
-        self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
-            && self.contains_direct_eval == other.contains_direct_eval
-            && self.scopes == other.scopes
-    }
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl FunctionDeclaration {
@@ -64,7 +53,7 @@ impl FunctionDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
-            linear_span,
+            linear_span: linear_span.into(),
         }
     }
 
@@ -100,7 +89,7 @@ impl FunctionDeclaration {
     #[inline]
     #[must_use]
     pub const fn linear_span(&self) -> LinearSpan {
-        self.linear_span
+        self.linear_span.0
     }
 }
 
@@ -202,6 +191,7 @@ impl FunctionExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            #[allow(clippy::redundant_closure_for_method_calls)]
             linear_span,
         }
     }

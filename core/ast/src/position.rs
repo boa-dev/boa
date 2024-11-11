@@ -265,6 +265,22 @@ impl PartialOrd for LinearSpan {
     }
 }
 
+/// Stores a `LinearSpan` but `PartialEq`, `Eq` always return true.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Debug, Clone, Copy)]
+pub struct LinearSpanIgnoreEq(pub LinearSpan);
+impl PartialEq for LinearSpanIgnoreEq {
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+impl From<LinearSpan> for LinearSpanIgnoreEq {
+    fn from(value: LinearSpan) -> Self {
+        Self(value)
+    }
+}
+
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// A position group of `LinearPosition` and `Position` related to the same position in the ECMAScript source code.

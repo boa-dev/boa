@@ -8,7 +8,7 @@ use crate::{
     scope::{FunctionScopes, Scope},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearPosition, LinearSpan,
+    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -663,7 +663,7 @@ impl VisitWith for ClassElement {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ClassMethodDefinition {
     name: ClassElementName,
     pub(crate) parameters: FormalParameterList,
@@ -674,20 +674,7 @@ pub struct ClassMethodDefinition {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
-    linear_span: LinearSpan,
-}
-
-impl PartialEq for ClassMethodDefinition {
-    fn eq(&self, other: &Self) -> bool {
-        // All fields except for `linear_span`
-        self.name == other.name
-            && self.parameters == other.parameters
-            && self.body == other.body
-            && self.contains_direct_eval == other.contains_direct_eval
-            && self.kind == other.kind
-            && self.is_static == other.is_static
-            && self.scopes == other.scopes
-    }
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl ClassMethodDefinition {
@@ -715,7 +702,7 @@ impl ClassMethodDefinition {
             kind,
             is_static,
             scopes: FunctionScopes::default(),
-            linear_span,
+            linear_span: linear_span.into(),
         }
     }
 
@@ -772,7 +759,7 @@ impl ClassMethodDefinition {
     #[inline]
     #[must_use]
     pub const fn linear_span(&self) -> LinearSpan {
-        self.linear_span
+        self.linear_span.0
     }
 }
 
