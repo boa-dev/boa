@@ -7,7 +7,7 @@ use crate::{
     source::ReadChar,
     Error,
 };
-use boa_ast::{LinearPosition, Position, PositionGroup, Punctuator};
+use boa_ast::{LinearPosition, PositionGroup, Punctuator};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
 
@@ -293,13 +293,6 @@ where
         } else {
             None
         })
-    }
-
-    /// Gets current position in the source code.
-    #[allow(unused)]
-    #[inline]
-    pub(super) fn pos(&self) -> Position {
-        self.buffered_lexer.pos()
     }
 
     /// Gets current linear position in the source code.

@@ -4,7 +4,7 @@ use crate::{
     source::{ReadChar, UTF8Input},
     Error,
 };
-use boa_ast::{LinearPosition, Position, PositionGroup};
+use boa_ast::{LinearPosition, PositionGroup};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -30,6 +30,7 @@ pub(super) struct BufferedLexer<R> {
     peeked: [Option<Token>; PEEK_BUF_SIZE],
     read_index: usize,
     write_index: usize,
+    last_linear_pos: LinearPosition,
 }
 
 impl<R> From<Lexer<R>> for BufferedLexer<R>
@@ -52,6 +53,7 @@ where
             ],
             read_index: 0,
             write_index: 0,
+            last_linear_pos: LinearPosition::default(),
         }
     }
 }
@@ -200,6 +202,10 @@ where
             let tok = self.peeked[self.read_index].take();
             self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
 
+            if let Some(tok) = &tok {
+                self.last_linear_pos = tok.linear_span().end();
+            }
+
             Ok(tok)
         } else {
             // We do not update the read index, since we should always return `None` from now on.
@@ -264,16 +270,10 @@ where
         Ok(res_token)
     }
 
-    /// Gets current position in the source code.
-    #[inline]
-    pub(super) fn pos(&self) -> Position {
-        self.lexer.pos()
-    }
-
     /// Gets current linear position in the source code.
     #[inline]
     pub(super) fn linear_pos(&self) -> LinearPosition {
-        self.lexer.linear_pos()
+        self.last_linear_pos
     }
 
     pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
