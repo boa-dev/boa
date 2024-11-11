@@ -21,7 +21,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
 use temporal_rs::{
@@ -70,25 +69,25 @@ impl IntrinsicObject for Instant {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("epochSeconds"),
+                js_string!("epochSeconds"),
                 Some(get_seconds),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("epochMilliseconds"),
+                js_string!("epochMilliseconds"),
                 Some(get_millis),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("epochMicroseconds"),
+                js_string!("epochMicroseconds"),
                 Some(get_micros),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("epochNanoseconds"),
+                js_string!("epochNanoseconds"),
                 Some(get_nanos),
                 None,
                 Attribute::CONFIGURABLE,
@@ -429,7 +428,7 @@ impl Instant {
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    js_str!("smallestUnit"),
+                    js_string!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -447,16 +446,16 @@ impl Instant {
         let mut options = RoundingOptions::default();
         // 7. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         options.increment =
-            get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
+            get_option::<RoundingIncrement>(&round_to, js_string!("roundingIncrement"), context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         options.rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
+            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         let smallest_unit = get_temporal_unit(
             &round_to,
-            js_str!("smallestUnit"),
+            js_string!("smallestUnit"),
             TemporalUnitGroup::Time,
             None,
             context,

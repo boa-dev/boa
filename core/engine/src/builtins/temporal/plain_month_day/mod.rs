@@ -16,7 +16,6 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use temporal_rs::{
@@ -112,8 +111,9 @@ impl PlainMonthDay {
         let options = get_options_object(args.get_or_undefined(0))?;
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
-        let show_calendar = get_option::<CalendarName>(&options, js_str!("calendarName"), context)?
-            .unwrap_or(CalendarName::Auto);
+        let show_calendar =
+            get_option::<CalendarName>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(CalendarName::Auto);
 
         Ok(month_day_to_string(inner, show_calendar))
     }
@@ -286,11 +286,11 @@ fn to_temporal_month_day(
     options: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    let overflow = get_option::<ArithmeticOverflow>(options, js_str!("overflow"), context)?
+    let overflow = get_option::<ArithmeticOverflow>(options, js_string!("overflow"), context)?
         .unwrap_or(ArithmeticOverflow::Constrain);
 
     // get the calendar property (string) from the item object
-    let calender_id = item.get_v(js_str!("calendar"), context)?;
+    let calender_id = item.get_v(js_string!("calendar"), context)?;
     let calendar = to_temporal_calendar_slot_value(&calender_id)?;
 
     let inner = if let Some(item_obj) = item
@@ -302,11 +302,11 @@ fn to_temporal_month_day(
         InnerMonthDay::from_str(item_string.to_std_string_escaped().as_str())?
     } else if item.is_object() {
         InnerMonthDay::new(
-            item.get_v(js_str!("month"), context)
+            item.get_v(js_string!("month"), context)
                 .expect("Month not found")
                 .to_i32(context)
                 .expect("Cannot convert month to i32"),
-            item.get_v(js_str!("day"), context)
+            item.get_v(js_string!("day"), context)
                 .expect("Day not found")
                 .to_i32(context)
                 .expect("Cannot convert day to i32"),

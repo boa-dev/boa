@@ -3,7 +3,7 @@
 
 use std::{error::Error, path::Path};
 
-use boa_engine::{js_string, property::Attribute, Context, Source};
+use boa_engine::{property::Attribute, Context, Source};
 use boa_runtime::Console;
 
 /// Adds the custom runtime to the context.
@@ -11,7 +11,7 @@ fn add_runtime(context: &mut Context) {
     // We first add the `console` object, to be able to call `console.log()`.
     let console = Console::init(context);
     context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+        .register_global_property(Console::NAME, console, Attribute::all())
         .expect("the console builtin shouldn't exist");
 }
 

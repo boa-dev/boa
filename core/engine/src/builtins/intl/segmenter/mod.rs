@@ -1,7 +1,6 @@
 use std::ops::Range;
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_collator::provider::CollationDiacriticsV1Marker;
 use icu_locid::Locale;
@@ -147,7 +146,8 @@ impl BuiltInConstructor for Segmenter {
 
         // 6. Let opt be a new Record.
         // 7. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher =
+            get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
         // 8. Set opt.[[localeMatcher]] to matcher.
         // 9. Let localeData be %Segmenter%.[[LocaleData]].
@@ -164,7 +164,7 @@ impl BuiltInConstructor for Segmenter {
 
         // 12. Let granularity be ? GetOption(options, "granularity", string, « "grapheme", "word", "sentence" », "grapheme").
         let granularity =
-            get_option(&options, js_str!("granularity"), context)?.unwrap_or_default();
+            get_option(&options, js_string!("granularity"), context)?.unwrap_or_default();
 
         // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
         let native = match (granularity, context.intl_provider().erased_provider()) {
@@ -269,12 +269,12 @@ impl Segmenter {
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         let options = ObjectInitializer::new(context)
             .property(
-                js_str!("locale"),
+                js_string!("locale"),
                 js_string!(segmenter.locale.to_string()),
                 Attribute::all(),
             )
             .property(
-                js_str!("granularity"),
+                js_string!("granularity"),
                 js_string!(segmenter.native.granularity().to_string()),
                 Attribute::all(),
             )
@@ -336,18 +336,18 @@ fn create_segment_data_object(
 
     object
         // 7. Perform ! CreateDataPropertyOrThrow(result, "segment", segment).
-        .property(js_str!("segment"), segment, Attribute::all())
+        .property(js_string!("segment"), segment, Attribute::all())
         // 8. Perform ! CreateDataPropertyOrThrow(result, "index", 𝔽(startIndex)).
-        .property(js_str!("index"), start, Attribute::all())
+        .property(js_string!("index"), start, Attribute::all())
         // 9. Perform ! CreateDataPropertyOrThrow(result, "input", string).
-        .property(js_str!("input"), string, Attribute::all());
+        .property(js_string!("input"), string, Attribute::all());
 
     // 10. Let granularity be segmenter.[[SegmenterGranularity]].
     // 11. If granularity is "word", then
     if let Some(is_word_like) = is_word_like {
         //     a. Let isWordLike be a Boolean value indicating whether the segment in string is "word-like" according to locale segmenter.[[Locale]].
         //     b. Perform ! CreateDataPropertyOrThrow(result, "isWordLike", isWordLike).
-        object.property(js_str!("isWordLike"), is_word_like, Attribute::all());
+        object.property(js_string!("isWordLike"), is_word_like, Attribute::all());
     }
 
     // 12. Return result.

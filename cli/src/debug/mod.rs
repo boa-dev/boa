@@ -1,7 +1,7 @@
 // Allow lint so it, doesn't warn about `JsResult<>` unneeded return on functions.
 #![allow(clippy::unnecessary_wraps)]
 
-use boa_engine::{js_str, object::ObjectInitializer, property::Attribute, Context, JsObject};
+use boa_engine::{js_string, object::ObjectInitializer, property::Attribute, Context, JsObject};
 
 mod function;
 mod gc;
@@ -24,42 +24,42 @@ fn create_boa_object(context: &mut Context) -> JsObject {
 
     ObjectInitializer::new(context)
         .property(
-            js_str!("function"),
+            js_string!("function"),
             function_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("object"),
+            js_string!("object"),
             object_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("shape"),
+            js_string!("shape"),
             shape_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("optimizer"),
+            js_string!("optimizer"),
             optimizer_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("gc"),
+            js_string!("gc"),
             gc_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("realm"),
+            js_string!("realm"),
             realm_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("limits"),
+            js_string!("limits"),
             limits_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(
-            js_str!("string"),
+            js_string!("string"),
             string_module,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
@@ -71,7 +71,7 @@ pub(crate) fn init_boa_debug_object(context: &mut Context) {
     let boa_object = create_boa_object(context);
     context
         .register_global_property(
-            js_str!("$boa"),
+            js_string!("$boa"),
             boa_object,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )

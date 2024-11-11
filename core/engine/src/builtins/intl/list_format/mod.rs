@@ -1,7 +1,6 @@
 use std::fmt::Write;
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
 use icu_locid::Locale;
@@ -121,7 +120,8 @@ impl BuiltInConstructor for ListFormat {
 
         // 5. Let opt be a new Record.
         // 6. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher =
+            get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
         // 7. Set opt.[[localeMatcher]] to matcher.
         // 8. Let localeData be %ListFormat%.[[LocaleData]].
@@ -138,11 +138,11 @@ impl BuiltInConstructor for ListFormat {
 
         // 11. Let type be ? GetOption(options, "type", string, « "conjunction", "disjunction", "unit" », "conjunction").
         // 12. Set listFormat.[[Type]] to type.
-        let typ = get_option(&options, js_str!("type"), context)?.unwrap_or_default();
+        let typ = get_option(&options, js_string!("type"), context)?.unwrap_or_default();
 
         // 13. Let style be ? GetOption(options, "style", string, « "long", "short", "narrow" », "long").
         // 14. Set listFormat.[[Style]] to style.
-        let style = get_option(&options, js_str!("style"), context)?.unwrap_or(ListLength::Wide);
+        let style = get_option(&options, js_string!("style"), context)?.unwrap_or(ListLength::Wide);
 
         // 15. Let dataLocale be r.[[dataLocale]].
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
@@ -390,11 +390,11 @@ impl ListFormat {
                 .create(OrdinaryObject, vec![]);
 
             // b. Perform ! CreateDataPropertyOrThrow(O, "type", part.[[Type]]).
-            o.create_data_property_or_throw(js_str!("type"), js_string!(part.typ()), context)
+            o.create_data_property_or_throw(js_string!("type"), js_string!(part.typ()), context)
                 .expect("operation must not fail per the spec");
 
             // c. Perform ! CreateDataPropertyOrThrow(O, "value", part.[[Value]]).
-            o.create_data_property_or_throw(js_str!("value"), js_string!(part.value()), context)
+            o.create_data_property_or_throw(js_string!("value"), js_string!(part.value()), context)
                 .expect("operation must not fail per the spec");
 
             // d. Perform ! CreateDataPropertyOrThrow(result, ! ToString(n), O).
@@ -445,29 +445,29 @@ impl ListFormat {
         //     d. Perform ! CreateDataPropertyOrThrow(options, p, v).
         options
             .create_data_property_or_throw(
-                js_str!("locale"),
+                js_string!("locale"),
                 js_string!(lf.locale.to_string()),
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_str!("type"),
+                js_string!("type"),
                 match lf.typ {
-                    ListFormatType::Conjunction => js_str!("conjunction"),
-                    ListFormatType::Disjunction => js_str!("disjunction"),
-                    ListFormatType::Unit => js_str!("unit"),
+                    ListFormatType::Conjunction => js_string!("conjunction"),
+                    ListFormatType::Disjunction => js_string!("disjunction"),
+                    ListFormatType::Unit => js_string!("unit"),
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_str!("style"),
+                js_string!("style"),
                 match lf.style {
-                    ListLength::Wide => js_str!("long"),
-                    ListLength::Short => js_str!("short"),
-                    ListLength::Narrow => js_str!("narrow"),
+                    ListLength::Wide => js_string!("long"),
+                    ListLength::Short => js_string!("short"),
+                    ListLength::Narrow => js_string!("narrow"),
                     _ => unreachable!(),
                 },
                 context,

@@ -36,7 +36,6 @@ use boa_interner::Interner;
 use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
 use boa_profiler::Profiler;
-use boa_string::JsStr;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
@@ -625,16 +624,17 @@ impl Module {
 
     /// Get an exported function, typed, from the module.
     #[inline]
+    #[allow(clippy::needless_pass_by_value)]
     pub fn get_typed_fn<A, R>(
         &self,
-        name: JsStr<'_>,
+        name: JsString,
         context: &mut Context,
     ) -> JsResult<TypedJsFunction<A, R>>
     where
         A: crate::object::TryIntoJsArguments,
         R: crate::value::TryFromJs,
     {
-        let func = self.get_value(name, context)?;
+        let func = self.get_value(name.clone(), context)?;
         let func = func.as_function().ok_or_else(|| {
             JsNativeError::typ().with_message(format!("{name:?} is not a function"))
         })?;

@@ -5,7 +5,7 @@ use num_traits::FromPrimitive;
 use crate::{
     builtins::{options::ParsableOptionType, OrdinaryObject},
     object::JsObject,
-    Context, JsNativeError, JsResult, JsStr, JsValue,
+    Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
 /// `IntlOptions` aggregates the `locale_matcher` selector and any other object
@@ -60,7 +60,7 @@ impl ParsableOptionType for LocaleMatcher {}
 /// [spec]: https://tc39.es/ecma402/#sec-getnumberoption
 pub(super) fn get_number_option<T>(
     options: &JsObject,
-    property: JsStr<'_>,
+    property: JsString,
     minimum: T,
     maximum: T,
     context: &mut Context,

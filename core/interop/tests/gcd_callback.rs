@@ -2,7 +2,7 @@
 //! A test that mimics the `boa_engine`'s GCD test with a typed callback.
 
 use boa_engine::object::builtins::JsFunction;
-use boa_engine::{js_str, Context, Module, Source};
+use boa_engine::{js_string, Context, Module, Source};
 use boa_gc::Gc;
 use boa_interop::{ContextData, IntoJsFunctionCopied};
 use std::path::PathBuf;
@@ -32,7 +32,7 @@ fn gcd_callback() {
         .unwrap();
 
     let js_gcd = module
-        .get_typed_fn::<(i32, i32, JsFunction), ()>(js_str!("gcd_callback"), context)
+        .get_typed_fn::<(i32, i32, JsFunction), ()>(js_string!("gcd_callback"), context)
         .unwrap();
 
     let function = callback_from_js

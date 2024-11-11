@@ -10,10 +10,8 @@
 
 use crate::{
     builtins::options::{get_option, OptionType, ParsableOptionType},
-    string::JsStr,
-    Context, JsNativeError, JsObject, JsResult, JsValue,
+    js_string, Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use temporal_rs::options::{
     ArithmeticOverflow, CalendarName, DifferenceSettings, DurationOverflow, InstantDisambiguation,
     OffsetDisambiguation, RoundingIncrement, TemporalRoundingMode, TemporalUnit,
@@ -25,7 +23,7 @@ use temporal_rs::options::{
 #[inline]
 pub(crate) fn get_temporal_unit(
     options: &JsObject,
-    key: JsStr<'_>,
+    key: JsString,
     unit_group: TemporalUnitGroup,
     extra_values: Option<Vec<TemporalUnit>>,
     context: &mut Context,
@@ -53,12 +51,14 @@ pub(crate) fn get_difference_settings(
     context: &mut Context,
 ) -> JsResult<DifferenceSettings> {
     let mut settings = DifferenceSettings::default();
-    settings.largest_unit = get_option::<TemporalUnit>(options, js_str!("largestUnit"), context)?;
+    settings.largest_unit =
+        get_option::<TemporalUnit>(options, js_string!("largestUnit"), context)?;
     settings.increment =
-        get_option::<RoundingIncrement>(options, js_str!("roundingIncrement"), context)?;
+        get_option::<RoundingIncrement>(options, js_string!("roundingIncrement"), context)?;
     settings.rounding_mode =
-        get_option::<TemporalRoundingMode>(options, js_str!("roundingMode"), context)?;
-    settings.smallest_unit = get_option::<TemporalUnit>(options, js_str!("smallestUnit"), context)?;
+        get_option::<TemporalRoundingMode>(options, js_string!("roundingMode"), context)?;
+    settings.smallest_unit =
+        get_option::<TemporalUnit>(options, js_string!("smallestUnit"), context)?;
     Ok(settings)
 }
 

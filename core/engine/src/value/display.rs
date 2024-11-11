@@ -4,7 +4,7 @@ use crate::{
         error::ErrorObject, map::ordered_map::OrderedMap, promise::PromiseState,
         set::ordered_set::OrderedSet, Array, Promise,
     },
-    js_str,
+    js_string,
     property::PropertyDescriptor,
     JsError, JsString,
 };
@@ -118,7 +118,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
             } else if v_bor.is::<Array>() {
                 let len = v_bor
                     .properties()
-                    .get(&js_str!("length").into())
+                    .get(&js_string!("length").into())
                     .expect("array object must have 'length' property")
                     // FIXME: handle accessor descriptors
                     .expect_value()
@@ -194,7 +194,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
             } else if v_bor.is::<ErrorObject>() {
                 drop(v_bor);
                 let name: Cow<'static, str> = v
-                    .get_property(&js_str!("name").into())
+                    .get_property(&js_string!("name").into())
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map_or_else(
@@ -209,7 +209,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         },
                     );
                 let message = v
-                    .get_property(&js_str!("message").into())
+                    .get_property(&js_string!("message").into())
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map(|v| {

@@ -4,13 +4,13 @@ use crate::{
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
+    js_string,
     object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 mod async_from_sync_iterator;
@@ -243,7 +243,7 @@ impl JsValue {
             JsNativeError::typ().with_message("returned iterator is not an object")
         })?;
         // 3. Let nextMethod be ? Get(iterator, "next").
-        let next_method = iterator_obj.get(js_str!("next"), context)?;
+        let next_method = iterator_obj.get(js_string!("next"), context)?;
         // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 5. Return iteratorRecord.
         Ok(IteratorRecord::new(iterator_obj.clone(), next_method))
@@ -341,7 +341,7 @@ impl IteratorResult {
     #[inline]
     pub fn complete(&self, context: &mut Context) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
-        Ok(self.object.get(js_str!("done"), context)?.to_boolean())
+        Ok(self.object.get(js_string!("done"), context)?.to_boolean())
     }
 
     /// `IteratorValue ( iterResult )`
@@ -357,7 +357,7 @@ impl IteratorResult {
     #[inline]
     pub fn value(&self, context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? Get(iterResult, "value").
-        self.object.get(js_str!("value"), context)
+        self.object.get(js_string!("value"), context)
     }
 }
 
@@ -588,7 +588,7 @@ impl IteratorRecord {
         let iterator = &self.iterator;
 
         // 3. Let innerResult be Completion(GetMethod(iterator, "return")).
-        let inner_result = iterator.get_method(js_str!("return"), context);
+        let inner_result = iterator.get_method(js_string!("return"), context);
 
         // 4. If innerResult.[[Type]] is normal, then
         let inner_result = match inner_result {

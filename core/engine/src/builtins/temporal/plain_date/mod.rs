@@ -20,7 +20,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use temporal_rs::{
     components::{
@@ -504,7 +503,7 @@ impl PlainDate {
 
         if let Some(date) = item.as_object().and_then(JsObject::downcast_ref::<Self>) {
             let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
-            let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             return create_temporal_date(date.inner.clone(), None, context).map(Into::into);
         }
 
@@ -555,20 +554,28 @@ impl PlainDate {
 
         // 4. Perform ! CreateDataPropertyOrThrow(fields, "calendar", temporalDate.[[Calendar]]).
         fields.create_data_property_or_throw(
-            js_str!("calendar"),
+            js_string!("calendar"),
             JsString::from(date.inner.calendar().identifier()),
             context,
         )?;
         // 5. Perform ! CreateDataPropertyOrThrow(fields, "isoDay", 𝔽(temporalDate.[[ISODay]])).
-        fields.create_data_property_or_throw(js_str!("isoDay"), date.inner.iso_day(), context)?;
+        fields.create_data_property_or_throw(
+            js_string!("isoDay"),
+            date.inner.iso_day(),
+            context,
+        )?;
         // 6. Perform ! CreateDataPropertyOrThrow(fields, "isoMonth", 𝔽(temporalDate.[[ISOMonth]])).
         fields.create_data_property_or_throw(
-            js_str!("isoMonth"),
+            js_string!("isoMonth"),
             date.inner.iso_month(),
             context,
         )?;
         // 7. Perform ! CreateDataPropertyOrThrow(fields, "isoYear", 𝔽(temporalDate.[[ISOYear]])).
-        fields.create_data_property_or_throw(js_str!("isoYear"), date.inner.iso_year(), context)?;
+        fields.create_data_property_or_throw(
+            js_string!("isoYear"),
+            date.inner.iso_year(),
+            context,
+        )?;
         // 8. Return fields.
         Ok(fields.into())
     }
@@ -589,7 +596,7 @@ impl PlainDate {
         // 4. Set options to ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
 
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
         // 6. Return ? AddDate(calendarRec, temporalDate, duration, options).
@@ -611,7 +618,7 @@ impl PlainDate {
 
         // 4. Set options to ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         // 5. Let negatedDuration be CreateNegatedTemporalDuration(duration).
         // 6. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
@@ -648,7 +655,7 @@ impl PlainDate {
         // 7. Let partialDate be ? PrepareTemporalFields(temporalDateLike, fieldsResult.[[FieldNames]], partial).
         // 8. Let fields be ? CalendarMergeFields(calendarRec, fieldsResult.[[Fields]], partialDate).
         // 9. Set fields to ? PrepareTemporalFields(fields, fieldsResult.[[FieldNames]], «»).
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
         let partial = to_partial_date_record(partial_object, context)?;
 
         // 10. Return ? CalendarDateFromFields(calendarRec, fields, resolvedOptions).
@@ -833,7 +840,7 @@ pub(crate) fn to_temporal_date(
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
         } else if let Some(date_time) = object.downcast_ref::<PlainDateTime>() {
             // i. Perform ? ToTemporalOverflow(options).
-            let _o = get_option(&options_obj, js_str!("overflow"), context)?
+            let _o = get_option(&options_obj, js_string!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
             let date = InnerDate::from(date_time.inner().clone());
@@ -845,7 +852,7 @@ pub(crate) fn to_temporal_date(
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
         let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
         let overflow =
-            get_option::<ArithmeticOverflow>(&options_obj, js_str!("overflow"), context)?
+            get_option::<ArithmeticOverflow>(&options_obj, js_string!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
         // e. Let fieldNames be ? CalendarFields(calendar, « "day", "month", "monthCode", "year" »).
@@ -896,15 +903,15 @@ pub(crate) fn to_partial_date_record(
     context: &mut Context,
 ) -> JsResult<PartialDate> {
     let day = partial_object
-        .get(js_str!("day"), context)?
+        .get(js_string!("day"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
     let month = partial_object
-        .get(js_str!("month"), context)?
+        .get(js_string!("month"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
     let month_code = partial_object
-        .get(js_str!("monthCode"), context)?
+        .get(js_string!("monthCode"), context)?
         .map(|v| {
             let JsValue::String(month_code) =
                 v.to_primitive(context, crate::value::PreferredType::String)?
@@ -917,15 +924,15 @@ pub(crate) fn to_partial_date_record(
         })
         .transpose()?;
     let year = partial_object
-        .get(js_str!("year"), context)?
+        .get(js_string!("year"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
     let era_year = partial_object
-        .get(js_str!("eraYear"), context)?
+        .get(js_string!("eraYear"), context)?
         .map(|v| super::to_integer_if_integral(v, context))
         .transpose()?;
     let era = partial_object
-        .get(js_str!("era"), context)?
+        .get(js_string!("era"), context)?
         .map(|v| {
             let JsValue::String(era) =
                 v.to_primitive(context, crate::value::PreferredType::String)?

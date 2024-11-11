@@ -8,7 +8,6 @@ use std::{
     ops::Sub,
 };
 
-use boa_macros::js_str;
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{ToPrimitive, Zero};
@@ -432,9 +431,9 @@ impl JsValue {
                 //     1. Assert: preferredType is number.
                 //     2. Let hint be "number".
                 let hint = match preferred_type {
-                    PreferredType::Default => js_str!("default"),
-                    PreferredType::String => js_str!("string"),
-                    PreferredType::Number => js_str!("number"),
+                    PreferredType::Default => js_string!("default"),
+                    PreferredType::String => js_string!("string"),
+                    PreferredType::Number => js_string!("number"),
                 }
                 .into();
 
@@ -536,7 +535,11 @@ impl JsValue {
         match self {
             Self::Null => Ok(js_string!("null")),
             Self::Undefined => Ok(js_string!("undefined")),
-            Self::Boolean(boolean) => Ok(boolean.to_string().into()),
+            Self::Boolean(boolean) => Ok(if *boolean {
+                js_string!("true")
+            } else {
+                js_string!("false")
+            }),
             Self::Rational(rational) => Ok(Number::to_js_string(*rational)),
             Self::Integer(integer) => Ok(integer.to_string().into()),
             Self::String(string) => Ok(string.clone()),
@@ -1034,22 +1037,21 @@ impl JsValue {
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
         match *self {
-            Self::Rational(_) | Self::Integer(_) => js_str!("number"),
-            Self::String(_) => js_str!("string"),
-            Self::Boolean(_) => js_str!("boolean"),
-            Self::Symbol(_) => js_str!("symbol"),
-            Self::Null => js_str!("object"),
-            Self::Undefined => js_str!("undefined"),
-            Self::BigInt(_) => js_str!("bigint"),
+            Self::Rational(_) | Self::Integer(_) => js_string!("number"),
+            Self::String(_) => js_string!("string"),
+            Self::Boolean(_) => js_string!("boolean"),
+            Self::Symbol(_) => js_string!("symbol"),
+            Self::Null => js_string!("object"),
+            Self::Undefined => js_string!("undefined"),
+            Self::BigInt(_) => js_string!("bigint"),
             Self::Object(ref object) => {
                 if object.is_callable() {
-                    js_str!("function")
+                    js_string!("function")
                 } else {
-                    js_str!("object")
+                    js_string!("object")
                 }
             }
         }
-        .into()
     }
 
     /// Maps a `JsValue` into a `Option<T>` where T is the result of an

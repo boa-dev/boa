@@ -5,7 +5,7 @@ use crate::{tagged::Tagged, JsStr};
 use super::JsString;
 use paste::paste;
 use rustc_hash::{FxBuildHasher, FxHashMap};
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
 macro_rules! well_known_statics {
     ( $( $(#[$attr:meta])* ($name:ident, $string:literal) ),+$(,)? ) => {
@@ -71,7 +71,7 @@ impl StaticJsStrings {
             return None;
         }
 
-        let index = RAW_STATICS_CACHE.with(|map| map.get(string).copied())?;
+        let index = RAW_STATICS_CACHE.get(string).copied()?;
 
         Some(JsString {
             ptr: Tagged::from_tag(index),
@@ -220,21 +220,14 @@ const MAX_STATIC_LENGTH: usize = {
     max
 };
 
-thread_local! {
-    /// Map from a string inside [`RAW_STATICS`] to its corresponding static index on `RAW_STATICS`.
-    static RAW_STATICS_CACHE: FxHashMap<JsStr<'static>, usize> = {
-        let mut constants = HashMap::with_capacity_and_hasher(
-            RAW_STATICS.len(),
-            FxBuildHasher
-        );
-
-        for (idx, &s) in RAW_STATICS.iter().enumerate() {
-            constants.insert(s, idx);
-        }
-
-        constants
-    };
-}
+/// Map from a string inside [`RAW_STATICS`] to its corresponding static index on `RAW_STATICS`.
+static RAW_STATICS_CACHE: LazyLock<FxHashMap<JsStr<'static>, usize>> = LazyLock::new(|| {
+    RAW_STATICS
+        .iter()
+        .enumerate()
+        .map(|(v, &k)| (k, v))
+        .collect::<HashMap<JsStr<'static>, usize, FxBuildHasher>>()
+});
 
 /// Array of raw static strings that aren't reference counted.
 const RAW_STATICS: &[JsStr<'_>] = &[

@@ -1,3 +1,4 @@
+use boa_macros::js_str;
 use indoc::indoc;
 
 use super::*;

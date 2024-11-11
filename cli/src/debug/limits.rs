@@ -1,5 +1,5 @@
 use boa_engine::{
-    js_str,
+    js_string,
     object::{FunctionObjectBuilder, ObjectInitializer},
     property::Attribute,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
@@ -51,51 +51,51 @@ fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
 pub(super) fn create_object(context: &mut Context) -> JsObject {
     let get_loop =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_loop))
-            .name(js_str!("get loop"))
+            .name(js_string!("get loop"))
             .length(0)
             .build();
     let set_loop =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_loop))
-            .name(js_str!("set loop"))
+            .name(js_string!("set loop"))
             .length(1)
             .build();
 
     let get_stack =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_stack))
-            .name(js_str!("get stack"))
+            .name(js_string!("get stack"))
             .length(0)
             .build();
     let set_stack =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_stack))
-            .name(js_str!("set stack"))
+            .name(js_string!("set stack"))
             .length(1)
             .build();
 
     let get_recursion =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_recursion))
-            .name(js_str!("get recursion"))
+            .name(js_string!("get recursion"))
             .length(0)
             .build();
     let set_recursion =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_recursion))
-            .name(js_str!("set recursion"))
+            .name(js_string!("set recursion"))
             .length(1)
             .build();
     ObjectInitializer::new(context)
         .accessor(
-            js_str!("loop"),
+            js_string!("loop"),
             Some(get_loop),
             Some(set_loop),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .accessor(
-            js_str!("stack"),
+            js_string!("stack"),
             Some(get_stack),
             Some(set_stack),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .accessor(
-            js_str!("recursion"),
+            js_string!("recursion"),
             Some(get_recursion),
             Some(set_recursion),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,

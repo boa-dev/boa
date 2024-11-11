@@ -1,6 +1,6 @@
 use crate::{
     builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
-    js_str,
+    js_string,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -23,7 +23,7 @@ impl Operation for CreateForInIterator {
         let object = object.to_object(context)?;
         let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
         let next_method = iterator
-            .get(js_str!("next"), context)
+            .get(js_string!("next"), context)
             .expect("ForInIterator must have a `next` method");
 
         context

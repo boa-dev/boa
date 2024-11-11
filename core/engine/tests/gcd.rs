@@ -6,7 +6,7 @@
 
 // You can execute this example with `cargo run --example gcd`
 
-use boa_engine::{js_str, Context, Module};
+use boa_engine::{js_string, Context, Module};
 use boa_parser::Source;
 use std::path::PathBuf;
 
@@ -28,7 +28,7 @@ fn gcd() {
         .unwrap();
 
     let js_gcd = module
-        .get_typed_fn::<(i32, i32), i32>(js_str!("gcd"), context)
+        .get_typed_fn::<(i32, i32), i32>(js_string!("gcd"), context)
         .unwrap();
 
     assert_eq!(js_gcd.call(context, (6, 9)), Ok(3));

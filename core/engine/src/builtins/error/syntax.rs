@@ -21,7 +21,6 @@ use crate::{
     string::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::{Error, ErrorObject};
@@ -38,8 +37,8 @@ impl IntrinsicObject for SyntaxError {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
-            .property(js_str!("name"), Self::NAME, attribute)
-            .property(js_str!("message"), js_string!(), attribute)
+            .property(js_string!("name"), Self::NAME, attribute)
+            .property(js_string!("message"), js_string!(), attribute)
             .build();
     }
 
@@ -100,7 +99,7 @@ impl BuiltInConstructor for SyntaxError {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw(js_str!("message"), msg, context);
+            o.create_non_enumerable_data_property_or_throw(js_string!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).

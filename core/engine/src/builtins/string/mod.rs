@@ -22,7 +22,8 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::{js_str, utf16};
+use boa_macros::utf16;
+
 use boa_profiler::Profiler;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::cmp::{max, min};
@@ -33,7 +34,7 @@ mod string_iterator;
 pub(crate) use string_iterator::StringIterator;
 
 #[cfg(feature = "annex-b")]
-pub use crate::JsStr;
+pub use crate::{js_str, JsStr};
 
 /// The set of normalizers required for the `String.prototype.normalize` function.
 #[derive(Debug)]
@@ -387,7 +388,7 @@ impl String {
         let cooked = args.get_or_undefined(0).to_object(context)?;
 
         // 3. Let raw be ? ToObject(? Get(cooked, "raw")).
-        let raw = cooked.get(js_str!("raw"), context)?.to_object(context)?;
+        let raw = cooked.get(js_string!("raw"), context)?.to_object(context)?;
 
         // 4. Let literalSegments be ? LengthOfArrayLike(raw).
         let literal_segments = raw.length_of_array_like(context)?;
@@ -1129,7 +1130,7 @@ impl String {
             // b. If isRegExp is true, then
             if let Some(obj) = RegExp::is_reg_exp(search_value, context)? {
                 // i. Let flags be ? Get(searchValue, "flags").
-                let flags = obj.get(js_str!("flags"), context)?;
+                let flags = obj.get(js_string!("flags"), context)?;
 
                 // ii. Perform ? RequireObjectCoercible(flags).
                 flags.require_object_coercible()?;
@@ -2074,7 +2075,7 @@ impl String {
             // b. If isRegExp is true, then
             if let Some(regexp) = RegExp::is_reg_exp(regexp, context)? {
                 // i. Let flags be ? Get(regexp, "flags").
-                let flags = regexp.get(js_str!("flags"), context)?;
+                let flags = regexp.get(js_string!("flags"), context)?;
 
                 // ii. Perform ? RequireObjectCoercible(flags).
                 flags.require_object_coercible()?;
@@ -2100,7 +2101,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::create(regexp, &JsValue::new(js_str!("g")), context)?;
+        let rx = RegExp::create(regexp, &JsValue::new(js_string!("g")), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
         rx.invoke(JsSymbol::match_all(), &[JsValue::new(s)], context)

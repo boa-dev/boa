@@ -776,7 +776,7 @@ impl BuiltInFunctionObject {
         .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
-        let target_name = target.get(js_str!("name"), context)?;
+        let target_name = target.get(js_string!("name"), context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
         let target_name = target_name
@@ -849,7 +849,7 @@ impl BuiltInFunctionObject {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
-                let value = object.get(js_str!("name"), &mut *context)?;
+                let value = object.get(js_string!("name"), &mut *context)?;
                 if value.is_null_or_undefined() {
                     js_string!()
                 } else {
@@ -943,7 +943,7 @@ pub(crate) fn set_function_name(
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     function
         .define_property_or_throw(
-            js_str!("name"),
+            js_string!("name"),
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(false)

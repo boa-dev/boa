@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use fixed_decimal::{FixedDecimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
@@ -227,13 +226,14 @@ impl BuiltInConstructor for NumberFormat {
 
         // 4. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 5. Set opt.[[localeMatcher]] to matcher.
-        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher =
+            get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
         // 6. Let numberingSystem be ? GetOption(options, "numberingSystem", string, empty, undefined).
         // 7. If numberingSystem is not undefined, then
         //     a. If numberingSystem cannot be matched by the type Unicode locale nonterminal, throw a RangeError exception.
         // 8. Set opt.[[nu]] to numberingSystem.
-        let numbering_system = get_option(&options, js_str!("numberingSystem"), context)?;
+        let numbering_system = get_option(&options, js_string!("numberingSystem"), context)?;
 
         let mut intl_options = IntlOptions {
             matcher,
@@ -283,7 +283,7 @@ impl BuiltInConstructor for NumberFormat {
 
         // 18. Let notation be ? GetOption(options, "notation", string, « "standard", "scientific", "engineering", "compact" », "standard").
         // 19. Set numberFormat.[[Notation]] to notation.
-        let notation = get_option(&options, js_str!("notation"), context)?.unwrap_or_default();
+        let notation = get_option(&options, js_string!("notation"), context)?.unwrap_or_default();
 
         // 20. Perform ? SetNumberFormatDigitOptions(numberFormat, options, mnfdDefault, mxfdDefault, notation).
         let digit_options = DigitFormatOptions::from_options(
@@ -296,7 +296,7 @@ impl BuiltInConstructor for NumberFormat {
 
         // 21. Let compactDisplay be ? GetOption(options, "compactDisplay", string, « "short", "long" », "short").
         let compact_display =
-            get_option(&options, js_str!("compactDisplay"), context)?.unwrap_or_default();
+            get_option(&options, js_string!("compactDisplay"), context)?.unwrap_or_default();
 
         // 22. Let defaultUseGrouping be "auto".
         let mut default_use_grouping = GroupingStrategy::Auto;
@@ -331,7 +331,7 @@ impl BuiltInConstructor for NumberFormat {
             // <https://tc39.es/ecma402/#sec-getbooleanorstringnumberformatoption>
 
             // 1. Let value be ? Get(options, property).
-            let value = options.get(js_str!("useGrouping"), context)?;
+            let value = options.get(js_string!("useGrouping"), context)?;
 
             // 2. If value is undefined, return fallback.
             if value.is_undefined() {
@@ -369,7 +369,7 @@ impl BuiltInConstructor for NumberFormat {
         // 29. Let signDisplay be ? GetOption(options, "signDisplay", string, « "auto", "never", "always", "exceptZero", "negative" », "auto").
         // 30. Set numberFormat.[[SignDisplay]] to signDisplay.
         let sign_display =
-            get_option(&options, js_str!("signDisplay"), context)?.unwrap_or(SignDisplay::Auto);
+            get_option(&options, js_string!("signDisplay"), context)?.unwrap_or(SignDisplay::Auto);
 
         let mut options = FixedDecimalFormatterOptions::default();
         options.grouping_strategy = use_grouping;
