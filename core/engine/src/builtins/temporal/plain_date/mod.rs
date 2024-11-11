@@ -44,18 +44,6 @@ impl PlainDate {
     }
 }
 
-// impl IsoDateSlots for JsObject<PlainDate> {
-//     fn iso_date(&self) -> temporal_rs::iso::IsoDate {
-//         self.borrow().data().inner.iso_date()
-//     }
-// }
-
-// impl GetTemporalCalendar for JsObject<PlainDate> {
-//     fn get_calendar(&self) -> Calendar {
-//         self.borrow().data().inner.get_calendar()
-//     }
-// }
-
 impl BuiltInObject for PlainDate {
     const NAME: JsString = StaticJsStrings::PLAIN_DATE_NAME;
 }

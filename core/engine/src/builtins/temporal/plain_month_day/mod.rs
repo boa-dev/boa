@@ -115,18 +115,6 @@ impl PlainMonthDay {
     }
 }
 
-// impl IsoDateSlots for JsObject<PlainMonthDay> {
-//     fn iso_date(&self) -> temporal_rs::iso::IsoDate {
-//         self.borrow().data().inner.iso_date()
-//     }
-// }
-
-// impl GetTemporalCalendar for JsObject<PlainMonthDay> {
-//     fn get_calendar(&self) -> Calendar {
-//         self.borrow().data().inner.get_calendar()
-//     }
-// }
-
 impl BuiltInObject for PlainMonthDay {
     const NAME: JsString = StaticJsStrings::PLAIN_MD_NAME;
 }
