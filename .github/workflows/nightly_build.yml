@@ -1,5 +1,5 @@
 name: Nightly Build
-permisions:
+permissions:
   "contents": "write"
 
 # Schedule this workflow to run at midnight every day
