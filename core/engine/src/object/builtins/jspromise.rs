@@ -311,6 +311,47 @@ impl JsPromise {
         promise
     }
 
+    /// Creates a new `JsPromise` from a `Result<T, JsError>`, where `T` is the fulfilled value of
+    /// the promise, and `JsError` is the rejection reason. This is a simpler way to create a
+    /// promise that is either fulfilled or rejected based on the result of a computation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::error::Error;
+    /// # use boa_engine::{
+    /// #    object::builtins::JsPromise,
+    /// #    builtins::promise::PromiseState,
+    /// #    Context, JsResult, JsString, js_string, js_error
+    /// # };
+    /// let context = &mut Context::default();
+    ///
+    /// fn do_thing(success: bool) -> JsResult<JsString> {
+    ///     success.then(|| js_string!("resolved!")).ok_or(js_error!("rejected!"))
+    /// }
+    ///
+    /// let promise = JsPromise::from_result(do_thing(true), context);
+    /// assert_eq!(
+    ///     promise.state(),
+    ///     PromiseState::Fulfilled(js_string!("resolved!").into())
+    /// );
+    ///
+    /// let promise = JsPromise::from_result(do_thing(false), context);
+    /// assert_eq!(
+    ///     promise.state(),
+    ///     PromiseState::Rejected(js_string!("rejected!").into())
+    /// );
+    /// ```
+    pub fn from_result<V: Into<JsValue>, E: Into<JsError>>(
+        value: Result<V, E>,
+        context: &mut Context,
+    ) -> Self {
+        match value {
+            Ok(v) => Self::resolve(v, context),
+            Err(e) => Self::reject(e, context),
+        }
+    }
+
     /// Resolves a `JsValue` into a `JsPromise`.
     ///
     /// Equivalent to the [`Promise.resolve()`] static method.
