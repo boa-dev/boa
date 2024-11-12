@@ -115,7 +115,7 @@ temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "1e7901d0
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.9.0"
-futures-lite = "2.4.0"
+futures-lite = "2.5.0"
 test-case = "3.3.1"
 winapi = { version = "0.3.9", default-features = false }
 
