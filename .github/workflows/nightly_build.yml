@@ -29,6 +29,7 @@ jobs:
         bin: boa
         # We may be able to provide a custom archive name, but
         # currently just going with the example default.
+        target: ${{ matrix.target }}
         archive: $bin-$tag-$target
-        ref: nightly
+        ref: refs/tags/nightly
         token: ${{ secrets.GITHUB_TOKEN }}
