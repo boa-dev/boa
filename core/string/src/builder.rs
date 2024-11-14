@@ -661,40 +661,56 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.len() == 0
     }
 
-    /// Builds `JsString` from latin1 segments.
+    /// Constructs a `JsString` encoded in `Latin1` from a collection of string segments.
+    ///
+    /// This processes the following types of segments:
+    ///
+    /// - `Segment::String(s)`: Encodes the string if it can be represented in `Latin1`.
+    /// - `Segment::Str(s)`: Encodes the string slice if it can be represented in `Latin1`.
+    /// - `Segment::Latin1(b)`: Directly adds the byte to the builder.
+    /// - `Segment::CodePoint(ch)`: Converts the code point to a byte if it's within the `ASCII` range.
+    ///
+    /// Return `None` if any segment fails to encode.
     #[inline]
     #[must_use]
     #[allow(clippy::cast_lossless)]
-    fn build_from_latin1(self) -> JsString {
-        let mut builder = Latin1StringBuilder::new();
-        for seg in self.segments {
+    pub fn build_from_latin1(&self) -> Option<JsString> {
+        let mut builder = Latin1JsStringBuilder::new();
+        for seg in self.segments.iter() {
             match seg {
                 Segment::String(s) => {
-                    let js_str = s.as_str();
-                    let Some(s) = js_str.as_latin1() else {
-                        unreachable!("all string segments are checked to be latin1")
-                    };
-                    builder.extend_from_slice(s);
+                    if let Some(data) = s.as_str().as_latin1() {
+                        builder.extend_from_slice(data);
+                    } else {
+                        return None;
+                    }
                 }
                 Segment::Str(s) => {
-                    let Some(s) = s.as_latin1() else {
-                        unreachable!("all string segments are checked to be latin1")
-                    };
-                    builder.extend_from_slice(s);
+                    if let Some(data) = s.as_latin1() {
+                        builder.extend_from_slice(data);
+                    } else {
+                        return None;
+                    }
                 }
-                Segment::Latin1(latin1) => builder.push(latin1),
-                Segment::CodePoint(code_point) => builder.push(code_point as u8),
+                Segment::Latin1(b) => builder.push(*b),
+                Segment::CodePoint(ch) => {
+                    if let Ok(b) = u8::try_from(*ch as u32) {
+                        builder.push(b);
+                    } else {
+                        return None;
+                    }
+                }
             }
         }
         builder.build()
     }
 
-    /// Builds `JsString` from utf16 segments.
+    /// Builds `Utf16` encoded `JsString` from string segments.
     #[inline]
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
-    fn build_from_utf16(self) -> JsString {
-        let mut builder = Utf16StringBuilder::new();
+    pub fn build_from_utf16(self) -> JsString {
+        let mut builder = Utf16JsStringBuilder::new();
         for seg in self.segments {
             match seg {
                 Segment::String(s) => {
@@ -710,34 +726,67 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                 },
                 Segment::Latin1(latin1) => builder.push(u16::from(latin1)),
                 Segment::CodePoint(code_point) => {
-                    // Inline char::encode_utf16 here for better performance
-                    let mut code_point = code_point as u32;
-                    if code_point < 0x10000 {
-                        builder.push(code_point as u16);
-                    } else {
-                        code_point -= 0x10000;
-                        builder.extend_from_slice(&[
-                            0xD800 | ((code_point >> 10) as u16),
-                            0xDC00 | ((code_point as u16) & 0x3FF),
-                        ]);
-                    }
+                    builder.extend_from_slice(code_point.encode_utf16(&mut [0_u16; 2]));
                 }
             }
         }
         builder.build()
     }
 
-    /// Builds `JsString` from `CommonJsStringBuilder`
+    /// Builds `JsString` from `CommonJsStringBuilder`,
+    ///
+    /// This function first checks if the instance is empty:
+    /// - If it is empty, it returns the default `JsString`.
+    /// - If it contains only ASCII characters, it safely encodes it as `Latin1`.
+    /// - If it contains non-ASCII characters, it falls back to encoding using UTF-16.
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
         if self.is_empty() {
             JsString::default()
-        } else if self.is_latin1() {
-            self.build_from_latin1()
+        } else if self.is_ascii() {
+            // SAFETY:
+            // All string segment contains only ascii byte, so this can be encoded as `Latin1`.
+            unsafe { self.build_as_latin1() }
         } else {
             self.build_from_utf16()
         }
+    }
+
+    /// Builds `Latin1` encoded `JsString` from `CommonJsStringBuilder`, return `None` if segments can't be encoded as `Latin1`
+    ///
+    /// # Safety:
+    /// Caller must ensure that the string segments can be latin1 encoded.
+    ///
+    /// If string segments can't be `Latin1` encoded, it may lead to encoding errors,
+    /// resulting in an incorrect or malformed `JsString`. This could cause undefined behavior
+    /// when the resulting string is used in further operations or when interfacing with other
+    /// parts of the system that expect valid `Latin1` encoded string.
+    #[inline]
+    #[must_use]
+    pub unsafe fn build_as_latin1(self) -> JsString {
+        let mut builder = Latin1JsStringBuilder::new();
+        for seg in self.segments {
+            match seg {
+                Segment::String(s) => {
+                    let js_str = s.as_str();
+                    let Some(s) = js_str.as_latin1() else {
+                        unreachable!("string segment shoud be latin1")
+                    };
+                    builder.extend_from_slice(s);
+                }
+                Segment::Str(s) => {
+                    let Some(s) = s.as_latin1() else {
+                        unreachable!("string segment shoud be latin1")
+                    };
+                    builder.extend_from_slice(s);
+                }
+                Segment::Latin1(latin1) => builder.push(latin1),
+                Segment::CodePoint(code_point) => builder.push(code_point as u8),
+            }
+        }
+        // SAFETY: All string segments can be encoded as `Latin1` string.
+        unsafe { builder.build_as_latin1() }
     }
 }
 
