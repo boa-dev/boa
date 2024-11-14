@@ -67,7 +67,7 @@ impl<D> JsStringBuilder<D> {
         }
     }
 
-    /// Returns the number of elements that inner holds.
+    /// Returns the number of elements that inner `RawJsString` holds.
     #[inline]
     #[must_use]
     pub const fn len(&self) -> usize {
@@ -95,13 +95,13 @@ impl<D> JsStringBuilder<D> {
         self.cap
     }
 
-    /// Returns the allocated byte of inner.
+    /// Returns the allocated byte of inner `RawJsString`.
     #[must_use]
     const fn allocated_byte_len(&self) -> usize {
         DATA_OFFSET + self.allocated_data_byte_len()
     }
 
-    /// Returns the allocated byte of inner's data.
+    /// Returns the allocated byte of inner `RawJsString`'s data.
     #[must_use]
     const fn allocated_data_byte_len(&self) -> usize {
         self.len() * Self::DATA_SIZE
@@ -138,13 +138,13 @@ impl<D> JsStringBuilder<D> {
         }
     }
 
-    /// Checks if the inner is allocated.
+    /// Checks if the inner `RawJsString` is allocated.
     #[must_use]
     fn is_allocated(&self) -> bool {
         self.inner != NonNull::dangling()
     }
 
-    /// Returns the inner's layout.
+    /// Returns the inner `RawJsString`'s layout.
     ///
     /// # Safety
     ///
@@ -211,7 +211,7 @@ impl<D> JsStringBuilder<D> {
         self.cap = Self::capacity_from_layout(new_layout);
     }
 
-    /// Appends an element to the inner of `JsStringBuilder`.
+    /// Appends an element to the inner `RawJsString` of `JsStringBuilder`.
     #[inline]
     pub fn push(&mut self, v: D) {
         let required_cap = self.len() + 1;
@@ -319,7 +319,7 @@ impl<D> JsStringBuilder<D> {
         }
     }
 
-    /// Allocates memory to the inner by the given capacity.
+    /// Allocates memory to the inner `RawJsString` by the given capacity.
     /// Capacity calculation is from [`std::vec::Vec::reserve`].
     fn allocate(&mut self, cap: usize) {
         let cap = std::cmp::max(self.capacity() * 2, cap);
@@ -327,7 +327,7 @@ impl<D> JsStringBuilder<D> {
         self.allocate_inner(Self::new_layout(cap));
     }
 
-    /// Appends an element to the inner of `JsStringBuilder` without doing bounds check.
+    /// Appends an element to the inner `RawJsString` of `JsStringBuilder` without doing bounds check.
     /// # Safety
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
@@ -366,7 +366,7 @@ impl<D> JsStringBuilder<D> {
     pub fn as_slice(&self) -> &[D] {
         if self.is_allocated() {
             // SAFETY:
-            // The inner is allocated which means it is not null.
+            // The inner `RawJsString` is allocated which means it is not null.
             unsafe { std::slice::from_raw_parts(self.data(), self.len()) }
         } else {
             &[]
@@ -616,7 +616,9 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         }
     }
 
-    /// Creates a new `CommonJsStringBuilder` with specific capacity.
+    /// Similar to `Vec::with_capacity`.
+    ///
+    /// Creates a new `CommonJsStringBuilder` with given capacity.
     #[inline]
     #[must_use]
     pub fn with_capacity(capacity: usize) -> Self {
@@ -625,13 +627,16 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         }
     }
 
-    /// Calls the same method of inner vec.
+    /// Similar to `Vec::reserve`.
+    ///
+    /// Reserves additional capacity for the inner vector.
     #[inline]
     pub fn reserve(&mut self, additional: usize) {
         self.segments.reserve(additional);
     }
-
-    /// Calls the same method of inner vec.
+    /// Similar to `Vec::reserve_exact`.
+    ///
+    /// Reserves the minimum capacity for the inner vector.
     #[inline]
     pub fn reserve_exact(&mut self, additional: usize) {
         self.segments.reserve_exact(additional);
