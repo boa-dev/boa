@@ -347,8 +347,10 @@ impl<D> JsStringBuilder<D> {
         self.len() == 0
     }
 
-    /// Checks if all bytes in this inner is ascii.
-    fn is_ascii(&self) -> bool {
+    /// Checks if all bytes in inner `RawJsString`'s data are ascii.
+    #[inline]
+    #[must_use]
+    pub fn is_ascii(&self) -> bool {
         // SAFETY:
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can read to its pointed memory.
@@ -541,14 +543,15 @@ pub enum Segment<'a> {
 }
 
 impl Segment<'_> {
+    /// Checks if the segment consists solely of `ASCII` characters.
     #[inline]
     #[must_use]
-    fn is_latin1(&self) -> bool {
+    fn is_ascii(&self) -> bool {
         match self {
             Segment::String(s) => s.as_str().is_latin1(),
             Segment::Str(s) => s.is_latin1(),
-            Segment::Latin1(_) => true,
-            Segment::CodePoint(ch) => *ch as u32 <= 0xFF,
+            Segment::Latin1(b) => *b <= 0x7f,
+            Segment::CodePoint(ch) => *ch as u32 <= 0x7F,
         }
     }
 }
@@ -640,11 +643,11 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.segments.push(seg.into());
     }
 
-    /// Checks if all string segments are latin1.
+    /// Checks if all string segments contains only `Ascii` bytes.
     #[inline]
     #[must_use]
-    fn is_latin1(&self) -> bool {
-        self.segments.iter().all(Segment::is_latin1)
+    pub fn is_ascii(&self) -> bool {
+        self.segments.iter().all(Segment::is_ascii)
     }
 
     /// Returns the number of string segment in inner vector.
