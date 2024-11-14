@@ -374,7 +374,7 @@ impl<D> JsStringBuilder<D> {
     /// Builds `JsString` from `JsStringBuilder`
     #[inline]
     #[must_use]
-    pub fn build(mut self) -> JsString {
+    fn build_inner(mut self, latin1: bool) -> JsString {
         if self.is_empty() {
             return JsString::default();
         }
@@ -393,7 +393,7 @@ impl<D> JsStringBuilder<D> {
         // meaning we can write to its pointed memory.
         unsafe {
             inner.as_ptr().write(RawJsString {
-                tagged_len: TaggedLen::new(len, self.is_ascii()),
+                tagged_len: TaggedLen::new(len, latin1),
                 refcount: RefCount {
                     read_write: ManuallyDrop::new(Cell::new(1)),
                 },
@@ -466,10 +466,43 @@ impl<D> FromIterator<D> for JsStringBuilder<D> {
 /// ```
 pub type Latin1JsStringBuilder = JsStringBuilder<u8>;
 
-/// **2 bytes** encoded `JsStringBuilder`
-/// # Warning
-/// If you are not sure the characters that will be added and don't want to preprocess them,
-/// use [`CommonJsStringBuilder`] instead.
+impl Latin1JsStringBuilder {
+    /// Builds a `JsString` if the current instance is strictly `ASCII`.
+    ///
+    /// When the string contains characters outside the `ASCII` range, it cannot be determined
+    /// whether the encoding is `Latin1` or others. Therefore, this method only returns a
+    /// valid `JsString` when the instance is entirely `ASCII`. If any non-`ASCII` characters
+    /// are present, it returns `None` to avoid ambiguity in encoding.
+    ///
+    /// If the caller is certain that the string is encoded in `Latin1`,
+    /// [build_as_latin1](Self::build_as_latin1) can be used to avoid the `ASCII` check.
+    #[inline]
+    #[must_use]
+    pub fn build(self) -> Option<JsString> {
+        if self.is_ascii() {
+            Some(self.build_inner(true))
+        } else {
+            None
+        }
+    }
+
+    /// Builds `JsString` from `Latin1StringBuilder`, assume that the inner data is latin1 encoded
+    ///
+    /// # Safety:
+    /// Caller must ensure that the string is encoded in `Latin1`.
+    ///
+    /// If the string contains characters outside the `Latin1` range, it may lead to encoding errors,
+    /// resulting in an incorrect or malformed `JsString`. This could cause undefined behavior
+    /// when the resulting string is used in further operations or when interfacing with other
+    /// parts of the system that expect valid `Latin1` encoded string.
+    #[inline]
+    #[must_use]
+    pub unsafe fn build_as_latin1(self) -> JsString {
+        self.build_inner(true)
+    }
+}
+
+/// **`UTF-16`** encoded `JsStringBuilder`
 /// ## Examples
 ///
 /// ```rust
@@ -482,12 +515,28 @@ pub type Latin1JsStringBuilder = JsStringBuilder<u8>;
 /// ```
 pub type Utf16JsStringBuilder = JsStringBuilder<u16>;
 
-/// String segment to build [`JsString`]
+impl Utf16JsStringBuilder {
+    /// Builds `JsString` from `Utf16StringBuilder`
+    #[inline]
+    #[must_use]
+    pub fn build(self) -> JsString {
+        self.build_inner(false)
+    }
+}
+
+/// Represents a segment of a string used to construct a [`JsString`].
 #[derive(Clone, Debug)]
 pub enum Segment<'a> {
+    /// A string segment represented as a `JsString`.
     String(JsString),
+
+    /// A string segment represented as a `JsStr`.
     Str(JsStr<'a>),
+
+    /// A string segment represented as a byte.
     Latin1(u8),
+
+    /// A Unicode code point segment represented as a character.
     CodePoint(char),
 }
 
