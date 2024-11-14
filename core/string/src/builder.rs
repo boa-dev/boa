@@ -16,14 +16,14 @@ use std::{
 /// A mutable builder to create instance of `JsString`.
 ///
 #[derive(Debug)]
-pub struct JsStringBuilder<D> {
+pub struct JsStringBuilder<D: Copy> {
     cap: usize,
     len: usize,
     inner: NonNull<RawJsString>,
     phantom_data: PhantomData<D>,
 }
 
-impl<D> Clone for JsStringBuilder<D> {
+impl<D: Copy> Clone for JsStringBuilder<D> {
     #[inline]
     #[must_use]
     fn clone(&self) -> Self {
@@ -45,13 +45,13 @@ impl<D> Clone for JsStringBuilder<D> {
     }
 }
 
-impl<D> Default for JsStringBuilder<D> {
+impl<D: Copy> Default for JsStringBuilder<D> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<D> JsStringBuilder<D> {
+impl<D: Copy> JsStringBuilder<D> {
     const DATA_SIZE: usize = size_of::<D>();
     const MIN_NON_ZERO_CAP: usize = 8 / Self::DATA_SIZE;
 
@@ -412,7 +412,7 @@ impl<D> JsStringBuilder<D> {
     }
 }
 
-impl<D> Drop for JsStringBuilder<D> {
+impl<D: Copy> Drop for JsStringBuilder<D> {
     /// Set cold since [`JsStringBuilder`] should be created to build `JsString`
     #[cold]
     #[inline]
@@ -432,19 +432,19 @@ impl<D> Drop for JsStringBuilder<D> {
     }
 }
 
-impl<D> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
+impl<D: Copy> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
     fn add_assign(&mut self, rhs: &JsStringBuilder<D>) {
         self.extend_from_slice(rhs.as_slice());
     }
 }
 
-impl<D> AddAssign<&[D]> for JsStringBuilder<D> {
+impl<D: Copy> AddAssign<&[D]> for JsStringBuilder<D> {
     fn add_assign(&mut self, rhs: &[D]) {
         self.extend_from_slice(rhs);
     }
 }
 
-impl<D> FromIterator<D> for JsStringBuilder<D> {
+impl<D: Copy> FromIterator<D> for JsStringBuilder<D> {
     fn from_iter<T: IntoIterator<Item = D>>(iter: T) -> Self {
         let mut builder = Self::new();
         builder.extend(iter);
