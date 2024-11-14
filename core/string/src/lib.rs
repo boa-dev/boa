@@ -31,7 +31,7 @@ use crate::display::JsStrDisplayEscaped;
 use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
-    builder::{CommonJsStringBuilder, JsStringData, Latin1StringBuilder, Utf16StringBuilder},
+    builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
     common::StaticJsStrings,
     iter::Iter,
     str::{JsStr, JsStrVariant},

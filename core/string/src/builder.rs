@@ -13,31 +13,17 @@ use std::{
     str::{self},
 };
 
-#[doc(hidden)]
-mod private {
-    pub trait Sealed {}
-
-    impl Sealed for u8 {}
-    impl Sealed for u16 {}
-}
-
-/// Inner elements represented for `JsStringBuilder`.
-pub trait JsStringData: private::Sealed {}
-
-impl JsStringData for u8 {}
-impl JsStringData for u16 {}
-
 /// A mutable builder to create instance of `JsString`.
 ///
 #[derive(Debug)]
-pub struct JsStringBuilder<T: JsStringData> {
+pub struct JsStringBuilder<D> {
     cap: usize,
     len: usize,
     inner: NonNull<RawJsString>,
-    phantom_data: PhantomData<T>,
+    phantom_data: PhantomData<D>,
 }
 
-impl<D: JsStringData> Clone for JsStringBuilder<D> {
+impl<D> Clone for JsStringBuilder<D> {
     #[inline]
     #[must_use]
     fn clone(&self) -> Self {
@@ -59,13 +45,13 @@ impl<D: JsStringData> Clone for JsStringBuilder<D> {
     }
 }
 
-impl<D: JsStringData> Default for JsStringBuilder<D> {
+impl<D> Default for JsStringBuilder<D> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<D: JsStringData> JsStringBuilder<D> {
+impl<D> JsStringBuilder<D> {
     const DATA_SIZE: usize = size_of::<D>();
     const MIN_NON_ZERO_CAP: usize = 8 / Self::DATA_SIZE;
 
@@ -424,7 +410,7 @@ impl<D: JsStringData> JsStringBuilder<D> {
     }
 }
 
-impl<D: JsStringData> Drop for JsStringBuilder<D> {
+impl<D> Drop for JsStringBuilder<D> {
     /// Set cold since [`JsStringBuilder`] should be created to build `JsString`
     #[cold]
     #[inline]
@@ -444,19 +430,19 @@ impl<D: JsStringData> Drop for JsStringBuilder<D> {
     }
 }
 
-impl<D: JsStringData> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
+impl<D> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
     fn add_assign(&mut self, rhs: &JsStringBuilder<D>) {
         self.extend_from_slice(rhs.as_slice());
     }
 }
 
-impl<D: JsStringData> AddAssign<&[D]> for JsStringBuilder<D> {
+impl<D> AddAssign<&[D]> for JsStringBuilder<D> {
     fn add_assign(&mut self, rhs: &[D]) {
         self.extend_from_slice(rhs);
     }
 }
 
-impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
+impl<D> FromIterator<D> for JsStringBuilder<D> {
     fn from_iter<T: IntoIterator<Item = D>>(iter: T) -> Self {
         let mut builder = Self::new();
         builder.extend(iter);
@@ -464,7 +450,7 @@ impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
     }
 }
 
-/// **1 byte** encoded `JsStringBuilder`
+/// **`Latin1`** encoded `JsStringBuilder`
 /// # Warning
 /// If you are not sure the characters that will be added and don't want to preprocess them,
 /// use [`CommonJsStringBuilder`] instead.
@@ -478,7 +464,7 @@ impl<D: JsStringData> FromIterator<D> for JsStringBuilder<D> {
 /// s.extend([b'1', b'2', b'3']);
 /// let js_string = s.build();
 /// ```
-pub type Latin1StringBuilder = JsStringBuilder<u8>;
+pub type Latin1JsStringBuilder = JsStringBuilder<u8>;
 
 /// **2 bytes** encoded `JsStringBuilder`
 /// # Warning
@@ -494,7 +480,7 @@ pub type Latin1StringBuilder = JsStringBuilder<u8>;
 /// s.extend([0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,]); // 🎹🎶🎵
 /// let js_string = s.build();
 /// ```
-pub type Utf16StringBuilder = JsStringBuilder<u16>;
+pub type Utf16JsStringBuilder = JsStringBuilder<u16>;
 
 /// String segment to build [`JsString`]
 #[derive(Clone, Debug)]
