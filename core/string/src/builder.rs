@@ -459,8 +459,8 @@ impl<D> FromIterator<D> for JsStringBuilder<D> {
 /// ## Examples
 ///
 /// ```rust
-/// use boa_string::Latin1StringBuilder;
-/// let mut s = Latin1StringBuilder::new();
+/// use boa_string::Latin1JsStringBuilder;
+/// let mut s = Latin1JsStringBuilder::new();
 /// s.push(b'x');
 /// s.extend_from_slice(&[b'1', b'2', b'3']);
 /// s.extend([b'1', b'2', b'3']);
@@ -477,7 +477,7 @@ impl Latin1JsStringBuilder {
     /// are present, it returns `None` to avoid ambiguity in encoding.
     ///
     /// If the caller is certain that the string is encoded in `Latin1`,
-    /// [build_as_latin1](Self::build_as_latin1) can be used to avoid the `ASCII` check.
+    /// [`build_as_latin1`](Self::build_as_latin1) can be used to avoid the `ASCII` check.
     #[inline]
     #[must_use]
     pub fn build(self) -> Option<JsString> {
@@ -488,9 +488,9 @@ impl Latin1JsStringBuilder {
         }
     }
 
-    /// Builds `JsString` from `Latin1StringBuilder`, assume that the inner data is latin1 encoded
+    /// Builds `JsString` from `Latin1JsStringBuilder`, assume that the inner data is latin1 encoded
     ///
-    /// # Safety:
+    /// # Safety
     /// Caller must ensure that the string is encoded in `Latin1`.
     ///
     /// If the string contains characters outside the `Latin1` range, it may lead to encoding errors,
@@ -508,8 +508,8 @@ impl Latin1JsStringBuilder {
 /// ## Examples
 ///
 /// ```rust
-/// use boa_string::Utf16StringBuilder;
-/// let mut s = Utf16StringBuilder::new();
+/// use boa_string::Utf16JsStringBuilder;
+/// let mut s = Utf16JsStringBuilder::new();
 /// s.push(b'x' as u16);
 /// s.extend_from_slice(&[b'1', b'2', b'3'].map(u16::from));
 /// s.extend([0xD83C, 0xDFB9, 0xD83C, 0xDFB6, 0xD83C, 0xDFB5,]); // 🎹🎶🎵
@@ -518,7 +518,7 @@ impl Latin1JsStringBuilder {
 pub type Utf16JsStringBuilder = JsStringBuilder<u16>;
 
 impl Utf16JsStringBuilder {
-    /// Builds `JsString` from `Utf16StringBuilder`
+    /// Builds `JsString` from `Utf16JsStringBuilder`
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
@@ -684,7 +684,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     #[allow(clippy::cast_lossless)]
     pub fn build_from_latin1(&self) -> Option<JsString> {
         let mut builder = Latin1JsStringBuilder::new();
-        for seg in self.segments.iter() {
+        for seg in &self.segments {
             match seg {
                 Segment::String(s) => {
                     if let Some(data) = s.as_str().as_latin1() {
@@ -763,7 +763,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
 
     /// Builds `Latin1` encoded `JsString` from `CommonJsStringBuilder`, return `None` if segments can't be encoded as `Latin1`
     ///
-    /// # Safety:
+    /// # Safety
     /// Caller must ensure that the string segments can be latin1 encoded.
     ///
     /// If string segments can't be `Latin1` encoded, it may lead to encoding errors,

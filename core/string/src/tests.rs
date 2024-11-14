@@ -3,8 +3,8 @@
 use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
 use crate::{
-    CommonJsStringBuilder, JsStr, JsString, Latin1StringBuilder, StaticJsString, StaticJsStrings,
-    ToStringEscaped, Utf16StringBuilder,
+    CommonJsStringBuilder, JsStr, JsString, Latin1JsStringBuilder, StaticJsString, StaticJsStrings,
+    ToStringEscaped, Utf16JsStringBuilder,
 };
 
 use rustc_hash::FxHasher;
@@ -257,60 +257,119 @@ fn compare_static_and_dynamic_js_string() {
 }
 
 #[test]
+#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::undocumented_unsafe_blocks)]
 fn js_string_builder() {
-    let utf16 = "2024年5月21日".encode_utf16().collect::<Vec<_>>();
+    let s = "2024年5月21日";
+    let utf16 = s.encode_utf16().collect::<Vec<_>>();
     let s_utf16 = utf16.as_slice();
-    let s_utf8 = &b"Lorem ipsum dolor sit amet"[..];
+    let ascii = "Lorem ipsum dolor sit amet";
+    let s_ascii = ascii.as_bytes();
+    let latin1_as_utf8_literal = "Déjà vu";
+    let s_latin1_literal: &[u8] = &[
+        b'D', 0xE9, /* é */
+        b'j', 0xE0, /* à */
+        b' ', b'v', b'u',
+    ];
 
-    // utf8 -- test
-    let s_js_string = JsString::from(JsStr::latin1(s_utf8));
+    // latin1 builder -- test
 
-    // push
-    let mut builder = Latin1StringBuilder::new();
-    for &code in s_utf8 {
+    // push ascii
+    let mut builder = Latin1JsStringBuilder::new();
+    for &code in s_ascii {
         builder.push(code);
     }
-    let s_builder = builder.build();
-    assert_eq!(s_js_string, s_builder);
+    let s_builder = builder.build().unwrap_or_default();
+    assert_eq!(s_builder, ascii);
 
-    // from_iter
-    let s_builder = s_utf8
+    // push latin1
+    let mut builder = Latin1JsStringBuilder::new();
+    for &code in s_latin1_literal {
+        builder.push(code);
+    }
+    let s_builder = unsafe { builder.build_as_latin1() };
+    assert_eq!(
+        s_builder.to_std_string().unwrap_or_default(),
+        latin1_as_utf8_literal
+    );
+
+    // from_iter ascii
+    let s_builder = s_ascii
         .iter()
         .copied()
-        .collect::<Latin1StringBuilder>()
+        .collect::<Latin1JsStringBuilder>()
+        .build()
+        .unwrap_or_default();
+    assert_eq!(s_builder.to_std_string().unwrap_or_default(), ascii);
+
+    // from_iter latin1
+    let s_builder = unsafe {
+        s_latin1_literal
+            .iter()
+            .copied()
+            .collect::<Latin1JsStringBuilder>()
+            .build_as_latin1()
+    };
+    assert_eq!(
+        s_builder.to_std_string().unwrap_or_default(),
+        latin1_as_utf8_literal
+    );
+
+    // extend_from_slice ascii
+    let mut builder = Latin1JsStringBuilder::new();
+    builder.extend_from_slice(s_ascii);
+    let s_builder = builder.build().unwrap_or_default();
+    assert_eq!(s_builder.to_std_string().unwrap_or_default(), ascii);
+
+    // extend_from_slice latin1
+    let mut builder = Latin1JsStringBuilder::new();
+    builder.extend_from_slice(s_latin1_literal);
+    let s_builder = unsafe { builder.build_as_latin1() };
+    assert_eq!(
+        s_builder.to_std_string().unwrap_or_default(),
+        latin1_as_utf8_literal
+    );
+
+    // build from utf16 encoded string
+    let s_builder = s
+        .as_bytes()
+        .iter()
+        .copied()
+        .collect::<Latin1JsStringBuilder>()
         .build();
-    assert_eq!(s_js_string, s_builder);
+    assert_eq!(None, s_builder);
 
-    // extend_from_slice
-    let mut builder = Latin1StringBuilder::new();
-    builder.extend_from_slice(s_utf8);
-    let s_builder = builder.build();
-    assert_eq!(s_js_string, s_builder);
+    let s_builder = s_utf16
+        .iter()
+        .copied()
+        .map(|v| v as u8)
+        .collect::<Latin1JsStringBuilder>()
+        .build();
+    assert_eq!(None, s_builder);
 
-    // utf16 -- test
-    let s_js_string = JsString::from(s_utf16);
+    // utf16 builder -- test
 
     // push
-    let mut builder = Utf16StringBuilder::new();
+    let mut builder = Utf16JsStringBuilder::new();
     for &code in s_utf16 {
         builder.push(code);
     }
     let s_builder = builder.build();
-    assert_eq!(s_js_string, s_builder);
+    assert_eq!(s_builder.to_std_string().unwrap_or_default(), s);
 
     // from_iter
     let s_builder = s_utf16
         .iter()
         .copied()
-        .collect::<Utf16StringBuilder>()
+        .collect::<Utf16JsStringBuilder>()
         .build();
-    assert_eq!(s_js_string, s_builder);
+    assert_eq!(s_builder.to_std_string().unwrap_or_default(), s);
 
     // extend_from_slice
-    let mut builder = Utf16StringBuilder::new();
+    let mut builder = Utf16JsStringBuilder::new();
     builder.extend_from_slice(s_utf16);
     let s_builder = builder.build();
-    assert_eq!(s_js_string, s_builder);
+    assert_eq!(s_builder.to_std_string().unwrap_or_default(), s);
 }
 
 #[test]
@@ -319,18 +378,34 @@ fn common_js_string_builder() {
     let s_utf16 = utf16.as_slice();
     let s = "Lorem ipsum dolor sit amet";
     let js_str_utf16 = JsStr::utf16(s_utf16);
-    let js_str_latin1 = JsStr::latin1(s.as_bytes());
+    let js_str_ascii = JsStr::latin1(s.as_bytes());
+    let latin1_bytes = [
+        b'D', 0xE9, /* é */
+        b'j', 0xE0, /* à */
+        b' ', b'v', b'u',
+    ];
     let ch = '🎹';
     let mut builder = CommonJsStringBuilder::with_capacity(10);
     builder += ch;
     builder += s;
     builder += js_str_utf16;
-    builder += js_str_latin1;
+    builder += js_str_ascii;
     builder += ch;
     assert_eq!(builder.len(), 5);
+    let js_string = builder.build_from_utf16();
+    assert_eq!(
+        js_string,
+        "🎹Lorem ipsum dolor sit amet2024年5月21日Lorem ipsum dolor sit amet🎹"
+    );
+    let mut builder = CommonJsStringBuilder::new();
+    for b in latin1_bytes {
+        builder += b;
+    }
+    builder += s_utf16;
+    builder += ch;
     let js_string = builder.build();
     assert_eq!(
-        JsString::from("🎹Lorem ipsum dolor sit amet2024年5月21日Lorem ipsum dolor sit amet🎹"),
-        js_string
+        js_string.to_std_string().unwrap_or_default(),
+        "Déjà vu2024年5月21日🎹"
     );
 }
