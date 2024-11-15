@@ -268,16 +268,6 @@ impl<D: Copy> JsStringBuilder<D> {
         }
     }
 
-    /// Extends `JsStringBuilder` with the contents of an iterator.
-    #[inline]
-    pub fn extend<I: IntoIterator<Item = D>>(&mut self, iter: I) {
-        let iterator = iter.into_iter();
-        let (lower_bound, _) = iterator.size_hint();
-        let require_cap = self.len() + lower_bound;
-        self.allocate_if_needed(require_cap);
-        iterator.for_each(|c| self.push(c));
-    }
-
     /// Similar to [`Vec::reserve`]
     ///
     /// Reserves capacity for at least `additional` more elements to be inserted
@@ -441,6 +431,17 @@ impl<D: Copy> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
 impl<D: Copy> AddAssign<&[D]> for JsStringBuilder<D> {
     fn add_assign(&mut self, rhs: &[D]) {
         self.extend_from_slice(rhs);
+    }
+}
+
+impl<D: Copy> Extend<D> for JsStringBuilder<D> {
+    #[inline]
+    fn extend<I: IntoIterator<Item = D>>(&mut self, iter: I) {
+        let iterator = iter.into_iter();
+        let (lower_bound, _) = iterator.size_hint();
+        let require_cap = self.len() + lower_bound;
+        self.allocate_if_needed(require_cap);
+        iterator.for_each(|c| self.push(c));
     }
 }
 
@@ -634,6 +635,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     pub fn reserve(&mut self, additional: usize) {
         self.segments.reserve(additional);
     }
+
     /// Similar to `Vec::reserve_exact`.
     ///
     /// Reserves the minimum capacity for the inner vector.
