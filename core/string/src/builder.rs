@@ -23,28 +23,6 @@ pub struct JsStringBuilder<D: Copy> {
     phantom_data: PhantomData<D>,
 }
 
-impl<D: Copy> Clone for JsStringBuilder<D> {
-    #[inline]
-    #[must_use]
-    fn clone(&self) -> Self {
-        let mut builder = Self::with_capacity(self.capacity());
-        // SAFETY:
-        // - `inner` must be a valid pointer, since it comes from a `NonNull`
-        // allocated above with the capacity of `s`, and initialize to `s.len()` in
-        // ptr::copy_to_non_overlapping below.
-        unsafe {
-            builder
-                .inner
-                .as_ptr()
-                .cast::<u8>()
-                .copy_from_nonoverlapping(self.inner.as_ptr().cast(), self.allocated_byte_len());
-
-            builder.set_len(self.len());
-        }
-        builder
-    }
-}
-
 impl<D: Copy> Default for JsStringBuilder<D> {
     fn default() -> Self {
         Self::new()
@@ -93,12 +71,6 @@ impl<D: Copy> JsStringBuilder<D> {
     #[must_use]
     pub const fn capacity(&self) -> usize {
         self.cap
-    }
-
-    /// Returns the allocated byte of inner `RawJsString`.
-    #[must_use]
-    const fn allocated_byte_len(&self) -> usize {
-        DATA_OFFSET + self.allocated_data_byte_len()
     }
 
     /// Returns the allocated byte of inner `RawJsString`'s data.
@@ -475,6 +447,72 @@ impl<D: Copy> FromIterator<D> for JsStringBuilder<D> {
         let mut builder = Self::new();
         builder.extend(iter);
         builder
+    }
+}
+
+impl<D: Copy> From<&[D]> for JsStringBuilder<D> {
+    #[inline]
+    #[must_use]
+    fn from(value: &[D]) -> Self {
+        let mut builder = Self::with_capacity(value.len());
+        // SAFETY: The capacity is large enough to hold elements.
+        unsafe { builder.extend_from_slice_unchecked(value) };
+        builder
+    }
+}
+
+impl<D: Copy + Eq + PartialEq> PartialEq for JsStringBuilder<D> {
+    #[inline]
+    #[must_use]
+    fn eq(&self, other: &Self) -> bool {
+        self.as_slice().eq(other.as_slice())
+    }
+}
+
+impl<D: Copy> Clone for JsStringBuilder<D> {
+    #[inline]
+    #[must_use]
+    fn clone(&self) -> Self {
+        if self.is_allocated() {
+            let mut builder = Self::with_capacity(self.capacity());
+            // SAFETY: The capacity is large enough to hold elements.
+            unsafe { builder.extend_from_slice_unchecked(self.as_slice()) };
+            builder
+        } else {
+            Self::new()
+        }
+    }
+
+    /// Performs copy-assignment from `source`.
+    ///
+    /// Rewritten to avoid unnecessary allocation.
+    #[inline]
+    fn clone_from(&mut self, source: &Self) {
+        let source_len = source.len();
+
+        if source_len > self.capacity() {
+            self.allocate(source_len);
+        } else {
+            // At this point, inner `RawJsString` of self or source can be not allocated,
+            // returns earlier to avoid copying from/to `null`.
+            if source_len == 0 {
+                // SAFETY: 0 is always less or equal to self's capacity.
+                unsafe { self.set_len(0) };
+                return;
+            }
+        }
+
+        // SAFETY: self shoud be allocated after allocation.
+        let self_data = unsafe { self.data() };
+
+        // SAFETY: source_len is greter than 0 so source shoud be allocated.
+        let source_data = unsafe { source.data() };
+
+        // SAFETY: Borrow checker should not allow this to be overlapped and pointers are valid.
+        unsafe { ptr::copy_nonoverlapping(source_data, self_data, source_len) };
+
+        // SAFETY: source_len has checked to be less or equal to self's capacity.
+        unsafe { self.set_len(source_len) };
     }
 }
 

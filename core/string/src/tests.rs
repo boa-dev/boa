@@ -373,6 +373,68 @@ fn js_string_builder() {
 }
 
 #[test]
+fn clone_builder() {
+    // latin1 builder -- test
+    let origin = Latin1JsStringBuilder::from(&b"0123456789"[..]);
+    let empty_origin = Latin1JsStringBuilder::new();
+
+    // clone == origin
+    let cloned = origin.clone();
+    assert_eq!(origin, cloned);
+
+    // clone_from == origin
+    let mut cloned_from = Latin1JsStringBuilder::new();
+    cloned_from.clone_from(&origin);
+    assert_eq!(origin, cloned_from);
+
+    // clone == origin(empty)
+    let cloned = empty_origin.clone();
+    assert_eq!(empty_origin, cloned);
+
+    // clone_from == origin(empty)
+
+    cloned_from.clone_from(&empty_origin);
+    assert!(cloned_from.capacity() > 0); // Should not be reallocated so the capacity is preserved.
+    assert_eq!(empty_origin, cloned_from);
+
+    // clone_from(empty) == origin(empty)
+    let mut cloned_from = Latin1JsStringBuilder::new();
+    cloned_from.clone_from(&empty_origin);
+    assert!(cloned_from.capacity() == 0);
+    assert_eq!(empty_origin, cloned_from);
+
+    // utf16 builder -- test
+    let s = "2024年5月21日";
+
+    let origin = Utf16JsStringBuilder::from(s.encode_utf16().collect::<Vec<_>>().as_slice());
+    let empty_origin = Utf16JsStringBuilder::new();
+    // clone == origin
+    let cloned = origin.clone();
+    assert_eq!(origin, cloned);
+
+    // clone_from == origin(empty)
+    let mut cloned_from = Utf16JsStringBuilder::new();
+    cloned_from.clone_from(&origin);
+
+    assert_eq!(origin, cloned_from);
+    // clone == origin(empty)
+    let cloned = empty_origin.clone();
+    assert_eq!(empty_origin, cloned);
+
+    // clone_from == origin(empty)
+
+    cloned_from.clone_from(&empty_origin);
+    assert!(cloned_from.capacity() > 0); // should not be reallocated so the capacity is preserved.
+    assert_eq!(empty_origin, cloned_from);
+
+    // clone_from(empty) == origin(empty)
+    let mut cloned_from = Utf16JsStringBuilder::new();
+    cloned_from.clone_from(&empty_origin);
+    assert!(cloned_from.capacity() == 0);
+    assert_eq!(empty_origin, cloned_from);
+}
+
+#[test]
 fn common_js_string_builder() {
     let utf16 = "2024年5月21日".encode_utf16().collect::<Vec<_>>();
     let s_utf16 = utf16.as_slice();
