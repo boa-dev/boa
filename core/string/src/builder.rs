@@ -434,6 +434,28 @@ impl<D: Copy> AddAssign<&[D]> for JsStringBuilder<D> {
     }
 }
 
+impl<D: Copy> Add<&JsStringBuilder<D>> for JsStringBuilder<D> {
+    type Output = Self;
+
+    #[inline]
+    #[must_use]
+    fn add(mut self, rhs: &JsStringBuilder<D>) -> Self::Output {
+        self.extend_from_slice(rhs.as_slice());
+        self
+    }
+}
+
+impl<D: Copy> Add<&[D]> for JsStringBuilder<D> {
+    type Output = Self;
+
+    #[inline]
+    #[must_use]
+    fn add(mut self, rhs: &[D]) -> Self::Output {
+        self.extend_from_slice(rhs);
+        self
+    }
+}
+
 impl<D: Copy> Extend<D> for JsStringBuilder<D> {
     #[inline]
     fn extend<I: IntoIterator<Item = D>>(&mut self, iter: I) {
@@ -809,5 +831,16 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
 impl<'ref_str, T: Into<Segment<'ref_str>>> AddAssign<T> for CommonJsStringBuilder<'ref_str> {
     fn add_assign(&mut self, rhs: T) {
         self.push(rhs);
+    }
+}
+
+impl<'ref_str, T: Into<Segment<'ref_str>>> Add<T> for CommonJsStringBuilder<'ref_str> {
+    type Output = Self;
+
+    #[inline]
+    #[must_use]
+    fn add(mut self, rhs: T) -> Self::Output {
+        self.push(rhs);
+        self
     }
 }
