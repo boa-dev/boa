@@ -702,7 +702,13 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
                         return None;
                     }
                 }
-                Segment::Latin1(b) => builder.push(*b),
+                Segment::Latin1(b) => {
+                    if *b <= 0x7f {
+                        builder.push(*b);
+                    } else {
+                        return None;
+                    }
+                }
                 Segment::CodePoint(ch) => {
                     if let Ok(b) = u8::try_from(*ch as u32) {
                         builder.push(b);
