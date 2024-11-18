@@ -322,7 +322,7 @@ impl<D: Copy> JsStringBuilder<D> {
         data.is_ascii()
     }
 
-    /// Extracts a slice containing the elements in the inner.
+    /// Extracts a slice containing the elements in the inner `RawJsString`.
     #[inline]
     #[must_use]
     pub fn as_slice(&self) -> &[D] {
@@ -332,6 +332,23 @@ impl<D: Copy> JsStringBuilder<D> {
             unsafe { std::slice::from_raw_parts(self.data(), self.len()) }
         } else {
             &[]
+        }
+    }
+
+    /// Extracts a mutable slice containing the elements in the inner `RawJsString`.
+    ///
+    /// # Safety
+    /// The caller must ensure that the content of the slice is valid encoding before the borrow ends.
+    /// Use of a builder whose contents are not valid encoding is undefined behavior.
+    #[inline]
+    #[must_use]
+    pub unsafe fn as_mut_slice(&mut self) -> &mut [D] {
+        if self.is_allocated() {
+            // SAFETY:
+            // The inner `RawJsString` is allocated which means it is not null.
+            unsafe { std::slice::from_raw_parts_mut(self.data(), self.len()) }
+        } else {
+            &mut []
         }
     }
 
