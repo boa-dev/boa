@@ -8,7 +8,7 @@ use std::{
     cell::Cell,
     marker::PhantomData,
     mem::ManuallyDrop,
-    ops::AddAssign,
+    ops::{Add, AddAssign},
     ptr::{self, addr_of_mut, NonNull},
     str::{self},
 };
@@ -423,12 +423,14 @@ impl<D: Copy> Drop for JsStringBuilder<D> {
 }
 
 impl<D: Copy> AddAssign<&JsStringBuilder<D>> for JsStringBuilder<D> {
+    #[inline]
     fn add_assign(&mut self, rhs: &JsStringBuilder<D>) {
         self.extend_from_slice(rhs.as_slice());
     }
 }
 
 impl<D: Copy> AddAssign<&[D]> for JsStringBuilder<D> {
+    #[inline]
     fn add_assign(&mut self, rhs: &[D]) {
         self.extend_from_slice(rhs);
     }
@@ -468,6 +470,7 @@ impl<D: Copy> Extend<D> for JsStringBuilder<D> {
 }
 
 impl<D: Copy> FromIterator<D> for JsStringBuilder<D> {
+    #[inline]
     fn from_iter<T: IntoIterator<Item = D>>(iter: T) -> Self {
         let mut builder = Self::new();
         builder.extend(iter);
@@ -511,7 +514,7 @@ impl Latin1JsStringBuilder {
         }
     }
 
-    /// Builds `JsString` from `Latin1JsStringBuilder`, assume that the inner data is latin1 encoded
+    /// Builds `JsString` from `Latin1JsStringBuilder`, assume that the inner data is `Latin1` encoded
     ///
     /// # Safety
     /// Caller must ensure that the string is encoded in `Latin1`.
@@ -580,42 +583,49 @@ impl Segment<'_> {
 }
 
 impl From<JsString> for Segment<'_> {
+    #[inline]
     fn from(value: JsString) -> Self {
         Self::String(value)
     }
 }
 
 impl From<String> for Segment<'_> {
+    #[inline]
     fn from(value: String) -> Self {
         Self::String(value.into())
     }
 }
 
 impl From<&[u16]> for Segment<'_> {
+    #[inline]
     fn from(value: &[u16]) -> Self {
         Self::String(value.into())
     }
 }
 
 impl From<&str> for Segment<'_> {
+    #[inline]
     fn from(value: &str) -> Self {
         Self::String(value.into())
     }
 }
 
 impl<'seg, 'ref_str: 'seg> From<JsStr<'ref_str>> for Segment<'seg> {
+    #[inline]
     fn from(value: JsStr<'ref_str>) -> Self {
         Self::Str(value)
     }
 }
 
 impl From<u8> for Segment<'_> {
+    #[inline]
     fn from(value: u8) -> Self {
         Self::Latin1(value)
     }
 }
 
 impl From<char> for Segment<'_> {
+    #[inline]
     fn from(value: char) -> Self {
         Self::CodePoint(value)
     }
@@ -672,7 +682,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.segments.push(seg.into());
     }
 
-    /// Checks if all string segments contains only `Ascii` bytes.
+    /// Checks if all string segments contains only `ASCII` bytes.
     #[inline]
     #[must_use]
     pub fn is_ascii(&self) -> bool {
@@ -693,14 +703,17 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         self.len() == 0
     }
 
-    /// Constructs a `JsString` encoded in `Latin1` from a collection of string segments.
+    /// Builds `Latin1` encoded `JsString` from string segments.
+    ///
+    /// This doesn't consume the builder itself because it may fails to build
+    /// and the caller may wants to keep the builder for further operations.
     ///
     /// This processes the following types of segments:
     ///
     /// - `Segment::String(s)`: Encodes the string if it can be represented in `Latin1`.
     /// - `Segment::Str(s)`: Encodes the string slice if it can be represented in `Latin1`.
-    /// - `Segment::Latin1(b)`: Directly adds the byte to the builder.
-    /// - `Segment::CodePoint(ch)`: Converts the code point to a byte if it's within the `ASCII` range.
+    /// - `Segment::Latin1(b)`: Encodes the byte if it's within the `ASCII` range.
+    /// - `Segment::CodePoint(ch)`: Encodes the code point by converting it to a byte if it's within the `ASCII` range.
     ///
     /// Return `None` if any segment fails to encode.
     #[inline]
@@ -743,7 +756,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
         builder.build()
     }
 
-    /// Builds `Utf16` encoded `JsString` from string segments.
+    /// Builds `Utf-16` encoded `JsString` from string segments.
     #[inline]
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
@@ -776,7 +789,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     /// This function first checks if the instance is empty:
     /// - If it is empty, it returns the default `JsString`.
     /// - If it contains only ASCII characters, it safely encodes it as `Latin1`.
-    /// - If it contains non-ASCII characters, it falls back to encoding using UTF-16.
+    /// - If it contains non-ASCII characters, it falls back to encoding using `UTF-16`.
     #[inline]
     #[must_use]
     pub fn build(self) -> JsString {
@@ -794,7 +807,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
     /// Builds `Latin1` encoded `JsString` from `CommonJsStringBuilder`, return `None` if segments can't be encoded as `Latin1`
     ///
     /// # Safety
-    /// Caller must ensure that the string segments can be latin1 encoded.
+    /// Caller must ensure that the string segments can be `Latin1` encoded.
     ///
     /// If string segments can't be `Latin1` encoded, it may lead to encoding errors,
     /// resulting in an incorrect or malformed `JsString`. This could cause undefined behavior
@@ -829,6 +842,7 @@ impl<'seg, 'ref_str: 'seg> CommonJsStringBuilder<'seg> {
 }
 
 impl<'ref_str, T: Into<Segment<'ref_str>>> AddAssign<T> for CommonJsStringBuilder<'ref_str> {
+    #[inline]
     fn add_assign(&mut self, rhs: T) {
         self.push(rhs);
     }
