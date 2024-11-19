@@ -30,7 +30,7 @@ pub(super) struct RegexLiteral {
 }
 
 impl RegexLiteral {
-    /// `init_with_eq`
+    /// `init_with_eq` is '=' after `/` already consumed?
     pub(super) fn new(init_with_eq: bool) -> Self {
         Self { init_with_eq }
     }
