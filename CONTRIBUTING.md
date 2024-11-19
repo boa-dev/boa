@@ -62,9 +62,6 @@ There are some pre-defined tasks in [tasks.json](.vscode/tasks.json)
 - Test - (there is no shortcut, you'll need to make one) - Runs `Cargo Test`.
   I personally set a shortcut of shift+cmd+option+T (or shift+ctrl+alt+T)
 
-If you don't want to install everything on your machine, you can use the Dockerfile.
-Start VSCode in container mode (you may need the docker container plugin) and use the Dockerfile.
-
 ## Testing
 
 Boa provides its own test suite, and can also run the official ECMAScript test suite. To run the Boa test
