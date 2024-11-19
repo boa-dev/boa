@@ -36,3 +36,12 @@ fn class_field_initializer_name() {
         TestAction::assert_eq("c.c.name", js_str!("#c")),
     ]);
 }
+
+#[test]
+fn class_superclass_from_regex_error() {
+    run_test_actions([TestAction::assert_native_error(
+        "class A extends /=/ {}",
+        crate::JsNativeErrorKind::Type,
+        "superclass must be a constructor",
+    )]);
+}
