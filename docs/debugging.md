@@ -110,8 +110,7 @@ more information [here][blog_debugging].
 
 ### LLDB Manual debugging
 
-You can also use rust-lldb. The `Dockerfile` already has this enabled, you
-should be able to use that environment to run your code.
+You can also use rust-lldb. You should be able to use that environment to run your code.
 
 ```
 rust-lldb ./target/debug/boa [arguments]
