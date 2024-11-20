@@ -144,15 +144,19 @@ impl<R> Lexer<R> {
                     self.cursor.next_char()?.expect("* token vanished"); // Consume the '*'
                     MultiLineComment.lex(&mut self.cursor, start, interner)
                 }
-                (ch, _) => {
+                (ch, init_with_eq) => {
                     match self.get_goal() {
                         InputElement::Div | InputElement::TemplateTail => {
                             // Only div punctuator allowed, regex not.
 
                             // =
-                            if ch == 0x003D {
-                                // Indicates this is an AssignDiv.
-                                self.cursor.next_char()?.expect("= token vanished"); // Consume the '='
+                            if init_with_eq || ch == 0x003D {
+                                // if `=` is not consumed, consume it
+                                if !init_with_eq {
+                                    // Indicates this is an AssignDiv.
+                                    // Consume the '='
+                                    self.cursor.next_char()?.expect("= token vanished");
+                                }
                                 Ok(Token::new(
                                     Punctuator::AssignDiv.into(),
                                     Span::new(start, self.cursor.pos()),
