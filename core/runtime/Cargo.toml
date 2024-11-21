@@ -18,7 +18,9 @@ rustc-hash = { workspace = true, features = ["std"] }
 url = { version = "2.5.3", optional = true }
 
 [dev-dependencies]
+boa_interop.workspace = true
 indoc.workspace = true
+rstest.workspace = true
 textwrap.workspace = true
 
 [lints]
@@ -30,3 +32,10 @@ all-features = true
 [features]
 default = ["all"]
 all = ["url"]
+wpt-tests = []
+# This feature is used to disable compiling the WPT tests in the CI
+# when using `--all-features`. If this feature is enabled, we disable
+# the compilation of the WPT tests (since they will panic).
+# Clippy will be disabled for those methods as well, but they're one
+# line long.
+wpt-tests-do-not-use = []

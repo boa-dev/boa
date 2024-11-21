@@ -36,6 +36,14 @@ impl Url {
         Ok(())
     }
 
+    /// Create a new `URL` object from a `url::Url`.
+    ///
+    /// # Errors
+    /// Any errors that might occur during URL parsing.
+    pub fn new<T: TryInto<url::Url>>(url: T) -> Result<Self, T::Error> {
+        url.try_into().map(Self)
+    }
+
     /// Create a new `URL` object. Meant to be called from the JavaScript constructor.
     ///
     /// # Errors

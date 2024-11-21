@@ -1,6 +1,6 @@
 use super::{formatter, Console, ConsoleState};
 use crate::test::{run_test_actions, run_test_actions_with, TestAction};
-use crate::Logger;
+use crate::{Logger, NullLogger};
 use boa_engine::{js_string, property::Attribute, Context, JsError, JsResult, JsValue};
 use boa_gc::{Gc, GcRefCell};
 use indoc::indoc;
@@ -97,7 +97,7 @@ fn formatter_float_format_works() {
 #[test]
 fn console_log_cyclic() {
     let mut context = Context::default();
-    let console = Console::init(&mut context);
+    let console = Console::init_with_logger(&mut context, NullLogger);
     context
         .register_global_property(Console::NAME, console, Attribute::all())
         .unwrap();
