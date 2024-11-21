@@ -80,16 +80,16 @@ impl HostDefined {
             .and_then(<dyn NativeObject>::downcast_mut::<T>)
     }
 
-    /// Get type a tuple of types from [`HostDefined`], if they exist.
+    /// Get a tuple of types from [`HostDefined`], returning `None` for the types that are not on the map.
     #[track_caller]
-    pub fn get_many_mut<T, const SIZE: usize>(&mut self) -> Option<T::NativeTupleMutRef<'_>>
+    pub fn get_many_mut<T, const SIZE: usize>(&mut self) -> T::NativeTupleMutRef<'_>
     where
         T: NativeTuple<SIZE>,
     {
         let ids = T::as_type_ids();
         let refs: [&TypeId; SIZE] = std::array::from_fn(|i| &ids[i]);
 
-        self.types.get_many_mut(refs).and_then(T::mut_ref_from_anys)
+        T::mut_ref_from_anys(self.types.get_many_mut(refs))
     }
 
     /// Clears all the objects.
@@ -109,27 +109,27 @@ pub trait NativeTuple<const SIZE: usize> {
     fn as_type_ids() -> [TypeId; SIZE];
 
     fn mut_ref_from_anys(
-        anys: [&'_ mut Box<dyn NativeObject>; SIZE],
-    ) -> Option<Self::NativeTupleMutRef<'_>>;
+        anys: [Option<&'_ mut Box<dyn NativeObject>>; SIZE],
+    ) -> Self::NativeTupleMutRef<'_>;
 }
 
 macro_rules! impl_native_tuple {
     ($size:literal $(,$name:ident)* ) => {
         impl<$($name: NativeObject,)*> NativeTuple<$size> for ($($name,)*) {
-            type NativeTupleMutRef<'a> = ($(&'a mut $name,)*);
+            type NativeTupleMutRef<'a> = ($(Option<&'a mut $name>,)*);
 
             fn as_type_ids() -> [TypeId; $size] {
                 [$(TypeId::of::<$name>(),)*]
             }
 
+            #[allow(unused_variables, unused_mut, clippy::unused_unit)]
             fn mut_ref_from_anys(
-                anys: [&'_ mut Box<dyn NativeObject>; $size],
-            ) -> Option<Self::NativeTupleMutRef<'_>> {
-                #[allow(unused_variables, unused_mut)]
+                anys: [Option<&'_ mut Box<dyn NativeObject>>; $size],
+            ) -> Self::NativeTupleMutRef<'_> {
                 let mut anys = anys.into_iter();
-                Some(($(
-                    anys.next().expect("Expect `anys` to be of length `SIZE`").downcast_mut::<$name>()?,
-                )*))
+                ($(
+                    anys.next().flatten().and_then(|v| v.downcast_mut::<$name>()),
+                )*)
             }
         }
     }
