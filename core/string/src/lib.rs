@@ -16,6 +16,7 @@
 #![allow(unstable_name_collisions)]
 #![allow(clippy::module_name_repetitions)]
 
+mod builder;
 mod common;
 mod display;
 mod iter;
@@ -30,6 +31,7 @@ use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy};
 use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
+    builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
     common::StaticJsStrings,
     iter::Iter,
     str::{JsStr, JsStrVariant},
