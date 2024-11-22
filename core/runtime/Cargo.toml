@@ -15,7 +15,7 @@ boa_engine.workspace = true
 boa_gc.workspace = true
 boa_interop.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
-url = { version = "2.5.3", optional = true }
+url = { workspace = true, optional = true }
 
 [dev-dependencies]
 indoc.workspace = true
@@ -30,3 +30,4 @@ all-features = true
 [features]
 default = ["all"]
 all = ["url"]
+url = ["dep:url"]
