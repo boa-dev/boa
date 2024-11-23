@@ -717,7 +717,7 @@ impl JsString {
             return value;
         }
 
-        fast_float::parse(string).unwrap_or(f64::NAN)
+        fast_float2::parse(string).unwrap_or(f64::NAN)
     }
 
     /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.

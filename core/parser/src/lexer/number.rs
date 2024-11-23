@@ -402,7 +402,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
             // casting precisely to check if the float doesn't lose info on truncation
             #[allow(clippy::cast_possible_truncation)]
             NumericKind::Rational /* base: 10 */ => {
-                let val: f64 = fast_float::parse(num_str).expect("Failed to parse float after checks");
+                let val: f64 = fast_float2::parse(num_str).expect("Failed to parse float after checks");
                 let int_val = val as i32;
 
                 // The truncated float should be identically to the non-truncated float for the conversion to be loss-less,
