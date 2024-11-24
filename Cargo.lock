@@ -365,7 +365,7 @@ dependencies = [
  "criterion",
  "dashmap",
  "either",
- "fast-float",
+ "fast-float2",
  "fixed_decimal",
  "float-cmp",
  "futures-lite 2.5.0",
@@ -518,7 +518,7 @@ dependencies = [
  "boa_interner",
  "boa_macros",
  "boa_profiler",
- "fast-float",
+ "fast-float2",
  "icu_properties",
  "num-bigint",
  "num-traits",
@@ -552,7 +552,7 @@ dependencies = [
 name = "boa_string"
 version = "0.19.0"
 dependencies = [
- "fast-float",
+ "fast-float2",
  "paste",
  "rustc-hash 2.0.0",
  "sptr",
@@ -1231,10 +1231,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "fast-float"
-version = "0.2.0"
+name = "fast-float2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95765f67b4b18863968b4a1bd5bb576f732b29a4a28c7cd84c09fa3e2875f33c"
+checksum = "f8eb564c5c7423d25c886fb561d1e4ee69f72354d16918afa32c08811f6b6a55"
 
 [[package]]
 name = "fastrand"

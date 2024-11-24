@@ -50,7 +50,7 @@ arbitrary = "1"
 bitflags = "2.5.0"
 clap = "4.5.21"
 colored = "2.1.0"
-fast-float = "0.2.0"
+fast-float2 = "0.2.3"
 hashbrown = "0.15.1"
 indexmap = { version = "2.6.0", default-features = false }
 indoc = "2.0.5"
