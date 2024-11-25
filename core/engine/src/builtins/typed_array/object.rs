@@ -3,7 +3,7 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
-    builtins::{array_buffer::BufferObject, Number},
+    builtins::array_buffer::BufferObject,
     object::{
         internal_methods::{
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,

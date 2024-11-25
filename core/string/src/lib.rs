@@ -1097,6 +1097,7 @@ macro_rules! impl_from_number_for_js_string {
         $(
             $(
                 impl From<$ty> for JsString {
+                    #[inline]
                     fn from(value: $ty) -> Self {
                         JsString::from_slice_skip_interning(JsStr::latin1(
                             $module::Buffer::new().format(value).as_bytes(),

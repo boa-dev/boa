@@ -193,12 +193,8 @@ impl Json {
                 for i in 0..len {
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
-                    let new_element = Self::internalize_json_property(
-                        obj,
-                        i.into(),
-                        reviver,
-                        context,
-                    )?;
+                    let new_element =
+                        Self::internalize_json_property(obj, i.into(), reviver, context)?;
 
                     // 3. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -750,8 +746,7 @@ impl Json {
         // 8. Repeat, while index < len,
         while index < len {
             // a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).
-            let str_p =
-                Self::serialize_json_property(state, index.into(), value, context)?;
+            let str_p = Self::serialize_json_property(state, index.into(), value, context)?;
 
             // b. If strP is undefined, then
             if let Some(str_p) = str_p {
