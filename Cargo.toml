@@ -54,6 +54,7 @@ fast-float2 = "0.2.3"
 hashbrown = "0.15.1"
 indexmap = { version = "2.6.0", default-features = false }
 indoc = "2.0.5"
+itoa = "1.0.13"
 jemallocator = "0.5.4"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"

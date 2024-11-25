@@ -1092,6 +1092,27 @@ impl std::fmt::Debug for JsString {
 
 impl Eq for JsString {}
 
+macro_rules! impl_from_number_for_js_string {
+    ($($module: ident => $($ty:ty),+)+) => {
+        $(
+            $(
+                impl From<$ty> for JsString {
+                    fn from(value: $ty) -> Self {
+                        JsString::from_slice_skip_interning(JsStr::latin1(
+                            $module::Buffer::new().format(value).as_bytes(),
+                        ))
+                    }
+                }
+            )+
+        )+
+    };
+}
+
+impl_from_number_for_js_string!(
+    itoa => i8, i16, i32, i64, i128, u8, u16, u32, u64, u128, isize, usize
+    ryu_js => f32, f64
+);
+
 impl From<&[u16]> for JsString {
     #[inline]
     fn from(s: &[u16]) -> Self {
