@@ -51,7 +51,7 @@ bitflags = "2.5.0"
 clap = "4.5.21"
 colored = "2.1.0"
 fast-float2 = "0.2.3"
-hashbrown = "0.15.1"
+hashbrown = "0.15.2"
 indexmap = { version = "2.6.0", default-features = false }
 indoc = "2.0.5"
 jemallocator = "0.5.4"
@@ -104,7 +104,7 @@ thiserror = { version = "2.0.3", default-features = false }
 dashmap = "6.1.0"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
-portable-atomic = "1.9.0"
+portable-atomic = "1.10.0"
 bytemuck = { version = "1.19.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
@@ -118,7 +118,7 @@ float-cmp = "0.10.0"
 futures-lite = "2.5.0"
 test-case = "3.3.1"
 winapi = { version = "0.3.9", default-features = false }
-url = "2.5.3"
+url = "2.5.4"
 
 # ICU4X
 
@@ -139,8 +139,8 @@ icu_properties = { version = "~1.5.0", default-features = true }
 icu_normalizer = { version = "~1.5.0", default-features = false }
 icu_decimal = { version = "~1.5.0", default-features = false }
 writeable = "~0.5.5"
-yoke = "~0.7.4"
-zerofrom = "~0.1.4"
+yoke = "~0.7.5"
+zerofrom = "~0.1.5"
 fixed_decimal = "~0.5.6"
 
 [workspace.metadata.workspaces]
