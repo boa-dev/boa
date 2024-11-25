@@ -810,11 +810,6 @@ pub(crate) fn create_temporal_date(
     // 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
     let inner = InnerDate::try_new(iso_year, iso_month, iso_day, calendar_slot)?;
-    // if !DateTime::validate(&inner) {
-    //     return Err(JsNativeError::range()
-    //         .with_message("Date is not within ISO date time limits.")
-    //         .into());
-    // }
 
     // 3. If newTarget is not present, set newTarget to %Temporal.PlainDate%.
     let new_target = if let Some(new_target) = new_target {
