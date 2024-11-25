@@ -308,8 +308,7 @@ impl Number {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this)?;
-        let this_str_num = this_num.to_string();
-        Ok(JsValue::new(js_string!(this_str_num)))
+        Ok(JsValue::new(js_string!(this_num)))
     }
 
     /// `flt_str_to_exp` - used in `to_precision`
