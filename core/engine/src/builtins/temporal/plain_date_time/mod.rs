@@ -13,6 +13,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+    value::IntoOrUndefined,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -542,7 +543,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.week_of_year()?.into())
+        Ok(dt.inner.week_of_year()?.into_or_undefined())
     }
 
     /// 5.3.17 get `Temporal.PlainDatedt.prototype.yearOfWeek`

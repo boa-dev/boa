@@ -14,6 +14,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+    value::IntoOrUndefined,
     Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
     JsValue,
 };
@@ -372,7 +373,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.week_of_year()?.into())
+        Ok(date.inner.week_of_year()?.into_or_undefined())
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.yearOfWeek`
@@ -987,15 +988,6 @@ pub(crate) fn to_partial_date_record(
         era,
         era_year,
     })
-}
-
-impl From<Option<u16>> for JsValue {
-    fn from(value: Option<u16>) -> Self {
-        match value {
-            Some(v) => v.into(),
-            None => JsValue::undefined(),
-        }
-    }
 }
 
 impl From<Option<i32>> for JsValue {

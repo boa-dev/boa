@@ -3330,7 +3330,7 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.3"
-source = "git+https://github.com/boa-dev/temporal.git?rev=345ad548db498a5fe596ebebfc7f0ea6214fb079#345ad548db498a5fe596ebebfc7f0ea6214fb079"
+source = "git+https://github.com/boa-dev/temporal.git?rev=454d1a8f5147643ff8838aea9c02df6fb4e661db#454d1a8f5147643ff8838aea9c02df6fb4e661db"
 dependencies = [
  "bitflags 2.6.0",
  "iana-time-zone",
