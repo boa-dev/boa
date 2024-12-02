@@ -55,8 +55,6 @@ pub const CONSTRUCTOR: JsString = js_string!("constructor");
 /// Const `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub const PROTOTYPE: JsString = js_string!("prototype");
 
-/// Common field names.
-
 /// A type alias for an object prototype.
 ///
 /// A `None` values means that the prototype is the `null` value.

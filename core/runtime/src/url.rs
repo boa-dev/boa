@@ -40,7 +40,7 @@ impl Url {
     ///
     /// # Errors
     /// Any errors that might occur during URL parsing.
-    fn js_new(Convert(ref url): Convert<String>, base: &Option<Convert<String>>) -> JsResult<Self> {
+    fn js_new(Convert(ref url): Convert<String>, base: Option<&Convert<String>>) -> JsResult<Self> {
         if let Some(Convert(base)) = base {
             let base_url = url::Url::parse(base)
                 .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
@@ -194,7 +194,7 @@ js_class! {
         }
 
         constructor(url: Convert<String>, base: Option<Convert<String>>) {
-            Self::js_new(url, &base)
+            Self::js_new(url, base.as_ref())
         }
 
         init(class: &mut ClassBuilder) -> JsResult<()> {
@@ -203,11 +203,11 @@ js_class! {
                 })
                 .into_js_function_copied(class.context());
             let can_parse = (|url: Convert<String>, base: Option<Convert<String>>| {
-                    Url::js_new(url, &base).is_ok()
+                    Url::js_new(url, base.as_ref()).is_ok()
                 })
                 .into_js_function_copied(class.context());
             let parse = (|url: Convert<String>, base: Option<Convert<String>>, context: &mut Context| {
-                    Url::js_new(url, &base)
+                    Url::js_new(url, base.as_ref())
                         .map_or(Ok(JsValue::null()), |u| Url::from_data(u, context).map(JsValue::from))
                 })
                 .into_js_function_copied(class.context());

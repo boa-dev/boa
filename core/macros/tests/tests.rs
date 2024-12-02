@@ -1,3 +1,5 @@
+//! Tests for the macros in this crate.
+
 #![allow(unused_crate_dependencies)]
 
 use boa_macros::utf16;

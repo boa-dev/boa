@@ -1,3 +1,5 @@
+//! Tests for the `TryFromJs` derive macro.
+
 #![allow(unused_crate_dependencies)]
 
 #[test]

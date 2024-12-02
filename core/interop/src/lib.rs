@@ -473,7 +473,7 @@ mod into_js_function_impls;
 
 #[test]
 #[allow(clippy::missing_panics_doc)]
-pub fn into_js_module() {
+fn into_js_module() {
     use boa_engine::{js_string, JsValue, Source};
     use boa_gc::{Gc, GcRefCell};
     use std::cell::RefCell;
