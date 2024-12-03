@@ -22,9 +22,8 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, CalendarName},
     partial::PartialDate,
-    PlainDateTime, PlainMonthDay as InnerMonthDay,
+    PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
-use tinystr::TinyAsciiStr;
 
 use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
 
