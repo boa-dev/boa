@@ -1,7 +1,7 @@
 use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
 use boa_macros::js_str;
 use indoc::indoc;
-use time::{macros::format_description, util::local_offset, OffsetDateTime};
+use time::{macros::format_description, OffsetDateTime};
 
 // NOTE: Javascript Uses 0-based months, where time uses 1-based months.
 // Many of the assertions look wrong because of this.
@@ -33,13 +33,6 @@ fn from_local(
     second: u8,
     millisecond: u16,
 ) -> OffsetDateTime {
-    // Safety: This is needed during tests because cargo is running tests in multiple threads.
-    // It is safe because tests do not modify the environment.
-    #[cfg(test)]
-    unsafe {
-        local_offset::set_soundness(local_offset::Soundness::Unsound);
-    }
-
     let t = time::Date::from_calendar_date(year, month_from_u8(month), date)
         .unwrap()
         .with_hms_milli(hour, minute, second, millisecond)
