@@ -579,7 +579,6 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "serde_yaml",
- "time",
  "toml 0.8.19",
 ]
 
