@@ -155,7 +155,6 @@ impl IteratorPrototypes {
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-
 pub(crate) struct Iterator;
 
 impl IntrinsicObject for Iterator {

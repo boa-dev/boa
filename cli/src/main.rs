@@ -135,24 +135,23 @@ impl Opt {
     }
 }
 
+/// The different types of format available for dumping.
 #[derive(Debug, Copy, Clone, Default, ValueEnum)]
 enum DumpFormat {
-    /// The different types of format available for dumping.
     // NOTE: This can easily support other formats just by
     // adding a field to this enum and adding the necessary
     // implementation. Example: Toml, Html, etc.
     //
     // NOTE: The fields of this enum are not doc comments because
     // arg_enum! macro does not support it.
-
-    // This is the default format that you get from std::fmt::Debug.
+    /// This is the default format that you get from `std::fmt::Debug`.
     #[default]
     Debug,
 
-    // This is a minified json format.
+    /// This is a minified json format.
     Json,
 
-    // This is a pretty printed json format.
+    /// This is a pretty printed json format.
     JsonPretty,
 }
 
