@@ -3,7 +3,11 @@
 //! Scopes are used to track the bindings of identifiers in the AST.
 
 use boa_string::JsString;
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    fmt::Debug,
+    rc::Rc,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 #[allow(clippy::struct_excessive_bools)]
@@ -52,7 +56,7 @@ impl<'a> arbitrary::Arbitrary<'a> for Scope {
 pub(crate) struct Inner {
     unique_id: u32,
     outer: Option<Scope>,
-    index: RefCell<u32>,
+    index: Cell<u32>,
     bindings: RefCell<Vec<Binding>>,
     function: bool,
 }
@@ -65,7 +69,7 @@ impl Scope {
             inner: Rc::new(Inner {
                 unique_id: 0,
                 outer: None,
-                index: RefCell::default(),
+                index: Cell::default(),
                 bindings: RefCell::default(),
                 function: true,
             }),
@@ -75,12 +79,12 @@ impl Scope {
     /// Creates a new scope.
     #[must_use]
     pub fn new(parent: Self, function: bool) -> Self {
-        let index = *parent.inner.index.borrow() + 1;
+        let index = parent.inner.index.get() + 1;
         Self {
             inner: Rc::new(Inner {
                 unique_id: index,
                 outer: Some(parent),
-                index: RefCell::new(index),
+                index: Cell::new(index),
                 bindings: RefCell::default(),
                 function,
             }),
@@ -130,7 +134,7 @@ impl Scope {
             IdentifierReference::new(
                 BindingLocator::declarative(
                     name,
-                    *self.inner.index.borrow(),
+                    self.inner.index.get(),
                     binding.index,
                     self.inner.unique_id,
                 ),
@@ -180,12 +184,12 @@ impl Scope {
     /// Returns the index of this scope.
     #[must_use]
     pub fn scope_index(&self) -> u32 {
-        *self.inner.index.borrow()
+        self.inner.index.get()
     }
 
     /// Set the index of this scope.
     pub(crate) fn set_index(&self, index: u32) {
-        *self.inner.index.borrow_mut() = index;
+        self.inner.index.set(index);
     }
 
     /// Check if the scope is a function scope.
@@ -211,7 +215,7 @@ impl Scope {
             .map(|binding| {
                 BindingLocator::declarative(
                     name.clone(),
-                    *self.inner.index.borrow(),
+                    self.inner.index.get(),
                     binding.index,
                     self.inner.unique_id,
                 )
@@ -230,7 +234,7 @@ impl Scope {
                 IdentifierReference::new(
                     BindingLocator::declarative(
                         name.clone(),
-                        *self.inner.index.borrow(),
+                        self.inner.index.get(),
                         binding.index,
                         self.inner.unique_id,
                     ),
@@ -280,7 +284,7 @@ impl Scope {
         if let Some(binding) = bindings.iter().find(|b| b.name == name) {
             return BindingLocator::declarative(
                 name,
-                *self.inner.index.borrow(),
+                self.inner.index.get(),
                 binding.index,
                 self.inner.unique_id,
             );
@@ -295,7 +299,7 @@ impl Scope {
         });
         BindingLocator::declarative(
             name,
-            *self.inner.index.borrow(),
+            self.inner.index.get(),
             binding_index,
             self.inner.unique_id,
         )
@@ -332,7 +336,7 @@ impl Scope {
                 Some(binding) if binding.mutable => IdentifierReference::new(
                     BindingLocator::declarative(
                         name,
-                        *self.inner.index.borrow(),
+                        self.inner.index.get(),
                         binding.index,
                         self.inner.unique_id,
                     ),
@@ -384,7 +388,7 @@ impl Scope {
                 Some(binding) if binding.mutable => IdentifierReference::new(
                     BindingLocator::declarative(
                         name,
-                        *self.inner.index.borrow(),
+                        self.inner.index.get(),
                         binding.index,
                         self.inner.unique_id,
                     ),
