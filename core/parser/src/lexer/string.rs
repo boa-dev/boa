@@ -2,7 +2,7 @@
 
 use crate::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
-use boa_ast::{Position, Span};
+use boa_ast::{LinearSpan, Position, PositionGroup, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::{self, ErrorKind};
@@ -79,7 +79,7 @@ impl<R> Tokenizer<R> for StringLiteral {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -87,12 +87,17 @@ impl<R> Tokenizer<R> for StringLiteral {
     {
         let _timer = Profiler::global().start_event("StringLiteral", "Lexing");
 
-        let (lit, span, escape_sequence) =
-            Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict())?;
+        let (lit, span, escape_sequence) = Self::take_string_characters(
+            cursor,
+            start_pos.position(),
+            self.terminator,
+            cursor.strict(),
+        )?;
 
         Ok(Token::new(
             TokenKind::string_literal(interner.get_or_intern(&lit[..]), escape_sequence),
             span,
+            LinearSpan::new(start_pos.linear_position(), cursor.linear_pos()),
         ))
     }
 }

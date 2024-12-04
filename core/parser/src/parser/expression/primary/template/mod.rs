@@ -15,7 +15,7 @@ use crate::{
 };
 use boa_ast::{
     expression::literal::{self, TemplateElement},
-    Position, Punctuator,
+    PositionGroup, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -32,13 +32,18 @@ use boa_profiler::Profiler;
 pub(super) struct TemplateLiteral {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    start: Position,
+    start: PositionGroup,
     first: Sym,
 }
 
 impl TemplateLiteral {
     /// Creates a new `TemplateLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, start: Position, first: Sym) -> Self
+    pub(super) fn new<Y, A>(
+        allow_yield: Y,
+        allow_await: A,
+        start: PositionGroup,
+        first: Sym,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

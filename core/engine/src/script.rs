@@ -20,6 +20,7 @@ use crate::{
     bytecompiler::{global_declaration_instantiation_context, ByteCompiler},
     js_string,
     realm::Realm,
+    spanned_source_text::SourceTextInner,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module,
 };
@@ -47,6 +48,7 @@ struct Inner {
     realm: Realm,
     #[unsafe_ignore_trace]
     source: boa_ast::Script,
+    source_text: Option<Gc<SourceTextInner>>,
     codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: HostDefined,
@@ -96,10 +98,13 @@ impl Script {
             context.optimize_statement_list(code.statements_mut());
         }
 
+        let source_text_inner = SourceTextInner::new(&mut code);
+
         Ok(Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
                 source: code,
+                source_text: source_text_inner,
                 codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_defined: HostDefined::default(),
@@ -140,6 +145,7 @@ impl Script {
             context.interner_mut(),
             false,
         );
+        compiler.set_source_text_inner(self.get_source());
 
         #[cfg(feature = "annex-b")]
         {
@@ -237,5 +243,9 @@ impl Script {
 
     pub(super) fn path(&self) -> Option<&Path> {
         self.inner.path.as_deref()
+    }
+
+    pub(super) fn get_source(&self) -> Option<Gc<SourceTextInner>> {
+        self.inner.source_text.clone()
     }
 }

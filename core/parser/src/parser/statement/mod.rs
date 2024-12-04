@@ -295,9 +295,15 @@ where
         let mut directive_prologues = self.directive_prologues;
         let mut strict = self.strict;
         let mut directives_stack = Vec::new();
+        let mut linear_pos_end = cursor.linear_pos();
 
         loop {
-            match cursor.peek(0, interner)? {
+            let peek_token = cursor.peek(0, interner)?;
+            if let Some(peek_token) = peek_token {
+                linear_pos_end = peek_token.linear_span().end();
+            }
+
+            match peek_token {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
                 Some(token) if directive_prologues => {
                     if let TokenKind::StringLiteral((_, escape)) = token.kind() {
@@ -365,7 +371,7 @@ where
 
         cursor.set_strict(global_strict);
 
-        Ok(ast::StatementList::new(items, strict))
+        Ok(ast::StatementList::new(items, linear_pos_end, strict))
     }
 }
 

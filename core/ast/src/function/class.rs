@@ -8,7 +8,7 @@ use crate::{
     scope::{FunctionScopes, Scope},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration,
+    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -674,6 +674,7 @@ pub struct ClassMethodDefinition {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl ClassMethodDefinition {
@@ -686,9 +687,13 @@ impl ClassMethodDefinition {
         body: FunctionBody,
         kind: MethodDefinitionKind,
         is_static: bool,
+        start_linear_pos: LinearPosition,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
+
+        let linear_span = LinearSpan::new(start_linear_pos, body.linear_pos_end());
+
         Self {
             name,
             parameters,
@@ -697,6 +702,7 @@ impl ClassMethodDefinition {
             kind,
             is_static,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -747,6 +753,13 @@ impl ClassMethodDefinition {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
     }
 }
 

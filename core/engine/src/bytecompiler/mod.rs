@@ -21,7 +21,7 @@ use crate::{
         BindingOpcode, CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind,
         Handler, InlineCache, Opcode, VaryingOperandKind,
     },
-    JsBigInt, JsStr, JsString,
+    JsBigInt, JsStr, JsString, SourceTextInner, SpannedSourceText,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -41,7 +41,7 @@ use boa_ast::{
     pattern::Pattern,
     property::MethodDefinitionKind,
     scope::{BindingLocator, BindingLocatorError, FunctionScopes, IdentifierReference, Scope},
-    Declaration, Expression, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearSpan, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
@@ -114,7 +114,7 @@ impl FunctionKind {
 }
 
 /// Describes the complete specification of a function node.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct FunctionSpec<'a> {
     pub(crate) kind: FunctionKind,
     pub(crate) name: Option<Identifier>,
@@ -122,6 +122,19 @@ pub(crate) struct FunctionSpec<'a> {
     body: &'a FunctionBody,
     pub(crate) scopes: &'a FunctionScopes,
     pub(crate) name_scope: Option<&'a Scope>,
+    linear_span: Option<LinearSpan>,
+}
+
+impl PartialEq for FunctionSpec<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        // all fields except `linear_span`
+        self.kind == other.kind
+            && self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.scopes == other.scopes
+            && self.name_scope == other.name_scope
+    }
 }
 
 impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
@@ -133,6 +146,7 @@ impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -146,6 +160,7 @@ impl<'a> From<&'a GeneratorDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -159,6 +174,7 @@ impl<'a> From<&'a AsyncFunctionDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -172,6 +188,7 @@ impl<'a> From<&'a AsyncGeneratorDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -185,6 +202,7 @@ impl<'a> From<&'a FunctionExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            linear_span: function.linear_span(),
         }
     }
 }
@@ -198,6 +216,7 @@ impl<'a> From<&'a ArrowFunction> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -211,6 +230,7 @@ impl<'a> From<&'a AsyncArrowFunction> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -224,6 +244,7 @@ impl<'a> From<&'a AsyncFunctionExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -237,6 +258,7 @@ impl<'a> From<&'a GeneratorExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -250,6 +272,7 @@ impl<'a> From<&'a AsyncGeneratorExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            linear_span: Some(function.linear_span()),
         }
     }
 }
@@ -270,6 +293,7 @@ impl<'a> From<&'a ClassMethodDefinition> for FunctionSpec<'a> {
             body: method.body(),
             scopes: method.scopes(),
             name_scope: None,
+            linear_span: Some(method.linear_span()),
         }
     }
 }
@@ -290,6 +314,7 @@ impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
             body: method.body(),
             scopes: method.scopes(),
             name_scope: None,
+            linear_span: Some(method.linear_span()),
         }
     }
 }
@@ -427,6 +452,8 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
     pub(crate) interner: &'ctx mut Interner,
+    pub(crate) source_text_inner: Option<Gc<SourceTextInner>>,
+    pub(crate) source_text_spanned: Option<SpannedSourceText>,
 
     #[cfg(feature = "annex-b")]
     pub(crate) annex_b_function_names: Vec<Identifier>,
@@ -517,12 +544,22 @@ impl<'ctx> ByteCompiler<'ctx> {
             variable_scope,
             lexical_scope,
             interner,
+            source_text_inner: None,
+            source_text_spanned: None,
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
             in_with,
             emitted_mapped_arguments_object_opcode: false,
         }
+    }
+
+    pub(crate) fn set_source_text_inner(&mut self, source_text_inner: Option<Gc<SourceTextInner>>) {
+        self.source_text_inner = source_text_inner;
+    }
+
+    pub(crate) fn set_source_text_spanned(&mut self, source_text_spanned: SpannedSourceText) {
+        self.source_text_spanned = Some(source_text_spanned);
     }
 
     pub(crate) const fn strict(&self) -> bool {
@@ -1489,12 +1526,14 @@ impl<'ctx> ByteCompiler<'ctx> {
             function.kind.is_async(),
             function.kind.is_arrow(),
         );
+
         let FunctionSpec {
             name,
             parameters,
             body,
             scopes,
             name_scope,
+            linear_span,
             ..
         } = function;
 
@@ -1512,6 +1551,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .arrow(arrow)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
+            .linear_span(linear_span, self.source_text_inner.clone())
             .compile(
                 parameters,
                 body,
@@ -1566,6 +1606,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             body,
             scopes,
             name_scope,
+            linear_span,
             ..
         } = function;
 
@@ -1589,6 +1630,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
+            .linear_span(linear_span, self.source_text_inner.clone())
             .compile(
                 parameters,
                 body,
@@ -1614,6 +1656,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             parameters,
             body,
             scopes,
+            linear_span,
             ..
         } = function;
 
@@ -1632,6 +1675,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(function.name_scope.cloned())
+            .linear_span(linear_span, self.source_text_inner.clone())
             .compile(
                 parameters,
                 body,
@@ -1786,6 +1830,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),
+            source_text_spanned: self.source_text_spanned,
         }
     }
 

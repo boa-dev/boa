@@ -286,9 +286,10 @@ where
     type Output = boa_ast::Script;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let script = boa_ast::Script::new(
-            ScriptBody::new(true, cursor.strict(), self.direct_eval).parse(cursor, interner)?,
-        );
+        let stmts =
+            ScriptBody::new(true, cursor.strict(), self.direct_eval).parse(cursor, interner)?;
+        let source = Some(cursor.take_source());
+        let script = boa_ast::Script::new(stmts, source);
 
         // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
         let mut lexical_names = FxHashSet::default();
