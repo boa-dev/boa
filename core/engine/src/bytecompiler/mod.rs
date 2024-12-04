@@ -122,6 +122,7 @@ pub(crate) struct FunctionSpec<'a> {
     body: &'a FunctionBody,
     pub(crate) scopes: &'a FunctionScopes,
     pub(crate) name_scope: Option<&'a Scope>,
+    pub(crate) contains_direct_eval: bool,
 }
 
 impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
@@ -133,6 +134,7 @@ impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -146,6 +148,7 @@ impl<'a> From<&'a GeneratorDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -159,6 +162,7 @@ impl<'a> From<&'a AsyncFunctionDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -172,6 +176,7 @@ impl<'a> From<&'a AsyncGeneratorDeclaration> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -185,6 +190,7 @@ impl<'a> From<&'a FunctionExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -198,6 +204,7 @@ impl<'a> From<&'a ArrowFunction> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -211,6 +218,7 @@ impl<'a> From<&'a AsyncArrowFunction> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: None,
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -224,6 +232,7 @@ impl<'a> From<&'a AsyncFunctionExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -237,6 +246,7 @@ impl<'a> From<&'a GeneratorExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -250,6 +260,7 @@ impl<'a> From<&'a AsyncGeneratorExpression> for FunctionSpec<'a> {
             body: function.body(),
             scopes: function.scopes(),
             name_scope: function.name_scope(),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -270,6 +281,7 @@ impl<'a> From<&'a ClassMethodDefinition> for FunctionSpec<'a> {
             body: method.body(),
             scopes: method.scopes(),
             name_scope: None,
+            contains_direct_eval: method.contains_direct_eval(),
         }
     }
 }
@@ -290,6 +302,7 @@ impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
             body: method.body(),
             scopes: method.scopes(),
             name_scope: None,
+            contains_direct_eval: method.contains_direct_eval(),
         }
     }
 }
@@ -387,6 +400,9 @@ pub struct ByteCompiler<'ctx> {
 
     /// Parameters passed to this function.
     pub(crate) params: FormalParameterList,
+
+    /// Scope of the function parameters.
+    pub(crate) parameter_scope: Scope,
 
     /// Bytecode
     pub(crate) bytecode: Vec<u8>,
@@ -500,6 +516,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             local_binding_registers: FxHashMap::default(),
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
+            parameter_scope: Scope::default(),
             current_open_environments_count: 0,
 
             register_allocator,
@@ -1518,6 +1535,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.variable_scope.clone(),
                 self.lexical_scope.clone(),
                 scopes,
+                function.contains_direct_eval,
                 self.interner,
             );
 
@@ -1595,6 +1613,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.variable_scope.clone(),
                 self.lexical_scope.clone(),
                 scopes,
+                function.contains_direct_eval,
                 self.interner,
             );
 
@@ -1638,6 +1657,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.variable_scope.clone(),
                 self.lexical_scope.clone(),
                 scopes,
+                function.contains_direct_eval,
                 self.interner,
             );
 
@@ -1756,7 +1776,9 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let mapped_arguments_binding_indices = self
             .emitted_mapped_arguments_object_opcode
-            .then(|| MappedArguments::binding_indices(&self.params))
+            .then(|| {
+                MappedArguments::binding_indices(&self.params, &self.parameter_scope, self.interner)
+            })
             .unwrap_or_default();
 
         let max_local_binding_register_index =
