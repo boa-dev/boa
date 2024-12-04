@@ -104,7 +104,6 @@ impl<R> Tokenizer<R> for MultiLineComment {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
-
 pub(super) struct HashbangComment;
 
 impl<R> Tokenizer<R> for HashbangComment {

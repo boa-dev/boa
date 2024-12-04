@@ -1,0 +1,60 @@
+name: Update Test262 Results on Release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  update_test262_results:
+    name: Update Test262 Results
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      # Checkout the main repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: boa
+
+      # Install Rust toolchain
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      # Cache cargo dependencies
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
+
+      # Checkout the `data` repository
+      - name: Checkout the data repo
+        uses: actions/checkout@v4
+        with:
+          repository: boa-dev/data
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: data
+
+      # Run the Test262 test suite
+      - name: Run the test262 test suite
+        run: |
+          cd boa
+          cargo run --release --bin boa_tester -- run -v -o ../data/test262
+
+      # Commit and push results back to the `data` repo
+      - name: Commit and push results
+        run: |
+          cd data
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add test262/results/${{ github.ref_name }}
+          git commit -m "Update Test262 results for release ${{ github.ref_name }}"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

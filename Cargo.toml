@@ -51,8 +51,8 @@ bitflags = "2.5.0"
 clap = "4.5.21"
 colored = "2.1.0"
 fast-float2 = "0.2.3"
-hashbrown = "0.15.1"
-indexmap = { version = "2.6.0", default-features = false }
+hashbrown = "0.15.2"
+indexmap = { version = "2.7.0", default-features = false }
 indoc = "2.0.5"
 itoa = "1.0.13"
 jemallocator = "0.5.4"
@@ -63,13 +63,13 @@ phf = { version = "0.11.2", default-features = false }
 pollster = "0.4.0"
 regex = "1.11.1"
 regress = { version = "0.10.1", features = ["utf16"] }
-rustc-hash = { version = "2.0.0", default-features = false }
+rustc-hash = { version = "2.1.0", default-features = false }
 serde_json = "1.0.133"
 serde = "1.0.215"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
-time = { version = "0.3.36", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
+time = { version = "0.3.37", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
 tinystr = "0.7.5"
 log = "0.4.22"
 simple_logger = "5.0.0"
@@ -81,17 +81,17 @@ color-eyre = "0.6.3"
 comfy-table = "7.1.3"
 serde_repr = "0.1.19"
 bus = "2.4.1"
-wasm-bindgen = { version = "0.2.95", default-features = false }
+wasm-bindgen = { version = "0.2.97", default-features = false }
 getrandom = { version = "0.2.15", default-features = false }
 console_error_panic_hook = "0.1.7"
-wasm-bindgen-test = "0.3.45"
+wasm-bindgen-test = "0.3.47"
 smol = "2.0.2"
 futures-util = "0.3.31"
 isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.37"
-syn = { version = "2.0.89", default-features = false }
+syn = { version = "2.0.90", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.0"
@@ -105,7 +105,7 @@ thiserror = { version = "2.0.3", default-features = false }
 dashmap = "6.1.0"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
-portable-atomic = "1.9.0"
+portable-atomic = "1.10.0"
 bytemuck = { version = "1.19.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
@@ -119,7 +119,7 @@ float-cmp = "0.10.0"
 futures-lite = "2.5.0"
 test-case = "3.3.1"
 winapi = { version = "0.3.9", default-features = false }
-url = "2.5.3"
+url = "2.5.4"
 
 # ICU4X
 
@@ -140,8 +140,8 @@ icu_properties = { version = "~1.5.0", default-features = true }
 icu_normalizer = { version = "~1.5.0", default-features = false }
 icu_decimal = { version = "~1.5.0", default-features = false }
 writeable = "~0.5.5"
-yoke = "~0.7.4"
-zerofrom = "~0.1.4"
+yoke = "~0.7.5"
+zerofrom = "~0.1.5"
 fixed_decimal = "~0.5.6"
 
 [workspace.metadata.workspaces]

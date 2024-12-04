@@ -8,9 +8,6 @@ use crate::{
 };
 use time::{OffsetDateTime, UtcOffset};
 
-#[cfg(test)]
-use time::util::local_offset;
-
 /// [`Host Hooks`] customizable by the host code or engine.
 ///
 /// Every hook contains on its `Requirements` section the spec requirements
@@ -191,13 +188,6 @@ pub trait HostHooks {
 
     /// Returns the offset of the local timezone to the `utc` timezone in seconds.
     fn local_timezone_offset_seconds(&self, unix_time_seconds: i64) -> i32 {
-        // Safety: This is needed during tests because cargo is running tests in multiple threads.
-        // It is safe because tests do not modify the environment.
-        #[cfg(test)]
-        unsafe {
-            local_offset::set_soundness(local_offset::Soundness::Unsound);
-        }
-
         OffsetDateTime::from_unix_timestamp(unix_time_seconds)
             .ok()
             .and_then(|t| UtcOffset::local_offset_at(t).ok())

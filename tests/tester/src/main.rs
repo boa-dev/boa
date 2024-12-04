@@ -193,12 +193,6 @@ const DEFAULT_TEST262_DIRECTORY: &str = "test262";
 fn main() -> Result<()> {
     color_eyre::install()?;
 
-    // Safety: This is needed because we run tests in multiple threads.
-    // It is safe because tests do not modify the environment.
-    unsafe {
-        time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound);
-    }
-
     // initializes the monotonic clock.
     START
         .set(Instant::now())

@@ -18,7 +18,7 @@ pub enum AssignOp {
     /// The assignment operator assigns the value of the right operand to the left operand.
     ///
     /// Syntax: `x = y`
-
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
@@ -26,6 +26,7 @@ pub enum AssignOp {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment
     Assign,
+
     /// The addition assignment operator adds the value of the right operand to a variable and assigns the result to the variable.
     ///
     /// Syntax: `x += y`

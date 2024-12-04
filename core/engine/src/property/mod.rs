@@ -669,15 +669,14 @@ where
 impl From<JsStr<'_>> for PropertyKey {
     #[inline]
     fn from(string: JsStr<'_>) -> Self {
-        return parse_u32_index(string.iter())
-            .map_or_else(|| Self::String(string.into()), Self::Index);
+        parse_u32_index(string.iter()).map_or_else(|| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        return parse_u32_index(string.as_str().iter()).map_or(Self::String(string), Self::Index);
+        parse_u32_index(string.as_str().iter()).map_or(Self::String(string), Self::Index)
     }
 }
 
