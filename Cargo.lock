@@ -314,7 +314,7 @@ dependencies = [
 
 [[package]]
 name = "boa_ast"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "arbitrary",
  "bitflags 2.6.0",
@@ -329,7 +329,7 @@ dependencies = [
 
 [[package]]
 name = "boa_cli"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -348,7 +348,7 @@ dependencies = [
 
 [[package]]
 name = "boa_engine"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "arrayvec",
  "bitflags 2.6.0",
@@ -419,7 +419,7 @@ dependencies = [
 
 [[package]]
 name = "boa_examples"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "boa_ast",
  "boa_engine",
@@ -435,7 +435,7 @@ dependencies = [
 
 [[package]]
 name = "boa_gc"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "boa_macros",
  "boa_profiler",
@@ -447,7 +447,7 @@ dependencies = [
 
 [[package]]
 name = "boa_icu_provider"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "icu_casemap",
  "icu_collator",
@@ -467,7 +467,7 @@ dependencies = [
 
 [[package]]
 name = "boa_interner"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "arbitrary",
  "boa_gc",
@@ -483,7 +483,7 @@ dependencies = [
 
 [[package]]
 name = "boa_interop"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -493,7 +493,7 @@ dependencies = [
 
 [[package]]
 name = "boa_macros"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -503,7 +503,7 @@ dependencies = [
 
 [[package]]
 name = "boa_macros_tests"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "boa_engine",
  "trybuild",
@@ -511,7 +511,7 @@ dependencies = [
 
 [[package]]
 name = "boa_parser"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "bitflags 2.6.0",
  "boa_ast",
@@ -528,7 +528,7 @@ dependencies = [
 
 [[package]]
 name = "boa_profiler"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "measureme",
  "once_cell",
@@ -537,7 +537,7 @@ dependencies = [
 
 [[package]]
 name = "boa_runtime"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -550,7 +550,7 @@ dependencies = [
 
 [[package]]
 name = "boa_string"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "fast-float2",
  "paste",
@@ -561,7 +561,7 @@ dependencies = [
 
 [[package]]
 name = "boa_tester"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "bitflags 2.6.0",
  "boa_engine",
@@ -584,7 +584,7 @@ dependencies = [
 
 [[package]]
 name = "boa_wasm"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "boa_engine",
  "console_error_panic_hook",
@@ -1386,7 +1386,7 @@ dependencies = [
 
 [[package]]
 name = "gen-icu4x-data"
-version = "0.19.0"
+version = "0.20.0"
 dependencies = [
  "icu_casemap",
  "icu_collator",
