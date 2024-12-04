@@ -2,7 +2,7 @@
 
 ## What's Changed
 
-# [0.20.0 (2024-09-11)](https://github.com/boa-dev/boa/compare/v0.19.1...v0.20.0)
+# [0.20.0 (2024-12-5)](https://github.com/boa-dev/boa/compare/v0.19.1...v0.20.0)
 
 ### Feature Enhancements
 
@@ -61,6 +61,7 @@
 - Update night build's rename binary step by @nekevss in https://github.com/boa-dev/boa/pull/4032
 - Use upload-rust-binary-action for nightly release by @nekevss in https://github.com/boa-dev/boa/pull/4040
 - Fix `ref` value in nightly and add target to nightly release by @nekevss in https://github.com/boa-dev/boa/pull/4042
+- Reduce environment allocations by @raskad in https://github.com/boa-dev/boa/pull/4002
 
 ### Other Changes
 
