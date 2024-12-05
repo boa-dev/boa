@@ -19,12 +19,8 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    components::{
-        calendar::{Calendar as InnerCalendar, GetTemporalCalendar},
-        Duration, YearMonth as InnerYearMonth,
-    },
-    iso::IsoDateSlots,
     options::{ArithmeticOverflow, CalendarName},
+    Duration, PlainYearMonth as InnerYearMonth,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, to_temporal_duration, DateTimeValues};
@@ -39,18 +35,6 @@ pub struct PlainYearMonth {
 impl PlainYearMonth {
     pub(crate) fn new(inner: InnerYearMonth) -> Self {
         Self { inner }
-    }
-}
-
-impl IsoDateSlots for JsObject<PlainYearMonth> {
-    fn iso_date(&self) -> temporal_rs::iso::IsoDate {
-        self.borrow().data().inner.iso_date()
-    }
-}
-
-impl GetTemporalCalendar for JsObject<PlainYearMonth> {
-    fn get_calendar(&self) -> InnerCalendar {
-        self.borrow().data().inner.get_calendar()
     }
 }
 
@@ -203,7 +187,8 @@ impl BuiltInConstructor for PlainYearMonth {
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
-        let inner = InnerYearMonth::new(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
+        let inner =
+            InnerYearMonth::new_with_overflow(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
 
         create_temporal_year_month(inner, Some(new_target), context)
     }
@@ -235,7 +220,7 @@ impl PlainYearMonth {
 
                 // a. Let calendar be ? ToTemporalCalendar(item).
                 let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
-                InnerYearMonth::new(
+                InnerYearMonth::new_with_overflow(
                     super::to_integer_with_truncation(
                         &item.get_v(js_string!("year"), context)?,
                         context,
@@ -298,7 +283,8 @@ impl PlainYearMonth {
                 .into());
         };
 
-        Ok(js_string!(year_month.get_calendar().identifier()).into())
+        let calendar = year_month.borrow().data().inner.calendar().clone();
+        Ok(js_string!(calendar.identifier()).into())
     }
 
     fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {

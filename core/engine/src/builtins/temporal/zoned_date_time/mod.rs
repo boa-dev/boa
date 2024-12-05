@@ -9,7 +9,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use temporal_rs::components::{Duration as TemporalDuration, ZonedDateTime as InnerZdt};
+use temporal_rs::{Duration as TemporalDuration, ZonedDateTime as InnerZdt};
 
 /// The `Temporal.ZonedDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]

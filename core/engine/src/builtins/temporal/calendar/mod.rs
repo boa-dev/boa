@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use super::extract_from_temporal_type;
 use crate::{js_string, Context, JsNativeError, JsObject, JsResult, JsValue};
-use temporal_rs::components::calendar::Calendar;
+use temporal_rs::Calendar;
 
 // -- `Calendar` Abstract Operations --
 

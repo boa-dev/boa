@@ -16,9 +16,10 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    components::{duration::PartialDuration, Duration as InnerDuration},
     options::{RelativeTo, RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit},
+    partial::PartialDuration,
     primitive::FiniteF64,
+    Duration as InnerDuration,
 };
 
 use super::{

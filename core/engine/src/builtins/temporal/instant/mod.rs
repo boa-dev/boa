@@ -24,8 +24,8 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
 use temporal_rs::{
-    components::Instant as InnerInstant,
     options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+    Instant as InnerInstant,
 };
 
 use super::options::get_difference_settings;
@@ -46,19 +46,19 @@ impl IntrinsicObject for Instant {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        let get_seconds = BuiltInBuilder::callable(realm, Self::get_epoc_seconds)
+        let get_seconds = BuiltInBuilder::callable(realm, Self::get_epoch_seconds)
             .name(js_string!("get epochSeconds"))
             .build();
 
-        let get_millis = BuiltInBuilder::callable(realm, Self::get_epoc_milliseconds)
+        let get_millis = BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds)
             .name(js_string!("get epochMilliseconds"))
             .build();
 
-        let get_micros = BuiltInBuilder::callable(realm, Self::get_epoc_microseconds)
+        let get_micros = BuiltInBuilder::callable(realm, Self::get_epoch_microseconds)
             .name(js_string!("get epochMicroseconds"))
             .build();
 
-        let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoc_nanoseconds)
+        let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoch_nanoseconds)
             .name(js_string!("get epochNanoseconds"))
             .build();
 
@@ -150,7 +150,7 @@ impl BuiltInConstructor for Instant {
 
         // 3. If ! IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
         // NOTE: temporal_rs::Instant asserts that the epochNanoseconds are valid.
-        let instant = InnerInstant::new(epoch_nanos.as_inner().to_i128().unwrap_or(i128::MAX))?;
+        let instant = InnerInstant::try_new(epoch_nanos.as_inner().to_i128().unwrap_or(i128::MAX))?;
         // 4. Return ? CreateTemporalInstant(epochNanoseconds, NewTarget).
         create_temporal_instant(instant, Some(new_target.clone()), context)
     }
@@ -201,7 +201,7 @@ impl Instant {
         // 3. Return ! CreateTemporalInstant(epochNanoseconds).
         let nanos = epoch_nanos.as_inner().to_i128();
         create_temporal_instant(
-            InnerInstant::new(nanos.unwrap_or(i128::MAX))?,
+            InnerInstant::try_new(nanos.unwrap_or(i128::MAX))?,
             None,
             context,
         )
@@ -226,7 +226,7 @@ impl Instant {
 
 impl Instant {
     /// 8.3.3 get Temporal.Instant.prototype.epochSeconds
-    pub(crate) fn get_epoc_seconds(
+    pub(crate) fn get_epoch_seconds(
         this: &JsValue,
         _: &[JsValue],
         _: &mut Context,
@@ -240,11 +240,11 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        Ok(instant.inner.epoch_seconds().into())
+        Ok(JsBigInt::from(instant.inner.epoch_seconds()).into())
     }
 
     /// 8.3.4 get Temporal.Instant.prototype.epochMilliseconds
-    pub(crate) fn get_epoc_milliseconds(
+    pub(crate) fn get_epoch_milliseconds(
         this: &JsValue,
         _: &[JsValue],
         _: &mut Context,
@@ -260,11 +260,11 @@ impl Instant {
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Let ms be floor(ℝ(ns) / 106).
         // 5. Return 𝔽(ms).
-        Ok(instant.inner.epoch_milliseconds().into())
+        Ok(JsBigInt::from(instant.inner.epoch_milliseconds()).into())
     }
 
     /// 8.3.5 get Temporal.Instant.prototype.epochMicroseconds
-    pub(crate) fn get_epoc_microseconds(
+    pub(crate) fn get_epoch_microseconds(
         this: &JsValue,
         _: &[JsValue],
         _: &mut Context,
@@ -280,13 +280,11 @@ impl Instant {
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Let µs be floor(ℝ(ns) / 103).
         // 5. Return ℤ(µs).
-        let big_int = JsBigInt::try_from(instant.inner.epoch_microseconds())
-            .expect("valid microseconds is in range of BigInt");
-        Ok(big_int.into())
+        Ok(JsBigInt::from(instant.inner.epoch_microseconds()).into())
     }
 
     /// 8.3.6 get Temporal.Instant.prototype.epochNanoseconds
-    pub(crate) fn get_epoc_nanoseconds(
+    pub(crate) fn get_epoch_nanoseconds(
         this: &JsValue,
         _: &[JsValue],
         _: &mut Context,
@@ -301,9 +299,7 @@ impl Instant {
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Return ns.
-        let big_int = JsBigInt::try_from(instant.inner.epoch_nanoseconds())
-            .expect("valid nanoseconds is in range of BigInt");
-        Ok(big_int.into())
+        Ok(JsBigInt::from(instant.inner.epoch_nanoseconds()).into())
     }
 
     /// 8.3.7 `Temporal.Instant.prototype.add ( temporalDurationLike )`

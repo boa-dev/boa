@@ -37,10 +37,7 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use temporal_rs::{
-    components::{Date as TemporalDate, ZonedDateTime as TemporalZonedDateTime},
-    NS_PER_DAY,
-};
+use temporal_rs::{PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime, NS_PER_DAY};
 
 // TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_max_instant() -> JsBigInt {

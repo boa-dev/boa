@@ -3,8 +3,6 @@
 
 // TODO (nekevss): DOCS DOCS AND MORE DOCS
 
-use std::str::FromStr;
-
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -16,19 +14,15 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+    value::IntoOrUndefined,
     Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    components::{
-        calendar::{Calendar, GetTemporalCalendar},
-        Date as InnerDate, DateTime, MonthCode, PartialDate,
-    },
-    iso::IsoDateSlots,
-    options::ArithmeticOverflow,
-    TemporalFields, TinyAsciiStr,
+    options::ArithmeticOverflow, partial::PartialDate, Calendar, PlainDate as InnerDate,
+    TinyAsciiStr,
 };
 
 use super::{
@@ -48,18 +42,6 @@ pub struct PlainDate {
 impl PlainDate {
     pub(crate) fn new(inner: InnerDate) -> Self {
         Self { inner }
-    }
-}
-
-impl IsoDateSlots for JsObject<PlainDate> {
-    fn iso_date(&self) -> temporal_rs::iso::IsoDate {
-        self.borrow().data().inner.iso_date()
-    }
-}
-
-impl GetTemporalCalendar for JsObject<PlainDate> {
-    fn get_calendar(&self) -> Calendar {
-        self.borrow().data().inner.get_calendar()
     }
 }
 
@@ -262,15 +244,15 @@ impl BuiltInConstructor for PlainDate {
         let iso_day = super::to_integer_with_truncation(args.get_or_undefined(2), context)?;
         let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(3))?;
 
-        let date = InnerDate::new(
+        Ok(create_temporal_date(
             iso_year,
             iso_month,
             iso_day,
             calendar_slot,
-            ArithmeticOverflow::Reject,
-        )?;
-
-        Ok(create_temporal_date(date, Some(new_target), context)?.into())
+            Some(new_target),
+            context,
+        )?
+        .into())
     }
 }
 
@@ -391,7 +373,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.week_of_year()?.into())
+        Ok(date.inner.week_of_year()?.into_or_undefined())
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.yearOfWeek`
@@ -406,7 +388,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.year_of_week()?.into())
+        Ok(date.inner.year_of_week()?.into_or_undefined())
     }
 
     /// 3.3.12 get `Temporal.PlainDate.prototype.daysInWeek`
@@ -504,11 +486,23 @@ impl PlainDate {
         if let Some(date) = item.as_object().and_then(JsObject::downcast_ref::<Self>) {
             let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
             let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
-            return create_temporal_date(date.inner.clone(), None, context).map(Into::into);
+            return create_temporal_date(
+                date.inner.iso_year(),
+                date.inner.iso_month().into(),
+                date.inner.iso_day().into(),
+                date.inner.calendar().clone(),
+                None,
+                context,
+            )
+            .map(Into::into);
         }
 
+        let resolved_date = to_temporal_date(item, options.cloned(), context)?;
         create_temporal_date(
-            to_temporal_date(item, options.cloned(), context)?,
+            resolved_date.iso_year(),
+            resolved_date.iso_month().into(),
+            resolved_date.iso_day().into(),
+            resolved_date.calendar().clone(),
             None,
             context,
         )
@@ -600,7 +594,16 @@ impl PlainDate {
 
         // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
         // 6. Return ? AddDate(calendarRec, temporalDate, duration, options).
-        create_temporal_date(date.inner.add(&duration, overflow)?, None, context).map(Into::into)
+        let resolved_date = date.inner.add(&duration, overflow)?;
+        create_temporal_date(
+            resolved_date.iso_year(),
+            resolved_date.iso_month().into(),
+            resolved_date.iso_day().into(),
+            resolved_date.calendar().clone(),
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -623,8 +626,16 @@ impl PlainDate {
         // 5. Let negatedDuration be CreateNegatedTemporalDuration(duration).
         // 6. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
         // 7. Return ? AddDate(calendarRec, temporalDate, negatedDuration, options).
-        create_temporal_date(date.inner.subtract(&duration, overflow)?, None, context)
-            .map(Into::into)
+        let resolved_date = date.inner.subtract(&duration, overflow)?;
+        create_temporal_date(
+            resolved_date.iso_year(),
+            resolved_date.iso_month().into(),
+            resolved_date.iso_day().into(),
+            resolved_date.calendar().clone(),
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     // 3.3.24 Temporal.PlainDate.prototype.with ( temporalDateLike [ , options ] )
@@ -659,7 +670,16 @@ impl PlainDate {
         let partial = to_partial_date_record(partial_object, context)?;
 
         // 10. Return ? CalendarDateFromFields(calendarRec, fields, resolvedOptions).
-        create_temporal_date(date.inner.with(partial, overflow)?, None, context).map(Into::into)
+        let resolved_date = date.inner.with(partial, overflow)?;
+        create_temporal_date(
+            resolved_date.iso_year(),
+            resolved_date.iso_month().into(),
+            resolved_date.iso_day().into(),
+            resolved_date.calendar().clone(),
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     /// 3.3.26 Temporal.PlainDate.prototype.withCalendar ( calendarLike )
@@ -672,8 +692,16 @@ impl PlainDate {
             })?;
 
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
-
-        create_temporal_date(date.inner.with_calendar(calendar)?, None, context).map(Into::into)
+        let resolved_date = date.inner.with_calendar(calendar)?;
+        create_temporal_date(
+            resolved_date.iso_year(),
+            resolved_date.iso_month().into(),
+            resolved_date.iso_day().into(),
+            resolved_date.calendar().clone(),
+            None,
+            context,
+        )
+        .map(Into::into)
     }
 
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -757,7 +785,14 @@ impl PlainDate {
 impl PlainDate {
     /// Utitily function for translating a `Temporal.PlainDate` into a `JsObject`.
     pub(crate) fn as_object(&self, context: &mut Context) -> JsResult<JsObject> {
-        create_temporal_date(self.inner.clone(), None, context)
+        create_temporal_date(
+            self.inner.iso_year(),
+            self.inner.iso_month().into(),
+            self.inner.iso_day().into(),
+            self.inner.calendar().clone(),
+            None,
+            context,
+        )
     }
 }
 
@@ -766,19 +801,16 @@ impl PlainDate {
 
 /// 3.5.3 `CreateTemporalDate ( isoYear, isoMonth, isoDay, calendar [ , newTarget ] )`
 pub(crate) fn create_temporal_date(
-    inner: InnerDate,
+    iso_year: i32,
+    iso_month: i32,
+    iso_day: i32,
+    calendar_slot: Calendar,
     new_target: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<JsObject> {
-    // NOTE (nekevss): The below should never trigger as `IsValidISODate` is enforced by Date.
     // 1. If IsValidISODate(isoYear, isoMonth, isoDay) is false, throw a RangeError exception.
-
     // 2. If ISODateTimeWithinLimits(isoYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if !DateTime::validate(&inner) {
-        return Err(JsNativeError::range()
-            .with_message("Date is not within ISO date time limits.")
-            .into());
-    }
+    let inner = InnerDate::try_new(iso_year, iso_month, iso_day, calendar_slot)?;
 
     // 3. If newTarget is not present, set newTarget to %Temporal.PlainDate%.
     let new_target = if let Some(new_target) = new_target {
@@ -843,7 +875,7 @@ pub(crate) fn to_temporal_date(
             let _o = get_option(&options_obj, js_string!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
-            let date = InnerDate::from(date_time.inner().clone());
+            let date = InnerDate::from(date_time.inner.clone());
 
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             return Ok(date);
@@ -867,11 +899,10 @@ pub(crate) fn to_temporal_date(
                 .with_message("A partial date must have at least one defined field.")
                 .into());
         }
-        let mut fields = TemporalFields::from(partial);
 
         // g. Return ? CalendarDateFromFields(calendar, fields, options).
         return calendar
-            .date_from_fields(&mut fields, overflow)
+            .date_from_partial(&partial, overflow)
             .map_err(Into::into);
     }
 
@@ -920,7 +951,8 @@ pub(crate) fn to_partial_date_record(
                     .with_message("The monthCode field value must be a string.")
                     .into());
             };
-            MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(Into::<JsError>::into)
+            TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped())
+                .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
         })
         .transpose()?;
     let year = partial_object
@@ -943,7 +975,7 @@ pub(crate) fn to_partial_date_record(
                 ));
             };
             // TODO: double check if an invalid monthCode is a range or type error.
-            TinyAsciiStr::<16>::from_str(&era.to_std_string_escaped())
+            TinyAsciiStr::<19>::from_str(&era.to_std_string_escaped())
                 .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
         })
         .transpose()?;

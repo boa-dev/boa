@@ -13,7 +13,7 @@ use crate::{
     js_string, Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
 };
 use temporal_rs::options::{
-    ArithmeticOverflow, CalendarName, DifferenceSettings, DurationOverflow, InstantDisambiguation,
+    ArithmeticOverflow, CalendarName, DifferenceSettings, Disambiguation, DurationOverflow,
     OffsetDisambiguation, RoundingIncrement, TemporalRoundingMode, TemporalUnit,
 };
 
@@ -113,7 +113,7 @@ fn datetime_units() -> impl Iterator<Item = TemporalUnit> {
 impl ParsableOptionType for TemporalUnit {}
 impl ParsableOptionType for ArithmeticOverflow {}
 impl ParsableOptionType for DurationOverflow {}
-impl ParsableOptionType for InstantDisambiguation {}
+impl ParsableOptionType for Disambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
 impl ParsableOptionType for TemporalRoundingMode {}
 impl ParsableOptionType for CalendarName {}
