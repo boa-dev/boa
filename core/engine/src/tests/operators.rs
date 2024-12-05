@@ -600,6 +600,15 @@ fn delete_in_strict_function_returned() {
     )]);
 }
 
+#[test]
+fn regex_slash_eq() {
+    run_test_actions([
+        TestAction::assert_eq("+/=/", JsValue::nan()),
+        TestAction::assert_eq("var a = 5; /=/; a", 5),
+        TestAction::assert_eq("x = () => /=/;\n\"a=b\".match(x())[0]", js_str!("=")),
+    ]);
+}
+
 mod in_operator {
     use super::*;
 

@@ -68,12 +68,15 @@ where
         self.buffered_lexer.set_goal(elm);
     }
 
+    /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
+    /// If `init_with_eq` is `true`, then assuming that the starting '/=' has already been consumed.
     pub(super) fn lex_regex(
         &mut self,
         start: Position,
         interner: &mut Interner,
+        init_with_eq: bool,
     ) -> ParseResult<Token> {
-        self.buffered_lexer.lex_regex(start, interner)
+        self.buffered_lexer.lex_regex(start, interner, init_with_eq)
     }
 
     pub(super) fn lex_template(
