@@ -555,7 +555,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.year_of_week()?.into())
+        Ok(dt.inner.year_of_week()?.into_or_undefined())
     }
 
     /// 5.3.18 get `Temporal.PlainDatedt.prototype.daysInWeek`

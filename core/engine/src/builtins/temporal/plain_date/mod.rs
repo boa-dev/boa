@@ -388,7 +388,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.year_of_week()?.into())
+        Ok(date.inner.year_of_week()?.into_or_undefined())
     }
 
     /// 3.3.12 get `Temporal.PlainDate.prototype.daysInWeek`
@@ -988,13 +988,4 @@ pub(crate) fn to_partial_date_record(
         era,
         era_year,
     })
-}
-
-impl From<Option<i32>> for JsValue {
-    fn from(value: Option<i32>) -> Self {
-        match value {
-            Some(v) => v.into(),
-            None => JsValue::undefined(),
-        }
-    }
 }
