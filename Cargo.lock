@@ -852,6 +852,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "combine"
+version = "4.6.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba5a308b75df32fe02788e748662718f03fde005016435c444eea572398219fd"
+dependencies = [
+ "bytes",
+ "memchr",
+]
+
+[[package]]
 name = "comfy-table"
 version = "7.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2150,6 +2160,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "jiff-tzdb"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91335e575850c5c4c673b9bd467b0e025f164ca59d0564f69d0c2ee0ffad4653"
+
+[[package]]
 name = "js-sys"
 version = "0.3.74"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3334,12 +3350,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "abc1a6b736bd71cd492b8810334efff905c4a09787a46e9a0ddd54b46a2f4e08"
 dependencies = [
  "bitflags 2.6.0",
+ "combine",
  "iana-time-zone",
  "icu_calendar",
  "ixdtf",
+ "jiff-tzdb",
  "num-traits",
  "rustc-hash 2.1.0",
  "tinystr",
+ "tzif",
 ]
 
 [[package]]
@@ -3644,6 +3663,15 @@ dependencies = [
  "cfg-if",
  "rand",
  "static_assertions",
+]
+
+[[package]]
+name = "tzif"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61b8eb18929606c6f3eea7ef096a91dd5c26dbbde2a20a343c4a409b851666fd"
+dependencies = [
+ "combine",
 ]
 
 [[package]]
