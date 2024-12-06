@@ -26,7 +26,7 @@ use crate::{
             get_prototype_from_constructor, CallValue, InternalObjectMethods,
             ORDINARY_INTERNAL_METHODS,
         },
-        JsData, JsFunction, JsObject, PrivateElement, PrivateName,
+        JsData, JsFunction, JsObject, LazyBuiltIn, PrivateElement, PrivateName,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -845,8 +845,7 @@ impl BuiltInFunctionObject {
             return Err(JsNativeError::typ().with_message("not a function").into());
         };
 
-        let object_borrow = object.borrow();
-        if object_borrow.is::<NativeFunctionObject>() {
+        if object.is::<NativeFunctionObject>() || object.is::<LazyBuiltIn>() {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
@@ -860,10 +859,11 @@ impl BuiltInFunctionObject {
             return Ok(
                 js_string!(js_str!("function "), &name, js_str!("() { [native code] }")).into(),
             );
-        } else if object_borrow.is::<Proxy>() || object_borrow.is::<BoundFunction>() {
+        } else if object.is::<Proxy>() || object.is::<BoundFunction>() {
             return Ok(js_string!("function () { [native code] }").into());
         }
 
+        let object_borrow = object.borrow();
         let function = object_borrow
             .downcast_ref::<OrdinaryFunction>()
             .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
