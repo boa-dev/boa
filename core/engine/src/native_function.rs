@@ -359,6 +359,7 @@ pub(crate) fn native_function_call(
 ///
 /// Panics if the object is currently mutably borrowed.
 // <https://tc39.es/ecma262/#sec-built-in-function-objects-call-thisargument-argumentslist>
+#[inline]
 pub(crate) fn native_function_call_inner(
     obj: &JsObject,
     native_function: &NativeFunctionObject,
@@ -420,6 +421,7 @@ fn native_function_construct(
     )
 }
 
+#[inline]
 pub(crate) fn native_function_construct_inner(
     native_function: &NativeFunctionObject,
     this_function_object: JsObject,
