@@ -12,7 +12,9 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+itoa.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
+ryu-js.workspace = true
 sptr.workspace = true
 static_assertions.workspace = true
 paste.workspace = true
