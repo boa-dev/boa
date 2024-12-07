@@ -10,7 +10,7 @@ pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
-#[cfg(feature="temporal")]
+#[cfg(feature = "temporal")]
 use temporal_rs::tzdb::FsTzdbProvider;
 
 use crate::vm::RuntimeLimits;
@@ -102,7 +102,7 @@ pub struct Context {
 
     can_block: bool,
 
-    #[cfg(feature ="temporal")]
+    #[cfg(feature = "temporal")]
     tz_provider: FsTzdbProvider,
 
     /// Intl data provider.

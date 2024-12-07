@@ -541,7 +541,7 @@ impl Instant {
 
 /// 8.5.2 `CreateTemporalInstant ( epochNanoseconds [ , newTarget ] )`
 #[inline]
-fn create_temporal_instant(
+pub(crate) fn create_temporal_instant(
     instant: InnerInstant,
     new_target: Option<JsValue>,
     context: &mut Context,

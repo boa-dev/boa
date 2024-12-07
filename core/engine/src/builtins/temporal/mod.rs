@@ -16,14 +16,14 @@ mod plain_month_day;
 mod plain_time;
 mod plain_year_month;
 mod time_zone;
-mod zoned_date_time;
+mod zoneddatetime;
 
 #[cfg(test)]
 mod tests;
 
 pub use self::{
     duration::*, instant::*, now::*, plain_date::*, plain_date_time::*, plain_month_day::*,
-    plain_time::*, plain_year_month::*, zoned_date_time::*,
+    plain_time::*, plain_year_month::*, zoneddatetime::*,
 };
 
 use crate::{
