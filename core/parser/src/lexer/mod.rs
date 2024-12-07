@@ -176,9 +176,9 @@ impl<R> Lexer<R> {
                 }
             }
         } else {
-            Err(Error::syntax(
-                "Abrupt end: Expecting Token /,*,= or regex",
-                start,
+            Ok(Token::new(
+                Punctuator::Div.into(),
+                Span::new(start, self.cursor.pos()),
             ))
         }
     }

@@ -601,6 +601,44 @@ fn delete_in_strict_function_returned() {
 }
 
 #[test]
+fn ops_at_the_end() {
+    let msg = "abrupt end";
+
+    let mut actions = vec![TestAction::assert_eq("var a, b=3; a = b ++", 3)];
+
+    let abrupt_op_sources = [
+        // there was a bug with different behavior with and without space at the end;
+        // so few lines are almost the same except for ending space
+        "var a, b=3; a = b **",
+        "var a, b=3; a = b ** ",
+        "var a, b=3; a = b *",
+        "var a, b=3; a = b * ",
+        "var a, b=3; a /= b *",
+        "var a, b=3; a /= b * ",
+        "var a, b=3; a = b /",
+        "var a, b=3; a = b / ",
+        "var a, b=3; a = b +",
+        "var a, b=3; a = b -",
+        "var a, b=3; a = b ||",
+        "var a, b=3; a = b || ",
+        "var a, b=3; a = b ==",
+        "var a, b=3; a = b ===",
+    ];
+
+    for source in abrupt_op_sources {
+        actions.push(TestAction::assert_native_error(
+            source,
+            JsNativeErrorKind::Syntax,
+            msg,
+        ));
+    }
+
+    actions.push(TestAction::assert_eq("var a, b=3; a = b --", 3));
+
+    run_test_actions(actions);
+}
+
+#[test]
 fn regex_slash_eq() {
     run_test_actions([
         TestAction::assert_eq("+/=/", JsValue::nan()),

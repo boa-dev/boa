@@ -254,6 +254,86 @@ fn check_punctuators() {
 }
 
 #[test]
+fn check_punctuator_at_the_end() {
+    //TODO: maybe just use `strum` (`EnumIter`)?
+    //    * it is already in dependencies
+    let last_expected = [
+        Punctuator::Add,
+        Punctuator::And,
+        Punctuator::Arrow,
+        Punctuator::AssignAdd,
+        Punctuator::AssignAnd,
+        Punctuator::AssignBoolAnd,
+        Punctuator::AssignBoolOr,
+        Punctuator::AssignCoalesce,
+        // Punctuator::AssignDiv, : is unclosed regular expr
+        Punctuator::AssignLeftSh,
+        Punctuator::AssignMod,
+        Punctuator::AssignMul,
+        Punctuator::AssignOr,
+        Punctuator::AssignPow,
+        Punctuator::AssignRightSh,
+        Punctuator::AssignSub,
+        Punctuator::AssignURightSh,
+        Punctuator::AssignXor,
+        Punctuator::BoolAnd,
+        Punctuator::BoolOr,
+        Punctuator::Coalesce,
+        Punctuator::CloseBlock,
+        Punctuator::CloseBracket,
+        Punctuator::CloseParen,
+        Punctuator::Colon,
+        Punctuator::Comma,
+        Punctuator::Dec,
+        Punctuator::Div,
+        Punctuator::Dot,
+        Punctuator::Eq,
+        Punctuator::GreaterThan,
+        Punctuator::GreaterThanOrEq,
+        Punctuator::Inc,
+        Punctuator::LeftSh,
+        Punctuator::LessThan,
+        Punctuator::LessThanOrEq,
+        Punctuator::Mod,
+        Punctuator::Mul,
+        Punctuator::Neg,
+        Punctuator::Not,
+        Punctuator::NotEq,
+        Punctuator::OpenBlock,
+        Punctuator::OpenBracket,
+        Punctuator::OpenParen,
+        Punctuator::Optional,
+        Punctuator::Or,
+        Punctuator::Exp,
+        Punctuator::Question,
+        Punctuator::RightSh,
+        Punctuator::Semicolon,
+        Punctuator::Spread,
+        Punctuator::StrictEq,
+        Punctuator::StrictNotEq,
+        Punctuator::Sub,
+        Punctuator::URightSh,
+        Punctuator::Xor,
+    ];
+
+    for last in last_expected {
+        let s = format!("var a = b {}", last.as_str());
+        let mut lexer = Lexer::from(s.as_bytes());
+        let interner = &mut Interner::default();
+
+        let expected = [
+            TokenKind::Keyword((Keyword::Var, false)),
+            TokenKind::identifier(interner.get_or_intern_static("a", utf16!("a"))),
+            TokenKind::Punctuator(Punctuator::Assign),
+            TokenKind::identifier(interner.get_or_intern_static("b", utf16!("b"))),
+            TokenKind::Punctuator(last),
+        ];
+
+        expect_tokens(&mut lexer, &expected, interner);
+    }
+}
+
+#[test]
 fn check_keywords() {
     // https://tc39.es/ecma262/#sec-keywords
     let s = "await break case catch class const continue debugger default delete \

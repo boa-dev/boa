@@ -104,6 +104,7 @@ where
     }
 
     /// Peeks a future token, without consuming it or advancing the cursor.
+    /// This peeking **skips** line terminators.
     ///
     /// You can skip some tokens with the `skip_n` option.
     pub(super) fn peek(
@@ -112,6 +113,18 @@ where
         interner: &mut Interner,
     ) -> ParseResult<Option<&Token>> {
         self.buffered_lexer.peek(skip_n, true, interner)
+    }
+
+    /// Peeks a future token, without consuming it or advancing the cursor.
+    /// This peeking **does not skips** line terminators.
+    ///
+    /// You can skip some tokens with the `skip_n` option.
+    pub(super) fn peek_no_skip_line_term(
+        &mut self,
+        skip_n: usize,
+        interner: &mut Interner,
+    ) -> ParseResult<Option<&Token>> {
+        self.buffered_lexer.peek(skip_n, false, interner)
     }
 
     /// Gets the current strict mode for the cursor.
@@ -195,14 +208,12 @@ where
         &mut self,
         interner: &mut Interner,
     ) -> ParseResult<SemicolonResult<'_>> {
-        self.buffered_lexer.peek(0, false, interner)?.map_or(
-            Ok(SemicolonResult::Found(None)),
-            |tk| match tk.kind() {
+        self.peek_no_skip_line_term(0, interner)?
+            .map_or(Ok(SemicolonResult::Found(None)), |tk| match tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon | Punctuator::CloseBlock)
                 | TokenKind::LineTerminator => Ok(SemicolonResult::Found(Some(tk))),
                 _ => Ok(SemicolonResult::NotFound(tk)),
-            },
-        )
+            })
     }
 
     /// Consumes the next token if it is a semicolon, or returns a `Errpr` if it's not.
@@ -245,10 +256,7 @@ where
         context: &'static str,
         interner: &mut Interner,
     ) -> ParseResult<&Token> {
-        let tok = self
-            .buffered_lexer
-            .peek(skip_n, false, interner)
-            .or_abrupt()?;
+        let tok = self.peek_no_skip_line_term(skip_n, interner).or_abrupt()?;
 
         if tok.kind() == &TokenKind::LineTerminator {
             Err(Error::unexpected(
@@ -267,8 +275,7 @@ where
         skip_n: usize,
         interner: &mut Interner,
     ) -> ParseResult<Option<bool>> {
-        self.buffered_lexer
-            .peek(skip_n, false, interner)?
+        self.peek_no_skip_line_term(skip_n, interner)?
             .map_or(Ok(None), |t| {
                 Ok(Some(t.kind() == &TokenKind::LineTerminator))
             })

@@ -6,24 +6,28 @@ use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
+const CHAR_ASSIGN: u32 = '=' as u32;
+
 /// `vop` tests the next token to see if we're on an assign operation of just a plain binary operation.
 ///
 /// If the next value is not an assignment operation it will pattern match  the provided values and return the corresponding token.
 macro_rules! vop {
     ($cursor:ident, $assign_op:expr, $op:expr) => ({
         match $cursor.peek_char()? {
-            None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
-            Some(0x3D /* = */) => {
+            None => $op,
+            Some(CHAR_ASSIGN) => {
                 $cursor.next_char()?.expect("= token vanished");
                 $assign_op
             }
             Some(_) => $op,
+            #[allow(unreachable_patterns)]
+            _ => Err(Error::syntax("must be unreachable: need to auto type inference", $cursor.pos())),
         }
     });
     ($cursor:ident, $assign_op:expr, $op:expr, {$($case:pat => $block:expr), +}) => ({
         match $cursor.peek_char()? {
-            None => Err(Error::syntax("abrupt end - could not preview next value as part of the operator", $cursor.pos())),
-            Some(0x3D /* = */) => {
+            None => $op,
+            Some(CHAR_ASSIGN) => {
                 $cursor.next_char()?.expect("= token vanished");
                 $assign_op
             },
@@ -31,7 +35,9 @@ macro_rules! vop {
                 $cursor.next_char()?.expect("Token vanished");
                 $block
             })+,
-            _ => $op,
+            Some(_) => $op,
+            #[allow(unreachable_patterns)]
+            _ => Err(Error::syntax("must be unreachable: need to auto type inference", $cursor.pos())),
         }
     });
 }
