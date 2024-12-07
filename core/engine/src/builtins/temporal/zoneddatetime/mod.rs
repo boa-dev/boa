@@ -609,8 +609,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        // TODO: temporal_rs should update to i64
-        Ok((zdt.inner.epoch_milliseconds() as i64).into())
+        Ok((zdt.inner.epoch_milliseconds()).into())
     }
 
     /// 6.3.18 get `Temporal.ZonedDateTime.prototype.epochNanosecond`
