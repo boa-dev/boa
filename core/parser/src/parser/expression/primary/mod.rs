@@ -246,10 +246,12 @@ where
                 cursor.advance(interner);
                 Ok(node)
             }
-            TokenKind::Punctuator(Punctuator::Div) => {
+            TokenKind::Punctuator(div @ (Punctuator::Div | Punctuator::AssignDiv)) => {
+                let init_with_eq = div == &Punctuator::AssignDiv;
+
                 let position = tok.span().start();
                 cursor.advance(interner);
-                let tok = cursor.lex_regex(position, interner)?;
+                let tok = cursor.lex_regex(position, interner, init_with_eq)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
                     Ok(AstRegExp::new(body, flags).into())

@@ -82,15 +82,17 @@ where
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
+    /// If `init_with_eq` is `true`, then assuming that the starting '/=' has already been consumed.
     pub(super) fn lex_regex(
         &mut self,
         start: Position,
         interner: &mut Interner,
+        init_with_eq: bool,
     ) -> ParseResult<Token> {
         let _timer = Profiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
         self.lexer
-            .lex_slash_token(start, interner)
+            .lex_slash_token(start, interner, init_with_eq)
             .map_err(Into::into)
     }
 

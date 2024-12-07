@@ -307,6 +307,8 @@ impl SyntheticModule {
             })
             .collect::<Vec<_>>();
 
+        module_scope.escape_all_bindings();
+
         let cb = Gc::new(compiler.finish());
 
         let mut envs = EnvironmentStack::new(global_env);

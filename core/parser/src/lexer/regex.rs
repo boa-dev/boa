@@ -23,7 +23,18 @@ use std::str::{self, FromStr};
 /// [spec]: https://tc39.es/ecma262/#sec-literals-regular-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
 #[derive(Debug, Clone, Copy)]
-pub(super) struct RegexLiteral;
+pub(super) struct RegexLiteral {
+    // If there is more cases than only `/=`
+    // then use `Option<u8>` or (more correct) `Option<enum>`
+    init_with_eq: bool,
+}
+
+impl RegexLiteral {
+    /// `init_with_eq` is '=' after `/` already consumed?
+    pub(super) fn new(init_with_eq: bool) -> Self {
+        Self { init_with_eq }
+    }
+}
 
 impl<R> Tokenizer<R> for RegexLiteral {
     fn lex(
@@ -38,6 +49,10 @@ impl<R> Tokenizer<R> for RegexLiteral {
         let _timer = Profiler::global().start_event("RegexLiteral", "Lexing");
 
         let mut body = Vec::new();
+        if self.init_with_eq {
+            body.push(u32::from(b'='));
+        }
+
         let mut is_class_char = false;
 
         // Lex RegularExpressionBody.

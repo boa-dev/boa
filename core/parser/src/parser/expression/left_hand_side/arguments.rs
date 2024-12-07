@@ -87,7 +87,7 @@ where
                 _ => {
                     if !args.is_empty() {
                         return Err(Error::expected(
-                            [",".to_owned(), "}".to_owned()],
+                            [",".to_owned(), ")".to_owned()],
                             next_token.to_string(interner),
                             next_token.span(),
                             "argument list",

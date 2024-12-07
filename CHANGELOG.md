@@ -2,6 +2,101 @@
 
 ## What's Changed
 
+# [0.20.0 (2024-12-5)](https://github.com/boa-dev/boa/compare/v0.19.1...v0.20.0)
+
+### Feature Enhancements
+
+- Add a js_error! macro to create opaque errors by @hansl in https://github.com/boa-dev/boa/pull/3920
+- Update `Instant` for new Temporal functionality by @nekevss in https://github.com/boa-dev/boa/pull/3928
+- Add a way to add setters/getters in js_class! by @hansl in https://github.com/boa-dev/boa/pull/3911
+- Fix lints from rustc 1.80.0 by @jedel1043 in https://github.com/boa-dev/boa/pull/3936
+- Add a JsError::from_rust constructor to create native errors from Rust by @hansl in https://github.com/boa-dev/boa/pull/3921
+- add some temporal methods by @jasonwilliams in https://github.com/boa-dev/boa/pull/3856
+- Allow a custom Logger to be used as the backend for boa_runtime::Console by @hansl in https://github.com/boa-dev/boa/pull/3943
+- Add more utility functions around modules and exports by @hansl in https://github.com/boa-dev/boa/pull/3937
+- Allow trailing commas in js_class functions by @hansl in https://github.com/boa-dev/boa/pull/3964
+- Implement `Atomics.pause` by @jedel1043 in https://github.com/boa-dev/boa/pull/3956
+- Add a clone_inner method to allow cloning of inner data by @hansl in https://github.com/boa-dev/boa/pull/3968
+- fix: ignore `debugger` statement by @shurizzle in https://github.com/boa-dev/boa/pull/3976
+- Add support for boa(rename = "") in TryFromJs derive by @hansl in https://github.com/boa-dev/boa/pull/3980
+- Add an "iter()" method to Js\*Array for convenience by @hansl in https://github.com/boa-dev/boa/pull/3986
+- A simple module loader from a function by @hansl in https://github.com/boa-dev/boa/pull/3932
+- Add a way for js_error! macro to create native errors with message by @hansl in https://github.com/boa-dev/boa/pull/3971
+- Limit actions runs to 1 per branch and fix macos release by @jedel1043 in https://github.com/boa-dev/boa/pull/3996
+- Add TextEncoder, TextDecoder implementations to boa_runtime by @hansl in https://github.com/boa-dev/boa/pull/3994
+- Add TryFromJs for TypedJsFunction and more tests by @hansl in https://github.com/boa-dev/boa/pull/3981
+- Add context to the console `Logger` trait by @hansl in https://github.com/boa-dev/boa/pull/4005
+- Add a URL class to boa_runtime by @hansl in https://github.com/boa-dev/boa/pull/4004
+- Add a display_lossy() to write a JsString lossily by @hansl in https://github.com/boa-dev/boa/pull/4023
+- `TryIntoJs` trait and derive macro for it by @Nikita-str in https://github.com/boa-dev/boa/pull/3999
+- console.debug() should use a debug Logger method by @hansl in https://github.com/boa-dev/boa/pull/4019
+- `TryFromJs` from `JsMap` for `HashMap` & `BtreeMap` by @Nikita-str in https://github.com/boa-dev/boa/pull/3998
+- Add string builder to build `JsString` by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/3915
+
+### Bug Fixes
+
+- Implement `Math.pow` function according to ECMAScript specification by @magic-akari in https://github.com/boa-dev/boa/pull/3916
+- Fix temporal builtin properties by @nekevss in https://github.com/boa-dev/boa/pull/3930
+- Fix wrong `neg` operation by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/3926
+- Fix destructuring assignment evaluation order by @raskad in https://github.com/boa-dev/boa/pull/3934
+- Fix various parser idempotency issues and parsing errors by @raskad in https://github.com/boa-dev/boa/pull/3917
+- Implement new spec changes for `AsyncGenerator` by @jedel1043 in https://github.com/boa-dev/boa/pull/3950
+- Refactor ast function types by @raskad in https://github.com/boa-dev/boa/pull/3931
+- Fix `js_str` macro to correctly handle latin1 strings by @jedel1043 in https://github.com/boa-dev/boa/pull/3959
+- Allow dead code for code that is newly detected as unused by @hansl in https://github.com/boa-dev/boa/pull/3984
+- Allow warnings when running CI on release branches by @jedel1043 in https://github.com/boa-dev/boa/pull/3990
+- docs: Fix link to examples by @it-a-me in https://github.com/boa-dev/boa/pull/4007
+- `IntegerOrInfinity` `eq` bug fix by @Nikita-str in https://github.com/boa-dev/boa/pull/4010
+
+### Internal Improvements
+
+- Refactor `RawJsString`'s representation to make `JsString`s construction from string literal heap-allocation free by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/3935
+- Split default icu data into lazily deserialized parts by @jedel1043 in https://github.com/boa-dev/boa/pull/3948
+- Add clippy for denying print and eprints by @hansl in https://github.com/boa-dev/boa/pull/3967
+- Refactor iterator APIs to be on parity with the latest spec by @jedel1043 in https://github.com/boa-dev/boa/pull/3962
+- Add support for Trace, Finalize and JsData for Convert<> by @hansl in https://github.com/boa-dev/boa/pull/3970
+- use with_capacity to reduce re-allocations fixes #3896 by @jasonwilliams in https://github.com/boa-dev/boa/pull/3961
+- add nightly build by @jasonwilliams in https://github.com/boa-dev/boa/pull/4026
+- Patch the indentation in nightly_build.yml by @nekevss in https://github.com/boa-dev/boa/pull/4028
+- Update night build's rename binary step by @nekevss in https://github.com/boa-dev/boa/pull/4032
+- Use upload-rust-binary-action for nightly release by @nekevss in https://github.com/boa-dev/boa/pull/4040
+- Fix `ref` value in nightly and add target to nightly release by @nekevss in https://github.com/boa-dev/boa/pull/4042
+- Reduce environment allocations by @raskad in https://github.com/boa-dev/boa/pull/4002
+
+### Other Changes
+
+- Implement more Temporal functionality by @nekevss in https://github.com/boa-dev/boa/pull/3924
+- Add a Source::with_path method to set the path on a Source by @hansl in https://github.com/boa-dev/boa/pull/3941
+- Add spec edition 15 to the tester by @jedel1043 in https://github.com/boa-dev/boa/pull/3957
+- Rename as_promise to as_promise_object and add as_promise -> JsPromise by @hansl in https://github.com/boa-dev/boa/pull/3965
+- Build out partial record functionality, property bag construction, and `with` methods by @nekevss in https://github.com/boa-dev/boa/pull/3955
+- Enable CI for release branches by @jedel1043 in https://github.com/boa-dev/boa/pull/3987
+- Add a display type for JsString to allow formatting without allocations by @hansl in https://github.com/boa-dev/boa/pull/3951
+- Add TryIntoJsResult for vectors by @hansl in https://github.com/boa-dev/boa/pull/3993
+- Add tests from WPT and fix them in the Console by @hansl in https://github.com/boa-dev/boa/pull/3979
+- Update changelog for v0.19.1 by @jedel1043 in https://github.com/boa-dev/boa/pull/3995
+- Implement register allocation by @HalidOdat in https://github.com/boa-dev/boa/pull/3942
+- Implement scope analysis and local variables by @raskad in https://github.com/boa-dev/boa/pull/3988
+- `JsValue::to_json` fix integer property keys by @Nikita-str in https://github.com/boa-dev/boa/pull/4011
+- Some optimizations on `Error` by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4020
+- Option::None should try into Undefined, not Null by @hansl in https://github.com/boa-dev/boa/pull/4029
+- Some string optimizations by @CrazyboyQCD in https://github.com/boa-dev/boa/pull/4030
+- Add a JsPromise::from_result for convenience by @hansl in https://github.com/boa-dev/boa/pull/4039
+- Fix misspelled permissions in nightly build action by @nekevss in https://github.com/boa-dev/boa/pull/4041
+- Remove dockerfile from documentation by @4yman-0 in https://github.com/boa-dev/boa/pull/4046
+- Bump dependencies with breaking changes by @jedel1043 in https://github.com/boa-dev/boa/pull/4050
+- Migrate to fast-float2 by @jedel1043 in https://github.com/boa-dev/boa/pull/4052
+
+## New Contributors
+
+- @magic-akari made their first contribution in https://github.com/boa-dev/boa/pull/3916
+- @shurizzle made their first contribution in https://github.com/boa-dev/boa/pull/3976
+- @it-a-me made their first contribution in https://github.com/boa-dev/boa/pull/4007
+- @Nikita-str made their first contribution in https://github.com/boa-dev/boa/pull/4010
+- @4yman-0 made their first contribution in https://github.com/boa-dev/boa/pull/4046
+
+**Full Changelog**: https://github.com/boa-dev/boa/compare/v0.19...v0.20.0
+
 # [0.19.1 (2024-09-11)](https://github.com/boa-dev/boa/compare/v0.19...v0.19.1)
 
 ### Bug Fixes

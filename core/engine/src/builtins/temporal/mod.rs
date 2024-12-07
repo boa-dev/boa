@@ -37,10 +37,7 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use temporal_rs::{
-    components::{Date as TemporalDate, ZonedDateTime as TemporalZonedDateTime},
-    NS_PER_DAY,
-};
+use temporal_rs::{PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime, NS_PER_DAY};
 
 // TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_max_instant() -> JsBigInt {
@@ -223,10 +220,10 @@ pub(crate) fn _iterator_to_list_of_types(
 // 13.6 `GetOption ( options, property, type, values, default )`
 // Implemented in builtin/options.rs
 
-/// 13.7 `ToTemporalOverflow (options)`
+// 13.7 `ToTemporalOverflow (options)`
 // Now implemented in temporal/options.rs
 
-/// 13.10 `ToTemporalRoundingMode ( normalizedOptions, fallback )`
+// 13.10 `ToTemporalRoundingMode ( normalizedOptions, fallback )`
 // Now implemented in builtin/options.rs
 
 // 13.11 `NegateTemporalRoundingMode ( roundingMode )`

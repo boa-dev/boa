@@ -318,7 +318,7 @@ pub(crate) fn parse_float(
             // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
             Ok(JsValue::nan())
         } else {
-            Ok(fast_float::parse_partial::<f64, _>(s).map_or_else(
+            Ok(fast_float2::parse_partial::<f64, _>(s).map_or_else(
                 |_| JsValue::nan(),
                 |(f, len)| {
                     if len > 0 {

@@ -23,7 +23,7 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-version = "0.19.0"
+version = "0.20.0"
 rust-version = "1.82.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
@@ -33,46 +33,46 @@ description = "Boa is a Javascript lexer, parser and compiler written in Rust. C
 [workspace.dependencies]
 
 # Repo Crates
-boa_ast = { version = "~0.19.0", path = "core/ast" }
-boa_engine = { version = "~0.19.0", path = "core/engine" }
-boa_gc = { version = "~0.19.0", path = "core/gc" }
-boa_icu_provider = { version = "~0.19.0", path = "core/icu_provider" }
-boa_interner = { version = "~0.19.0", path = "core/interner" }
-boa_interop = { version = "~0.19.0", path = "core/interop" }
-boa_macros = { version = "~0.19.0", path = "core/macros" }
-boa_parser = { version = "~0.19.0", path = "core/parser" }
-boa_profiler = { version = "~0.19.0", path = "core/profiler" }
-boa_runtime = { version = "~0.19.0", path = "core/runtime" }
-boa_string = { version = "~0.19.0", path = "core/string" }
+boa_ast = { version = "~0.20.0", path = "core/ast" }
+boa_engine = { version = "~0.20.0", path = "core/engine" }
+boa_gc = { version = "~0.20.0", path = "core/gc" }
+boa_icu_provider = { version = "~0.20.0", path = "core/icu_provider" }
+boa_interner = { version = "~0.20.0", path = "core/interner" }
+boa_interop = { version = "~0.20.0", path = "core/interop" }
+boa_macros = { version = "~0.20.0", path = "core/macros" }
+boa_parser = { version = "~0.20.0", path = "core/parser" }
+boa_profiler = { version = "~0.20.0", path = "core/profiler" }
+boa_runtime = { version = "~0.20.0", path = "core/runtime" }
+boa_string = { version = "~0.20.0", path = "core/string" }
 
 # Shared deps
 arbitrary = "1"
 bitflags = "2.5.0"
 clap = "4.5.21"
 colored = "2.1.0"
-fast-float = "0.2.0"
-hashbrown = { version = "0.14.5", default-features = false }
-indexmap = { version = "2.6.0", default-features = false }
+fast-float2 = "0.2.3"
+hashbrown = "0.15.2"
+indexmap = { version = "2.7.0", default-features = false }
 indoc = "2.0.5"
 jemallocator = "0.5.4"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.20.2", default-features = false }
 phf = { version = "0.11.2", default-features = false }
-pollster = "0.3.0"
+pollster = "0.4.0"
 regex = "1.11.1"
 regress = { version = "0.10.1", features = ["utf16"] }
-rustc-hash = { version = "2.0.0", default-features = false }
+rustc-hash = { version = "2.1.0", default-features = false }
 serde_json = "1.0.133"
 serde = "1.0.215"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
-time = { version = "0.3.36", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
+time = { version = "0.3.37", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
 tinystr = "0.7.5"
 log = "0.4.22"
 simple_logger = "5.0.0"
-cargo_metadata = "0.18.1"
+cargo_metadata = "0.19.0"
 trybuild = "1.0.101"
 rayon = "1.10.0"
 toml = "0.8.19"
@@ -80,44 +80,45 @@ color-eyre = "0.6.3"
 comfy-table = "7.1.3"
 serde_repr = "0.1.19"
 bus = "2.4.1"
-wasm-bindgen = { version = "0.2.95", default-features = false }
+wasm-bindgen = { version = "0.2.97", default-features = false }
 getrandom = { version = "0.2.15", default-features = false }
 console_error_panic_hook = "0.1.7"
-wasm-bindgen-test = "0.3.45"
+wasm-bindgen-test = "0.3.47"
 smol = "2.0.2"
 futures-util = "0.3.31"
 isahc = "1.7.2"
-rustyline = { version = "14.0.0", default-features = false }
+rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.37"
-syn = { version = "2.0.87", default-features = false }
+syn = { version = "2.0.90", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
-measureme = "11.0.1"
+measureme = "12.0.0"
 sptr = "0.3.2"
 paste = "1.0"
 rand = "0.8.5"
 num-integer = "0.1.46"
 ryu-js = "1.0.1"
 tap = "1.0.1"
-thiserror = "1.0.69"
-dashmap = "5.5.3"
+thiserror = { version = "2.0.3", default-features = false }
+dashmap = "6.1.0"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
-portable-atomic = "1.9.0"
+portable-atomic = "1.10.0"
 bytemuck = { version = "1.19.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
 either = "1.13.0"
 sys-locale = "0.3.2"
-temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "1e7901d07a83211e62373ab94284a7d1ada4c913" }
+temporal_rs = "0.0.4"
 web-time = "1.1.0"
 criterion = "0.5.1"
-float-cmp = "0.9.0"
+float-cmp = "0.10.0"
 futures-lite = "2.5.0"
 test-case = "3.3.1"
 winapi = { version = "0.3.9", default-features = false }
+url = "2.5.4"
 
 # ICU4X
 
@@ -138,8 +139,8 @@ icu_properties = { version = "~1.5.0", default-features = true }
 icu_normalizer = { version = "~1.5.0", default-features = false }
 icu_decimal = { version = "~1.5.0", default-features = false }
 writeable = "~0.5.5"
-yoke = "~0.7.4"
-zerofrom = "~0.1.4"
+yoke = "~0.7.5"
+zerofrom = "~0.1.5"
 fixed_decimal = "~0.5.6"
 
 [workspace.metadata.workspaces]

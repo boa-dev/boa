@@ -77,6 +77,13 @@ impl FunctionDeclaration {
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
     }
+
+    /// Returns `true` if the function declaration contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for FunctionDeclaration {
@@ -205,6 +212,13 @@ impl FunctionExpression {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Returns `true` if the function expression contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
     }
 
     /// Analyze the scope of the function expression.

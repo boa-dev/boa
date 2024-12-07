@@ -3,12 +3,16 @@
 //! Scopes are used to track the bindings of identifiers in the AST.
 
 use boa_string::JsString;
-use rustc_hash::FxHashMap;
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    fmt::Debug,
+    rc::Rc,
+};
 
 #[derive(Clone, Debug, PartialEq)]
 #[allow(clippy::struct_excessive_bools)]
 struct Binding {
+    name: JsString,
     index: u32,
     mutable: bool,
     lex: bool,
@@ -50,9 +54,10 @@ impl<'a> arbitrary::Arbitrary<'a> for Scope {
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Inner {
+    unique_id: u32,
     outer: Option<Scope>,
-    index: u32,
-    bindings: RefCell<FxHashMap<JsString, Binding>>,
+    index: Cell<u32>,
+    bindings: RefCell<Vec<Binding>>,
     function: bool,
 }
 
@@ -62,8 +67,9 @@ impl Scope {
     pub fn new_global() -> Self {
         Self {
             inner: Rc::new(Inner {
+                unique_id: 0,
                 outer: None,
-                index: 0,
+                index: Cell::default(),
                 bindings: RefCell::default(),
                 function: true,
             }),
@@ -73,20 +79,32 @@ impl Scope {
     /// Creates a new scope.
     #[must_use]
     pub fn new(parent: Self, function: bool) -> Self {
-        let index = parent.inner.index + 1;
+        let index = parent.inner.index.get() + 1;
         Self {
             inner: Rc::new(Inner {
+                unique_id: index,
                 outer: Some(parent),
-                index,
+                index: Cell::new(index),
                 bindings: RefCell::default(),
                 function,
             }),
         }
     }
 
+    /// Checks if the scope has only local bindings.
+    #[must_use]
+    pub fn all_bindings_local(&self) -> bool {
+        // if self.inner.function && self.inn
+        self.inner
+            .bindings
+            .borrow()
+            .iter()
+            .all(|binding| !binding.escapes)
+    }
+
     /// Marks all bindings in this scope as escaping.
     pub fn escape_all_bindings(&self) {
-        for binding in self.inner.bindings.borrow_mut().values_mut() {
+        for binding in self.inner.bindings.borrow_mut().iter_mut() {
             binding.escapes = true;
         }
     }
@@ -97,23 +115,29 @@ impl Scope {
         self.inner
             .bindings
             .borrow()
-            .get(name)
+            .iter()
+            .find(|b| &b.name == name)
             .map_or(false, |binding| binding.lex)
     }
 
     /// Check if the scope has a binding with the given name.
     #[must_use]
     pub fn has_binding(&self, name: &JsString) -> bool {
-        self.inner.bindings.borrow().contains_key(name)
+        self.inner.bindings.borrow().iter().any(|b| &b.name == name)
     }
 
     /// Get the binding locator for a binding with the given name.
     /// Fall back to the global scope if the binding is not found.
     #[must_use]
     pub fn get_identifier_reference(&self, name: JsString) -> IdentifierReference {
-        if let Some(binding) = self.inner.bindings.borrow().get(&name) {
+        if let Some(binding) = self.inner.bindings.borrow().iter().find(|b| b.name == name) {
             IdentifierReference::new(
-                BindingLocator::declarative(name, self.inner.index, binding.index),
+                BindingLocator::declarative(
+                    name,
+                    self.inner.index.get(),
+                    binding.index,
+                    self.inner.unique_id,
+                ),
                 binding.lex,
                 binding.escapes,
             )
@@ -131,10 +155,41 @@ impl Scope {
         self.inner.bindings.borrow().len() as u32
     }
 
+    /// Returns the number of bindings in this scope that are not local.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn num_bindings_non_local(&self) -> u32 {
+        self.inner
+            .bindings
+            .borrow()
+            .iter()
+            .filter(|binding| binding.escapes)
+            .count() as u32
+    }
+
+    /// Adjust the binding indices to exclude local bindings.
+    pub(crate) fn reorder_binding_indices(&self) {
+        let mut bindings = self.inner.bindings.borrow_mut();
+        let mut index = 0;
+        for binding in bindings.iter_mut() {
+            if !binding.escapes {
+                binding.index = 0;
+                continue;
+            }
+            binding.index = index;
+            index += 1;
+        }
+    }
+
     /// Returns the index of this scope.
     #[must_use]
     pub fn scope_index(&self) -> u32 {
-        self.inner.index
+        self.inner.index.get()
+    }
+
+    /// Set the index of this scope.
+    pub(crate) fn set_index(&self, index: u32) {
+        self.inner.index.set(index);
     }
 
     /// Check if the scope is a function scope.
@@ -152,21 +207,41 @@ impl Scope {
     /// Get the locator for a binding name.
     #[must_use]
     pub fn get_binding(&self, name: &JsString) -> Option<BindingLocator> {
-        self.inner.bindings.borrow().get(name).map(|binding| {
-            BindingLocator::declarative(name.clone(), self.inner.index, binding.index)
-        })
+        self.inner
+            .bindings
+            .borrow()
+            .iter()
+            .find(|b| &b.name == name)
+            .map(|binding| {
+                BindingLocator::declarative(
+                    name.clone(),
+                    self.inner.index.get(),
+                    binding.index,
+                    self.inner.unique_id,
+                )
+            })
     }
 
     /// Get the locator for a binding name.
     #[must_use]
     pub fn get_binding_reference(&self, name: &JsString) -> Option<IdentifierReference> {
-        self.inner.bindings.borrow().get(name).map(|binding| {
-            IdentifierReference::new(
-                BindingLocator::declarative(name.clone(), self.inner.index, binding.index),
-                binding.lex,
-                binding.escapes,
-            )
-        })
+        self.inner
+            .bindings
+            .borrow()
+            .iter()
+            .find(|b| &b.name == name)
+            .map(|binding| {
+                IdentifierReference::new(
+                    BindingLocator::declarative(
+                        name.clone(),
+                        self.inner.index.get(),
+                        binding.index,
+                        self.inner.unique_id,
+                    ),
+                    binding.lex,
+                    binding.escapes,
+                )
+            })
     }
 
     /// Simulate a binding access.
@@ -177,7 +252,13 @@ impl Scope {
         let mut crossed_function_border = false;
         let mut current = self;
         loop {
-            if let Some(binding) = current.inner.bindings.borrow_mut().get_mut(name) {
+            if let Some(binding) = current
+                .inner
+                .bindings
+                .borrow_mut()
+                .iter_mut()
+                .find(|b| &b.name == name)
+            {
                 if crossed_function_border || eval_or_with {
                     binding.escapes = true;
                 }
@@ -198,34 +279,48 @@ impl Scope {
     #[must_use]
     #[allow(clippy::cast_possible_truncation)]
     pub fn create_mutable_binding(&self, name: JsString, function_scope: bool) -> BindingLocator {
-        let binding_index = self.inner.bindings.borrow().len() as u32;
-        self.inner.bindings.borrow_mut().insert(
-            name.clone(),
-            Binding {
-                index: binding_index,
-                mutable: true,
-                lex: !function_scope,
-                strict: false,
-                escapes: self.is_global(),
-            },
-        );
-        BindingLocator::declarative(name, self.inner.index, binding_index)
+        let mut bindings = self.inner.bindings.borrow_mut();
+        let binding_index = bindings.len() as u32;
+        if let Some(binding) = bindings.iter().find(|b| b.name == name) {
+            return BindingLocator::declarative(
+                name,
+                self.inner.index.get(),
+                binding.index,
+                self.inner.unique_id,
+            );
+        }
+        bindings.push(Binding {
+            name: name.clone(),
+            index: binding_index,
+            mutable: true,
+            lex: !function_scope,
+            strict: false,
+            escapes: self.is_global(),
+        });
+        BindingLocator::declarative(
+            name,
+            self.inner.index.get(),
+            binding_index,
+            self.inner.unique_id,
+        )
     }
 
     /// Crate an immutable binding.
     #[allow(clippy::cast_possible_truncation)]
     pub(crate) fn create_immutable_binding(&self, name: JsString, strict: bool) {
-        let binding_index = self.inner.bindings.borrow().len() as u32;
-        self.inner.bindings.borrow_mut().insert(
+        let mut bindings = self.inner.bindings.borrow_mut();
+        if bindings.iter().any(|b| b.name == name) {
+            return;
+        }
+        let binding_index = bindings.len() as u32;
+        bindings.push(Binding {
             name,
-            Binding {
-                index: binding_index,
-                mutable: false,
-                lex: true,
-                strict,
-                escapes: self.is_global(),
-            },
-        );
+            index: binding_index,
+            mutable: false,
+            lex: true,
+            strict,
+            escapes: self.is_global(),
+        });
     }
 
     /// Return the binding locator for a mutable binding.
@@ -236,25 +331,34 @@ impl Scope {
         &self,
         name: JsString,
     ) -> Result<IdentifierReference, BindingLocatorError> {
-        Ok(match self.inner.bindings.borrow().get(&name) {
-            Some(binding) if binding.mutable => IdentifierReference::new(
-                BindingLocator::declarative(name, self.inner.index, binding.index),
-                binding.lex,
-                binding.escapes,
-            ),
-            Some(binding) if binding.strict => return Err(BindingLocatorError::MutateImmutable),
-            Some(_) => return Err(BindingLocatorError::Silent),
-            None => self.inner.outer.as_ref().map_or_else(
-                || {
-                    Ok(IdentifierReference::new(
-                        BindingLocator::global(name.clone()),
-                        false,
-                        true,
-                    ))
-                },
-                |outer| outer.set_mutable_binding(name.clone()),
-            )?,
-        })
+        Ok(
+            match self.inner.bindings.borrow().iter().find(|b| b.name == name) {
+                Some(binding) if binding.mutable => IdentifierReference::new(
+                    BindingLocator::declarative(
+                        name,
+                        self.inner.index.get(),
+                        binding.index,
+                        self.inner.unique_id,
+                    ),
+                    binding.lex,
+                    binding.escapes,
+                ),
+                Some(binding) if binding.strict => {
+                    return Err(BindingLocatorError::MutateImmutable)
+                }
+                Some(_) => return Err(BindingLocatorError::Silent),
+                None => self.inner.outer.as_ref().map_or_else(
+                    || {
+                        Ok(IdentifierReference::new(
+                            BindingLocator::global(name.clone()),
+                            false,
+                            true,
+                        ))
+                    },
+                    |outer| outer.set_mutable_binding(name.clone()),
+                )?,
+            },
+        )
     }
 
     #[cfg(feature = "annex-b")]
@@ -279,25 +383,34 @@ impl Scope {
             );
         }
 
-        Ok(match self.inner.bindings.borrow().get(&name) {
-            Some(binding) if binding.mutable => IdentifierReference::new(
-                BindingLocator::declarative(name, self.inner.index, binding.index),
-                binding.lex,
-                binding.escapes,
-            ),
-            Some(binding) if binding.strict => return Err(BindingLocatorError::MutateImmutable),
-            Some(_) => return Err(BindingLocatorError::Silent),
-            None => self.inner.outer.as_ref().map_or_else(
-                || {
-                    Ok(IdentifierReference::new(
-                        BindingLocator::global(name.clone()),
-                        false,
-                        true,
-                    ))
-                },
-                |outer| outer.set_mutable_binding_var(name.clone()),
-            )?,
-        })
+        Ok(
+            match self.inner.bindings.borrow().iter().find(|b| b.name == name) {
+                Some(binding) if binding.mutable => IdentifierReference::new(
+                    BindingLocator::declarative(
+                        name,
+                        self.inner.index.get(),
+                        binding.index,
+                        self.inner.unique_id,
+                    ),
+                    binding.lex,
+                    binding.escapes,
+                ),
+                Some(binding) if binding.strict => {
+                    return Err(BindingLocatorError::MutateImmutable)
+                }
+                Some(_) => return Err(BindingLocatorError::Silent),
+                None => self.inner.outer.as_ref().map_or_else(
+                    || {
+                        Ok(IdentifierReference::new(
+                            BindingLocator::global(name.clone()),
+                            false,
+                            true,
+                        ))
+                    },
+                    |outer| outer.set_mutable_binding_var(name.clone()),
+                )?,
+            },
+        )
     }
 
     /// Gets the outer scope of this scope.
@@ -358,15 +471,23 @@ pub struct BindingLocator {
 
     /// Index of the binding in the scope.
     binding_index: u32,
+
+    unique_scope_id: u32,
 }
 
 impl BindingLocator {
     /// Creates a new declarative binding locator that has knows indices.
-    pub(crate) const fn declarative(name: JsString, scope_index: u32, binding_index: u32) -> Self {
+    pub(crate) const fn declarative(
+        name: JsString,
+        scope_index: u32,
+        binding_index: u32,
+        unique_scope_id: u32,
+    ) -> Self {
         Self {
             name,
             scope: scope_index + 1,
             binding_index,
+            unique_scope_id,
         }
     }
 
@@ -376,6 +497,7 @@ impl BindingLocator {
             name,
             scope: 0,
             binding_index: 0,
+            unique_scope_id: 0,
         }
     }
 
@@ -480,7 +602,8 @@ impl FunctionScopes {
     }
 
     /// Returns the effective paramter scope for this function.
-    pub(crate) fn parameter_scope(&self) -> Scope {
+    #[must_use]
+    pub fn parameter_scope(&self) -> Scope {
         if let Some(parameters_eval_scope) = &self.parameters_eval_scope {
             return parameters_eval_scope.clone();
         }
@@ -512,6 +635,19 @@ impl FunctionScopes {
         }
         if let Some(lexical_scope) = &self.lexical_scope {
             lexical_scope.escape_all_bindings();
+        }
+    }
+
+    pub(crate) fn reorder_binding_indices(&self) {
+        self.function_scope.reorder_binding_indices();
+        if let Some(parameters_eval_scope) = &self.parameters_eval_scope {
+            parameters_eval_scope.reorder_binding_indices();
+        }
+        if let Some(parameters_scope) = &self.parameters_scope {
+            parameters_scope.reorder_binding_indices();
+        }
+        if let Some(lexical_scope) = &self.lexical_scope {
+            lexical_scope.reorder_binding_indices();
         }
     }
 }

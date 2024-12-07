@@ -16,7 +16,7 @@ rustc-hash = { workspace = true, features = ["std"] }
 sptr.workspace = true
 static_assertions.workspace = true
 paste.workspace = true
-fast-float.workspace = true
+fast-float2.workspace = true
 
 [lints]
 workspace = true

@@ -13,18 +13,16 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    components::{
-        calendar::{Calendar, GetTemporalCalendar},
-        DateTime, MonthDay as InnerMonthDay,
-    },
-    iso::IsoDateSlots,
     options::{ArithmeticOverflow, CalendarName},
+    partial::PartialDate,
+    PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
@@ -118,17 +116,6 @@ impl PlainMonthDay {
         Ok(month_day_to_string(inner, show_calendar))
     }
 }
-impl IsoDateSlots for JsObject<PlainMonthDay> {
-    fn iso_date(&self) -> temporal_rs::iso::IsoDate {
-        self.borrow().data().inner.iso_date()
-    }
-}
-
-impl GetTemporalCalendar for JsObject<PlainMonthDay> {
-    fn get_calendar(&self) -> Calendar {
-        self.borrow().data().inner.get_calendar()
-    }
-}
 
 impl BuiltInObject for PlainMonthDay {
     const NAME: JsString = StaticJsStrings::PLAIN_MD_NAME;
@@ -196,9 +183,33 @@ impl BuiltInConstructor for PlainMonthDay {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Err(JsNativeError::range()
-            .with_message("Not yet implemented.")
-            .into())
+        // 1. If NewTarget is undefined, then
+        if new_target.is_undefined() {
+            // a. Throw a TypeError exception.
+            return Err(JsNativeError::typ()
+                .with_message("NewTarget cannot be undefined when constructing a PlainYearMonth.")
+                .into());
+        }
+
+        let year = args.get_or_undefined(3);
+        let ref_year = if year.is_undefined() {
+            None
+        } else {
+            Some(super::to_integer_with_truncation(year, context)?)
+        };
+
+        // We can ignore 2 as the underlying temporal library handles the reference year
+        let m = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
+        let d = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
+        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
+        let inner = InnerMonthDay::new_with_overflow(
+            m,
+            d,
+            calendar,
+            ArithmeticOverflow::Constrain,
+            ref_year,
+        )?;
+        create_temporal_month_day(inner, Some(new_target), context)
     }
 }
 
@@ -214,6 +225,7 @@ fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> Js
     // 3. Let result be the string-concatenation of month and the code unit 0x002D (HYPHEN-MINUS).
     let mut result = format!("{month:0>2}-{day:0>2}");
 
+    // 4. Let calendarId be monthDay.[[Calendar]].[[id]].
     let calendar_id = inner.calendar().identifier();
 
     // 5. Let calendar be monthDay.[[Calendar]].
@@ -227,12 +239,13 @@ fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> Js
         CalendarName::Critical | CalendarName::Always | CalendarName::Auto
     )) && !(matches!(show_calendar, CalendarName::Auto) && calendar_id == "iso8601")
     {
+        let year = inner.iso_year().to_string();
         let flag = if matches!(show_calendar, CalendarName::Critical) {
             "!"
         } else {
             ""
         };
-        result.push_str(&format!("[{flag}c={calendar_id}]",));
+        result = format!("{year}-{result}[{flag}u-ca={calendar_id}]");
     }
     // 8. Return result.
     js_string!(result).into()
@@ -245,7 +258,7 @@ pub(crate) fn create_temporal_month_day(
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if !DateTime::validate(&inner) {
+    if !PlainDateTime::validate(&inner) {
         return Err(JsNativeError::range()
             .with_message("PlainMonthDay does not hold a valid ISO date time.")
             .into());
@@ -301,18 +314,45 @@ fn to_temporal_month_day(
     } else if let Some(item_string) = item.as_string() {
         InnerMonthDay::from_str(item_string.to_std_string_escaped().as_str())?
     } else if item.is_object() {
-        InnerMonthDay::new(
-            item.get_v(js_string!("month"), context)
-                .expect("Month not found")
-                .to_i32(context)
-                .expect("Cannot convert month to i32"),
-            item.get_v(js_string!("day"), context)
-                .expect("Day not found")
-                .to_i32(context)
-                .expect("Cannot convert day to i32"),
-            calendar,
-            overflow,
-        )?
+        let day = item
+            .get_v(js_string!("day"), context)
+            .expect("Day not found")
+            .to_i32(context)
+            .expect("Cannot convert day to i32");
+        let month = item
+            .get_v(js_string!("month"), context)
+            .expect("Month not found")
+            .to_i32(context)
+            .expect("Cannot convert month to i32");
+
+        let month_code = item
+            .get_v(js_string!("monthCode"), context)
+            .expect("monthCode not found");
+        let resolved_month_code = if month_code.is_undefined() {
+            None
+        } else {
+            TinyAsciiStr::<4>::from_str(
+                &month_code
+                    .to_string(context)
+                    .expect("Cannot convert monthCode to string")
+                    .to_std_string_escaped(),
+            )
+            .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
+            .ok()
+        };
+        let year = item.get_v(js_string!("year"), context).map_or(1972, |val| {
+            val.to_i32(context).expect("Cannot convert year to i32")
+        });
+
+        let partial_date = &PartialDate {
+            month: Some(month),
+            day: Some(day),
+            year: Some(year),
+            month_code: resolved_month_code,
+            ..Default::default()
+        };
+
+        calendar.month_day_from_partial(partial_date, overflow)?
     } else {
         return Err(JsNativeError::typ()
             .with_message("item must be an object or a string")

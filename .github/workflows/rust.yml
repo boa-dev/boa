@@ -32,7 +32,9 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          # TODO: There seems to be an issue with the 1.83.0 toolchain and tarpaulin.
+          #       See: https://github.com/xd009642/tarpaulin/issues/1642
+          toolchain: 1.82.0
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -46,7 +48,7 @@ jobs:
         run: cargo tarpaulin --workspace --features annex-b,intl_bundled,experimental --ignore-tests --engine llvm --out xml
 
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
 
   tests:
     name: Test
