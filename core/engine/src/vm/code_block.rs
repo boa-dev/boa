@@ -738,7 +738,7 @@ impl CodeBlock {
             | Instruction::Reserved45
             | Instruction::Reserved46
             | Instruction::Reserved47
-            | Instruction::Reserved48  => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved48 => unreachable!("Reserved opcodes are unrechable"),
         }
     }
 }
