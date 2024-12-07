@@ -1115,6 +1115,13 @@ generate_opcodes! {
     /// Stack: **=>** value
     GetName { index: VaryingOperand },
 
+    /// Find a binding in the global object and push its value.
+    ///
+    /// Operands: index: `u32`
+    ///
+    /// Stack: **=>** value
+    GetNameGlobal { index: VaryingOperand, ic_index: VaryingOperand },
+
     /// Find a binding on the environment and set the `current_binding` of the current frame.
     ///
     /// Operands: index: `u32`
@@ -2280,8 +2287,6 @@ generate_opcodes! {
     Reserved47 => Reserved,
     /// Reserved [`Opcode`].
     Reserved48 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved49 => Reserved,
 }
 
 /// Specific opcodes for bindings.
