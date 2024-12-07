@@ -107,7 +107,7 @@ where
                 } else {
                     1
                 };
-                if let Some(tok) = cursor.peek(skip_n, interner)? {
+                if let Some(tok) = cursor.peek_no_skip_line_term(skip_n, interner)? {
                     if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
                             self.allow_in,
