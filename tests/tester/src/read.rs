@@ -56,6 +56,7 @@ pub(super) enum ErrorType {
     ReferenceError,
     RangeError,
     TypeError,
+    EvalError,
 }
 
 impl ErrorType {
@@ -66,6 +67,7 @@ impl ErrorType {
             Self::ReferenceError => "ReferenceError",
             Self::RangeError => "RangeError",
             Self::TypeError => "TypeError",
+            Self::EvalError => "EvalError",
         }
     }
 }

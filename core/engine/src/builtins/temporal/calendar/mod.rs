@@ -22,11 +22,7 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
         |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
         |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
         |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
-        |zdt| {
-            Err(JsNativeError::range()
-                .with_message("Not yet implemented.")
-                .into())
-        },
+        |zdt| Ok(Some(zdt.borrow().data().inner.calendar().clone())),
     )? {
         return Ok(calendar);
     }

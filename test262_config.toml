@@ -1,4 +1,4 @@
-commit = "dde3050bdbfb8f425084077b6293563932d57ebc"
+commit = "dad2774b2eab2119cc8390ae65db4a5016de2dfe"
 
 [ignored]
 # Not implemented yet:
@@ -16,6 +16,9 @@ features = [
 
     ### Pending proposals
 
+    # https://github.com/tc39/proposal-is-error
+    "Error.isError",
+
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
 
@@ -28,6 +31,9 @@ features = [
 
     # https://github.com/tc39/proposal-import-attributes
     "import-assertions",
+
+    # https://tc39.es/proposal-defer-import-eval
+    "import-defer",
 
     # https://github.com/tc39/proposal-json-modules
     "json-modules",

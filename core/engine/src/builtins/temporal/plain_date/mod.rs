@@ -32,6 +32,10 @@ use super::{
     to_temporal_duration_record, to_temporal_time, PlainDateTime, ZonedDateTime,
 };
 
+#[cfg(feature = "temporal")]
+#[cfg(test)]
+mod tests;
+
 /// The `Temporal.PlainDate` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)] // TODO: Remove this!!! `InnerDate` could contain `Trace` types.
@@ -852,35 +856,40 @@ pub(crate) fn to_temporal_date(
 
     // 2. Assert: Type(options) is Object or Undefined.
     // 3. If options is not undefined, set options to ? SnapshotOwnProperties(? GetOptionsObject(options), null).
-    let options_obj = get_options_object(&options)?;
 
     // 4. If Type(item) is Object, then
     if let Some(object) = item.as_object() {
         // a. If item has an [[InitializedTemporalDate]] internal slot, then
         if let Some(date) = object.downcast_ref::<PlainDate>() {
+            let options_obj = get_options_object(&options)?;
             return Ok(date.inner.clone());
         // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        } else if let Some(data) = object.downcast_ref::<ZonedDateTime>() {
-            return Err(JsNativeError::range()
-                .with_message("ZonedDateTime not yet implemented.")
-                .into());
+        } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
+            let options_obj = get_options_object(&options)?;
             // i. Perform ? ToTemporalOverflow(options).
+            let _overflow = get_option(&options_obj, js_string!("overflow"), context)?
+                .unwrap_or(ArithmeticOverflow::Constrain);
+
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let plainDateTime be ? GetPlainDateTimeFor(item.[[TimeZone]], instant, item.[[Calendar]]).
             // iv. Return ! CreateTemporalDate(plainDateTime.[[ISOYear]], plainDateTime.[[ISOMonth]], plainDateTime.[[ISODay]], plainDateTime.[[Calendar]]).
-
-            // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
-        } else if let Some(date_time) = object.downcast_ref::<PlainDateTime>() {
+            return Err(JsNativeError::error()
+                .with_message("Not yet implemented.")
+                .into());
+        // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
+        } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
+            let options_obj = get_options_object(&options)?;
             // i. Perform ? ToTemporalOverflow(options).
-            let _o = get_option(&options_obj, js_string!("overflow"), context)?
+            let _overflow = get_option(&options_obj, js_string!("overflow"), context)?
                 .unwrap_or(ArithmeticOverflow::Constrain);
 
-            let date = InnerDate::from(date_time.inner.clone());
+            let date = InnerDate::from(dt.inner.clone());
 
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             return Ok(date);
         }
 
+        let options_obj = get_options_object(&options)?;
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
         let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
         let overflow =
@@ -913,19 +922,24 @@ pub(crate) fn to_temporal_date(
             .into());
     };
 
-    // 6. Let result be ? ParseTemporalDateString(item).
-    // 7. Assert: IsValidISODate(result.[[Year]], result.[[Month]], result.[[Day]]) is true.
-    // 8. Let calendar be result.[[Calendar]].
-    // 9. If calendar is undefined, set calendar to "iso8601".
-    // 10. If IsBuiltinCalendar(calendar) is false, throw a RangeError exception.
-    // 11. Set calendar to the ASCII-lowercase of calendar.
-    // 12. Perform ? ToTemporalOverflow(options).
-    // 13. Return ? CreateTemporalDate(result.[[Year]], result.[[Month]], result.[[Day]], calendar).
+    // 4. Let result be ? ParseISODateTime(item, « TemporalDateTimeString[~Zoned] »).
     let result = date_like_string
         .to_std_string_escaped()
         .parse::<InnerDate>()
         .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
 
+    // 5. Let calendar be result.[[Calendar]].
+    // 6. If calendar is empty, set calendar to "iso8601".
+    // 7. Set calendar to ? CanonicalizeCalendar(calendar).
+    // 8. Let resolvedOptions be ? GetOptionsObject(options).
+    let resolved_options = get_options_object(&options)?;
+    // 9. Perform ? GetTemporalOverflowOption(resolvedOptions).
+    let overflow =
+        get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
+            .unwrap_or(ArithmeticOverflow::Constrain);
+
+    // 10. Let isoDate be CreateISODateRecord(result.[[Year]], result.[[Month]], result.[[Day]]).
+    // 11. Return ? CreateTemporalDate(isoDate, calendar).
     Ok(result)
 }
 
