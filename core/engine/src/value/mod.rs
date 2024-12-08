@@ -29,6 +29,7 @@ pub use self::{
 };
 use crate::builtins::RegExp;
 use crate::object::{JsFunction, JsPromise, JsRegExp};
+use crate::value::variant::JsVariant;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -49,6 +50,7 @@ mod hash;
 mod integer;
 mod operations;
 mod r#type;
+mod variant;
 
 #[cfg(test)]
 mod tests;
@@ -63,35 +65,36 @@ static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
     BigInt::from(TWO_E_63)
 });
 
-/// A Javascript value
+/// The Inner type of a [JsValue]. This is the actual value that the JsValue holds.
+/// This is not a public API and should not be used directly.
+///
+/// If you need access to the variant, use [JsValue::variant] instead.
 #[derive(Finalize, Debug, Clone)]
-pub enum JsValue {
-    /// `null` - A null value, for when a value doesn't exist.
+enum InnerValue {
     Null,
-    /// `undefined` - An undefined value, for when a field or index doesn't exist.
     Undefined,
-    /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
-    /// `String` - A UTF-16 string, such as `"Hello, world"`.
-    String(JsString),
-    /// `Number` - A 64-bit floating point number, such as `3.1415`
-    Rational(f64),
-    /// `Number` - A 32-bit integer, such as `42`.
-    Integer(i32),
-    /// `BigInt` - holds any arbitrary large signed integer.
+    Float64(f64),
+    Integer32(i32),
     BigInt(JsBigInt),
-    /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
-    Object(JsObject),
-    /// `Symbol` - A Symbol Primitive type.
+    String(JsString),
     Symbol(JsSymbol),
+    Object(JsObject),
 }
 
-unsafe impl Trace for JsValue {
+#[allow(unsafe_op_in_unsafe_fn)]
+unsafe impl Trace for InnerValue {
     custom_trace! {this, mark, {
         if let Self::Object(o) = this {
             mark(o);
         }
     }}
+}
+
+/// A Javascript value
+#[derive(Finalize, Debug, Clone, Trace)]
+pub struct JsValue {
+    inner: InnerValue,
 }
 
 impl JsValue {
@@ -103,55 +106,61 @@ impl JsValue {
         value.into()
     }
 
+    /// Return the variant of this value.
+    pub fn variant(&self) -> JsVariant {
+        (&self.inner).into()
+    }
+
     /// Creates a new `undefined` value.
     #[inline]
     #[must_use]
     pub const fn undefined() -> Self {
-        Self::Undefined
+        Self { inner: InnerValue::Undefined }
     }
 
     /// Creates a new `null` value.
     #[inline]
     #[must_use]
     pub const fn null() -> Self {
-        Self::Null
+        Self { inner: InnerValue::Null }
     }
 
     /// Creates a new number with `NaN` value.
     #[inline]
     #[must_use]
     pub const fn nan() -> Self {
-        Self::Rational(f64::NAN)
+        Self { inner: InnerValue::Float64(f64::NAN) }
     }
 
     /// Creates a new number with `Infinity` value.
     #[inline]
     #[must_use]
     pub const fn positive_infinity() -> Self {
-        Self::Rational(f64::INFINITY)
+        Self { inner: InnerValue::Float64(f64::INFINITY) }
     }
 
     /// Creates a new number with `-Infinity` value.
     #[inline]
     #[must_use]
     pub const fn negative_infinity() -> Self {
-        Self::Rational(f64::NEG_INFINITY)
+        Self { inner: InnerValue::Float64(f64::NEG_INFINITY) }
     }
 
     /// Returns true if the value is an object.
     #[inline]
     #[must_use]
     pub const fn is_object(&self) -> bool {
-        matches!(self, Self::Object(_))
+        matches!(self.inner, InnerValue::Object(_))
     }
 
     /// Returns the object if the value is object, otherwise `None`.
     #[inline]
     #[must_use]
     pub const fn as_object(&self) -> Option<&JsObject> {
-        match *self {
-            Self::Object(ref o) => Some(o),
-            _ => None,
+        if let InnerValue::Object(obj) = &self.inner {
+            Some(obj)
+        } else {
+            None
         }
     }
 
@@ -164,14 +173,22 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_callable(&self) -> bool {
-        matches!(self, Self::Object(obj) if obj.is_callable())
+        if let InnerValue::Object(obj) = &self.inner {
+            obj.is_callable()
+        } else {
+            false
+        }
     }
 
     /// Returns the callable value if the value is callable, otherwise `None`.
     #[inline]
     #[must_use]
     pub fn as_callable(&self) -> Option<&JsObject> {
-        self.as_object().filter(|obj| obj.is_callable())
+        if let InnerValue::Object(obj) = &self.inner {
+            obj.is_callable().then(|| obj)
+        } else {
+            None
+        }
     }
 
     /// Returns a [`JsFunction`] if the value is callable, otherwise `None`.
@@ -188,7 +205,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_constructor(&self) -> bool {
-        matches!(self, Self::Object(obj) if obj.is_constructor())
+        matches!(&self.inner, InnerValue::Object(obj) if obj.is_constructor())
     }
 
     /// Returns the constructor if the value is a constructor, otherwise `None`.
@@ -202,14 +219,22 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_promise(&self) -> bool {
-        matches!(self, Self::Object(obj) if obj.is::<Promise>())
+        if let InnerValue::Object(obj) = &self.inner {
+            obj.is::<Promise>()
+        } else {
+            false
+        }
     }
 
     /// Returns the value as an object if the value is a promise, otherwise `None`.
     #[inline]
     #[must_use]
     pub(crate) fn as_promise_object(&self) -> Option<&JsObject> {
-        self.as_object().filter(|obj| obj.is::<Promise>())
+        if let InnerValue::Object(obj) = &self.inner {
+            obj.is::<Promise>().then(|| obj)
+        } else {
+            None
+        }
     }
 
     /// Returns the value as a promise if the value is a promise, otherwise `None`.
@@ -225,7 +250,11 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_regexp(&self) -> bool {
-        matches!(self, Self::Object(obj) if obj.is::<RegExp>())
+        if let InnerValue::Object(obj) = &self.inner {
+            obj.is::<RegExp>()
+        } else {
+            false
+        }
     }
 
     /// Returns the value as a regular expression if the value is a regexp, otherwise `None`.
@@ -242,16 +271,17 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn is_symbol(&self) -> bool {
-        matches!(self, Self::Symbol(_))
+        matches!(self.inner, InnerValue::Symbol(_))
     }
 
     /// Returns the symbol if the value is a symbol, otherwise `None`.
     #[inline]
     #[must_use]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
-        match self {
-            Self::Symbol(symbol) => Some(symbol.clone()),
-            _ => None,
+        if let InnerValue::Symbol(symbol) = &self.inner {
+            Some(symbol.clone())
+        } else {
+            None
         }
     }
 
@@ -259,28 +289,21 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn is_undefined(&self) -> bool {
-        matches!(self, Self::Undefined)
+        self.inner == InnerValue::Undefined
     }
 
     /// Returns true if the value is null.
     #[inline]
     #[must_use]
     pub const fn is_null(&self) -> bool {
-        matches!(self, Self::Null)
+        self.inner == InnerValue::Null
     }
 
     /// Returns true if the value is null or undefined.
     #[inline]
     #[must_use]
     pub const fn is_null_or_undefined(&self) -> bool {
-        matches!(self, Self::Null | Self::Undefined)
-    }
-
-    /// Returns true if the value is a 64-bit floating-point number.
-    #[inline]
-    #[must_use]
-    pub const fn is_double(&self) -> bool {
-        matches!(self, Self::Rational(_))
+        self.is_undefined() || self.is_null()
     }
 
     /// Determines if argument is a finite integral Number value.
@@ -292,48 +315,25 @@ impl JsValue {
     #[must_use]
     #[allow(clippy::float_cmp)]
     pub fn is_integral_number(&self) -> bool {
-        // If it can fit in a i32 and the truncated version is
-        // equal to the original then it is an integer.
-        let is_rational_integer = |n: f64| n == f64::from(n as i32);
-
-        match *self {
-            Self::Integer(_) => true,
-            Self::Rational(n) if is_rational_integer(n) => true,
-            _ => false,
-        }
-    }
-
-    /// Returns true if the value can be reprented as an integer.
-    ///
-    /// Similar to [`JsValue::is_integral_number()`] except that it returns `false` for `-0`.
-    #[must_use]
-    #[allow(clippy::float_cmp)]
-    pub fn is_integer(&self) -> bool {
-        // If it can fit in a i32 and the truncated version is
-        // equal to the original then it is an integer.
-        let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
-
-        match *self {
-            Self::Integer(_) => true,
-            Self::Rational(n) if is_rational_integer(n) => true,
-            _ => false,
-        }
+        // When creating the inner value, we verify that the float is rational or
+        // an integer, so we can safely unwrap here.
+        matches!(&self.inner, InnerValue::Integer32(_))
     }
 
     /// Returns true if the value is a number.
     #[inline]
     #[must_use]
     pub const fn is_number(&self) -> bool {
-        matches!(self, Self::Rational(_) | Self::Integer(_))
+        matches!(self.inner, InnerValue::Float64(_) | InnerValue::Integer32(_))
     }
 
     /// Returns the number if the value is a number, otherwise `None`.
     #[inline]
     #[must_use]
     pub fn as_number(&self) -> Option<f64> {
-        match *self {
-            Self::Integer(integer) => Some(integer.into()),
-            Self::Rational(rational) => Some(rational),
+        match self.inner {
+            InnerValue::Integer32(integer) => Some(integer.into()),
+            InnerValue::Float64(rational) => Some(rational),
             _ => None,
         }
     }
@@ -342,16 +342,17 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn is_string(&self) -> bool {
-        matches!(self, Self::String(_))
+        matches!(self.inner, InnerValue::String(_))
     }
 
     /// Returns the string if the value is a string, otherwise `None`.
     #[inline]
     #[must_use]
     pub const fn as_string(&self) -> Option<&JsString> {
-        match self {
-            Self::String(ref string) => Some(string),
-            _ => None,
+        if let InnerValue::String(string) = &self.inner {
+            Some(string)
+        } else {
+            None
         }
     }
 
@@ -435,7 +436,7 @@ impl JsValue {
                     PreferredType::String => js_string!("string"),
                     PreferredType::Number => js_string!("number"),
                 }
-                .into();
+                    .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
                 let result = exotic_to_prim.call(self, &[hint], context)?;
