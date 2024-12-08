@@ -33,6 +33,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-import-attributes/
     "import-attributes" => SpecEdition::ESNext,
 
+    // Import Defer
+    // https://tc39.es/proposal-defer-import-eval
+    "import-defer" => SpecEdition::ESNext,
+
     // Import Assertions
     // https://github.com/tc39/proposal-import-assertions/
     "import-assertions"  => SpecEdition::ESNext,
