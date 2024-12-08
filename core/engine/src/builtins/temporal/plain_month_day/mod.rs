@@ -341,7 +341,7 @@ fn to_temporal_month_day(
 
         let year = item
             .get_v(js_string!("year"), context)?
-            .map(|v| to_integer_if_integral(&v, context))
+            .map(|v| to_integer_if_integral(v, context))
             .transpose()?
             .unwrap_or(1972);
 
