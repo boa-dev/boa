@@ -29,6 +29,9 @@ features = [
     # https://github.com/tc39/proposal-import-attributes
     "import-assertions",
 
+    # https://tc39.es/proposal-defer-import-eval
+    "import-defer",
+
     # https://github.com/tc39/proposal-json-modules
     "json-modules",
 
