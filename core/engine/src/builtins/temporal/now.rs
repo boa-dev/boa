@@ -41,7 +41,7 @@ impl IntrinsicObject for Now {
             .static_method(Self::time_zone_id, js_string!("timeZoneId"), 0)
             .static_method(Self::instant, js_string!("instant"), 0)
             .static_method(Self::plain_datetime, js_string!("plainDateTimeISO"), 0)
-            .static_method(Self::zoned_date_time, js_string!("zonedDateTime"), 0)
+            .static_method(Self::zoned_date_time, js_string!("zonedDateTimeISO"), 0)
             .static_method(Self::plain_date, js_string!("plainDateISO"), 0)
             .build();
     }
