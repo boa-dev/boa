@@ -976,7 +976,7 @@ pub(crate) fn to_temporal_datetime(
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return Err(JsNativeError::range()
+            return Err(JsNativeError::error()
                 .with_message("Not yet implemented.")
                 .into());
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
