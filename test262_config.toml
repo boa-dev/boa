@@ -16,6 +16,9 @@ features = [
 
     ### Pending proposals
 
+    # https://github.com/tc39/proposal-is-error
+    "Error.isError",
+
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
 
