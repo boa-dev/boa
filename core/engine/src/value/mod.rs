@@ -144,14 +144,18 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn undefined() -> Self {
-        Self { inner: InnerValue::Undefined }
+        Self {
+            inner: InnerValue::Undefined,
+        }
     }
 
     /// Creates a new `null` value.
     #[inline]
     #[must_use]
     pub const fn null() -> Self {
-        Self { inner: InnerValue::Null }
+        Self {
+            inner: InnerValue::Null,
+        }
     }
 
     /// Creates a new number with `NaN` value.
@@ -364,7 +368,10 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn is_number(&self) -> bool {
-        matches!(self.inner, InnerValue::Float64(_) | InnerValue::Integer32(_))
+        matches!(
+            self.inner,
+            InnerValue::Float64(_) | InnerValue::Integer32(_)
+        )
     }
 
     /// Returns the number if the value is a number, otherwise `None`.
@@ -476,7 +483,7 @@ impl JsValue {
                     PreferredType::String => js_string!("string"),
                     PreferredType::Number => js_string!("number"),
                 }
-                    .into();
+                .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
                 let result = exotic_to_prim.call(self, &[hint], context)?;
@@ -1068,43 +1075,13 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
     #[must_use]
     pub fn type_of(&self) -> &'static str {
-        match self.inner {
-            InnerValue::Float64(_) | InnerValue::Integer32(_) => "number",
-            InnerValue::String(_) => "string",
-            InnerValue::Boolean(_) => "boolean",
-            InnerValue::Symbol(_) => "symbol",
-            InnerValue::Null => "object",
-            InnerValue::Undefined => "undefined",
-            InnerValue::BigInt(_) => "bigint",
-            InnerValue::Object(ref object) => {
-                if object.is_callable() {
-                    "function"
-                } else {
-                    "object"
-                }
-            }
-        }
+        self.variant().type_of()
     }
 
     /// Same as [`JsValue::type_of`], but returning a [`JsString`] instead.
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
-        match self.inner {
-            InnerValue::Float64(_) | InnerValue::Integer32(_) => js_string!("number"),
-            InnerValue::String(_) => js_string!("string"),
-            InnerValue::Boolean(_) => js_string!("boolean"),
-            InnerValue::Symbol(_) => js_string!("symbol"),
-            InnerValue::Null => js_string!("object"),
-            InnerValue::Undefined => js_string!("undefined"),
-            InnerValue::BigInt(_) => js_string!("bigint"),
-            InnerValue::Object(ref object) => {
-                if object.is_callable() {
-                    js_string!("function")
-                } else {
-                    js_string!("object")
-                }
-            }
-        }
+        self.variant().js_type_of()
     }
 
     /// Maps a `JsValue` into a `Option<T>` where T is the result of an

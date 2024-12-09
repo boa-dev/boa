@@ -1,5 +1,6 @@
 use super::InnerValue;
 use crate::{JsBigInt, JsObject, JsSymbol, JsValue};
+use boa_engine::js_string;
 use boa_string::JsString;
 
 /// A non-mutable variant of a JsValue.
@@ -61,6 +62,56 @@ impl<'a> From<JsVariant<'a>> for JsValue {
             JsVariant::BigInt(b) => JsValue::new(b.clone()),
             JsVariant::Object(o) => JsValue::new(o.clone()),
             JsVariant::Symbol(s) => JsValue::new(s.clone()),
+        }
+    }
+}
+
+impl JsVariant<'_> {
+    /// `typeof` operator. Returns a string representing the type of the
+    /// given ECMA Value.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    #[must_use]
+    pub fn type_of(&self) -> &'static str {
+        match self {
+            JsVariant::Float64(_) | JsVariant::Integer32(_) => "number",
+            JsVariant::String(_) => "string",
+            JsVariant::Boolean(_) => "boolean",
+            JsVariant::Symbol(_) => "symbol",
+            JsVariant::Null => "object",
+            JsVariant::Undefined => "undefined",
+            JsVariant::BigInt(_) => "bigint",
+            JsVariant::Object(ref object) => {
+                if object.is_callable() {
+                    "function"
+                } else {
+                    "object"
+                }
+            }
+        }
+    }
+
+    /// Same as [`JsVariant::type_of`], but returning a [`JsString`] instead.
+    #[must_use]
+    pub fn js_type_of(&self) -> JsString {
+        match self {
+            JsVariant::Float64(_) | JsVariant::Integer32(_) => js_string!("number"),
+            JsVariant::String(_) => js_string!("string"),
+            JsVariant::Boolean(_) => js_string!("boolean"),
+            JsVariant::Symbol(_) => js_string!("symbol"),
+            JsVariant::Null => js_string!("object"),
+            JsVariant::Undefined => js_string!("undefined"),
+            JsVariant::BigInt(_) => js_string!("bigint"),
+            JsVariant::Object(ref object) => {
+                if object.is_callable() {
+                    js_string!("function")
+                } else {
+                    js_string!("object")
+                }
+            }
         }
     }
 }
