@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     match promise_result.state() {
         PromiseState::Pending => return Err("module didn't execute!".into()),
         PromiseState::Fulfilled(v) => {
-            assert_eq!(v, JsValue::undefined());
+            assert_eq!(v, JsValue::UNDEFINED);
         }
         PromiseState::Rejected(err) => {
             return Err(JsError::from_opaque(err).try_native(context)?.into())
@@ -110,36 +110,36 @@ fn create_operations_module(context: &mut Context) -> Module {
             args.get_or_undefined(0).add(args.get_or_undefined(1), ctx)
         }),
     )
-    .length(2)
-    .name("sum")
-    .build();
+        .length(2)
+        .name("sum")
+        .build();
     let sub = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             args.get_or_undefined(0).sub(args.get_or_undefined(1), ctx)
         }),
     )
-    .length(2)
-    .name("sub")
-    .build();
+        .length(2)
+        .name("sub")
+        .build();
     let mult = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             args.get_or_undefined(0).mul(args.get_or_undefined(1), ctx)
         }),
     )
-    .length(2)
-    .name("mult")
-    .build();
+        .length(2)
+        .name("mult")
+        .build();
     let div = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
             args.get_or_undefined(0).div(args.get_or_undefined(1), ctx)
         }),
     )
-    .length(2)
-    .name("div")
-    .build();
+        .length(2)
+        .name("div")
+        .build();
     let sqrt = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(|_, args, ctx| {
@@ -147,9 +147,9 @@ fn create_operations_module(context: &mut Context) -> Module {
             Ok(JsValue::from(a.sqrt()))
         }),
     )
-    .length(1)
-    .name("sqrt")
-    .build();
+        .length(1)
+        .name("sqrt")
+        .build();
 
     Module::synthetic(
         // Make sure to list all exports beforehand.

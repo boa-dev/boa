@@ -18,7 +18,7 @@ fn set_constant_folding(_: &JsValue, args: &[JsValue], context: &mut Context) ->
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::CONSTANT_FOLDING, value);
     context.set_optimizer_options(options);
-    Ok(JsValue::undefined())
+    Ok(JsValue::UNDEFINED)
 }
 
 fn get_statistics(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -33,7 +33,7 @@ fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsRes
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::STATISTICS, value);
     context.set_optimizer_options(options);
-    Ok(JsValue::undefined())
+    Ok(JsValue::UNDEFINED)
 }
 
 pub(super) fn create_object(context: &mut Context) -> JsObject {
@@ -41,16 +41,16 @@ pub(super) fn create_object(context: &mut Context) -> JsObject {
         context.realm(),
         NativeFunction::from_fn_ptr(get_constant_folding),
     )
-    .name("get constantFolding")
-    .length(0)
-    .build();
+        .name("get constantFolding")
+        .length(0)
+        .build();
     let set_constant_folding = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(set_constant_folding),
     )
-    .name("set constantFolding")
-    .length(1)
-    .build();
+        .name("set constantFolding")
+        .length(1)
+        .build();
 
     let get_statistics =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_statistics))

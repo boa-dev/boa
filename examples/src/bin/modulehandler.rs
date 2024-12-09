@@ -34,7 +34,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let moduleobj = JsObject::default();
     moduleobj.set(
         js_string!("exports"),
-        JsValue::from(js_string!(" ")),
+        js_string!(" "),
         false,
         &mut ctx,
     )?;

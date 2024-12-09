@@ -494,8 +494,8 @@ impl BuiltInFunctionObject {
                 param_list.iter().map(JsString::iter),
                 js_str!(",").iter(),
             )
-            .flatten()
-            .collect::<Vec<_>>();
+                .flatten()
+                .collect::<Vec<_>>();
             let mut parser = Parser::new(Source::from_utf16(&parameters));
             parser.set_identifier(context.next_parser_identifier());
 
@@ -511,12 +511,12 @@ impl BuiltInFunctionObject {
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
             if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
                 return Err(JsNativeError::syntax().with_message(
-                        if r#async {
-                            "yield expression is not allowed in formal parameter list of async generator"
-                        } else {
-                            "yield expression is not allowed in formal parameter list of generator"
-                        }
-                    ).into());
+                    if r#async {
+                        "yield expression is not allowed in formal parameter list of async generator"
+                    } else {
+                        "yield expression is not allowed in formal parameter list of generator"
+                    }
+                ).into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
@@ -735,7 +735,7 @@ impl BuiltInFunctionObject {
         let f = BoundFunction::create(target.clone(), this_arg, bound_args, context)?;
 
         // 4. Let L be 0.
-        let mut l = JsValue::new(0);
+        let mut l = JsValue::ZERO;
 
         // 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then
@@ -774,7 +774,7 @@ impl BuiltInFunctionObject {
                 .configurable(true),
             context,
         )
-        .expect("defining the `length` property for a new object should not fail");
+            .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
         let target_name = target.get(js_string!("name"), context)?;
@@ -875,7 +875,7 @@ impl BuiltInFunctionObject {
             code.name(),
             js_str!("() { [native code] }")
         )
-        .into())
+            .into())
     }
 
     /// `Function.prototype [ @@hasInstance ] ( V )`

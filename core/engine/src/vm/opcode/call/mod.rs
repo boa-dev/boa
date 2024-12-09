@@ -60,7 +60,7 @@ impl CallEval {
                 context.vm.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.push(JsValue::Undefined);
+                context.vm.push(JsValue::undefined());
             }
 
             return Ok(CompletionType::Normal);
@@ -154,7 +154,7 @@ impl CallEvalSpread {
                 context.vm.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.push(JsValue::Undefined);
+                context.vm.push(JsValue::undefined());
             }
 
             return Ok(CompletionType::Normal);
@@ -302,7 +302,7 @@ impl Operation for ImportCall {
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-        .expect("operation cannot fail for the %Promise% intrinsic");
+            .expect("operation cannot fail for the %Promise% intrinsic");
         let promise = cap.promise().clone();
 
         // 6. Let specifierString be Completion(ToString(specifier)).
@@ -397,7 +397,7 @@ impl Operation for ImportCall {
                             cap.clone(),
                         ),
                     )
-                    .build();
+                        .build();
 
                     // 6. Let linkAndEvaluateClosure be a new Abstract Closure with no parameters that captures module, promiseCapability, and onRejected and performs the following steps when called:
                     // 7. Let linkAndEvaluate be CreateBuiltinFunction(linkAndEvaluateClosure, 0, "", « »).
@@ -444,7 +444,7 @@ impl Operation for ImportCall {
                                         (module.clone(), cap.clone()),
                                     ),
                                 )
-                                .build();
+                                    .build();
 
                                 // f. Perform PerformPromiseThen(evaluatePromise, onFulfilled, onRejected).
                                 Promise::perform_promise_then(
@@ -461,7 +461,7 @@ impl Operation for ImportCall {
                             (module.clone(), cap.clone(), on_rejected.clone()),
                         ),
                     )
-                    .build();
+                        .build();
 
                     // 8. Perform PerformPromiseThen(loadPromise, linkAndEvaluate, onRejected).
                     Promise::perform_promise_then(

@@ -164,10 +164,10 @@ impl BuiltInConstructor for OrdinaryObject {
         // 1. If NewTarget is neither undefined nor the active function object, then
         if !new_target.is_undefined()
             && new_target
-                != &context
-                    .active_function_object()
-                    .unwrap_or_else(|| context.intrinsics().constructors().object().constructor())
-                    .into()
+            != &context
+            .active_function_object()
+            .unwrap_or_else(|| context.intrinsics().constructors().object().constructor())
+            .into()
         {
             //     a. Return ? OrdinaryCreateFromConstructor(NewTarget, "%Object.prototype%").
             let prototype =
@@ -215,7 +215,7 @@ impl OrdinaryObject {
         // 2. Return ? O.[[GetPrototypeOf]]().
         let proto = obj.__get_prototype_of__(&mut InternalMethodContext::new(context))?;
 
-        Ok(proto.map_or(JsValue::Null, JsValue::new))
+        Ok(proto.map_or(JsValue::NULL, JsValue::new))
     }
 
     /// `set Object.prototype.__proto__`

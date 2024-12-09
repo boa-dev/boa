@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
 /// `Jump` implements the Opcode Operation for `Opcode::Jump`
@@ -128,7 +128,7 @@ impl Operation for JumpTable {
         let count = context.vm.read::<u32>();
 
         let value = context.vm.pop();
-        if let JsValue::Integer(value) = &value {
+        if let Some(value) = value.as_integer32() {
             let value = *value as u32;
             let mut target = None;
             for i in 0..count {

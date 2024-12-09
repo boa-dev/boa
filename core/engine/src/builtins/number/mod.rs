@@ -33,9 +33,9 @@ pub(crate) use globals::{IsFinite, IsNaN, ParseFloat, ParseInt};
 
 mod conversions;
 
-pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
-
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+use crate::value::JsVariant;
+pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
 
 #[cfg(test)]
 mod tests;
@@ -224,7 +224,8 @@ impl Number {
         // 1. Let x be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this)?;
         let precision = match args.first() {
-            None | Some(JsValue::Undefined) => None,
+            None => None,
+            Some(x) if x.is_undefined() => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
             Some(n) => Some(n.to_integer_or_infinity(context)?),
         };
@@ -238,9 +239,9 @@ impl Number {
             None => f64_to_exponential(this_num),
             Some(IntegerOrInfinity::Integer(precision)) if (0..=100).contains(&precision) =>
             // 5. If f < 0 or f > 100, throw a RangeError exception.
-            {
-                f64_to_exponential_with_precision(this_num, precision as usize)
-            }
+                {
+                    f64_to_exponential_with_precision(this_num, precision as usize)
+                }
             _ => {
                 return Err(JsNativeError::range()
                     .with_message("toExponential() argument must be between 0 and 100")
@@ -750,9 +751,9 @@ impl Number {
         // 1. If number is not a Number, return false.
         // 2. If number is not finite, return false.
         // 3. Otherwise, return true.
-        Ok(JsValue::new(args.first().map_or(false, |val| match val {
-            JsValue::Integer(_) => true,
-            JsValue::Rational(number) => number.is_finite(),
+        Ok(JsValue::new(args.first().map_or(false, |val| match val.variant() {
+            JsVariant::Integer32(_) => true,
+            JsVariant::Float64(number) => number.is_finite(),
             _ => false,
         })))
     }
@@ -797,7 +798,7 @@ impl Number {
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(
-            if let Some(&JsValue::Rational(number)) = args.first() {
+            if let Some(number) = args.first().and_then(JsValue::as_number) {
                 number.is_nan()
             } else {
                 false
@@ -825,9 +826,9 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(match args.first() {
-            Some(JsValue::Integer(_)) => true,
-            Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {
+        Ok(JsValue::new(match args.first().map(JsValue::variant) {
+            Some(JsVariant::Integer32(_)) => true,
+            Some(JsVariant::Float64(number)) if Self::is_float_integer(number) => {
                 number.abs() <= Self::MAX_SAFE_INTEGER
             }
             _ => false,
@@ -841,9 +842,9 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
     pub(crate) fn is_integer(val: &JsValue) -> bool {
-        match val {
-            JsValue::Integer(_) => true,
-            JsValue::Rational(number) => Self::is_float_integer(*number),
+        match val.variant() {
+            JsVariant::Integer32(_) => true,
+            JsVariant::Float64(number) => Self::is_float_integer(number),
             _ => false,
         }
     }

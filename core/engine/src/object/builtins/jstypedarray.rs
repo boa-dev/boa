@@ -222,8 +222,8 @@ impl JsTypedArray {
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )?
-        .as_boolean()
-        .expect("TypedArray.prototype.every should always return boolean");
+            .as_boolean()
+            .expect("TypedArray.prototype.every should always return boolean");
 
         Ok(result)
     }
@@ -241,8 +241,8 @@ impl JsTypedArray {
             &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?
-        .as_boolean()
-        .expect("TypedArray.prototype.some should always return boolean");
+            .as_boolean()
+            .expect("TypedArray.prototype.some should always return boolean");
 
         Ok(result)
     }
@@ -418,15 +418,15 @@ impl JsTypedArray {
     ///   Some(3),
     ///   context,
     /// )?;
-    /// assert_eq!(initialized8_array.get(0, context)?, JsValue::new(0));
-    /// assert_eq!(initialized8_array.get(1, context)?, JsValue::new(0));
-    /// assert_eq!(initialized8_array.get(2, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(0, context)?, JsValue::ZERO);
+    /// assert_eq!(initialized8_array.get(1, context)?, JsValue::ZERO);
+    /// assert_eq!(initialized8_array.get(2, context)?, JsValue::ZERO);
     /// assert_eq!(initialized8_array.get(3, context)?, JsValue::new(1.0));
     /// assert_eq!(initialized8_array.get(4, context)?, JsValue::new(2.0));
-    /// assert_eq!(initialized8_array.get(5, context)?, JsValue::new(0));
-    /// assert_eq!(initialized8_array.get(6, context)?, JsValue::new(0));
-    /// assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
-    /// assert_eq!(initialized8_array.get(8, context)?, JsValue::Undefined);
+    /// assert_eq!(initialized8_array.get(5, context)?, JsValue::ZERO);
+    /// assert_eq!(initialized8_array.get(6, context)?, JsValue::ZERO);
+    /// assert_eq!(initialized8_array.get(7, context)?, JsValue::ZERO);
+    /// assert_eq!(initialized8_array.get(8, context)?, JsValue::UNDEFINED);
     ///
     /// # Ok(())
     /// # }
@@ -506,7 +506,7 @@ impl JsTypedArray {
     ///             .unwrap_or_default()
     ///             .as_number()
     ///             .expect("error at number conversion");
-    ///         Ok(JsValue::Boolean(element > 10.0))
+    ///         Ok(JsValue::from(element > 10.0))
     ///     }),
     /// )
     /// .build();
@@ -530,8 +530,8 @@ impl JsTypedArray {
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )?
-        .as_number()
-        .expect("TypedArray.prototype.findIndex() should always return number");
+            .as_number()
+            .expect("TypedArray.prototype.findIndex() should always return number");
 
         if index >= 0.0 {
             Ok(Some(index as u64))
@@ -564,13 +564,13 @@ impl JsTypedArray {
     ///             .unwrap_or_default()
     ///             .as_number()
     ///             .expect("error at number conversion");
-    ///         Ok(JsValue::Boolean(element < 200.0))
+    ///         Ok(JsValue::from(element < 200.0))
     ///     }),
     /// )
     /// .build();
     /// assert_eq!(
     ///     array.find_last(lower_than_200_predicate.clone(), None, context),
-    ///     Ok(JsValue::Integer(199))
+    ///     Ok(JsValue::new(199))
     /// );
     ///
     /// # Ok(())
@@ -614,7 +614,7 @@ impl JsTypedArray {
     ///             .unwrap_or_default()
     ///             .as_number()
     ///             .expect("error at number conversion");
-    ///         Ok(JsValue::Boolean(element < 200.0))
+    ///         Ok(JsValue::from(element < 200.0))
     ///     }),
     /// )
     /// .build();
@@ -638,8 +638,8 @@ impl JsTypedArray {
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )?
-        .as_number()
-        .expect("TypedArray.prototype.findLastIndex() should always return number");
+            .as_number()
+            .expect("TypedArray.prototype.findLastIndex() should always return number");
 
         if index >= 0.0 {
             Ok(Some(index as u64))
@@ -741,8 +741,8 @@ impl JsTypedArray {
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
-        .as_boolean()
-        .expect("TypedArray.prototype.includes should always return boolean");
+            .as_boolean()
+            .expect("TypedArray.prototype.includes should always return boolean");
 
         Ok(result)
     }
@@ -762,8 +762,8 @@ impl JsTypedArray {
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
-        .as_number()
-        .expect("TypedArray.prototype.indexOf should always return number");
+            .as_number()
+            .expect("TypedArray.prototype.indexOf should always return number");
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -788,8 +788,8 @@ impl JsTypedArray {
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
-        .as_number()
-        .expect("TypedArray.prototype.lastIndexOf should always return number");
+            .as_number()
+            .expect("TypedArray.prototype.lastIndexOf should always return number");
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -807,11 +807,11 @@ impl JsTypedArray {
             &[separator.into_or_undefined()],
             context,
         )
-        .map(|x| {
-            x.as_string()
-                .cloned()
-                .expect("TypedArray.prototype.join always returns string")
-        })
+            .map(|x| {
+                x.as_string()
+                    .cloned()
+                    .expect("TypedArray.prototype.join always returns string")
+            })
     }
 
     /// Calls `TypedArray.prototype.toReversed ( )`.

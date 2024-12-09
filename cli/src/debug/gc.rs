@@ -5,7 +5,7 @@ use boa_engine::{
 /// Trigger garbage collection.
 fn collect(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
     boa_gc::force_collect();
-    Ok(JsValue::undefined())
+    Ok(JsValue::UNDEFINED)
 }
 
 pub(super) fn create_object(context: &mut Context) -> JsObject {

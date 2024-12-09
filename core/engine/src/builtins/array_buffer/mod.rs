@@ -50,8 +50,8 @@ pub(crate) enum BufferRef<B, S> {
 
 impl<B, S> BufferRef<B, S>
 where
-    B: Deref<Target = ArrayBuffer>,
-    S: Deref<Target = SharedArrayBuffer>,
+    B: Deref<Target=ArrayBuffer>,
+    S: Deref<Target=SharedArrayBuffer>,
 {
     /// Gets the inner data of the buffer.
     pub(crate) fn bytes(&self, ordering: Ordering) -> Option<SliceRef<'_>> {
@@ -89,8 +89,8 @@ pub(crate) enum BufferRefMut<B, S> {
 
 impl<B, S> BufferRefMut<B, S>
 where
-    B: DerefMut<Target = ArrayBuffer>,
-    S: DerefMut<Target = SharedArrayBuffer>,
+    B: DerefMut<Target=ArrayBuffer>,
+    S: DerefMut<Target=SharedArrayBuffer>,
 {
     pub(crate) fn bytes(&mut self, ordering: Ordering) -> Option<SliceRefMut<'_>> {
         match self {
@@ -828,7 +828,7 @@ impl ArrayBuffer {
                 detach_key: JsValue::undefined(),
             },
         )
-        .into())
+            .into())
     }
 
     /// `AllocateArrayBuffer ( constructor, byteLength )`
@@ -880,7 +880,7 @@ impl ArrayBuffer {
                 // 8. If allocatingResizableBuffer is true, then
                 //    c. Set obj.[[ArrayBufferMaxByteLength]] to maxByteLength.
                 max_byte_len,
-                detach_key: JsValue::Undefined,
+                detach_key: JsValue::UNDEFINED,
             },
         );
 

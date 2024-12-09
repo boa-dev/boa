@@ -1,6 +1,5 @@
 use super::InnerValue;
-use crate::object::Ref;
-use crate::{JsBigInt, JsObject, JsSymbol};
+use crate::{JsBigInt, JsObject, JsSymbol, JsValue};
 use boa_string::JsString;
 
 /// A non-mutable variant of a JsValue.
@@ -46,6 +45,22 @@ impl<'a> From<&'a InnerValue> for JsVariant<'a> {
             InnerValue::String(inner) => JsVariant::String(inner),
             InnerValue::Symbol(inner) => JsVariant::Symbol(inner),
             InnerValue::BigInt(inner) => JsVariant::BigInt(inner),
+        }
+    }
+}
+
+impl<'a> From<JsVariant<'a>> for JsValue {
+    fn from(value: JsVariant<'a>) -> Self {
+        match value {
+            JsVariant::Null => JsValue::null(),
+            JsVariant::Undefined => JsValue::undefined(),
+            JsVariant::Boolean(b) => JsValue::new(b),
+            JsVariant::String(s) => JsValue::new(s.clone()),
+            JsVariant::Float64(f) => JsValue::new(f),
+            JsVariant::Integer32(i) => JsValue::new(i),
+            JsVariant::BigInt(b) => JsValue::new(b.clone()),
+            JsVariant::Object(o) => JsValue::new(o.clone()),
+            JsVariant::Symbol(s) => JsValue::new(s.clone()),
         }
     }
 }

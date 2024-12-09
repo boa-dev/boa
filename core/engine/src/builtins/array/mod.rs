@@ -38,7 +38,9 @@ use std::cmp::{min, Ordering};
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 mod array_iterator;
+use crate::value::JsVariant;
 pub(crate) use array_iterator::ArrayIterator;
+
 #[cfg(test)]
 mod tests;
 
@@ -87,8 +89,8 @@ impl IntrinsicObject for Array {
             realm.intrinsics().objects().array_prototype_values().into(),
             Self::values,
         )
-        .name(js_string!("values"))
-        .build();
+            .name(js_string!("values"))
+            .build();
 
         let to_string_function = BuiltInBuilder::callable_with_object(
             realm,
@@ -99,8 +101,8 @@ impl IntrinsicObject for Array {
                 .into(),
             Self::to_string,
         )
-        .name(js_string!("toString"))
-        .build();
+            .name(js_string!("toString"))
+            .build();
 
         let unscopables_object = Self::unscopables_object();
 
@@ -294,11 +296,11 @@ impl Array {
             let mut borrowed_object = o.borrow_mut();
             if borrowed_object.properties().shape.to_addr_usize()
                 == context
-                    .intrinsics()
-                    .templates()
-                    .array()
-                    .shape()
-                    .to_addr_usize()
+                .intrinsics()
+                .templates()
+                .array()
+                .shape()
+                .to_addr_usize()
             {
                 // NOTE: The "length" property is the first element.
                 borrowed_object.properties_mut().storage[0] = JsValue::new(len);
@@ -386,7 +388,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayfromlist
     pub(crate) fn create_array_from_list<I>(elements: I, context: &Context) -> JsObject
     where
-        I: IntoIterator<Item = JsValue>,
+        I: IntoIterator<Item=JsValue>,
     {
         // 1. Assert: elements is a List whose elements are all ECMAScript language values.
         // 2. Let array be ! ArrayCreate(0).
@@ -537,9 +539,9 @@ impl Array {
         // 3. Else,
         //     a. If IsCallable(mapfn) is false, throw a TypeError exception.
         //     b. Let mapping be true.
-        let mapping = match mapfn {
-            JsValue::Undefined => None,
-            JsValue::Object(o) if o.is_callable() => Some(o),
+        let mapping = match mapfn.variant() {
+            JsVariant::Undefined => None,
+            JsVariant::Object(o) if o.is_callable() => Some(o),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message(format!("`{}` is not callable", mapfn.type_of()))
@@ -2665,9 +2667,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let comparefn = match args.get_or_undefined(0) {
-            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
-            JsValue::Undefined => None,
+        let comparefn = match args.get_or_undefined(0).variant() {
+            JsVariant::Object(obj) if obj.is_callable() => Some(obj),
+            JsVariant::Undefined => None,
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
@@ -2728,9 +2730,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let comparefn = match args.get_or_undefined(0) {
-            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
-            JsValue::Undefined => None,
+        let comparefn = match args.get_or_undefined(0).variant() {
+            JsVariant::Object(obj) if obj.is_callable() => Some(obj),
+            JsVariant::Undefined => None,
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
@@ -3319,7 +3321,7 @@ fn compare_array_elements(
         let args = [x.clone(), y.clone()];
         //     a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
         let v = cmp
-            .call(&JsValue::Undefined, &args, context)?
+            .call(&JsValue::UNDEFINED, &args, context)?
             .to_number(context)?;
         //     b. If v is NaN, return +0𝔽.
         //     c. Return v.
@@ -3573,7 +3575,7 @@ fn array_set_length(
         new_len_desc.clone().build(),
         context,
     )
-    .expect("this OrdinaryDefineOwnProperty call must not fail")
+        .expect("this OrdinaryDefineOwnProperty call must not fail")
     {
         return Ok(false);
     }
@@ -3610,7 +3612,7 @@ fn array_set_length(
                 new_len_desc.build(),
                 context,
             )
-            .expect("this OrdinaryDefineOwnProperty call must not fail");
+                .expect("this OrdinaryDefineOwnProperty call must not fail");
 
             // iv. Return false.
             return Ok(false);
@@ -3627,7 +3629,7 @@ fn array_set_length(
             PropertyDescriptor::builder().writable(false).build(),
             context,
         )
-        .expect("this OrdinaryDefineOwnProperty call must not fail");
+            .expect("this OrdinaryDefineOwnProperty call must not fail");
 
         // b. Assert: succeeded is true.
         debug_assert!(succeeded);

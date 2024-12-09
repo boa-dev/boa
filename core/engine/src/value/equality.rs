@@ -1,4 +1,4 @@
-use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
+use super::{InnerValue, JsBigInt, JsObject, JsResult, JsValue, PreferredType};
 use crate::{builtins::Number, Context};
 
 impl JsValue {
@@ -139,14 +139,18 @@ impl JsValue {
             return false;
         }
 
-        match (x, y) {
+        match (&x.inner, &y.inner) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValue(x, y).
-            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::same_value(x, y),
-            (Self::Rational(x), Self::Rational(y)) => Number::same_value(*x, *y),
-            (Self::Rational(x), Self::Integer(y)) => Number::same_value(*x, f64::from(*y)),
-            (Self::Integer(x), Self::Rational(y)) => Number::same_value(f64::from(*x), *y),
-            (Self::Integer(x), Self::Integer(y)) => x == y,
+            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => JsBigInt::same_value(x, y),
+            (InnerValue::Float64(x), InnerValue::Float64(y)) => Number::same_value(*x, *y),
+            (InnerValue::Float64(x), InnerValue::Integer32(y)) => {
+                Number::same_value(*x, f64::from(*y))
+            }
+            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
+                Number::same_value(f64::from(*x), *y)
+            }
+            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),
@@ -168,15 +172,19 @@ impl JsValue {
             return false;
         }
 
-        match (x, y) {
+        match (&x.inner, &y.inner) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValueZero(x, y).
-            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::same_value_zero(x, y),
+            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => JsBigInt::same_value_zero(x, y),
 
-            (Self::Rational(x), Self::Rational(y)) => Number::same_value_zero(*x, *y),
-            (Self::Rational(x), Self::Integer(y)) => Number::same_value_zero(*x, f64::from(*y)),
-            (Self::Integer(x), Self::Rational(y)) => Number::same_value_zero(f64::from(*x), *y),
-            (Self::Integer(x), Self::Integer(y)) => x == y,
+            (InnerValue::Float64(x), InnerValue::Float64(y)) => Number::same_value_zero(*x, *y),
+            (InnerValue::Float64(x), InnerValue::Integer32(y)) => {
+                Number::same_value_zero(*x, f64::from(*y))
+            }
+            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
+                Number::same_value_zero(f64::from(*x), *y)
+            }
+            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),
@@ -185,12 +193,13 @@ impl JsValue {
 
     fn same_value_non_numeric(x: &Self, y: &Self) -> bool {
         debug_assert!(x.get_type() == y.get_type());
-        match (x, y) {
-            (Self::Null, Self::Null) | (Self::Undefined, Self::Undefined) => true,
-            (Self::String(ref x), Self::String(ref y)) => x == y,
-            (Self::Boolean(x), Self::Boolean(y)) => x == y,
-            (Self::Object(ref x), Self::Object(ref y)) => JsObject::equals(x, y),
-            (Self::Symbol(ref x), Self::Symbol(ref y)) => x == y,
+        match (&x.inner, &y.inner) {
+            (InnerValue::Null, InnerValue::Null)
+            | (InnerValue::Undefined, InnerValue::Undefined) => true,
+            (InnerValue::String(x), InnerValue::String(y)) => x == y,
+            (InnerValue::Boolean(x), InnerValue::Boolean(y)) => x == y,
+            (InnerValue::Object(x), InnerValue::Object(y)) => JsObject::equals(x, y),
+            (InnerValue::Symbol(x), InnerValue::Symbol(y)) => x == y,
             _ => false,
         }
     }

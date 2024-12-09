@@ -7,6 +7,7 @@ use super::{
     },
     JsPrototype, ObjectStorage, PropertyDescriptor, PropertyKey,
 };
+use crate::value::JsVariant;
 use crate::{property::PropertyDescriptorBuilder, JsValue};
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::IndexMap;
@@ -160,10 +161,10 @@ impl IndexedProperties {
                 // equal to the original then it is an integer.
                 let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
 
-                let value = match value {
-                    JsValue::Integer(n) => n,
-                    JsValue::Rational(n) if is_rational_integer(n) => n as i32,
-                    JsValue::Rational(value) => {
+                let value = match value.variant() {
+                    JsVariant::Integer32(n) => n,
+                    JsVariant::Float64(n) if is_rational_integer(n) => n as i32,
+                    JsVariant::Float64(value) => {
                         let mut vec = vec.iter().copied().map(f64::from).collect::<ThinVec<_>>();
 
                         // If the key is pointing one past the last element, we push it!
@@ -180,7 +181,7 @@ impl IndexedProperties {
                         *self = Self::DenseF64(vec);
                         return true;
                     }
-                    value => {
+                    _ => {
                         let mut vec = vec
                             .iter()
                             .copied()
@@ -624,10 +625,10 @@ impl PropertyMap {
                 // equal to the original then it is an integer.
                 let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
 
-                let value = match value {
-                    JsValue::Integer(n) => *n,
-                    JsValue::Rational(n) if is_rational_integer(*n) => *n as i32,
-                    JsValue::Rational(value) => {
+                let value = match value.variant() {
+                    JsVariant::Integer32(n) => *n,
+                    JsVariant::Float64(n) if is_rational_integer(*n) => *n as i32,
+                    JsVariant::Float64(value) => {
                         let mut properties = properties
                             .iter()
                             .copied()
@@ -638,7 +639,7 @@ impl PropertyMap {
 
                         return true;
                     }
-                    value => {
+                    _ => {
                         let mut properties = properties
                             .iter()
                             .copied()

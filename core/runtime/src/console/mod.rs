@@ -300,102 +300,102 @@ impl Console {
             JsObject::with_object_proto(context.realm().intrinsics()),
             context,
         )
-        .property(
-            JsSymbol::to_string_tag(),
-            Self::NAME,
-            Attribute::CONFIGURABLE,
-        )
-        .function(
-            console_method(Self::assert, state.clone(), logger.clone()),
-            js_string!("assert"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::clear, state.clone(), logger.clone()),
-            js_string!("clear"),
-            0,
-        )
-        .function(
-            console_method(Self::debug, state.clone(), logger.clone()),
-            js_string!("debug"),
-            0,
-        )
-        .function(
-            console_method(Self::error, state.clone(), logger.clone()),
-            js_string!("error"),
-            0,
-        )
-        .function(
-            console_method(Self::info, state.clone(), logger.clone()),
-            js_string!("info"),
-            0,
-        )
-        .function(
-            console_method(Self::log, state.clone(), logger.clone()),
-            js_string!("log"),
-            0,
-        )
-        .function(
-            console_method(Self::trace, state.clone(), logger.clone()),
-            js_string!("trace"),
-            0,
-        )
-        .function(
-            console_method(Self::warn, state.clone(), logger.clone()),
-            js_string!("warn"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::count, state.clone(), logger.clone()),
-            js_string!("count"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::count_reset, state.clone(), logger.clone()),
-            js_string!("countReset"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::group, state.clone(), logger.clone()),
-            js_string!("group"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::group_collapsed, state.clone(), logger.clone()),
-            js_string!("groupCollapsed"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::group_end, state.clone(), logger.clone()),
-            js_string!("groupEnd"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::time, state.clone(), logger.clone()),
-            js_string!("time"),
-            0,
-        )
-        .function(
-            console_method(Self::time_log, state.clone(), logger.clone()),
-            js_string!("timeLog"),
-            0,
-        )
-        .function(
-            console_method_mut(Self::time_end, state.clone(), logger.clone()),
-            js_string!("timeEnd"),
-            0,
-        )
-        .function(
-            console_method(Self::dir, state.clone(), logger.clone()),
-            js_string!("dir"),
-            0,
-        )
-        .function(
-            console_method(Self::dir, state, logger.clone()),
-            js_string!("dirxml"),
-            0,
-        )
-        .build()
+            .property(
+                JsSymbol::to_string_tag(),
+                Self::NAME,
+                Attribute::CONFIGURABLE,
+            )
+            .function(
+                console_method(Self::assert, state.clone(), logger.clone()),
+                js_string!("assert"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::clear, state.clone(), logger.clone()),
+                js_string!("clear"),
+                0,
+            )
+            .function(
+                console_method(Self::debug, state.clone(), logger.clone()),
+                js_string!("debug"),
+                0,
+            )
+            .function(
+                console_method(Self::error, state.clone(), logger.clone()),
+                js_string!("error"),
+                0,
+            )
+            .function(
+                console_method(Self::info, state.clone(), logger.clone()),
+                js_string!("info"),
+                0,
+            )
+            .function(
+                console_method(Self::log, state.clone(), logger.clone()),
+                js_string!("log"),
+                0,
+            )
+            .function(
+                console_method(Self::trace, state.clone(), logger.clone()),
+                js_string!("trace"),
+                0,
+            )
+            .function(
+                console_method(Self::warn, state.clone(), logger.clone()),
+                js_string!("warn"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::count, state.clone(), logger.clone()),
+                js_string!("count"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::count_reset, state.clone(), logger.clone()),
+                js_string!("countReset"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::group, state.clone(), logger.clone()),
+                js_string!("group"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::group_collapsed, state.clone(), logger.clone()),
+                js_string!("groupCollapsed"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::group_end, state.clone(), logger.clone()),
+                js_string!("groupEnd"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::time, state.clone(), logger.clone()),
+                js_string!("time"),
+                0,
+            )
+            .function(
+                console_method(Self::time_log, state.clone(), logger.clone()),
+                js_string!("timeLog"),
+                0,
+            )
+            .function(
+                console_method_mut(Self::time_end, state.clone(), logger.clone()),
+                js_string!("timeEnd"),
+                0,
+            )
+            .function(
+                console_method(Self::dir, state.clone(), logger.clone()),
+                js_string!("dir"),
+                0,
+            )
+            .function(
+                console_method(Self::dir, state, logger.clone()),
+                js_string!("dirxml"),
+                0,
+            )
+            .build()
     }
 
     /// Initializes the `console` built-in object.
@@ -439,7 +439,7 @@ impl Console {
             logger.error(formatter(&args, context)?, &console.state, context)?;
         }
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.clear()`
@@ -461,7 +461,7 @@ impl Console {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         console.state.groups.clear();
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.debug(...data)`
@@ -482,7 +482,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.debug(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.error(...data)`
@@ -503,7 +503,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.error(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.info(...data)`
@@ -524,7 +524,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.info(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.log(...data)`
@@ -545,7 +545,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.log(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.trace(...data)`
@@ -579,7 +579,7 @@ impl Console {
             .join("\n");
         logger.log(stack_trace_dump, &console.state, context)?;
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.warn(...data)`
@@ -600,7 +600,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.warn(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.count(label)`
@@ -630,7 +630,7 @@ impl Console {
         *c += 1;
 
         logger.info(format!("{msg} {c}"), &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.countReset(label)`
@@ -663,7 +663,7 @@ impl Console {
             context,
         )?;
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// Returns current system time in ms.
@@ -707,7 +707,7 @@ impl Console {
             )?;
         }
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.timeLog(label, ...data)`
@@ -747,7 +747,7 @@ impl Console {
             )?;
         }
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.timeEnd(label)`
@@ -791,7 +791,7 @@ impl Console {
             )?;
         };
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.group(...data)`
@@ -816,7 +816,7 @@ impl Console {
         logger.info(format!("group: {group_label}"), &console.state, context)?;
         console.state.groups.push(group_label);
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.groupCollapsed(...data)`
@@ -859,7 +859,7 @@ impl Console {
     ) -> JsResult<JsValue> {
         console.state.groups.pop();
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.dir(item, options)`
@@ -885,6 +885,6 @@ impl Console {
             &console.state,
             context,
         )?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 }

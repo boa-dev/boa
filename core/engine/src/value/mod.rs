@@ -26,10 +26,10 @@ pub(crate) use self::conversions::IntoOrUndefined;
 pub use self::{
     conversions::try_from_js::TryFromJs, conversions::try_into_js::TryIntoJs,
     display::ValueDisplay, integer::IntegerOrInfinity, operations::*, r#type::Type,
+    variant::JsVariant,
 };
 use crate::builtins::RegExp;
 use crate::object::{JsFunction, JsPromise, JsRegExp};
-use crate::value::variant::JsVariant;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -69,7 +69,7 @@ static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
 /// This is not a public API and should not be used directly.
 ///
 /// If you need access to the variant, use [JsValue::variant] instead.
-#[derive(Finalize, Debug, Clone)]
+#[derive(Finalize, Debug, Clone, PartialEq, Eq)]
 enum InnerValue {
     Null,
     Undefined,
@@ -98,6 +98,34 @@ pub struct JsValue {
 }
 
 impl JsValue {
+    pub const ZERO: Self = Self {
+        inner: InnerValue::Integer32(0),
+    };
+    pub const ONE: Self = Self {
+        inner: InnerValue::Integer32(1),
+    };
+    pub const NAN: Self = Self {
+        inner: InnerValue::Float64(f64::NAN),
+    };
+    pub const POSITIVE_INFINITY: Self = Self {
+        inner: InnerValue::Float64(f64::INFINITY),
+    };
+    pub const NEGATIVE_INFINITY: Self = Self {
+        inner: InnerValue::Float64(f64::NEG_INFINITY),
+    };
+
+    pub const UNDEFINED: Self = Self {
+        inner: InnerValue::Undefined,
+    };
+    pub const NULL: Self = Self {
+        inner: InnerValue::Null,
+    };
+
+    /// Create a new [`JsValue`] from an inner value.
+    pub(crate) const fn from_inner(inner: InnerValue) -> Self {
+        Self { inner }
+    }
+
     /// Create a new [`JsValue`].
     pub fn new<T>(value: T) -> Self
     where
@@ -107,7 +135,8 @@ impl JsValue {
     }
 
     /// Return the variant of this value.
-    pub fn variant(&self) -> JsVariant {
+    #[inline]
+    pub fn variant(&self) -> JsVariant<'_> {
         (&self.inner).into()
     }
 
@@ -129,21 +158,21 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn nan() -> Self {
-        Self { inner: InnerValue::Float64(f64::NAN) }
+        Self::NAN
     }
 
     /// Creates a new number with `Infinity` value.
     #[inline]
     #[must_use]
     pub const fn positive_infinity() -> Self {
-        Self { inner: InnerValue::Float64(f64::INFINITY) }
+        Self::POSITIVE_INFINITY
     }
 
     /// Creates a new number with `-Infinity` value.
     #[inline]
     #[must_use]
     pub const fn negative_infinity() -> Self {
-        Self { inner: InnerValue::Float64(f64::NEG_INFINITY) }
+        Self::NEGATIVE_INFINITY
     }
 
     /// Returns true if the value is an object.
@@ -172,7 +201,7 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     #[must_use]
-    pub fn is_callable(&self) -> bool {
+    pub const fn is_callable(&self) -> bool {
         if let InnerValue::Object(obj) = &self.inner {
             obj.is_callable()
         } else {
@@ -289,14 +318,14 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn is_undefined(&self) -> bool {
-        self.inner == InnerValue::Undefined
+        matches!(&self.inner, InnerValue::Undefined)
     }
 
     /// Returns true if the value is null.
     #[inline]
     #[must_use]
     pub const fn is_null(&self) -> bool {
-        self.inner == InnerValue::Null
+        matches!(self.inner, InnerValue::Null)
     }
 
     /// Returns true if the value is null or undefined.
@@ -318,6 +347,17 @@ impl JsValue {
         // When creating the inner value, we verify that the float is rational or
         // an integer, so we can safely unwrap here.
         matches!(&self.inner, InnerValue::Integer32(_))
+    }
+
+    /// Returns the number if the value is an integer, otherwise `None`.
+    #[inline]
+    #[must_use]
+    pub const fn as_integer32(&self) -> Option<i32> {
+        if let InnerValue::Integer32(i) = self.inner {
+            Some(i)
+        } else {
+            None
+        }
     }
 
     /// Returns true if the value is a number.
@@ -360,15 +400,15 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn is_boolean(&self) -> bool {
-        matches!(self, Self::Boolean(_))
+        matches!(self.inner, InnerValue::Boolean(_))
     }
 
     /// Returns the boolean if the value is a boolean, otherwise `None`.
     #[inline]
     #[must_use]
     pub const fn as_boolean(&self) -> Option<bool> {
-        match self {
-            Self::Boolean(boolean) => Some(*boolean),
+        match &self.inner {
+            InnerValue::Boolean(boolean) => Some(*boolean),
             _ => None,
         }
     }
@@ -377,15 +417,15 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn is_bigint(&self) -> bool {
-        matches!(self, Self::BigInt(_))
+        matches!(self.inner, InnerValue::BigInt(_))
     }
 
     /// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.
     #[inline]
     #[must_use]
     pub const fn as_bigint(&self) -> Option<&JsBigInt> {
-        match self {
-            Self::BigInt(bigint) => Some(bigint),
+        match &self.inner {
+            InnerValue::BigInt(bigint) => Some(bigint),
             _ => None,
         }
     }
@@ -398,13 +438,13 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-toboolean
     #[must_use]
     pub fn to_boolean(&self) -> bool {
-        match *self {
-            Self::Symbol(_) | Self::Object(_) => true,
-            Self::String(ref s) if !s.is_empty() => true,
-            Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
-            Self::Integer(n) if n != 0 => true,
-            Self::BigInt(ref n) if !n.is_zero() => true,
-            Self::Boolean(v) => v,
+        match self.inner {
+            InnerValue::Symbol(_) | InnerValue::Object(_) => true,
+            InnerValue::String(ref s) if !s.is_empty() => true,
+            InnerValue::Float64(n) if !n.is_nan() => true,
+            InnerValue::Integer32(n) if n != 0 => true,
+            InnerValue::BigInt(ref n) if !n.is_zero() => true,
+            InnerValue::Boolean(v) => *v,
             _ => false,
         }
     }
@@ -472,14 +512,14 @@ impl JsValue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint
     pub fn to_bigint(&self, context: &mut Context) -> JsResult<JsBigInt> {
-        match self {
-            Self::Null => Err(JsNativeError::typ()
+        match self.inner {
+            InnerValue::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert null to a BigInt")
                 .into()),
-            Self::Undefined => Err(JsNativeError::typ()
+            InnerValue::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            Self::String(ref string) => JsBigInt::from_js_string(string).map_or_else(
+            InnerValue::String(ref string) => JsBigInt::from_js_string(string).map_or_else(
                 || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(
@@ -490,17 +530,17 @@ impl JsValue {
                 },
                 Ok,
             ),
-            Self::Boolean(true) => Ok(JsBigInt::one()),
-            Self::Boolean(false) => Ok(JsBigInt::zero()),
-            Self::Integer(_) | Self::Rational(_) => Err(JsNativeError::typ()
+            InnerValue::Boolean(true) => Ok(JsBigInt::one()),
+            InnerValue::Boolean(false) => Ok(JsBigInt::zero()),
+            InnerValue::Integer32(_) | InnerValue::Float64(_) => Err(JsNativeError::typ()
                 .with_message("cannot convert Number to a BigInt")
                 .into()),
-            Self::BigInt(b) => Ok(b.clone()),
-            Self::Object(_) => {
+            InnerValue::BigInt(b) => Ok(b.clone()),
+            InnerValue::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::Number)?;
                 primitive.to_bigint(context)
             }
-            Self::Symbol(_) => Err(JsNativeError::typ()
+            InnerValue::Symbol(_) => Err(JsNativeError::typ()
                 .with_message("cannot convert Symbol to a BigInt")
                 .into()),
         }
@@ -533,25 +573,34 @@ impl JsValue {
     ///
     /// This function is equivalent to `String(value)` in JavaScript.
     pub fn to_string(&self, context: &mut Context) -> JsResult<JsString> {
-        match self {
-            Self::Null => Ok(js_string!("null")),
-            Self::Undefined => Ok(js_string!("undefined")),
-            Self::Boolean(boolean) => Ok(if *boolean {
-                js_string!("true")
-            } else {
-                js_string!("false")
-            }),
-            Self::Rational(rational) => Ok(Number::to_js_string(*rational)),
-            Self::Integer(integer) => Ok(integer.to_string().into()),
-            Self::String(string) => Ok(string.clone()),
-            Self::Symbol(_) => Err(JsNativeError::typ()
+        match self.inner {
+            InnerValue::Null => Ok(js_string!("null")),
+            InnerValue::Undefined => Ok(js_string!("undefined")),
+            InnerValue::Boolean(true) => Ok(js_string!("true")),
+            InnerValue::Boolean(false) => Ok(js_string!("false")),
+            InnerValue::Float64(rational) => Ok(Number::to_js_string(*rational)),
+            InnerValue::Integer32(integer) => Ok(integer.to_string().into()),
+            InnerValue::String(ref string) => Ok(string.clone()),
+            InnerValue::Symbol(_) => Err(JsNativeError::typ()
                 .with_message("can't convert symbol to string")
                 .into()),
-            Self::BigInt(ref bigint) => Ok(bigint.to_string().into()),
-            Self::Object(_) => {
+            InnerValue::BigInt(ref bigint) => Ok(bigint.to_string().into()),
+            InnerValue::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::String)?;
                 primitive.to_string(context)
             }
+        }
+    }
+
+    /// Consumes the value and return an object if it is an object.
+    /// Otherwise, it returns `None`.
+    #[inline]
+    #[must_use]
+    pub fn into_object(self) -> Option<JsObject> {
+        if let InnerValue::Object(obj) = self.inner {
+            Some(obj)
+        } else {
+            None
         }
     }
 
@@ -561,41 +610,41 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, context: &mut Context) -> JsResult<JsObject> {
-        match self {
-            Self::Undefined | Self::Null => Err(JsNativeError::typ()
+        match &self.inner {
+            InnerValue::Undefined | InnerValue::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert 'null' or 'undefined' to object")
                 .into()),
-            Self::Boolean(boolean) => Ok(context
+            InnerValue::Boolean(boolean) => Ok(context
                 .intrinsics()
                 .templates()
                 .boolean()
                 .create(*boolean, Vec::default())),
-            Self::Integer(integer) => Ok(context
+            InnerValue::Integer32(integer) => Ok(context
                 .intrinsics()
                 .templates()
                 .number()
                 .create(f64::from(*integer), Vec::default())),
-            Self::Rational(rational) => Ok(context
+            InnerValue::Float64(rational) => Ok(context
                 .intrinsics()
                 .templates()
                 .number()
                 .create(*rational, Vec::default())),
-            Self::String(ref string) => Ok(context
+            InnerValue::String(ref string) => Ok(context
                 .intrinsics()
                 .templates()
                 .string()
                 .create(string.clone(), vec![string.len().into()])),
-            Self::Symbol(ref symbol) => Ok(context
+            InnerValue::Symbol(ref symbol) => Ok(context
                 .intrinsics()
                 .templates()
                 .symbol()
                 .create(symbol.clone(), Vec::default())),
-            Self::BigInt(ref bigint) => Ok(context
+            InnerValue::BigInt(ref bigint) => Ok(context
                 .intrinsics()
                 .templates()
                 .bigint()
                 .create(bigint.clone(), Vec::default())),
-            Self::Object(jsobject) => Ok(jsobject.clone()),
+            InnerValue::Object(jsobject) => Ok(jsobject.clone()),
         }
     }
 
@@ -603,18 +652,21 @@ impl JsValue {
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>
     pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
-        Ok(match self {
+        Ok(match &self.inner {
             // Fast path:
-            Self::String(string) => string.clone().into(),
-            Self::Symbol(symbol) => symbol.clone().into(),
-            Self::Integer(integer) => (*integer).into(),
+            InnerValue::String(string) => string.clone().into(),
+            InnerValue::Symbol(symbol) => symbol.clone().into(),
+            InnerValue::Integer32(integer) => (*integer).into(),
             // Slow path:
-            Self::Object(_) => match self.to_primitive(context, PreferredType::String)? {
-                Self::String(ref string) => string.clone().into(),
-                Self::Symbol(ref symbol) => symbol.clone().into(),
-                Self::Integer(integer) => integer.into(),
-                primitive => primitive.to_string(context)?.into(),
-            },
+            InnerValue::Object(_) => {
+                let primitive = self.to_primitive(context, PreferredType::String)?;
+                match primitive.inner {
+                    InnerValue::String(ref string) => string.clone().into(),
+                    InnerValue::Symbol(ref symbol) => symbol.clone().into(),
+                    InnerValue::Integer32(integer) => integer.into(),
+                    primitive => primitive.to_string(context)?.into(),
+                }
+            }
             primitive => primitive.to_string(context)?.into(),
         })
     }
@@ -642,7 +694,7 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-touint32>
     pub fn to_u32(&self, context: &mut Context) -> JsResult<u32> {
         // This is the fast path, if the value is Integer we can just return it.
-        if let Self::Integer(number) = *self {
+        if let InnerValue::Integer32(number) = self.inner {
             if let Ok(number) = u32::try_from(number) {
                 return Ok(number);
             }
@@ -657,7 +709,7 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-toint32>
     pub fn to_i32(&self, context: &mut Context) -> JsResult<i32> {
         // This is the fast path, if the value is Integer we can just return it.
-        if let Self::Integer(number) = *self {
+        if let InnerValue::Integer32(number) = self.inner {
             return Ok(number);
         }
         let number = self.to_number(context)?;
@@ -929,20 +981,20 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumber>
     pub fn to_number(&self, context: &mut Context) -> JsResult<f64> {
-        match *self {
-            Self::Null => Ok(0.0),
-            Self::Undefined => Ok(f64::NAN),
-            Self::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            Self::String(ref string) => Ok(string.to_number()),
-            Self::Rational(number) => Ok(number),
-            Self::Integer(integer) => Ok(f64::from(integer)),
-            Self::Symbol(_) => Err(JsNativeError::typ()
+        match self.inner {
+            InnerValue::Null => Ok(0.0),
+            InnerValue::Undefined => Ok(f64::NAN),
+            InnerValue::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            InnerValue::String(ref string) => Ok(string.to_number()),
+            InnerValue::Float64(number) => Ok(number),
+            InnerValue::Integer32(integer) => Ok(f64::from(integer)),
+            InnerValue::Symbol(_) => Err(JsNativeError::typ()
                 .with_message("argument must not be a symbol")
                 .into()),
-            Self::BigInt(_) => Err(JsNativeError::typ()
+            InnerValue::BigInt(_) => Err(JsNativeError::typ()
                 .with_message("argument must not be a bigint")
                 .into()),
-            Self::Object(_) => {
+            InnerValue::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::Number)?;
                 primitive.to_number(context)
             }
@@ -1016,15 +1068,15 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
     #[must_use]
     pub fn type_of(&self) -> &'static str {
-        match *self {
-            Self::Rational(_) | Self::Integer(_) => "number",
-            Self::String(_) => "string",
-            Self::Boolean(_) => "boolean",
-            Self::Symbol(_) => "symbol",
-            Self::Null => "object",
-            Self::Undefined => "undefined",
-            Self::BigInt(_) => "bigint",
-            Self::Object(ref object) => {
+        match self.inner {
+            InnerValue::Float64(_) | InnerValue::Integer32(_) => "number",
+            InnerValue::String(_) => "string",
+            InnerValue::Boolean(_) => "boolean",
+            InnerValue::Symbol(_) => "symbol",
+            InnerValue::Null => "object",
+            InnerValue::Undefined => "undefined",
+            InnerValue::BigInt(_) => "bigint",
+            InnerValue::Object(ref object) => {
                 if object.is_callable() {
                     "function"
                 } else {
@@ -1037,15 +1089,15 @@ impl JsValue {
     /// Same as [`JsValue::type_of`], but returning a [`JsString`] instead.
     #[must_use]
     pub fn js_type_of(&self) -> JsString {
-        match *self {
-            Self::Rational(_) | Self::Integer(_) => js_string!("number"),
-            Self::String(_) => js_string!("string"),
-            Self::Boolean(_) => js_string!("boolean"),
-            Self::Symbol(_) => js_string!("symbol"),
-            Self::Null => js_string!("object"),
-            Self::Undefined => js_string!("undefined"),
-            Self::BigInt(_) => js_string!("bigint"),
-            Self::Object(ref object) => {
+        match self.inner {
+            InnerValue::Float64(_) | InnerValue::Integer32(_) => js_string!("number"),
+            InnerValue::String(_) => js_string!("string"),
+            InnerValue::Boolean(_) => js_string!("boolean"),
+            InnerValue::Symbol(_) => js_string!("symbol"),
+            InnerValue::Null => js_string!("object"),
+            InnerValue::Undefined => js_string!("undefined"),
+            InnerValue::BigInt(_) => js_string!("bigint"),
+            InnerValue::Object(ref object) => {
                 if object.is_callable() {
                     js_string!("function")
                 } else {
@@ -1072,7 +1124,7 @@ impl JsValue {
     /// let defined_result = defined_value.map(|v| v.add(&JsValue::from(5), &mut context)).transpose().unwrap();
     /// let undefined_result = undefined.map(|v| v.add(&JsValue::from(5), &mut context)).transpose().unwrap();
     ///
-    /// assert_eq!(defined_result, Some(JsValue::Integer(10)));
+    /// assert_eq!(defined_result, Some(JsValue::from(10u8)));
     /// assert_eq!(undefined_result, None);
     ///
     /// ```
@@ -1109,7 +1161,7 @@ impl JsValue {
 
 impl Default for JsValue {
     fn default() -> Self {
-        Self::Undefined
+        Self::undefined()
     }
 }
 
