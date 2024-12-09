@@ -295,11 +295,6 @@ impl PlainTime {
         let item = args.get_or_undefined(0);
         // 1. Set options to ? GetOptionsObject(options).
         // 2. Let overflow be ? GetTemporalOverflowOption(options).
-        let overflow = get_option::<ArithmeticOverflow>(
-            &get_options_object(args.get_or_undefined(1))?,
-            js_string!("overflow"),
-            context,
-        )?;
         // 3. If item is an Object and item has an [[InitializedTemporalTime]] internal slot, then
         let time = if let Some(time) = item
             .as_object()
@@ -310,7 +305,7 @@ impl PlainTime {
             // item.[[ISONanosecond]]).
             time.inner
         } else {
-            to_temporal_time(item, overflow, context)?
+            to_temporal_time(item, args.get(1), context)?
         };
 
         // 4. Return ? ToTemporalTime(item, overflow).
@@ -390,9 +385,12 @@ impl PlainTime {
                 .into());
         };
 
+        // Steps 5-16 equate to the below
+        let partial = to_partial_time_record(partial_object, context)?;
+        // 17. Let resolvedOptions be ? GetOptionsObject(options).
+        // 18. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
-        let partial = to_partial_time_record(partial_object, context)?;
 
         create_temporal_time(time.inner.with(partial, overflow)?, None, context).map(Into::into)
     }
@@ -630,17 +628,20 @@ pub(crate) fn create_temporal_time(
 /// 4.5.3 `ToTemporalTime ( item [ , overflow ] )`
 pub(crate) fn to_temporal_time(
     value: &JsValue,
-    overflow: Option<ArithmeticOverflow>,
+    options: Option<&JsValue>,
     context: &mut Context,
 ) -> JsResult<PlainTimeInner> {
     // 1.If overflow is not present, set overflow to "constrain".
-    let resolved_overflow = overflow.unwrap_or(ArithmeticOverflow::Constrain);
+    let options = options.unwrap_or(&JsValue::Undefined);
     // 2. If item is an Object, then
     match value {
         JsValue::Object(object) => {
             // a. If item has an [[InitializedTemporalTime]] internal slot, then
             if let Some(time) = object.downcast_ref::<PlainTime>() {
                 // i. Return item.
+                let options = get_options_object(options)?;
+                let _overflow =
+                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
                 return Ok(time.inner);
             // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
             } else if let Some(_zdt) = object.downcast_ref::<ZonedDateTime>() {
@@ -650,6 +651,9 @@ pub(crate) fn to_temporal_time(
                 // iv. Return ! CreateTemporalTime(plainDateTime.[[ISOHour]], plainDateTime.[[ISOMinute]],
                 // plainDateTime.[[ISOSecond]], plainDateTime.[[ISOMillisecond]], plainDateTime.[[ISOMicrosecond]],
                 // plainDateTime.[[ISONanosecond]]).
+                let options = get_options_object(options)?;
+                let _overflow =
+                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
                 return Err(JsNativeError::range()
                     .with_message("Not yet implemented.")
                     .into());
@@ -658,6 +662,9 @@ pub(crate) fn to_temporal_time(
                 // i. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],
                 // item.[[ISOSecond]], item.[[ISOMillisecond]], item.[[ISOMicrosecond]],
                 // item.[[ISONanosecond]]).
+                let options = get_options_object(options)?;
+                let _overflow =
+                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
                 return Ok(PlainTimeInner::from(dt.inner.clone()));
             }
             // d. Let result be ? ToTemporalTimeRecord(item).
@@ -666,6 +673,11 @@ pub(crate) fn to_temporal_time(
             // result.[[Nanosecond]], overflow).
             let partial = to_partial_time_record(object, context)?;
 
+            let options = get_options_object(options)?;
+            let overflow =
+                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
+                    .unwrap_or(ArithmeticOverflow::Constrain);
+
             PlainTimeInner::new_with_overflow(
                 partial.hour.unwrap_or(0),
                 partial.minute.unwrap_or(0),
@@ -673,7 +685,7 @@ pub(crate) fn to_temporal_time(
                 partial.millisecond.unwrap_or(0),
                 partial.microsecond.unwrap_or(0),
                 partial.nanosecond.unwrap_or(0),
-                resolved_overflow,
+                overflow,
             )
             .map_err(Into::into)
         }

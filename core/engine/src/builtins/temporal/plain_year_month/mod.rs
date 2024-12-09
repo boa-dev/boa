@@ -348,7 +348,7 @@ impl PlainYearMonth {
 
 impl PlainYearMonth {
     fn with(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::typ()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
