@@ -277,6 +277,7 @@ impl IntrinsicObject for PlainDateTime {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -903,6 +904,12 @@ impl PlainDateTime {
         // 5. If result is not 0, return false.
         // 6. Return ? CalendarEquals(dateTime.[[Calendar]], other.[[Calendar]]).
         Ok((dt.inner == other).into())
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::error()
+            .with_message("valueOf not implemented for Temporal objects. See 'compare', 'equals', or `toString`")
+            .into())
     }
 }
 

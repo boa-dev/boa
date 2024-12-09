@@ -216,6 +216,7 @@ impl IntrinsicObject for PlainDate {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_plain_datetime, js_string!("toPlainDateTime"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -782,6 +783,12 @@ impl PlainDate {
             .transpose()?;
         // 4. Return ? CreateTemporalDateTime(temporalDate.[[ISOYear]], temporalDate.[[ISOMonth]], temporalDate.[[ISODay]], temporalTime.[[ISOHour]], temporalTime.[[ISOMinute]], temporalTime.[[ISOSecond]], temporalTime.[[ISOMillisecond]], temporalTime.[[ISOMicrosecond]], temporalTime.[[ISONanosecond]], temporalDate.[[Calendar]]).
         create_temporal_datetime(date.inner.to_date_time(time)?, None, context).map(Into::into)
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::error()
+            .with_message("valueOf not implemented for Temporal objects. See 'compare', 'equals', or `toString`")
+            .into())
     }
 }
 
