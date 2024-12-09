@@ -661,17 +661,18 @@ impl PlainDate {
                 .with_message("with object was not a PartialTemporalObject.")
                 .into());
         };
-        let options = get_options_object(args.get_or_undefined(1))?;
 
         // SKIP: Steps 4-9 are handled by the with method of temporal_rs's Date
-        // 4. Let resolvedOptions be ? SnapshotOwnProperties(? GetOptionsObject(options), null).
-        // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-from-fields, fields, merge-fields »).
-        // 6. Let fieldsResult be ? PrepareCalendarFieldsAndFieldNames(calendarRec, temporalDate, « "day", "month", "monthCode", "year" »).
-        // 7. Let partialDate be ? PrepareTemporalFields(temporalDateLike, fieldsResult.[[FieldNames]], partial).
-        // 8. Let fields be ? CalendarMergeFields(calendarRec, fieldsResult.[[Fields]], partialDate).
-        // 9. Set fields to ? PrepareTemporalFields(fields, fieldsResult.[[FieldNames]], «»).
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        // 4. Let calendar be temporalDate.[[Calendar]].
+        // 5. Let fields be ISODateToFields(calendar, temporalDate.[[ISODate]], date).
+        // 6. Let partialDate be ? PrepareCalendarFields(calendar, temporalDateLike, « year, month, month-code, day », « », partial).
+        // 7. Set fields to CalendarMergeFields(calendar, fields, partialDate).
+        // 8. Let resolvedOptions be ? GetOptionsObject(options).
+        // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let partial = to_partial_date_record(partial_object, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         // 10. Return ? CalendarDateFromFields(calendarRec, fields, resolvedOptions).
         let resolved_date = date.inner.with(partial, overflow)?;
@@ -947,13 +948,14 @@ pub(crate) fn to_partial_date_record(
     partial_object: &JsObject,
     context: &mut Context,
 ) -> JsResult<PartialDate> {
+    // TODO: Most likely need to use an iterator to handle.
     let day = partial_object
         .get(js_string!("day"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
+        .map(|v| super::to_positive_integer_with_trunc(v, context))
         .transpose()?;
     let month = partial_object
         .get(js_string!("month"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
+        .map(|v| super::to_positive_integer_with_trunc(v, context))
         .transpose()?;
     let month_code = partial_object
         .get(js_string!("monthCode"), context)?

@@ -25,7 +25,10 @@ use temporal_rs::{
     PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
-use super::{calendar::to_temporal_calendar_slot_value, to_integer_if_integral, DateTimeValues};
+use super::{
+    calendar::to_temporal_calendar_slot_value, to_integer_if_integral,
+    to_positive_integer_with_trunc, DateTimeValues,
+};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -316,12 +319,12 @@ fn to_temporal_month_day(
     } else if item.is_object() {
         let day = item
             .get_v(js_string!("day"), context)?
-            .map(|v| to_integer_if_integral(v, context))
+            .map(|v| to_positive_integer_with_trunc(v, context))
             .transpose()?;
 
         let month = item
             .get_v(js_string!("month"), context)?
-            .map(|v| to_integer_if_integral(v, context))
+            .map(|v| to_positive_integer_with_trunc(v, context))
             .transpose()?;
 
         let month_code = item
