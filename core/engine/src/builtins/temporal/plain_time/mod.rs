@@ -566,9 +566,9 @@ impl PlainTime {
     }
 
     /// 4.3.22 Temporal.PlainTime.prototype.valueOf ( )
-    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
-        Err(JsNativeError::error()
+        Err(JsNativeError::typ()
             .with_message("valueOf not implemented for Temporal objects. See 'compare', 'equals', or `toString`")
             .into())
     }
