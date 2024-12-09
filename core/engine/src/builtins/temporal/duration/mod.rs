@@ -191,6 +191,7 @@ impl IntrinsicObject for Duration {
             .method(Self::total, js_string!("total"), 1)
             .method(Self::to_string, js_string!("toString"), 1)
             .method(Self::to_json, js_string!("toJSON"), 0)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -786,22 +787,28 @@ impl Duration {
 
         // TODO: Implement the rest of the new `Temporal.Duration.prototype.total`
 
-        Err(JsNativeError::range()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
     pub(crate) fn to_string(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::range()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
     pub(crate) fn to_json(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::range()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
+            .into())
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::error()
+            .with_message("valueOf not implemented for Temporal objects. See 'compare', 'equals', or `toString`")
             .into())
     }
 }

@@ -140,6 +140,7 @@ impl IntrinsicObject for PlainYearMonth {
             .method(Self::since, js_string!("since"), 2)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -405,6 +406,12 @@ impl PlainYearMonth {
                 .unwrap_or(CalendarName::Auto);
 
         Ok(year_month_to_string(inner, show_calendar))
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::error()
+            .with_message("valueOf not implemented for Temporal objects. See 'compare', 'equals', or `toString`")
+            .into())
     }
 }
 
