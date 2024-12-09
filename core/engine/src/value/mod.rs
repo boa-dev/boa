@@ -540,8 +540,8 @@ impl JsValue {
             } else {
                 js_string!("false")
             }),
-            Self::Rational(rational) => Ok(Number::to_js_string(*rational)),
-            Self::Integer(integer) => Ok(integer.to_string().into()),
+            Self::Rational(rational) => Ok(JsString::from(*rational)),
+            Self::Integer(integer) => Ok(JsString::from(*integer)),
             Self::String(string) => Ok(string.clone()),
             Self::Symbol(_) => Err(JsNativeError::typ()
                 .with_message("can't convert symbol to string")

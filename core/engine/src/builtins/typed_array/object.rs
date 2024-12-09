@@ -3,7 +3,7 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
-    builtins::{array_buffer::BufferObject, Number},
+    builtins::array_buffer::BufferObject,
     object::{
         internal_methods::{
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
@@ -272,7 +272,7 @@ fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
     let n = argument.to_number();
 
     // 3. If ! ToString(n) is argument, return n.
-    if &Number::to_js_string(n) == argument {
+    if &JsString::from(n) == argument {
         return Some(n);
     }
 

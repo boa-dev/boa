@@ -717,7 +717,7 @@ impl From<PropertyKey> for JsValue {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
-            PropertyKey::Index(index) => js_string!(index.get().to_string()).into(),
+            PropertyKey::Index(index) => js_string!(index.get()).into(),
         }
     }
 }
@@ -738,8 +738,7 @@ impl From<u16> for PropertyKey {
 
 impl From<u32> for PropertyKey {
     fn from(value: u32) -> Self {
-        NonMaxU32::new(value)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+        NonMaxU32::new(value).map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -748,7 +747,7 @@ impl From<usize> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -757,7 +756,7 @@ impl From<i64> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -766,7 +765,7 @@ impl From<u64> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -775,7 +774,7 @@ impl From<isize> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -785,7 +784,7 @@ impl From<i32> for PropertyKey {
             // Safety: A positive i32 value fits in 31 bits, so it can never be u32::MAX.
             return Self::Index(unsafe { NonMaxU32::new_unchecked(value as u32) });
         }
-        Self::String(js_string!(value.to_string()))
+        Self::String(value.into())
     }
 }
 
@@ -793,10 +792,9 @@ impl From<f64> for PropertyKey {
     fn from(value: f64) -> Self {
         use num_traits::cast::FromPrimitive;
 
-        u32::from_f64(value).and_then(NonMaxU32::new).map_or_else(
-            || Self::String(ryu_js::Buffer::new().format(value).into()),
-            Self::Index,
-        )
+        u32::from_f64(value)
+            .and_then(NonMaxU32::new)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 

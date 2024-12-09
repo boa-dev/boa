@@ -562,8 +562,10 @@ name = "boa_string"
 version = "0.20.0"
 dependencies = [
  "fast-float2",
+ "itoa",
  "paste",
  "rustc-hash 2.1.0",
+ "ryu-js",
  "sptr",
  "static_assertions",
 ]
