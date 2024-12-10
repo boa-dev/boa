@@ -18,6 +18,8 @@ your CLI.
 <!-- TODO (nekevss): Potentially add CI driven gifs with https://github.com/charmbracelet/vhs -->
 <!-- NOTE (nekevss): VHS is currently bugged and non-functional on Windows. -->
 
+![](./assets/boa_cli.gif)
+
 Once installed, your good to go!
 
 To execute some JavaScript source code, navigate to the directy of your choosing and type:
