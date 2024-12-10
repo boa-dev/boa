@@ -28,7 +28,7 @@ pub trait IntoJsModule {
     fn into_js_module(self, context: &mut Context) -> Module;
 }
 
-impl<T: IntoIterator<Item=(JsString, NativeFunction)> + Clone> IntoJsModule for T {
+impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule for T {
     fn into_js_module(self, context: &mut Context) -> Module {
         let (names, fns): (Vec<_>, Vec<_>) = self.into_iter().unzip();
         let exports = names.clone();
@@ -219,7 +219,7 @@ impl<'a> JsRest<'a> {
     }
 
     /// Returns an iterator over the inner list of `JsValue`.
-    pub fn iter(&self) -> impl Iterator<Item=&JsValue> {
+    pub fn iter(&self) -> impl Iterator<Item = &JsValue> {
         self.0.iter()
     }
 
@@ -289,12 +289,12 @@ impl<T: TryFromJs> JsAll<T> {
     }
 
     /// Returns an iterator over the inner list of `T`.
-    pub fn iter(&self) -> impl Iterator<Item=&T> {
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
     }
 
     /// Returns a mutable iterator over the inner list of `T`.
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut T> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
         self.0.iter_mut()
     }
 
@@ -505,7 +505,7 @@ fn into_js_module() {
                         result
                     }
                 }
-                    .into_js_function_unsafe(&mut context),
+                .into_js_function_unsafe(&mut context),
             ),
             (
                 js_string!("bar"),
@@ -539,11 +539,11 @@ fn into_js_module() {
                 (move |value: JsValue, ContextData(result): ContextData<ResultType>| {
                     *result.borrow_mut() = value;
                 })
-                    .into_js_function_copied(&mut context),
+                .into_js_function_copied(&mut context),
             ),
         ]
     }
-        .into_js_module(&mut context);
+    .into_js_module(&mut context);
 
     loader.register(js_string!("test"), module);
 
@@ -600,7 +600,7 @@ fn can_throw_exception() {
             &mut context,
         ),
     )]
-        .into_js_module(&mut context);
+    .into_js_module(&mut context);
 
     loader.register(js_string!("test"), module);
 

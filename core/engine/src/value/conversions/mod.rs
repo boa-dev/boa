@@ -23,7 +23,7 @@ impl From<JsString> for JsValue {
     fn from(value: JsString) -> Self {
         let _timer = Profiler::global().start_event("From<JsString>", "value");
 
-        Self::from_inner(InnerValue::String(value.into()))
+        Self::from_inner(InnerValue::String(value))
     }
 }
 
@@ -55,6 +55,7 @@ macro_rules! impl_from_float {
             impl From<$type_> for JsValue {
                 #[inline]
                 #[allow(trivial_numeric_casts)]
+                #[allow(clippy::cast_lossless)]
                 fn from(value: $type_) -> Self {
                     let _timer = Profiler::global().start_event(concat!("From<", stringify!($type_), ">"), "value");
 

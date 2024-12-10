@@ -1640,7 +1640,7 @@ impl RegExp {
             &JsString::from(&accumulated_result[..]),
             s.get_expect(next_source_position..)
         )
-            .into())
+        .into())
     }
 
     /// `RegExp.prototype[ @@search ]( string )`

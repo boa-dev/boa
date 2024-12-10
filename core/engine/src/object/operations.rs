@@ -726,7 +726,7 @@ impl JsObject {
                                     [key_str.into(), self.get(key.clone(), context)?],
                                     context,
                                 )
-                                    .into(),
+                                .into(),
                             ),
                         }
                     }
@@ -756,11 +756,14 @@ impl JsObject {
         // 1. Assert: IsPropertyKey(P) is true.
         // 2. Let func be ? GetV(V, P).
 
-        match self.__get__(
-            &key.into(),
-            self.clone().into(),
-            &mut InternalMethodContext::new(context),
-        )?.variant() {
+        match self
+            .__get__(
+                &key.into(),
+                self.clone().into(),
+                &mut InternalMethodContext::new(context),
+            )?
+            .variant()
+        {
             // 3. If func is either undefined or null, return undefined.
             JsVariant::Undefined | JsVariant::Null => Ok(None),
             // 5. Return func.

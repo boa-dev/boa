@@ -3,7 +3,7 @@ use crate::{JsBigInt, JsObject, JsSymbol, JsValue};
 use boa_engine::js_string;
 use boa_string::JsString;
 
-/// A non-mutable variant of a JsValue.
+/// A non-mutable variant of a `JsValue`.
 /// Represents either a primitive value ([`bool`], [`f64`], [`i32`]) or a reference
 /// to a heap allocated value ([`JsString`], [`JsSymbol`]).
 ///
@@ -69,6 +69,7 @@ impl<'a> From<JsVariant<'a>> for JsValue {
 impl JsVariant<'_> {
     /// Check if the variant is an `undefined` value.
     #[inline]
+    #[must_use]
     pub fn is_undefined(&self) -> bool {
         matches!(self, JsVariant::Undefined)
     }
@@ -90,7 +91,7 @@ impl JsVariant<'_> {
             JsVariant::Null => "object",
             JsVariant::Undefined => "undefined",
             JsVariant::BigInt(_) => "bigint",
-            JsVariant::Object(ref object) => {
+            JsVariant::Object(object) => {
                 if object.is_callable() {
                     "function"
                 } else {
@@ -111,7 +112,7 @@ impl JsVariant<'_> {
             JsVariant::Null => js_string!("object"),
             JsVariant::Undefined => js_string!("undefined"),
             JsVariant::BigInt(_) => js_string!("bigint"),
-            JsVariant::Object(ref object) => {
+            JsVariant::Object(object) => {
                 if object.is_callable() {
                     js_string!("function")
                 } else {

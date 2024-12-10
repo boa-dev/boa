@@ -38,7 +38,7 @@ fn main() -> JsResult<()> {
             accumulator.add(&value, context)
         }),
     )
-        .build();
+    .build();
 
     assert_eq!(
         array.reduce(callback, Some(JsValue::ZERO), context)?,
@@ -57,7 +57,7 @@ fn main() -> JsResult<()> {
             Ok(JsValue::from(element > 10.0))
         }),
     )
-        .build();
+    .build();
 
     assert_eq!(
         array.find_index(greater_than_10_predicate, None, context),
@@ -76,7 +76,7 @@ fn main() -> JsResult<()> {
             Ok(JsValue::from(element < 200.0))
         }),
     )
-        .build();
+    .build();
 
     assert_eq!(
         array.find_last(lower_than_200_predicate.clone(), None, context),
@@ -112,7 +112,7 @@ fn main() -> JsResult<()> {
             Gc::clone(&num_to_modify),
         ),
     )
-        .build();
+    .build();
 
     let _unused = array.for_each(js_function, None, context);
 

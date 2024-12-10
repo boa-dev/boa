@@ -239,9 +239,9 @@ impl Number {
             None => f64_to_exponential(this_num),
             Some(IntegerOrInfinity::Integer(precision)) if (0..=100).contains(&precision) =>
             // 5. If f < 0 or f > 100, throw a RangeError exception.
-                {
-                    f64_to_exponential_with_precision(this_num, precision as usize)
-                }
+            {
+                f64_to_exponential_with_precision(this_num, precision as usize)
+            }
             _ => {
                 return Err(JsNativeError::range()
                     .with_message("toExponential() argument must be between 0 and 100")
@@ -751,11 +751,14 @@ impl Number {
         // 1. If number is not a Number, return false.
         // 2. If number is not finite, return false.
         // 3. Otherwise, return true.
-        Ok(JsValue::new(args.first().map_or(false, |val| match val.variant() {
-            JsVariant::Integer32(_) => true,
-            JsVariant::Float64(number) => number.is_finite(),
-            _ => false,
-        })))
+        Ok(JsValue::new(args.first().map_or(
+            false,
+            |val| match val.variant() {
+                JsVariant::Integer32(_) => true,
+                JsVariant::Float64(number) => number.is_finite(),
+                _ => false,
+            },
+        )))
     }
 
     /// `Number.isInteger( number )`

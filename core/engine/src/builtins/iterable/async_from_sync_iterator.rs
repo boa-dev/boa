@@ -109,7 +109,7 @@ impl AsyncFromSyncIterator {
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-            .expect("cannot fail with promise constructor");
+        .expect("cannot fail with promise constructor");
 
         // 5. If value is present, then
         //     a. Let result be Completion(IteratorNext(syncIteratorRecord, value)).
@@ -154,7 +154,7 @@ impl AsyncFromSyncIterator {
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-            .expect("cannot fail with promise constructor");
+        .expect("cannot fail with promise constructor");
 
         // 6. Let return be Completion(GetMethod(syncIterator, "return")).
         let r#return = sync_iterator.get_method(js_string!("return"), context);
@@ -231,7 +231,7 @@ impl AsyncFromSyncIterator {
             &context.intrinsics().constructors().promise().constructor(),
             context,
         )
-            .expect("cannot fail with promise constructor");
+        .expect("cannot fail with promise constructor");
 
         // 6. Let throw be Completion(GetMethod(syncIterator, "throw")).
         let throw = sync_iterator.get_method(js_string!("throw"), context);
@@ -359,9 +359,9 @@ impl AsyncFromSyncIterator {
                 ))
             }),
         )
-            .name(js_string!())
-            .length(1)
-            .build();
+        .name(js_string!())
+        .length(1)
+        .build();
 
         // 11. NOTE: onFulfilled is used when processing the "value" property of an
         // IteratorResult object in order to wait for its value if it is a promise and
@@ -392,9 +392,9 @@ impl AsyncFromSyncIterator {
                         sync_iterator_record,
                     ),
                 )
-                    .name(js_string!())
-                    .length(1)
-                    .build(),
+                .name(js_string!())
+                .length(1)
+                .build(),
             )
         };
 

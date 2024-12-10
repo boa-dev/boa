@@ -494,8 +494,8 @@ impl BuiltInFunctionObject {
                 param_list.iter().map(JsString::iter),
                 js_str!(",").iter(),
             )
-                .flatten()
-                .collect::<Vec<_>>();
+            .flatten()
+            .collect::<Vec<_>>();
             let mut parser = Parser::new(Source::from_utf16(&parameters));
             parser.set_identifier(context.next_parser_identifier());
 
@@ -774,7 +774,7 @@ impl BuiltInFunctionObject {
                 .configurable(true),
             context,
         )
-            .expect("defining the `length` property for a new object should not fail");
+        .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
         let target_name = target.get(js_string!("name"), context)?;
@@ -875,7 +875,7 @@ impl BuiltInFunctionObject {
             code.name(),
             js_str!("() { [native code] }")
         )
-            .into())
+        .into())
     }
 
     /// `Function.prototype [ @@hasInstance ] ( V )`

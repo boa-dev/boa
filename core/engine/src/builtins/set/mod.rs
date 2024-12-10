@@ -186,7 +186,7 @@ impl Set {
     /// Utility for constructing `Set` objects from an iterator of `JsValue`'s.
     pub(crate) fn create_set_from_list<I>(elements: I, context: &mut Context) -> JsObject
     where
-        I: IntoIterator<Item=JsValue>,
+        I: IntoIterator<Item = JsValue>,
     {
         // Create empty Set
         let set = Self::set_create(None, context);

@@ -65,10 +65,10 @@ static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
     BigInt::from(TWO_E_63)
 });
 
-/// The Inner type of a [JsValue]. This is the actual value that the JsValue holds.
+/// The Inner type of a [`JsValue`]. This is the actual value that the `JsValue` holds.
 /// This is not a public API and should not be used directly.
 ///
-/// If you need access to the variant, use [JsValue::variant] instead.
+/// If you need access to the variant, use [`JsValue::variant`] instead.
 #[derive(Finalize, Debug, Clone, PartialEq)]
 enum InnerValue {
     Null,
@@ -98,37 +98,37 @@ pub struct JsValue {
 }
 
 impl JsValue {
-    /// The integer zero as a [JsValue] constant, for convenience.
+    /// The integer zero as a [`JsValue`] constant, for convenience.
     pub const ZERO: Self = Self {
         inner: InnerValue::Integer32(0),
     };
 
-    /// The integer one as a [JsValue] constant, for convenience.
+    /// The integer one as a [`JsValue`] constant, for convenience.
     pub const ONE: Self = Self {
         inner: InnerValue::Integer32(1),
     };
 
-    /// NaN as a [JsValue] constant, for convenience.
+    /// `NaN` as a [`JsValue`] constant, for convenience.
     pub const NAN: Self = Self {
         inner: InnerValue::Float64(f64::NAN),
     };
 
-    /// Positive infinity as a [JsValue] constant, for convenience.
+    /// Positive infinity as a [`JsValue`] constant, for convenience.
     pub const POSITIVE_INFINITY: Self = Self {
         inner: InnerValue::Float64(f64::INFINITY),
     };
 
-    /// Negative infinity as a [JsValue] constant, for convenience.
+    /// Negative infinity as a [`JsValue`] constant, for convenience.
     pub const NEGATIVE_INFINITY: Self = Self {
         inner: InnerValue::Float64(f64::NEG_INFINITY),
     };
 
-    /// Undefined as a [JsValue] constant, for convenience.
+    /// Undefined as a [`JsValue`] constant, for convenience.
     pub const UNDEFINED: Self = Self {
         inner: InnerValue::Undefined,
     };
 
-    /// Null as a [JsValue] constant, for convenience.
+    /// Null as a [`JsValue`] constant, for convenience.
     pub const NULL: Self = Self {
         inner: InnerValue::Null,
     };
@@ -148,6 +148,7 @@ impl JsValue {
 
     /// Return the variant of this value.
     #[inline]
+    #[must_use]
     pub fn variant(&self) -> JsVariant<'_> {
         (&self.inner).into()
     }
@@ -230,7 +231,7 @@ impl JsValue {
     #[must_use]
     pub fn as_callable(&self) -> Option<&JsObject> {
         if let InnerValue::Object(obj) = &self.inner {
-            obj.is_callable().then(|| obj)
+            obj.is_callable().then_some(obj)
         } else {
             None
         }
@@ -276,7 +277,7 @@ impl JsValue {
     #[must_use]
     pub(crate) fn as_promise_object(&self) -> Option<&JsObject> {
         if let InnerValue::Object(obj) = &self.inner {
-            obj.is::<Promise>().then(|| obj)
+            obj.is::<Promise>().then_some(obj)
         } else {
             None
         }
@@ -352,10 +353,10 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn as_defined(&self) -> Option<&Self> {
-        if !self.is_undefined() {
-            Some(self)
-        } else {
+        if self.is_undefined() {
             None
+        } else {
+            Some(self)
         }
     }
 
@@ -517,7 +518,7 @@ impl JsValue {
                     PreferredType::String => js_string!("string"),
                     PreferredType::Number => js_string!("number"),
                 }
-                .into();
+                    .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
                 let result = exotic_to_prim.call(self, &[hint], context)?;

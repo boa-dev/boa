@@ -32,12 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Adding custom object that mimics 'module.exports'
     let moduleobj = JsObject::default();
-    moduleobj.set(
-        js_string!("exports"),
-        js_string!(" "),
-        false,
-        &mut ctx,
-    )?;
+    moduleobj.set(js_string!("exports"), js_string!(" "), false, &mut ctx)?;
 
     ctx.register_global_property(
         js_string!("module"),

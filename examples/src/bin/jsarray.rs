@@ -70,7 +70,7 @@ fn main() -> JsResult<()> {
             Ok(args.first().cloned().unwrap_or_default().is_number().into())
         }),
     )
-        .build();
+    .build();
 
     let map_callback = FunctionObjectBuilder::new(
         context.realm(),
@@ -81,7 +81,7 @@ fn main() -> JsResult<()> {
                 .pow(&JsValue::new(2), context)
         }),
     )
-        .build();
+    .build();
 
     let mut data = Vec::new();
     for i in 1..=5 {
@@ -107,7 +107,7 @@ fn main() -> JsResult<()> {
             accumulator.add(&value, context)
         }),
     )
-        .build();
+    .build();
 
     assert_eq!(
         chained_array.reduce(reduce_callback, Some(JsValue::ZERO), context)?,
