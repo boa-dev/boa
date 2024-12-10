@@ -620,7 +620,7 @@ impl JsTypedArray {
     /// .build();
     /// assert_eq!(
     ///     array.find_last(lower_than_200_predicate.clone(), None, context),
-    ///     Ok(JsValue::Integer(199))
+    ///     Ok(JsValue::new(199))
     /// );
     ///
     /// # Ok(())
@@ -673,7 +673,7 @@ impl JsTypedArray {
     ///                 .to_uint8(inner_context)
     ///                 .expect("error at number conversion");
     ///             *captures.borrow_mut() += element;
-    ///             Ok(JsValue::Undefined)
+    ///             Ok(JsValue::UNDEFINED)
     ///         },
     ///         Gc::clone(&num_to_modify),
     ///     ),

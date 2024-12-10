@@ -59,10 +59,10 @@ macro_rules! impl_from_float {
                 fn from(value: $type_) -> Self {
                     let _timer = Profiler::global().start_event(concat!("From<", stringify!($type_), ">"), "value");
 
-                    if value.fract() == 0.0 && value <= i32::MAX as $type_ && value >= i32::MIN as $type_ {
-                        Self::from(value as i32)
+                    if value != -0.0 && value.fract() == 0.0 && value <= i32::MAX as $type_ && value >= i32::MIN as $type_ {
+                        Self::from_inner(InnerValue::Integer32(value as i32))
                     } else {
-                        Self::from(value as f64)
+                        Self::from_inner(InnerValue::Float64(value as f64))
                     }
                 }
             }
@@ -78,7 +78,11 @@ macro_rules! impl_from_integer {
                 fn from(value: $type_) -> Self {
                     let _timer = Profiler::global().start_event(concat!("From<", stringify!($type_), ">"), "value");
 
-                    i32::try_from(value).map_or_else(|_| Self::from(value as f64), Self::from)
+                    i32::try_from(value)
+                        .map_or_else(
+                            |_| Self::from(value as f64),
+                            |value| Self::from_inner(InnerValue::Integer32(value)),
+                        )
                 }
             }
         )*

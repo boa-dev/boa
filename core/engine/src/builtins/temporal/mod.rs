@@ -26,6 +26,7 @@ pub use self::{
     plain_time::*, plain_year_month::*, zoned_date_time::*,
 };
 
+use crate::value::JsVariant;
 use crate::{
     builtins::{iterable::IteratorRecord, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
@@ -243,10 +244,10 @@ pub(crate) fn to_relative_temporal_object(
     context: &mut Context,
 ) -> RelativeTemporalObjectResult {
     let relative_to = options.get(js_string!("relativeTo"), context)?;
-    let plain_date = match relative_to {
-        JsValue::String(relative_to_str) => JsValue::from(relative_to_str),
-        JsValue::Object(relative_to_obj) => JsValue::from(relative_to_obj),
-        JsValue::Undefined => return Ok((None, None)),
+    let plain_date = match relative_to.variant() {
+        JsVariant::String(relative_to_str) => JsValue::from(relative_to_str.clone()),
+        JsVariant::Object(relative_to_obj) => JsValue::from(relative_to_obj.clone()),
+        JsVariant::Undefined => return Ok((None, None)),
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Invalid type for converting to relativeTo object")

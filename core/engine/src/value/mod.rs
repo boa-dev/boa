@@ -483,7 +483,7 @@ impl JsValue {
         match self.inner {
             InnerValue::Symbol(_) | InnerValue::Object(_) => true,
             InnerValue::String(ref s) if !s.is_empty() => true,
-            InnerValue::Float64(n) if !n.is_nan() => true,
+            InnerValue::Float64(n) if n != 0.0 && !n.is_nan() => true,
             InnerValue::Integer32(n) if n != 0 => true,
             InnerValue::BigInt(ref n) if !n.is_zero() => true,
             InnerValue::Boolean(v) => v,
@@ -518,7 +518,7 @@ impl JsValue {
                     PreferredType::String => js_string!("string"),
                     PreferredType::Number => js_string!("number"),
                 }
-                    .into();
+                .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
                 let result = exotic_to_prim.call(self, &[hint], context)?;

@@ -750,8 +750,8 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
 
         //    a. Return ? Get(nf, %Intl%.[[FallbackSymbol]]).
         let nf = nf_o.get(fallback_symbol, context)?;
-        if let JsValue::Object(nf) = nf {
-            if let Ok(nf) = nf.downcast::<NumberFormat>() {
+        if let Some(nf) = nf.as_object() {
+            if let Ok(nf) = nf.clone().downcast::<NumberFormat>() {
                 return Ok(nf);
             }
         }
