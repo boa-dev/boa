@@ -3,7 +3,7 @@ use crate::{
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -16,6 +16,7 @@ pub(crate) struct CallEval;
 
 impl CallEval {
     fn operation(
+        registers: &mut Registers,
         context: &mut Context,
         argument_count: usize,
         scope_index: usize,
@@ -66,7 +67,9 @@ impl CallEval {
             return Ok(CompletionType::Normal);
         }
 
-        object.__call__(argument_count).resolve(context)?;
+        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
+            registers.push_function(register_count);
+        }
         Ok(CompletionType::Normal)
     }
 }
@@ -76,22 +79,32 @@ impl Operation for CallEval {
     const INSTRUCTION: &'static str = "INST - CallEval";
     const COST: u8 = 5;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u8>();
         let scope_index = context.vm.read::<u8>();
-        Self::operation(context, argument_count as usize, scope_index as usize)
+        Self::operation(
+            registers,
+            context,
+            argument_count as usize,
+            scope_index as usize,
+        )
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
         let scope_index = context.vm.read::<u16>();
-        Self::operation(context, argument_count, scope_index as usize)
+        Self::operation(registers, context, argument_count, scope_index as usize)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>();
         let scope_index = context.vm.read::<u32>();
-        Self::operation(context, argument_count as usize, scope_index as usize)
+        Self::operation(
+            registers,
+            context,
+            argument_count as usize,
+            scope_index as usize,
+        )
     }
 }
 
@@ -103,7 +116,11 @@ impl Operation for CallEval {
 pub(crate) struct CallEvalSpread;
 
 impl CallEvalSpread {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    fn operation(
+        registers: &mut Registers,
+        context: &mut Context,
+        index: usize,
+    ) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -163,7 +180,9 @@ impl CallEvalSpread {
         let argument_count = arguments.len();
         context.vm.push_values(&arguments);
 
-        object.__call__(argument_count).resolve(context)?;
+        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
+            registers.push_function(register_count);
+        }
         Ok(CompletionType::Normal)
     }
 }
@@ -173,19 +192,19 @@ impl Operation for CallEvalSpread {
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
     const COST: u8 = 5;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+        Self::operation(registers, context, index as usize)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>();
-        Self::operation(context, index as usize)
+        Self::operation(registers, context, index as usize)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+        Self::operation(registers, context, index as usize)
     }
 }
 
@@ -197,7 +216,11 @@ impl Operation for CallEvalSpread {
 pub(crate) struct Call;
 
 impl Call {
-    fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
+    fn operation(
+        registers: &mut Registers,
+        context: &mut Context,
+        argument_count: usize,
+    ) -> JsResult<CompletionType> {
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
@@ -207,7 +230,10 @@ impl Call {
                 .into());
         };
 
-        object.__call__(argument_count).resolve(context)?;
+        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
+            registers.push_function(register_count);
+        }
+
         Ok(CompletionType::Normal)
     }
 }
@@ -217,19 +243,19 @@ impl Operation for Call {
     const INSTRUCTION: &'static str = "INST - Call";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u8>();
-        Self::operation(context, argument_count as usize)
+        Self::operation(registers, context, argument_count as usize)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
-        Self::operation(context, argument_count)
+        Self::operation(registers, context, argument_count)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>();
-        Self::operation(context, argument_count as usize)
+        Self::operation(registers, context, argument_count as usize)
     }
 }
 
@@ -241,7 +267,7 @@ impl Operation for CallSpread {
     const INSTRUCTION: &'static str = "INST - CallSpread";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -265,7 +291,9 @@ impl Operation for CallSpread {
                 .into());
         };
 
-        object.__call__(argument_count).resolve(context)?;
+        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
+            registers.push_function(register_count);
+        }
         Ok(CompletionType::Normal)
     }
 }
@@ -277,12 +305,12 @@ impl Operation for CallSpread {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ImportCall;
 
-impl Operation for ImportCall {
-    const NAME: &'static str = "ImportCall";
-    const INSTRUCTION: &'static str = "INST - ImportCall";
-    const COST: u8 = 15;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl ImportCall {
+    fn operation(
+        value: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         // Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
@@ -295,7 +323,7 @@ impl Operation for ImportCall {
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let arg = context.vm.pop();
+        let arg = registers.get(value);
 
         // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let cap = PromiseCapability::new(
@@ -479,8 +507,28 @@ impl Operation for ImportCall {
         };
 
         // 9. Return promiseCapability.[[Promise]].
-        context.vm.push(promise);
-
+        registers.set(value, promise.into());
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for ImportCall {
+    const NAME: &'static str = "ImportCall";
+    const INSTRUCTION: &'static str = "INST - ImportCall";
+    const COST: u8 = 15;
+
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u8>().into();
+        Self::operation(value, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u16>().into();
+        Self::operation(value, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u32>();
+        Self::operation(value, registers, context)
     }
 }
