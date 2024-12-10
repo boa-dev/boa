@@ -222,8 +222,8 @@ impl JsTypedArray {
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )?
-            .as_boolean()
-            .expect("TypedArray.prototype.every should always return boolean");
+        .as_boolean()
+        .expect("TypedArray.prototype.every should always return boolean");
 
         Ok(result)
     }
@@ -241,8 +241,8 @@ impl JsTypedArray {
             &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?
-            .as_boolean()
-            .expect("TypedArray.prototype.some should always return boolean");
+        .as_boolean()
+        .expect("TypedArray.prototype.some should always return boolean");
 
         Ok(result)
     }
@@ -530,8 +530,8 @@ impl JsTypedArray {
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )?
-            .as_number()
-            .expect("TypedArray.prototype.findIndex() should always return number");
+        .as_number()
+        .expect("TypedArray.prototype.findIndex() should always return number");
 
         if index >= 0.0 {
             Ok(Some(index as u64))
@@ -638,8 +638,8 @@ impl JsTypedArray {
             &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )?
-            .as_number()
-            .expect("TypedArray.prototype.findLastIndex() should always return number");
+        .as_number()
+        .expect("TypedArray.prototype.findLastIndex() should always return number");
 
         if index >= 0.0 {
             Ok(Some(index as u64))
@@ -741,8 +741,8 @@ impl JsTypedArray {
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
-            .as_boolean()
-            .expect("TypedArray.prototype.includes should always return boolean");
+        .as_boolean()
+        .expect("TypedArray.prototype.includes should always return boolean");
 
         Ok(result)
     }
@@ -762,8 +762,8 @@ impl JsTypedArray {
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
-            .as_number()
-            .expect("TypedArray.prototype.indexOf should always return number");
+        .as_number()
+        .expect("TypedArray.prototype.indexOf should always return number");
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -788,8 +788,8 @@ impl JsTypedArray {
             &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
-            .as_number()
-            .expect("TypedArray.prototype.lastIndexOf should always return number");
+        .as_number()
+        .expect("TypedArray.prototype.lastIndexOf should always return number");
 
         #[allow(clippy::float_cmp)]
         if index == -1.0 {
@@ -807,11 +807,11 @@ impl JsTypedArray {
             &[separator.into_or_undefined()],
             context,
         )
-            .map(|x| {
-                x.as_string()
-                    .cloned()
-                    .expect("TypedArray.prototype.join always returns string")
-            })
+        .map(|x| {
+            x.as_string()
+                .cloned()
+                .expect("TypedArray.prototype.join always returns string")
+        })
     }
 
     /// Calls `TypedArray.prototype.toReversed ( )`.
@@ -912,11 +912,12 @@ impl Deref for JsTypedArray {
 
 impl TryFromJs for JsTypedArray {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a TypedArray object")
-                .into()),
+                .into())
         }
     }
 }
@@ -1062,15 +1063,16 @@ macro_rules! JsTypedArrayType {
 
         impl TryFromJs for $name {
             fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-                match value {
-                    JsValue::Object(o) => Self::from_object(o.clone()),
-                    _ => Err(JsNativeError::typ()
+                if let Some(o) = value.as_object() {
+                    Self::from_object(o.clone())
+                } else {
+                    Err(JsNativeError::typ()
                         .with_message(concat!(
                             "value is not a ",
                             stringify!($constructor_function),
                             " object"
                         ))
-                        .into()),
+                        .into())
                 }
             }
         }

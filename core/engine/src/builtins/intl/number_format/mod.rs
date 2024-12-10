@@ -338,7 +338,7 @@ impl BuiltInConstructor for NumberFormat {
                 break 'block default_use_grouping;
             }
             // 3. If value is true, return true.
-            if let &JsValue::Boolean(true) = &value {
+            if let Some(true) = value.as_boolean() {
                 break 'block GroupingStrategy::Always;
             }
 

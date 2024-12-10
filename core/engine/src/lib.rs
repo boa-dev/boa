@@ -50,10 +50,7 @@
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
-#![cfg_attr(
-    test,
-    allow(clippy::needless_raw_string_hashes)
-)] // Makes strings a bit more copy-pastable
+#![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
     // Currently throws a false positive regarding dependencies that are only used in benchmarks.
@@ -76,7 +73,8 @@
     clippy::missing_panics_doc,
 )]
 
-extern crate self as boa_engine;#[cfg(not(target_has_atomic = "ptr"))]
+extern crate self as boa_engine;
+#[cfg(not(target_has_atomic = "ptr"))]
 compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
 
 pub use boa_ast as ast;
@@ -176,7 +174,7 @@ pub trait JsArgs {
 
 impl JsArgs for [JsValue] {
     fn get_or_undefined(&self, index: usize) -> &JsValue {
-        const UNDEFINED: &JsValue = &JsValue::undefined();
+        const UNDEFINED: &JsValue = &JsValue::UNDEFINED;
         self.get(index).unwrap_or(UNDEFINED)
     }
 }
@@ -306,7 +304,7 @@ impl TestAction {
 /// Executes a list of test actions on a new, default context.
 #[cfg(test)]
 #[track_caller]
-fn run_test_actions(actions: impl IntoIterator<Item=TestAction>) {
+fn run_test_actions(actions: impl IntoIterator<Item = TestAction>) {
     let context = &mut Context::default();
     run_test_actions_with(actions, context);
 }
@@ -314,7 +312,7 @@ fn run_test_actions(actions: impl IntoIterator<Item=TestAction>) {
 /// Executes a list of test actions on the provided context.
 #[cfg(test)]
 #[track_caller]
-fn run_test_actions_with(actions: impl IntoIterator<Item=TestAction>, context: &mut Context) {
+fn run_test_actions_with(actions: impl IntoIterator<Item = TestAction>, context: &mut Context) {
     #[track_caller]
     fn forward_val(context: &mut Context, source: &str) -> JsResult<JsValue> {
         context.eval(Source::from_bytes(source))
@@ -353,7 +351,7 @@ fn run_test_actions_with(actions: impl IntoIterator<Item=TestAction>, context: &
                         }
                     "#,
                 )
-                    .expect("failed to evaluate test harness");
+                .expect("failed to evaluate test harness");
             }
             Inner::Run { source } => {
                 if let Err(e) = forward_val(context, &source) {

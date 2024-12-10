@@ -626,15 +626,15 @@ impl PropertyMap {
                 let is_rational_integer = |n: f64| n.to_bits() == f64::from(n as i32).to_bits();
 
                 let value = match value.variant() {
-                    JsVariant::Integer32(n) => *n,
-                    JsVariant::Float64(n) if is_rational_integer(*n) => *n as i32,
+                    JsVariant::Integer32(n) => n,
+                    JsVariant::Float64(n) if is_rational_integer(n) => n as i32,
                     JsVariant::Float64(value) => {
                         let mut properties = properties
                             .iter()
                             .copied()
                             .map(f64::from)
                             .collect::<ThinVec<_>>();
-                        properties[index] = *value;
+                        properties[index] = value;
                         self.indexed_properties = IndexedProperties::DenseF64(properties);
 
                         return true;

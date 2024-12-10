@@ -377,8 +377,8 @@ impl JsValue {
     /// If not a integer type or not in the range `1..=2`.
     #[track_caller]
     pub(crate) fn to_generator_resume_kind(&self) -> GeneratorResumeKind {
-        if let Self::Integer(value) = self {
-            match *value {
+        if let Some(value) = self.as_integer32() {
+            match value {
                 0 => return GeneratorResumeKind::Normal,
                 1 => return GeneratorResumeKind::Throw,
                 2 => return GeneratorResumeKind::Return,

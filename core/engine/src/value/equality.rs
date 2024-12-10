@@ -13,20 +13,20 @@ impl JsValue {
             return false;
         }
 
-        match (self, other) {
+        match (&self.inner, &other.inner) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::equal(x, y).
-            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::equal(x, y),
-            (Self::Rational(x), Self::Rational(y)) => Number::equal(*x, *y),
-            (Self::Rational(x), Self::Integer(y)) => Number::equal(*x, f64::from(*y)),
-            (Self::Integer(x), Self::Rational(y)) => Number::equal(f64::from(*x), *y),
-            (Self::Integer(x), Self::Integer(y)) => x == y,
+            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => JsBigInt::equal(x, y),
+            (InnerValue::Float64(x), InnerValue::Float64(y)) => Number::equal(*x, *y),
+            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Number::equal(*x, f64::from(*y)),
+            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Number::equal(f64::from(*x), *y),
+            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => x == y,
 
             //Null has to be handled specially because "typeof null" returns object and if we managed
             //this without a special case we would compare self and other as if they were actually
             //objects which unfortunately fails
             //Specification Link: https://tc39.es/ecma262/#sec-typeof-operator
-            (Self::Null, Self::Null) => true,
+            (InnerValue::Null, InnerValue::Null) => true,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(self, other),
@@ -45,17 +45,21 @@ impl JsValue {
             return Ok(self.strict_equals(other));
         }
 
-        Ok(match (self, other) {
+        Ok(match (&self.inner, &other.inner) {
             // 2. If x is null and y is undefined, return true.
             // 3. If x is undefined and y is null, return true.
-            (Self::Null, Self::Undefined) | (Self::Undefined, Self::Null) => true,
+            (InnerValue::Null, InnerValue::Undefined)
+            | (InnerValue::Undefined, InnerValue::Null) => true,
 
             // 3. If Type(x) is Number and Type(y) is String, return the result of the comparison x == ! ToNumber(y).
             // 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
             //
             // https://github.com/rust-lang/rust/issues/54883
-            (Self::Integer(_) | Self::Rational(_), Self::String(_) | Self::Boolean(_))
-            | (Self::String(_), Self::Integer(_) | Self::Rational(_)) => {
+            (
+                InnerValue::Integer32(_) | InnerValue::Float64(_),
+                InnerValue::String(_) | InnerValue::Boolean(_),
+            )
+            | (InnerValue::String(_), InnerValue::Integer32(_) | InnerValue::Float64(_)) => {
                 let x = self.to_number(context)?;
                 let y = other.to_number(context)?;
                 Number::equal(x, y)
@@ -65,30 +69,34 @@ impl JsValue {
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            (Self::BigInt(ref a), Self::String(ref b)) => JsBigInt::from_js_string(b)
+            (InnerValue::BigInt(ref a), InnerValue::String(ref b)) => JsBigInt::from_js_string(b)
                 .as_ref()
                 .map_or(false, |b| a == b),
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (Self::String(ref a), Self::BigInt(ref b)) => JsBigInt::from_js_string(a)
+            (InnerValue::String(ref a), InnerValue::BigInt(ref b)) => JsBigInt::from_js_string(a)
                 .as_ref()
                 .map_or(false, |a| a == b),
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(x), _) => return other.equals(&Self::new(i32::from(*x)), context),
+            (InnerValue::Boolean(x), _) => {
+                return other.equals(&JsValue::new(i32::from(*x)), context)
+            }
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(y)) => return self.equals(&Self::new(i32::from(*y)), context),
+            (_, InnerValue::Boolean(y)) => {
+                return self.equals(&JsValue::new(i32::from(*y)), context)
+            }
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
             (
-                Self::Object(_),
-                Self::String(_)
-                | Self::Rational(_)
-                | Self::Integer(_)
-                | Self::BigInt(_)
-                | Self::Symbol(_),
+                InnerValue::Object(_),
+                InnerValue::String(_)
+                | InnerValue::Float64(_)
+                | InnerValue::Integer32(_)
+                | InnerValue::BigInt(_)
+                | InnerValue::Symbol(_),
             ) => {
                 let primitive = self.to_primitive(context, PreferredType::Default)?;
                 return Ok(primitive
@@ -99,12 +107,12 @@ impl JsValue {
             // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
             // of the comparison ? ToPrimitive(x) == y.
             (
-                Self::String(_)
-                | Self::Rational(_)
-                | Self::Integer(_)
-                | Self::BigInt(_)
-                | Self::Symbol(_),
-                Self::Object(_),
+                InnerValue::String(_)
+                | InnerValue::Float64(_)
+                | InnerValue::Integer32(_)
+                | InnerValue::BigInt(_)
+                | InnerValue::Symbol(_),
+                InnerValue::Object(_),
             ) => {
                 let primitive = other.to_primitive(context, PreferredType::Default)?;
                 return Ok(primitive
@@ -115,10 +123,10 @@ impl JsValue {
             // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then
             //    a. If x or y are any of NaN, +∞, or -∞, return false.
             //    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.
-            (Self::BigInt(ref a), Self::Rational(ref b)) => a == b,
-            (Self::Rational(ref a), Self::BigInt(ref b)) => a == b,
-            (Self::BigInt(ref a), Self::Integer(ref b)) => a == b,
-            (Self::Integer(ref a), Self::BigInt(ref b)) => a == b,
+            (InnerValue::BigInt(ref a), InnerValue::Float64(ref b)) => a == b,
+            (InnerValue::Float64(ref a), InnerValue::BigInt(ref b)) => a == b,
+            (InnerValue::BigInt(ref a), InnerValue::Integer32(ref b)) => a == b,
+            (InnerValue::Integer32(ref a), InnerValue::BigInt(ref b)) => a == b,
 
             // 13. Return false.
             _ => false,

@@ -28,11 +28,12 @@ impl JsValue {
 
 impl TryFromJs for bool {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value.inner {
-            InnerValue::Boolean(b) => Ok(*b),
-            _ => Err(JsNativeError::typ()
+        if let Some(b) = value.as_boolean() {
+            Ok(b)
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("cannot convert value to a boolean")
-                .into()),
+                .into())
         }
     }
 }
@@ -45,15 +46,16 @@ impl TryFromJs for () {
 
 impl TryFromJs for String {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match &value.inner {
-            InnerValue::String(s) => s.to_std_string().map_err(|e| {
+        if let Some(s) = value.as_string() {
+            s.to_std_string().map_err(|e| {
                 JsNativeError::typ()
                     .with_message(format!("could not convert JsString to Rust string: {e}"))
                     .into()
-            }),
-            _ => Err(JsNativeError::typ()
+            })
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("cannot convert value to a String")
-                .into()),
+                .into())
         }
     }
 }
@@ -267,10 +269,10 @@ fn value_into_vec() {
                     Ok(value) => {
                         value
                             == TestStruct {
-                            inner: true,
-                            my_int: 11,
-                            my_vec: vec!["a".to_string(), "b".to_string(), "c".to_string()],
-                        }
+                                inner: true,
+                                my_int: 11,
+                                my_vec: vec!["a".to_string(), "b".to_string(), "c".to_string()],
+                            }
                     }
                     _ => false,
                 }
@@ -360,10 +362,10 @@ fn value_into_map() {
                 Ok(value) => {
                     value
                         == vec![
-                        ("a".to_string(), 1),
-                        ("b".to_string(), 2),
-                        ("c".to_string(), 3),
-                    ]
+                            ("a".to_string(), 1),
+                            ("b".to_string(), 2),
+                            ("c".to_string(), 3),
+                        ]
                         .into_iter()
                         .collect::<std::collections::BTreeMap<String, i32>>()
                 }
@@ -377,14 +379,14 @@ fn value_into_map() {
                 Ok(value) => {
                     value
                         == std::collections::HashMap::from_iter(
-                        vec![
-                            ("a".to_string(), 1),
-                            ("b".to_string(), 2),
-                            ("c".to_string(), 3),
-                        ]
+                            vec![
+                                ("a".to_string(), 1),
+                                ("b".to_string(), 2),
+                                ("c".to_string(), 3),
+                            ]
                             .into_iter()
                             .collect::<std::collections::BTreeMap<String, i32>>(),
-                    )
+                        )
                 }
                 _ => false,
             }

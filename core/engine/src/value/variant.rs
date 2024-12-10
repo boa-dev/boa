@@ -67,6 +67,12 @@ impl<'a> From<JsVariant<'a>> for JsValue {
 }
 
 impl JsVariant<'_> {
+    /// Check if the variant is an `undefined` value.
+    #[inline]
+    pub fn is_undefined(&self) -> bool {
+        matches!(self, JsVariant::Undefined)
+    }
+
     /// `typeof` operator. Returns a string representing the type of the
     /// given ECMA Value.
     ///
