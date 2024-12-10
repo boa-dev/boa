@@ -231,7 +231,7 @@ impl Number {
         };
         // 4. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
-            return Ok(JsValue::new(Self::to_js_string(this_num)));
+            return Ok(JsValue::new(JsString::from(this_num)));
         }
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
@@ -239,9 +239,9 @@ impl Number {
             None => f64_to_exponential(this_num),
             Some(IntegerOrInfinity::Integer(precision)) if (0..=100).contains(&precision) =>
             // 5. If f < 0 or f > 100, throw a RangeError exception.
-            {
-                f64_to_exponential_with_precision(this_num, precision as usize)
-            }
+                {
+                    f64_to_exponential_with_precision(this_num, precision as usize)
+                }
             _ => {
                 return Err(JsNativeError::range()
                     .with_message("toExponential() argument must be between 0 and 100")
@@ -309,8 +309,7 @@ impl Number {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this)?;
-        let this_str_num = this_num.to_string();
-        Ok(JsValue::new(js_string!(this_str_num)))
+        Ok(JsValue::new(js_string!(this_num)))
     }
 
     /// `flt_str_to_exp` - used in `to_precision`
@@ -645,12 +644,6 @@ impl Number {
         ))
     }
 
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_js_string(x: f64) -> JsString {
-        let mut buffer = ryu_js::Buffer::new();
-        js_string!(buffer.format(x))
-    }
-
     /// `Number.prototype.toString( [radix] )`
     ///
     /// The `toString()` method returns a string representing the specified Number object.
@@ -689,7 +682,7 @@ impl Number {
 
         // 5. If radixNumber = 10, return ! ToString(x).
         if radix_number == 10 {
-            return Ok(JsValue::new(Self::to_js_string(x)));
+            return Ok(JsValue::new(JsString::from(x)));
         }
 
         if x == -0. {
