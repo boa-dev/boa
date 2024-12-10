@@ -988,6 +988,7 @@ pub(crate) fn function_call(
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
+    let register_count = code.register_count as usize;
 
     drop(function);
 
@@ -1036,7 +1037,7 @@ pub(crate) fn function_call(
         );
     }
 
-    Ok(CallValue::Ready)
+    Ok(CallValue::Ready { register_count })
 }
 
 /// Construct an instance of this object with the specified arguments.
@@ -1065,6 +1066,7 @@ fn function_construct(
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
+    let register_count = code.register_count as usize;
     drop(function);
 
     let env_fp = environments.len() as u32;
@@ -1143,5 +1145,5 @@ fn function_construct(
         this.map(JsValue::new).unwrap_or_default(),
     );
 
-    Ok(CallValue::Ready)
+    Ok(CallValue::Ready { register_count })
 }

@@ -4,7 +4,7 @@ use crate::{
     builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult,
 };
 
@@ -16,9 +16,15 @@ use crate::{
 pub(crate) struct DefineClassStaticSetterByName;
 
 impl DefineClassStaticSetterByName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let class = context.vm.pop();
+    fn operation(
+        class: u32,
+        function: u32,
+        index: usize,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let function = registers.get(function);
+        let class = registers.get(class);
         let class = class.as_object().expect("class must be object");
         let key = context
             .vm
@@ -45,7 +51,7 @@ impl DefineClassStaticSetterByName {
         class.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
-                .maybe_set(Some(function))
+                .maybe_set(Some(function.clone()))
                 .maybe_get(get)
                 .enumerable(false)
                 .configurable(true)
@@ -61,19 +67,25 @@ impl Operation for DefineClassStaticSetterByName {
     const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByName";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u8>().into();
+        let class = context.vm.read::<u8>().into();
         let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
+        Self::operation(class, function, index, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u16>().into();
+        let class = context.vm.read::<u16>().into();
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        Self::operation(class, function, index, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u32>();
+        let class = context.vm.read::<u32>();
         let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
+        Self::operation(class, function, index, registers, context)
     }
 }
 
@@ -85,9 +97,15 @@ impl Operation for DefineClassStaticSetterByName {
 pub(crate) struct DefineClassSetterByName;
 
 impl DefineClassSetterByName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let class_proto = context.vm.pop();
+    fn operation(
+        class_proto: u32,
+        function: u32,
+        index: usize,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let function = registers.get(function);
+        let class_proto = registers.get(class_proto);
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
             .vm
@@ -114,7 +132,7 @@ impl DefineClassSetterByName {
         class_proto.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
-                .maybe_set(Some(function))
+                .maybe_set(Some(function.clone()))
                 .maybe_get(get)
                 .enumerable(false)
                 .configurable(true)
@@ -131,19 +149,25 @@ impl Operation for DefineClassSetterByName {
     const INSTRUCTION: &'static str = "INST - DefineClassSetterByName";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u8>().into();
+        let class_proto = context.vm.read::<u8>().into();
         let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
+        Self::operation(class_proto, function, index, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u16>().into();
+        let class_proto = context.vm.read::<u16>().into();
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        Self::operation(class_proto, function, index, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u32>();
+        let class_proto = context.vm.read::<u32>();
         let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
+        Self::operation(class_proto, function, index, registers, context)
     }
 }
 
@@ -154,15 +178,17 @@ impl Operation for DefineClassSetterByName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassStaticSetterByValue;
 
-impl Operation for DefineClassStaticSetterByValue {
-    const NAME: &'static str = "DefineClassStaticSetterByValue";
-    const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByValue";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let key = context.vm.pop();
-        let class = context.vm.pop();
+impl DefineClassStaticSetterByValue {
+    fn operation(
+        function: u32,
+        key: u32,
+        class: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let function = registers.get(function);
+        let key = registers.get(key);
+        let class = registers.get(class);
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -186,7 +212,7 @@ impl Operation for DefineClassStaticSetterByValue {
         class.define_property_or_throw(
             key,
             PropertyDescriptor::builder()
-                .maybe_set(Some(function))
+                .maybe_set(Some(function.clone()))
                 .maybe_get(get)
                 .enumerable(false)
                 .configurable(true)
@@ -198,6 +224,33 @@ impl Operation for DefineClassStaticSetterByValue {
     }
 }
 
+impl Operation for DefineClassStaticSetterByValue {
+    const NAME: &'static str = "DefineClassStaticSetterByValue";
+    const INSTRUCTION: &'static str = "INST - DefineClassStaticSetterByValue";
+    const COST: u8 = 6;
+
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u8>().into();
+        let key = context.vm.read::<u8>().into();
+        let class = context.vm.read::<u8>().into();
+        Self::operation(function, key, class, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u16>().into();
+        let key = context.vm.read::<u16>().into();
+        let class = context.vm.read::<u16>().into();
+        Self::operation(function, key, class, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u32>();
+        let key = context.vm.read::<u32>();
+        let class = context.vm.read::<u32>();
+        Self::operation(function, key, class, registers, context)
+    }
+}
+
 /// `DefineClassSetterByValue` implements the Opcode Operation for `Opcode::DefineClassSetterByValue`
 ///
 /// Operation:
@@ -205,15 +258,17 @@ impl Operation for DefineClassStaticSetterByValue {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassSetterByValue;
 
-impl Operation for DefineClassSetterByValue {
-    const NAME: &'static str = "DefineClassSetterByValue";
-    const INSTRUCTION: &'static str = "INST - DefineClassSetterByValue";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let key = context.vm.pop();
-        let class_proto = context.vm.pop();
+impl DefineClassSetterByValue {
+    fn operation(
+        function: u32,
+        key: u32,
+        class_proto: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let function = registers.get(function);
+        let key = registers.get(key);
+        let class_proto = registers.get(class_proto);
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -237,7 +292,7 @@ impl Operation for DefineClassSetterByValue {
         class_proto.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
-                .maybe_set(Some(function))
+                .maybe_set(Some(function.clone()))
                 .maybe_get(get)
                 .enumerable(false)
                 .configurable(true)
@@ -246,5 +301,32 @@ impl Operation for DefineClassSetterByValue {
         )?;
 
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for DefineClassSetterByValue {
+    const NAME: &'static str = "DefineClassSetterByValue";
+    const INSTRUCTION: &'static str = "INST - DefineClassSetterByValue";
+    const COST: u8 = 6;
+
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u8>().into();
+        let key = context.vm.read::<u8>().into();
+        let class_proto = context.vm.read::<u8>().into();
+        Self::operation(function, key, class_proto, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u16>().into();
+        let key = context.vm.read::<u16>().into();
+        let class_proto = context.vm.read::<u16>().into();
+        Self::operation(function, key, class_proto, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let function = context.vm.read::<u32>();
+        let key = context.vm.read::<u32>();
+        let class_proto = context.vm.read::<u32>();
+        Self::operation(function, key, class_proto, registers, context)
     }
 }
