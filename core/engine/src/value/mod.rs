@@ -518,7 +518,7 @@ impl JsValue {
                     PreferredType::String => js_string!("string"),
                     PreferredType::Number => js_string!("number"),
                 }
-                .into();
+                    .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
                 let result = exotic_to_prim.call(self, &[hint], context)?;
@@ -620,7 +620,7 @@ impl JsValue {
             InnerValue::Undefined => Ok(js_string!("undefined")),
             InnerValue::Boolean(true) => Ok(js_string!("true")),
             InnerValue::Boolean(false) => Ok(js_string!("false")),
-            InnerValue::Float64(rational) => Ok(Number::to_js_string(rational)),
+            InnerValue::Float64(rational) => Ok(Number::to_js_string_radix(rational, 10)),
             InnerValue::Integer32(integer) => Ok(integer.to_string().into()),
             InnerValue::String(ref string) => Ok(string.clone()),
             InnerValue::Symbol(_) => Err(JsNativeError::typ()
@@ -717,7 +717,7 @@ impl JsValue {
         Ok(primitive.to_number(context)?.into())
     }
 
-    /// Converts a value to an integral 32 bit unsigned integer.
+    /// Converts a value to an integral 32-bit unsigned integer.
     ///
     /// This function is equivalent to `value | 0` in JavaScript
     ///
@@ -734,7 +734,7 @@ impl JsValue {
         Ok(f64_to_uint32(number))
     }
 
-    /// Converts a value to an integral 32 bit signed integer.
+    /// Converts a value to an integral 32-bit signed integer.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
     pub fn to_i32(&self, context: &mut Context) -> JsResult<i32> {
