@@ -69,7 +69,7 @@ fn main() -> JsResult<()> {
     };
 
     let result = point_shift.call(
-        &JsValue::Undefined,
+        &JsValue::UNDEFINED,
         &[a.try_into_js(context)?, b.try_into_js(context)?],
         context,
     )?;
@@ -82,7 +82,7 @@ fn main() -> JsResult<()> {
     assert_eq!(verifier, expect);
 
     let result = point_shift.call(
-        &JsValue::Undefined,
+        &JsValue::UNDEFINED,
         &[a.try_into_js(context)?, c.try_into_js(context)?],
         context,
     )?;

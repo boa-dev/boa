@@ -667,8 +667,9 @@ impl Duration {
             }
             // 5. Else,
             Some(round_to) => {
+                // TODO: remove this clone.
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to.into())?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 
@@ -740,15 +741,15 @@ impl Duration {
 
         let total_of = args.get_or_undefined(0);
 
-        let total_of = match total_of {
+        let total_of = match total_of.variant() {
             // 3. If totalOf is undefined, throw a TypeError exception.
-            JsValue::Undefined => {
+            JsVariant::Undefined => {
                 return Err(JsNativeError::typ()
                     .with_message("totalOf cannot be undefined.")
                     .into());
             }
             // 4. If Type(totalOf) is String, then
-            JsValue::String(param_string) => {
+            JsVariant::String(param_string) => {
                 // a. Let paramString be totalOf.
                 // b. Set totalOf to OrdinaryObjectCreate(null).
                 let total_of = JsObject::with_null_proto();

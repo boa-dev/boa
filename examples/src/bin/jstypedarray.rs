@@ -143,7 +143,7 @@ fn main() -> JsResult<()> {
     assert_eq!(initialized8_array.get(5, context)?, JsValue::ZERO);
     assert_eq!(initialized8_array.get(6, context)?, JsValue::ZERO);
     assert_eq!(initialized8_array.get(7, context)?, JsValue::ZERO);
-    assert_eq!(initialized8_array.get(8, context)?, JsValue::Undefined);
+    assert_eq!(initialized8_array.get(8, context)?, JsValue::UNDEFINED);
 
     // subarray
     let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;

@@ -1,5 +1,11 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainTime` builtin object.
 
+use super::{
+    create_temporal_duration,
+    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
+    to_integer_with_truncation, to_temporal_duration_record, PlainDateTime, ZonedDateTime,
+};
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -19,12 +25,6 @@ use temporal_rs::{
     options::{ArithmeticOverflow, TemporalRoundingMode},
     partial::PartialTime,
     PlainTime as PlainTimeInner,
-};
-
-use super::{
-    create_temporal_duration,
-    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
-    to_integer_with_truncation, to_temporal_duration_record, PlainDateTime, ZonedDateTime,
 };
 
 /// The `Temporal.PlainTime` object.
@@ -446,15 +446,15 @@ impl PlainTime {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -470,7 +470,7 @@ impl PlainTime {
             // 5. Else,
             Some(round_to) => {
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 
@@ -636,8 +636,8 @@ pub(crate) fn to_temporal_time(
     // 1.If overflow is not present, set overflow to "constrain".
     let resolved_overflow = overflow.unwrap_or(ArithmeticOverflow::Constrain);
     // 2. If item is an Object, then
-    match value {
-        JsValue::Object(object) => {
+    match value.variant() {
+        JsVariant::Object(object) => {
             // a. If item has an [[InitializedTemporalTime]] internal slot, then
             if let Some(time) = object.downcast_ref::<PlainTime>() {
                 // i. Return item.
@@ -678,7 +678,7 @@ pub(crate) fn to_temporal_time(
             .map_err(Into::into)
         }
         // 3. Else,
-        JsValue::String(str) => {
+        JsVariant::String(str) => {
             // b. Let result be ? ParseTemporalTimeString(item).
             // c. Assert: IsValidTime(result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]], result.[[Microsecond]], result.[[Nanosecond]]) is true.
             str.to_std_string_escaped()

@@ -62,7 +62,7 @@ pub(crate) fn to_temporal_calendar_slot_value(calendar_like: &JsValue) -> JsResu
     }
 
     // 3. If temporalCalendarLike is not a String, throw a TypeError exception.
-    let JsValue::String(calendar_id) = calendar_like else {
+    let Some(calendar_id) = calendar_like.as_string() else {
         return Err(JsNativeError::typ()
             .with_message("temporalCalendarLike is not a string.")
             .into());
