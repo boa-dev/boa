@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult,
 };
 
@@ -11,41 +11,47 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Case;
 
-impl Operation for Case {
-    const NAME: &'static str = "Case";
-    const INSTRUCTION: &'static str = "INST - Case";
-    const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        let cond = context.vm.pop();
-        let value = context.vm.pop();
-
-        if value.strict_equals(&cond) {
+impl Case {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        address: u32,
+        value: u32,
+        condition: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let value = registers.get(value);
+        let condition = registers.get(condition);
+        if value.strict_equals(condition) {
             context.vm.frame_mut().pc = address;
-        } else {
-            context.vm.push(value);
         }
         Ok(CompletionType::Normal)
     }
 }
 
-/// `Default` implements the Opcode Operation for `Opcode::Default`
-///
-/// Operation:
-///  - Pops the top of stack and jump to address.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Default;
-
-impl Operation for Default {
-    const NAME: &'static str = "Default";
-    const INSTRUCTION: &'static str = "INST - Default";
+impl Operation for Case {
+    const NAME: &'static str = "Case";
+    const INSTRUCTION: &'static str = "INST - Case";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let exit = context.vm.read::<u32>();
-        let _val = context.vm.pop();
-        context.vm.frame_mut().pc = exit;
-        Ok(CompletionType::Normal)
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u8>().into();
+        let condition = context.vm.read::<u8>().into();
+        Self::operation(address, value, condition, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u16>().into();
+        let condition = context.vm.read::<u16>().into();
+        Self::operation(address, value, condition, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u32>();
+        let condition = context.vm.read::<u32>();
+        Self::operation(address, value, condition, registers, context)
     }
 }

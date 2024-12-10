@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult,
 };
 
@@ -16,14 +16,10 @@ impl LogicalAnd {
     fn operation(
         exit: u32,
         lhs: u32,
-        operand_types: u8,
+        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let lhs = context
-            .vm
-            .frame()
-            .read_value::<0>(operand_types, lhs, &context.vm);
-
+        let lhs = registers.get(lhs);
         if !lhs.to_boolean() {
             context.vm.frame_mut().pc = exit;
         }
@@ -36,23 +32,22 @@ impl Operation for LogicalAnd {
     const INSTRUCTION: &'static str = "INST - LogicalAnd";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u8>().into();
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u16>().into();
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u32>();
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
 }
 
@@ -69,14 +64,10 @@ impl LogicalOr {
     fn operation(
         exit: u32,
         lhs: u32,
-        operand_types: u8,
+        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let lhs = context
-            .vm
-            .frame()
-            .read_value::<0>(operand_types, lhs, &context.vm);
-
+        let lhs = registers.get(lhs);
         if lhs.to_boolean() {
             context.vm.frame_mut().pc = exit;
         }
@@ -89,23 +80,22 @@ impl Operation for LogicalOr {
     const INSTRUCTION: &'static str = "INST - LogicalOr";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u8>());
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u16>());
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u32>();
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
 }
 
@@ -122,14 +112,10 @@ impl Coalesce {
     fn operation(
         exit: u32,
         lhs: u32,
-        operand_types: u8,
+        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let lhs = context
-            .vm
-            .frame()
-            .read_value::<0>(operand_types, lhs, &context.vm);
-
+        let lhs = registers.get(lhs);
         if !lhs.is_null_or_undefined() {
             context.vm.frame_mut().pc = exit;
         }
@@ -142,22 +128,21 @@ impl Operation for Coalesce {
     const INSTRUCTION: &'static str = "INST - Coalesce";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u8>());
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = u32::from(context.vm.read::<u16>());
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let exit = context.vm.read::<u32>();
         let lhs = context.vm.read::<u32>();
-        Self::operation(exit, lhs, operand_types, context)
+        Self::operation(exit, lhs, registers, context)
     }
 }

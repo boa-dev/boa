@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Literal, Operand, ToJsString},
+    bytecompiler::{Access, ByteCompiler, Literal, Operand, Register, ToJsString},
     vm::{BindingOpcode, Opcode},
 };
 use boa_ast::{
@@ -12,15 +12,16 @@ impl ByteCompiler<'_> {
         &mut self,
         pattern: &Pattern,
         def: BindingOpcode,
+        object: &Register,
     ) {
         match pattern {
             Pattern::Object(pattern) => {
-                self.emit_opcode(Opcode::ValueNotNullOrUndefined);
+                self.emit(
+                    Opcode::ValueNotNullOrUndefined,
+                    &[Operand::Register(object)],
+                );
 
-                self.emit_opcode(Opcode::RequireObjectCoercible);
-
-                let mut excluded_keys = Vec::new();
-                let mut additional_excluded_keys_count = 0;
+                let mut excluded_keys_registers = Vec::new();
                 let rest_exits = pattern.has_rest();
 
                 for binding in pattern.bindings() {
@@ -36,181 +37,222 @@ impl ByteCompiler<'_> {
                             name,
                             default_init,
                         } => {
-                            self.emit_opcode(Opcode::Dup);
-                            self.emit_opcode(Opcode::Dup);
+                            let dst = self.register_allocator.alloc();
+
                             match name {
-                                PropertyName::Literal(name) => {
-                                    self.emit_get_property_by_name(*name);
-                                    excluded_keys.push(*name);
+                                PropertyName::Literal(ident) => {
+                                    self.emit_get_property_by_name(&dst, object, object, *ident);
+                                    let key = self.register_allocator.alloc();
+                                    self.emit_push_literal(
+                                        Literal::String(
+                                            self.interner()
+                                                .resolve_expect(*ident)
+                                                .into_common(false),
+                                        ),
+                                        &key,
+                                    );
+                                    excluded_keys_registers.push(key);
                                 }
                                 PropertyName::Computed(node) => {
-                                    self.compile_expr(node, true);
+                                    let key = self.register_allocator.alloc();
+                                    self.compile_expr(node, &key);
                                     if rest_exits {
-                                        self.emit_opcode(Opcode::GetPropertyByValuePush);
+                                        self.emit(
+                                            Opcode::GetPropertyByValuePush,
+                                            &[
+                                                Operand::Register(&dst),
+                                                Operand::Register(&key),
+                                                Operand::Register(object),
+                                                Operand::Register(object),
+                                            ],
+                                        );
+                                        excluded_keys_registers.push(key);
                                     } else {
-                                        self.emit_opcode(Opcode::GetPropertyByValue);
+                                        self.emit(
+                                            Opcode::GetPropertyByValue,
+                                            &[
+                                                Operand::Register(&dst),
+                                                Operand::Register(&key),
+                                                Operand::Register(object),
+                                                Operand::Register(object),
+                                            ],
+                                        );
+                                        self.register_allocator.dealloc(key);
                                     }
                                 }
                             }
 
                             if let Some(init) = default_init {
-                                let skip =
-                                    self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true);
+                                let skip = self.emit_jump_if_not_undefined(&dst);
+                                self.compile_expr(init, &dst);
                                 self.patch_jump(skip);
                             }
-                            self.emit_binding(def, ident.to_js_string(self.interner()));
 
-                            if rest_exits && name.computed().is_some() {
-                                self.emit_opcode(Opcode::Swap);
-                                additional_excluded_keys_count += 1;
-                            }
+                            self.emit_binding(def, ident.to_js_string(self.interner()), &dst);
+                            self.register_allocator.dealloc(dst);
                         }
                         //  BindingRestProperty : ... BindingIdentifier
                         RestProperty { ident } => {
-                            self.emit_opcode(Opcode::PushEmptyObject);
-
-                            for key in &excluded_keys {
-                                self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(*key).into_common(false),
-                                ));
+                            let value = self.register_allocator.alloc();
+                            self.emit(Opcode::PushEmptyObject, &[Operand::Register(&value)]);
+                            let mut args = Vec::from([
+                                Operand::Register(&value),
+                                Operand::Register(object),
+                                Operand::Varying(excluded_keys_registers.len() as u32),
+                            ]);
+                            for r in &excluded_keys_registers {
+                                args.push(Operand::Register(r));
                             }
-
-                            self.emit(
-                                Opcode::CopyDataProperties,
-                                &[
-                                    Operand::Varying(excluded_keys.len() as u32),
-                                    Operand::Varying(additional_excluded_keys_count),
-                                ],
-                            );
-                            self.emit_binding(def, ident.to_js_string(self.interner()));
+                            self.emit(Opcode::CopyDataProperties, &args);
+                            while let Some(r) = excluded_keys_registers.pop() {
+                                self.register_allocator.dealloc(r);
+                            }
+                            self.emit_binding(def, ident.to_js_string(self.interner()), &value);
+                            self.register_allocator.dealloc(value);
                         }
                         AssignmentRestPropertyAccess { access } => {
-                            self.emit_opcode(Opcode::Dup);
-                            self.emit_opcode(Opcode::PushEmptyObject);
-                            for key in &excluded_keys {
-                                self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(*key).into_common(false),
-                                ));
+                            let value = self.register_allocator.alloc();
+                            self.emit(Opcode::PushEmptyObject, &[Operand::Register(&value)]);
+                            let mut args = Vec::from([
+                                Operand::Register(&value),
+                                Operand::Register(object),
+                                Operand::Varying(excluded_keys_registers.len() as u32),
+                            ]);
+                            for r in &excluded_keys_registers {
+                                args.push(Operand::Register(r));
                             }
-                            self.emit(
-                                Opcode::CopyDataProperties,
-                                &[
-                                    Operand::Varying(excluded_keys.len() as u32),
-                                    Operand::Varying(0),
-                                ],
-                            );
-                            self.access_set(
-                                Access::Property { access },
-                                false,
-                                ByteCompiler::access_set_top_of_stack_expr_fn,
-                            );
+                            self.emit(Opcode::CopyDataProperties, &args);
+                            while let Some(r) = excluded_keys_registers.pop() {
+                                self.register_allocator.dealloc(r);
+                            }
+                            self.access_set(Access::Property { access }, |_| &value);
+                            self.register_allocator.dealloc(value);
                         }
                         AssignmentPropertyAccess {
                             name,
                             access,
                             default_init,
                         } => {
-                            self.emit_opcode(Opcode::Dup);
-                            self.emit_opcode(Opcode::Dup);
+                            let key = self.register_allocator.alloc();
                             match &name {
-                                PropertyName::Literal(name) => excluded_keys.push(*name),
+                                PropertyName::Literal(ident) => {
+                                    let key = self.register_allocator.alloc();
+                                    self.emit_push_literal(
+                                        Literal::String(
+                                            self.interner()
+                                                .resolve_expect(*ident)
+                                                .into_common(false),
+                                        ),
+                                        &key,
+                                    );
+                                    excluded_keys_registers.push(key);
+                                }
                                 PropertyName::Computed(node) => {
-                                    self.compile_expr(node, true);
-                                    self.emit_opcode(Opcode::ToPropertyKey);
-                                    self.emit_opcode(Opcode::Swap);
+                                    self.compile_expr(node, &key);
+                                    self.emit(
+                                        Opcode::ToPropertyKey,
+                                        &[Operand::Register(&key), Operand::Register(&key)],
+                                    );
                                 }
                             }
 
+                            let dst = self.register_allocator.alloc();
                             self.access_set(
                                 Access::Property { access },
-                                false,
-                                |compiler: &mut ByteCompiler<'_>, level: u8| {
-                                    match level {
-                                        0 => {}
-                                        1 => compiler.emit_opcode(Opcode::Swap),
-                                        _ => {
-                                            compiler.emit(
-                                                Opcode::RotateLeft,
-                                                &[Operand::U8(level + 1)],
-                                            );
-                                        }
-                                    }
-                                    compiler.emit_opcode(Opcode::Dup);
-
+                                |compiler: &mut ByteCompiler<'_>| {
                                     match name {
-                                        PropertyName::Literal(name) => {
-                                            compiler.emit_get_property_by_name(*name);
+                                        PropertyName::Literal(ident) => {
+                                            compiler.emit_get_property_by_name(
+                                                &dst, object, object, *ident,
+                                            );
+                                            compiler.register_allocator.dealloc(key);
                                         }
                                         PropertyName::Computed(_) => {
-                                            compiler.emit(
-                                                Opcode::RotateLeft,
-                                                &[Operand::U8(level + 3)],
-                                            );
                                             if rest_exits {
-                                                compiler
-                                                    .emit_opcode(Opcode::GetPropertyByValuePush);
-                                                compiler.emit_opcode(Opcode::Swap);
                                                 compiler.emit(
-                                                    Opcode::RotateRight,
-                                                    &[Operand::U8(level + 2)],
+                                                    Opcode::GetPropertyByValuePush,
+                                                    &[
+                                                        Operand::Register(&dst),
+                                                        Operand::Register(&key),
+                                                        Operand::Register(object),
+                                                        Operand::Register(object),
+                                                    ],
                                                 );
+                                                excluded_keys_registers.push(key);
                                             } else {
-                                                compiler.emit_opcode(Opcode::GetPropertyByValue);
+                                                compiler.emit(
+                                                    Opcode::GetPropertyByValue,
+                                                    &[
+                                                        Operand::Register(&dst),
+                                                        Operand::Register(&key),
+                                                        Operand::Register(object),
+                                                        Operand::Register(object),
+                                                    ],
+                                                );
+                                                compiler.register_allocator.dealloc(key);
                                             }
                                         }
                                     }
 
                                     if let Some(init) = default_init {
-                                        let skip = compiler
-                                            .emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                        compiler.compile_expr(init, true);
+                                        let skip = compiler.emit_jump_if_not_undefined(&dst);
+                                        compiler.compile_expr(init, &dst);
                                         compiler.patch_jump(skip);
                                     }
+
+                                    &dst
                                 },
                             );
-
-                            if rest_exits && name.computed().is_some() {
-                                self.emit_opcode(Opcode::Swap);
-                                additional_excluded_keys_count += 1;
-                            }
+                            self.register_allocator.dealloc(dst);
                         }
                         Pattern {
                             name,
                             pattern,
                             default_init,
                         } => {
-                            self.emit_opcode(Opcode::Dup);
-                            self.emit_opcode(Opcode::Dup);
+                            let dst = self.register_allocator.alloc();
+
                             match name {
-                                PropertyName::Literal(name) => {
-                                    self.emit_get_property_by_name(*name);
+                                PropertyName::Literal(ident) => {
+                                    self.emit_get_property_by_name(&dst, object, object, *ident);
                                 }
                                 PropertyName::Computed(node) => {
-                                    self.compile_expr(node, true);
-                                    self.emit_opcode(Opcode::GetPropertyByValue);
+                                    let key = self.register_allocator.alloc();
+                                    self.compile_expr(node, &key);
+                                    self.emit(
+                                        Opcode::GetPropertyByValue,
+                                        &[
+                                            Operand::Register(&dst),
+                                            Operand::Register(&key),
+                                            Operand::Register(object),
+                                            Operand::Register(object),
+                                        ],
+                                    );
+                                    self.register_allocator.dealloc(key);
                                 }
                             }
 
                             if let Some(init) = default_init {
-                                let skip =
-                                    self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                                self.compile_expr(init, true);
+                                let skip = self.emit_jump_if_not_undefined(&dst);
+                                self.compile_expr(init, &dst);
                                 self.patch_jump(skip);
                             }
-
-                            self.compile_declaration_pattern(pattern, def);
+                            self.compile_declaration_pattern(pattern, def, &dst);
+                            self.register_allocator.dealloc(dst);
                         }
                     }
                 }
 
-                if !rest_exits {
-                    self.emit_opcode(Opcode::Pop);
+                while let Some(r) = excluded_keys_registers.pop() {
+                    self.register_allocator.dealloc(r);
                 }
             }
             Pattern::Array(pattern) => {
-                self.emit_opcode(Opcode::ValueNotNullOrUndefined);
-                self.emit_opcode(Opcode::GetIterator);
+                self.emit(
+                    Opcode::ValueNotNullOrUndefined,
+                    &[Operand::Register(object)],
+                );
+                self.emit(Opcode::GetIterator, &[Operand::Register(object)]);
 
                 let handler_index = self.push_handler();
                 for element in pattern.bindings() {
@@ -219,18 +261,27 @@ impl ByteCompiler<'_> {
 
                 let no_exception_thrown = self.jump();
                 self.patch_handler(handler_index);
-                self.emit_opcode(Opcode::MaybeException);
 
-                // stack: hasPending, exception?
+                let has_exception = self.register_allocator.alloc();
+                let exception = self.register_allocator.alloc();
+                self.emit(
+                    Opcode::MaybeException,
+                    &[
+                        Operand::Register(&has_exception),
+                        Operand::Register(&exception),
+                    ],
+                );
 
-                self.current_stack_value_count += 2;
                 let iterator_close_handler = self.push_handler();
                 self.iterator_close(false);
                 self.patch_handler(iterator_close_handler);
-                self.current_stack_value_count -= 2;
 
-                let jump = self.jump_if_false();
-                self.emit_opcode(Opcode::Throw);
+                let jump = self.jump_if_false(&has_exception);
+                self.register_allocator.dealloc(has_exception);
+
+                self.emit(Opcode::Throw, &[Operand::Register(&exception)]);
+                self.register_allocator.dealloc(exception);
+
                 self.patch_jump(jump);
                 self.emit_opcode(Opcode::ReThrow);
 
@@ -250,67 +301,101 @@ impl ByteCompiler<'_> {
         match element {
             // ArrayBindingPattern : [ Elision ]
             Elision => {
-                self.emit_opcode(Opcode::IteratorNextWithoutPop);
+                self.emit_opcode(Opcode::IteratorNext);
             }
             // SingleNameBinding : BindingIdentifier Initializer[opt]
             SingleName {
                 ident,
                 default_init,
             } => {
-                self.emit_opcode(Opcode::IteratorNextWithoutPop);
-                self.emit_opcode(Opcode::IteratorValueWithoutPop);
+                self.emit_opcode(Opcode::IteratorNext);
+                let value = self.register_allocator.alloc();
+                self.emit(Opcode::IteratorDone, &[Operand::Register(&value)]);
+                let done = self.jump_if_true(&value);
+                self.emit(Opcode::IteratorValue, &[Operand::Register(&value)]);
+                let skip_push = self.jump();
+                self.patch_jump(done);
+                self.push_undefined(&value);
+                self.patch_jump(skip_push);
+
                 if let Some(init) = default_init {
-                    let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                    self.compile_expr(init, true);
+                    let skip = self.emit_jump_if_not_undefined(&value);
+                    self.compile_expr(init, &value);
                     self.patch_jump(skip);
                 }
-                self.emit_binding(def, ident.to_js_string(self.interner()));
+
+                self.emit_binding(def, ident.to_js_string(self.interner()), &value);
+                self.register_allocator.dealloc(value);
             }
             PropertyAccess {
                 access,
                 default_init,
             } => {
-                self.access_set(Access::Property { access }, false, |compiler, _level| {
-                    compiler.emit_opcode(Opcode::IteratorNextWithoutPop);
-                    compiler.emit_opcode(Opcode::IteratorValueWithoutPop);
+                let value = self.register_allocator.alloc();
+                self.access_set(Access::Property { access }, |compiler| {
+                    compiler.emit_opcode(Opcode::IteratorNext);
+                    compiler.emit(Opcode::IteratorDone, &[Operand::Register(&value)]);
+                    let done = compiler.jump_if_true(&value);
+                    compiler.emit(Opcode::IteratorValue, &[Operand::Register(&value)]);
+                    let skip_push = compiler.jump();
+                    compiler.patch_jump(done);
+                    compiler.push_undefined(&value);
+                    compiler.patch_jump(skip_push);
 
                     if let Some(init) = default_init {
-                        let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                        compiler.compile_expr(init, true);
+                        let skip = compiler.emit_jump_if_not_undefined(&value);
+                        compiler.compile_expr(init, &value);
                         compiler.patch_jump(skip);
                     }
+
+                    &value
                 });
+                self.register_allocator.dealloc(value);
             }
             // BindingElement : BindingPattern Initializer[opt]
             Pattern {
                 pattern,
                 default_init,
             } => {
-                self.emit_opcode(Opcode::IteratorNextWithoutPop);
-                self.emit_opcode(Opcode::IteratorValueWithoutPop);
+                self.emit_opcode(Opcode::IteratorNext);
+                let value = self.register_allocator.alloc();
+                self.emit(Opcode::IteratorDone, &[Operand::Register(&value)]);
+                let done = self.jump_if_true(&value);
+                self.emit(Opcode::IteratorValue, &[Operand::Register(&value)]);
+                let skip_push = self.jump();
+                self.patch_jump(done);
+                self.push_undefined(&value);
+                self.patch_jump(skip_push);
 
                 if let Some(init) = default_init {
-                    let skip = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                    self.compile_expr(init, true);
+                    let skip = self.emit_jump_if_not_undefined(&value);
+                    self.compile_expr(init, &value);
                     self.patch_jump(skip);
                 }
-
-                self.compile_declaration_pattern(pattern, def);
+                self.compile_declaration_pattern(pattern, def, &value);
+                self.register_allocator.dealloc(value);
             }
             // BindingRestElement : ... BindingIdentifier
             SingleNameRest { ident } => {
-                self.emit_opcode(Opcode::IteratorToArray);
-                self.emit_binding(def, ident.to_js_string(self.interner()));
+                let value = self.register_allocator.alloc();
+                self.emit(Opcode::IteratorToArray, &[Operand::Register(&value)]);
+                self.emit_binding(def, ident.to_js_string(self.interner()), &value);
+                self.register_allocator.dealloc(value);
             }
             PropertyAccessRest { access } => {
-                self.access_set(Access::Property { access }, false, |compiler, _level| {
-                    compiler.emit_opcode(Opcode::IteratorToArray);
+                let value = self.register_allocator.alloc();
+                self.access_set(Access::Property { access }, |compiler| {
+                    compiler.emit(Opcode::IteratorToArray, &[Operand::Register(&value)]);
+                    &value
                 });
+                self.register_allocator.dealloc(value);
             }
             // BindingRestElement : ... BindingPattern
             PatternRest { pattern } => {
-                self.emit_opcode(Opcode::IteratorToArray);
-                self.compile_declaration_pattern(pattern, def);
+                let value = self.register_allocator.alloc();
+                self.emit(Opcode::IteratorToArray, &[Operand::Register(&value)]);
+                self.compile_declaration_pattern(pattern, def, &value);
+                self.register_allocator.dealloc(value);
             }
         }
     }

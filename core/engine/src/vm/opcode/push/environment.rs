@@ -1,7 +1,7 @@
 use crate::{
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult, JsString,
 };
 use boa_gc::Gc;
@@ -15,7 +15,7 @@ pub(crate) struct PushScope;
 
 impl PushScope {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    fn operation(index: usize, context: &mut Context) -> JsResult<CompletionType> {
         let scope = context.vm.frame().code_block().constant_scope(index);
         context
             .vm
@@ -30,19 +30,19 @@ impl Operation for PushScope {
     const INSTRUCTION: &'static str = "INST - PushScope";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
+        Self::operation(index, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        Self::operation(index, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
+        Self::operation(index, context)
     }
 }
 
@@ -53,17 +53,37 @@ impl Operation for PushScope {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushObjectEnvironment;
 
+impl PushObjectEnvironment {
+    fn operation(
+        value: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let object = registers.get(value);
+        let object = object.to_object(context)?;
+        context.vm.environments.push_object(object);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for PushObjectEnvironment {
     const NAME: &'static str = "PushObjectEnvironment";
     const INSTRUCTION: &'static str = "INST - PushObjectEnvironment";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.pop();
-        let object = object.to_object(context)?;
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u8>().into();
+        Self::operation(value, registers, context)
+    }
 
-        context.vm.environments.push_object(object);
-        Ok(CompletionType::Normal)
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u16>().into();
+        Self::operation(value, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u32>();
+        Self::operation(value, registers, context)
     }
 }
 
@@ -79,14 +99,11 @@ impl PushPrivateEnvironment {
     fn operation(
         class: u32,
         names: Vec<JsString>,
-        operand_types: u8,
+        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let class_value = context
-            .vm
-            .frame()
-            .read_value::<0>(operand_types, class, &context.vm);
-        let class = class_value.as_object().expect("should be a object");
+        let class = registers.get(class);
+        let class = class.as_object().expect("should be a object");
 
         let ptr: *const _ = class.as_ref();
         let environment = Gc::new(PrivateEnvironment::new(ptr.cast::<()>() as usize, names));
@@ -106,8 +123,7 @@ impl Operation for PushPrivateEnvironment {
     const INSTRUCTION: &'static str = "INST - PushPrivateEnvironment";
     const COST: u8 = 5;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let class = u32::from(context.vm.read::<u8>());
         let count = context.vm.read::<u32>();
         let mut names = Vec::with_capacity(count as usize);
@@ -120,11 +136,10 @@ impl Operation for PushPrivateEnvironment {
                 .constant_string(index as usize);
             names.push(name);
         }
-        Self::operation(class, names, operand_types, context)
+        Self::operation(class, names, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let class = u32::from(context.vm.read::<u16>());
         let count = context.vm.read::<u32>();
         let mut names = Vec::with_capacity(count as usize);
@@ -137,11 +152,10 @@ impl Operation for PushPrivateEnvironment {
                 .constant_string(index as usize);
             names.push(name);
         }
-        Self::operation(class, names, operand_types, context)
+        Self::operation(class, names, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let class = context.vm.read::<u32>();
         let count = context.vm.read::<u32>();
         let mut names = Vec::with_capacity(count as usize);
@@ -154,7 +168,7 @@ impl Operation for PushPrivateEnvironment {
                 .constant_string(index as usize);
             names.push(name);
         }
-        Self::operation(class, names, operand_types, context)
+        Self::operation(class, names, registers, context)
     }
 }
 
@@ -170,7 +184,7 @@ impl Operation for PopPrivateEnvironment {
     const INSTRUCTION: &'static str = "INST - PopPrivateEnvironment";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         context.vm.environments.pop_private();
         Ok(CompletionType::Normal)
     }

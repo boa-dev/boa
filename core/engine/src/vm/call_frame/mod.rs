@@ -17,7 +17,7 @@ use boa_ast::scope::BindingLocator;
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
 
-use super::{ActiveRunnable, Vm};
+use super::{ActiveRunnable, Registers, Vm};
 
 bitflags::bitflags! {
     /// Flags associated with a [`CallFrame`].
@@ -224,33 +224,34 @@ impl CallFrame {
     }
 
     /// Returns the async generator object, if the function that this [`CallFrame`] is from an async generator, [`None`] otherwise.
-    pub(crate) fn async_generator_object(&self, stack: &[JsValue]) -> Option<JsObject> {
+    pub(crate) fn async_generator_object(&self, registers: &Registers) -> Option<JsObject> {
         if !self.code_block().is_async_generator() {
             return None;
         }
 
-        self.register(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
+        registers
+            .get(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX)
             .as_object()
             .cloned()
     }
 
     #[track_caller]
-    pub(crate) fn promise_capability(&self, stack: &[JsValue]) -> Option<PromiseCapability> {
+    pub(crate) fn promise_capability(&self, registers: &Registers) -> Option<PromiseCapability> {
         if !self.code_block().is_async() {
             return None;
         }
 
-        let promise = self
-            .register(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX, stack)
+        let promise = registers
+            .get(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX)
             .as_object()
             .cloned()?;
-        let resolve = self
-            .register(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX, stack)
+        let resolve = registers
+            .get(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX)
             .as_object()
             .cloned()
             .and_then(JsFunction::from_object)?;
-        let reject = self
-            .register(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX, stack)
+        let reject = registers
+            .get(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX)
             .as_object()
             .cloned()
             .and_then(JsFunction::from_object)?;
@@ -263,7 +264,7 @@ impl CallFrame {
 
     pub(crate) fn set_promise_capability(
         &self,
-        stack: &mut [JsValue],
+        registers: &mut Registers,
         promise_capability: Option<&PromiseCapability>,
     ) {
         debug_assert!(
@@ -271,53 +272,27 @@ impl CallFrame {
             "Only async functions have a promise capability"
         );
 
-        self.set_register(
+        registers.set(
             Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX,
             promise_capability
                 .map(PromiseCapability::promise)
                 .cloned()
                 .map_or_else(JsValue::undefined, Into::into),
-            stack,
         );
-        self.set_register(
+        registers.set(
             Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX,
             promise_capability
                 .map(PromiseCapability::resolve)
                 .cloned()
                 .map_or_else(JsValue::undefined, Into::into),
-            stack,
         );
-        self.set_register(
+        registers.set(
             Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX,
             promise_capability
                 .map(PromiseCapability::reject)
                 .cloned()
                 .map_or_else(JsValue::undefined, Into::into),
-            stack,
         );
-    }
-
-    /// Returns the register at the given index.
-    ///
-    /// # Panics
-    ///
-    /// If the index is out of bounds.
-    #[track_caller]
-    pub(crate) fn register<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
-        debug_assert!(index < self.code_block().register_count);
-        let at = self.rp + index;
-        &stack[at as usize]
-    }
-
-    /// Sets the register at the given index.
-    ///
-    /// # Panics
-    ///
-    /// If the index is out of bounds.
-    pub(crate) fn set_register(&self, index: u32, value: JsValue, stack: &mut [JsValue]) {
-        debug_assert!(index < self.code_block().register_count);
-        let at = self.rp + index;
-        stack[at as usize] = value;
     }
 
     /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
@@ -342,26 +317,6 @@ impl CallFrame {
     /// The cached value is placed in the [`CallFrame::THIS_POSITION`] position.
     pub(crate) fn has_this_value_cached(&self) -> bool {
         self.flags.contains(CallFrameFlags::THIS_VALUE_CACHED)
-    }
-
-    pub(crate) fn read_value<const N: u8>(
-        &self,
-        operand_types: u8,
-        operand: u32,
-        vm: &Vm,
-    ) -> JsValue {
-        assert!(N <= 4, "operand type index ({N}) must be less than 4");
-
-        let type_ = (operand_types >> (N * 2)) & 0x0000_0011;
-        match type_ {
-            0 => vm.stack[(self.rp + operand) as usize].clone(),
-            1 => self
-                .argument(operand as usize, vm)
-                .expect("should be argument")
-                .clone(),
-            2 => operand.into(),
-            _ => unreachable!(),
-        }
     }
 }
 
