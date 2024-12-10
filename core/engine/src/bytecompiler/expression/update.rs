@@ -1,5 +1,5 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
+    bytecompiler::{Access, ByteCompiler, Operand, Register, ToJsString},
     vm::Opcode,
 };
 use boa_ast::{
@@ -11,12 +11,10 @@ use boa_ast::{
 };
 
 impl ByteCompiler<'_> {
-    pub(crate) fn compile_update(&mut self, update: &Update, use_expr: bool) {
+    pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register) {
         let opcode = match update.op() {
-            UpdateOp::IncrementPre => Opcode::Inc,
-            UpdateOp::DecrementPre => Opcode::Dec,
-            UpdateOp::IncrementPost => Opcode::IncPost,
-            UpdateOp::DecrementPost => Opcode::DecPost,
+            UpdateOp::IncrementPost | UpdateOp::IncrementPre => Opcode::Inc,
+            UpdateOp::DecrementPre | UpdateOp::DecrementPost => Opcode::Dec,
         };
         let post = matches!(
             update.op(),
@@ -31,136 +29,186 @@ impl ByteCompiler<'_> {
                 let index = self.get_or_insert_binding(binding);
 
                 if is_lexical {
-                    self.emit_binding_access(Opcode::GetName, &index);
+                    self.emit_binding_access(Opcode::GetName, &index, dst);
                 } else {
-                    self.emit_binding_access(Opcode::GetNameAndLocator, &index);
+                    self.emit_binding_access(Opcode::GetNameAndLocator, &index, dst);
                 }
 
-                self.emit_opcode(opcode);
-                if post {
-                    self.emit_opcode(Opcode::Swap);
-                } else {
-                    self.emit_opcode(Opcode::Dup);
-                }
+                let value = self.register_allocator.alloc();
 
+                self.emit(opcode, &[Operand::Register(&value), Operand::Register(dst)]);
                 if is_lexical {
                     match self.lexical_scope.set_mutable_binding(name.clone()) {
                         Ok(binding) => {
                             let index = self.get_or_insert_binding(binding);
-                            self.emit_binding_access(Opcode::SetName, &index);
+                            self.emit_binding_access(Opcode::SetName, &index, &value);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
                             let index = self.get_or_insert_string(name);
                             self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
                         }
-                        Err(BindingLocatorError::Silent) => {
-                            self.emit_opcode(Opcode::Pop);
-                        }
+                        Err(BindingLocatorError::Silent) => {}
                     }
                 } else {
-                    self.emit_binding_access(Opcode::SetNameByLocator, &index);
+                    self.emit_binding_access(Opcode::SetNameByLocator, &index, &value);
                 }
+                if !post {
+                    self.emit_move(dst, &value);
+                }
+
+                self.register_allocator.dealloc(value);
             }
             Access::Property { access } => match access {
-                PropertyAccess::Simple(access) => match access.field() {
-                    PropertyAccessField::Const(name) => {
-                        self.compile_expr(access.target(), true);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
+                PropertyAccess::Simple(access) => {
+                    let object = self.register_allocator.alloc();
+                    self.compile_expr(access.target(), &object);
 
-                        self.emit_get_property_by_name(*name);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
+                    match access.field() {
+                        PropertyAccessField::Const(ident) => {
+                            self.emit_get_property_by_name(dst, &object, &object, *ident);
+                            let value = self.register_allocator.alloc();
+                            self.emit(opcode, &[Operand::Register(&value), Operand::Register(dst)]);
+
+                            self.emit_set_property_by_name(&value, &object, &object, *ident);
+
+                            if !post {
+                                self.emit_move(dst, &value);
+                            }
+
+                            self.register_allocator.dealloc(object);
+                            self.register_allocator.dealloc(value);
                         }
+                        PropertyAccessField::Expr(expr) => {
+                            let key = self.register_allocator.alloc();
+                            self.compile_expr(expr, &key);
 
-                        self.emit_set_property_by_name(*name);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
+                            self.emit(
+                                Opcode::GetPropertyByValuePush,
+                                &[
+                                    Operand::Register(dst),
+                                    Operand::Register(&key),
+                                    Operand::Register(&object),
+                                    Operand::Register(&object),
+                                ],
+                            );
+
+                            let value = self.register_allocator.alloc();
+
+                            self.emit(opcode, &[Operand::Register(&value), Operand::Register(dst)]);
+
+                            self.emit(
+                                Opcode::SetPropertyByValue,
+                                &[
+                                    Operand::Register(&value),
+                                    Operand::Register(&key),
+                                    Operand::Register(&object),
+                                    Operand::Register(&object),
+                                ],
+                            );
+
+                            if !post {
+                                self.emit_move(dst, &value);
+                            }
+
+                            self.register_allocator.dealloc(key);
+                            self.register_allocator.dealloc(object);
+                            self.register_allocator.dealloc(value);
                         }
-                    }
-                    PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(access.target(), true);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.compile_expr(expr, true);
-
-                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(5)]);
-                        }
-
-                        self.emit_opcode(Opcode::SetPropertyByValue);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
-                        }
-                    }
-                },
-                PropertyAccess::Private(access) => {
-                    let index = self.get_or_insert_private_name(access.field());
-                    self.compile_expr(access.target(), true);
-                    self.emit_opcode(Opcode::Dup);
-
-                    self.emit_with_varying_operand(Opcode::GetPrivateField, index);
-                    self.emit_opcode(opcode);
-                    if post {
-                        self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
-                    }
-
-                    self.emit_with_varying_operand(Opcode::SetPrivateField, index);
-                    if post {
-                        self.emit_opcode(Opcode::Pop);
                     }
                 }
+                PropertyAccess::Private(access) => {
+                    let index = self.get_or_insert_private_name(access.field());
+
+                    let object = self.register_allocator.alloc();
+                    self.compile_expr(access.target(), &object);
+
+                    self.emit(
+                        Opcode::GetPrivateField,
+                        &[
+                            Operand::Register(dst),
+                            Operand::Register(&object),
+                            Operand::Varying(index),
+                        ],
+                    );
+
+                    let value = self.register_allocator.alloc();
+                    self.emit(opcode, &[Operand::Register(&value), Operand::Register(dst)]);
+
+                    self.emit(
+                        Opcode::SetPrivateField,
+                        &[
+                            Operand::Register(&value),
+                            Operand::Register(&object),
+                            Operand::Varying(index),
+                        ],
+                    );
+
+                    if !post {
+                        self.emit_move(dst, &value);
+                    }
+
+                    self.register_allocator.dealloc(value);
+                    self.register_allocator.dealloc(object);
+                }
                 PropertyAccess::Super(access) => match access.field() {
-                    PropertyAccessField::Const(name) => {
-                        self.emit_opcode(Opcode::Super);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::This);
-                        self.emit_opcode(Opcode::Swap);
-                        self.emit_opcode(Opcode::This);
+                    PropertyAccessField::Const(ident) => {
+                        let object = self.register_allocator.alloc();
+                        let receiver = self.register_allocator.alloc();
+                        self.emit(Opcode::Super, &[Operand::Register(&object)]);
+                        self.emit(Opcode::This, &[Operand::Register(&receiver)]);
 
-                        self.emit_get_property_by_name(*name);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
+                        self.emit_get_property_by_name(dst, &receiver, &object, *ident);
+
+                        let value = self.register_allocator.alloc();
+                        self.emit(opcode, &[Operand::Register(&value), Operand::Register(dst)]);
+
+                        self.emit_set_property_by_name(&value, &receiver, &object, *ident);
+                        if !post {
+                            self.emit_move(dst, &value);
                         }
 
-                        self.emit_set_property_by_name(*name);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
-                        }
+                        self.register_allocator.dealloc(receiver);
+                        self.register_allocator.dealloc(object);
+                        self.register_allocator.dealloc(value);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.emit_opcode(Opcode::Super);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::This);
-                        self.compile_expr(expr, true);
+                        let object = self.register_allocator.alloc();
+                        let receiver = self.register_allocator.alloc();
+                        self.emit(Opcode::Super, &[Operand::Register(&object)]);
+                        self.emit(Opcode::This, &[Operand::Register(&receiver)]);
 
-                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(2)]);
-                        }
+                        let key = self.register_allocator.alloc();
+                        self.compile_expr(expr, &key);
 
-                        self.emit_opcode(Opcode::This);
-                        self.emit(Opcode::RotateRight, &[Operand::U8(2)]);
+                        self.emit(
+                            Opcode::GetPropertyByValue,
+                            &[
+                                Operand::Register(dst),
+                                Operand::Register(&key),
+                                Operand::Register(&receiver),
+                                Operand::Register(&object),
+                            ],
+                        );
 
-                        self.emit_opcode(Opcode::SetPropertyByValue);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
-                        }
+                        self.emit(opcode, &[Operand::Register(dst), Operand::Register(dst)]);
+
+                        self.emit(
+                            Opcode::SetPropertyByValue,
+                            &[
+                                Operand::Register(dst),
+                                Operand::Register(&key),
+                                Operand::Register(&receiver),
+                                Operand::Register(&object),
+                            ],
+                        );
+
+                        self.register_allocator.dealloc(receiver);
+                        self.register_allocator.dealloc(object);
+                        self.register_allocator.dealloc(key);
                     }
                 },
             },
             Access::This => unreachable!(),
-        }
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
         }
     }
 }
