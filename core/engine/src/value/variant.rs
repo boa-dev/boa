@@ -6,10 +6,6 @@ use boa_string::JsString;
 /// A non-mutable variant of a `JsValue`.
 /// Represents either a primitive value ([`bool`], [`f64`], [`i32`]) or a reference
 /// to a heap allocated value ([`JsString`], [`JsSymbol`]).
-///
-/// References to heap allocated values are represented by [`Ref`], since
-/// more exotic implementations of [`JsValue`] such as nan-boxed ones cannot
-/// effectively return references.
 #[derive(Debug)]
 pub enum JsVariant<'a> {
     /// `null` - A null value, for when a value doesn't exist.
