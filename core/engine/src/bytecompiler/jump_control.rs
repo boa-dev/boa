@@ -16,6 +16,8 @@ use crate::{
 use bitflags::bitflags;
 use boa_interner::Sym;
 
+use super::{Operand, Register};
+
 /// An actions to be performed for the local control flow.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum JumpRecordAction {
@@ -58,6 +60,8 @@ pub(crate) enum JumpRecordAction {
     HandleFinally {
         /// Jump table index.
         index: u32,
+        /// Register for the flag that indicated if the finally block needs to re throw.
+        finally_throw: u32,
     },
 }
 
@@ -102,11 +106,17 @@ impl JumpRecord {
                         compiler.emit_opcode(Opcode::PopEnvironment);
                     }
                 }
-                JumpRecordAction::HandleFinally { index: value } => {
+                JumpRecordAction::HandleFinally {
+                    index: value,
+                    finally_throw,
+                } => {
                     // Note: +1 because 0 is reserved for default entry in jump table (for fallthrough).
                     let index = value as i32 + 1;
-                    compiler.emit_push_integer(index);
-                    compiler.emit_opcode(Opcode::PushFalse);
+                    let value = compiler.register_allocator.alloc();
+                    compiler.emit_push_integer(index, &value);
+                    compiler.push_from_register(&value);
+                    compiler.emit(Opcode::PushFalse, &[Operand::Varying(finally_throw)]);
+                    compiler.register_allocator.dealloc(value);
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
                     compiler.iterator_close(r#async);
@@ -122,7 +132,10 @@ impl JumpRecord {
                 return_value_on_stack,
             } => {
                 if return_value_on_stack {
-                    compiler.emit_opcode(Opcode::SetAccumulatorFromStack);
+                    let value = compiler.register_allocator.alloc();
+                    compiler.pop_into_register(&value);
+                    compiler.emit(Opcode::SetAccumulator, &[Operand::Register(&value)]);
+                    compiler.register_allocator.dealloc(value);
                 }
 
                 match (compiler.is_async(), compiler.is_generator()) {
@@ -159,6 +172,7 @@ pub(crate) struct JumpControlInfo {
     pub(crate) flags: JumpControlInfoFlags,
     pub(crate) jumps: Vec<JumpRecord>,
     current_open_environments_count: u32,
+    pub(crate) finally_throw: Option<u32>,
 }
 
 bitflags! {
@@ -202,6 +216,7 @@ impl JumpControlInfo {
             flags: JumpControlInfoFlags::default(),
             jumps: Vec::new(),
             current_open_environments_count,
+            finally_throw: None,
         }
     }
 
@@ -225,9 +240,8 @@ impl JumpControlInfo {
         self
     }
 
-    pub(crate) fn with_try_with_finally_flag(mut self, value: bool) -> Self {
-        self.flags
-            .set(JumpControlInfoFlags::TRY_WITH_FINALLY, value);
+    pub(crate) fn with_try_with_finally_flag(mut self, dst: &Register) -> Self {
+        self.finally_throw = Some(dst.index());
         self
     }
 
@@ -267,7 +281,7 @@ impl JumpControlInfo {
     }
 
     pub(crate) const fn is_try_with_finally_block(&self) -> bool {
-        self.flags.contains(JumpControlInfoFlags::TRY_WITH_FINALLY)
+        self.finally_throw.is_some()
     }
 
     pub(crate) const fn is_labelled(&self) -> bool {
@@ -344,7 +358,6 @@ impl ByteCompiler<'_> {
         self.handlers.push(Handler {
             start: start_address,
             end: Self::DUMMY_ADDRESS,
-            stack_count: self.current_stack_value_count,
             environment_count,
         });
 
@@ -516,9 +529,13 @@ impl ByteCompiler<'_> {
     // ---- `TryStatement`'s `JumpControlInfo` methods ---- //
 
     /// Pushes a `TryStatement`'s `JumpControlInfo` onto the `jump_info` stack.
-    pub(crate) fn push_try_with_finally_control_info(&mut self, use_expr: bool) {
+    pub(crate) fn push_try_with_finally_control_info(
+        &mut self,
+        finally_throw: &Register,
+        use_expr: bool,
+    ) {
         let new_info = JumpControlInfo::new(self.current_open_environments_count)
-            .with_try_with_finally_flag(true);
+            .with_try_with_finally_flag(finally_throw);
 
         self.push_contol_info(new_info, use_expr);
     }

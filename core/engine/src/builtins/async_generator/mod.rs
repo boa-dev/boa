@@ -57,7 +57,7 @@ pub(crate) struct AsyncGeneratorRequest {
 }
 
 /// The internal representation of an `AsyncGenerator` object.
-#[derive(Debug, Clone, Finalize, Trace, JsData)]
+#[derive(Debug, Finalize, Trace, JsData)]
 pub struct AsyncGenerator {
     /// The `[[AsyncGeneratorState]]` internal slot.
     #[unsafe_ignore_trace]
