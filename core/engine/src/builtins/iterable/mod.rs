@@ -314,8 +314,8 @@ impl IteratorResult {
     /// Gets a new `IteratorResult` from a value. Returns `Err` if
     /// the value is not a [`JsObject`]
     pub(crate) fn from_value(value: JsValue) -> JsResult<Self> {
-        if let Some(o) = value.as_object() {
-            Ok(Self { object: o.clone() })
+        if let Some(object) = value.into_object() {
+            Ok(Self { object })
         } else {
             Err(JsNativeError::typ()
                 .with_message("next value should be an object")

@@ -62,7 +62,7 @@ macro_rules! impl_from_float {
                     if value != -0.0 && value.fract() == 0.0 && value <= i32::MAX as $type_ && value >= i32::MIN as $type_ {
                         Self::from_inner(InnerValue::Integer32(value as i32))
                     } else {
-                        Self::from_inner(InnerValue::Float64(value as f64))
+                        Self::from_inner(InnerValue::Float64(f64::from(value)))
                     }
                 }
             }
@@ -75,6 +75,7 @@ macro_rules! impl_from_integer {
         $(
             impl From<$type_> for JsValue {
                 #[inline]
+                #[allow(clippy::cast_lossless)]
                 fn from(value: $type_) -> Self {
                     let _timer = Profiler::global().start_event(concat!("From<", stringify!($type_), ">"), "value");
 

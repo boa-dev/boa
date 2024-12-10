@@ -28,7 +28,7 @@ fn literal_to_js_value(literal: &Literal, context: &mut Context) -> JsValue {
     }
 }
 
-fn js_value_to_literal(value: JsValue, context: &mut Context) -> Literal {
+fn js_value_to_literal(value: &JsValue, context: &mut Context) -> Literal {
     match value.variant() {
         JsVariant::Null => Literal::Null,
         JsVariant::Undefined => Literal::Undefined,
@@ -102,7 +102,7 @@ impl ConstantFolding {
             return PassAction::Keep;
         };
 
-        PassAction::Replace(Expression::Literal(js_value_to_literal(value, context)))
+        PassAction::Replace(Expression::Literal(js_value_to_literal(&value, context)))
     }
 
     fn constant_fold_binary_expr(
@@ -229,6 +229,6 @@ impl ConstantFolding {
             return PassAction::Keep;
         };
 
-        PassAction::Replace(Expression::Literal(js_value_to_literal(value, context)))
+        PassAction::Replace(Expression::Literal(js_value_to_literal(&value, context)))
     }
 }

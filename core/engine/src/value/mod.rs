@@ -210,6 +210,17 @@ impl JsValue {
         }
     }
 
+    /// Consumes the value and return the inner object if it was an object.
+    #[inline]
+    #[must_use]
+    pub fn into_object(self) -> Option<JsObject> {
+        if let InnerValue::Object(ref obj) = self.inner {
+            Some(obj.clone())
+        } else {
+            None
+        }
+    }
+
     /// It determines if the value is a callable function with a `[[Call]]` internal method.
     ///
     /// More information:

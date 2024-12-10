@@ -14,7 +14,7 @@ fn main() {}
 fn lossy_float(value: &JsValue, _context: &mut Context) -> JsResult<i16> {
     match value.variant() {
         JsVariant::Float64(r) => Ok(r.round() as i16),
-        JsVariant::Integer32(i) => Ok(*i as i16),
+        JsVariant::Integer32(i) => Ok(i as i16),
         _ => Err(JsNativeError::typ()
             .with_message("cannot convert value to an i16")
             .into()),
