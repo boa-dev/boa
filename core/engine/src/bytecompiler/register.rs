@@ -74,8 +74,7 @@ impl RegisterAllocator {
             .registers
             .iter_mut()
             .enumerate()
-            .filter(|(_, reg)| !reg.flags.is_used())
-            .next()
+            .find(|(_, reg)| !reg.flags.is_used())
         {
             assert!(!register.flags.is_persistent());
 

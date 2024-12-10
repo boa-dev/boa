@@ -2,7 +2,7 @@ use crate::{
     builtins::{function::OrdinaryFunction, OrdinaryObject},
     object::{internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult, JsValue,
 };
 
@@ -19,16 +19,11 @@ impl SetClassPrototype {
         dst: u32,
         prototype: u32,
         class: u32,
-        operand_types: u8,
+        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let rp = context.vm.frame().rp;
-        let prototype_value =
-            context
-                .vm
-                .frame()
-                .read_value::<0>(operand_types, prototype, &context.vm);
-        let prototype = match &prototype_value {
+        let prototype = registers.get(prototype);
+        let prototype = match prototype {
             JsValue::Object(proto) => Some(proto.clone()),
             JsValue::Null => None,
             JsValue::Undefined => Some(context.intrinsics().constructors().object().prototype()),
@@ -41,10 +36,7 @@ impl SetClassPrototype {
             prototype,
             OrdinaryObject,
         );
-        let class = context
-            .vm
-            .frame()
-            .read_value::<1>(operand_types, class, &context.vm);
+        let class = registers.get(class);
 
         {
             let class_object = class.as_object().expect("class must be object");
@@ -69,7 +61,7 @@ impl SetClassPrototype {
             .__define_own_property__(
                 &CONSTRUCTOR.into(),
                 PropertyDescriptorBuilder::new()
-                    .value(class)
+                    .value(class.clone())
                     .writable(true)
                     .enumerable(false)
                     .configurable(true)
@@ -78,7 +70,7 @@ impl SetClassPrototype {
             )
             .expect("cannot fail per spec");
 
-        context.vm.stack[(rp + dst) as usize] = proto.into();
+        registers.set(dst, proto.into());
         Ok(CompletionType::Normal)
     }
 }
@@ -88,27 +80,24 @@ impl Operation for SetClassPrototype {
     const INSTRUCTION: &'static str = "INST - SetClassPrototype";
     const COST: u8 = 6;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let dst = u32::from(context.vm.read::<u8>());
         let prototype = u32::from(context.vm.read::<u8>());
         let class = u32::from(context.vm.read::<u8>());
-        Self::operation(dst, prototype, class, operand_types, context)
+        Self::operation(dst, prototype, class, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let dst = u32::from(context.vm.read::<u16>());
         let prototype = u32::from(context.vm.read::<u16>());
         let class = u32::from(context.vm.read::<u16>());
-        Self::operation(dst, prototype, class, operand_types, context)
+        Self::operation(dst, prototype, class, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let operand_types = context.vm.read::<u8>();
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let dst = context.vm.read::<u32>();
         let prototype = context.vm.read::<u32>();
         let class = context.vm.read::<u32>();
-        Self::operation(dst, prototype, class, operand_types, context)
+        Self::operation(dst, prototype, class, registers, context)
     }
 }
