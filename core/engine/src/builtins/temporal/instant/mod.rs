@@ -46,16 +46,8 @@ impl IntrinsicObject for Instant {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
-        let get_seconds = BuiltInBuilder::callable(realm, Self::get_epoch_seconds)
-            .name(js_string!("get epochSeconds"))
-            .build();
-
         let get_millis = BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds)
             .name(js_string!("get epochMilliseconds"))
-            .build();
-
-        let get_micros = BuiltInBuilder::callable(realm, Self::get_epoch_microseconds)
-            .name(js_string!("get epochMicroseconds"))
             .build();
 
         let get_nanos = BuiltInBuilder::callable(realm, Self::get_epoch_nanoseconds)
@@ -69,20 +61,8 @@ impl IntrinsicObject for Instant {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("epochSeconds"),
-                Some(get_seconds),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
                 js_string!("epochMilliseconds"),
                 Some(get_millis),
-                None,
-                Attribute::CONFIGURABLE,
-            )
-            .accessor(
-                js_string!("epochMicroseconds"),
-                Some(get_micros),
                 None,
                 Attribute::CONFIGURABLE,
             )
@@ -225,24 +205,6 @@ impl Instant {
 // ==== Instant method implementations ====
 
 impl Instant {
-    /// 8.3.3 get Temporal.Instant.prototype.epochSeconds
-    pub(crate) fn get_epoch_seconds(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
-        // 1. Let instant be the this value.
-        // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let instant = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
-        // 3. Let ns be instant.[[Nanoseconds]].
-        Ok(JsBigInt::from(instant.inner.epoch_seconds()).into())
-    }
-
     /// 8.3.4 get Temporal.Instant.prototype.epochMilliseconds
     pub(crate) fn get_epoch_milliseconds(
         this: &JsValue,
@@ -261,26 +223,6 @@ impl Instant {
         // 4. Let ms be floor(ℝ(ns) / 106).
         // 5. Return 𝔽(ms).
         Ok(JsBigInt::from(instant.inner.epoch_milliseconds()).into())
-    }
-
-    /// 8.3.5 get Temporal.Instant.prototype.epochMicroseconds
-    pub(crate) fn get_epoch_microseconds(
-        this: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
-        // 1. Let instant be the this value.
-        // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
-        let instant = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<Self>)
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be an instant object.")
-            })?;
-        // 3. Let ns be instant.[[Nanoseconds]].
-        // 4. Let µs be floor(ℝ(ns) / 103).
-        // 5. Return ℤ(µs).
-        Ok(JsBigInt::from(instant.inner.epoch_microseconds()).into())
     }
 
     /// 8.3.6 get Temporal.Instant.prototype.epochNanoseconds
@@ -541,7 +483,7 @@ impl Instant {
 
 /// 8.5.2 `CreateTemporalInstant ( epochNanoseconds [ , newTarget ] )`
 #[inline]
-fn create_temporal_instant(
+pub(crate) fn create_temporal_instant(
     instant: InnerInstant,
     new_target: Option<JsValue>,
     context: &mut Context,

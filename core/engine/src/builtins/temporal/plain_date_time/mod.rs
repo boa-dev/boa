@@ -688,13 +688,13 @@ impl PlainDateTime {
                 .with_message("with object was not a PartialTemporalObject.")
                 .into());
         };
-        let options = get_options_object(args.get_or_undefined(1))?;
 
         let date = to_partial_date_record(partial_object, context)?;
         let time = to_partial_time_record(partial_object, context)?;
 
         let partial_dt = PartialDateTime { date, time };
 
+        let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         create_temporal_datetime(dt.inner.with(partial_dt, overflow)?, None, context)
@@ -976,7 +976,7 @@ pub(crate) fn to_temporal_datetime(
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return Err(JsNativeError::range()
+            return Err(JsNativeError::error()
                 .with_message("Not yet implemented.")
                 .into());
         // c. If item has an [[InitializedTemporalDate]] internal slot, then

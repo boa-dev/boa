@@ -10,6 +10,8 @@ pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
+#[cfg(feature = "temporal")]
+use temporal_rs::tzdb::FsTzdbProvider;
 
 use crate::vm::RuntimeLimits;
 use crate::{
@@ -99,6 +101,9 @@ pub struct Context {
     pub(crate) kept_alive: Vec<JsObject>,
 
     can_block: bool,
+
+    #[cfg(feature = "temporal")]
+    tz_provider: FsTzdbProvider,
 
     /// Intl data provider.
     #[cfg(feature = "intl")]
@@ -860,6 +865,12 @@ impl Context {
     pub(crate) const fn intl_provider(&self) -> &icu::IntlProvider {
         &self.intl_provider
     }
+
+    /// Get the Time Zone Provider
+    #[cfg(feature = "temporal")]
+    pub(crate) fn tz_provider(&self) -> &FsTzdbProvider {
+        &self.tz_provider
+    }
 }
 
 /// Builder for the [`Context`] type.
@@ -1087,6 +1098,8 @@ impl ContextBuilder {
             interner: self.interner.unwrap_or_default(),
             vm,
             strict: false,
+            #[cfg(feature = "temporal")]
+            tz_provider: FsTzdbProvider::default(),
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
                 icu

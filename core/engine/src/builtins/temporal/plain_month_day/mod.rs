@@ -25,7 +25,10 @@ use temporal_rs::{
     PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
-use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
+use super::{
+    calendar::to_temporal_calendar_slot_value, to_integer_if_integral,
+    to_positive_integer_with_trunc, DateTimeValues,
+};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -315,40 +318,41 @@ fn to_temporal_month_day(
         InnerMonthDay::from_str(item_string.to_std_string_escaped().as_str())?
     } else if item.is_object() {
         let day = item
-            .get_v(js_string!("day"), context)
-            .expect("Day not found")
-            .to_i32(context)
-            .expect("Cannot convert day to i32");
+            .get_v(js_string!("day"), context)?
+            .map(|v| to_positive_integer_with_trunc(v, context))
+            .transpose()?;
+
         let month = item
-            .get_v(js_string!("month"), context)
-            .expect("Month not found")
-            .to_i32(context)
-            .expect("Cannot convert month to i32");
+            .get_v(js_string!("month"), context)?
+            .map(|v| to_positive_integer_with_trunc(v, context))
+            .transpose()?;
 
         let month_code = item
-            .get_v(js_string!("monthCode"), context)
-            .expect("monthCode not found");
-        let resolved_month_code = if month_code.is_undefined() {
-            None
-        } else {
-            TinyAsciiStr::<4>::from_str(
-                &month_code
-                    .to_string(context)
-                    .expect("Cannot convert monthCode to string")
-                    .to_std_string_escaped(),
-            )
-            .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
-            .ok()
-        };
-        let year = item.get_v(js_string!("year"), context).map_or(1972, |val| {
-            val.to_i32(context).expect("Cannot convert year to i32")
-        });
+            .get_v(js_string!("monthCode"), context)?
+            .map(|v| {
+                let JsValue::String(month_code) =
+                    v.to_primitive(context, crate::value::PreferredType::String)?
+                else {
+                    return Err(JsNativeError::typ()
+                        .with_message("The monthCode field value must be a string.")
+                        .into());
+                };
+                TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
+            })
+            .transpose()?;
+
+        let year = item
+            .get_v(js_string!("year"), context)?
+            .map(|v| to_integer_if_integral(v, context))
+            .transpose()?
+            .unwrap_or(1972);
 
         let partial_date = &PartialDate {
-            month: Some(month),
-            day: Some(day),
+            month,
+            day,
             year: Some(year),
-            month_code: resolved_month_code,
+            month_code,
             ..Default::default()
         };
 
