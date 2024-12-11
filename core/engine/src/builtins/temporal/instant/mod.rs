@@ -91,6 +91,7 @@ impl IntrinsicObject for Instant {
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .method(
                 Self::to_zoned_date_time_iso,
                 js_string!("toZonedDateTimeISO"),
@@ -472,6 +473,12 @@ impl Instant {
         // TODO Complete
         Err(JsNativeError::error()
             .with_message("not yet implemented.")
+            .into())
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
     }
 }
