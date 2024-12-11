@@ -110,7 +110,7 @@ fn main() -> JsResult<()> {
     .build();
 
     assert_eq!(
-        chained_array.reduce(reduce_callback, Some(JsValue::new(0)), context)?,
+        chained_array.reduce(reduce_callback, Some(JsValue::ZERO), context)?,
         JsValue::new(202)
     );
 

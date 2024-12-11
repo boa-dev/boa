@@ -2,6 +2,7 @@
 
 use std::{fmt, str::FromStr};
 
+use crate::value::JsVariant;
 use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
@@ -74,14 +75,14 @@ pub(crate) fn get_option<T: OptionType>(
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getoptionsobject
 pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
-    match options {
+    match options.variant() {
         // If options is undefined, then
-        JsValue::Undefined => {
+        JsVariant::Undefined => {
             // a. Return OrdinaryObjectCreate(null).
             Ok(JsObject::with_null_proto())
         }
         // 2. If Type(options) is Object, then
-        JsValue::Object(obj) => {
+        JsVariant::Object(obj) => {
             // a. Return options.
             Ok(obj.clone())
         }

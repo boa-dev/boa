@@ -254,7 +254,7 @@ pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) ->
             return Ok(JsValue::new(-0_f64));
         }
 
-        return Ok(JsValue::new(0_f64));
+        return Ok(JsValue::ZERO);
     }
 
     // 16. Return 𝔽(sign × mathInt).

@@ -1,5 +1,7 @@
 //! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
 
+use super::options::get_difference_settings;
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -27,8 +29,6 @@ use temporal_rs::{
     options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode},
     Instant as InnerInstant,
 };
-
-use super::options::get_difference_settings;
 
 /// The `Temporal.Instant` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -352,15 +352,15 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -375,8 +375,9 @@ impl Instant {
             }
             // 5. Else,
             Some(round_to) => {
+                // TODO: remove this clone.
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 

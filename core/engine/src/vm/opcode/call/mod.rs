@@ -60,7 +60,7 @@ impl CallEval {
                 context.vm.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.push(JsValue::Undefined);
+                context.vm.push(JsValue::undefined());
             }
 
             return Ok(CompletionType::Normal);
@@ -154,7 +154,7 @@ impl CallEvalSpread {
                 context.vm.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.push(JsValue::Undefined);
+                context.vm.push(JsValue::undefined());
             }
 
             return Ok(CompletionType::Normal);

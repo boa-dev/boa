@@ -439,7 +439,7 @@ impl Console {
             logger.error(formatter(&args, context)?, &console.state, context)?;
         }
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.clear()`
@@ -461,7 +461,7 @@ impl Console {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         console.state.groups.clear();
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.debug(...data)`
@@ -482,7 +482,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.debug(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.error(...data)`
@@ -503,7 +503,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.error(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.info(...data)`
@@ -524,7 +524,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.info(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.log(...data)`
@@ -545,7 +545,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.log(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.trace(...data)`
@@ -579,7 +579,7 @@ impl Console {
             .join("\n");
         logger.log(stack_trace_dump, &console.state, context)?;
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.warn(...data)`
@@ -600,7 +600,7 @@ impl Console {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         logger.warn(formatter(args, context)?, &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.count(label)`
@@ -630,7 +630,7 @@ impl Console {
         *c += 1;
 
         logger.info(format!("{msg} {c}"), &console.state, context)?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.countReset(label)`
@@ -663,7 +663,7 @@ impl Console {
             context,
         )?;
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// Returns current system time in ms.
@@ -707,7 +707,7 @@ impl Console {
             )?;
         }
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.timeLog(label, ...data)`
@@ -747,7 +747,7 @@ impl Console {
             )?;
         }
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.timeEnd(label)`
@@ -791,7 +791,7 @@ impl Console {
             )?;
         };
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.group(...data)`
@@ -816,7 +816,7 @@ impl Console {
         logger.info(format!("group: {group_label}"), &console.state, context)?;
         console.state.groups.push(group_label);
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.groupCollapsed(...data)`
@@ -836,7 +836,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Console::group(&JsValue::Undefined, args, console, logger, context)
+        Console::group(&JsValue::UNDEFINED, args, console, logger, context)
     }
 
     /// `console.groupEnd(label)`
@@ -859,7 +859,7 @@ impl Console {
     ) -> JsResult<JsValue> {
         console.state.groups.pop();
 
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 
     /// `console.dir(item, options)`
@@ -885,6 +885,6 @@ impl Console {
             &console.state,
             context,
         )?;
-        Ok(JsValue::undefined())
+        Ok(JsValue::UNDEFINED)
     }
 }

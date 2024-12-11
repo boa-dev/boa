@@ -1672,7 +1672,7 @@ impl RegExp {
         let previous_last_index = rx.get(js_string!("lastIndex"), context)?;
 
         // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
-        if !JsValue::same_value(&previous_last_index, &JsValue::new(0)) {
+        if !JsValue::same_value(&previous_last_index, &JsValue::ZERO) {
             // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
             rx.set(js_string!("lastIndex"), 0, true, context)?;
         }

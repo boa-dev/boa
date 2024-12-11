@@ -218,8 +218,12 @@ impl BuiltInConstructor for String {
         let string = match args.first() {
             // 2. Else,
             // a. If NewTarget is undefined and Type(value) is Symbol, return SymbolDescriptiveString(value).
-            Some(JsValue::Symbol(ref sym)) if new_target.is_undefined() => {
-                return Ok(sym.descriptive_string().into())
+            Some(value) if new_target.is_undefined() && value.is_symbol() => {
+                return Ok(value
+                    .as_symbol()
+                    .expect("Already checked for a symbol")
+                    .descriptive_string()
+                    .into())
             }
             // b. Let s be ? ToString(value).
             Some(value) => value.to_string(context)?,
@@ -840,9 +844,9 @@ impl String {
         let len = string.len() as i64;
 
         // 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).
-        let pos = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(0),
-            position => position.to_integer_or_infinity(context)?,
+        let pos = match args.get_or_undefined(1).as_defined() {
+            None => IntegerOrInfinity::Integer(0),
+            Some(pos) => pos.to_integer_or_infinity(context)?,
         };
 
         // 8. Let start be the result of clamping pos between 0 and len.
@@ -1496,7 +1500,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
+        let rx = RegExp::create(regexp, &JsValue::UNDEFINED, context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
         rx.invoke(JsSymbol::r#match(), &[JsValue::new(s)], context)
@@ -1887,9 +1891,9 @@ impl String {
         let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
         // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
-        let int_end = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(len),
-            end => end.to_integer_or_infinity(context)?,
+        let int_end = match args.get_or_undefined(1).as_defined() {
+            None => IntegerOrInfinity::Integer(len),
+            Some(end) => end.to_integer_or_infinity(context)?,
         };
 
         // 6. Let finalStart be the result of clamping intStart between 0 and len.
@@ -2140,11 +2144,11 @@ impl String {
         // 6. Let ns be the String value that is the result of normalizing S
         // into the normalization form named by f as specified in
         // https://unicode.org/reports/tr15/.
-        let normalization = match args.get_or_undefined(0) {
+        let normalization = match args.get_or_undefined(0).as_defined() {
             // 3. If form is undefined, let f be "NFC".
-            &JsValue::Undefined => Normalization::Nfc,
+            None => Normalization::Nfc,
             // 4. Else, let f be ? ToString(form).
-            f => match f.to_string(context)? {
+            Some(f) => match f.to_string(context)? {
                 ntype if &ntype == "NFC" => Normalization::Nfc,
                 ntype if &ntype == "NFD" => Normalization::Nfd,
                 ntype if &ntype == "NFKC" => Normalization::Nfkc,
@@ -2224,7 +2228,7 @@ impl String {
         let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
+        let rx = RegExp::create(regexp, &JsValue::UNDEFINED, context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
         rx.invoke(JsSymbol::search(), &[JsValue::new(string)], context)

@@ -33,7 +33,7 @@ fn main() -> JsResult<()> {
 
     let deleted_key_one = map.get(js_string!("Key-1"), context)?;
 
-    assert_eq!(deleted_key_one, JsValue::undefined());
+    assert_eq!(deleted_key_one, JsValue::UNDEFINED);
 
     // Retrieve a MapIterator for all entries in the Map.
     let entries = map.entries(context)?;

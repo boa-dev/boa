@@ -155,7 +155,7 @@ impl<'a, T: TryFromJs> TryFromJsArgument<'a> for T {
     ) -> JsResult<(Self, &'a [JsValue])> {
         match rest.split_first() {
             Some((first, rest)) => Ok((first.try_js_into(context)?, rest)),
-            None => T::try_from_js(&JsValue::undefined(), context).map(|v| (v, rest)),
+            None => T::try_from_js(&JsValue::UNDEFINED, context).map(|v| (v, rest)),
         }
     }
 }
@@ -270,7 +270,7 @@ impl<'a> IntoIterator for JsRest<'a> {
 ///             JsValue::from(1),
 ///             JsValue::from(2),
 ///             JsValue::from(3),
-///             JsValue::Boolean(true),
+///             JsValue::from(true),
 ///             JsValue::from(4),
 ///         ],
 ///         &mut context,

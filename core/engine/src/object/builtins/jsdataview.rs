@@ -528,11 +528,12 @@ impl Deref for JsDataView {
 
 impl TryFromJs for JsDataView {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
-                .with_message("value is not an DataView object")
-                .into()),
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
+                .with_message("value is not a DataView object")
+                .into())
         }
     }
 }

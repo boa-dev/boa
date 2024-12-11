@@ -1,5 +1,6 @@
+use crate::value::JsVariant;
 use crate::{
-    value::{JsValue, Numeric},
+    value::Numeric,
     vm::{opcode::Operation, CompletionType},
     Context, JsBigInt, JsResult,
 };
@@ -18,8 +19,8 @@ impl Operation for Dec {
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        match value {
-            JsValue::Integer(number) if number > i32::MIN => {
+        match value.variant() {
+            JsVariant::Integer32(number) if number > i32::MIN => {
                 context.vm.push(number - 1);
             }
             _ => match value.to_numeric(context)? {
@@ -47,8 +48,8 @@ impl Operation for DecPost {
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let value = context.vm.pop();
-        match value {
-            JsValue::Integer(number) if number > i32::MIN => {
+        match value.variant() {
+            JsVariant::Integer32(number) if number > i32::MIN => {
                 context.vm.push(number - 1);
                 context.vm.push(value);
             }

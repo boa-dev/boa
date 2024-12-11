@@ -319,7 +319,7 @@ impl JsObject {
         if recursion_limiter.live {
             // we're in a recursive object, bail
             return Ok(match hint {
-                PreferredType::Number => JsValue::new(0),
+                PreferredType::Number => JsValue::ZERO,
                 PreferredType::String => JsValue::new(js_string!()),
                 PreferredType::Default => unreachable!("checked type hint in step 2"),
             });

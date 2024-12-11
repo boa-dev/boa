@@ -1,5 +1,10 @@
 // Boa's implementation of the `Temporal.Duration` Builtin Object.
 
+use super::{
+    options::{get_temporal_unit, TemporalUnitGroup},
+    to_integer_if_integral, DateTimeValues,
+};
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -20,11 +25,6 @@ use temporal_rs::{
     partial::PartialDuration,
     primitive::FiniteF64,
     Duration as InnerDuration,
-};
-
-use super::{
-    options::{get_temporal_unit, TemporalUnitGroup},
-    to_integer_if_integral, DateTimeValues,
 };
 
 #[cfg(test)]
@@ -304,16 +304,16 @@ impl Duration {
         let inner = &duration.inner;
 
         match field {
-            DateTimeValues::Year => Ok(JsValue::Rational(inner.years().as_inner())),
-            DateTimeValues::Month => Ok(JsValue::Rational(inner.months().as_inner())),
-            DateTimeValues::Week => Ok(JsValue::Rational(inner.weeks().as_inner())),
-            DateTimeValues::Day => Ok(JsValue::Rational(inner.days().as_inner())),
-            DateTimeValues::Hour => Ok(JsValue::Rational(inner.hours().as_inner())),
-            DateTimeValues::Minute => Ok(JsValue::Rational(inner.minutes().as_inner())),
-            DateTimeValues::Second => Ok(JsValue::Rational(inner.seconds().as_inner())),
-            DateTimeValues::Millisecond => Ok(JsValue::Rational(inner.milliseconds().as_inner())),
-            DateTimeValues::Microsecond => Ok(JsValue::Rational(inner.microseconds().as_inner())),
-            DateTimeValues::Nanosecond => Ok(JsValue::Rational(inner.nanoseconds().as_inner())),
+            DateTimeValues::Year => Ok(JsValue::new(inner.years().as_inner())),
+            DateTimeValues::Month => Ok(JsValue::new(inner.months().as_inner())),
+            DateTimeValues::Week => Ok(JsValue::new(inner.weeks().as_inner())),
+            DateTimeValues::Day => Ok(JsValue::new(inner.days().as_inner())),
+            DateTimeValues::Hour => Ok(JsValue::new(inner.hours().as_inner())),
+            DateTimeValues::Minute => Ok(JsValue::new(inner.minutes().as_inner())),
+            DateTimeValues::Second => Ok(JsValue::new(inner.seconds().as_inner())),
+            DateTimeValues::Millisecond => Ok(JsValue::new(inner.milliseconds().as_inner())),
+            DateTimeValues::Microsecond => Ok(JsValue::new(inner.microseconds().as_inner())),
+            DateTimeValues::Nanosecond => Ok(JsValue::new(inner.nanoseconds().as_inner())),
             DateTimeValues::MonthCode => unreachable!(
                 "Any other DateTimeValue fields on Duration would be an implementation error."
             ),
@@ -635,15 +635,15 @@ impl Duration {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -658,8 +658,9 @@ impl Duration {
             }
             // 5. Else,
             Some(round_to) => {
+                // TODO: remove this clone.
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 
@@ -731,15 +732,15 @@ impl Duration {
 
         let total_of = args.get_or_undefined(0);
 
-        let total_of = match total_of {
+        let total_of = match total_of.variant() {
             // 3. If totalOf is undefined, throw a TypeError exception.
-            JsValue::Undefined => {
+            JsVariant::Undefined => {
                 return Err(JsNativeError::typ()
                     .with_message("totalOf cannot be undefined.")
                     .into());
             }
             // 4. If Type(totalOf) is String, then
-            JsValue::String(param_string) => {
+            JsVariant::String(param_string) => {
                 // a. Let paramString be totalOf.
                 // b. Set totalOf to OrdinaryObjectCreate(null).
                 let total_of = JsObject::with_null_proto();
@@ -831,9 +832,9 @@ pub(crate) fn to_temporal_duration_record(
     context: &mut Context,
 ) -> JsResult<InnerDuration> {
     // 1. If Type(temporalDurationLike) is not Object, then
-    let JsValue::Object(duration_obj) = temporal_duration_like else {
+    let Some(duration_obj) = temporal_duration_like.as_object() else {
         // a. If temporalDurationLike is not a String, throw a TypeError exception.
-        let JsValue::String(duration_string) = temporal_duration_like else {
+        let Some(duration_string) = temporal_duration_like.as_string() else {
             return Err(JsNativeError::typ()
                 .with_message("Invalid TemporalDurationLike value.")
                 .into());
@@ -920,7 +921,7 @@ pub(crate) fn to_temporal_partial_duration(
     context: &mut Context,
 ) -> JsResult<PartialDuration> {
     // 1. If Type(temporalDurationLike) is not Object, then
-    let JsValue::Object(unknown_object) = duration_like else {
+    let Some(unknown_object) = duration_like.as_object() else {
         // a. Throw a TypeError exception.
         return Err(JsNativeError::typ()
             .with_message("temporalDurationLike must be an object.")

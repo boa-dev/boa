@@ -280,7 +280,7 @@ impl Symbol {
     pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? thisSymbolValue(this value).
         let symbol = Self::this_symbol_value(this)?;
-        Ok(JsValue::Symbol(symbol))
+        Ok(symbol.into())
     }
 
     /// `get Symbol.prototype.description`

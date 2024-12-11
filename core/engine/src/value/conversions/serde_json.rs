@@ -1,6 +1,6 @@
 //! This module implements the conversions from and into [`serde_json::Value`].
 
-use super::JsValue;
+use super::{InnerValue, JsValue};
 use crate::{
     builtins::Array,
     error::JsNativeError,
@@ -44,13 +44,13 @@ impl JsValue {
         const MIN_INT: i64 = i32::MIN as i64;
 
         match json {
-            Value::Null => Ok(Self::Null),
-            Value::Bool(b) => Ok(Self::Boolean(*b)),
+            Value::Null => Ok(Self::NULL),
+            Value::Bool(b) => Ok(Self::new(*b)),
             Value::Number(num) => num
                 .as_i64()
                 .filter(|n| (MIN_INT..=MAX_INT).contains(n))
-                .map(|i| Self::Integer(i as i32))
-                .or_else(|| num.as_f64().map(Self::Rational))
+                .map(|i| Self::new(i as i32))
+                .or_else(|| num.as_f64().map(Self::new))
                 .ok_or_else(|| {
                     JsNativeError::typ()
                         .with_message(format!("could not convert JSON number {num} to JsValue"))
@@ -113,17 +113,17 @@ impl JsValue {
     ///
     /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
-        match self {
-            Self::Null => Ok(Value::Null),
-            Self::Undefined => todo!("undefined to JSON"),
-            &Self::Boolean(b) => Ok(b.into()),
-            Self::String(string) => Ok(string.to_std_string_escaped().into()),
-            &Self::Rational(rat) => Ok(rat.into()),
-            &Self::Integer(int) => Ok(int.into()),
-            Self::BigInt(_bigint) => Err(JsNativeError::typ()
+        match &self.inner {
+            InnerValue::Null => Ok(Value::Null),
+            InnerValue::Undefined => todo!("undefined to JSON"),
+            InnerValue::Boolean(b) => Ok(Value::from(*b)),
+            InnerValue::String(string) => Ok(string.to_std_string_escaped().into()),
+            InnerValue::Float64(rat) => Ok(Value::from(*rat)),
+            InnerValue::Integer32(int) => Ok(Value::from(*int)),
+            InnerValue::BigInt(_bigint) => Err(JsNativeError::typ()
                 .with_message("cannot convert bigint to JSON")
                 .into()),
-            Self::Object(obj) => {
+            InnerValue::Object(obj) => {
                 let value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
                         .properties()
@@ -168,7 +168,7 @@ impl JsValue {
                     Ok(Value::Object(map))
                 }
             }
-            Self::Symbol(_sym) => Err(JsNativeError::typ()
+            InnerValue::Symbol(_sym) => Err(JsNativeError::typ()
                 .with_message("cannot convert Symbol to JSON")
                 .into()),
         }

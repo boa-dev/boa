@@ -1123,7 +1123,7 @@ impl JsPromise {
     ///
     /// let context = &mut Context::default();
     /// let p1 = JsPromise::new(|fns, context| {
-    ///     fns.resolve.call(&JsValue::Undefined, &[], context)
+    ///     fns.resolve.call(&JsValue::UNDEFINED, &[], context)
     /// }, context)
     ///     .then(
     ///         Some(
@@ -1179,11 +1179,12 @@ impl std::ops::Deref for JsPromise {
 
 impl TryFromJs for JsPromise {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a Promise object")
-                .into()),
+                .into())
         }
     }
 }

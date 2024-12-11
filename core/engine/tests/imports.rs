@@ -38,10 +38,7 @@ fn subdirectories() {
                 .call(&JsValue::undefined(), &[], &mut context)
                 .unwrap();
 
-            assert_eq!(
-                foo_value,
-                JsValue::String(js_string!("file1..file1_1.file1_2"))
-            );
+            assert_eq!(foo_value, js_string!("file1..file1_1.file1_2").into());
         }
         PromiseState::Rejected(reason) => {
             panic!("Module failed to load: {}", reason.display());

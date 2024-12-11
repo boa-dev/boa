@@ -924,7 +924,7 @@ pub(crate) fn to_temporal_date(
     }
 
     // 5. If item is not a String, throw a TypeError exception.
-    let JsValue::String(date_like_string) = item else {
+    let Some(date_like_string) = item.as_string() else {
         return Err(JsNativeError::typ()
             .with_message("ToTemporalDate item must be an object or string.")
             .into());
@@ -967,9 +967,8 @@ pub(crate) fn to_partial_date_record(
     let month_code = partial_object
         .get(js_string!("monthCode"), context)?
         .map(|v| {
-            let JsValue::String(month_code) =
-                v.to_primitive(context, crate::value::PreferredType::String)?
-            else {
+            let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+            let Some(month_code) = v.as_string() else {
                 return Err(JsNativeError::typ()
                     .with_message("The monthCode field value must be a string.")
                     .into());
@@ -989,9 +988,8 @@ pub(crate) fn to_partial_date_record(
     let era = partial_object
         .get(js_string!("era"), context)?
         .map(|v| {
-            let JsValue::String(era) =
-                v.to_primitive(context, crate::value::PreferredType::String)?
-            else {
+            let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+            let Some(era) = v.as_string() else {
                 return Err(JsError::from(
                     JsNativeError::typ()
                         .with_message("The monthCode field value must be a string."),

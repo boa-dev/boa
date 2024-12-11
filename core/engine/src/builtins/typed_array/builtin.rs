@@ -9,6 +9,7 @@ use num_traits::Zero;
 use super::{
     object::typed_array_set_element, ContentType, TypedArray, TypedArrayKind, TypedArrayMarker,
 };
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         array::{find_via_predicate, ArrayIterator, Direction},
@@ -204,9 +205,9 @@ impl BuiltinTypedArray {
             }
         };
 
-        let mapping = match args.get(1) {
+        let mapping = match args.get_or_undefined(1).as_defined() {
             // 3. If mapfn is undefined, let mapping be false.
-            None | Some(JsValue::Undefined) => None,
+            None => None,
             // 4. Else,
             Some(v) => match v.as_object() {
                 // b. Let mapping be true.
@@ -2219,9 +2220,9 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.first() {
-            None | Some(JsValue::Undefined) => None,
-            Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
+        let compare_fn = match args.first().and_then(JsValue::as_defined) {
+            None => None,
+            Some(obj) if obj.is_callable() => obj.as_callable(),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
@@ -2271,9 +2272,9 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.first() {
-            None | Some(JsValue::Undefined) => None,
-            Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
+        let compare_fn = match args.first().and_then(JsValue::as_defined) {
+            None => None,
+            Some(obj) if obj.is_callable() => obj.as_callable(),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
@@ -2616,7 +2617,7 @@ impl BuiltinTypedArray {
                 obj.downcast_ref::<TypedArray>()
                     .map(|o| o.kind().js_name().into())
             })
-            .unwrap_or(JsValue::Undefined))
+            .unwrap_or(JsValue::UNDEFINED))
     }
 
     /// `TypedArraySpeciesCreate ( exemplar, argumentList )`
@@ -2665,7 +2666,7 @@ impl BuiltinTypedArray {
 
         // 2. Let taRecord be ? ValidateTypedArray(newTypedArray, seq-cst).
         let (new_ta, buf_len) =
-            TypedArray::validate(&JsValue::Object(new_typed_array), Ordering::SeqCst)?;
+            TypedArray::validate(&JsValue::new(new_typed_array), Ordering::SeqCst)?;
 
         // 3. If the number of elements in argumentList is 1 and argumentList[0] is a Number, then
         if args.len() == 1 {
@@ -3138,22 +3139,22 @@ fn compare_typed_array_elements(
         return Ok(cmp::Ordering::Less);
     }
 
-    match (x, y) {
-        (JsValue::BigInt(x), JsValue::BigInt(y)) => {
+    match (x.variant(), y.variant()) {
+        (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
             // Note: Other steps are not relevant for BigInts.
             // 6. If x < y, return -1𝔽.
             // 7. If x > y, return 1𝔽.
             // 10. Return +0𝔽.
             Ok(x.cmp(y))
         }
-        (JsValue::Integer(x), JsValue::Integer(y)) => {
+        (JsVariant::Integer32(x), JsVariant::Integer32(y)) => {
             // Note: Other steps are not relevant for integers.
             // 6. If x < y, return -1𝔽.
             // 7. If x > y, return 1𝔽.
             // 10. Return +0𝔽.
-            Ok(x.cmp(y))
+            Ok(x.cmp(&y))
         }
-        (JsValue::Rational(x), JsValue::Rational(y)) => {
+        (JsVariant::Float64(x), JsVariant::Float64(y)) => {
             // 3. If x and y are both NaN, return +0𝔽.
             if x.is_nan() && y.is_nan() {
                 return Ok(cmp::Ordering::Equal);
