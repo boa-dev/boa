@@ -150,40 +150,28 @@ impl BuiltInConstructor for PlainTime {
 
         // 2. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
         let hour = args
-            .first()
-            .map(|v| to_integer_with_truncation(v, context))
-            .transpose()?
-            .unwrap_or(0);
+            .get_or_undefined(0)
+            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 3. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
         let minute = args
-            .get(1)
-            .map(|v| to_integer_with_truncation(v, context))
-            .transpose()?
-            .unwrap_or(0);
+            .get_or_undefined(1)
+            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 4. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
         let second = args
-            .get(2)
-            .map(|v| to_integer_with_truncation(v, context))
-            .transpose()?
-            .unwrap_or(0);
+            .get_or_undefined(2)
+            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 5. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
         let millisecond = args
-            .get(3)
-            .map(|v| to_integer_with_truncation(v, context))
-            .transpose()?
-            .unwrap_or(0);
+            .get_or_undefined(3)
+            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 6. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
         let microsecond = args
-            .get(4)
-            .map(|v| to_integer_with_truncation(v, context))
-            .transpose()?
-            .unwrap_or(0);
+            .get_or_undefined(4)
+            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 7. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
         let nanosecond = args
-            .get(5)
-            .map(|v| to_integer_with_truncation(v, context))
-            .transpose()?
-            .unwrap_or(0);
+            .get_or_undefined(5)
+            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
 
         let inner =
             PlainTimeInner::new(hour, minute, second, millisecond, microsecond, nanosecond)?;

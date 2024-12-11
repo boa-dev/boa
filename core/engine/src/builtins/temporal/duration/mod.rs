@@ -221,76 +221,66 @@ impl BuiltInConstructor for Duration {
         }
 
         // 2. If years is undefined, let y be 0; else let y be ? ToIntegerIfIntegral(years).
-        let years = FiniteF64::from(
-            args.first()
-                .map_or(Ok(0), |y| to_integer_if_integral(y, context))?,
-        );
+        let years = args
+            .get_or_undefined(0)
+            .map_or(Ok(0), |y| to_integer_if_integral(y, context))?;
 
         // 3. If months is undefined, let mo be 0; else let mo be ? ToIntegerIfIntegral(months).
-        let months = FiniteF64::from(
-            args.get(1)
-                .map_or(Ok(0), |mo| to_integer_if_integral(mo, context))?,
-        );
+        let months = args
+            .get_or_undefined(1)
+            .map_or(Ok(0), |mo| to_integer_if_integral(mo, context))?;
 
         // 4. If weeks is undefined, let w be 0; else let w be ? ToIntegerIfIntegral(weeks).
-        let weeks = FiniteF64::from(
-            args.get(2)
-                .map_or(Ok(0), |wk| to_integer_if_integral(wk, context))?,
-        );
+        let weeks = args
+            .get_or_undefined(2)
+            .map_or(Ok(0), |wk| to_integer_if_integral(wk, context))?;
 
         // 5. If days is undefined, let d be 0; else let d be ? ToIntegerIfIntegral(days).
-        let days = FiniteF64::from(
-            args.get(3)
-                .map_or(Ok(0), |d| to_integer_if_integral(d, context))?,
-        );
+        let days = args
+            .get_or_undefined(3)
+            .map_or(Ok(0), |d| to_integer_if_integral(d, context))?;
 
         // 6. If hours is undefined, let h be 0; else let h be ? ToIntegerIfIntegral(hours).
-        let hours = FiniteF64::from(
-            args.get(4)
-                .map_or(Ok(0), |h| to_integer_if_integral(h, context))?,
-        );
+        let hours = args
+            .get_or_undefined(4)
+            .map_or(Ok(0), |h| to_integer_if_integral(h, context))?;
 
         // 7. If minutes is undefined, let m be 0; else let m be ? ToIntegerIfIntegral(minutes).
-        let minutes = FiniteF64::from(
-            args.get(5)
-                .map_or(Ok(0), |m| to_integer_if_integral(m, context))?,
-        );
+        let minutes = args
+            .get_or_undefined(5)
+            .map_or(Ok(0), |m| to_integer_if_integral(m, context))?;
 
         // 8. If seconds is undefined, let s be 0; else let s be ? ToIntegerIfIntegral(seconds).
-        let seconds = FiniteF64::from(
-            args.get(6)
-                .map_or(Ok(0), |s| to_integer_if_integral(s, context))?,
-        );
+        let seconds = args
+            .get_or_undefined(6)
+            .map_or(Ok(0), |s| to_integer_if_integral(s, context))?;
 
         // 9. If milliseconds is undefined, let ms be 0; else let ms be ? ToIntegerIfIntegral(milliseconds).
-        let milliseconds = FiniteF64::from(
-            args.get(7)
-                .map_or(Ok(0), |ms| to_integer_if_integral(ms, context))?,
-        );
+        let milliseconds = args
+            .get_or_undefined(7)
+            .map_or(Ok(0), |ms| to_integer_if_integral(ms, context))?;
 
         // 10. If microseconds is undefined, let mis be 0; else let mis be ? ToIntegerIfIntegral(microseconds).
-        let microseconds = FiniteF64::from(
-            args.get(8)
-                .map_or(Ok(0), |mis| to_integer_if_integral(mis, context))?,
-        );
+        let microseconds = args
+            .get_or_undefined(8)
+            .map_or(Ok(0), |mis| to_integer_if_integral(mis, context))?;
 
         // 11. If nanoseconds is undefined, let ns be 0; else let ns be ? ToIntegerIfIntegral(nanoseconds).
-        let nanoseconds = FiniteF64::from(
-            args.get(9)
-                .map_or(Ok(0), |ns| to_integer_if_integral(ns, context))?,
-        );
+        let nanoseconds = args
+            .get_or_undefined(9)
+            .map_or(Ok(0), |ns| to_integer_if_integral(ns, context))?;
 
         let record = InnerDuration::new(
-            years,
-            months,
-            weeks,
-            days,
-            hours,
-            minutes,
-            seconds,
-            milliseconds,
-            microseconds,
-            nanoseconds,
+            years.into(),
+            months.into(),
+            weeks.into(),
+            days.into(),
+            hours.into(),
+            minutes.into(),
+            seconds.into(),
+            milliseconds.into(),
+            microseconds.into(),
+            nanoseconds.into(),
         )?;
 
         // 12. Return ? CreateTemporalDuration(y, mo, w, d, h, m, s, ms, mis, ns, NewTarget).
@@ -786,21 +776,21 @@ impl Duration {
 
         // TODO: Implement the rest of the new `Temporal.Duration.prototype.total`
 
-        Err(JsNativeError::range()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
     pub(crate) fn to_string(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::range()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
 
     /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
     pub(crate) fn to_json(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::range()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
