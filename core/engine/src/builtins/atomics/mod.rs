@@ -644,9 +644,6 @@ fn validate_atomic_access(
     }
 
     // 8. Return (accessIndex × elementSize) + offset.
-    let offset = ((access_index * kind.element_size()) + offset) as usize;
-    Ok(AtomicAccess {
-        byte_offset: offset,
-        kind,
-    })
+    let byte_offset = (access_index * kind.element_size()) + offset;
+    Ok(AtomicAccess { byte_offset, kind })
 }

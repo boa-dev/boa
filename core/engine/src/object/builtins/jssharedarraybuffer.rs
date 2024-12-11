@@ -38,7 +38,7 @@ impl JsSharedArrayBuffer {
                 .shared_array_buffer()
                 .constructor()
                 .into(),
-            byte_length as u64,
+            byte_length,
             None,
             context,
         )?;

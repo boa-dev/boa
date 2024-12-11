@@ -43,9 +43,9 @@ impl TemplateCreate {
     #[allow(clippy::unnecessary_wraps)]
     fn operation(context: &mut Context, count: u32, site: u64) -> JsResult<CompletionType> {
         let template =
-            Array::array_create(count.into(), None, context).expect("cannot fail per spec");
+            Array::array_create(count as usize, None, context).expect("cannot fail per spec");
         let raw_obj =
-            Array::array_create(count.into(), None, context).expect("cannot fail per spec");
+            Array::array_create(count as usize, None, context).expect("cannot fail per spec");
 
         for index in (0..count).rev() {
             let raw_value = context.vm.pop();

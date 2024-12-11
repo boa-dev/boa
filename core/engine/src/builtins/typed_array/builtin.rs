@@ -303,7 +303,7 @@ impl BuiltinTypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-typedarray-create-same-type
     fn from_kind_and_length(
         kind: TypedArrayKind,
-        length: u64,
+        length: usize,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         let constructor =
@@ -557,16 +557,16 @@ impl BuiltinTypedArray {
             let byte_offset = ta.byte_offset();
 
             // h. Let bufferByteLimit be (len × elementSize) + byteOffset.
-            let buffer_byte_limit = ((len * element_size) + byte_offset) as usize;
+            let buffer_byte_limit = (len * element_size) + byte_offset;
 
             // i. Let toByteIndex be (targetIndex × elementSize) + byteOffset.
-            let to_byte_index = (to * element_size + byte_offset) as usize;
+            let to_byte_index = to * element_size + byte_offset;
 
             // j. Let fromByteIndex be (startIndex × elementSize) + byteOffset.
-            let from_byte_index = (from * element_size + byte_offset) as usize;
+            let from_byte_index = from * element_size + byte_offset;
 
             // k. Let countBytes be count × elementSize.
-            let mut count_bytes = (count * element_size) as usize;
+            let mut count_bytes = count * element_size;
 
             // Readjust considering the buffer_byte_limit. A resize could
             // have readjusted the buffer size, which could put `count_bytes`
@@ -1076,13 +1076,15 @@ impl BuiltinTypedArray {
             IntegerOrInfinity::PositiveInfinity => return Ok(false.into()),
             // 8. Else if n is -∞, set n to 0.
             IntegerOrInfinity::NegativeInfinity => 0,
-            IntegerOrInfinity::Integer(i) => i,
+            IntegerOrInfinity::Integer(i) if i >= isize::MAX as i64 => isize::MAX,
+            IntegerOrInfinity::Integer(i) if i < isize::MIN as i64 => isize::MIN,
+            IntegerOrInfinity::Integer(i) => i as isize,
         };
 
         // 9. If n ≥ 0, then
         let k = if n >= 0 {
             // a. Let k be n.
-            n as u64
+            n as usize
         } else {
             // 10. Else,
             // a. Let k be len + n.
@@ -1140,13 +1142,15 @@ impl BuiltinTypedArray {
             IntegerOrInfinity::PositiveInfinity => return Ok((-1).into()),
             // 8. Else if n is -∞, set n to 0.
             IntegerOrInfinity::NegativeInfinity => 0,
-            IntegerOrInfinity::Integer(i) => i,
+            IntegerOrInfinity::Integer(i) if i >= isize::MAX as i64 => isize::MAX,
+            IntegerOrInfinity::Integer(i) if i < isize::MIN as i64 => isize::MIN,
+            IntegerOrInfinity::Integer(i) => i as isize,
         };
 
         // 9. If n ≥ 0, then
         let k = if n >= 0 {
             // a. Let k be n.
-            n as u64
+            n as usize
         // 10. Else,
         } else {
             // a. Let k be len + n.
@@ -1280,11 +1284,18 @@ impl BuiltinTypedArray {
                     IntegerOrInfinity::NegativeInfinity => return Ok((-1).into()),
                     // 7. If n ≥ 0, then
                     // a. Let k be min(n, len - 1).
-                    IntegerOrInfinity::Integer(i) if i >= 0 => min(i as u64 + 1, len),
+                    IntegerOrInfinity::Integer(i) if i >= 0 => {
+                        if i < usize::MAX as i64 {
+                            min(i as usize + 1, len)
+                        } else {
+                            len
+                        }
+                    }
                     IntegerOrInfinity::PositiveInfinity => len,
                     // 8. Else,
                     // a. Let k be len + n.
-                    IntegerOrInfinity::Integer(i) => len.saturating_add_signed(i + 1),
+                    IntegerOrInfinity::Integer(i) if i < isize::MIN as i64 => 0,
+                    IntegerOrInfinity::Integer(i) => len.saturating_add_signed(i as isize + 1),
                 }
             }
         };
@@ -1679,8 +1690,8 @@ impl BuiltinTypedArray {
                     .with_message("TypedArray.set called with negative offset")
                     .into())
             }
-            IntegerOrInfinity::PositiveInfinity => U64OrPositiveInfinity::PositiveInfinity,
-            IntegerOrInfinity::Integer(i) => U64OrPositiveInfinity::U64(i as u64),
+            IntegerOrInfinity::PositiveInfinity => UsizeOrPositiveInfinity::PositiveInfinity,
+            IntegerOrInfinity::Integer(i) => UsizeOrPositiveInfinity::Usize(i as usize),
         };
 
         // 6. If source is an Object that has a [[TypedArrayName]] internal slot, then
@@ -1710,7 +1721,7 @@ impl BuiltinTypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-settypedarrayfromtypedarray
     fn set_typed_array_from_typed_array(
         target: &JsObject<TypedArray>,
-        target_offset: &U64OrPositiveInfinity,
+        target_offset: &UsizeOrPositiveInfinity,
         source: &JsObject<TypedArray>,
         context: &mut Context,
     ) -> JsResult<()> {
@@ -1777,7 +1788,7 @@ impl BuiltinTypedArray {
         drop(src_array);
 
         // 15. If targetOffset = +∞, throw a RangeError exception.
-        let U64OrPositiveInfinity::U64(target_offset) = target_offset else {
+        let UsizeOrPositiveInfinity::Usize(target_offset) = target_offset else {
             return Err(JsNativeError::range()
                 .with_message("Target offset cannot be Infinity")
                 .into());
@@ -1805,8 +1816,8 @@ impl BuiltinTypedArray {
         // 19. If SameValue(srcBuffer, targetBuffer) is true or sameSharedArrayBuffer is true, then
         let src_byte_index = if BufferObject::equals(&src_buf_obj, &target_buf_obj) {
             // a. Let srcByteLength be source.[[ByteLength]].
-            let src_byte_offset = src_byte_offset as usize;
-            let src_byte_length = src_byte_length as usize;
+            let src_byte_offset = src_byte_offset;
+            let src_byte_length = src_byte_length;
 
             let s = {
                 let slice = src_buf_obj.as_buffer();
@@ -1848,9 +1859,9 @@ impl BuiltinTypedArray {
 
         // 24. If srcType is the same as targetType, then
         if src_type == target_type {
-            let src_byte_index = src_byte_index as usize;
-            let target_byte_index = target_byte_index as usize;
-            let byte_count = (target_element_size * src_length) as usize;
+            let src_byte_index = src_byte_index;
+            let target_byte_index = target_byte_index;
+            let byte_count = target_element_size * src_length;
 
             // a. NOTE: If srcType and targetType are the same, the transfer must be performed in a manner that preserves the bit-level encoding of the source data.
             // b. Repeat, while targetByteIndex < limit,
@@ -1875,10 +1886,10 @@ impl BuiltinTypedArray {
         // 25. Else,
         else {
             // 23. Let limit be targetByteIndex + targetElementSize × srcLength.
-            let limit = (target_byte_index + target_element_size * src_length) as usize;
+            let limit = target_byte_index + target_element_size * src_length;
 
-            let mut src_byte_index = src_byte_index as usize;
-            let mut target_byte_index = target_byte_index as usize;
+            let mut src_byte_index = src_byte_index;
+            let mut target_byte_index = target_byte_index;
 
             // a. Repeat, while targetByteIndex < limit,
             while target_byte_index < limit {
@@ -1905,10 +1916,10 @@ impl BuiltinTypedArray {
                 }
 
                 // iii. Set srcByteIndex to srcByteIndex + srcElementSize.
-                src_byte_index += src_element_size as usize;
+                src_byte_index += src_element_size;
 
                 // iv. Set targetByteIndex to targetByteIndex + targetElementSize.
-                target_byte_index += target_element_size as usize;
+                target_byte_index += target_element_size;
             }
         }
 
@@ -1923,7 +1934,7 @@ impl BuiltinTypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-settypedarrayfromarraylike
     fn set_typed_array_from_array_like(
         target: &JsObject<TypedArray>,
-        target_offset: &U64OrPositiveInfinity,
+        target_offset: &UsizeOrPositiveInfinity,
         source: &JsValue,
         context: &mut Context,
     ) -> JsResult<()> {
@@ -1958,8 +1969,8 @@ impl BuiltinTypedArray {
 
         // 6. If targetOffset = +∞, throw a RangeError exception.
         let target_offset = match target_offset {
-            U64OrPositiveInfinity::U64(target_offset) => target_offset,
-            U64OrPositiveInfinity::PositiveInfinity => {
+            UsizeOrPositiveInfinity::Usize(target_offset) => target_offset,
+            UsizeOrPositiveInfinity::PositiveInfinity => {
                 return Err(JsNativeError::range()
                     .with_message("Target offset cannot be positive infinity")
                     .into())
@@ -2063,7 +2074,7 @@ impl BuiltinTypedArray {
         let end_index = min(end_index, src_borrow.data.array_length(src_buf.len()));
 
         // d. Set countBytes to max(endIndex - startIndex, 0).
-        let count = end_index.saturating_sub(start_index) as usize;
+        let count = end_index.saturating_sub(start_index);
 
         // f. Let targetType be TypedArrayElementType(A).
         let target_type = target_borrow.data.kind();
@@ -2071,7 +2082,7 @@ impl BuiltinTypedArray {
         // g. If srcType is targetType, then
         if src_type == target_type {
             {
-                let byte_count = count * src_type.element_size() as usize;
+                let byte_count = count * src_type.element_size();
 
                 // i. NOTE: The transfer must be performed in a manner that preserves the bit-level encoding of the source data.
                 // ii. Let srcBuffer be O.[[ViewedArrayBuffer]].
@@ -2089,10 +2100,10 @@ impl BuiltinTypedArray {
                 let src_byte_offset = src_borrow.data.byte_offset();
 
                 // vi. Let srcByteIndex be (startIndex × elementSize) + srcByteOffset.
-                let src_byte_index = (start_index * element_size + src_byte_offset) as usize;
+                let src_byte_index = start_index * element_size + src_byte_offset;
 
                 // vii. Let targetByteIndex be A.[[ByteOffset]].
-                let target_byte_index = target_borrow.data.byte_offset() as usize;
+                let target_byte_index = target_borrow.data.byte_offset();
 
                 // viii. Let endByteIndex be targetByteIndex + (countBytes × elementSize).
                 // Not needed by the impl.
@@ -2555,9 +2566,9 @@ impl BuiltinTypedArray {
                 .with_message("invalid integer index for TypedArray operation")
                 .into());
         };
-        let actual_index = u64::try_from(relative_index) // should succeed if `relative_index >= 0`
+        let actual_index = usize::try_from(relative_index) // should succeed if `relative_index >= 0`
             .ok()
-            .or_else(|| len.checked_add_signed(relative_index))
+            .or_else(|| len.checked_add_signed(relative_index as isize))
             // TODO: Replace with `is_valid_integer_index_u64` or equivalent.
             .filter(|&rel| is_valid_integer_index(&ta.clone().upcast(), rel as f64))
             .ok_or_else(|| {
@@ -2696,7 +2707,7 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-allocatetypedarraybuffer
     fn allocate_buffer<T: TypedArrayMarker>(
-        length: u64,
+        length: usize,
         context: &mut Context,
     ) -> JsResult<TypedArray> {
         // 1. Assert: O.[[ViewedArrayBuffer]] is undefined.
@@ -2706,7 +2717,7 @@ impl BuiltinTypedArray {
         let element_size = T::ERASED.element_size();
 
         // 4. Let byteLength be elementSize × length.
-        let byte_length = element_size * length;
+        let byte_length = length.saturating_mul(element_size);
 
         // 5. Let data be ? AllocateArrayBuffer(%ArrayBuffer%, byteLength).
         let data = ArrayBuffer::allocate(
@@ -2742,7 +2753,7 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let len be the number of elements in values.
-        let len = values.len() as u64;
+        let len = values.len();
         // 2. Perform ? AllocateTypedArrayBuffer(O, len).
         let buf = Self::allocate_buffer::<T>(len, context)?;
         let obj = JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), proto, buf);
@@ -2774,7 +2785,7 @@ impl BuiltinTypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-allocatetypedarray
     pub(super) fn allocate<T: TypedArrayMarker>(
         new_target: &JsValue,
-        length: u64,
+        length: usize,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let proto be ? GetPrototypeFromConstructor(newTarget, defaultProto).
@@ -2850,8 +2861,8 @@ impl BuiltinTypedArray {
         // 11. If elementType is srcType, then
 
         let new_buffer = if element_type == src_type {
-            let start = src_byte_offset as usize;
-            let count = byte_length as usize;
+            let start = src_byte_offset;
+            let count = byte_length;
             // a. Let data be ? CloneArrayBuffer(srcData, srcByteOffset, byteLength).
             src_data.subslice(start..start + count).clone(context)?
         } else {
@@ -2884,11 +2895,11 @@ impl BuiltinTypedArray {
                         .into());
                 }
 
-                let src_element_size = src_element_size as usize;
-                let target_element_size = element_size as usize;
+                let src_element_size = src_element_size;
+                let target_element_size = element_size;
 
                 // c. Let srcByteIndex be srcByteOffset.
-                let mut src_byte_index = src_byte_offset as usize;
+                let mut src_byte_index = src_byte_offset;
 
                 // d. Let targetByteIndex be 0.
                 let mut target_byte_index = 0;
@@ -3001,7 +3012,7 @@ impl BuiltinTypedArray {
             };
 
             // 7. Let bufferByteLength be ArrayBufferByteLength(buffer, seq-cst).
-            data.len() as u64
+            data.len()
         };
 
         let (byte_length, array_length) = if let Some(new_length) = new_length {
@@ -3100,8 +3111,8 @@ impl BuiltinTypedArray {
 }
 
 #[derive(Debug)]
-enum U64OrPositiveInfinity {
-    U64(u64),
+enum UsizeOrPositiveInfinity {
+    Usize(usize),
     PositiveInfinity,
 }
 

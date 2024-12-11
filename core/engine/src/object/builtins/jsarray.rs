@@ -53,7 +53,7 @@ impl JsArray {
     ///
     /// Same as `array.length` in JavaScript.
     #[inline]
-    pub fn length(&self, context: &mut Context) -> JsResult<u64> {
+    pub fn length(&self, context: &mut Context) -> JsResult<usize> {
         self.inner.length_of_array_like(context)
     }
 
@@ -402,7 +402,7 @@ impl JsArray {
 
     /// Calls `Array.prototype.with`.
     #[inline]
-    pub fn with(&self, index: u64, value: JsValue, context: &mut Context) -> JsResult<Self> {
+    pub fn with(&self, index: usize, value: JsValue, context: &mut Context) -> JsResult<Self> {
         let array = Array::with(&self.inner.clone().into(), &[index.into(), value], context)?;
 
         Ok(Self {

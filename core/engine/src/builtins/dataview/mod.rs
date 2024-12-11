@@ -38,15 +38,15 @@ use super::{
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 pub struct DataView {
     pub(crate) viewed_array_buffer: BufferObject,
-    pub(crate) byte_length: Option<u64>,
-    pub(crate) byte_offset: u64,
+    pub(crate) byte_length: Option<usize>,
+    pub(crate) byte_offset: usize,
 }
 
 impl DataView {
     /// Abstract operation [`GetViewByteLength ( viewRecord )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getviewbytelength
-    fn byte_length(&self, buf_byte_len: usize) -> u64 {
+    fn byte_length(&self, buf_byte_len: usize) -> usize {
         // 1. Assert: IsViewOutOfBounds(viewRecord) is false.
         debug_assert!(!self.is_out_of_bounds(buf_byte_len));
 
@@ -62,14 +62,13 @@ impl DataView {
         // 6. Let byteLength be viewRecord.[[CachedBufferByteLength]].
         // 7. Assert: byteLength is not detached.
         // 8. Return byteLength - byteOffset.
-        buf_byte_len as u64 - self.byte_offset
+        buf_byte_len - self.byte_offset
     }
 
     /// Abstract operation [`IsViewOutOfBounds ( viewRecord )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isviewoutofbounds
     fn is_out_of_bounds(&self, buf_byte_len: usize) -> bool {
-        let buf_byte_len = buf_byte_len as u64;
         // 1. Let view be viewRecord.[[Object]].
         // 2. Let bufferByteLength be viewRecord.[[CachedBufferByteLength]].
         // 3. Assert: IsDetachedBuffer(view.[[ViewedArrayBuffer]]) is true if and only if bufferByteLength is detached.
@@ -218,7 +217,7 @@ impl BuiltInConstructor for DataView {
             };
 
             // 5. Let bufferByteLength be ArrayBufferByteLength(buffer, seq-cst).
-            let buf_len = slice.len() as u64;
+            let buf_len = slice.len();
 
             // 6. If offset > bufferByteLength, throw a RangeError exception.
             if offset > buf_len {
@@ -260,11 +259,7 @@ impl BuiltInConstructor for DataView {
 
         // 11. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         // 12. Set bufferByteLength to ArrayBufferByteLength(buffer, seq-cst).
-        let Some(buf_byte_len) = buffer
-            .as_buffer()
-            .bytes(Ordering::SeqCst)
-            .map(|s| s.len() as u64)
-        else {
+        let Some(buf_byte_len) = buffer.as_buffer().bytes(Ordering::SeqCst).map(|s| s.len()) else {
             return Err(JsNativeError::typ()
                 .with_message("ArrayBuffer can't be detached")
                 .into());
@@ -469,7 +464,7 @@ impl DataView {
         let view_size = view.byte_length(data.len());
 
         // 10. Let elementSize be the Element Size value specified in Table 71 for Element Type type.
-        let element_size = size_of::<T>() as u64;
+        let element_size = size_of::<T>();
 
         // 11. If getIndex + elementSize > viewSize, throw a RangeError exception.
         if get_index + element_size > view_size {
@@ -479,7 +474,7 @@ impl DataView {
         }
 
         // 12. Let bufferIndex be getIndex + viewOffset.
-        let buffer_index = (get_index + view_offset) as usize;
+        let buffer_index = get_index + view_offset;
 
         let src = data.subslice(buffer_index..);
 
@@ -794,14 +789,14 @@ impl DataView {
         let elem_size = size_of::<T>();
 
         // 13. If getIndex + elementSize > viewSize, throw a RangeError exception.
-        if get_index + elem_size as u64 > view_size {
+        if get_index + elem_size > view_size {
             return Err(JsNativeError::range()
                 .with_message("Offset is outside the bounds of DataView")
                 .into());
         }
 
         // 14. Let bufferIndex be getIndex + viewOffset.
-        let buffer_index = (get_index + view_offset) as usize;
+        let buffer_index = get_index + view_offset;
 
         let mut target = data.subslice_mut(buffer_index..);
 
