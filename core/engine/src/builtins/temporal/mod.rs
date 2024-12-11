@@ -38,7 +38,11 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use temporal_rs::{PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime, NS_PER_DAY};
+use num_traits::{AsPrimitive, PrimInt};
+use temporal_rs::{
+    primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
+    NS_PER_DAY,
+};
 
 // TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_max_instant() -> JsBigInt {
@@ -320,51 +324,64 @@ pub(crate) fn is_partial_temporal_object<'value>(
 
 /// 13.43 `ToPositiveIntegerWithTruncation ( argument )`
 #[inline]
-#[allow(unused)]
-pub(crate) fn to_positive_integer_with_trunc(
-    value: &JsValue,
-    context: &mut Context,
-) -> JsResult<i32> {
-    // 1. Let integer be ? ToIntegerWithTruncation(argument).
-    let int = to_integer_with_truncation(value, context)?;
-    // 2. If integer ≤ 0, throw a RangeError exception.
-    if int <= 0 {
+pub(crate) fn truncate_as_positive<T: PrimInt + AsPrimitive<f64>>(value: FiniteF64) -> JsResult<T>
+where
+    f64: AsPrimitive<T>,
+    i8: AsPrimitive<T>,
+{
+    let truncated = truncate::<T>(value);
+    if truncated <= 0i8.as_() {
         return Err(JsNativeError::range()
-            .with_message("value is not a positive integer")
+            .with_message("integer must be positive.")
             .into());
     }
-    // 3. Return integer.
-    Ok(int)
+    Ok(truncated)
+}
+
+// TODO: move to `temporal_rs`
+#[inline]
+pub(crate) fn truncate<T: PrimInt + AsPrimitive<f64>>(value: FiniteF64) -> T
+where
+    f64: AsPrimitive<T>,
+{
+    let clamped = num_traits::clamp(value.as_inner(), T::min_value().as_(), T::max_value().as_());
+    clamped.as_()
 }
 
 /// 13.44 `ToIntegerWithTruncation ( argument )`
 #[inline]
-pub(crate) fn to_integer_with_truncation(value: &JsValue, context: &mut Context) -> JsResult<i32> {
+pub(crate) fn to_finite_number(value: &JsValue, context: &mut Context) -> JsResult<FiniteF64> {
     // 1. Let number be ? ToNumber(argument).
     let number = value.to_number(context)?;
     // 2. If number is NaN, +∞𝔽 or -∞𝔽, throw a RangeError exception.
-    if number.is_nan() || number.is_infinite() {
-        return Err(JsNativeError::range()
-            .with_message("truncation target must be an integer.")
-            .into());
-    }
     // 3. Return truncate(ℝ(number)).
-    Ok(number.trunc() as i32)
+    FiniteF64::try_from(number).map_err(Into::into)
 }
 
-/// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
-#[inline]
-pub(crate) fn to_integer_if_integral(arg: &JsValue, _context: &mut Context) -> JsResult<i32> {
-    // 1. Let number be ? ToNumber(argument).
-    // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
-    // 3. Return ℝ(number).
-    let Some(arg) = arg.as_i32() else {
+#[allow(clippy::float_cmp)]
+pub(crate) fn as_integer_strict<T: PrimInt + AsPrimitive<f64>>(value: FiniteF64) -> JsResult<T>
+where
+    f64: AsPrimitive<T>,
+{
+    if value.as_inner().trunc() != value.as_inner() {
         return Err(JsNativeError::range()
-            .with_message("value to convert is not an integral number.")
+            .with_message("value was not integral.")
             .into());
-    };
+    }
+    Ok(value.as_inner().as_())
+}
 
-    Ok(arg)
+#[inline]
+pub(crate) fn to_integer_if_integral<T: PrimInt + AsPrimitive<f64>>(
+    value: &JsValue,
+    context: &mut Context,
+) -> JsResult<T>
+where
+    f64: AsPrimitive<T>,
+{
+    let number = value.to_number(context)?;
+    let finite = FiniteF64::try_from(number)?;
+    as_integer_strict::<T>(finite)
 }
 
 // 13.46 `PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )`

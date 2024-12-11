@@ -3,7 +3,7 @@
 use super::{
     create_temporal_duration,
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
-    to_integer_with_truncation, to_temporal_duration_record, PlainDateTime, ZonedDateTime,
+    to_temporal_duration_record, PlainDateTime, ZonedDateTime, truncate, to_finite_number,
 };
 use crate::value::JsVariant;
 use crate::{
@@ -24,6 +24,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, TemporalRoundingMode},
     partial::PartialTime,
+    primitive::FiniteF64,
     PlainTime as PlainTimeInner,
 };
 
@@ -151,30 +152,45 @@ impl BuiltInConstructor for PlainTime {
         // 2. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
         let hour = args
             .get_or_undefined(0)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u8>)?;
         // 3. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
         let minute = args
             .get_or_undefined(1)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u8>)?;
         // 4. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
         let second = args
             .get_or_undefined(2)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u8>)?;
+
         // 5. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
         let millisecond = args
             .get_or_undefined(3)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u16>)?;
+
         // 6. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
         let microsecond = args
             .get_or_undefined(4)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u16>)?;
+
         // 7. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
         let nanosecond = args
             .get_or_undefined(5)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u16>)?;
 
-        let inner =
-            PlainTimeInner::new(hour, minute, second, millisecond, microsecond, nanosecond)?;
+        let inner = PlainTimeInner::new(
+            hour.into(),
+            minute.into(),
+            second.into(),
+            millisecond.into(),
+            microsecond.into(),
+            nanosecond.into(),
+        )?;
 
         // 8. Return ? CreateTemporalTime(hour, minute, second, millisecond, microsecond, nanosecond, NewTarget).
         create_temporal_time(inner, Some(new_target), context).map(Into::into)
@@ -701,33 +717,45 @@ pub(crate) fn to_partial_time_record(
 ) -> JsResult<PartialTime> {
     let hour = partial_object
         .get(js_string!("hour"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
-        .transpose()?;
+        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .transpose()?
+        .map(truncate::<u8>)
+        .map(Into::into);
 
     let minute = partial_object
         .get(js_string!("minute"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
-        .transpose()?;
+        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .transpose()?
+        .map(truncate::<u8>)
+        .map(Into::into);
 
     let second = partial_object
         .get(js_string!("second"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
-        .transpose()?;
+        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .transpose()?
+        .map(truncate::<u8>)
+        .map(Into::into);
 
     let millisecond = partial_object
         .get(js_string!("millisecond"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
-        .transpose()?;
+        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .transpose()?
+        .map(truncate::<u16>)
+        .map(Into::into);
 
     let microsecond = partial_object
         .get(js_string!("microsecond"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
-        .transpose()?;
+        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .transpose()?
+        .map(truncate::<u16>)
+        .map(Into::into);
 
     let nanosecond = partial_object
         .get(js_string!("nanosecond"), context)?
-        .map(|v| super::to_integer_if_integral(v, context))
-        .transpose()?;
+        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .transpose()?
+        .map(truncate::<u16>)
+        .map(Into::into);
 
     Ok(PartialTime {
         hour,

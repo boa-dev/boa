@@ -22,12 +22,13 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, CalendarName},
     partial::PartialDate,
+    primitive::FiniteF64,
     PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
 use super::{
-    calendar::to_temporal_calendar_slot_value, to_integer_if_integral,
-    to_positive_integer_with_trunc, DateTimeValues,
+    calendar::to_temporal_calendar_slot_value, to_finite_number, truncate, truncate_as_positive,
+    DateTimeValues,
 };
 
 /// The `Temporal.PlainMonthDay` object.
@@ -201,20 +202,27 @@ impl BuiltInConstructor for PlainMonthDay {
                 .into());
         }
 
-        let year = args.get_or_undefined(3);
-        let ref_year = if year.is_undefined() {
-            None
-        } else {
-            Some(super::to_integer_with_truncation(year, context)?)
-        };
+        let ref_year = args
+            .get_or_undefined(3)
+            .map(|v| to_finite_number(v, context))
+            .transpose()?
+            .map(truncate::<i32>);
 
         // We can ignore 2 as the underlying temporal library handles the reference year
-        let m = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
-        let d = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
+        let m = args
+            .get_or_undefined(0)
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u8>)?;
+
+        let d = args
+            .get_or_undefined(1)
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u8>)?;
+
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
         let inner = InnerMonthDay::new_with_overflow(
-            m,
-            d,
+            m.into(),
+            d.into(),
             calendar,
             ArithmeticOverflow::Constrain,
             ref_year,
@@ -326,12 +334,16 @@ fn to_temporal_month_day(
     } else if item.is_object() {
         let day = item
             .get_v(js_string!("day"), context)?
-            .map(|v| to_positive_integer_with_trunc(v, context))
+            .map_or(None, |v| Some(to_finite_number(v, context)))
+            .transpose()?
+            .map(truncate_as_positive)
             .transpose()?;
 
         let month = item
             .get_v(js_string!("month"), context)?
-            .map(|v| to_positive_integer_with_trunc(v, context))
+            .map_or(None, |v| Some(to_finite_number(v, context)))
+            .transpose()?
+            .map(truncate_as_positive)
             .transpose()?;
 
         let month_code = item
@@ -343,16 +355,17 @@ fn to_temporal_month_day(
                         .with_message("The monthCode field value must be a string.")
                         .into());
                 };
-                TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped())
-                    .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
+                TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped()).map_err(|e| {
+                    JsError::from(JsNativeError::typ().with_message(e.to_string()))
+                })
             })
             .transpose()?;
 
         let year = item
             .get_v(js_string!("year"), context)?
-            .map(|v| to_integer_if_integral(v, context))
+            .map_or(None, |v| Some(to_finite_number(v, context)))
             .transpose()?
-            .unwrap_or(1972);
+            .map_or(1972, truncate);
 
         let partial_date = &PartialDate {
             month,
