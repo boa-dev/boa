@@ -209,7 +209,7 @@ pub trait HostHooks {
     ///
     ///
     /// [specification]: https://tc39.es/ecma262/#sec-resizable-arraybuffer-guidelines
-    fn max_buffer_size(&self, _context: &mut Context) -> u64 {
+    fn max_buffer_size(&self, _context: &mut Context) -> usize {
         1_610_612_736 // 1.5 GiB
     }
 }
