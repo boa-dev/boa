@@ -1816,9 +1816,6 @@ impl BuiltinTypedArray {
         // 19. If SameValue(srcBuffer, targetBuffer) is true or sameSharedArrayBuffer is true, then
         let src_byte_index = if BufferObject::equals(&src_buf_obj, &target_buf_obj) {
             // a. Let srcByteLength be source.[[ByteLength]].
-            let src_byte_offset = src_byte_offset;
-            let src_byte_length = src_byte_length;
-
             let s = {
                 let slice = src_buf_obj.as_buffer();
                 let slice = slice
@@ -1859,8 +1856,6 @@ impl BuiltinTypedArray {
 
         // 24. If srcType is the same as targetType, then
         if src_type == target_type {
-            let src_byte_index = src_byte_index;
-            let target_byte_index = target_byte_index;
             let byte_count = target_element_size * src_length;
 
             // a. NOTE: If srcType and targetType are the same, the transfer must be performed in a manner that preserves the bit-level encoding of the source data.
@@ -2895,7 +2890,6 @@ impl BuiltinTypedArray {
                         .into());
                 }
 
-                let src_element_size = src_element_size;
                 let target_element_size = element_size;
 
                 // c. Let srcByteIndex be srcByteOffset.
