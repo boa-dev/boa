@@ -450,6 +450,12 @@ impl IdentifierReference {
         self.locator.scope > 0 && !self.escapes
     }
 
+    /// Returns if the binding is on the global object.
+    #[must_use]
+    pub fn is_global_object(&self) -> bool {
+        self.locator.scope == 0
+    }
+
     /// Check if this identifier reference is lexical.
     #[must_use]
     pub fn is_lexical(&self) -> bool {
