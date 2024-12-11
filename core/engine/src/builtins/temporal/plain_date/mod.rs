@@ -786,7 +786,7 @@ impl PlainDate {
     }
 
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
+        Err(JsNativeError::typ()
             .with_message("valueOf not implemented for Temporal objects. See 'compare', 'equals', or `toString`")
             .into())
     }
