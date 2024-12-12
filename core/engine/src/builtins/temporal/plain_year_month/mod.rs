@@ -20,10 +20,14 @@ use boa_profiler::Profiler;
 
 use temporal_rs::{
     options::{ArithmeticOverflow, CalendarName},
+    primitive::FiniteF64,
     Duration, PlainYearMonth as InnerYearMonth,
 };
 
-use super::{calendar::to_temporal_calendar_slot_value, to_temporal_duration, DateTimeValues};
+use super::{
+    calendar::to_temporal_calendar_slot_value, to_finite_number, to_temporal_duration, truncate,
+    DateTimeValues,
+};
 
 /// The `Temporal.PlainYearMonth` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -170,26 +174,38 @@ impl BuiltInConstructor for PlainYearMonth {
                 .into());
         }
 
-        let day = args.get_or_undefined(3);
         // 2. If referenceISODay is undefined, then
-        let ref_day = if day.is_undefined() {
-            // a. Set referenceISODay to 1𝔽.
-            None
-        } else {
-            // 6. Let ref be ? ToIntegerWithTruncation(referenceISODay).
-            Some(super::to_integer_with_truncation(day, context)?)
-        };
-
+        // a. Set referenceISODay to 1𝔽.
         // 3. Let y be ? ToIntegerWithTruncation(isoYear).
-        let y = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
+        let y = args
+            .get_or_undefined(0)
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u8>)?;
+
         // 4. Let m be ? ToIntegerWithTruncation(isoMonth).
-        let m = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
+        let m = args
+            .get_or_undefined(1)
+            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+            .map(truncate::<u8>)?;
+
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
 
+        // 6. Let ref be ? ToIntegerWithTruncation(referenceISODay).
+        let ref_day = args
+            .get_or_undefined(3)
+            .map(|v| to_finite_number(v, context))
+            .transpose()?
+            .map(truncate::<u8>);
+
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
-        let inner =
-            InnerYearMonth::new_with_overflow(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
+        let inner = InnerYearMonth::new_with_overflow(
+            y.into(),
+            m.into(),
+            ref_day.map(Into::into),
+            calendar,
+            ArithmeticOverflow::Reject,
+        )?;
 
         create_temporal_year_month(inner, Some(new_target), context)
     }
@@ -219,22 +235,28 @@ impl PlainYearMonth {
                 let overflow = get_option(&options, js_string!("overflow"), context)?
                     .unwrap_or(ArithmeticOverflow::Constrain);
 
+                let year = item
+                    .get_v(js_string!("year"), context)?
+                    .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+                    .map(truncate::<i32>)?;
+
+                let month = item
+                    .get_v(js_string!("month"), context)?
+                    .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
+                    .map(truncate::<u8>)?;
+
+                let ref_day = item
+                    .get_v(js_string!("day"), context)?
+                    .map(|v| to_finite_number(v, context))
+                    .transpose()?
+                    .map(truncate::<u8>);
+
                 // a. Let calendar be ? ToTemporalCalendar(item).
                 let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
                 InnerYearMonth::new_with_overflow(
-                    super::to_integer_with_truncation(
-                        &item.get_v(js_string!("year"), context)?,
-                        context,
-                    )?,
-                    super::to_integer_with_truncation(
-                        &item.get_v(js_string!("month"), context)?,
-                        context,
-                    )?,
-                    super::to_integer_with_truncation(
-                        &item.get_v(js_string!("day"), context)?,
-                        context,
-                    )
-                    .ok(),
+                    year,
+                    month.into(),
+                    ref_day.map(Into::into),
                     calendar,
                     overflow,
                 )?
