@@ -2,6 +2,7 @@
 ///
 /// [ToInt32]: https://tc39.es/ecma262/#sec-toint32
 #[allow(clippy::float_cmp)]
+#[cfg(not(all(target_arch = "aarch64", target_feature = "jsconv")))]
 pub(crate) fn f64_to_int32(number: f64) -> i32 {
     const SIGN_MASK: u64 = 0x8000_0000_0000_0000;
     const EXPONENT_MASK: u64 = 0x7FF0_0000_0000_0000;
@@ -72,9 +73,38 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
     (sign(number) * (bits as i64)) as i32
 }
 
+/// Converts a 64-bit floating point number to an `i32` using [`FJCVTZS`][FJCVTZS] instruction on `ARMv8.3`.
+///
+/// [FJCVTZS]: https://developer.arm.com/documentation/dui0801/h/A64-Floating-point-Instructions/FJCVTZS
+#[cfg(all(target_arch = "aarch64", target_feature = "jsconv"))]
+pub(crate) fn f64_to_int32(number: f64) -> i32 {
+    if number.is_nan() {
+        return 0;
+    }
+    let ret: i32;
+    // SAFETY: Number is not nan so no floating-point exception should throw.
+    unsafe {
+        std::arch::asm!(
+            "fjcvtzs {dst:w}, {src:d}",
+            src = in(vreg) number,
+            dst = out(reg) ret,
+        )
+    }
+    ret
+}
+
+/// Converts a 64-bit floating point number to an `i32` using [`FJCVTZS`][FJCVTZS] instruction on `ARMv8.3`.
+///
+/// [FJCVTZS]: https://developer.arm.com/documentation/dui0801/h/A64-Floating-point-Instructions/FJCVTZS
+#[cfg(all(target_arch = "aarch64", target_feature = "jsconv"))]
+pub(crate) fn f64_to_uint32(number: f64) -> u32 {
+    f64_to_int32(number) as u32
+}
+
 /// Converts a 64-bit floating point number to an `u32` according to the [`ToUint32`][ToUint32] algorithm.
 ///
 /// [ToUint32]: https://tc39.es/ecma262/#sec-touint32
+#[cfg(not(all(target_arch = "aarch64", target_feature = "jsconv")))]
 pub(crate) fn f64_to_uint32(number: f64) -> u32 {
     f64_to_int32(number) as u32
 }
