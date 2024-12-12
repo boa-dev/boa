@@ -108,3 +108,19 @@ pub(crate) fn f64_to_uint32(number: f64) -> u32 {
 pub(crate) fn f64_to_uint32(number: f64) -> u32 {
     f64_to_int32(number) as u32
 }
+
+#[test]
+fn f64_to_int32_conversion() {
+    use crate::builtins::Number;
+
+    assert_eq!(f64_to_int32(0.0), 0);
+    assert_eq!(f64_to_int32(-0.0), 0);
+    assert_eq!(f64_to_int32(f64::NAN), 0);
+    assert_eq!(f64_to_int32(f64::INFINITY), 0);
+    assert_eq!(f64_to_int32(f64::NEG_INFINITY), 0);
+    assert_eq!(f64_to_int32((i64::from(i32::MAX) + 1) as f64), i32::MIN);
+    assert_eq!(f64_to_int32((i64::from(i32::MIN) - 1) as f64), i32::MAX);
+
+    assert_eq!(f64_to_int32(Number::MAX_SAFE_INTEGER + 1.0), 0);
+    assert_eq!(f64_to_int32(Number::MIN_SAFE_INTEGER - 1.0), 0);
+}
