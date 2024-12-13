@@ -319,6 +319,7 @@ impl IntrinsicObject for ZonedDateTime {
             .static_method(Self::from, js_string!("from"), 1)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -837,6 +838,12 @@ impl ZonedDateTime {
             context,
         )
         .map(Into::into)
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
+            .into())
     }
 }
 

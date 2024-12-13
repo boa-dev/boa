@@ -118,6 +118,12 @@ impl PlainMonthDay {
 
         Ok(month_day_to_string(inner, show_calendar))
     }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
+            .into())
+    }
 }
 
 impl BuiltInObject for PlainMonthDay {
@@ -164,6 +170,7 @@ impl IntrinsicObject for PlainMonthDay {
                 Attribute::CONFIGURABLE,
             )
             .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .static_method(Self::from, js_string!("from"), 2)
             .build();
     }
