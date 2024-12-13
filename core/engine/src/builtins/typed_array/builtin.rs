@@ -1284,18 +1284,11 @@ impl BuiltinTypedArray {
                     IntegerOrInfinity::NegativeInfinity => return Ok((-1).into()),
                     // 7. If n ≥ 0, then
                     // a. Let k be min(n, len - 1).
-                    IntegerOrInfinity::Integer(i) if i >= 0 => {
-                        if i < usize::MAX as i64 {
-                            min(i as usize + 1, len)
-                        } else {
-                            len
-                        }
-                    }
+                    IntegerOrInfinity::Integer(i) if i >= 0 => min((i + 1) as usize, len),
                     IntegerOrInfinity::PositiveInfinity => len,
                     // 8. Else,
                     // a. Let k be len + n.
-                    IntegerOrInfinity::Integer(i) if i < isize::MIN as i64 => 0,
-                    IntegerOrInfinity::Integer(i) => len.saturating_add_signed(i as isize + 1),
+                    IntegerOrInfinity::Integer(i) => len.saturating_add_signed((i + 1) as isize),
                 }
             }
         };

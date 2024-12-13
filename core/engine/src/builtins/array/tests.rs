@@ -268,6 +268,13 @@ fn index_of() {
                 var one = ["a"];
                 var many = ["a", "b", "c"];
                 var duplicates = ["a", "b", "c", "a", "b"];
+                var typed_i32 = new Int32Array([42, 43]);
+
+                var obj = {
+                  valueOf: function() {
+                    return 1;
+                  }
+                };
             "#}),
         // Empty
         TestAction::assert_eq("[].indexOf('a')", -1),
@@ -299,6 +306,24 @@ fn index_of() {
         TestAction::assert_eq("many.indexOf('c', -1)", 2),
         // Negative fromIndex with duplicates
         TestAction::assert_eq("duplicates.indexOf('b', -2)", 4),
+        // Typed arrays
+        // Test cases from test262/test/built-ins/TypedArray/prototype/lastIndexOf/tointeger-fromindex.js
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, '1')", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, '1')", 1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, true)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, true)", 1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, false)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, false)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, NaN)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, NaN)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, null)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, null)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, undefined)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, undefined)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, null)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, null)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(42, obj)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(43, obj)", 1),
     ]);
 }
 
@@ -309,6 +334,12 @@ fn last_index_of() {
                 var one = ["a"];
                 var many = ["a", "b", "c"];
                 var duplicates = ["a", "b", "c", "a", "b"];
+                var typed_f32 = new Float32Array([2, 1, 2, 3]);
+                var typed_f64 = new Float64Array([2, 1, 2, 3]);
+                var typed_u32 = new Uint32Array([2, 1, 2, 3]);
+                var typed_u8 = new Uint8Array([2, 1, 2, 3]);
+                var typed_i32 = new Int32Array([2, 1, 2, 3]);
+                var typed_i8 = new Int8Array([2, 1, 2, 3]);
             "#}),
         // Empty
         TestAction::assert_eq("[].lastIndexOf('a')", -1),
@@ -340,6 +371,67 @@ fn last_index_of() {
         TestAction::assert_eq("many.lastIndexOf('c', -1)", 2),
         // Negative fromIndex with duplicates
         TestAction::assert_eq("duplicates.lastIndexOf('b', -2)", 1),
+        // Typed arrays
+        // F32
+        TestAction::assert_eq("typed_f32.lastIndexOf(2)", 2),
+        TestAction::assert_eq("typed_f32.lastIndexOf(2, 0)", 0),
+        TestAction::assert_eq("typed_f32.lastIndexOf(2, -1)", 2),
+        TestAction::assert_eq("typed_f32.lastIndexOf(2, -3)", 0),
+        TestAction::assert_eq("typed_f32.lastIndexOf(2, -4)", 0),
+        TestAction::assert_eq("typed_f32.lastIndexOf(2, -5)", -1),
+        TestAction::assert_eq("typed_f32.lastIndexOf(4)", -1),
+        TestAction::assert_eq("typed_f32.lastIndexOf(4, -4)", -1),
+        TestAction::assert_eq("typed_f32.lastIndexOf(4, -5)", -1),
+        // F64
+        TestAction::assert_eq("typed_f64.lastIndexOf(2)", 2),
+        TestAction::assert_eq("typed_f64.lastIndexOf(2, 0)", 0),
+        TestAction::assert_eq("typed_f64.lastIndexOf(2, -1)", 2),
+        TestAction::assert_eq("typed_f64.lastIndexOf(2, -3)", 0),
+        TestAction::assert_eq("typed_f64.lastIndexOf(2, -4)", 0),
+        TestAction::assert_eq("typed_f64.lastIndexOf(2, -5)", -1),
+        TestAction::assert_eq("typed_f64.lastIndexOf(4)", -1),
+        TestAction::assert_eq("typed_f64.lastIndexOf(4, -4)", -1),
+        TestAction::assert_eq("typed_f64.lastIndexOf(4, -5)", -1),
+        // U32
+        TestAction::assert_eq("typed_u32.lastIndexOf(2)", 2),
+        TestAction::assert_eq("typed_u32.lastIndexOf(2, 0)", 0),
+        TestAction::assert_eq("typed_u32.lastIndexOf(2, -1)", 2),
+        TestAction::assert_eq("typed_u32.lastIndexOf(2, -3)", 0),
+        TestAction::assert_eq("typed_u32.lastIndexOf(2, -4)", 0),
+        TestAction::assert_eq("typed_u32.lastIndexOf(2, -5)", -1),
+        TestAction::assert_eq("typed_u32.lastIndexOf(4)", -1),
+        TestAction::assert_eq("typed_u32.lastIndexOf(4, -4)", -1),
+        TestAction::assert_eq("typed_u32.lastIndexOf(4, -5)", -1),
+        // U8
+        TestAction::assert_eq("typed_u8.lastIndexOf(2)", 2),
+        TestAction::assert_eq("typed_u8.lastIndexOf(2, 0)", 0),
+        TestAction::assert_eq("typed_u8.lastIndexOf(2, -1)", 2),
+        TestAction::assert_eq("typed_u8.lastIndexOf(2, -3)", 0),
+        TestAction::assert_eq("typed_u8.lastIndexOf(2, -4)", 0),
+        TestAction::assert_eq("typed_u8.lastIndexOf(2, -5)", -1),
+        TestAction::assert_eq("typed_u8.lastIndexOf(4)", -1),
+        TestAction::assert_eq("typed_u8.lastIndexOf(4, -4)", -1),
+        TestAction::assert_eq("typed_u8.lastIndexOf(4, -5)", -1),
+        // I32
+        TestAction::assert_eq("typed_i32.lastIndexOf(2)", 2),
+        TestAction::assert_eq("typed_i32.lastIndexOf(2, 0)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(2, -1)", 2),
+        TestAction::assert_eq("typed_i32.lastIndexOf(2, -3)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(2, -4)", 0),
+        TestAction::assert_eq("typed_i32.lastIndexOf(2, -5)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(4)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(4, -4)", -1),
+        TestAction::assert_eq("typed_i32.lastIndexOf(4, -5)", -1),
+        // I8
+        TestAction::assert_eq("typed_i8.lastIndexOf(2)", 2),
+        TestAction::assert_eq("typed_i8.lastIndexOf(2, 0)", 0),
+        TestAction::assert_eq("typed_i8.lastIndexOf(2, -1)", 2),
+        TestAction::assert_eq("typed_i8.lastIndexOf(2, -3)", 0),
+        TestAction::assert_eq("typed_i8.lastIndexOf(2, -4)", 0),
+        TestAction::assert_eq("typed_i8.lastIndexOf(2, -5)", -1),
+        TestAction::assert_eq("typed_i8.lastIndexOf(4)", -1),
+        TestAction::assert_eq("typed_i8.lastIndexOf(4, -4)", -1),
+        TestAction::assert_eq("typed_i8.lastIndexOf(4, -5)", -1),
     ]);
 }
 
