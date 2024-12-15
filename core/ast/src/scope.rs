@@ -588,13 +588,14 @@ impl FunctionScopes {
     }
 
     /// Returns if the arguments object is accessed in this function.
+    #[must_use]
     pub fn arguments_object_accessed(&self) -> bool {
         if self
             .function_scope
             .inner
             .bindings
             .borrow()
-            .get(0)
+            .first()
             .filter(|b| b.name == "arguments" && b.accessed)
             .is_some()
         {
@@ -606,7 +607,7 @@ impl FunctionScopes {
                 .inner
                 .bindings
                 .borrow()
-                .get(0)
+                .first()
                 .filter(|b| b.name == "arguments" && b.accessed)
                 .is_some()
             {
