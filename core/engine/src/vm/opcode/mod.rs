@@ -1117,7 +1117,7 @@ generate_opcodes! {
 
     /// Find a binding in the global object and push its value.
     ///
-    /// Operands: index: `u32`
+    /// Operands: index: `VaryingOperand`, ic_index: `VaryingOperand`,
     ///
     /// Stack: **=>** value
     GetNameGlobal { index: VaryingOperand, ic_index: VaryingOperand },
