@@ -18,6 +18,7 @@ struct Binding {
     lex: bool,
     strict: bool,
     escapes: bool,
+    accessed: bool,
 }
 
 /// A scope maps bound identifiers to their binding positions.
@@ -259,6 +260,7 @@ impl Scope {
                 .iter_mut()
                 .find(|b| &b.name == name)
             {
+                binding.accessed = true;
                 if crossed_function_border || eval_or_with {
                     binding.escapes = true;
                 }
@@ -296,6 +298,7 @@ impl Scope {
             lex: !function_scope,
             strict: false,
             escapes: self.is_global(),
+            accessed: false,
         });
         BindingLocator::declarative(
             name,
@@ -320,6 +323,7 @@ impl Scope {
             lex: true,
             strict,
             escapes: self.is_global(),
+            accessed: false,
         });
     }
 
@@ -581,6 +585,36 @@ impl FunctionScopes {
     #[must_use]
     pub fn function_scope(&self) -> &Scope {
         &self.function_scope
+    }
+
+    /// Returns if the arguments object is accessed in this function.
+    pub fn arguments_object_accessed(&self) -> bool {
+        if self
+            .function_scope
+            .inner
+            .bindings
+            .borrow()
+            .get(0)
+            .filter(|b| b.name == "arguments" && b.accessed)
+            .is_some()
+        {
+            return true;
+        }
+
+        if let Some(scope) = &self.parameters_eval_scope {
+            if scope
+                .inner
+                .bindings
+                .borrow()
+                .get(0)
+                .filter(|b| b.name == "arguments" && b.accessed)
+                .is_some()
+            {
+                return true;
+            }
+        }
+
+        false
     }
 
     /// Returns the parameters eval scope for this function.
