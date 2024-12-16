@@ -22,7 +22,7 @@ impl Operation for PushNewArray {
             .intrinsics()
             .templates()
             .array()
-            .create(Array, vec![JsValue::ZERO]);
+            .create(Array, vec![JsValue::new(0)]);
         context.vm.push(array);
         Ok(CompletionType::Normal)
     }

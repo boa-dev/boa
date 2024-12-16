@@ -13,7 +13,7 @@ fn get_loop(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsVal
 fn set_loop(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let value = args.get_or_undefined(0).to_length(context)?;
     context.runtime_limits_mut().set_loop_iteration_limit(value);
-    Ok(JsValue::UNDEFINED)
+    Ok(JsValue::undefined())
 }
 
 fn get_stack(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -29,7 +29,7 @@ fn set_stack(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<J
             .into());
     };
     context.runtime_limits_mut().set_stack_size_limit(value);
-    Ok(JsValue::UNDEFINED)
+    Ok(JsValue::undefined())
 }
 
 fn get_recursion(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -45,7 +45,7 @@ fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             .into());
     };
     context.runtime_limits_mut().set_recursion_limit(value);
-    Ok(JsValue::UNDEFINED)
+    Ok(JsValue::undefined())
 }
 
 pub(super) fn create_object(context: &mut Context) -> JsObject {

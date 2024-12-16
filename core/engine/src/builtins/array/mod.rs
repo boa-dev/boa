@@ -3321,7 +3321,7 @@ fn compare_array_elements(
         let args = [x.clone(), y.clone()];
         //     a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
         let v = cmp
-            .call(&JsValue::UNDEFINED, &args, context)?
+            .call(&JsValue::undefined(), &args, context)?
             .to_number(context)?;
         //     b. If v is NaN, return +0𝔽.
         //     c. Return v.

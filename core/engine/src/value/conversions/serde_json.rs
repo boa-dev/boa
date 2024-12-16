@@ -44,7 +44,7 @@ impl JsValue {
         const MIN_INT: i64 = i32::MIN as i64;
 
         match json {
-            Value::Null => Ok(Self::NULL),
+            Value::Null => Ok(Self::null()),
             Value::Bool(b) => Ok(Self::new(*b)),
             Value::Number(num) => num
                 .as_i64()

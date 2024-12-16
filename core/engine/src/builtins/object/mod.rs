@@ -216,7 +216,7 @@ impl OrdinaryObject {
         // 2. Return ? O.[[GetPrototypeOf]]().
         let proto = obj.__get_prototype_of__(&mut InternalMethodContext::new(context))?;
 
-        Ok(proto.map_or(JsValue::NULL, JsValue::new))
+        Ok(proto.map_or(JsValue::null(), JsValue::new))
     }
 
     /// `set Object.prototype.__proto__`
@@ -653,7 +653,7 @@ impl OrdinaryObject {
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
             .__get_prototype_of__(&mut InternalMethodContext::new(context))?
-            .map_or(JsValue::NULL, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Set the `prototype` of an object.
@@ -757,11 +757,11 @@ impl OrdinaryObject {
         if let Some(object) = args.get_or_undefined(0).as_object() {
             let key = args
                 .get(1)
-                .unwrap_or(&JsValue::UNDEFINED)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_key(context)?;
             let desc = args
                 .get(2)
-                .unwrap_or(&JsValue::UNDEFINED)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_descriptor(context)?;
 
             object.define_property_or_throw(key, desc, context)?;

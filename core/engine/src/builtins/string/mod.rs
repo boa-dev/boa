@@ -1500,7 +1500,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::UNDEFINED, context)?;
+        let rx = RegExp::create(regexp, &JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
         rx.invoke(JsSymbol::r#match(), &[JsValue::new(s)], context)
@@ -2144,11 +2144,13 @@ impl String {
         // 6. Let ns be the String value that is the result of normalizing S
         // into the normalization form named by f as specified in
         // https://unicode.org/reports/tr15/.
-        let normalization = match args.get_or_undefined(0).as_defined() {
-            // 3. If form is undefined, let f be "NFC".
-            None => Normalization::Nfc,
+        let arg0 = args.get_or_undefined(0);
+        // 3. If form is undefined, let f be "NFC".
+        let normalization = if arg0.is_undefined() {
+            Normalization::Nfc
+        } else {
             // 4. Else, let f be ? ToString(form).
-            Some(f) => match f.to_string(context)? {
+            match arg0.to_string(context)? {
                 ntype if &ntype == "NFC" => Normalization::Nfc,
                 ntype if &ntype == "NFD" => Normalization::Nfd,
                 ntype if &ntype == "NFKC" => Normalization::Nfkc,
@@ -2161,7 +2163,7 @@ impl String {
                         )
                         .into());
                 }
-            },
+            }
         };
 
         let normalizers = {
@@ -2228,7 +2230,7 @@ impl String {
         let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::UNDEFINED, context)?;
+        let rx = RegExp::create(regexp, &JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
         rx.invoke(JsSymbol::search(), &[JsValue::new(string)], context)

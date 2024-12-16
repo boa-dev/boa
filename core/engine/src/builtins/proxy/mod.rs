@@ -343,7 +343,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
             &handler.into(),
             &[
                 target.clone().into(),
-                val.clone().map_or(JsValue::NULL, Into::into),
+                val.clone().map_or(JsValue::null(), Into::into),
             ],
             context,
         )?

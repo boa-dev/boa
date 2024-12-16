@@ -18,7 +18,7 @@ fn set_constant_folding(_: &JsValue, args: &[JsValue], context: &mut Context) ->
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::CONSTANT_FOLDING, value);
     context.set_optimizer_options(options);
-    Ok(JsValue::UNDEFINED)
+    Ok(JsValue::undefined())
 }
 
 fn get_statistics(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -33,7 +33,7 @@ fn set_statistics(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsRes
     let mut options = context.optimizer_options();
     options.set(OptimizerOptions::STATISTICS, value);
     context.set_optimizer_options(options);
-    Ok(JsValue::UNDEFINED)
+    Ok(JsValue::undefined())
 }
 
 pub(super) fn create_object(context: &mut Context) -> JsObject {

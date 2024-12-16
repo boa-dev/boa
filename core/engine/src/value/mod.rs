@@ -65,7 +65,7 @@ static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
     BigInt::from(TWO_E_63)
 });
 
-/// The Inner type of a [`JsValue`]. This is the actual value that the `JsValue` holds.
+/// The Inner type of [`JsValue`]. This is the actual value that the `JsValue` holds.
 /// This is not a public API and should not be used directly.
 ///
 /// If you need access to the variant, use [`JsValue::variant`] instead.
@@ -91,48 +91,23 @@ unsafe impl Trace for InnerValue {
     }}
 }
 
-/// A Javascript value
+/// A generic Javascript value. This can be any ECMAScript language valid value.
+///
+/// This is a wrapper around the actual value, which is stored in an opaque type.
+/// This allows for internal changes to the value without affecting the public API.
+///
+/// ```
+/// # use boa_engine::{js_string, Context, JsValue};
+/// let mut context = Context::default();
+/// let value = JsValue::new(3);
+/// assert_eq!(value.to_string(&mut context), Ok(js_string!("3")));
+/// ```
 #[derive(Finalize, Debug, Clone, Trace)]
 pub struct JsValue {
     inner: InnerValue,
 }
 
 impl JsValue {
-    /// The integer zero as a [`JsValue`] constant, for convenience.
-    pub const ZERO: Self = Self {
-        inner: InnerValue::Integer32(0),
-    };
-
-    /// The integer one as a [`JsValue`] constant, for convenience.
-    pub const ONE: Self = Self {
-        inner: InnerValue::Integer32(1),
-    };
-
-    /// `NaN` as a [`JsValue`] constant, for convenience.
-    pub const NAN: Self = Self {
-        inner: InnerValue::Float64(f64::NAN),
-    };
-
-    /// Positive infinity as a [`JsValue`] constant, for convenience.
-    pub const POSITIVE_INFINITY: Self = Self {
-        inner: InnerValue::Float64(f64::INFINITY),
-    };
-
-    /// Negative infinity as a [`JsValue`] constant, for convenience.
-    pub const NEGATIVE_INFINITY: Self = Self {
-        inner: InnerValue::Float64(f64::NEG_INFINITY),
-    };
-
-    /// Undefined as a [`JsValue`] constant, for convenience.
-    pub const UNDEFINED: Self = Self {
-        inner: InnerValue::Undefined,
-    };
-
-    /// Null as a [`JsValue`] constant, for convenience.
-    pub const NULL: Self = Self {
-        inner: InnerValue::Null,
-    };
-
     /// Create a new [`JsValue`] from an inner value.
     const fn from_inner(inner: InnerValue) -> Self {
         Self { inner }
@@ -157,39 +132,49 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub const fn undefined() -> Self {
-        Self {
-            inner: InnerValue::Undefined,
-        }
+        Self::from_inner(InnerValue::Undefined)
     }
 
     /// Creates a new `null` value.
     #[inline]
     #[must_use]
     pub const fn null() -> Self {
-        Self {
-            inner: InnerValue::Null,
-        }
+        Self::from_inner(InnerValue::Null)
     }
 
     /// Creates a new number with `NaN` value.
     #[inline]
     #[must_use]
     pub const fn nan() -> Self {
-        Self::NAN
+        Self::from_inner(InnerValue::Float64(f64::NAN))
     }
 
     /// Creates a new number with `Infinity` value.
     #[inline]
     #[must_use]
     pub const fn positive_infinity() -> Self {
-        Self::POSITIVE_INFINITY
+        Self::from_inner(InnerValue::Float64(f64::INFINITY))
     }
 
     /// Creates a new number with `-Infinity` value.
     #[inline]
     #[must_use]
     pub const fn negative_infinity() -> Self {
-        Self::NEGATIVE_INFINITY
+        Self::from_inner(InnerValue::Float64(f64::NEG_INFINITY))
+    }
+
+    /// Creates a new number from an integer.
+    #[inline]
+    #[must_use]
+    pub const fn integer(integer: i32) -> Self {
+        Self::from_inner(InnerValue::Integer32(integer))
+    }
+
+    /// Creates a new number from a float.
+    #[inline]
+    #[must_use]
+    pub const fn rational(rational: f64) -> Self {
+        Self::from_inner(InnerValue::Float64(rational))
     }
 
     /// Returns true if the value is an object.
@@ -349,17 +334,6 @@ impl JsValue {
         matches!(&self.inner, InnerValue::Undefined)
     }
 
-    /// Returns `()` if the value is undefined, otherwise `None`.
-    #[inline]
-    #[must_use]
-    pub const fn as_undefined(&self) -> Option<()> {
-        if self.is_undefined() {
-            Some(())
-        } else {
-            None
-        }
-    }
-
     /// Returns `Some(self)` if the value is defined, otherwise `None`.
     #[inline]
     #[must_use]
@@ -385,24 +359,15 @@ impl JsValue {
         self.is_undefined() || self.is_null()
     }
 
-    /// Determines if argument is a finite integral Number value.
+    /// Returns the number if the value is a finite integral Number value, otherwise `None`.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isintegralnumber
-    #[must_use]
-    #[allow(clippy::float_cmp)]
-    pub fn is_integral_number(&self) -> bool {
-        // When creating the inner value, we verify that the float is rational or
-        // an integer, so we can safely unwrap here.
-        matches!(&self.inner, InnerValue::Integer32(_))
-    }
-
-    /// Returns the number if the value is an integer, otherwise `None`.
     #[inline]
     #[must_use]
-    pub const fn as_integer32(&self) -> Option<i32> {
+    pub const fn as_i32(&self) -> Option<i32> {
         if let InnerValue::Integer32(i) = self.inner {
             Some(i)
         } else {
@@ -601,7 +566,7 @@ impl JsValue {
 
     /// Returns an object that implements `Display`.
     ///
-    /// By default the internals are not shown, but they can be toggled
+    /// By default, the internals are not shown, but they can be toggled
     /// with [`ValueDisplay::internals`] method.
     ///
     /// # Examples

@@ -126,7 +126,7 @@ impl From<()> for JsValue {
     fn from(_: ()) -> Self {
         let _timer = Profiler::global().start_event("From<()>", "value");
 
-        Self::NULL
+        Self::null()
     }
 }
 
@@ -147,7 +147,7 @@ where
     fn into_or_undefined(self) -> JsValue {
         match self {
             Some(value) => value.into(),
-            None => JsValue::UNDEFINED,
+            None => JsValue::undefined(),
         }
     }
 }

@@ -63,7 +63,7 @@ macro_rules! print_obj_value {
                 vec![format!(
                     "{:>width$}: {}",
                     "__proto__",
-                    JsValue::NULL.display(),
+                    JsValue::null().display(),
                     width = $indent,
                 )]
             }

@@ -243,7 +243,7 @@ impl Set {
         // 4. If value is -0𝔽, set value to +0𝔽.
         let value = args.get_or_undefined(0);
         let value = match value.as_number() {
-            Some(n) if n.is_zero() => &JsValue::ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => value,
         };
 
@@ -304,7 +304,7 @@ impl Set {
 
         let value = args.get_or_undefined(0);
         let value = match value.as_number() {
-            Some(n) if n.is_zero() => &JsValue::ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => value,
         };
 
@@ -422,7 +422,7 @@ impl Set {
         drop(lock);
 
         // 8. Return undefined.
-        Ok(JsValue::UNDEFINED)
+        Ok(JsValue::undefined())
     }
 
     /// `Map.prototype.has( key )`
@@ -449,7 +449,7 @@ impl Set {
 
         let value = args.get_or_undefined(0);
         let value = match value.as_number() {
-            Some(n) if n.is_zero() => &JsValue::ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => value,
         };
 

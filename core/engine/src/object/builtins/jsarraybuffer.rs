@@ -120,7 +120,7 @@ impl JsArrayBuffer {
         let obj = JsObject::new(
             context.root_shape(),
             prototype,
-            ArrayBuffer::from_data(block, JsValue::UNDEFINED),
+            ArrayBuffer::from_data(block, JsValue::undefined()),
         );
 
         Ok(Self { inner: obj })

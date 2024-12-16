@@ -423,7 +423,7 @@ impl Date {
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
-            return Ok(JsValue::NAN);
+            return Ok(JsValue::new(f64::NAN));
         };
 
         if LOCAL {

@@ -33,7 +33,7 @@ use crate::{Context, JsData, JsResult, JsString, JsValue};
 /// # use boa_engine::value::{Convert, TryFromJs};
 /// # let mut context = Context::default();
 /// let Convert(conv0): Convert<bool> =
-///     Convert::try_from_js(&JsValue::ZERO, &mut context).unwrap();
+///     Convert::try_from_js(&JsValue::new(0), &mut context).unwrap();
 /// let Convert(conv5): Convert<bool> =
 ///     Convert::try_from_js(&JsValue::new(5), &mut context).unwrap();
 /// let Convert(conv_nan): Convert<bool> =

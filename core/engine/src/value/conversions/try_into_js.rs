@@ -124,7 +124,7 @@ where
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
         match self {
             Some(x) => x.try_into_js(context),
-            None => Ok(JsValue::UNDEFINED),
+            None => Ok(JsValue::undefined()),
         }
     }
 }
@@ -170,7 +170,7 @@ impl_try_into_js_for_tuples!(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: 
 
 impl TryIntoJs for () {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::NULL)
+        Ok(JsValue::null())
     }
 }
 

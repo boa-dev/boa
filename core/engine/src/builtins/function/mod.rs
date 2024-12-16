@@ -735,7 +735,7 @@ impl BuiltInFunctionObject {
         let f = BoundFunction::create(target.clone(), this_arg, bound_args, context)?;
 
         // 4. Let L be 0.
-        let mut l = JsValue::ZERO;
+        let mut l = JsValue::new(0);
 
         // 5. Let targetHasLength be ? HasOwnProperty(Target, "length").
         // 6. If targetHasLength is true, then

@@ -273,7 +273,7 @@ impl Reflect {
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
             .__get_prototype_of__(&mut InternalMethodContext::new(context))?
-            .map_or(JsValue::NULL, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.

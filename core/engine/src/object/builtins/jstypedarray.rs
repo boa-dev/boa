@@ -418,15 +418,15 @@ impl JsTypedArray {
     ///   Some(3),
     ///   context,
     /// )?;
-    /// assert_eq!(initialized8_array.get(0, context)?, JsValue::ZERO);
-    /// assert_eq!(initialized8_array.get(1, context)?, JsValue::ZERO);
-    /// assert_eq!(initialized8_array.get(2, context)?, JsValue::ZERO);
+    /// assert_eq!(initialized8_array.get(0, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(1, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(2, context)?, JsValue::new(0));
     /// assert_eq!(initialized8_array.get(3, context)?, JsValue::new(1.0));
     /// assert_eq!(initialized8_array.get(4, context)?, JsValue::new(2.0));
-    /// assert_eq!(initialized8_array.get(5, context)?, JsValue::ZERO);
-    /// assert_eq!(initialized8_array.get(6, context)?, JsValue::ZERO);
-    /// assert_eq!(initialized8_array.get(7, context)?, JsValue::ZERO);
-    /// assert_eq!(initialized8_array.get(8, context)?, JsValue::UNDEFINED);
+    /// assert_eq!(initialized8_array.get(5, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(6, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
+    /// assert_eq!(initialized8_array.get(8, context)?, JsValue::undefined());
     ///
     /// # Ok(())
     /// # }
@@ -673,7 +673,7 @@ impl JsTypedArray {
     ///                 .to_uint8(inner_context)
     ///                 .expect("error at number conversion");
     ///             *captures.borrow_mut() += element;
-    ///             Ok(JsValue::UNDEFINED)
+    ///             Ok(JsValue::undefined())
     ///         },
     ///         Gc::clone(&num_to_modify),
     ///     ),

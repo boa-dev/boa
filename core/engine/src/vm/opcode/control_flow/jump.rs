@@ -128,7 +128,7 @@ impl Operation for JumpTable {
         let count = context.vm.read::<u32>();
 
         let value = context.vm.pop();
-        if let Some(value) = value.as_integer32() {
+        if let Some(value) = value.as_i32() {
             let value = value as u32;
             let mut target = None;
             for i in 0..count {

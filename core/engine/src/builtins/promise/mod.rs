@@ -275,7 +275,7 @@ impl PromiseCapability {
                     promise_capability.reject = reject.clone();
 
                     // e. Return undefined.
-                    Ok(JsValue::UNDEFINED)
+                    Ok(JsValue::undefined())
                 },
                 promise_capability.clone(),
             ),
@@ -430,7 +430,7 @@ impl BuiltInConstructor for Promise {
 
         // 9. Let completion Completion(Call(executor, undefined, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)be ).
         let completion = executor.call(
-            &JsValue::UNDEFINED,
+            &JsValue::undefined(),
             &[
                 resolving_functions.resolve.clone().into(),
                 resolving_functions.reject.clone().into(),
@@ -444,7 +444,7 @@ impl BuiltInConstructor for Promise {
             // a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
             resolving_functions
                 .reject
-                .call(&JsValue::UNDEFINED, &[e], context)?;
+                .call(&JsValue::undefined(), &[e], context)?;
         }
 
         // 11. Return promise.
@@ -658,7 +658,7 @@ impl Promise {
         // 4. Repeat,
         while let Some(next) = iterator_record.step_value(context)? {
             // c. Append undefined to values.
-            values.borrow_mut().push(JsValue::UNDEFINED);
+            values.borrow_mut().push(JsValue::undefined());
 
             // d. Let nextPromise be ? Call(promiseResolve, constructor, « next »).
             let next_promise =
@@ -1535,7 +1535,7 @@ impl Promise {
         promise_capability
             .functions
             .resolve
-            .call(&JsValue::UNDEFINED, &[x], context)?;
+            .call(&JsValue::undefined(), &[x], context)?;
 
         // 4. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise.clone())
@@ -2126,7 +2126,7 @@ impl Promise {
                         reject_promise(&promise, self_resolution_error.into(), context);
 
                         //   c. Return undefined.
-                        return Ok(JsValue::UNDEFINED);
+                        return Ok(JsValue::undefined());
                     }
 
                     let Some(then) = resolution.as_object() else {
@@ -2135,7 +2135,7 @@ impl Promise {
                         fulfill_promise(&promise, resolution.clone(), context);
 
                         //   b. Return undefined.
-                        return Ok(JsValue::UNDEFINED);
+                        return Ok(JsValue::undefined());
                     };
 
                     // 9. Let then be Completion(Get(resolution, "then")).
@@ -2146,7 +2146,7 @@ impl Promise {
                             reject_promise(&promise, e.to_opaque(context), context);
 
                             //   b. Return undefined.
-                            return Ok(JsValue::UNDEFINED);
+                            return Ok(JsValue::undefined());
                         }
                         // 11. Let thenAction be then.[[Value]].
                         Ok(then) => then,
@@ -2162,7 +2162,7 @@ impl Promise {
                         fulfill_promise(&promise, resolution.clone(), context);
 
                         //   b. Return undefined.
-                        return Ok(JsValue::UNDEFINED);
+                        return Ok(JsValue::undefined());
                     };
 
                     // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
@@ -2181,7 +2181,7 @@ impl Promise {
                     context.job_queue().enqueue_promise_job(job, context);
 
                     // 16. Return undefined.
-                    Ok(JsValue::UNDEFINED)
+                    Ok(JsValue::undefined())
                 },
                 promise.clone(),
             ),
@@ -2216,7 +2216,7 @@ impl Promise {
                     reject_promise(&promise, args.get_or_undefined(0).clone(), context);
 
                     // 8. Return undefined.
-                    Ok(JsValue::UNDEFINED)
+                    Ok(JsValue::undefined())
                 },
                 promise,
             ),
@@ -2279,7 +2279,7 @@ fn new_promise_reaction_job(
             //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
             Some(handler) => context
                 .host_hooks()
-                .call_job_callback(handler, &JsValue::UNDEFINED, &[argument.clone()], context)
+                .call_job_callback(handler, &JsValue::undefined(), &[argument.clone()], context)
                 .map_err(|e| e.to_opaque(context)),
         };
 
@@ -2293,7 +2293,7 @@ fn new_promise_reaction_job(
                 );
 
                 // ii. Return empty.
-                Ok(JsValue::UNDEFINED)
+                Ok(JsValue::undefined())
             }
             Some(promise_capability_record) => {
                 // g. Assert: promiseCapability is a PromiseCapability Record.
@@ -2306,13 +2306,13 @@ fn new_promise_reaction_job(
                     // h. If handlerResult is an abrupt completion, then
                     Err(value) => {
                         // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                        reject.call(&JsValue::UNDEFINED, &[value], context)
+                        reject.call(&JsValue::undefined(), &[value], context)
                     }
 
                     // i. Else,
                     Ok(value) => {
                         // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                        resolve.call(&JsValue::UNDEFINED, &[value], context)
+                        resolve.call(&JsValue::undefined(), &[value], context)
                     }
                 }
             }
@@ -2366,7 +2366,7 @@ fn new_promise_resolve_thenable_job(
             //    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
             return resolving_functions
                 .reject
-                .call(&JsValue::UNDEFINED, &[value], context);
+                .call(&JsValue::undefined(), &[value], context);
         }
 
         //    d. Return ? thenCallResult.

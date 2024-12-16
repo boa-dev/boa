@@ -28,7 +28,7 @@ impl JsSetIterator {
     }
     /// Advances the `JsSetIterator` and gets the next result in the `JsSet`.
     pub fn next(&self, context: &mut Context) -> JsResult<JsValue> {
-        SetIterator::next(&self.inner.clone().into(), &[JsValue::NULL], context)
+        SetIterator::next(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 }
 

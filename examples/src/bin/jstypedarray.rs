@@ -20,7 +20,7 @@ fn main() -> JsResult<()> {
 
     let array = JsUint8Array::from_iter(data, context)?;
 
-    assert_eq!(array.get(0, context)?, JsValue::ZERO);
+    assert_eq!(array.get(0, context)?, JsValue::new(0));
 
     let mut sum = 0;
 
@@ -41,7 +41,7 @@ fn main() -> JsResult<()> {
     .build();
 
     assert_eq!(
-        array.reduce(callback, Some(JsValue::ZERO), context)?,
+        array.reduce(callback, Some(JsValue::new(0)), context)?,
         JsValue::new(sum)
     );
 
@@ -107,7 +107,7 @@ fn main() -> JsResult<()> {
                     .expect("error at number conversion");
 
                 *captures.borrow_mut() += element;
-                Ok(JsValue::UNDEFINED)
+                Ok(JsValue::undefined())
             },
             Gc::clone(&num_to_modify),
         ),
@@ -135,15 +135,15 @@ fn main() -> JsResult<()> {
         Some(3),
         context,
     )?;
-    assert_eq!(initialized8_array.get(0, context)?, JsValue::ZERO);
-    assert_eq!(initialized8_array.get(1, context)?, JsValue::ZERO);
-    assert_eq!(initialized8_array.get(2, context)?, JsValue::ZERO);
+    assert_eq!(initialized8_array.get(0, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(1, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(2, context)?, JsValue::new(0));
     assert_eq!(initialized8_array.get(3, context)?, JsValue::new(1.0));
     assert_eq!(initialized8_array.get(4, context)?, JsValue::new(2.0));
-    assert_eq!(initialized8_array.get(5, context)?, JsValue::ZERO);
-    assert_eq!(initialized8_array.get(6, context)?, JsValue::ZERO);
-    assert_eq!(initialized8_array.get(7, context)?, JsValue::ZERO);
-    assert_eq!(initialized8_array.get(8, context)?, JsValue::UNDEFINED);
+    assert_eq!(initialized8_array.get(5, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(6, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
+    assert_eq!(initialized8_array.get(8, context)?, JsValue::undefined());
 
     // subarray
     let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;

@@ -244,7 +244,7 @@ impl Map {
                     JsVariant::Float64(r) => {
                         // 5. If key is -0𝔽, set key to +0𝔽.
                         if r.is_zero() {
-                            JsValue::ZERO
+                            JsValue::new(0)
                         } else {
                             key.clone()
                         }
@@ -310,7 +310,7 @@ impl Map {
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
-            Some(n) if n.is_zero() => &JsValue::ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
@@ -345,7 +345,7 @@ impl Map {
     pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
-            Some(n) if n.is_zero() => &JsValue::ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
@@ -409,7 +409,7 @@ impl Map {
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
-            Some(n) if n.is_zero() => &JsValue::ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 

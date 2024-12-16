@@ -1123,7 +1123,7 @@ impl JsPromise {
     ///
     /// let context = &mut Context::default();
     /// let p1 = JsPromise::new(|fns, context| {
-    ///     fns.resolve.call(&JsValue::UNDEFINED, &[], context)
+    ///     fns.resolve.call(&JsValue::undefined(), &[], context)
     /// }, context)
     ///     .then(
     ///         Some(

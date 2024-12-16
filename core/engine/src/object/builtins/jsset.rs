@@ -63,7 +63,7 @@ impl JsSet {
     /// Same as JavaScript's `set.clear()`.
     #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
-        Set::clear(&self.inner.clone().into(), &[JsValue::NULL], context)
+        Set::clear(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Removes the element associated to the value.
@@ -103,7 +103,7 @@ impl JsSet {
     /// Same as JavaScript's `set.values()`.
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsSetIterator> {
-        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::NULL], context)?
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(IteratorHint::Sync, context)?;
 
         JsSetIterator::from_object(iterator_object.iterator().clone())
@@ -116,7 +116,7 @@ impl JsSet {
     /// Same as JavaScript's `set.keys()`.
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsSetIterator> {
-        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::NULL], context)?
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(IteratorHint::Sync, context)?;
 
         JsSetIterator::from_object(iterator_object.iterator().clone())
