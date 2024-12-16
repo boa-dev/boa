@@ -31,7 +31,7 @@ use temporal_rs::{
 };
 
 /// The `Temporal.Instant` object.
-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
 // SAFETY: Instant does not contain any traceable values.
 #[boa_gc(unsafe_empty_trace)]
 pub struct Instant {
