@@ -1537,7 +1537,7 @@ impl RegExp {
                 .to_integer_or_infinity(context)?;
 
             // f. Set position to the result of clamping position between 0 and lengthS.
-            let position = position.clamp_finite(0, length_s as i64) as usize;
+            let position = position.clamp_finite(0, length_s);
 
             // g. Let captures be a new empty List.
             let mut captures = Vec::new();

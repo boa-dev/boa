@@ -710,7 +710,9 @@ impl String {
         // 3. Let n be ? ToIntegerOrInfinity(count).
         match args.get_or_undefined(0).to_integer_or_infinity(context)? {
             IntegerOrInfinity::Integer(n)
-                if n > 0 && (n as usize) * len <= Self::MAX_STRING_LENGTH =>
+                if n > 0
+                    && usize::try_from(n).is_ok()
+                    && (n as usize) * len <= Self::MAX_STRING_LENGTH =>
             {
                 if string.is_empty() {
                     return Ok(js_string!().into());
@@ -837,7 +839,7 @@ impl String {
         let search_string = search_string.to_string(context)?;
 
         // 6. Let len be the length of S.
-        let len = string.len() as i64;
+        let len = string.len();
 
         // 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).
         let pos = match args.get_or_undefined(1) {
@@ -846,7 +848,7 @@ impl String {
         };
 
         // 8. Let start be the result of clamping pos between 0 and len.
-        let start = pos.clamp_finite(0, len) as usize;
+        let start = pos.clamp_finite(0, len);
 
         // 9. Let searchLength be the length of searchStr.
         let search_length = search_string.len();
@@ -857,10 +859,10 @@ impl String {
         }
 
         // 11. Let end be start + searchLength.
-        let end = start + search_length;
+        let end = start.saturating_add(search_length);
 
         // 12. If end > len, return false.
-        if end > len as usize {
+        if end > len {
             Ok(JsValue::new(false))
         } else {
             // 13. Let substring be the substring of S from start to end.
@@ -905,16 +907,16 @@ impl String {
         };
 
         // 6. Let len be the length of S.
-        let len = string.len() as i64;
+        let len = string.len();
 
         // 7. If endPosition is undefined, let pos be len; else let pos be ? ToIntegerOrInfinity(endPosition).
         let end = match args.get_or_undefined(1) {
-            end_position if end_position.is_undefined() => IntegerOrInfinity::Integer(len),
+            end_position if end_position.is_undefined() => IntegerOrInfinity::Integer(len as i64),
             end_position => end_position.to_integer_or_infinity(context)?,
         };
 
         // 8. Let end be the result of clamping pos between 0 and len.
-        let end = end.clamp_finite(0, len) as usize;
+        let end = end.clamp_finite(0, len);
 
         // 9. Let searchLength be the length of searchStr.
         let search_length = search_str.len();

@@ -3199,10 +3199,12 @@ impl Array {
             // 2. If relativeStart is -∞, let k be 0.
             IntegerOrInfinity::NegativeInfinity => 0,
             // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
+            IntegerOrInfinity::Integer(i) if i <= (isize::MIN as i64) => 0,
             IntegerOrInfinity::Integer(i) if i < 0 => {
                 len.checked_add_signed(i as isize).unwrap_or(0)
             }
             // 4. Else, let k be min(relativeStart, len).
+            IntegerOrInfinity::Integer(i) if i as u64 > usize::MAX as u64 => len,
             IntegerOrInfinity::Integer(i) => min(i as usize, len),
 
             // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
@@ -3228,11 +3230,13 @@ impl Array {
                 // 2. If relativeEnd is -∞, let final be 0.
                 IntegerOrInfinity::NegativeInfinity => 0,
                 // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+                IntegerOrInfinity::Integer(i) if i < 0 && i <= isize::MIN as i64 => 0,
                 IntegerOrInfinity::Integer(i) if i < 0 => {
                     len.checked_add_signed(i as isize).unwrap_or(0)
                 }
                 // 4. Else, let final be min(relativeEnd, len).
                 // Both `as` casts are safe as both variables are non-negative
+                IntegerOrInfinity::Integer(i) if i as u64 >= usize::MAX as u64 => len,
                 IntegerOrInfinity::Integer(i) => min(i as usize, len),
 
                 // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
