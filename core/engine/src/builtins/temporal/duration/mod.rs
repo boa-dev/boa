@@ -221,7 +221,6 @@ impl BuiltInConstructor for Duration {
                 .into());
         }
 
-        // TOOD: Support conversion to i64
         // 2. If years is undefined, let y be 0; else let y be ? ToIntegerIfIntegral(years).
         let years = args.get_or_undefined(0).map_or(Ok(0), |v| {
             let finite = v.to_finitef64(context)?;
@@ -963,7 +962,6 @@ pub(crate) fn to_temporal_partial_duration(
     // 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
     // 4. Let days be ? Get(temporalDurationLike, "days").
     // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
-    // TODO: Increase to i64
     let days = unknown_object
         .get(js_string!("days"), context)?
         .map(|v| {
@@ -1105,7 +1103,6 @@ pub(crate) fn to_temporal_partial_duration(
         nanoseconds,
     };
 
-    // TODO: Implement this functionality better in `temporal_rs`.
     // 24. If years is undefined, and months is undefined, and weeks is undefined, and days
     // is undefined, and hours is undefined, and minutes is undefined, and seconds is
     // undefined, and milliseconds is undefined, and microseconds is undefined, and
