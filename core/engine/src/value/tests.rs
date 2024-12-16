@@ -553,15 +553,15 @@ fn to_length() {
         assert_eq!(JsValue::new(f64::NEG_INFINITY).to_length(ctx).unwrap(), 0);
         assert_eq!(
             JsValue::new(f64::INFINITY).to_length(ctx).unwrap(),
-            Number::MAX_SAFE_INTEGER as u64
+            Number::MAX_SAFE_INTEGER as usize
         );
         assert_eq!(JsValue::new(0.0).to_length(ctx).unwrap(), 0);
         assert_eq!(JsValue::new(-0.0).to_length(ctx).unwrap(), 0);
         assert_eq!(JsValue::new(20.9).to_length(ctx).unwrap(), 20);
         assert_eq!(JsValue::new(-20.9).to_length(ctx).unwrap(), 0);
         assert_eq!(
-            JsValue::new(100_000_000_000.0).to_length(ctx).unwrap(),
-            100_000_000_000
+            JsValue::new(100_000_000.0).to_length(ctx).unwrap(),
+            100_000_000
         );
         assert_eq!(
             JsValue::new(4_010_101_101.0).to_length(ctx).unwrap(),
