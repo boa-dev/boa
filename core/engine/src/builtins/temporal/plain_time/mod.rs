@@ -3,7 +3,7 @@
 use super::{
     create_temporal_duration,
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
-    to_temporal_duration_record, PlainDateTime, ZonedDateTime, truncate, to_finite_number,
+    to_temporal_duration_record, PlainDateTime, ZonedDateTime,
 };
 use crate::value::JsVariant;
 use crate::{
@@ -17,14 +17,14 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, TemporalRoundingMode},
     partial::PartialTime,
-    primitive::FiniteF64,
     PlainTime as PlainTimeInner,
 };
 
@@ -150,38 +150,44 @@ impl BuiltInConstructor for PlainTime {
         }
 
         // 2. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
-        let hour = args
-            .get_or_undefined(0)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+        let hour = args.get_or_undefined(0).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
         // 3. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
-        let minute = args
-            .get_or_undefined(1)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+        let minute = args.get_or_undefined(1).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
         // 4. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
-        let second = args
-            .get_or_undefined(2)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+        let second = args.get_or_undefined(2).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
 
         // 5. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
         let millisecond = args
             .get_or_undefined(3)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u16>)?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
 
         // 6. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
         let microsecond = args
             .get_or_undefined(4)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u16>)?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
 
         // 7. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
         let nanosecond = args
             .get_or_undefined(5)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u16>)?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
 
         let inner = PlainTimeInner::new(
             hour.into(),
@@ -717,44 +723,56 @@ pub(crate) fn to_partial_time_record(
 ) -> JsResult<PartialTime> {
     let hour = partial_object
         .get(js_string!("hour"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
         .transpose()?
-        .map(truncate::<u8>)
         .map(Into::into);
 
     let minute = partial_object
         .get(js_string!("minute"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
         .transpose()?
-        .map(truncate::<u8>)
         .map(Into::into);
 
     let second = partial_object
         .get(js_string!("second"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
         .transpose()?
-        .map(truncate::<u8>)
         .map(Into::into);
 
     let millisecond = partial_object
         .get(js_string!("millisecond"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
         .transpose()?
-        .map(truncate::<u16>)
         .map(Into::into);
 
     let microsecond = partial_object
         .get(js_string!("microsecond"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
         .transpose()?
-        .map(truncate::<u16>)
         .map(Into::into);
 
     let nanosecond = partial_object
         .get(js_string!("nanosecond"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
         .transpose()?
-        .map(truncate::<u16>)
         .map(Into::into);
 
     Ok(PartialTime {

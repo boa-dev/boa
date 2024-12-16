@@ -530,7 +530,7 @@ fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerI
         // c. NOTE: This use of ToPrimitive allows Instant-like objects to be converted.
         // d. Set item to ? ToPrimitive(item, string).
         if let Some(instant) = obj.downcast_ref::<Instant>() {
-            return Ok(instant.inner.clone());
+            return Ok(instant.inner);
         } else if let Some(_zdt) = obj.downcast_ref::<ZonedDateTime>() {
             return Err(JsNativeError::error()
                 .with_message("Not yet implemented.")

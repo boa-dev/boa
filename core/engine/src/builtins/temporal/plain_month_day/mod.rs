@@ -22,14 +22,10 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, CalendarName},
     partial::PartialDate,
-    primitive::FiniteF64,
     PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
-use super::{
-    calendar::to_temporal_calendar_slot_value, to_finite_number, truncate, truncate_as_positive,
-    DateTimeValues,
-};
+use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -204,20 +200,22 @@ impl BuiltInConstructor for PlainMonthDay {
 
         let ref_year = args
             .get_or_undefined(3)
-            .map(|v| to_finite_number(v, context))
-            .transpose()?
-            .map(truncate::<i32>);
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
 
         // We can ignore 2 as the underlying temporal library handles the reference year
         let m = args
             .get_or_undefined(0)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
 
         let d = args
             .get_or_undefined(1)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
 
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
         let inner = InnerMonthDay::new_with_overflow(
@@ -334,16 +332,24 @@ fn to_temporal_month_day(
     } else if item.is_object() {
         let day = item
             .get_v(js_string!("day"), context)?
-            .map_or(None, |v| Some(to_finite_number(v, context)))
-            .transpose()?
-            .map(truncate_as_positive)
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                // TODO: Update to the below to u8 after temporal_rs change
+                finite
+                    .as_positive_integer_with_truncation::<i32>()
+                    .map_err(JsError::from)
+            })
             .transpose()?;
 
         let month = item
             .get_v(js_string!("month"), context)?
-            .map_or(None, |v| Some(to_finite_number(v, context)))
-            .transpose()?
-            .map(truncate_as_positive)
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                // TODO: Update to the below to u8 after temporal_rs change
+                finite
+                    .as_positive_integer_with_truncation::<i32>()
+                    .map_err(JsError::from)
+            })
             .transpose()?;
 
         let month_code = item
@@ -355,17 +361,17 @@ fn to_temporal_month_day(
                         .with_message("The monthCode field value must be a string.")
                         .into());
                 };
-                TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped()).map_err(|e| {
-                    JsError::from(JsNativeError::typ().with_message(e.to_string()))
-                })
+                TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
             })
             .transpose()?;
 
-        let year = item
-            .get_v(js_string!("year"), context)?
-            .map_or(None, |v| Some(to_finite_number(v, context)))
-            .transpose()?
-            .map_or(1972, truncate);
+        let year =
+            item.get_v(js_string!("year"), context)?
+                .map_or(Ok::<i32, JsError>(1972), |v| {
+                    let finite = v.to_finitef64(context)?;
+                    Ok(finite.as_integer_with_truncation::<i32>())
+                })?;
 
         let partial_date = &PartialDate {
             month,

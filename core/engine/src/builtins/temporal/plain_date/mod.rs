@@ -28,8 +28,7 @@ use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_datetime, create_temporal_duration,
     options::get_difference_settings,
-    to_finite_number, to_temporal_duration_record, to_temporal_time, truncate,
-    truncate_as_positive, PlainDateTime, ZonedDateTime,
+    to_temporal_duration_record, to_temporal_time, PlainDateTime, ZonedDateTime,
 };
 
 #[cfg(feature = "temporal")]
@@ -244,9 +243,18 @@ impl BuiltInConstructor for PlainDate {
                 .into());
         };
 
-        let year = truncate::<i32>(to_finite_number(args.get_or_undefined(0), context)?);
-        let month = truncate::<u8>(to_finite_number(args.get_or_undefined(1), context)?);
-        let day = truncate::<u8>(to_finite_number(args.get_or_undefined(2), context)?);
+        let year = args
+            .get_or_undefined(0)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<i32>();
+        let month = args
+            .get_or_undefined(1)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
+        let day = args
+            .get_or_undefined(2)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
         let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(3))?;
 
         let inner = InnerDate::try_new(year, month.into(), day.into(), calendar_slot)?;
@@ -893,15 +901,21 @@ pub(crate) fn to_partial_date_record(
     // TODO: Most likely need to use an iterator to handle.
     let day = partial_object
         .get(js_string!("day"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
-        .transpose()?
-        .map(truncate_as_positive)
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
         .transpose()?;
     let month = partial_object
         .get(js_string!("month"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
-        .transpose()?
-        .map(truncate_as_positive)
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
         .transpose()?;
     let month_code = partial_object
         .get(js_string!("monthCode"), context)?
@@ -912,21 +926,24 @@ pub(crate) fn to_partial_date_record(
                     .with_message("The monthCode field value must be a string.")
                     .into());
             };
-
             TinyAsciiStr::<4>::try_from_str(&month_code.to_std_string_escaped())
                 .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
         })
         .transpose()?;
     let year = partial_object
         .get(js_string!("year"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
-        .transpose()?
-        .map(truncate);
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+        })
+        .transpose()?;
     let era_year = partial_object
         .get(js_string!("eraYear"), context)?
-        .map_or(None, |v| Some(to_finite_number(v, context)))
-        .transpose()?
-        .map(truncate);
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+        })
+        .transpose()?;
     let era = partial_object
         .get(js_string!("era"), context)?
         .map(|v| {

@@ -14,7 +14,8 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::IntoOrUndefined,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -25,7 +26,6 @@ mod tests;
 use temporal_rs::{
     options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
     partial::PartialDateTime,
-    primitive::FiniteF64,
     PlainDateTime as InnerDateTime, PlainTime,
 };
 
@@ -33,8 +33,7 @@ use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_duration,
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
-    to_finite_number, to_temporal_duration_record, to_temporal_time, truncate, PlainDate,
-    ZonedDateTime,
+    to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
 };
 use crate::value::JsVariant;
 
@@ -311,45 +310,60 @@ impl BuiltInConstructor for PlainDateTime {
         };
 
         // 2. Set isoYear to ? ToIntegerWithTruncation(isoYear).
-        let iso_year = truncate::<i32>(to_finite_number(args.get_or_undefined(0), context)?);
+        let iso_year = args
+            .get_or_undefined(0)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<i32>();
         // 3. Set isoMonth to ? ToIntegerWithTruncation(isoMonth).
-        let iso_month = truncate::<u8>(to_finite_number(args.get_or_undefined(1), context)?);
+        let iso_month = args
+            .get_or_undefined(1)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
         // 4. Set isoDay to ? ToIntegerWithTruncation(isoDay).
-        let iso_day = truncate::<u8>(to_finite_number(args.get_or_undefined(2), context)?);
+        let iso_day = args
+            .get_or_undefined(2)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
         // 5. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
-        let hour = args
-            .get_or_undefined(3)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+        let hour = args.get_or_undefined(3).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
         // 6. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
-        let minute = args
-            .get_or_undefined(4)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+        let minute = args.get_or_undefined(4).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
 
         // 7. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
-        let second = args
-            .get_or_undefined(5)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u8>)?;
+        let second = args.get_or_undefined(5).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
 
         // 8. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
         let millisecond = args
             .get_or_undefined(6)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u16>)?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
 
         // 9. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
         let microsecond = args
             .get_or_undefined(7)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u16>)?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
 
         // 10. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
         let nanosecond = args
             .get_or_undefined(8)
-            .map_or(Ok(FiniteF64::from(0)), |v| to_finite_number(v, context))
-            .map(truncate::<u16>)?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
 
         let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
 
