@@ -277,6 +277,7 @@ impl IntrinsicObject for PlainDateTime {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -314,27 +315,27 @@ impl BuiltInConstructor for PlainDateTime {
         let iso_day = to_integer_with_truncation(args.get_or_undefined(2), context)?;
         // 5. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
         let hour = args
-            .get(3)
+            .get_or_undefined(3)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 6. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
         let minute = args
-            .get(4)
+            .get_or_undefined(4)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 7. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
         let second = args
-            .get(5)
+            .get_or_undefined(5)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 8. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
         let millisecond = args
-            .get(6)
+            .get_or_undefined(6)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 9. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
         let microsecond = args
-            .get(7)
+            .get_or_undefined(7)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 10. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
         let nanosecond = args
-            .get(8)
+            .get_or_undefined(8)
             .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
         // 11. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
         let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
@@ -688,13 +689,13 @@ impl PlainDateTime {
                 .with_message("with object was not a PartialTemporalObject.")
                 .into());
         };
-        let options = get_options_object(args.get_or_undefined(1))?;
 
         let date = to_partial_date_record(partial_object, context)?;
         let time = to_partial_time_record(partial_object, context)?;
 
         let partial_dt = PartialDateTime { date, time };
 
+        let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         create_temporal_datetime(dt.inner.with(partial_dt, overflow)?, None, context)
@@ -904,6 +905,12 @@ impl PlainDateTime {
         // 6. Return ? CalendarEquals(dateTime.[[Calendar]], other.[[Calendar]]).
         Ok((dt.inner == other).into())
     }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
+            .into())
+    }
 }
 
 // ==== `PlainDateTime` Abstract Operations` ====
@@ -976,7 +983,7 @@ pub(crate) fn to_temporal_datetime(
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return Err(JsNativeError::range()
+            return Err(JsNativeError::error()
                 .with_message("Not yet implemented.")
                 .into());
         // c. If item has an [[InitializedTemporalDate]] internal slot, then

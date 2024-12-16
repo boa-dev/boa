@@ -13,6 +13,10 @@ use crate::read::{MetaData, TestFlag};
 static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Proposed language features
 
+    // Error.isError
+    // https://github.com/tc39/proposal-is-error
+    "Error.isError" => SpecEdition::ESNext,
+
     // Intl.Locale Info
     // https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info"  => SpecEdition::ESNext,
@@ -32,6 +36,10 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Import Attributes
     // https://github.com/tc39/proposal-import-attributes/
     "import-attributes" => SpecEdition::ESNext,
+
+    // Import Defer
+    // https://tc39.es/proposal-defer-import-eval
+    "import-defer" => SpecEdition::ESNext,
 
     // Import Assertions
     // https://github.com/tc39/proposal-import-assertions/

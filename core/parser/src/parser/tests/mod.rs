@@ -623,3 +623,14 @@ fn deny_unicode_escape_in_true_expression() {
 fn deny_unicode_escape_in_null_expression() {
     check_invalid_script(r"let x = n\u{75}ll;");
 }
+
+#[test]
+fn stress_test_operations() {
+    let src = ("1 * 2 + /* comment why not */ 3 / 4 % 5 + ".repeat(1_000)
+        + "1; // end of line\n\n")
+        .repeat(1_000);
+
+    assert!(Parser::new(Source::from_bytes(&src))
+        .parse_script(&Scope::new_global(), &mut Interner::default())
+        .is_ok());
+}

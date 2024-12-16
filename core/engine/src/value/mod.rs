@@ -1083,7 +1083,7 @@ impl JsValue {
         self.variant().js_type_of()
     }
 
-    /// Maps a `JsValue` into a `Option<T>` where T is the result of an
+    /// Maps a `JsValue` into `Option<T>` where T is the result of an
     /// operation on a defined value. If the value is `JsValue::undefined`,
     /// then `JsValue::map` will return None.
     ///
@@ -1104,7 +1104,6 @@ impl JsValue {
     /// assert_eq!(undefined_result, None);
     ///
     /// ```
-    ///
     #[inline]
     #[must_use]
     pub fn map<T, F>(&self, f: F) -> Option<T>
@@ -1115,6 +1114,43 @@ impl JsValue {
             return None;
         }
         Some(f(self))
+    }
+
+    /// Maps a `JsValue` into `T` where T is the result of an
+    /// operation on a defined value. If the value is `JsValue::undefined`,
+    /// then `JsValue::map` will return the provided default value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use boa_engine::{JsValue, Context};
+    ///
+    /// let mut context = Context::default();
+    ///
+    /// let defined_value = JsValue::from(5);
+    /// let undefined = JsValue::undefined();
+    ///
+    /// let defined_result = defined_value
+    ///     .map_or(Ok(JsValue::Boolean(true)), |v| v.add(&JsValue::from(5), &mut context))
+    ///     .unwrap();
+    /// let undefined_result = undefined
+    ///     .map_or(Ok(JsValue::Boolean(true)), |v| v.add(&JsValue::from(5), &mut context))
+    ///     .unwrap();
+    ///
+    /// assert_eq!(defined_result, JsValue::Integer(10));
+    /// assert_eq!(undefined_result, JsValue::Boolean(true));
+    ///
+    /// ```
+    #[inline]
+    #[must_use]
+    pub fn map_or<T, F>(&self, default: T, f: F) -> T
+    where
+        F: FnOnce(&JsValue) -> T,
+    {
+        if self.is_undefined() {
+            return default;
+        }
+        f(self)
     }
 
     /// Abstract operation `IsArray ( argument )`
