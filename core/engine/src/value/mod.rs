@@ -163,13 +163,6 @@ impl JsValue {
         Self::from_inner(InnerValue::Float64(f64::NEG_INFINITY))
     }
 
-    /// Creates a new number from an integer.
-    #[inline]
-    #[must_use]
-    pub const fn integer(integer: i32) -> Self {
-        Self::from_inner(InnerValue::Integer32(integer))
-    }
-
     /// Creates a new number from a float.
     #[inline]
     #[must_use]
@@ -1131,14 +1124,14 @@ impl JsValue {
     /// let undefined = JsValue::undefined();
     ///
     /// let defined_result = defined_value
-    ///     .map_or(Ok(JsValue::Boolean(true)), |v| v.add(&JsValue::from(5), &mut context))
+    ///     .map_or(Ok(JsValue::new(true)), |v| v.add(&JsValue::from(5), &mut context))
     ///     .unwrap();
     /// let undefined_result = undefined
-    ///     .map_or(Ok(JsValue::Boolean(true)), |v| v.add(&JsValue::from(5), &mut context))
+    ///     .map_or(Ok(JsValue::new(true)), |v| v.add(&JsValue::from(5), &mut context))
     ///     .unwrap();
     ///
-    /// assert_eq!(defined_result, JsValue::Integer(10));
-    /// assert_eq!(undefined_result, JsValue::Boolean(true));
+    /// assert_eq!(defined_result, JsValue::new(10));
+    /// assert_eq!(undefined_result, JsValue::new(true));
     ///
     /// ```
     #[inline]

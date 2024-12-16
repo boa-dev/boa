@@ -620,7 +620,8 @@ pub(crate) fn to_temporal_time(
     context: &mut Context,
 ) -> JsResult<PlainTimeInner> {
     // 1.If overflow is not present, set overflow to "constrain".
-    let options = options.unwrap_or(&JsValue::Undefined);
+    let binding = JsValue::undefined();
+    let options = options.unwrap_or(&binding);
     // 2. If item is an Object, then
     match value.variant() {
         JsVariant::Object(object) => {

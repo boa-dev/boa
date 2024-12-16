@@ -337,9 +337,8 @@ fn to_temporal_month_day(
         let month_code = item
             .get_v(js_string!("monthCode"), context)?
             .map(|v| {
-                let JsValue::String(month_code) =
-                    v.to_primitive(context, crate::value::PreferredType::String)?
-                else {
+                let primitive = v.to_primitive(context, crate::value::PreferredType::String)?;
+                let Some(month_code) = primitive.as_string() else {
                     return Err(JsNativeError::typ()
                         .with_message("The monthCode field value must be a string.")
                         .into());

@@ -844,10 +844,11 @@ impl String {
         let len = string.len() as i64;
 
         // 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).
-        let pos = match args.get_or_undefined(1).as_defined() {
-            None => IntegerOrInfinity::Integer(0),
-            Some(pos) => pos.to_integer_or_infinity(context)?,
-        };
+        let pos = args
+            .get_or_undefined(1)
+            .map_or(Ok(IntegerOrInfinity::Integer(0)), |pos| {
+                pos.to_integer_or_infinity(context)
+            })?;
 
         // 8. Let start be the result of clamping pos between 0 and len.
         let start = pos.clamp_finite(0, len) as usize;
