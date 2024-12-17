@@ -476,7 +476,7 @@ impl JsValue {
                     PreferredType::String => js_string!("string"),
                     PreferredType::Number => js_string!("number"),
                 }
-                    .into();
+                .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
                 let result = exotic_to_prim.call(self, &[hint], context)?;

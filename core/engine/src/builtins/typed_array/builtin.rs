@@ -2392,8 +2392,8 @@ impl BuiltinTypedArray {
                 &[buffer.into(), begin_byte_offset.into()],
                 context,
             )?
-                .upcast()
-                .into())
+            .upcast()
+            .into())
         } else {
             // 16. Else,
             //     a. If end is undefined, let relativeEnd be srcLength; else let relativeEnd be ? ToIntegerOrInfinity(end).
@@ -2412,8 +2412,8 @@ impl BuiltinTypedArray {
                 &[buffer.into(), begin_byte_offset.into(), new_len.into()],
                 context,
             )?
-                .upcast()
-                .into())
+            .upcast()
+            .into())
         }
     }
 
