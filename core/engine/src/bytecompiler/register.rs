@@ -6,7 +6,6 @@ bitflags::bitflags! {
         /// Whether the register is still in use (not deallocated).
         const USED       = 0b0000_0001;
 
-        /// Is the register presistent (not deallocatable).
         const PERSISTENT = 0b0000_0010;
     }
 }
@@ -74,9 +73,8 @@ impl RegisterAllocator {
         if let Some((i, register)) = self
             .registers
             .iter_mut()
-            .filter(|reg| !reg.flags.is_used())
             .enumerate()
-            .next()
+            .find(|(_, reg)| !reg.flags.is_used())
         {
             assert!(!register.flags.is_persistent());
 
@@ -108,7 +106,7 @@ impl RegisterAllocator {
         reg
     }
 
-    #[allow(unused)]
+    #[track_caller]
     pub(crate) fn dealloc(&mut self, reg: Register) {
         assert!(
             !reg.flags.is_persistent(),

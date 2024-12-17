@@ -1,6 +1,6 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult, JsValue,
 };
 
@@ -12,15 +12,19 @@ use crate::{
 pub(crate) struct GetName;
 
 impl GetName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    fn operation(
+        value: u32,
+        index: usize,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        let value = context.get_binding(&binding_locator)?.ok_or_else(|| {
+        let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
             let name = binding_locator.name().to_std_string_escaped();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
-
-        context.vm.push(value);
+        registers.set(value, result);
         Ok(CompletionType::Normal)
     }
 }
@@ -30,19 +34,22 @@ impl Operation for GetName {
     const INSTRUCTION: &'static str = "INST - GetName";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u8>().into();
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(value, index, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u16>().into();
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        Self::operation(value, index, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u32>();
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(value, index, registers, context)
     }
 }
 
@@ -54,7 +61,7 @@ impl Operation for GetName {
 pub(crate) struct GetLocator;
 
 impl GetLocator {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    fn operation(index: usize, context: &mut Context) -> JsResult<CompletionType> {
         let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
 
@@ -69,19 +76,19 @@ impl Operation for GetLocator {
     const INSTRUCTION: &'static str = "INST - GetLocator";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(index, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        Self::operation(index, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+    fn execute_u32(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(index, context)
     }
 }
 
@@ -94,16 +101,21 @@ impl Operation for GetLocator {
 pub(crate) struct GetNameAndLocator;
 
 impl GetNameAndLocator {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    fn operation(
+        value: u32,
+        index: usize,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-        let value = context.get_binding(&binding_locator)?.ok_or_else(|| {
+        let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
             let name = binding_locator.name().to_std_string_escaped();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
         context.vm.frame_mut().binding_stack.push(binding_locator);
-        context.vm.push(value);
+        registers.set(value, result);
         Ok(CompletionType::Normal)
     }
 }
@@ -113,19 +125,22 @@ impl Operation for GetNameAndLocator {
     const INSTRUCTION: &'static str = "INST - GetNameAndLocator";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u8>().into();
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(value, index, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u16>().into();
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        Self::operation(value, index, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u32>();
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(value, index, registers, context)
     }
 }
 
@@ -137,14 +152,19 @@ impl Operation for GetNameAndLocator {
 pub(crate) struct GetNameOrUndefined;
 
 impl GetNameOrUndefined {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    fn operation(
+        value: u32,
+        index: usize,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
 
         let is_global = binding_locator.is_global();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
-        let value = if let Some(value) = context.get_binding(&binding_locator)? {
+        let result = if let Some(value) = context.get_binding(&binding_locator)? {
             value
         } else if is_global {
             JsValue::undefined()
@@ -155,7 +175,7 @@ impl GetNameOrUndefined {
                 .into());
         };
 
-        context.vm.push(value);
+        registers.set(value, result);
         Ok(CompletionType::Normal)
     }
 }
@@ -165,18 +185,21 @@ impl Operation for GetNameOrUndefined {
     const INSTRUCTION: &'static str = "INST - GetNameOrUndefined";
     const COST: u8 = 4;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u8>().into();
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(value, index, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u16>().into();
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        Self::operation(value, index, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u32>();
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(value, index, registers, context)
     }
 }

@@ -1,6 +1,6 @@
 use crate::{
     value::{JsValue, Numeric},
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsBigInt, JsResult,
 };
 
@@ -11,58 +11,52 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Dec;
 
+impl Dec {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        src: u32,
+        dst: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let value = registers.get(src);
+
+        let (numeric, value) = match value {
+            JsValue::Integer(number) if *number > i32::MIN => {
+                (JsValue::from(*number), JsValue::from(number - 1))
+            }
+            _ => match value.to_numeric(context)? {
+                Numeric::Number(number) => (JsValue::from(number), JsValue::from(number - 1f64)),
+                Numeric::BigInt(bigint) => (
+                    JsValue::from(bigint.clone()),
+                    JsValue::from(JsBigInt::sub(&bigint, &JsBigInt::one())),
+                ),
+            },
+        };
+        registers.set(src, numeric);
+        registers.set(dst, value);
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for Dec {
     const NAME: &'static str = "Dec";
     const INSTRUCTION: &'static str = "INST - Dec";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value {
-            JsValue::Integer(number) if number > i32::MIN => {
-                context.vm.push(number - 1);
-            }
-            _ => match value.to_numeric(context)? {
-                Numeric::Number(number) => context.vm.push(number - 1f64),
-                Numeric::BigInt(bigint) => {
-                    context.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
-                }
-            },
-        }
-        Ok(CompletionType::Normal)
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst: u32 = context.vm.read::<u8>().into();
+        let src: u32 = context.vm.read::<u8>().into();
+        Self::operation(src, dst, registers, context)
     }
-}
-
-/// `DecPost` implements the Opcode Operation for `Opcode::DecPost`
-///
-/// Operation:
-///  - Unary postfix `--` operator.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct DecPost;
-
-impl Operation for DecPost {
-    const NAME: &'static str = "DecPost";
-    const INSTRUCTION: &'static str = "INST - DecPost";
-    const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value {
-            JsValue::Integer(number) if number > i32::MIN => {
-                context.vm.push(number - 1);
-                context.vm.push(value);
-            }
-            _ => {
-                let value = value.to_numeric(context)?;
-                match value {
-                    Numeric::Number(number) => context.vm.push(number - 1f64),
-                    Numeric::BigInt(ref bigint) => {
-                        context.vm.push(JsBigInt::sub(bigint, &JsBigInt::one()));
-                    }
-                }
-                context.vm.push(value);
-            }
-        }
-        Ok(CompletionType::Normal)
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst: u32 = context.vm.read::<u16>().into();
+        let src: u32 = context.vm.read::<u16>().into();
+        Self::operation(src, dst, registers, context)
+    }
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst: u32 = context.vm.read::<u32>();
+        let src: u32 = context.vm.read::<u32>();
+        Self::operation(src, dst, registers, context)
     }
 }
