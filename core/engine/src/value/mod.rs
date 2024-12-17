@@ -327,17 +327,6 @@ impl JsValue {
         matches!(&self.inner, InnerValue::Undefined)
     }
 
-    /// Returns `Some(self)` if the value is defined, otherwise `None`.
-    #[inline]
-    #[must_use]
-    pub const fn as_defined(&self) -> Option<&Self> {
-        if self.is_undefined() {
-            None
-        } else {
-            Some(self)
-        }
-    }
-
     /// Returns true if the value is null.
     #[inline]
     #[must_use]
@@ -487,7 +476,7 @@ impl JsValue {
                     PreferredType::String => js_string!("string"),
                     PreferredType::Number => js_string!("number"),
                 }
-                .into();
+                    .into();
 
                 // iv. Let result be ? Call(exoticToPrim, input, « hint »).
                 let result = exotic_to_prim.call(self, &[hint], context)?;

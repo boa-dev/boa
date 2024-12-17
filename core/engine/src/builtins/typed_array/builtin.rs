@@ -205,20 +205,18 @@ impl BuiltinTypedArray {
             }
         };
 
-        let mapping = match args.get_or_undefined(1).as_defined() {
+        let mapping = match args.first().map(JsValue::variant) {
             // 3. If mapfn is undefined, let mapping be false.
             None => None,
             // 4. Else,
-            Some(v) => match v.as_object() {
-                // b. Let mapping be true.
-                Some(obj) if obj.is_callable() => Some(obj),
-                // a. If IsCallable(mapfn) is false, throw a TypeError exception.
-                _ => {
-                    return Err(JsNativeError::typ()
-                        .with_message("TypedArray.from called with non-callable mapfn")
-                        .into())
-                }
-            },
+            // b. Let mapping be true.
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
+            // a. If IsCallable(mapfn) is false, throw a TypeError exception.
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("TypedArray.from called with non-callable mapfn")
+                    .into())
+            }
         };
 
         // 5. Let usingIterator be ? GetMethod(source, @@iterator).
@@ -2220,9 +2218,9 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.first().and_then(JsValue::as_defined) {
+        let compare_fn = match args.first().map(JsValue::variant) {
             None => None,
-            Some(obj) if obj.is_callable() => obj.as_callable(),
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
@@ -2272,9 +2270,9 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.first().and_then(JsValue::as_defined) {
+        let compare_fn = match args.first().map(JsValue::variant) {
             None => None,
-            Some(obj) if obj.is_callable() => obj.as_callable(),
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
@@ -2394,8 +2392,8 @@ impl BuiltinTypedArray {
                 &[buffer.into(), begin_byte_offset.into()],
                 context,
             )?
-            .upcast()
-            .into())
+                .upcast()
+                .into())
         } else {
             // 16. Else,
             //     a. If end is undefined, let relativeEnd be srcLength; else let relativeEnd be ? ToIntegerOrInfinity(end).
@@ -2414,8 +2412,8 @@ impl BuiltinTypedArray {
                 &[buffer.into(), begin_byte_offset.into(), new_len.into()],
                 context,
             )?
-            .upcast()
-            .into())
+                .upcast()
+                .into())
         }
     }
 

@@ -283,7 +283,7 @@ impl String {
                 .configurable(false),
             context,
         )
-        .expect("length definition for a new string must not fail");
+            .expect("length definition for a new string must not fail");
 
         // 9. Return S.
         s
@@ -714,21 +714,21 @@ impl String {
         // 3. Let n be ? ToIntegerOrInfinity(count).
         match args.get_or_undefined(0).to_integer_or_infinity(context)? {
             IntegerOrInfinity::Integer(n)
-                if n > 0 && (n as usize) * len <= Self::MAX_STRING_LENGTH =>
-            {
-                if string.is_empty() {
-                    return Ok(js_string!().into());
+            if n > 0 && (n as usize) * len <= Self::MAX_STRING_LENGTH =>
+                {
+                    if string.is_empty() {
+                        return Ok(js_string!().into());
+                    }
+                    let n = n as usize;
+                    let mut result = Vec::with_capacity(n);
+
+                    std::iter::repeat(string.as_str())
+                        .take(n)
+                        .for_each(|s| result.push(s));
+
+                    // 6. Return the String value that is made from n copies of S appended together.
+                    Ok(JsString::concat_array(&result).into())
                 }
-                let n = n as usize;
-                let mut result = Vec::with_capacity(n);
-
-                std::iter::repeat(string.as_str())
-                    .take(n)
-                    .for_each(|s| result.push(s));
-
-                // 6. Return the String value that is made from n copies of S appended together.
-                Ok(JsString::concat_array(&result).into())
-            }
             // 5. If n is 0, return the empty String.
             IntegerOrInfinity::Integer(0) => Ok(js_string!().into()),
             // 4. If n < 0 or n is +∞, throw a RangeError exception.
@@ -1099,7 +1099,7 @@ impl String {
             &replacement,
             &JsString::from(string.get_expect(position + search_length..))
         )
-        .into())
+            .into())
     }
 
     /// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
@@ -1236,7 +1236,7 @@ impl String {
                     replace_str,
                     context,
                 )
-                .expect("GetSubstitution should never fail here."),
+                    .expect("GetSubstitution should never fail here."),
             };
 
             // d. Set result to the string-concatenation of result, preserved, and replacement.
@@ -1795,7 +1795,7 @@ impl String {
                 [requested_locale],
                 context.intl_provider(),
             )
-            .unwrap_or(Locale::UND);
+                .unwrap_or(Locale::UND);
 
             let casemapper = context.intl_provider().case_mapper()?;
 
@@ -1892,10 +1892,11 @@ impl String {
         let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
         // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
-        let int_end = match args.get_or_undefined(1).as_defined() {
-            None => IntegerOrInfinity::Integer(len),
-            Some(end) => end.to_integer_or_infinity(context)?,
-        };
+        let int_end = args
+            .get_or_undefined(1)
+            .map_or(Ok(IntegerOrInfinity::Integer(len)), |end| {
+                end.to_integer_or_infinity(context)
+            })?;
 
         // 6. Let finalStart be the result of clamping intStart between 0 and len.
         let final_start = int_start.clamp_finite(0, len) as usize;
@@ -2014,7 +2015,7 @@ impl String {
                     substrings.into_iter().map(JsValue::from),
                     context,
                 )
-                .into());
+                    .into());
             }
             // d. Set i to j + separatorLength.
             i = index + separator_length;
