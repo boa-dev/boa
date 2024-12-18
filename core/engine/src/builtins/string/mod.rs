@@ -2146,13 +2146,13 @@ impl String {
         // 6. Let ns be the String value that is the result of normalizing S
         // into the normalization form named by f as specified in
         // https://unicode.org/reports/tr15/.
-        let arg0 = args.get_or_undefined(0);
+        let first = args.get_or_undefined(0);
         // 3. If form is undefined, let f be "NFC".
-        let normalization = if arg0.is_undefined() {
+        let normalization = if first.is_undefined() {
             Normalization::Nfc
         } else {
             // 4. Else, let f be ? ToString(form).
-            match arg0.to_string(context)? {
+            match first.to_string(context)? {
                 ntype if &ntype == "NFC" => Normalization::Nfc,
                 ntype if &ntype == "NFD" => Normalization::Nfd,
                 ntype if &ntype == "NFKC" => Normalization::Nfkc,
