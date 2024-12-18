@@ -349,11 +349,16 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-isintegralnumber
     #[inline]
     #[must_use]
+    #[allow(clippy::float_cmp)]
     pub const fn as_i32(&self) -> Option<i32> {
-        if let InnerValue::Integer32(i) = self.inner {
-            Some(i)
-        } else {
-            None
+        match self.inner {
+            InnerValue::Integer32(integer) => Some(integer),
+            // If it can fit in a i32 and the truncated version is
+            // equal to the original then it is an integer.
+            InnerValue::Float64(rational) if rational == ((rational as i32) as f64) => {
+                Some(rational as i32)
+            }
+            _ => None,
         }
     }
 
@@ -578,8 +583,8 @@ impl JsValue {
             InnerValue::Undefined => Ok(js_string!("undefined")),
             InnerValue::Boolean(true) => Ok(js_string!("true")),
             InnerValue::Boolean(false) => Ok(js_string!("false")),
-            InnerValue::Float64(rational) => Ok(Number::to_js_string_radix(rational, 10)),
-            InnerValue::Integer32(integer) => Ok(integer.to_string().into()),
+            InnerValue::Float64(rational) => Ok(JsString::from(rational)),
+            InnerValue::Integer32(integer) => Ok(JsString::from(integer)),
             InnerValue::String(ref string) => Ok(string.clone()),
             InnerValue::Symbol(_) => Err(JsNativeError::typ()
                 .with_message("can't convert symbol to string")

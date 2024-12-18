@@ -49,25 +49,22 @@ impl From<JsSymbol> for JsValue {
     }
 }
 
-macro_rules! impl_from_float {
-    ( $( $type_:ty ),* ) => {
-        $(
-            impl From<$type_> for JsValue {
-                #[inline]
-                #[allow(trivial_numeric_casts)]
-                #[allow(clippy::cast_lossless)]
-                fn from(value: $type_) -> Self {
-                    let _timer = Profiler::global().start_event(concat!("From<", stringify!($type_), ">"), "value");
+impl From<f32> for JsValue {
+    #[inline]
+    fn from(value: f32) -> Self {
+        let _timer = Profiler::global().start_event("From<f32>", "value");
 
-                    if value != -0.0 && value.fract() == 0.0 && value <= i32::MAX as $type_ && value >= i32::MIN as $type_ {
-                        Self::from_inner(InnerValue::Integer32(value as i32))
-                    } else {
-                        Self::from_inner(InnerValue::Float64(f64::from(value)))
-                    }
-                }
-            }
-        )*
-    };
+        JsValue::from(f64::from(value))
+    }
+}
+
+impl From<f64> for JsValue {
+    #[inline]
+    fn from(value: f64) -> Self {
+        let _timer = Profiler::global().start_event("From<f64>", "value");
+
+        Self::from_inner(InnerValue::Float64(value))
+    }
 }
 
 macro_rules! impl_from_integer {
@@ -90,7 +87,6 @@ macro_rules! impl_from_integer {
     };
 }
 
-impl_from_float!(f32, f64);
 impl_from_integer!(u8, i8, u16, i16, u32, i32, u64, i64, usize, isize);
 
 impl From<JsBigInt> for JsValue {
