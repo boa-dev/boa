@@ -205,9 +205,9 @@ impl BuiltinTypedArray {
             }
         };
 
-        let mapping = match args.first().map(JsValue::variant) {
+        let mapping = match args.get(1).map(JsValue::variant) {
             // 3. If mapfn is undefined, let mapping be false.
-            None => None,
+            None | Some(JsVariant::Undefined) => None,
             // 4. Else,
             // b. Let mapping be true.
             Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
@@ -215,7 +215,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.from called with non-callable mapfn")
-                    .into())
+                    .into());
             }
         };
 
@@ -2219,7 +2219,7 @@ impl BuiltinTypedArray {
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         let compare_fn = match args.first().map(JsValue::variant) {
-            None => None,
+            None | Some(JsVariant::Undefined) => None,
             Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return Err(JsNativeError::typ()
@@ -2271,7 +2271,7 @@ impl BuiltinTypedArray {
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
         let compare_fn = match args.first().map(JsValue::variant) {
-            None => None,
+            None | Some(JsVariant::Undefined) => None,
             Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return Err(JsNativeError::typ()
