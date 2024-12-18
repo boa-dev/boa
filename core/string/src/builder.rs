@@ -60,7 +60,7 @@ impl<D: Copy> JsStringBuilder<D> {
     /// - The elements at `old_len..new_len` must be initialized.
     ///
     #[inline]
-    pub unsafe fn set_len(&mut self, new_len: usize) {
+    pub const unsafe fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
 
         self.len = new_len;
@@ -140,7 +140,7 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure that the inner is allocated.
     #[must_use]
-    unsafe fn data(&self) -> *mut D {
+    const unsafe fn data(&self) -> *mut D {
         // SAFETY:
         // Caller should ensure that the inner is allocated.
         unsafe { (&raw mut (*self.inner.as_ptr()).data).cast() }
@@ -205,7 +205,7 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
-    pub unsafe fn extend_from_slice_unchecked(&mut self, v: &[D]) {
+    pub const unsafe fn extend_from_slice_unchecked(&mut self, v: &[D]) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
             ptr::copy_nonoverlapping(v.as_ptr(), self.data().add(self.len()), v.len());
@@ -294,7 +294,7 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
-    pub unsafe fn push_unchecked(&mut self, v: D) {
+    pub const unsafe fn push_unchecked(&mut self, v: D) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
             self.data().add(self.len()).write(v);
