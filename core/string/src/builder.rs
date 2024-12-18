@@ -9,7 +9,7 @@ use std::{
     marker::PhantomData,
     mem::ManuallyDrop,
     ops::{Add, AddAssign},
-    ptr::{self, addr_of_mut, NonNull},
+    ptr::{self, NonNull},
     str::{self},
 };
 
@@ -143,7 +143,7 @@ impl<D: Copy> JsStringBuilder<D> {
     unsafe fn data(&self) -> *mut D {
         // SAFETY:
         // Caller should ensure that the inner is allocated.
-        unsafe { addr_of_mut!((*self.inner.as_ptr()).data).cast() }
+        unsafe { (&raw mut (*self.inner.as_ptr()).data).cast() }
     }
 
     /// Allocates when there is not sufficient capacity.

@@ -45,7 +45,7 @@ use std::{
     iter::Peekable,
     mem::ManuallyDrop,
     process::abort,
-    ptr::{self, addr_of, addr_of_mut, NonNull},
+    ptr::{self, NonNull},
     str::FromStr,
 };
 
@@ -347,9 +347,9 @@ impl JsString {
                     let ptr = if (*h).refcount.read_only == 0 {
                         let h = h.cast::<StaticJsString>();
                         (*h).ptr
-                        } else {
+                    } else {
                         (&raw const (*h).data).cast::<u8>()
-                        };
+                    };
 
                     if is_latin1 {
                         JsStr::latin1(std::slice::from_raw_parts(ptr, len))
@@ -394,7 +394,7 @@ impl JsString {
 
         let string = {
             // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-            let mut data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast::<u8>() };
+            let mut data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
             for &string in strings {
                 // SAFETY:
                 // The sum of all `count` for each `string` equals `full_count`, and since we're
@@ -801,7 +801,7 @@ impl JsString {
         let ptr = Self::allocate_inner(count, string.is_latin1());
 
         // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        let data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast::<u8>() };
+        let data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
 
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
