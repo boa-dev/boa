@@ -321,6 +321,7 @@ impl JsString {
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
     #[inline]
     #[must_use]
+    #[allow(clippy::cast_ptr_alignment)]
     pub fn as_str(&self) -> JsStr<'_> {
         match self.ptr.unwrap() {
             UnwrappedTagged::Ptr(h) => {
