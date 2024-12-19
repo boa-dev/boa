@@ -232,6 +232,11 @@ impl ArrayBuffer {
         self.data.as_mut()
     }
 
+    /// Sets the maximum byte length of the buffer, returning the previous value if present.
+    pub(crate) fn set_max_byte_length(&mut self, max_byte_len: u64) -> Option<u64> {
+        self.max_byte_len.replace(max_byte_len)
+    }
+
     /// Gets the inner bytes of the buffer without accessing the current atomic length.
     #[track_caller]
     pub(crate) fn bytes_with_len(&self, len: usize) -> Option<&[u8]> {
@@ -250,6 +255,32 @@ impl ArrayBuffer {
         } else {
             None
         }
+    }
+
+    /// Resizes the buffer to the new size, clamped to the maximum byte length if present.
+    pub fn resize(&mut self, new_byte_length: u64) -> JsResult<()> {
+        let Some(max_byte_len) = self.max_byte_len else {
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer.resize: cannot resize a fixed-length buffer")
+                .into());
+        };
+
+        let Some(buf) = self.vec_mut() else {
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer.resize: cannot resize a detached buffer")
+                .into());
+        };
+
+        if new_byte_length > max_byte_len {
+            return Err(JsNativeError::range()
+                .with_message(
+                    "ArrayBuffer.resize: new byte length exceeds buffer's maximum byte length",
+                )
+                .into());
+        }
+
+        buf.resize(new_byte_length as usize, 0);
+        Ok(())
     }
 
     /// Detaches the inner data of this `ArrayBuffer`, returning the original buffer if still
@@ -338,7 +369,7 @@ impl IntrinsicObject for ArrayBuffer {
                 None,
                 flag_attributes,
             )
-            .method(Self::resize, js_string!("resize"), 1)
+            .method(Self::js_resize, js_string!("resize"), 1)
             .method(Self::slice, js_string!("slice"), 2)
             .property(
                 JsSymbol::to_string_tag(),
@@ -554,7 +585,7 @@ impl ArrayBuffer {
     /// [`ArrayBuffer.prototype.resize ( newLength )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer.prototype.resize
-    pub(crate) fn resize(
+    pub(crate) fn js_resize(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -570,31 +601,12 @@ impl ArrayBuffer {
                     .with_message("ArrayBuffer.prototype.resize called with invalid `this`")
             })?;
 
-        let Some(max_byte_len) = buf.borrow().data.max_byte_len else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.resize: cannot resize a fixed-length buffer")
-                .into());
-        };
-
         // 4. Let newByteLength be ? ToIndex(newLength).
         let new_byte_length = args.get_or_undefined(0).to_index(context)?;
 
-        let mut buf = buf.borrow_mut();
+        // These steps are performed in the `Self::resize` method.
         // 5. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-        let Some(buf) = buf.data.vec_mut() else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.resize: cannot resize a detached buffer")
-                .into());
-        };
-
         // 6. If newByteLength > O.[[ArrayBufferMaxByteLength]], throw a RangeError exception.
-        if new_byte_length > max_byte_len {
-            return Err(JsNativeError::range()
-                .with_message(
-                    "ArrayBuffer.resize: new byte length exceeds buffer's maximum byte length",
-                )
-                .into());
-        }
 
         // TODO: 7. Let hostHandled be ? HostResizeArrayBuffer(O, newByteLength).
         // 8. If hostHandled is handled, return undefined.
@@ -609,7 +621,7 @@ impl ArrayBuffer {
         //     Implementations may implement this method as in-place growth or shrinkage.
         // 14. Set O.[[ArrayBufferData]] to newBlock.
         // 15. Set O.[[ArrayBufferByteLength]] to newByteLength.
-        buf.resize(new_byte_length as usize, 0);
+        buf.borrow_mut().data_mut().resize(new_byte_length)?;
 
         // 16. Return undefined.
         Ok(JsValue::undefined())
