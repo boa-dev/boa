@@ -31,7 +31,7 @@ use temporal_rs::{
 };
 
 /// The `Temporal.Instant` object.
-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
 // SAFETY: Instant does not contain any traceable values.
 #[boa_gc(unsafe_empty_trace)]
 pub struct Instant {
@@ -530,7 +530,7 @@ fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerI
         // c. NOTE: This use of ToPrimitive allows Instant-like objects to be converted.
         // d. Set item to ? ToPrimitive(item, string).
         if let Some(instant) = obj.downcast_ref::<Instant>() {
-            return Ok(instant.inner.clone());
+            return Ok(instant.inner);
         } else if let Some(_zdt) = obj.downcast_ref::<ZonedDateTime>() {
             return Err(JsNativeError::error()
                 .with_message("Not yet implemented.")
