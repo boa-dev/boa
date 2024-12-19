@@ -601,31 +601,12 @@ impl ArrayBuffer {
                     .with_message("ArrayBuffer.prototype.resize called with invalid `this`")
             })?;
 
-        let Some(max_byte_len) = buf.borrow().data.max_byte_len else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.resize: cannot resize a fixed-length buffer")
-                .into());
-        };
-
         // 4. Let newByteLength be ? ToIndex(newLength).
         let new_byte_length = args.get_or_undefined(0).to_index(context)?;
 
-        let mut buf = buf.borrow_mut();
+        // These steps are performed in the `Self::resize` method.
         // 5. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-        let Some(buf) = buf.data.vec_mut() else {
-            return Err(JsNativeError::typ()
-                .with_message("ArrayBuffer.resize: cannot resize a detached buffer")
-                .into());
-        };
-
         // 6. If newByteLength > O.[[ArrayBufferMaxByteLength]], throw a RangeError exception.
-        if new_byte_length > max_byte_len {
-            return Err(JsNativeError::range()
-                .with_message(
-                    "ArrayBuffer.resize: new byte length exceeds buffer's maximum byte length",
-                )
-                .into());
-        }
 
         // TODO: 7. Let hostHandled be ? HostResizeArrayBuffer(O, newByteLength).
         // 8. If hostHandled is handled, return undefined.
@@ -640,7 +621,7 @@ impl ArrayBuffer {
         //     Implementations may implement this method as in-place growth or shrinkage.
         // 14. Set O.[[ArrayBufferData]] to newBlock.
         // 15. Set O.[[ArrayBufferByteLength]] to newByteLength.
-        buf.resize(new_byte_length as usize, 0);
+        buf.borrow_mut().data_mut().resize(new_byte_length)?;
 
         // 16. Return undefined.
         Ok(JsValue::undefined())
