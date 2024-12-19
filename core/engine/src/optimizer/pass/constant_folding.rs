@@ -1,3 +1,4 @@
+use crate::value::JsVariant;
 use crate::{
     builtins::Number, bytecompiler::ToJsString, optimizer::PassAction, value::Numeric, Context,
     JsBigInt, JsValue,
@@ -27,21 +28,21 @@ fn literal_to_js_value(literal: &Literal, context: &mut Context) -> JsValue {
     }
 }
 
-fn js_value_to_literal(value: JsValue, context: &mut Context) -> Literal {
-    match value {
-        JsValue::Null => Literal::Null,
-        JsValue::Undefined => Literal::Undefined,
-        JsValue::Boolean(v) => Literal::Bool(v),
-        JsValue::String(v) => {
+fn js_value_to_literal(value: &JsValue, context: &mut Context) -> Literal {
+    match value.variant() {
+        JsVariant::Null => Literal::Null,
+        JsVariant::Undefined => Literal::Undefined,
+        JsVariant::Boolean(v) => Literal::Bool(v),
+        JsVariant::String(v) => {
             // TODO: Replace JStrRef with JsStr this would eliminate the to_vec call.
             let v = v.to_vec();
             Literal::String(context.interner_mut().get_or_intern(JStrRef::Utf16(&v)))
         }
-        JsValue::Rational(v) => Literal::Num(v),
-        JsValue::Integer(v) => Literal::Int(v),
-        JsValue::BigInt(v) => Literal::BigInt(Box::new(v.as_inner().clone())),
-        JsValue::Object(_) | JsValue::Symbol(_) => {
-            unreachable!("value must not be a object or symbol")
+        JsVariant::Float64(v) => Literal::Num(v),
+        JsVariant::Integer32(v) => Literal::Int(v),
+        JsVariant::BigInt(v) => Literal::BigInt(Box::new(v.as_inner().clone())),
+        JsVariant::Object(_) | JsVariant::Symbol(_) => {
+            unreachable!("value must not be an object or symbol")
         }
     }
 }
@@ -101,7 +102,7 @@ impl ConstantFolding {
             return PassAction::Keep;
         };
 
-        PassAction::Replace(Expression::Literal(js_value_to_literal(value, context)))
+        PassAction::Replace(Expression::Literal(js_value_to_literal(&value, context)))
     }
 
     fn constant_fold_binary_expr(
@@ -228,6 +229,6 @@ impl ConstantFolding {
             return PassAction::Keep;
         };
 
-        PassAction::Replace(Expression::Literal(js_value_to_literal(value, context)))
+        PassAction::Replace(Expression::Literal(js_value_to_literal(&value, context)))
     }
 }

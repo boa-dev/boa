@@ -88,7 +88,7 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
             "fjcvtzs {dst:w}, {src:d}",
             src = in(vreg) number,
             dst = out(reg) ret,
-        )
+        );
     }
     ret
 }

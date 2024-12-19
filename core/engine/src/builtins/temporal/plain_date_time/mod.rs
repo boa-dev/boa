@@ -22,17 +22,17 @@ use boa_profiler::Profiler;
 #[cfg(test)]
 mod tests;
 
-use temporal_rs::{
-    options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
-    partial::PartialDateTime,
-    PlainDateTime as InnerDateTime, PlainTime,
-};
-
 use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_duration,
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
+};
+use crate::value::JsVariant;
+use temporal_rs::{
+    options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+    partial::PartialDateTime,
+    PlainDateTime as InnerDateTime, PlainTime,
 };
 
 /// The `Temporal.PlainDateTime` object.
@@ -826,15 +826,15 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -850,7 +850,7 @@ impl PlainDateTime {
             // 5. Else,
             Some(round_to) => {
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 

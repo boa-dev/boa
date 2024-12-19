@@ -270,7 +270,7 @@ impl<'a> IntoIterator for JsRest<'a> {
 ///             JsValue::from(1),
 ///             JsValue::from(2),
 ///             JsValue::from(3),
-///             JsValue::Boolean(true),
+///             JsValue::from(true),
 ///             JsValue::from(4),
 ///         ],
 ///         &mut context,

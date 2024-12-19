@@ -1,3 +1,4 @@
+use boa_engine::value::JsVariant;
 use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue, Source};
 
 /// You can easily derive `TryFromJs` for structures with base Rust types.
@@ -37,9 +38,9 @@ fn main() {
 
 /// Converts the value lossly
 fn lossy_conversion(value: &JsValue, _context: &mut Context) -> JsResult<i16> {
-    match value {
-        JsValue::Rational(r) => Ok(r.round() as i16),
-        JsValue::Integer(i) => Ok(*i as i16),
+    match value.variant() {
+        JsVariant::Float64(r) => Ok(r.round() as i16),
+        JsVariant::Integer32(i) => Ok(i as i16),
         _ => Err(JsNativeError::typ()
             .with_message("cannot convert value to an i16")
             .into()),

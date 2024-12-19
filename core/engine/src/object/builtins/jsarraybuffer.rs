@@ -120,7 +120,7 @@ impl JsArrayBuffer {
         let obj = JsObject::new(
             context.root_shape(),
             prototype,
-            ArrayBuffer::from_data(block, JsValue::Undefined),
+            ArrayBuffer::from_data(block, JsValue::undefined()),
         );
 
         Ok(Self { inner: obj })
@@ -313,11 +313,12 @@ impl Deref for JsArrayBuffer {
 
 impl TryFromJs for JsArrayBuffer {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not an ArrayBuffer object")
-                .into()),
+                .into())
         }
     }
 }
