@@ -320,7 +320,7 @@ impl JsObject {
 /// Then, reference this static in the creation phase of an `ObjectData`.
 ///
 /// E.g. `ObjectData::string`
-pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+pub(crate) const ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
     __get_prototype_of__: ordinary_get_prototype_of,
     __set_prototype_of__: ordinary_set_prototype_of,
     __is_extensible__: ordinary_is_extensible,

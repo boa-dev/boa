@@ -880,7 +880,7 @@ impl ArrayBuffer {
                 // 8. If allocatingResizableBuffer is true, then
                 //    c. Set obj.[[ArrayBufferMaxByteLength]] to maxByteLength.
                 max_byte_len,
-                detach_key: JsValue::Undefined,
+                detach_key: JsValue::undefined(),
             },
         );
 

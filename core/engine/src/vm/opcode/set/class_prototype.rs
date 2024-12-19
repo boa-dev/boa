@@ -1,9 +1,10 @@
+use crate::value::JsVariant;
 use crate::{
     builtins::{function::OrdinaryFunction, OrdinaryObject},
     object::{internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
 /// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`
@@ -20,10 +21,10 @@ impl Operation for SetClassPrototype {
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
         let prototype_value = context.vm.pop();
-        let prototype = match &prototype_value {
-            JsValue::Object(proto) => Some(proto.clone()),
-            JsValue::Null => None,
-            JsValue::Undefined => Some(context.intrinsics().constructors().object().prototype()),
+        let prototype = match prototype_value.variant() {
+            JsVariant::Object(proto) => Some(proto.clone()),
+            JsVariant::Null => None,
+            JsVariant::Undefined => Some(context.intrinsics().constructors().object().prototype()),
             _ => unreachable!(),
         };
 

@@ -1,4 +1,4 @@
-use super::{fmt, Display, HashSet, JsValue};
+use super::{fmt, Display, HashSet, JsValue, JsVariant};
 use crate::{
     builtins::{
         error::ErrorObject, map::ordered_map::OrderedMap, promise::PromiseState,
@@ -63,7 +63,7 @@ macro_rules! print_obj_value {
                 vec![format!(
                     "{:>width$}: {}",
                     "__proto__",
-                    JsValue::Null.display(),
+                    JsValue::null().display(),
                     width = $indent,
                 )]
             }
@@ -98,9 +98,9 @@ macro_rules! print_obj_value {
 }
 
 pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children: bool) -> String {
-    match x {
+    match x.variant() {
         // We don't want to print private (compiler) or prototype properties
-        JsValue::Object(ref v) => {
+        JsVariant::Object(v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             let v_bor = v.borrow();
@@ -263,7 +263,7 @@ impl JsValue {
             indent: usize,
             print_internals: bool,
         ) -> String {
-            if let JsValue::Object(ref v) = *data {
+            if let Some(v) = data.as_object() {
                 // The in-memory address of the current object
                 let addr = address_of(v.as_ref());
 
@@ -307,20 +307,20 @@ impl JsValue {
 
 impl Display for ValueDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.value {
-            JsValue::Null => write!(f, "null"),
-            JsValue::Undefined => write!(f, "undefined"),
-            JsValue::Boolean(v) => write!(f, "{v}"),
-            JsValue::Symbol(ref symbol) => {
+        match self.value.variant() {
+            JsVariant::Null => write!(f, "null"),
+            JsVariant::Undefined => write!(f, "undefined"),
+            JsVariant::Boolean(v) => write!(f, "{v}"),
+            JsVariant::Symbol(symbol) => {
                 write!(f, "{}", symbol.descriptive_string().to_std_string_escaped())
             }
-            JsValue::String(ref v) => write!(f, "\"{}\"", v.to_std_string_escaped()),
-            JsValue::Rational(v) => format_rational(*v, f),
-            JsValue::Object(_) => {
+            JsVariant::String(v) => write!(f, "\"{}\"", v.to_std_string_escaped()),
+            JsVariant::Float64(v) => format_rational(v, f),
+            JsVariant::Object(_) => {
                 write!(f, "{}", log_string_from(self.value, self.internals, true))
             }
-            JsValue::Integer(v) => write!(f, "{v}"),
-            JsValue::BigInt(ref num) => write!(f, "{num}n"),
+            JsVariant::Integer32(v) => write!(f, "{v}"),
+            JsVariant::BigInt(num) => write!(f, "{num}n"),
         }
     }
 }

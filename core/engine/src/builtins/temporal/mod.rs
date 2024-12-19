@@ -26,6 +26,7 @@ pub use self::{
     plain_time::*, plain_year_month::*, zoneddatetime::*,
 };
 
+use crate::value::JsVariant;
 use crate::{
     builtins::{iterable::IteratorRecord, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
@@ -243,10 +244,10 @@ pub(crate) fn to_relative_temporal_object(
     context: &mut Context,
 ) -> RelativeTemporalObjectResult {
     let relative_to = options.get(js_string!("relativeTo"), context)?;
-    let plain_date = match relative_to {
-        JsValue::String(relative_to_str) => JsValue::from(relative_to_str),
-        JsValue::Object(relative_to_obj) => JsValue::from(relative_to_obj),
-        JsValue::Undefined => return Ok((None, None)),
+    let plain_date = match relative_to.variant() {
+        JsVariant::String(relative_to_str) => JsValue::from(relative_to_str.clone()),
+        JsVariant::Object(relative_to_obj) => JsValue::from(relative_to_obj.clone()),
+        JsVariant::Undefined => return Ok((None, None)),
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Invalid type for converting to relativeTo object")
@@ -353,17 +354,17 @@ pub(crate) fn to_integer_with_truncation(value: &JsValue, context: &mut Context)
 
 /// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
 #[inline]
-pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context) -> JsResult<i32> {
+pub(crate) fn to_integer_if_integral(arg: &JsValue, _context: &mut Context) -> JsResult<i32> {
     // 1. Let number be ? ToNumber(argument).
     // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
     // 3. Return ℝ(number).
-    if !arg.is_integral_number() {
+    let Some(arg) = arg.as_i32() else {
         return Err(JsNativeError::range()
             .with_message("value to convert is not an integral number.")
             .into());
-    }
+    };
 
-    arg.to_i32(context)
+    Ok(arg)
 }
 
 // 13.46 `PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )`

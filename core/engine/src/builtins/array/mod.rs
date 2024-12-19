@@ -38,7 +38,9 @@ use std::cmp::{min, Ordering};
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 mod array_iterator;
+use crate::value::JsVariant;
 pub(crate) use array_iterator::ArrayIterator;
+
 #[cfg(test)]
 mod tests;
 
@@ -537,9 +539,9 @@ impl Array {
         // 3. Else,
         //     a. If IsCallable(mapfn) is false, throw a TypeError exception.
         //     b. Let mapping be true.
-        let mapping = match mapfn {
-            JsValue::Undefined => None,
-            JsValue::Object(o) if o.is_callable() => Some(o),
+        let mapping = match mapfn.variant() {
+            JsVariant::Undefined => None,
+            JsVariant::Object(o) if o.is_callable() => Some(o),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message(format!("`{}` is not callable", mapfn.type_of()))
@@ -2665,9 +2667,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let comparefn = match args.get_or_undefined(0) {
-            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
-            JsValue::Undefined => None,
+        let comparefn = match args.get_or_undefined(0).variant() {
+            JsVariant::Object(obj) if obj.is_callable() => Some(obj),
+            JsVariant::Undefined => None,
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
@@ -2728,9 +2730,9 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let comparefn = match args.get_or_undefined(0) {
-            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
-            JsValue::Undefined => None,
+        let comparefn = match args.get_or_undefined(0).variant() {
+            JsVariant::Object(obj) if obj.is_callable() => Some(obj),
+            JsVariant::Undefined => None,
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
@@ -3319,7 +3321,7 @@ fn compare_array_elements(
         let args = [x.clone(), y.clone()];
         //     a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
         let v = cmp
-            .call(&JsValue::Undefined, &args, context)?
+            .call(&JsValue::undefined(), &args, context)?
             .to_number(context)?;
         //     b. If v is NaN, return +0𝔽.
         //     c. Return v.

@@ -16,6 +16,7 @@
 use super::{
     error::ErrorObject, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
 };
+use crate::value::JsVariant;
 use crate::{
     builtins::{iterable::IteratorHint, map, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -215,7 +216,7 @@ impl OrdinaryObject {
         // 2. Return ? O.[[GetPrototypeOf]]().
         let proto = obj.__get_prototype_of__(&mut InternalMethodContext::new(context))?;
 
-        Ok(proto.map_or(JsValue::Null, JsValue::new))
+        Ok(proto.map_or(JsValue::null(), JsValue::new))
     }
 
     /// `set Object.prototype.__proto__`
@@ -238,14 +239,14 @@ impl OrdinaryObject {
         let this = this.require_object_coercible()?;
 
         // 2. If Type(proto) is neither Object nor Null, return undefined.
-        let proto = match args.get_or_undefined(0) {
-            JsValue::Object(proto) => Some(proto.clone()),
-            JsValue::Null => None,
+        let proto = match args.get_or_undefined(0).variant() {
+            JsVariant::Object(proto) => Some(proto.clone()),
+            JsVariant::Null => None,
             _ => return Ok(JsValue::undefined()),
         };
 
         // 3. If Type(O) is not Object, return undefined.
-        let JsValue::Object(object) = this else {
+        let JsVariant::Object(object) = this.variant() else {
             return Ok(JsValue::undefined());
         };
 
@@ -455,12 +456,14 @@ impl OrdinaryObject {
         let prototype = args.get_or_undefined(0);
         let properties = args.get_or_undefined(1);
 
-        let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data_with_shared_shape(
-                context.root_shape(),
-                prototype.as_object().cloned(),
-                OrdinaryObject,
-            ),
+        let obj = match prototype.variant() {
+            JsVariant::Object(_) | JsVariant::Null => {
+                JsObject::from_proto_and_data_with_shared_shape(
+                    context.root_shape(),
+                    prototype.as_object().cloned(),
+                    OrdinaryObject,
+                )
+            }
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message(format!(
@@ -650,7 +653,7 @@ impl OrdinaryObject {
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
             .__get_prototype_of__(&mut InternalMethodContext::new(context))?
-            .map_or(JsValue::Null, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Set the `prototype` of an object.
@@ -680,9 +683,9 @@ impl OrdinaryObject {
             .require_object_coercible()?
             .clone();
 
-        let proto = match args.get_or_undefined(1) {
-            JsValue::Object(obj) => Some(obj.clone()),
-            JsValue::Null => None,
+        let proto = match args.get_or_undefined(1).variant() {
+            JsVariant::Object(obj) => Some(obj.clone()),
+            JsVariant::Null => None,
             // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
             val => {
                 return Err(JsNativeError::typ()
@@ -751,15 +754,14 @@ impl OrdinaryObject {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = args.get_or_undefined(0);
-        if let JsValue::Object(object) = object {
+        if let Some(object) = args.get_or_undefined(0).as_object() {
             let key = args
                 .get(1)
-                .unwrap_or(&JsValue::Undefined)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_key(context)?;
             let desc = args
                 .get(2)
-                .unwrap_or(&JsValue::Undefined)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_descriptor(context)?;
 
             object.define_property_or_throw(key, desc, context)?;
@@ -788,7 +790,7 @@ impl OrdinaryObject {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
-        if let JsValue::Object(obj) = arg {
+        if let Some(obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
             object_define_properties(obj, props, context)?;
             Ok(arg.clone())

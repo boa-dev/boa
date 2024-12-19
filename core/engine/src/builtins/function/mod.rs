@@ -511,12 +511,12 @@ impl BuiltInFunctionObject {
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
             if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
                 return Err(JsNativeError::syntax().with_message(
-                        if r#async {
-                            "yield expression is not allowed in formal parameter list of async generator"
-                        } else {
-                            "yield expression is not allowed in formal parameter list of generator"
-                        }
-                    ).into());
+                    if r#async {
+                        "yield expression is not allowed in formal parameter list of async generator"
+                    } else {
+                        "yield expression is not allowed in formal parameter list of generator"
+                    }
+                ).into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.

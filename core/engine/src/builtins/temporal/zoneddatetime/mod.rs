@@ -13,7 +13,7 @@ use crate::{
     string::StaticJsStrings,
     value::{IntoOrUndefined, PreferredType},
     Context, JsArgs, JsBigInt, JsData, JsError, JsNativeError, JsObject, JsResult, JsString,
-    JsSymbol, JsValue,
+    JsSymbol, JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -359,7 +359,7 @@ impl BuiltInConstructor for ZonedDateTime {
         };
 
         //  4. If timeZone is not a String, throw a TypeError exception.
-        let JsValue::String(timezone_str) = args.get_or_undefined(1) else {
+        let Some(timezone_str) = args.get_or_undefined(1).as_string() else {
             return Err(JsNativeError::typ()
                 .with_message("timeZone must be a string.")
                 .into());
@@ -383,7 +383,7 @@ impl BuiltInConstructor for ZonedDateTime {
         let calendar = args
             .get(2)
             .map(|v| {
-                if let JsValue::String(calendar_str) = v {
+                if let Some(calendar_str) = v.as_string() {
                     Calendar::from_str(&calendar_str.to_std_string_escaped())
                         .map_err(Into::<JsError>::into)
                 } else {
@@ -610,7 +610,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok((zdt.inner.epoch_milliseconds()).into())
+        Ok(zdt.inner.epoch_milliseconds().into())
     }
 
     /// 6.3.18 get `Temporal.ZonedDateTime.prototype.epochNanosecond`
@@ -889,8 +889,8 @@ pub(crate) fn to_temporal_zoneddatetime(
     // 2. Let offsetBehaviour be option.
     // 3. Let matchBehaviour be match-exactly.
     // 4. If item is an Object, then
-    match value {
-        JsValue::Object(object) => {
+    match value.variant() {
+        JsVariant::Object(object) => {
             // a. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
             if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
                 // i. NOTE: The following steps, and similar ones below, read options
@@ -964,7 +964,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                 context.tz_provider(),
             )?)
         }
-        JsValue::String(zdt_source) => {
+        JsVariant::String(zdt_source) => {
             // b. Let result be ? ParseISODateTime(item, « TemporalDateTimeString[+Zoned] »).
             // c. Let annotation be result.[[TimeZone]].[[TimeZoneAnnotation]].
             // d. Assert: annotation is not empty.
@@ -1025,7 +1025,7 @@ pub(crate) fn to_temporal_timezone_identifier(
     }
 
     // 2. If temporalTimeZoneLike is not a String, throw a TypeError exception.
-    let JsValue::String(tz_string) = value else {
+    let Some(tz_string) = value.as_string() else {
         return Err(JsNativeError::typ()
             .with_message("timeZone must be a string or Temporal.ZonedDateTime")
             .into());
@@ -1048,7 +1048,7 @@ fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> 
     // 1. Let offset be ? ToPrimitive(argument, string).
     let offset = value.to_primitive(context, PreferredType::String)?;
     // 2. If offset is not a String, throw a TypeError exception.
-    let JsValue::String(offset_string) = offset else {
+    let Some(offset_string) = offset.as_string() else {
         return Err(JsNativeError::typ()
             .with_message("offset must be a String.")
             .into());

@@ -649,7 +649,7 @@ impl Locale {
             .keywords
             .get(&key!("kn"))
             .map(Value::as_tinystr_slice);
-        Ok(JsValue::Boolean(match kn {
+        Ok(JsValue::new(match kn {
             Some([]) => true,
             Some([kn]) if kn == "true" => true,
             _ => false,
