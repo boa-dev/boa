@@ -1,5 +1,7 @@
 use crate::{
     error::JsNativeError,
+    object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
+    property::PropertyKey,
     vm::{opcode::Operation, CompletionType},
     Context, JsResult, JsValue,
 };
@@ -31,8 +33,8 @@ impl Operation for GetName {
     const COST: u8 = 4;
 
     fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index)
     }
 
     fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
@@ -41,8 +43,106 @@ impl Operation for GetName {
     }
 
     fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
+        let index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index)
+    }
+}
+
+/// `GetNameGlobal` implements the Opcode Operation for `Opcode::GetNameGlobal`
+///
+/// Operation:
+///  - Find a binding in the global object and push its value.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct GetNameGlobal;
+
+impl GetNameGlobal {
+    fn operation(context: &mut Context, index: usize, ic_index: usize) -> JsResult<CompletionType> {
+        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
+        context.find_runtime_binding(&mut binding_locator)?;
+
+        if binding_locator.is_global() {
+            let object = context.global_object();
+
+            let ic = &context.vm.frame().code_block().ic[ic_index];
+
+            let object_borrowed = object.borrow();
+            if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
+                let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
+                    let prototype = shape.prototype().expect("prototype should have value");
+                    let prototype = prototype.borrow();
+                    prototype.properties().storage[slot.index as usize].clone()
+                } else {
+                    object_borrowed.properties().storage[slot.index as usize].clone()
+                };
+
+                drop(object_borrowed);
+                if slot.attributes.has_get() && result.is_object() {
+                    result = result.as_object().expect("should contain getter").call(
+                        &object.clone().into(),
+                        &[],
+                        context,
+                    )?;
+                }
+                context.vm.push(result);
+                return Ok(CompletionType::Normal);
+            }
+
+            drop(object_borrowed);
+
+            let key: PropertyKey = ic.name.clone().into();
+
+            let context = &mut InternalMethodContext::new(context);
+            let Some(result) = object.__try_get__(&key, object.clone().into(), context)? else {
+                let name = binding_locator.name().to_std_string_escaped();
+                return Err(JsNativeError::reference()
+                    .with_message(format!("{name} is not defined"))
+                    .into());
+            };
+
+            // Cache the property.
+            let slot = *context.slot();
+            if slot.is_cachable() {
+                let ic = &context.vm.frame().code_block.ic[ic_index];
+                let object_borrowed = object.borrow();
+                let shape = object_borrowed.shape();
+                ic.set(shape, slot);
+            }
+
+            context.vm.push(result);
+            return Ok(CompletionType::Normal);
+        }
+
+        let value = context.get_binding(&binding_locator)?.ok_or_else(|| {
+            let name = binding_locator.name().to_std_string_escaped();
+            JsNativeError::reference().with_message(format!("{name} is not defined"))
+        })?;
+
+        context.vm.push(value);
+        Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for GetNameGlobal {
+    const NAME: &'static str = "GetNameGlobal";
+    const INSTRUCTION: &'static str = "INST - GetNameGlobal";
+    const COST: u8 = 4;
+
+    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u8>() as usize;
+        let ic_index = context.vm.read::<u8>() as usize;
+        Self::operation(context, index, ic_index)
+    }
+
+    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u16>() as usize;
+        let ic_index = context.vm.read::<u16>() as usize;
+        Self::operation(context, index, ic_index)
+    }
+
+    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+        let index = context.vm.read::<u32>() as usize;
+        let ic_index = context.vm.read::<u32>() as usize;
+        Self::operation(context, index, ic_index)
     }
 }
 
