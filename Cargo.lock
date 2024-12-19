@@ -3467,7 +3467,7 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=c25c4475810b7549febb7a5fe4404f17581e8010#c25c4475810b7549febb7a5fe4404f17581e8010"
+source = "git+https://github.com/boa-dev/temporal.git?rev=4498edf4efa52f0cdec0bbed8bf49cae7e543e74#4498edf4efa52f0cdec0bbed8bf49cae7e543e74"
 dependencies = [
  "bitflags 2.6.0",
  "combine",
