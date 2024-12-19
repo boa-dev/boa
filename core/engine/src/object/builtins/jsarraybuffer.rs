@@ -126,6 +126,17 @@ impl JsArrayBuffer {
         Ok(Self { inner: obj })
     }
 
+    /// Set a maximum length for the underlying array buffer.
+    #[inline]
+    #[must_use]
+    pub fn with_max_byte_length(self, max_byte_len: u64) -> Self {
+        self.inner
+            .borrow_mut()
+            .data
+            .set_max_byte_length(max_byte_len);
+        self
+    }
+
     /// Create a [`JsArrayBuffer`] from a [`JsObject`], if the object is not an array buffer throw a `TypeError`.
     ///
     /// This does not clone the fields of the array buffer, it only does a shallow clone of the object.
