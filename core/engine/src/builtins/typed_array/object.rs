@@ -163,7 +163,7 @@ impl TypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-typedarraylength
     #[must_use]
-    pub fn array_length(&self, buf_byte_len: usize) -> usize {
+    pub fn array_length(&self, buf_byte_len: usize) -> u64 {
         // 1. Assert: IsTypedArrayOutOfBounds(taRecord) is false.
         debug_assert!(!self.is_out_of_bounds(buf_byte_len));
 
@@ -171,19 +171,19 @@ impl TypedArray {
 
         // 3. If O.[[ArrayLength]] is not auto, return O.[[ArrayLength]].
         if let Some(array_length) = self.array_length {
-            return array_length;
+            return array_length as u64;
         }
         // 4. Assert: IsFixedLengthArrayBuffer(O.[[ViewedArrayBuffer]]) is false.
 
         // 5. Let byteOffset be O.[[ByteOffset]].
-        let byte_offset = self.byte_offset;
+        let byte_offset = self.byte_offset as u64;
         // 6. Let elementSize be TypedArrayElementSize(O).
-        let elem_size = self.kind.element_size();
+        let elem_size = self.kind.element_size() as u64;
 
         // 7. Let byteLength be taRecord.[[CachedBufferByteLength]].
         // 8. Assert: byteLength is not detached.
         // 9. Return floor((byteLength - byteOffset) / elementSize).
-        (buf_byte_len - byte_offset) / elem_size
+        (buf_byte_len as u64 - byte_offset) / elem_size
     }
 
     /// Abstract operation [`ValidateTypedArray ( O, order )`][spec].

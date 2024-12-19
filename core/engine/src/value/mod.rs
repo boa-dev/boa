@@ -896,13 +896,13 @@ impl JsValue {
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tolength>
-    pub fn to_length(&self, context: &mut Context) -> JsResult<usize> {
+    pub fn to_length(&self, context: &mut Context) -> JsResult<u64> {
         // 1. Let len be ? ToInteger(argument).
         // 2. If len ≤ +0, return +0.
         // 3. Return min(len, 2^53 - 1).
         Ok(self
             .to_integer_or_infinity(context)?
-            .clamp_finite(0, Number::MAX_SAFE_INTEGER as i64) as usize)
+            .clamp_finite(0, Number::MAX_SAFE_INTEGER as u64))
     }
 
     /// Abstract operation `ToIntegerOrInfinity ( argument )`

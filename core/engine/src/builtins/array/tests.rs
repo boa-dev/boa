@@ -1043,3 +1043,37 @@ fn array_sort() {
             "#}),
     ]);
 }
+
+#[test]
+fn arg_length_exceeding_integer_limit() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var spreadableLengthOutOfRange = {};
+            spreadableLengthOutOfRange.length = Number.MAX_SAFE_INTEGER;
+            spreadableLengthOutOfRange[Symbol.isConcatSpreadable] = true;
+        "#,
+        ),
+        TestAction::assert_native_error(
+            "[1].concat(spreadableLengthOutOfRange);",
+            JsNativeErrorKind::Type,
+            "Invalid array length",
+        ),
+        TestAction::run(
+            r#"
+                var proxyForArrayWithLengthOutOfRange = new Proxy([], {
+                  get: function(_target, key) {
+                    if (key === "length") {
+                      return Number.MAX_SAFE_INTEGER;
+                    }
+                  },
+                });
+            "#,
+        ),
+        TestAction::assert_native_error(
+            "[].concat(1, proxyForArrayWithLengthOutOfRange);",
+            JsNativeErrorKind::Type,
+            "Invalid array length",
+        ),
+    ]);
+}

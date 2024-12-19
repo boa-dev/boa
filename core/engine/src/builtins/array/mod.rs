@@ -781,7 +781,7 @@ impl Array {
         // 2. Let A be ? ArraySpeciesCreate(O, 0).
         let arr = Self::array_species_create(&obj, 0, context)?;
         // 3. Let n be 0.
-        let mut n: usize = 0;
+        let mut n: i64 = 0;
         // 4. Prepend O to items.
         // 5. For each element E of items, do
         for item in std::iter::once(&JsValue::new(obj)).chain(args.iter()) {
@@ -796,7 +796,7 @@ impl Array {
                 // ii. Let len be ? LengthOfArrayLike(E).
                 let len = item.length_of_array_like(context)?;
                 // iii. If n + len > 2^53 - 1, throw a TypeError exception.
-                if n.saturating_add(len) > Number::MAX_SAFE_INTEGER as usize {
+                if n.saturating_add(len) as f64 > Number::MAX_SAFE_INTEGER {
                     return Err(JsNativeError::typ()
                         .with_message(
                             "length + number of arguments exceeds the max safe integer limit",
@@ -822,7 +822,7 @@ impl Array {
             else {
                 // i. NOTE: E is added as a single item rather than spread.
                 // ii. If n ≥ 2^53 - 1, throw a TypeError exception.
-                if n >= Number::MAX_SAFE_INTEGER as usize {
+                if n >= Number::MAX_SAFE_INTEGER {
                     return Err(JsNativeError::typ()
                         .with_message("length exceeds the max safe integer limit")
                         .into());
