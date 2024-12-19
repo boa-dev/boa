@@ -47,6 +47,7 @@ mod conversions;
 pub(crate) mod display;
 mod equality;
 mod hash;
+mod inner;
 mod integer;
 mod operations;
 mod r#type;
