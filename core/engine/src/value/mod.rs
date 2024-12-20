@@ -173,7 +173,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_callable(&self) -> bool {
-        self.as_object().map_or(false, |obj| obj.is_callable())
+        self.as_object().map_or(false, JsObject::is_callable)
     }
 
     /// Returns the callable value if the value is callable, otherwise `None`.
@@ -197,7 +197,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_constructor(&self) -> bool {
-        self.as_object().map_or(false, |obj| obj.is_constructor())
+        self.as_object().map_or(false, JsObject::is_constructor)
     }
 
     /// Returns the constructor if the value is a constructor, otherwise `None`.
@@ -258,11 +258,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
-        if let Some(symbol) = self.0.as_symbol() {
-            Some(symbol.clone())
-        } else {
-            None
-        }
+        self.0.as_symbol().cloned()
     }
 
     /// Returns true if the value is undefined.
@@ -322,7 +318,7 @@ impl JsValue {
     #[must_use]
     pub fn as_number(&self) -> Option<f64> {
         if let Some(i) = self.as_i32() {
-            Some(i as f64)
+            Some(f64::from(i))
         } else {
             self.0.as_float64()
         }
@@ -459,7 +455,7 @@ impl JsValue {
             JsVariant::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            JsVariant::String(ref string) => JsBigInt::from_js_string(string).map_or_else(
+            JsVariant::String(string) => JsBigInt::from_js_string(string).map_or_else(
                 || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(

@@ -94,7 +94,7 @@ impl NanBitTag {
         // Either it is a constant float value,
         if value == f64::INFINITY.to_bits()
             || value == f64::NEG_INFINITY.to_bits()
-            // or it is exactly a NaN value, which is the same as the BigInt tag.
+            // or it is exactly a NaN value, which is the same as the `BigInt` tag.
             // Reminder that pointers cannot be null, so this is safe.
             || value == NanBitTag::Pointer as u64
         {
@@ -137,7 +137,7 @@ impl NanBitTag {
         value & NanBitTag::Integer32 as u64 == NanBitTag::Integer32 as u64
     }
 
-    /// Checks that a value is a valid BigInt.
+    /// Checks that a value is a valid `BigInt`.
     #[inline]
     const fn is_bigint(value: u64) -> bool {
         (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
@@ -296,27 +296,6 @@ impl NanBitTag {
         // Simply cast for bits.
         Self::Pointer as u64 | Self::String as u64 | value
     }
-
-    /// Drops a value if it is a pointer, otherwise do nothing.
-    #[inline]
-    unsafe fn drop_pointer(value: u64) {
-        let value_ptr = value & Self::PointerMask as u64;
-
-        if value_ptr == 0
-            || value & NanBitTag::Pointer as u64 != 0
-            || value == NanBitTag::Pointer as u64
-        {
-            return;
-        }
-
-        match value & 0x3 {
-            0 => drop(unsafe { Box::from_raw(value_ptr as *mut JsBigInt) }),
-            1 => drop(unsafe { Box::from_raw(value_ptr as *mut JsObject) }),
-            2 => drop(unsafe { Box::from_raw(value_ptr as *mut JsSymbol) }),
-            3 => drop(unsafe { Box::from_raw(value_ptr as *mut JsString) }),
-            _ => unreachable!(),
-        }
-    }
 }
 
 /// A NaN-boxed `[super::JsValue]`'s inner.
@@ -341,14 +320,16 @@ impl fmt::Debug for InnerValue {
 
 impl Finalize for InnerValue {
     fn finalize(&self) {
-        eprintln!("Finalizing InnerValue: {:?}", self.as_variant());
+        if let Some(o) = self.as_object() {
+            o.finalize();
+        }
     }
 }
 
 #[allow(unsafe_op_in_unsafe_fn)]
 unsafe impl Trace for InnerValue {
     custom_trace! {this, mark, {
-        if let JsVariant::Object(o) = this.as_variant() {
+        if let Some(o) = this.as_object() {
             mark(o);
         }
     }}
@@ -615,9 +596,17 @@ impl InnerValue {
 
 impl Drop for InnerValue {
     fn drop(&mut self) {
+        let maybe_ptr = self.0 & NanBitTag::PointerMask as u64;
+
         // Drop the pointer if it is a pointer.
-        unsafe {
-            NanBitTag::drop_pointer(self.0);
+        if self.is_object() {
+            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsObject) });
+        } else if self.is_bigint() {
+            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsBigInt) });
+        } else if self.is_symbol() {
+            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsSymbol) });
+        } else if self.is_string() {
+            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsString) });
         }
     }
 }
