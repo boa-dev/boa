@@ -31,12 +31,14 @@ impl ByteCompiler<'_> {
         let variant = match (t.catch(), t.finally()) {
             (Some(catch), Some(finally)) => {
                 let finally_re_throw = self.register_allocator.alloc();
+                self.push_true(&finally_re_throw);
                 self.push_try_with_finally_control_info(&finally_re_throw, use_expr);
                 TryVariant::CatchFinally((catch, finally, finally_re_throw))
             }
             (Some(catch), None) => TryVariant::Catch(catch),
             (None, Some(finally)) => {
                 let finally_re_throw = self.register_allocator.alloc();
+                self.push_true(&finally_re_throw);
                 self.push_try_with_finally_control_info(&finally_re_throw, use_expr);
                 TryVariant::Finally((finally, finally_re_throw))
             }
