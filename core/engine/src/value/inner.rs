@@ -85,8 +85,7 @@ impl NanBitTag {
     /// Checks that a value is a valid boolean (either true or false).
     #[inline]
     const fn is_bool(value: u64) -> bool {
-        // We know that if the tag matches false, it is a boolean.
-        (value & NanBitTag::False as u64) == NanBitTag::False as u64
+        value == NanBitTag::False as u64 || value == NanBitTag::True as u64
     }
 
     /// Checks that a value is a valid float, not a tagged nan boxed value.
@@ -103,22 +102,21 @@ impl NanBitTag {
         }
 
         // Or it is not tagged,
-        match value & NanBitTag::TaggedMask as u64 {
-            0x7FF4_0000_0000_0000 => false,
-            0x7FF5_0000_0000_0000 => false,
-            0x7FF6_0000_0000_0000 => false,
-            0x7FF6_0000_0000_0001 => false,
-            0x7FF7_0000_0000_0000 => false,
-            0x7FF8_0000_0000_0000 => false,
-            0x7FF9_0000_0000_0000 => false,
-            0x7FFA_0000_0000_0000 => false,
-            0x7FFB_0000_0000_0000 => false,
-            0x7FFC_0000_0000_0000 => false,
-            0x7FFD_0000_0000_0000 => false,
-            0x7FFE_0000_0000_0000 => false,
-            0x7FFF_0000_0000_0000 => false,
-            _ => true,
-        }
+        !matches!(
+            value & NanBitTag::TaggedMask as u64,
+            0x7FF4_0000_0000_0000
+                | 0x7FF5_0000_0000_0000
+                | 0x7FF6_0000_0000_0000
+                | 0x7FF7_0000_0000_0000
+                | 0x7FF8_0000_0000_0000
+                | 0x7FF9_0000_0000_0000
+                | 0x7FFA_0000_0000_0000
+                | 0x7FFB_0000_0000_0000
+                | 0x7FFC_0000_0000_0000
+                | 0x7FFD_0000_0000_0000
+                | 0x7FFE_0000_0000_0000
+                | 0x7FFF_0000_0000_0000
+        )
     }
 
     /// Checks that a value is a valid undefined.
@@ -304,7 +302,10 @@ impl NanBitTag {
     unsafe fn drop_pointer(value: u64) {
         let value_ptr = value & Self::PointerMask as u64;
 
-        if value & NanBitTag::Pointer as u64 != 0 || value == NanBitTag::Pointer as u64 {
+        if value_ptr == 0
+            || value & NanBitTag::Pointer as u64 != 0
+            || value == NanBitTag::Pointer as u64
+        {
             return;
         }
 
@@ -338,7 +339,11 @@ impl fmt::Debug for InnerValue {
     }
 }
 
-impl Finalize for InnerValue {}
+impl Finalize for InnerValue {
+    fn finalize(&self) {
+        eprintln!("Finalizing InnerValue: {:?}", self.as_variant());
+    }
+}
 
 #[allow(unsafe_op_in_unsafe_fn)]
 unsafe impl Trace for InnerValue {
@@ -617,270 +622,169 @@ impl Drop for InnerValue {
     }
 }
 
-#[test]
-fn float() {
-    fn assert_float(f: f64) {
-        let v = InnerValue::float64(f);
-
-        assert!(!v.is_undefined());
-        assert!(!v.is_null());
-        assert!(!v.is_bool());
-        assert!(!v.is_integer32());
-        assert!(v.is_float64());
-        assert!(!v.is_bigint());
-        assert!(!v.is_string());
-        assert!(!v.is_object());
-        assert!(!v.is_symbol());
-
-        assert_eq!(v.as_bool(), None);
-        assert_eq!(v.as_integer32(), None);
-        assert_eq!(v.as_float64(), Some(f));
-        assert_eq!(v.as_bigint(), None);
-        assert_eq!(v.as_object(), None);
-        assert_eq!(v.as_string(), None);
-        assert_eq!(v.as_symbol(), None);
-    }
-
-    assert_float(0.0);
-    assert_float(-0.0);
-    assert_float(3.14);
-    assert_float(-3.14);
-    assert_float(f64::INFINITY);
-    assert_float(f64::NEG_INFINITY);
-
-    // Special care has to be taken for NaN, because NaN != NaN.
-    let v = InnerValue::float64(f64::NAN);
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), None);
-    assert!(v.as_float64().unwrap().is_nan());
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
+#[cfg(test)]
+macro_rules! assert_type {
+    (@@is $value: ident, $u: literal, $n: literal, $b: literal, $i: literal, $f: literal, $bi: literal, $s: literal, $o: literal, $sy: literal) => {
+        assert_eq!($u  != 0, $value.is_undefined());
+        assert_eq!($n  != 0, $value.is_null());
+        assert_eq!($b  != 0, $value.is_bool());
+        assert_eq!($i  != 0, $value.is_integer32());
+        assert_eq!($f  != 0, $value.is_float64());
+        assert_eq!($bi != 0, $value.is_bigint());
+        assert_eq!($s  != 0, $value.is_string());
+        assert_eq!($o  != 0, $value.is_object());
+        assert_eq!($sy != 0, $value.is_symbol());
+    };
+    (@@as $value: ident, $u: literal, $n: literal, $b: literal, $i: literal, $f: literal, $bi: literal, $s: literal, $o: literal, $sy: literal) => {
+        if $b  == 0 { assert_eq!($value.as_bool(), None); }
+        if $i  == 0 { assert_eq!($value.as_integer32(), None); }
+        if $f  == 0 { assert_eq!($value.as_float64(), None); }
+        if $bi == 0 { assert_eq!($value.as_bigint(), None); }
+        if $s  == 0 { assert_eq!($value.as_string(), None); }
+        if $o  == 0 { assert_eq!($value.as_object(), None); }
+        if $sy == 0 { assert_eq!($value.as_symbol(), None); }
+    };
+    ($value: ident is undefined) => {
+        assert_type!(@@is $value, 1, 0, 0, 0, 0, 0, 0, 0, 0);
+        assert_eq!($value.as_variant(), JsVariant::Undefined);
+    };
+    ($value: ident is null) => {
+        assert_type!(@@is $value, 0, 1, 0, 0, 0, 0, 0, 0, 0);
+        assert_eq!($value.as_variant(), JsVariant::Null);
+    };
+    ($value: ident is bool($scalar: ident)) => {
+        assert_type!(@@is $value, 0, 0, 1, 0, 0, 0, 0, 0, 0);
+        assert_type!(@@as $value, 0, 0, 1, 0, 0, 0, 0, 0, 0);
+        assert_eq!(Some($scalar), $value.as_bool());
+        assert_eq!($value.as_variant(), JsVariant::Boolean($scalar));
+    };
+    ($value: ident is integer($scalar: ident)) => {
+        assert_type!(@@is $value, 0, 0, 0, 1, 0, 0, 0, 0, 0);
+        assert_type!(@@as $value, 0, 0, 0, 1, 0, 0, 0, 0, 0);
+        assert_eq!(Some($scalar), $value.as_integer32());
+        assert_eq!($value.as_variant(), JsVariant::Integer32($scalar));
+    };
+    ($value: ident is float($scalar: ident)) => {
+        assert_type!(@@is $value, 0, 0, 0, 0, 1, 0, 0, 0, 0);
+        assert_type!(@@as $value, 0, 0, 0, 0, 1, 0, 0, 0, 0);
+        assert_eq!(Some($scalar), $value.as_float64());
+        assert_eq!($value.as_variant(), JsVariant::Float64($scalar));
+    };
+    ($value: ident is nan) => {
+        assert_type!(@@is $value, 0, 0, 0, 0, 1, 0, 0, 0, 0);
+        assert_type!(@@as $value, 0, 0, 0, 0, 1, 0, 0, 0, 0);
+        assert!($value.as_float64().unwrap().is_nan());
+        assert!(matches!($value.as_variant(), JsVariant::Float64(f) if f.is_nan()));
+    };
+    ($value: ident is bigint($scalar: ident)) => {
+        assert_type!(@@is $value, 0, 0, 0, 0, 0, 1, 0, 0, 0);
+        assert_type!(@@as $value, 0, 0, 0, 0, 0, 1, 0, 0, 0);
+        assert_eq!(Some(&$scalar), $value.as_bigint());
+        assert_eq!($value.as_variant(), JsVariant::BigInt(&$scalar));
+    };
+    ($value: ident is object($scalar: ident)) => {
+        assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 0, 1, 0);
+        assert_type!(@@as $value, 0, 0, 0, 0, 0, 0, 0, 1, 0);
+        assert_eq!(Some(&$scalar), $value.as_object());
+        assert_eq!($value.as_variant(), JsVariant::Object(&$scalar));
+    };
+    ($value: ident is symbol($scalar: ident)) => {
+        assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+        assert_type!(@@as $value, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+        assert_eq!(Some(&$scalar), $value.as_symbol());
+        assert_eq!($value.as_variant(), JsVariant::Symbol(&$scalar));
+    };
+    ($value: ident is string($scalar: ident)) => {
+        assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 1, 0, 0);
+        assert_type!(@@as $value, 0, 0, 0, 0, 0, 0, 1, 0, 0);
+        assert_eq!(Some(&$scalar), $value.as_string());
+        assert_eq!($value.as_variant(), JsVariant::String(&$scalar));
+    };
 }
 
 #[test]
-fn integer() {
-    let int = 42;
-    let v = InnerValue::integer32(int);
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
+fn null() {
+    let v = InnerValue::null();
+    assert_type!(v is null);
+}
 
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), Some(int));
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
-
-    let int = -42;
-    let v = InnerValue::integer32(int);
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), Some(int));
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
-
-    let int = 0;
-    let v = InnerValue::integer32(int);
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), Some(int));
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
+#[test]
+fn undefined() {
+    let v = InnerValue::undefined();
+    assert_type!(v is undefined);
 }
 
 #[test]
 fn boolean() {
     let v = InnerValue::boolean(true);
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
-
-    assert_eq!(v.as_bool(), Some(true));
-    assert_eq!(v.as_integer32(), None);
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
+    assert_type!(v is bool(true));
 
     let v = InnerValue::boolean(false);
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
+    assert_type!(v is bool(false));
+}
 
-    assert_eq!(v.as_bool(), Some(false));
-    assert_eq!(v.as_integer32(), None);
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
+#[test]
+fn integer() {
+    fn assert_integer(i: i32) {
+        let v = InnerValue::integer32(i);
+        assert_type!(v is integer(i));
+    }
+
+    assert_integer(0);
+    assert_integer(1);
+    assert_integer(-1);
+    assert_integer(42);
+    assert_integer(-42);
+    assert_integer(i32::MAX);
+    assert_integer(i32::MIN);
+}
+
+#[test]
+fn float() {
+    fn assert_float(f: f64) {
+        let v = InnerValue::float64(f);
+        assert_type!(v is float(f));
+    }
+
+    assert_float(0.0);
+    assert_float(-0.0);
+    assert_float(0.1 + 0.2);
+    assert_float(-42.123);
+    assert_float(f64::INFINITY);
+    assert_float(f64::NEG_INFINITY);
+
+    let nan = InnerValue::float64(f64::NAN);
+    assert_type!(nan is nan);
 }
 
 #[test]
 fn bigint() {
     let bigint = JsBigInt::from(42);
     let v = InnerValue::bigint(bigint.clone());
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), None);
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), Some(&bigint));
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
+    assert_type!(v is bigint(bigint));
 }
 
 #[test]
 fn object() {
     let object = JsObject::with_null_proto();
     let v = InnerValue::object(object.clone());
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(v.is_object());
-    assert!(!v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), None);
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), Some(&object));
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), None);
+    assert_type!(v is object(object));
 }
 
 #[test]
 fn string() {
     let str = crate::js_string!("Hello World");
     let v = InnerValue::string(str.clone());
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(v.is_string());
-    assert!(!v.is_object());
-    assert!(!v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), None);
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), Some(&str));
-    assert_eq!(v.as_symbol(), None);
+    assert_type!(v is string(str));
 }
 
 #[test]
 fn symbol() {
     let sym = JsSymbol::new(Some(JsString::from("Hello World"))).unwrap();
     let v = InnerValue::symbol(sym.clone());
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), None);
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), Some(&sym));
+    assert_type!(v is symbol(sym));
 
     let sym = JsSymbol::new(None).unwrap();
     let v = InnerValue::symbol(sym.clone());
-    assert!(!v.is_undefined());
-    assert!(!v.is_null());
-    assert!(!v.is_bool());
-    assert!(!v.is_integer32());
-    assert!(!v.is_float64());
-    assert!(!v.is_bigint());
-    assert!(!v.is_string());
-    assert!(!v.is_object());
-    assert!(v.is_symbol());
-
-    assert_eq!(v.as_bool(), None);
-    assert_eq!(v.as_integer32(), None);
-    assert_eq!(v.as_float64(), None);
-    assert_eq!(v.as_bigint(), None);
-    assert_eq!(v.as_object(), None);
-    assert_eq!(v.as_string(), None);
-    assert_eq!(v.as_symbol(), Some(&sym));
+    assert_type!(v is symbol(sym));
 }
