@@ -36,9 +36,10 @@
 //! This only works on 4-bits aligned values, which is asserted when the
 //! `InnerValue` is created.
 
-use crate::{JsBigInt, JsObject, JsSymbol};
+use crate::{JsBigInt, JsObject, JsSymbol, JsVariant};
+use boa_gc::{custom_trace, Finalize, Trace};
 use boa_string::JsString;
-use num_traits::ToBytes;
+use core::fmt;
 use static_assertions::const_assert;
 
 // We cannot NaN-box pointers larger than 64 bits.
@@ -52,7 +53,9 @@ const_assert!(align_of::<*mut ()>() >= 4);
 ///
 /// This is a utility type that allows to create NaN-boxed values, and to check
 /// the type of a NaN-boxed value.
-#[derive(Copy, Clone)]
+///
+/// All the bit masking, tagging and untagging is done in this type.
+#[derive(Copy, Clone, Debug)]
 #[repr(u64)]
 enum NanBitTag {
     Undefined = 0x7FF4_0000_0000_0000,
@@ -60,15 +63,17 @@ enum NanBitTag {
     False = 0x7FF6_0000_0000_0000,
     True = 0x7FF6_0000_0000_0001,
     Integer32 = 0x7FF7_0000_0000_0000,
-    BigInt = 0x7FF8_0000_0000_0000,
-    Object = 0x7FF8_0000_0000_0001,
-    Symbol = 0x7FF8_0000_0000_0002,
-    String = 0x7FF8_0000_0000_0003,
+
+    /// A generic pointer.
+    Pointer = 0x7FF8_0000_0000_0000,
+    BigInt = 0x0000_0000_0000_0000,
+    Object = 0x0000_0000_0000_0001,
+    Symbol = 0x0000_0000_0000_0002,
+    String = 0x0000_0000_0000_0003,
 
     // Masks
-    TaggedMask = 0x7FFF_0000_0000_0000,
+    TaggedMask = 0x7FFC_0000_0000_0000,
     PointerMask = 0x0007_FFFF_FFFF_FFFC,
-    PointerTypeMask = 0x0000_0000_0000_0003,
 }
 
 // Verify that all representations of NanBitTag ARE NAN, but don't match static NAN.
@@ -77,12 +82,6 @@ enum NanBitTag {
 const_assert!(f64::from_bits(NanBitTag::Undefined as u64).is_nan());
 
 impl NanBitTag {
-    /// Checks if the value is a specific tagged value.
-    #[inline]
-    const fn is(self, value: u64) -> bool {
-        (value & self as u64) == self as u64
-    }
-
     /// Checks that a value is a valid boolean (either true or false).
     #[inline]
     const fn is_bool(value: u64) -> bool {
@@ -93,27 +92,80 @@ impl NanBitTag {
     /// Checks that a value is a valid float, not a tagged nan boxed value.
     #[inline]
     const fn is_float(value: u64) -> bool {
-        (value & NanBitTag::TaggedMask as u64) != NanBitTag::TaggedMask as u64
+        // Either it is a constant float value,
+        if value == f64::INFINITY.to_bits()
+            || value == f64::NEG_INFINITY.to_bits()
+            // or it is exactly a NaN value, which is the same as the BigInt tag.
+            // Reminder that pointers cannot be null, so this is safe.
+            || value == NanBitTag::Pointer as u64
+        {
+            return true;
+        }
+
+        // Or it is not tagged,
+        match value & NanBitTag::TaggedMask as u64 {
+            0x7FF4_0000_0000_0000 => false,
+            0x7FF5_0000_0000_0000 => false,
+            0x7FF6_0000_0000_0000 => false,
+            0x7FF6_0000_0000_0001 => false,
+            0x7FF7_0000_0000_0000 => false,
+            0x7FF8_0000_0000_0000 => false,
+            0x7FF9_0000_0000_0000 => false,
+            0x7FFA_0000_0000_0000 => false,
+            0x7FFB_0000_0000_0000 => false,
+            0x7FFC_0000_0000_0000 => false,
+            0x7FFD_0000_0000_0000 => false,
+            0x7FFE_0000_0000_0000 => false,
+            0x7FFF_0000_0000_0000 => false,
+            _ => true,
+        }
     }
 
-    /// Return the tag of this value.
+    /// Checks that a value is a valid undefined.
     #[inline]
-    const fn tag_of(value: u64) -> Option<Self> {
-        match value & NanBitTag::TaggedMask as u64 {
-            0x7FF4_0000_0000_0000 => Some(NanBitTag::Undefined),
-            0x7FF5_0000_0000_0000 => Some(NanBitTag::Null),
-            0x7FF6_0000_0000_0000 => Some(NanBitTag::False),
-            0x7FF6_0000_0000_0001 => Some(NanBitTag::True),
-            0x7FF7_0000_0000_0000 => Some(NanBitTag::Integer32),
-            // Verify this is not a NULL pointer.
-            0x7FF8_0000_0000_0000 if (value & NanBitTag::PointerMask as u64) != 0 => {
-                Some(NanBitTag::BigInt)
-            }
-            0x7FF8_0000_0000_0001 => Some(NanBitTag::Object),
-            0x7FF8_0000_0000_0002 => Some(NanBitTag::Symbol),
-            0x7FF8_0000_0000_0003 => Some(NanBitTag::String),
-            _ => None,
-        }
+    const fn is_undefined(value: u64) -> bool {
+        value == NanBitTag::Undefined as u64
+    }
+
+    /// Checks that a value is a valid null.
+    #[inline]
+    const fn is_null(value: u64) -> bool {
+        value == NanBitTag::Null as u64
+    }
+
+    /// Checks that a value is a valid integer32.
+    #[inline]
+    const fn is_integer32(value: u64) -> bool {
+        value & NanBitTag::Integer32 as u64 == NanBitTag::Integer32 as u64
+    }
+
+    /// Checks that a value is a valid BigInt.
+    #[inline]
+    const fn is_bigint(value: u64) -> bool {
+        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
+            && (value & 0x3 == Self::BigInt as u64)
+            && (value & NanBitTag::PointerMask as u64) != 0
+    }
+
+    /// Checks that a value is a valid Object.
+    #[inline]
+    const fn is_object(value: u64) -> bool {
+        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
+            && (value & 0x3 == Self::Object as u64)
+    }
+
+    /// Checks that a value is a valid Symbol.
+    #[inline]
+    const fn is_symbol(value: u64) -> bool {
+        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
+            && (value & 0x3 == Self::Symbol as u64)
+    }
+
+    /// Checks that a value is a valid String.
+    #[inline]
+    const fn is_string(value: u64) -> bool {
+        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
+            && (value & 0x3 == Self::String as u64)
     }
 
     /// Returns a tagged u64 of a 64-bits float.
@@ -130,25 +182,14 @@ impl NanBitTag {
     /// Returns a tagged u64 of a 32-bits integer.
     #[inline]
     const fn tag_i32(value: i32) -> u64 {
-        // Get the 32-bits integer value inside an u64 as is, in native endian.
-        let mut tagged = (Self::Integer32 as u64).to_ne_bytes();
-        let bytes = value.to_ne_bytes();
-
-        tagged[4] = bytes[0];
-        tagged[5] = bytes[1];
-        tagged[6] = bytes[2];
-        tagged[7] = bytes[3];
-
-        u64::from_ne_bytes(tagged)
+        Self::Integer32 as u64 | value as u64 & 0xFFFF_FFFFu64
     }
 
     /// Returns a i32-bits from a tagged integer.
     #[inline]
     const fn untag_i32(value: u64) -> Option<i32> {
-        if value & NanBitTag::Integer32 as u64 == NanBitTag::Integer32 as u64 {
-            // Get the 32-bits integer value inside an u64 as is.
-            let bytes = value.to_ne_bytes();
-            Some(i32::from_ne_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]))
+        if Self::is_integer32(value) {
+            Some(((value & 0xFFFF_FFFFu64) | 0xFFFF_FFFF_0000_0000u64) as i32)
         } else {
             None
         }
@@ -186,7 +227,7 @@ impl NanBitTag {
         assert_ne!(value & Self::PointerMask as u64, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        Self::BigInt as u64 | value
+        Self::Pointer as u64 | Self::BigInt as u64 | value
     }
 
     /// Returns a tagged u64 of a boxed `[JsObject]`.
@@ -209,7 +250,7 @@ impl NanBitTag {
         );
 
         // Simply cast for bits.
-        Self::Object as u64 | value
+        Self::Pointer as u64 | Self::Object as u64 | value
     }
 
     /// Returns a tagged u64 of a boxed `[JsSymbol]`.
@@ -232,7 +273,7 @@ impl NanBitTag {
         );
 
         // Simply cast for bits.
-        Self::Symbol as u64 | value
+        Self::Pointer as u64 | Self::Symbol as u64 | value
     }
 
     /// Returns a tagged u64 of a boxed `[JsString]`.
@@ -255,7 +296,7 @@ impl NanBitTag {
         );
 
         // Simply cast for bits.
-        Self::String as u64 | value
+        Self::Pointer as u64 | Self::String as u64 | value
     }
 
     /// Drops a value if it is a pointer, otherwise do nothing.
@@ -263,27 +304,61 @@ impl NanBitTag {
     unsafe fn drop_pointer(value: u64) {
         let value_ptr = value & Self::PointerMask as u64;
 
-        match Self::tag_of(value) {
-            Some(Self::BigInt) => {
-                drop(unsafe { Box::from_raw(value_ptr as *mut JsBigInt) });
-            }
-            Some(Self::Object) => {
-                drop(unsafe { Box::from_raw(value_ptr as *mut JsObject) });
-            }
-            Some(Self::Symbol) => {
-                drop(unsafe { Box::from_raw(value_ptr as *mut JsSymbol) });
-            }
-            Some(Self::String) => {
-                drop(unsafe { Box::from_raw(value_ptr as *mut JsString) });
-            }
-            _ => {}
+        if value & NanBitTag::Pointer as u64 != 0 || value == NanBitTag::Pointer as u64 {
+            return;
+        }
+
+        match value & 0x3 {
+            0 => drop(unsafe { Box::from_raw(value_ptr as *mut JsBigInt) }),
+            1 => drop(unsafe { Box::from_raw(value_ptr as *mut JsObject) }),
+            2 => drop(unsafe { Box::from_raw(value_ptr as *mut JsSymbol) }),
+            3 => drop(unsafe { Box::from_raw(value_ptr as *mut JsString) }),
+            _ => unreachable!(),
         }
     }
 }
 
 /// A NaN-boxed `[super::JsValue]`'s inner.
-pub(super) struct InnerValue {
-    inner: u64,
+#[derive(PartialEq)]
+pub(super) struct InnerValue(u64);
+
+impl fmt::Debug for InnerValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.as_variant() {
+            JsVariant::Undefined => f.debug_tuple("Undefined").finish(),
+            JsVariant::Null => f.debug_tuple("Null").finish(),
+            JsVariant::Boolean(b) => f.debug_tuple("Boolean").field(&b).finish(),
+            JsVariant::Float64(n) => f.debug_tuple("Float64").field(&n).finish(),
+            JsVariant::Integer32(n) => f.debug_tuple("Integer32").field(&n).finish(),
+            JsVariant::BigInt(n) => f.debug_tuple("BigInt").field(&n).finish(),
+            JsVariant::Object(n) => f.debug_tuple("Object").field(&n).finish(),
+            JsVariant::Symbol(n) => f.debug_tuple("Symbol").field(&n).finish(),
+            JsVariant::String(n) => f.debug_tuple("String").field(&n).finish(),
+        }
+    }
+}
+
+impl Finalize for InnerValue {}
+
+#[allow(unsafe_op_in_unsafe_fn)]
+unsafe impl Trace for InnerValue {
+    custom_trace! {this, mark, {
+        if let JsVariant::Object(o) = this.as_variant() {
+            mark(o);
+        }
+    }}
+}
+
+impl Clone for InnerValue {
+    fn clone(&self) -> Self {
+        match self.as_variant() {
+            JsVariant::BigInt(n) => Self::bigint(n.clone()),
+            JsVariant::Object(n) => Self::object(n.clone()),
+            JsVariant::Symbol(n) => Self::symbol(n.clone()),
+            JsVariant::String(n) => Self::string(n.clone()),
+            _ => Self(self.0),
+        }
+    }
 }
 
 impl InnerValue {
@@ -291,21 +366,21 @@ impl InnerValue {
     /// of the value.
     #[must_use]
     #[inline]
-    fn from_inner_unchecked(inner: u64) -> Self {
-        Self { inner }
+    const fn from_inner_unchecked(inner: u64) -> Self {
+        Self(inner)
     }
 
     /// Returns a `InnerValue` from a Null.
     #[must_use]
     #[inline]
-    pub(super) fn null() -> Self {
+    pub(super) const fn null() -> Self {
         Self::from_inner_unchecked(NanBitTag::Null as u64)
     }
 
     /// Returns a `InnerValue` from an undefined.
     #[must_use]
     #[inline]
-    pub(super) fn undefined() -> Self {
+    pub(super) const fn undefined() -> Self {
         Self::from_inner_unchecked(NanBitTag::Undefined as u64)
     }
 
@@ -313,21 +388,21 @@ impl InnerValue {
     /// it will be reduced to a canonical `NaN` representation.
     #[must_use]
     #[inline]
-    pub(super) fn float64(value: f64) -> Self {
+    pub(super) const fn float64(value: f64) -> Self {
         Self::from_inner_unchecked(NanBitTag::tag_f64(value))
     }
 
     /// Returns a `InnerValue` from a 32-bits integer.
     #[must_use]
     #[inline]
-    pub(super) fn integer32(value: i32) -> Self {
+    pub(super) const fn integer32(value: i32) -> Self {
         Self::from_inner_unchecked(NanBitTag::tag_i32(value))
     }
 
     /// Returns a `InnerValue` from a boolean.
     #[must_use]
     #[inline]
-    pub(super) fn boolean(value: bool) -> Self {
+    pub(super) const fn boolean(value: bool) -> Self {
         Self::from_inner_unchecked(NanBitTag::tag_bool(value))
     }
 
@@ -362,72 +437,72 @@ impl InnerValue {
     /// Returns true if a value is undefined.
     #[must_use]
     #[inline]
-    pub(super) fn is_undefined(&self) -> bool {
-        NanBitTag::Undefined.is(self.inner)
+    pub(super) const fn is_undefined(&self) -> bool {
+        NanBitTag::is_undefined(self.0)
     }
 
     /// Returns true if a value is null.
     #[must_use]
     #[inline]
-    pub(super) fn is_null(&self) -> bool {
-        NanBitTag::Null.is(self.inner)
+    pub(super) const fn is_null(&self) -> bool {
+        NanBitTag::is_null(self.0)
     }
 
     /// Returns true if a value is a boolean.
     #[must_use]
     #[inline]
-    pub(super) fn is_bool(&self) -> bool {
-        NanBitTag::is_bool(self.inner)
+    pub(super) const fn is_bool(&self) -> bool {
+        NanBitTag::is_bool(self.0)
     }
 
     /// Returns true if a value is a 64-bits float.
     #[must_use]
     #[inline]
-    pub(super) fn is_float64(&self) -> bool {
-        NanBitTag::is_float(self.inner)
+    pub(super) const fn is_float64(&self) -> bool {
+        NanBitTag::is_float(self.0)
     }
 
     /// Returns true if a value is a 32-bits integer.
     #[must_use]
     #[inline]
-    pub(super) fn is_integer32(&self) -> bool {
-        NanBitTag::Integer32.is(self.inner)
+    pub(super) const fn is_integer32(&self) -> bool {
+        NanBitTag::is_integer32(self.0)
     }
 
     /// Returns true if a value is a `[JsBigInt]`. A `NaN` will not match here.
     #[must_use]
     #[inline]
-    pub(super) fn is_bigint(&self) -> bool {
-        NanBitTag::BigInt.is(self.inner) && (self.inner & NanBitTag::PointerMask as u64) != 0
+    pub(super) const fn is_bigint(&self) -> bool {
+        NanBitTag::is_bigint(self.0)
     }
 
     /// Returns true if a value is a boxed Object.
     #[must_use]
     #[inline]
-    pub(super) fn is_object(&self) -> bool {
-        NanBitTag::Object.is(self.inner)
+    pub(super) const fn is_object(&self) -> bool {
+        NanBitTag::is_object(self.0)
     }
 
     /// Returns true if a value is a boxed Symbol.
     #[must_use]
     #[inline]
-    pub(super) fn is_symbol(&self) -> bool {
-        NanBitTag::Symbol.is(self.inner)
+    pub(super) const fn is_symbol(&self) -> bool {
+        NanBitTag::is_symbol(self.0)
     }
 
     /// Returns true if a value is a boxed String.
     #[must_use]
     #[inline]
-    pub(super) fn is_string(&self) -> bool {
-        NanBitTag::String.is(self.inner)
+    pub(super) const fn is_string(&self) -> bool {
+        NanBitTag::is_string(self.0)
     }
 
     /// Returns the value as an f64 if it is a float.
     #[must_use]
     #[inline]
-    pub(super) fn as_float64(&self) -> Option<f64> {
+    pub(super) const fn as_float64(&self) -> Option<f64> {
         if self.is_float64() {
-            Some(f64::from_bits(self.inner))
+            Some(f64::from_bits(self.0))
         } else {
             None
         }
@@ -436,11 +511,99 @@ impl InnerValue {
     /// Returns the value as an i32 if it is an integer.
     #[must_use]
     #[inline]
-    pub(super) fn as_integer32(&self) -> Option<i32> {
-        if self.is_integer32() {
-            Some(self.inner as i32)
+    pub(super) const fn as_integer32(&self) -> Option<i32> {
+        NanBitTag::untag_i32(self.0)
+    }
+
+    /// Returns the value as a boolean if it is a boolean.
+    #[must_use]
+    #[inline]
+    pub(super) const fn as_bool(&self) -> Option<bool> {
+        if self.0 == NanBitTag::False as u64 {
+            Some(false)
+        } else if self.0 == NanBitTag::True as u64 {
+            Some(true)
         } else {
             None
+        }
+    }
+
+    /// Returns the value as a boxed `[JsBigInt]`.
+    #[must_use]
+    #[inline]
+    pub(super) const fn as_bigint(&self) -> Option<&JsBigInt> {
+        if self.is_bigint() {
+            // This is safe because the boxed object will always be on the heap.
+            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            unsafe { Some(&*(ptr as *const _)) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as a boxed `[JsObject]`.
+    #[must_use]
+    #[inline]
+    pub(super) const fn as_object(&self) -> Option<&JsObject> {
+        if self.is_object() {
+            // This is safe because the boxed object will always be on the heap.
+            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            unsafe { Some(&*(ptr as *const _)) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as a boxed `[JsSymbol]`.
+    #[must_use]
+    #[inline]
+    pub(super) const fn as_symbol(&self) -> Option<&JsSymbol> {
+        if self.is_symbol() {
+            // This is safe because the boxed object will always be on the heap.
+            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            unsafe { Some(&*(ptr as *const _)) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns the value as a boxed `[JsString]`.
+    #[must_use]
+    #[inline]
+    pub(super) const fn as_string(&self) -> Option<&JsString> {
+        if self.is_string() {
+            // This is safe because the boxed object will always be on the heap.
+            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            unsafe { Some(&*(ptr as *const _)) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns the `[JsVariant]` of this inner value.
+    #[must_use]
+    #[inline]
+    pub(super) const fn as_variant(&self) -> JsVariant<'_> {
+        if self.is_undefined() {
+            JsVariant::Undefined
+        } else if self.is_null() {
+            JsVariant::Null
+        } else if let Some(b) = self.as_bool() {
+            JsVariant::Boolean(b)
+        } else if let Some(f) = self.as_float64() {
+            JsVariant::Float64(f)
+        } else if let Some(i) = self.as_integer32() {
+            JsVariant::Integer32(i)
+        } else if let Some(bigint) = self.as_bigint() {
+            JsVariant::BigInt(bigint)
+        } else if let Some(obj) = self.as_object() {
+            JsVariant::Object(obj)
+        } else if let Some(sym) = self.as_symbol() {
+            JsVariant::Symbol(sym)
+        } else if let Some(str) = self.as_string() {
+            JsVariant::String(str)
+        } else {
+            unreachable!()
         }
     }
 }
@@ -449,7 +612,275 @@ impl Drop for InnerValue {
     fn drop(&mut self) {
         // Drop the pointer if it is a pointer.
         unsafe {
-            NanBitTag::drop_pointer(self.inner);
+            NanBitTag::drop_pointer(self.0);
         }
     }
+}
+
+#[test]
+fn float() {
+    fn assert_float(f: f64) {
+        let v = InnerValue::float64(f);
+
+        assert!(!v.is_undefined());
+        assert!(!v.is_null());
+        assert!(!v.is_bool());
+        assert!(!v.is_integer32());
+        assert!(v.is_float64());
+        assert!(!v.is_bigint());
+        assert!(!v.is_string());
+        assert!(!v.is_object());
+        assert!(!v.is_symbol());
+
+        assert_eq!(v.as_bool(), None);
+        assert_eq!(v.as_integer32(), None);
+        assert_eq!(v.as_float64(), Some(f));
+        assert_eq!(v.as_bigint(), None);
+        assert_eq!(v.as_object(), None);
+        assert_eq!(v.as_string(), None);
+        assert_eq!(v.as_symbol(), None);
+    }
+
+    assert_float(0.0);
+    assert_float(-0.0);
+    assert_float(3.14);
+    assert_float(-3.14);
+    assert_float(f64::INFINITY);
+    assert_float(f64::NEG_INFINITY);
+
+    // Special care has to be taken for NaN, because NaN != NaN.
+    let v = InnerValue::float64(f64::NAN);
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), None);
+    assert!(v.as_float64().unwrap().is_nan());
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+}
+
+#[test]
+fn integer() {
+    let int = 42;
+    let v = InnerValue::integer32(int);
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), Some(int));
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+
+    let int = -42;
+    let v = InnerValue::integer32(int);
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), Some(int));
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+
+    let int = 0;
+    let v = InnerValue::integer32(int);
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), Some(int));
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+}
+
+#[test]
+fn boolean() {
+    let v = InnerValue::boolean(true);
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), Some(true));
+    assert_eq!(v.as_integer32(), None);
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+
+    let v = InnerValue::boolean(false);
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), Some(false));
+    assert_eq!(v.as_integer32(), None);
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+}
+
+#[test]
+fn bigint() {
+    let bigint = JsBigInt::from(42);
+    let v = InnerValue::bigint(bigint.clone());
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), None);
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), Some(&bigint));
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+}
+
+#[test]
+fn object() {
+    let object = JsObject::with_null_proto();
+    let v = InnerValue::object(object.clone());
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), None);
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), Some(&object));
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), None);
+}
+
+#[test]
+fn string() {
+    let str = crate::js_string!("Hello World");
+    let v = InnerValue::string(str.clone());
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(v.is_string());
+    assert!(!v.is_object());
+    assert!(!v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), None);
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), Some(&str));
+    assert_eq!(v.as_symbol(), None);
+}
+
+#[test]
+fn symbol() {
+    let sym = JsSymbol::new(Some(JsString::from("Hello World"))).unwrap();
+    let v = InnerValue::symbol(sym.clone());
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), None);
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), Some(&sym));
+
+    let sym = JsSymbol::new(None).unwrap();
+    let v = InnerValue::symbol(sym.clone());
+    assert!(!v.is_undefined());
+    assert!(!v.is_null());
+    assert!(!v.is_bool());
+    assert!(!v.is_integer32());
+    assert!(!v.is_float64());
+    assert!(!v.is_bigint());
+    assert!(!v.is_string());
+    assert!(!v.is_object());
+    assert!(v.is_symbol());
+
+    assert_eq!(v.as_bool(), None);
+    assert_eq!(v.as_integer32(), None);
+    assert_eq!(v.as_float64(), None);
+    assert_eq!(v.as_bigint(), None);
+    assert_eq!(v.as_object(), None);
+    assert_eq!(v.as_string(), None);
+    assert_eq!(v.as_symbol(), Some(&sym));
 }
