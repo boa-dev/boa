@@ -1117,7 +1117,7 @@ where
     Ok(default(realm.intrinsics().constructors()).prototype())
 }
 
-fn non_existant_call(
+pub(crate) fn non_existant_call(
     _obj: &JsObject,
     _argument_count: usize,
     context: &mut Context,
@@ -1128,7 +1128,7 @@ fn non_existant_call(
         .into())
 }
 
-fn non_existant_construct(
+pub(crate) fn non_existant_construct(
     _obj: &JsObject,
     _argument_count: usize,
     context: &mut Context,

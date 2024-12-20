@@ -16,7 +16,7 @@ use std::{
 /// `BorrowFlag` represent the internal state of a `GcCell` and
 /// keeps track of the amount of current borrows.
 #[derive(Copy, Clone)]
-struct BorrowFlag(usize);
+pub struct BorrowFlag(usize);
 
 /// `BorrowState` represents the various states of a `BorrowFlag`
 ///
@@ -91,7 +91,8 @@ impl Debug for BorrowFlag {
 ///
 /// This object is a `RefCell` that can be used inside of a `Gc<T>`.
 pub struct GcRefCell<T: ?Sized + 'static> {
-    flags: Cell<BorrowFlag>,
+    /// The current state of the `GcCell`.
+    pub flags: Cell<BorrowFlag>,
     cell: UnsafeCell<T>,
 }
 
