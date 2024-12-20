@@ -1,4 +1,3 @@
-use super::InnerValue;
 use crate::{JsBigInt, JsObject, JsSymbol, JsValue};
 use boa_engine::js_string;
 use boa_string::JsString;
@@ -6,7 +5,7 @@ use boa_string::JsString;
 /// A non-mutable variant of a `JsValue`.
 /// Represents either a primitive value ([`bool`], [`f64`], [`i32`]) or a reference
 /// to a heap allocated value ([`JsString`], [`JsSymbol`]).
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum JsVariant<'a> {
     /// `null` - A null value, for when a value doesn't exist.
     Null,
@@ -28,22 +27,6 @@ pub enum JsVariant<'a> {
     Object(&'a JsObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(&'a JsSymbol),
-}
-
-impl<'a> From<&'a InnerValue> for JsVariant<'a> {
-    fn from(value: &'a InnerValue) -> Self {
-        match value {
-            InnerValue::Null => JsVariant::Null,
-            InnerValue::Undefined => JsVariant::Undefined,
-            InnerValue::Integer32(i) => JsVariant::Integer32(*i),
-            InnerValue::Float64(d) => JsVariant::Float64(*d),
-            InnerValue::Boolean(b) => JsVariant::Boolean(*b),
-            InnerValue::Object(inner) => JsVariant::Object(inner),
-            InnerValue::String(inner) => JsVariant::String(inner),
-            InnerValue::Symbol(inner) => JsVariant::Symbol(inner),
-            InnerValue::BigInt(inner) => JsVariant::BigInt(inner),
-        }
-    }
 }
 
 impl<'a> From<JsVariant<'a>> for JsValue {

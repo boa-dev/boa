@@ -1,13 +1,13 @@
 //! This module implements the conversions from and into [`serde_json::Value`].
 
-use super::{InnerValue, JsValue};
+use super::JsValue;
 use crate::{
     builtins::Array,
     error::JsNativeError,
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult,
+    Context, JsResult, JsVariant,
 };
 use serde_json::{Map, Value};
 
@@ -113,17 +113,17 @@ impl JsValue {
     ///
     /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
-        match &self.inner {
-            InnerValue::Null => Ok(Value::Null),
-            InnerValue::Undefined => todo!("undefined to JSON"),
-            InnerValue::Boolean(b) => Ok(Value::from(*b)),
-            InnerValue::String(string) => Ok(string.to_std_string_escaped().into()),
-            InnerValue::Float64(rat) => Ok(Value::from(*rat)),
-            InnerValue::Integer32(int) => Ok(Value::from(*int)),
-            InnerValue::BigInt(_bigint) => Err(JsNativeError::typ()
+        match self.variant() {
+            JsVariant::Null => Ok(Value::Null),
+            JsVariant::Undefined => todo!("undefined to JSON"),
+            JsVariant::Boolean(b) => Ok(Value::from(b)),
+            JsVariant::String(string) => Ok(string.to_std_string_escaped().into()),
+            JsVariant::Float64(rat) => Ok(Value::from(rat)),
+            JsVariant::Integer32(int) => Ok(Value::from(int)),
+            JsVariant::BigInt(_bigint) => Err(JsNativeError::typ()
                 .with_message("cannot convert bigint to JSON")
                 .into()),
-            InnerValue::Object(obj) => {
+            JsVariant::Object(obj) => {
                 let value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
                         .properties()
@@ -168,7 +168,7 @@ impl JsValue {
                     Ok(Value::Object(map))
                 }
             }
-            InnerValue::Symbol(_sym) => Err(JsNativeError::typ()
+            JsVariant::Symbol(_sym) => Err(JsNativeError::typ()
                 .with_message("cannot convert Symbol to JSON")
                 .into()),
         }
