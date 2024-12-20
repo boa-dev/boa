@@ -392,11 +392,12 @@ pub struct InternalObjectMethods {
 /// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
 ///
 /// This is done to avoid recursion.
+#[allow(variant_size_differences)]
 pub(crate) enum CallValue {
     /// Calling is ready, the frames have been setup.
     ///
     /// Requires calling [`Context::run()`].
-    Ready,
+    Ready { register_count: usize },
 
     /// Further processing is needed.
     Pending {
@@ -411,7 +412,7 @@ pub(crate) enum CallValue {
 
 impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
-    pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<Option<usize>> {
         while let Self::Pending {
             func,
             object,
@@ -421,7 +422,11 @@ impl CallValue {
             self = func(&object, argument_count, context)?;
         }
 
-        Ok(matches!(self, Self::Complete))
+        match self {
+            Self::Ready { register_count } => Ok(Some(register_count)),
+            Self::Complete => Ok(None),
+            Self::Pending { .. } => unreachable!(),
+        }
     }
 }
 
