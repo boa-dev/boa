@@ -1,5 +1,8 @@
 //! The ECMAScript `Temporal` stage 3 built-in implementation.
 //!
+//! Boa's Temporal implementation uses the `temporal_rs` crate
+//! for the core functionality of the implementation.
+//!
 //! More information:
 //!
 //! [spec]: https://tc39.es/proposal-temporal/
@@ -38,7 +41,10 @@ use crate::{
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use temporal_rs::{PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime, NS_PER_DAY};
+use temporal_rs::{
+    primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
+    NS_PER_DAY,
+};
 
 // TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_max_instant() -> JsBigInt {
@@ -209,33 +215,6 @@ pub(crate) fn _iterator_to_list_of_types(
     Ok(values)
 }
 
-// Abstract Operation 13.3 `EpochDaysToEpochMs`
-// Migrated to `temporal_rs`
-
-// 13.4 Date Equations
-// implemented in temporal/date_equations.rs
-
-// Abstract Operation 13.5 `GetOptionsObject ( options )`
-// Implemented in builtin/options.rs
-
-// 13.6 `GetOption ( options, property, type, values, default )`
-// Implemented in builtin/options.rs
-
-// 13.7 `ToTemporalOverflow (options)`
-// Now implemented in temporal/options.rs
-
-// 13.10 `ToTemporalRoundingMode ( normalizedOptions, fallback )`
-// Now implemented in builtin/options.rs
-
-// 13.11 `NegateTemporalRoundingMode ( roundingMode )`
-// Now implemented in builtin/options.rs
-
-// 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
-// Now implemented in temporal/options.rs
-
-// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
-// Moved to temporal_rs
-
 type RelativeTemporalObjectResult = JsResult<(Option<TemporalDate>, Option<TemporalZonedDateTime>)>;
 
 /// 13.21 `ToRelativeTemporalObject ( options )`
@@ -259,15 +238,6 @@ pub(crate) fn to_relative_temporal_object(
     // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
     Ok((Some(plain_date), None))
 }
-
-// 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`
-// use core::cmp::max
-
-// 13.23 `MaximumTemporalDurationRoundingIncrement ( unit )`
-// Implemented on TemporalUnit in temporal/options.rs
-
-// 13.26 `GetUnsignedRoundingMode ( roundingMode, isNegative )`
-// Implemented on RoundingMode in builtins/options.rs
 
 // 13.26 IsPartialTemporalObject ( object )
 pub(crate) fn is_partial_temporal_object<'value>(
@@ -309,78 +279,13 @@ pub(crate) fn is_partial_temporal_object<'value>(
     Ok(Some(obj))
 }
 
-// 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
-// Migrated to `temporal_rs`
-
-// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-// Migrated to `temporal_rs`
-
-// 13.29 `RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )`
-// Migrated to `temporal_rs`
-
-/// 13.43 `ToPositiveIntegerWithTruncation ( argument )`
-#[inline]
-#[allow(unused)]
-pub(crate) fn to_positive_integer_with_trunc(
-    value: &JsValue,
-    context: &mut Context,
-) -> JsResult<i32> {
-    // 1. Let integer be ? ToIntegerWithTruncation(argument).
-    let int = to_integer_with_truncation(value, context)?;
-    // 2. If integer ≤ 0, throw a RangeError exception.
-    if int <= 0 {
-        return Err(JsNativeError::range()
-            .with_message("value is not a positive integer")
-            .into());
+impl JsValue {
+    pub(crate) fn to_finitef64(&self, context: &mut Context) -> JsResult<FiniteF64> {
+        let number = self.to_number(context)?;
+        let result = FiniteF64::try_from(number)?;
+        Ok(result)
     }
-    // 3. Return integer.
-    Ok(int)
 }
-
-/// 13.44 `ToIntegerWithTruncation ( argument )`
-#[inline]
-pub(crate) fn to_integer_with_truncation(value: &JsValue, context: &mut Context) -> JsResult<i32> {
-    // 1. Let number be ? ToNumber(argument).
-    let number = value.to_number(context)?;
-    // 2. If number is NaN, +∞𝔽 or -∞𝔽, throw a RangeError exception.
-    if number.is_nan() || number.is_infinite() {
-        return Err(JsNativeError::range()
-            .with_message("truncation target must be an integer.")
-            .into());
-    }
-    // 3. Return truncate(ℝ(number)).
-    Ok(number.trunc() as i32)
-}
-
-/// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
-#[inline]
-pub(crate) fn to_integer_if_integral(arg: &JsValue, _context: &mut Context) -> JsResult<i32> {
-    // 1. Let number be ? ToNumber(argument).
-    // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
-    // 3. Return ℝ(number).
-    let Some(arg) = arg.as_i32() else {
-        return Err(JsNativeError::range()
-            .with_message("value to convert is not an integral number.")
-            .into());
-    };
-
-    Ok(arg)
-}
-
-// 13.46 `PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )`
-// See fields.rs
-
-// NOTE: op -> true == until | false == since
-// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
-// Migrated to `temporal_rs`
-
-// NOTE: used for MergeFields methods. Potentially can be omitted in favor of `TemporalFields`.
-// 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
-// Migrated or repurposed to `temporal_rs`/`fields.rs`
-
-// Note: Deviates from Proposal spec -> proto appears to be always null across the specification.
-// 14.7 `SnapshotOwnProperties ( source, proto [ , excludedKeys [ , excludedValues ] ] )`
-// Migrated or repurposed to `temporal_rs`/`fields.rs`
 
 fn extract_from_temporal_type<DF, DTF, YMF, MDF, ZDTF, Ret>(
     object: &JsObject,
