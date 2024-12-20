@@ -236,7 +236,6 @@ impl Symbol {
     fn this_symbol_value(value: &JsValue) -> JsResult<JsSymbol> {
         value
             .as_symbol()
-            .cloned()
             .or_else(|| {
                 value
                     .as_object()

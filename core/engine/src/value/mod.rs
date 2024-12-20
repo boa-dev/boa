@@ -257,8 +257,12 @@ impl JsValue {
     /// Returns the symbol if the value is a symbol, otherwise `None`.
     #[inline]
     #[must_use]
-    pub fn as_symbol(&self) -> Option<&JsSymbol> {
-        self.0.as_symbol()
+    pub fn as_symbol(&self) -> Option<JsSymbol> {
+        if let Some(symbol) = self.0.as_symbol() {
+            Some(symbol.clone())
+        } else {
+            None
+        }
     }
 
     /// Returns true if the value is undefined.
