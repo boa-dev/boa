@@ -52,12 +52,15 @@ const fn f64_from_bits(bits: u64) -> f64 {
 /// Transform a `f64` into `u64`, by its bytes. This is necessary for
 /// keeping the MSRV at 1.82, as `f64::to_bits` is not const until
 /// 1.83.
+#[inline]
 const fn f64_to_bits(bits: f64) -> u64 {
     unsafe { std::mem::transmute(bits) }
 }
 
-/// Check that a float is a NaN. This is necessary for keeping the MSRV
+/// Check that a float is a `NaN`. This is necessary for keeping the MSRV
 /// at 1.82, as `f64::is_nan` is not const until 1.53.
+#[inline]
+#[allow(clippy::eq_op, clippy::float_cmp)]
 const fn f64_is_nan(f: f64) -> bool {
     f != f
 }
