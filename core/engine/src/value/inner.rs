@@ -42,6 +42,26 @@ use boa_string::JsString;
 use core::fmt;
 use static_assertions::const_assert;
 
+/// Transform an `u64` into `f64`, by its bytes. This is necessary for
+/// keeping the MSRV at 1.82, as `f64::from_bits` is not const until
+/// 1.83.
+const fn f64_from_bits(bits: u64) -> f64 {
+    unsafe { std::mem::transmute(bits) }
+}
+
+/// Transform a `f64` into `u64`, by its bytes. This is necessary for
+/// keeping the MSRV at 1.82, as `f64::to_bits` is not const until
+/// 1.83.
+const fn f64_to_bits(bits: f64) -> u64 {
+    unsafe { std::mem::transmute(bits) }
+}
+
+/// Check that a float is a NaN. This is necessary for keeping the MSRV
+/// at 1.82, as `f64::is_nan` is not const until 1.53.
+const fn f64_is_nan(f: f64) -> bool {
+    f != f
+}
+
 // We cannot NaN-box pointers larger than 64 bits.
 const_assert!(size_of::<usize>() <= size_of::<u64>());
 
@@ -79,7 +99,12 @@ enum NanBitTag {
 // Verify that all representations of NanBitTag ARE NAN, but don't match static NAN.
 // The only exception to this rule is BigInt, which assumes that the pointer is
 // non-null. The static f64::NAN is equal to BigInt.
-const_assert!(f64::from_bits(NanBitTag::Undefined as u64).is_nan());
+const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Undefined as u64)));
+const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Null as u64)));
+const_assert!(f64_is_nan(f64_from_bits(NanBitTag::False as u64)));
+const_assert!(f64_is_nan(f64_from_bits(NanBitTag::True as u64)));
+const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Integer32 as u64)));
+const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Pointer as u64)));
 
 impl NanBitTag {
     /// Checks that a value is a valid boolean (either true or false).
@@ -92,11 +117,11 @@ impl NanBitTag {
     #[inline]
     const fn is_float(value: u64) -> bool {
         // Either it is a constant float value,
-        if value == f64::INFINITY.to_bits()
-            || value == f64::NEG_INFINITY.to_bits()
-            // or it is exactly a NaN value, which is the same as the `BigInt` tag.
+        if value == f64_to_bits(f64::INFINITY)
+            || value == f64_to_bits(f64::NEG_INFINITY)
+            // or it is exactly a NaN value, which is the same as the `Pointer` tag.
             // Reminder that pointers cannot be null, so this is safe.
-            || value == NanBitTag::Pointer as u64
+            || value == f64_to_bits(f64::NAN)
         {
             return true;
         }
@@ -169,11 +194,11 @@ impl NanBitTag {
     /// Returns a tagged u64 of a 64-bits float.
     #[inline]
     const fn tag_f64(value: f64) -> u64 {
-        if value.is_nan() {
+        if f64_is_nan(value) {
             // Reduce any NAN to a canonical NAN representation.
-            f64::NAN.to_bits()
+            f64_to_bits(f64::NAN)
         } else {
-            value.to_bits()
+            f64_to_bits(value)
         }
     }
 
@@ -488,7 +513,7 @@ impl InnerValue {
     #[inline]
     pub(super) const fn as_float64(&self) -> Option<f64> {
         if self.is_float64() {
-            Some(f64::from_bits(self.0))
+            Some(f64_from_bits(self.0))
         } else {
             None
         }

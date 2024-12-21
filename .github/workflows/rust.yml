@@ -34,7 +34,7 @@ jobs:
         with:
           # TODO: There seems to be an issue with the 1.83.0 toolchain and tarpaulin.
           #       See: https://github.com/xd009642/tarpaulin/issues/1642
-          toolchain: 1.83.0
+          toolchain: 1.82.0
 
       - uses: Swatinem/rust-cache@v2
         with:
