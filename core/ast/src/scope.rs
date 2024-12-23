@@ -584,6 +584,7 @@ pub struct FunctionScopes {
     pub(crate) parameters_eval_scope: Option<Scope>,
     pub(crate) parameters_scope: Option<Scope>,
     pub(crate) lexical_scope: Option<Scope>,
+    pub(crate) mapped_arguments_object: bool,
 }
 
 impl FunctionScopes {
@@ -701,6 +702,7 @@ impl<'a> arbitrary::Arbitrary<'a> for FunctionScopes {
             parameters_eval_scope: None,
             parameters_scope: None,
             lexical_scope: None,
+            mapped_arguments_object: false,
         })
     }
 }
