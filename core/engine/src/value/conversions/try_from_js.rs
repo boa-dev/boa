@@ -161,7 +161,9 @@ impl TryFromJs for JsValue {
 
 impl TryFromJs for f64 {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        if let Some(f) = value.as_number() {
+        if let Some(i) = value.0.as_integer32() {
+            Ok(i as f64)
+        } else if let Some(f) = value.0.as_float64() {
             Ok(f)
         } else {
             Err(JsNativeError::typ()
@@ -187,6 +189,7 @@ macro_rules! impl_try_from_js_integer {
         $(
             impl TryFromJs for $type {
                 fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
+        eprintln!("from_js... {:?} i32: {:?} number: {:?}", value, value.as_i32(), value.as_number());
                     if let Some(i) = value.as_i32() {
                         i.try_into().map_err(|e| {
                             JsNativeError::typ()

@@ -82,11 +82,14 @@ pub struct JsValue(inner::InnerValue);
 
 impl JsValue {
     /// Create a new [`JsValue`] from an inner value.
+    #[inline]
     const fn from_inner(inner: inner::InnerValue) -> Self {
         Self(inner)
     }
 
     /// Create a new [`JsValue`].
+    #[inline]
+    #[must_use]
     pub fn new<T>(value: T) -> Self
     where
         T: Into<Self>,
@@ -137,10 +140,12 @@ impl JsValue {
     }
 
     /// Creates a new number from a float.
-    #[inline]
+    // #[inline]
     #[must_use]
-    pub const fn rational(rational: f64) -> Self {
-        Self::from_inner(inner::InnerValue::float64(rational))
+    pub fn rational(rational: f64) -> Self {
+        let inner = inner::InnerValue::float64(rational);
+        eprintln!("rational: {} = {:?} .. 0x{:x}", rational, inner, inner.0);
+        Self::from_inner(inner)
     }
 
     /// Returns true if the value is an object.

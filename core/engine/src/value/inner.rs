@@ -87,6 +87,8 @@ enum NanBitTag {
     True = 0x7FF6_0000_0000_0001,
     Integer32 = 0x7FF7_0000_0000_0000,
 
+    NegativeZero = 0x8000_0000_0000_0000,
+
     /// A generic pointer.
     Pointer = 0x7FF8_0000_0000_0000,
     BigInt = 0x0000_0000_0000_0000,
@@ -125,6 +127,9 @@ impl NanBitTag {
             // or it is exactly a NaN value, which is the same as the `Pointer` tag.
             // Reminder that pointers cannot be null, so this is safe.
             || value == f64_to_bits(f64::NAN)
+            // or it is negative/positive zero.
+            || value == NanBitTag::NegativeZero as u64
+            || value == 0
         {
             return true;
         }
@@ -327,8 +332,7 @@ impl NanBitTag {
 }
 
 /// A NaN-boxed `[super::JsValue]`'s inner.
-#[derive(PartialEq)]
-pub(super) struct InnerValue(u64);
+pub(super) struct InnerValue(pub u64);
 
 impl fmt::Debug for InnerValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -365,12 +369,16 @@ unsafe impl Trace for InnerValue {
 
 impl Clone for InnerValue {
     fn clone(&self) -> Self {
-        match self.as_variant() {
-            JsVariant::BigInt(n) => Self::bigint(n.clone()),
-            JsVariant::Object(n) => Self::object(n.clone()),
-            JsVariant::Symbol(n) => Self::symbol(n.clone()),
-            JsVariant::String(n) => Self::string(n.clone()),
-            _ => Self(self.0),
+        if let Some(o) = self.as_object() {
+            Self::object(o.clone())
+        } else if let Some(b) = self.as_bigint() {
+            Self::bigint(b.clone())
+        } else if let Some(s) = self.as_symbol() {
+            Self::symbol(s.clone())
+        } else if let Some(s) = self.as_string() {
+            Self::string(s.clone())
+        } else {
+            Self(self.0)
         }
     }
 }
@@ -685,7 +693,27 @@ macro_rules! assert_type {
         assert_type!(@@is $value, 0, 0, 0, 0, 1, 0, 0, 0, 0);
         assert_type!(@@as $value, 0, 0, 0, 0, 1, 0, 0, 0, 0);
         assert_eq!(Some($scalar), $value.as_float64());
+        // Verify parity.
+        assert_eq!(Some(1.0 / $scalar), $value.as_float64().map(|f| 1.0 / f));
         assert_eq!($value.as_variant(), JsVariant::Float64($scalar));
+
+        // Verify that the clone is still the same.
+        let new_value = $value.clone();
+
+        assert_eq!(Some($scalar), new_value.as_float64());
+        assert_eq!($value.as_float64(), new_value.as_float64());
+        // Verify parity.
+        assert_eq!(Some(1.0 / $scalar), new_value.as_float64().map(|f| 1.0 / f));
+        assert_eq!(new_value.as_variant(), JsVariant::Float64($scalar));
+
+        let JsVariant::Float64(new_scalar) = new_value.as_variant() else {
+            panic!("Expected Float64, got {:?}", new_value.as_variant());
+        };
+        assert_eq!(Some(new_scalar), new_value.as_float64());
+        assert_eq!($value.as_float64(), new_value.as_float64());
+        // Verify parity.
+        assert_eq!(Some(1.0 / new_scalar), new_value.as_float64().map(|f| 1.0 / f));
+        assert_eq!(new_value.as_variant(), JsVariant::Float64(new_scalar));
     };
     ($value: ident is nan) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 1, 0, 0, 0, 0);
@@ -754,6 +782,8 @@ fn integer() {
     assert_integer(-42);
     assert_integer(i32::MAX);
     assert_integer(i32::MIN);
+    assert_integer(i32::MAX - 1);
+    assert_integer(i32::MIN + 1);
 }
 
 #[test]
@@ -769,6 +799,17 @@ fn float() {
     assert_float(-42.123);
     assert_float(f64::INFINITY);
     assert_float(f64::NEG_INFINITY);
+
+    // Some edge cases around zeroes.
+    let neg_zero = InnerValue::float64(-0.0);
+    assert!(neg_zero.as_float64().unwrap().is_sign_negative());
+    assert_eq!(neg_zero.as_float64().unwrap(), 0.0);
+
+    let pos_zero = InnerValue::float64(0.0);
+    assert!(!pos_zero.as_float64().unwrap().is_sign_negative());
+    assert_eq!(pos_zero.as_float64().unwrap(), 0.0);
+
+    assert_eq!(pos_zero.as_float64(), neg_zero.as_float64());
 
     let nan = InnerValue::float64(f64::NAN);
     assert_type!(nan is nan);

@@ -489,12 +489,15 @@ impl JsValue {
                     .map_or(f64::NAN, std::ops::Neg::neg),
             ),
             JsVariant::String(str) => Self::new(-str.to_number()),
-            JsVariant::Float64(num) => Self::new(-num),
+            JsVariant::Float64(num) => {
+                eprintln!("negating float: {}", num);
+                Self::new(-num)
+            }
             JsVariant::Integer32(0) | JsVariant::Boolean(false) | JsVariant::Null => {
-                Self::new(-f64::from(0))
+                Self::new(-0.0)
             }
             JsVariant::Integer32(num) => Self::new(-num),
-            JsVariant::Boolean(true) => Self::new(-f64::from(1)),
+            JsVariant::Boolean(true) => Self::new(-1),
             JsVariant::BigInt(x) => Self::new(JsBigInt::neg(x)),
         })
     }
