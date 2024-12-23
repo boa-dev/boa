@@ -422,7 +422,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         Ok(JsString::from(zdt.inner.calendar().identifier()).into())
@@ -434,7 +434,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         Err(JsNativeError::error()
@@ -448,7 +448,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         let era = zdt.inner.era_with_provider(context.tz_provider())?;
@@ -463,7 +463,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         Ok(zdt
@@ -496,7 +496,7 @@ impl ZonedDateTime {
         Ok(zdt.inner.month_with_provider(context.tz_provider())?.into())
     }
 
-    /// 6.3.9 get Temporal.ZonedDateTime.prototype.monthCode
+    /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -798,7 +798,7 @@ impl ZonedDateTime {
 // ==== `ZonedDateTime` method implementations ====
 
 impl ZonedDateTime {
-    /// 6.2.2 Temporal.ZonedDateTime.from ( item [ , options ] )
+    /// 6.2.2 `Temporal.ZonedDateTime.from ( item [ , options ] )`
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? ToTemporalZonedDateTime(item, options).
         let item = args.get_or_undefined(0);
@@ -807,7 +807,7 @@ impl ZonedDateTime {
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
-    /// 6.2.3 Temporal.ZonedDateTime.compare ( one, two )
+    /// 6.2.3 `Temporal.ZonedDateTime.compare ( one, two )`
     fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? ToTemporalZonedDateTime(item, options).
         let one = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
@@ -815,7 +815,7 @@ impl ZonedDateTime {
         Ok((one.cmp(&two) as i8).into())
     }
 
-    /// 6.3.32 Temporal.ZonedDateTime.prototype.withPlainTime ( [ plainTimeLike ] )
+    /// 6.3.32 `Temporal.ZonedDateTime.prototype.withPlainTime ( [ plainTimeLike ] )`
     fn with_plain_time(
         this: &JsValue,
         args: &[JsValue],
@@ -843,7 +843,7 @@ impl ZonedDateTime {
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
-    /// 6.3.33 Temporal.ZonedDateTime.prototype.withTimeZone ( timeZoneLike )
+    /// 6.3.33 `Temporal.ZonedDateTime.prototype.withTimeZone ( timeZoneLike )`
     fn with_timezone(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -858,7 +858,7 @@ impl ZonedDateTime {
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
-    /// 6.3.34 Temporal.ZonedDateTime.prototype.withCalendar ( calendarLike )
+    /// 6.3.34 `Temporal.ZonedDateTime.prototype.withCalendar ( calendarLike )`
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -873,7 +873,7 @@ impl ZonedDateTime {
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
-    /// 6.3.35 Temporal.ZonedDateTime.prototype.add ( temporalDurationLike [ , options ] )
+    /// 6.3.35 `Temporal.ZonedDateTime.prototype.add ( temporalDurationLike [ , options ] )`
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -896,7 +896,7 @@ impl ZonedDateTime {
         .map(Into::into)
     }
 
-    /// 6.3.36 Temporal.ZonedDateTime.prototype.subtract ( temporalDurationLike [ , options ] )
+    /// 6.3.36 `Temporal.ZonedDateTime.prototype.subtract ( temporalDurationLike [ , options ] )`
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -919,7 +919,7 @@ impl ZonedDateTime {
         .map(Into::into)
     }
 
-    /// 6.3.40 Temporal.ZonedDateTime.prototype.equals ( other )
+    /// 6.3.40 `Temporal.ZonedDateTime.prototype.equals ( other )`
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -932,14 +932,14 @@ impl ZonedDateTime {
         Ok((zdt.inner == other).into())
     }
 
-    /// 6.3.44 Temporal.ZonedDateTime.prototype.valueOf ( )
+    /// 6.3.44 `Temporal.ZonedDateTime.prototype.valueOf ( )`
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
     }
 
-    /// 6.3.45 Temporal.ZonedDateTime.prototype.startOfDay ( )
+    /// 6.3.45 `Temporal.ZonedDateTime.prototype.startOfDay ( )`
     fn start_of_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -954,7 +954,7 @@ impl ZonedDateTime {
         create_temporal_zoneddatetime(new, None, context).map(Into::into)
     }
 
-    /// 6.3.47 Temporal.ZonedDateTime.prototype.toInstant ( )
+    /// 6.3.47 `Temporal.ZonedDateTime.prototype.toInstant ( )`
     fn to_instant(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -966,7 +966,7 @@ impl ZonedDateTime {
         create_temporal_instant(zdt.inner.to_instant(), None, context).map(Into::into)
     }
 
-    /// 6.3.48 Temporal.ZonedDateTime.prototype.toPlainDate ( )
+    /// 6.3.48 `Temporal.ZonedDateTime.prototype.toPlainDate ( )`
     fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -981,7 +981,7 @@ impl ZonedDateTime {
         create_temporal_date(inner, None, context).map(Into::into)
     }
 
-    /// 6.3.49 Temporal.ZonedDateTime.prototype.toPlainTime ( )
+    /// 6.3.49 `Temporal.ZonedDateTime.prototype.toPlainTime ( )`
     fn to_plain_time(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -996,7 +996,7 @@ impl ZonedDateTime {
         create_temporal_time(new, None, context).map(Into::into)
     }
 
-    /// 6.3.50 Temporal.ZonedDateTime.prototype.toPlainDateTime ( )
+    /// 6.3.50 `Temporal.ZonedDateTime.prototype.toPlainDateTime ( )`
     fn to_plain_datetime(
         this: &JsValue,
         _: &[JsValue],
