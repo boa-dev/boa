@@ -496,7 +496,7 @@ impl ZonedDateTime {
         Ok(zdt.inner.month_with_provider(context.tz_provider())?.into())
     }
 
-    /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode
+    /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode`
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
