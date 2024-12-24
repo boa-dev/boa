@@ -25,8 +25,9 @@ use temporal_rs::{
 };
 
 use super::{
-    calendar::get_temporal_calendar_slot_value_with_default, to_partial_date_record,
-    to_partial_time_record, to_temporal_duration,
+    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
+    create_temporal_date, create_temporal_datetime, create_temporal_instant, create_temporal_time,
+    to_partial_date_record, to_partial_time_record, to_temporal_duration, to_temporal_time,
 };
 
 /// The `Temporal.ZonedDateTime` object.
@@ -317,9 +318,19 @@ impl IntrinsicObject for ZonedDateTime {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::compare, js_string!("compare"), 2)
+            .method(Self::with_plain_time, js_string!("withPlainTime"), 0)
+            .method(Self::with_timezone, js_string!("withTimeZone"), 1)
+            .method(Self::with_calendar, js_string!("withCalendar"), 1)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::equals, js_string!("equals"), 1)
             .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::start_of_day, js_string!("startOfDay"), 0)
+            .method(Self::to_instant, js_string!("toInstant"), 0)
+            .method(Self::to_plain_date, js_string!("toPlainDate"), 0)
+            .method(Self::to_plain_time, js_string!("toPlainTime"), 0)
+            .method(Self::to_plain_datetime, js_string!("toPlainDateTime"), 0)
             .build();
     }
 
@@ -411,7 +422,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         Ok(JsString::from(zdt.inner.calendar().identifier()).into())
@@ -423,7 +434,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         Err(JsNativeError::error()
@@ -437,7 +448,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         let era = zdt.inner.era_with_provider(context.tz_provider())?;
@@ -452,7 +463,7 @@ impl ZonedDateTime {
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
-                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
         Ok(zdt
@@ -485,7 +496,7 @@ impl ZonedDateTime {
         Ok(zdt.inner.month_with_provider(context.tz_provider())?.into())
     }
 
-    /// 6.3.9 get Temporal.ZonedDateTime.prototype.monthCode
+    /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode`
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -787,7 +798,7 @@ impl ZonedDateTime {
 // ==== `ZonedDateTime` method implementations ====
 
 impl ZonedDateTime {
-    /// 6.2.2 Temporal.ZonedDateTime.from ( item [ , options ] )
+    /// 6.2.2 `Temporal.ZonedDateTime.from ( item [ , options ] )`
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? ToTemporalZonedDateTime(item, options).
         let item = args.get_or_undefined(0);
@@ -796,6 +807,73 @@ impl ZonedDateTime {
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
+    /// 6.2.3 `Temporal.ZonedDateTime.compare ( one, two )`
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Return ? ToTemporalZonedDateTime(item, options).
+        let one = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
+        let two = to_temporal_zoneddatetime(args.get_or_undefined(1), None, context)?;
+        Ok((one.cmp(&two) as i8).into())
+    }
+
+    /// 6.3.32 `Temporal.ZonedDateTime.prototype.withPlainTime ( [ plainTimeLike ] )`
+    fn with_plain_time(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let time = args
+            .first()
+            .map(|v| to_temporal_time(v, None, context))
+            .transpose()?;
+
+        let inner = if let Some(pt) = time {
+            zdt.inner
+                .with_plain_time_and_provider(pt, context.tz_provider())?
+        } else {
+            zdt.inner
+                .start_of_day_with_provider(context.tz_provider())?
+        };
+        create_temporal_zoneddatetime(inner, None, context).map(Into::into)
+    }
+
+    /// 6.3.33 `Temporal.ZonedDateTime.prototype.withTimeZone ( timeZoneLike )`
+    fn with_timezone(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
+
+        let inner = zdt.inner.with_timezone(timezone)?;
+        create_temporal_zoneddatetime(inner, None, context).map(Into::into)
+    }
+
+    /// 6.3.34 `Temporal.ZonedDateTime.prototype.withCalendar ( calendarLike )`
+    fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(0))?;
+
+        let inner = zdt.inner.with_calendar(calendar)?;
+        create_temporal_zoneddatetime(inner, None, context).map(Into::into)
+    }
+
+    /// 6.3.35 `Temporal.ZonedDateTime.prototype.add ( temporalDurationLike [ , options ] )`
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -818,6 +896,7 @@ impl ZonedDateTime {
         .map(Into::into)
     }
 
+    /// 6.3.36 `Temporal.ZonedDateTime.prototype.subtract ( temporalDurationLike [ , options ] )`
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()
@@ -840,10 +919,100 @@ impl ZonedDateTime {
         .map(Into::into)
     }
 
+    /// 6.3.40 `Temporal.ZonedDateTime.prototype.equals ( other )`
+    fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
+        Ok((zdt.inner == other).into())
+    }
+
+    /// 6.3.44 `Temporal.ZonedDateTime.prototype.valueOf ( )`
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
+    }
+
+    /// 6.3.45 `Temporal.ZonedDateTime.prototype.startOfDay ( )`
+    fn start_of_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let new = zdt
+            .inner
+            .start_of_day_with_provider(context.tz_provider())?;
+        create_temporal_zoneddatetime(new, None, context).map(Into::into)
+    }
+
+    /// 6.3.47 `Temporal.ZonedDateTime.prototype.toInstant ( )`
+    fn to_instant(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        create_temporal_instant(zdt.inner.to_instant(), None, context).map(Into::into)
+    }
+
+    /// 6.3.48 `Temporal.ZonedDateTime.prototype.toPlainDate ( )`
+    fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let inner = zdt
+            .inner
+            .to_plain_date_with_provider(context.tz_provider())?;
+        create_temporal_date(inner, None, context).map(Into::into)
+    }
+
+    /// 6.3.49 `Temporal.ZonedDateTime.prototype.toPlainTime ( )`
+    fn to_plain_time(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let new = zdt
+            .inner
+            .to_plain_time_with_provider(context.tz_provider())?;
+        create_temporal_time(new, None, context).map(Into::into)
+    }
+
+    /// 6.3.50 `Temporal.ZonedDateTime.prototype.toPlainDateTime ( )`
+    fn to_plain_datetime(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let new = zdt
+            .inner
+            .to_plain_datetime_with_provider(context.tz_provider())?;
+        create_temporal_datetime(new, None, context).map(Into::into)
     }
 }
 
