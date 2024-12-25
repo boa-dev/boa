@@ -840,7 +840,7 @@ impl PlainDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        create_temporal_duration(dt.inner.until(&other, settings)?, None, context).map(Into::into)
+        create_temporal_duration(dt.inner.since(&other, settings)?, None, context).map(Into::into)
     }
 
     // TODO(nekevss): finish after temporal_rs impl
