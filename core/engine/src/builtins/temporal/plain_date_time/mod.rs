@@ -369,14 +369,14 @@ impl BuiltInConstructor for PlainDateTime {
 
         let dt = InnerDateTime::new(
             iso_year,
-            iso_month.into(),
-            iso_day.into(),
-            hour.into(),
-            minute.into(),
-            second.into(),
-            millisecond.into(),
-            microsecond.into(),
-            nanosecond.into(),
+            iso_month,
+            iso_day,
+            hour,
+            minute,
+            second,
+            millisecond,
+            microsecond,
+            nanosecond,
             calendar_slot,
         )?;
 
@@ -1004,15 +1004,16 @@ pub(crate) fn to_temporal_datetime(
             // i. Return item.
             return Ok(dt.inner.clone());
         // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        } else if let Some(_zdt) = object.downcast_ref::<ZonedDateTime>() {
+        } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
             let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return Err(JsNativeError::error()
-                .with_message("Not yet implemented.")
-                .into());
+            return zdt
+                .inner
+                .to_plain_datetime_with_provider(context.tz_provider())
+                .map_err(Into::into);
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
@@ -1020,8 +1021,8 @@ pub(crate) fn to_temporal_datetime(
             // ii. Return ? CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], 0, 0, 0, 0, 0, 0, item.[[Calendar]]).
             return Ok(InnerDateTime::new(
                 date.inner.iso_year(),
-                date.inner.iso_month().into(),
-                date.inner.iso_day().into(),
+                date.inner.iso_month(),
+                date.inner.iso_day(),
                 0,
                 0,
                 0,
@@ -1068,14 +1069,14 @@ pub(crate) fn to_temporal_datetime(
 
         return InnerDateTime::new(
             date.iso_year(),
-            date.iso_month().into(),
-            date.iso_day().into(),
-            time.hour().into(),
-            time.minute().into(),
-            time.second().into(),
-            time.millisecond().into(),
-            time.microsecond().into(),
-            time.nanosecond().into(),
+            date.iso_month(),
+            date.iso_day(),
+            time.hour(),
+            time.minute(),
+            time.second(),
+            time.millisecond(),
+            time.microsecond(),
+            time.nanosecond(),
             calendar,
         )
         .map_err(Into::into);

@@ -183,7 +183,7 @@ impl BuiltInConstructor for PlainYearMonth {
         let m = args
             .get_or_undefined(1)
             .to_finitef64(context)?
-            .as_integer_with_truncation::<i32>();
+            .as_integer_with_truncation::<u8>();
 
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
@@ -247,7 +247,7 @@ impl PlainYearMonth {
                     .get_v(js_string!("month"), context)?
                     .map(|v| {
                         let finite = v.to_finitef64(context)?;
-                        Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+                        Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
                     })
                     .transpose()?
                     .unwrap_or_default();
@@ -256,7 +256,7 @@ impl PlainYearMonth {
                     .get_v(js_string!("day"), context)?
                     .map(|v| {
                         let finite = v.to_finitef64(context)?;
-                        Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+                        Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
                     })
                     .transpose()?;
 
