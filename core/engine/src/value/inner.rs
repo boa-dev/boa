@@ -789,6 +789,7 @@ fn integer() {
 }
 
 #[test]
+#[allow(clippy::float_cmp)]
 fn float() {
     fn assert_float(f: f64) {
         let v = InnerValue::float64(f);
@@ -805,11 +806,11 @@ fn float() {
     // Some edge cases around zeroes.
     let neg_zero = InnerValue::float64(-0.0);
     assert!(neg_zero.as_float64().unwrap().is_sign_negative());
-    assert_eq!(neg_zero.as_float64().unwrap(), 0.0);
+    assert_eq!(0.0f64, neg_zero.as_float64().unwrap());
 
     let pos_zero = InnerValue::float64(0.0);
     assert!(!pos_zero.as_float64().unwrap().is_sign_negative());
-    assert_eq!(pos_zero.as_float64().unwrap(), 0.0);
+    assert_eq!(0.0f64, pos_zero.as_float64().unwrap());
 
     assert_eq!(pos_zero.as_float64(), neg_zero.as_float64());
 
