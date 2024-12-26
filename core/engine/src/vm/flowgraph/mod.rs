@@ -250,6 +250,7 @@ impl CodeBlock {
                 | Instruction::DefInitVar { .. }
                 | Instruction::PutLexicalValue { .. }
                 | Instruction::GetName { .. }
+                | Instruction::GetNameGlobal { .. }
                 | Instruction::GetLocator { .. }
                 | Instruction::GetNameAndLocator { .. }
                 | Instruction::GetNameOrUndefined { .. }
@@ -515,8 +516,7 @@ impl CodeBlock {
                 | Instruction::Reserved45
                 | Instruction::Reserved46
                 | Instruction::Reserved47
-                | Instruction::Reserved48
-                | Instruction::Reserved49 => unreachable!("Reserved opcodes are unrechable"),
+                | Instruction::Reserved48 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 

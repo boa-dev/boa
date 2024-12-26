@@ -451,6 +451,7 @@ pub struct ByteCompiler<'ctx> {
 pub(crate) enum BindingKind {
     Stack(u32),
     Local(u32),
+    Global(u32),
 }
 
 impl<'ctx> ByteCompiler<'ctx> {
@@ -601,6 +602,17 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     #[inline]
     pub(crate) fn get_or_insert_binding(&mut self, binding: IdentifierReference) -> BindingKind {
+        if binding.is_global_object() {
+            if let Some(index) = self.bindings_map.get(&binding.locator()) {
+                return BindingKind::Global(*index);
+            }
+
+            let index = self.bindings.len() as u32;
+            self.bindings.push(binding.locator().clone());
+            self.bindings_map.insert(binding.locator(), index);
+            return BindingKind::Global(index);
+        }
+
         if binding.local() {
             return BindingKind::Local(
                 *self
@@ -732,6 +744,19 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     pub(crate) fn emit_binding_access(&mut self, opcode: Opcode, binding: &BindingKind) {
         match binding {
+            BindingKind::Global(index) => match opcode {
+                Opcode::SetNameByLocator => self.emit_opcode(opcode),
+                Opcode::GetName => {
+                    let ic_index = self.ic.len() as u32;
+                    let name = self.bindings[*index as usize].name().clone();
+                    self.ic.push(InlineCache::new(name));
+                    self.emit(
+                        Opcode::GetNameGlobal,
+                        &[Operand::Varying(*index), Operand::Varying(ic_index)],
+                    );
+                }
+                _ => self.emit_with_varying_operand(opcode, *index),
+            },
             BindingKind::Stack(index) => match opcode {
                 Opcode::SetNameByLocator => self.emit_opcode(opcode),
                 _ => self.emit_with_varying_operand(opcode, *index),
