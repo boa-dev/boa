@@ -482,6 +482,7 @@ impl JsValue {
 
     /// Returns the negated value.
     pub fn neg(&self, context: &mut Context) -> JsResult<Self> {
+        eprintln!("neg({:?})", self.variant());
         Ok(match self.variant() {
             JsVariant::Symbol(_) | JsVariant::Undefined => Self::new(f64::NAN),
             JsVariant::Object(_) => Self::new(
@@ -489,10 +490,7 @@ impl JsValue {
                     .map_or(f64::NAN, std::ops::Neg::neg),
             ),
             JsVariant::String(str) => Self::new(-str.to_number()),
-            JsVariant::Float64(num) => {
-                eprintln!("negating float: {}", num);
-                Self::new(-num)
-            }
+            JsVariant::Float64(num) => Self::new(-num),
             JsVariant::Integer32(0) | JsVariant::Boolean(false) | JsVariant::Null => {
                 Self::new(-0.0)
             }

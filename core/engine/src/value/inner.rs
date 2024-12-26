@@ -625,7 +625,9 @@ impl InnerValue {
         } else if let Some(str) = self.as_string() {
             JsVariant::String(str)
         } else {
-            unreachable!()
+            // This will optimize away this branch, resulting in UB if it is
+            // actually used, but it won't. It shouldn't. Really.
+            unsafe { std::hint::unreachable_unchecked() }
         }
     }
 }

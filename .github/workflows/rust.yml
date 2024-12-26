@@ -10,7 +10,7 @@ on:
       - main
       - releases/**
   merge_group:
-    types: [ checks_requested ]
+    types: [checks_requested]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
