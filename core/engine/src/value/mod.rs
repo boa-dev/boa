@@ -143,9 +143,7 @@ impl JsValue {
     // #[inline]
     #[must_use]
     pub fn rational(rational: f64) -> Self {
-        let inner = inner::InnerValue::float64(rational);
-        eprintln!("rational: {} = {:?} .. 0x{:x}", rational, inner, inner.0);
-        Self::from_inner(inner)
+        Self::from_inner(inner::InnerValue::float64(rational))
     }
 
     /// Returns true if the value is an object.

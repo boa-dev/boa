@@ -482,7 +482,6 @@ impl JsValue {
 
     /// Returns the negated value.
     pub fn neg(&self, context: &mut Context) -> JsResult<Self> {
-        eprintln!("neg({:?})", self.variant());
         Ok(match self.variant() {
             JsVariant::Symbol(_) | JsVariant::Undefined => Self::new(f64::NAN),
             JsVariant::Object(_) => Self::new(

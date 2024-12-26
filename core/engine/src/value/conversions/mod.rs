@@ -54,7 +54,6 @@ impl From<f32> for JsValue {
     fn from(value: f32) -> Self {
         let _timer = Profiler::global().start_event("From<f32>", "value");
 
-        eprintln!("from(f32)... {}", value);
         Self::rational(f64::from(value))
     }
 }
@@ -64,7 +63,6 @@ impl From<f64> for JsValue {
     fn from(value: f64) -> Self {
         let _timer = Profiler::global().start_event("From<f64>", "value");
 
-        eprintln!("from(f64)... {}", value);
         Self::rational(value)
     }
 }
@@ -78,7 +76,6 @@ macro_rules! impl_from_integer {
                 fn from(value: $type_) -> Self {
                     let _timer = Profiler::global().start_event(concat!("From<", stringify!($type_), ">"), "value");
 
-                    eprintln!("from({})... {}", stringify!($type_), value);
                     i32::try_from(value)
                         .map_or_else(
                             |_| Self::rational(value as f64),
