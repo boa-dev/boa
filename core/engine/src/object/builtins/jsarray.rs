@@ -100,7 +100,7 @@ impl JsArray {
     /// Calls `Array.prototype.unshift()`.
     #[inline]
     pub fn unshift(&self, items: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Array::shift(&self.inner.clone().into(), items, context)
+        Array::unshift(&self.inner.clone().into(), items, context)
     }
 
     /// Calls `Array.prototype.reverse()`.
