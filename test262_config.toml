@@ -78,4 +78,4 @@ features = [
     "caller",
 ]
 
-tests = []
+tests = ["sm"]
