@@ -1,4 +1,4 @@
-commit = "dad2774b2eab2119cc8390ae65db4a5016de2dfe"
+commit = "8296db887368bbffa3379f995a1e628ddbe8421f"
 
 [ignored]
 # Not implemented yet:
@@ -34,6 +34,9 @@ features = [
 
     # https://tc39.es/proposal-defer-import-eval
     "import-defer",
+
+    # https://github.com/tc39/proposal-iterator-sequencing
+    "iterator-sequencing",
 
     # https://github.com/tc39/proposal-json-modules
     "json-modules",
