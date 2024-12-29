@@ -71,137 +71,103 @@ const_assert!(size_of::<usize>() <= size_of::<u64>());
 // We cannot NaN-box pointers that are not 4-bytes aligned.
 const_assert!(align_of::<*mut ()>() >= 4);
 
-/// The bit tags and masks for NaN-boxed values. Masks are applied when creating
-/// the value.
+/// Internal module for bit masks and constants.
 ///
-/// This is a utility type that allows to create NaN-boxed values, and to check
-/// the type of a NaN-boxed value.
 ///
-/// All the bit masking, tagging and untagging is done in this type.
-#[derive(Copy, Clone, Debug)]
-#[repr(u64)]
-enum NanBitTag {
-    Undefined = 0x7FF4_0000_0000_0000,
-    Null = 0x7FF5_0000_0000_0000,
-    False = 0x7FF6_0000_0000_0000,
-    True = 0x7FF6_0000_0000_0001,
-    Integer32 = 0x7FF7_0000_0000_0000,
+mod bits {
+    use boa_engine::value::inner::{f64_from_bits, f64_is_nan, f64_to_bits};
+    use boa_engine::{JsBigInt, JsObject, JsSymbol};
+    use boa_string::JsString;
+    use std::ops::RangeInclusive;
 
-    NegativeZero = 0x8000_0000_0000_0000,
+    /// Undefined value in `u64`.
+    pub(super) const UNDEFINED: u64 = 0x7FF4_0000_0000_0000;
 
-    /// A generic pointer.
-    Pointer = 0x7FF8_0000_0000_0000,
-    BigInt = 0x0000_0000_0000_0000,
-    Object = 0x0000_0000_0000_0001,
-    Symbol = 0x0000_0000_0000_0002,
-    String = 0x0000_0000_0000_0003,
+    /// Null value in `u64`.
+    pub(super) const NULL: u64 = 0x7FF5_0000_0000_0000;
 
-    // Masks
-    TaggedMask = 0x7FFC_0000_0000_0000,
-    PointerMask = 0x0007_FFFF_FFFF_FFFC,
-}
+    /// False value in `u64`.
+    pub(super) const FALSE: u64 = 0x7FF6_0000_0000_0000;
 
-// Verify that all representations of NanBitTag ARE NAN, but don't match static NAN.
-// The only exception to this rule is BigInt, which assumes that the pointer is
-// non-null. The static f64::NAN is equal to BigInt.
-const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Undefined as u64)));
-const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Null as u64)));
-const_assert!(f64_is_nan(f64_from_bits(NanBitTag::False as u64)));
-const_assert!(f64_is_nan(f64_from_bits(NanBitTag::True as u64)));
-const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Integer32 as u64)));
-const_assert!(f64_is_nan(f64_from_bits(NanBitTag::Pointer as u64)));
+    /// True value in `u64`.
+    pub(super) const TRUE: u64 = 0x7FF6_0000_0000_0001;
 
-impl NanBitTag {
+    /// Integer32 value in `u64`.
+    pub(super) const INTEGER32_ZERO: u64 = 0x7FF7_0000_0000_0000;
+
+    /// Pointer starting point in `u64`.
+    pub(super) const POINTER: u64 = 0x7FF8_0000_0000_0000;
+
+    /// Pointer types mask in `u64`.
+    pub(super) const POINTER_MASK: u64 = 0x0007_FFFF_FFFF_FFFC;
+
+    /// NAN value in `u64`.
+    pub(super) const NAN: u64 = 0x7FF8_0000_0000_0000;
+
     /// Checks that a value is a valid boolean (either true or false).
     #[inline]
-    const fn is_bool(value: u64) -> bool {
-        value == NanBitTag::False as u64 || value == NanBitTag::True as u64
+    pub(super) const fn is_bool(value: u64) -> bool {
+        value == TRUE || value == FALSE
     }
 
     /// Checks that a value is a valid float, not a tagged nan boxed value.
     #[inline]
-    const fn is_float(value: u64) -> bool {
-        // Either it is a constant float value,
-        if value == f64_to_bits(f64::INFINITY)
-            || value == f64_to_bits(f64::NEG_INFINITY)
-            // or it is exactly a NaN value, which is the same as the `Pointer` tag.
-            // Reminder that pointers cannot be null, so this is safe.
-            || value == f64_to_bits(f64::NAN)
-            // or it is negative/positive zero.
-            || value == NanBitTag::NegativeZero as u64
-            || value == 0
-        {
-            return true;
-        }
-
-        // Or it is not tagged,
-        !matches!(
-            value & NanBitTag::TaggedMask as u64,
-            0x7FF4_0000_0000_0000
-                | 0x7FF5_0000_0000_0000
-                | 0x7FF6_0000_0000_0000
-                | 0x7FF7_0000_0000_0000
-                | 0x7FF8_0000_0000_0000
-                | 0x7FF9_0000_0000_0000
-                | 0x7FFA_0000_0000_0000
-                | 0x7FFB_0000_0000_0000
-                | 0x7FFC_0000_0000_0000
-                | 0x7FFD_0000_0000_0000
-                | 0x7FFE_0000_0000_0000
-                | 0x7FFF_0000_0000_0000
-        )
+    pub(super) const fn is_float(value: u64) -> bool {
+        let as_float = f64_from_bits(value);
+        !f64_is_nan(as_float) || value == NAN
     }
 
     /// Checks that a value is a valid undefined.
     #[inline]
-    const fn is_undefined(value: u64) -> bool {
-        value == NanBitTag::Undefined as u64
+    pub(super) const fn is_undefined(value: u64) -> bool {
+        value == UNDEFINED
     }
 
     /// Checks that a value is a valid null.
     #[inline]
-    const fn is_null(value: u64) -> bool {
-        value == NanBitTag::Null as u64
+    pub(super) const fn is_null(value: u64) -> bool {
+        value == NULL
     }
 
     /// Checks that a value is a valid integer32.
     #[inline]
-    const fn is_integer32(value: u64) -> bool {
-        value & NanBitTag::Integer32 as u64 == NanBitTag::Integer32 as u64
+    pub(super) const fn is_integer32(value: u64) -> bool {
+        value & INTEGER32_ZERO == INTEGER32_ZERO
+    }
+
+    /// Untag a value as a pointer.
+    #[inline]
+    pub(super) const fn is_pointer(value: u64) -> bool {
+        value & POINTER == POINTER
     }
 
     /// Checks that a value is a valid `BigInt`.
     #[inline]
-    const fn is_bigint(value: u64) -> bool {
-        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
-            && (value & 0x3 == Self::BigInt as u64)
-            && (value & NanBitTag::PointerMask as u64) != 0
+    pub(super) const fn is_bigint(value: u64) -> bool {
+        is_pointer(value) && (value & 0x3 == 0) && (value & POINTER_MASK) != 0
     }
 
     /// Checks that a value is a valid Object.
     #[inline]
-    const fn is_object(value: u64) -> bool {
-        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
-            && (value & 0x3 == Self::Object as u64)
+    pub(super) const fn is_object(value: u64) -> bool {
+        is_pointer(value) && (value & 0x3 == 1) && (value & POINTER_MASK) != 0
     }
 
     /// Checks that a value is a valid Symbol.
     #[inline]
-    const fn is_symbol(value: u64) -> bool {
-        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
-            && (value & 0x3 == Self::Symbol as u64)
+    pub(super) const fn is_symbol(value: u64) -> bool {
+        is_pointer(value) && (value & 0x3 == 2) && (value & POINTER_MASK) != 0
     }
 
     /// Checks that a value is a valid String.
     #[inline]
-    const fn is_string(value: u64) -> bool {
-        (value & NanBitTag::TaggedMask as u64 == NanBitTag::Pointer as u64)
-            && (value & 0x3 == Self::String as u64)
+    pub(super) const fn is_string(value: u64) -> bool {
+        is_pointer(value) && (value & 0x3 == 3) && (value & POINTER_MASK) != 0
     }
 
     /// Returns a tagged u64 of a 64-bits float.
     #[inline]
-    const fn tag_f64(value: f64) -> u64 {
+    pub(super) const fn tag_f64(value: f64) -> u64 {
         if f64_is_nan(value) {
             // Reduce any NAN to a canonical NAN representation.
             f64_to_bits(f64::NAN)
@@ -212,27 +178,23 @@ impl NanBitTag {
 
     /// Returns a tagged u64 of a 32-bits integer.
     #[inline]
-    const fn tag_i32(value: i32) -> u64 {
-        Self::Integer32 as u64 | value as u64 & 0xFFFF_FFFFu64
+    pub(super) const fn tag_i32(value: i32) -> u64 {
+        INTEGER32_ZERO | value as u64 & 0xFFFF_FFFFu64
     }
 
     /// Returns a i32-bits from a tagged integer.
     #[inline]
-    const fn untag_i32(value: u64) -> Option<i32> {
-        if Self::is_integer32(value) {
-            Some(((value & 0xFFFF_FFFFu64) | 0xFFFF_FFFF_0000_0000u64) as i32)
-        } else {
-            None
-        }
+    pub(super) const fn untag_i32(value: u64) -> i32 {
+        ((value & 0xFFFF_FFFFu64) | 0xFFFF_FFFF_0000_0000u64) as i32
     }
 
     /// Returns a tagged u64 of a boolean.
     #[inline]
-    const fn tag_bool(value: bool) -> u64 {
+    pub(super) const fn tag_bool(value: bool) -> u64 {
         if value {
-            Self::True as u64
+            TRUE
         } else {
-            Self::False as u64
+            FALSE
         }
     }
 
@@ -245,9 +207,9 @@ impl NanBitTag {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline]
-    unsafe fn tag_bigint(value: Box<JsBigInt>) -> u64 {
+    pub(super) unsafe fn tag_bigint(value: Box<JsBigInt>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & Self::PointerMask as u64;
+        let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
@@ -255,10 +217,10 @@ impl NanBitTag {
             "Pointer is not 4-bits aligned or over 51-bits."
         );
         // Cannot have a null pointer for bigint.
-        assert_ne!(value & Self::PointerMask as u64, 0, "Pointer is NULL.");
+        assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        Self::Pointer as u64 | Self::BigInt as u64 | value
+        POINTER | 0 | value_masked
     }
 
     /// Returns a tagged u64 of a boxed `[JsObject]`.
@@ -270,18 +232,20 @@ impl NanBitTag {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline]
-    unsafe fn tag_object(value: Box<JsObject>) -> u64 {
+    pub(super) unsafe fn tag_object(value: Box<JsObject>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & Self::PointerMask as u64;
+        let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
             value_masked, value,
             "Pointer is not 4-bits aligned or over 51-bits."
         );
+        // Cannot have a null pointer for bigint.
+        assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        Self::Pointer as u64 | Self::Object as u64 | value
+        POINTER | 1 | value_masked
     }
 
     /// Returns a tagged u64 of a boxed `[JsSymbol]`.
@@ -293,18 +257,20 @@ impl NanBitTag {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline]
-    unsafe fn tag_symbol(value: Box<JsSymbol>) -> u64 {
+    pub(super) unsafe fn tag_symbol(value: Box<JsSymbol>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & Self::PointerMask as u64;
+        let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
             value_masked, value,
             "Pointer is not 4-bits aligned or over 51-bits."
         );
+        // Cannot have a null pointer for bigint.
+        assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        Self::Pointer as u64 | Self::Symbol as u64 | value
+        POINTER | 2 | value_masked
     }
 
     /// Returns a tagged u64 of a boxed `[JsString]`.
@@ -316,20 +282,33 @@ impl NanBitTag {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline]
-    unsafe fn tag_string(value: Box<JsString>) -> u64 {
+    pub(super) unsafe fn tag_string(value: Box<JsString>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & Self::PointerMask as u64;
+        let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
             value_masked, value,
             "Pointer is not 4-bits aligned or over 51-bits."
         );
+        // Cannot have a null pointer for bigint.
+        assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        Self::Pointer as u64 | Self::String as u64 | value
+        POINTER | 3 | value_masked
     }
 }
+
+// Verify that all representations of NanBitTag ARE NAN, but don't match static NAN.
+// The only exception to this rule is BigInt, which assumes that the pointer is
+// non-null. The static f64::NAN is equal to BigInt.
+const_assert!(f64_is_nan(f64_from_bits(bits::UNDEFINED)));
+const_assert!(f64_is_nan(f64_from_bits(bits::NULL)));
+const_assert!(f64_is_nan(f64_from_bits(bits::FALSE)));
+const_assert!(f64_is_nan(f64_from_bits(bits::TRUE)));
+const_assert!(f64_is_nan(f64_from_bits(bits::INTEGER32_ZERO)));
+const_assert!(f64_is_nan(f64_from_bits(*bits::POINTER)));
+const_assert!(f64_is_nan(f64_from_bits(*0x7FFF_FFFF_FFFF_FFFF)));
 
 /// A NaN-boxed `[super::JsValue]`'s inner.
 pub(super) struct InnerValue(pub u64);
@@ -396,14 +375,14 @@ impl InnerValue {
     #[must_use]
     #[inline]
     pub(super) const fn null() -> Self {
-        Self::from_inner_unchecked(NanBitTag::Null as u64)
+        Self::from_inner_unchecked(bits::NULL)
     }
 
     /// Returns a `InnerValue` from an undefined.
     #[must_use]
     #[inline]
     pub(super) const fn undefined() -> Self {
-        Self::from_inner_unchecked(NanBitTag::Undefined as u64)
+        Self::from_inner_unchecked(bits::UNDEFINED)
     }
 
     /// Returns a `InnerValue` from a 64-bits float. If the float is `NaN`,
@@ -411,112 +390,112 @@ impl InnerValue {
     #[must_use]
     #[inline]
     pub(super) const fn float64(value: f64) -> Self {
-        Self::from_inner_unchecked(NanBitTag::tag_f64(value))
+        Self::from_inner_unchecked(bits::tag_f64(value))
     }
 
     /// Returns a `InnerValue` from a 32-bits integer.
     #[must_use]
     #[inline]
     pub(super) const fn integer32(value: i32) -> Self {
-        Self::from_inner_unchecked(NanBitTag::tag_i32(value))
+        Self::from_inner_unchecked(bits::tag_i32(value))
     }
 
     /// Returns a `InnerValue` from a boolean.
     #[must_use]
     #[inline]
     pub(super) const fn boolean(value: bool) -> Self {
-        Self::from_inner_unchecked(NanBitTag::tag_bool(value))
+        Self::from_inner_unchecked(bits::tag_bool(value))
     }
 
     /// Returns a `InnerValue` from a boxed `[JsBigInt]`.
     #[must_use]
     #[inline]
     pub(super) fn bigint(value: JsBigInt) -> Self {
-        Self::from_inner_unchecked(unsafe { NanBitTag::tag_bigint(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_bigint(Box::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsObject]`.
     #[must_use]
     #[inline]
     pub(super) fn object(value: JsObject) -> Self {
-        Self::from_inner_unchecked(unsafe { NanBitTag::tag_object(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_object(Box::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsSymbol]`.
     #[must_use]
     #[inline]
     pub(super) fn symbol(value: JsSymbol) -> Self {
-        Self::from_inner_unchecked(unsafe { NanBitTag::tag_symbol(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_symbol(Box::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsString]`.
     #[must_use]
     #[inline]
     pub(super) fn string(value: JsString) -> Self {
-        Self::from_inner_unchecked(unsafe { NanBitTag::tag_string(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_string(Box::new(value)) })
     }
 
     /// Returns true if a value is undefined.
     #[must_use]
     #[inline]
     pub(super) const fn is_undefined(&self) -> bool {
-        NanBitTag::is_undefined(self.0)
+        bits::is_undefined(self.0)
     }
 
     /// Returns true if a value is null.
     #[must_use]
     #[inline]
     pub(super) const fn is_null(&self) -> bool {
-        NanBitTag::is_null(self.0)
+        bits::is_null(self.0)
     }
 
     /// Returns true if a value is a boolean.
     #[must_use]
     #[inline]
     pub(super) const fn is_bool(&self) -> bool {
-        NanBitTag::is_bool(self.0)
+        bits::is_bool(self.0)
     }
 
     /// Returns true if a value is a 64-bits float.
     #[must_use]
     #[inline]
     pub(super) const fn is_float64(&self) -> bool {
-        NanBitTag::is_float(self.0)
+        bits::is_float(self.0)
     }
 
     /// Returns true if a value is a 32-bits integer.
     #[must_use]
     #[inline]
     pub(super) const fn is_integer32(&self) -> bool {
-        NanBitTag::is_integer32(self.0)
+        bits::is_integer32(self.0)
     }
 
     /// Returns true if a value is a `[JsBigInt]`. A `NaN` will not match here.
     #[must_use]
     #[inline]
     pub(super) const fn is_bigint(&self) -> bool {
-        NanBitTag::is_bigint(self.0)
+        bits::is_bigint(self.0)
     }
 
     /// Returns true if a value is a boxed Object.
     #[must_use]
     #[inline]
     pub(super) const fn is_object(&self) -> bool {
-        NanBitTag::is_object(self.0)
+        bits::is_object(self.0)
     }
 
     /// Returns true if a value is a boxed Symbol.
     #[must_use]
     #[inline]
     pub(super) const fn is_symbol(&self) -> bool {
-        NanBitTag::is_symbol(self.0)
+        bits::is_symbol(self.0)
     }
 
     /// Returns true if a value is a boxed String.
     #[must_use]
     #[inline]
     pub(super) const fn is_string(&self) -> bool {
-        NanBitTag::is_string(self.0)
+        bits::is_string(self.0)
     }
 
     /// Returns the value as an f64 if it is a float.
@@ -534,19 +513,21 @@ impl InnerValue {
     #[must_use]
     #[inline]
     pub(super) const fn as_integer32(&self) -> Option<i32> {
-        NanBitTag::untag_i32(self.0)
+        if self.is_integer32() {
+            Some(bits::untag_i32(self.0))
+        } else {
+            None
+        }
     }
 
     /// Returns the value as a boolean if it is a boolean.
     #[must_use]
     #[inline]
     pub(super) const fn as_bool(&self) -> Option<bool> {
-        if self.0 == NanBitTag::False as u64 {
-            Some(false)
-        } else if self.0 == NanBitTag::True as u64 {
-            Some(true)
-        } else {
-            None
+        match self.0 {
+            bits::FALSE => Some(false),
+            bits::TRUE => Some(true),
+            _ => None,
         }
     }
 
@@ -556,7 +537,7 @@ impl InnerValue {
     pub(super) const fn as_bigint(&self) -> Option<&JsBigInt> {
         if self.is_bigint() {
             // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            let ptr = self.0 & bits::POINTER_MASK;
             unsafe { Some(&*(ptr as *const _)) }
         } else {
             None
@@ -569,7 +550,7 @@ impl InnerValue {
     pub(super) const fn as_object(&self) -> Option<&JsObject> {
         if self.is_object() {
             // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            let ptr = self.0 & bits::POINTER_MASK;
             unsafe { Some(&*(ptr as *const _)) }
         } else {
             None
@@ -582,7 +563,7 @@ impl InnerValue {
     pub(super) const fn as_symbol(&self) -> Option<&JsSymbol> {
         if self.is_symbol() {
             // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            let ptr = self.0 & bits::POINTER_MASK;
             unsafe { Some(&*(ptr as *const _)) }
         } else {
             None
@@ -595,7 +576,7 @@ impl InnerValue {
     pub(super) const fn as_string(&self) -> Option<&JsString> {
         if self.is_string() {
             // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & NanBitTag::PointerMask as u64;
+            let ptr = self.0 & bits::POINTER_MASK;
             unsafe { Some(&*(ptr as *const _)) }
         } else {
             None
@@ -606,35 +587,32 @@ impl InnerValue {
     #[must_use]
     #[inline]
     pub(super) const fn as_variant(&self) -> JsVariant<'_> {
-        if self.is_undefined() {
-            JsVariant::Undefined
-        } else if self.is_null() {
-            JsVariant::Null
-        } else if let Some(b) = self.as_bool() {
-            JsVariant::Boolean(b)
-        } else if let Some(f) = self.as_float64() {
-            JsVariant::Float64(f)
-        } else if let Some(i) = self.as_integer32() {
-            JsVariant::Integer32(i)
-        } else if let Some(bigint) = self.as_bigint() {
-            JsVariant::BigInt(bigint)
-        } else if let Some(obj) = self.as_object() {
-            JsVariant::Object(obj)
-        } else if let Some(sym) = self.as_symbol() {
-            JsVariant::Symbol(sym)
-        } else if let Some(str) = self.as_string() {
-            JsVariant::String(str)
-        } else {
-            // This will optimize away this branch, resulting in UB if it is
-            // actually used, but it won't. It shouldn't. Really.
-            unsafe { std::hint::unreachable_unchecked() }
+        match self.0 {
+            bits::UNDEFINED => JsVariant::Undefined,
+            bits::NULL => JsVariant::Null,
+            bits::FALSE => JsVariant::Boolean(false),
+            bits::TRUE => JsVariant::Boolean(true),
+            bits::INTEGER32_ZERO..=0x7FF7_0000_FFFF_FFFF => {
+                JsVariant::Integer32(bits::untag_i32(self.0))
+            }
+            bits::POINTER..=0x7FFF_FFFF_FFFF_FFFF => {
+                let ptr = self.0 & bits::POINTER_MASK;
+                match self.0 & 0x3 {
+                    0 => JsVariant::BigInt(unsafe { &*(ptr as *const _) }),
+                    1 => JsVariant::Object(unsafe { &*(ptr as *const _) }),
+                    2 => JsVariant::Symbol(unsafe { &*(ptr as *const _) }),
+                    3 => JsVariant::String(unsafe { &*(ptr as *const _) }),
+                    _ => unreachable!(),
+                }
+            }
+            _ => JsVariant::Float64(f64_from_bits(self.0)),
         }
     }
 }
 
 impl Drop for InnerValue {
     fn drop(&mut self) {
-        let maybe_ptr = self.0 & NanBitTag::PointerMask as u64;
+        let maybe_ptr = self.0 & bits::POINTER_MASK;
 
         // Drop the pointer if it is a pointer.
         if self.is_object() {
