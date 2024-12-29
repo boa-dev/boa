@@ -78,7 +78,6 @@ mod bits {
     use boa_engine::value::inner::{f64_from_bits, f64_is_nan, f64_to_bits};
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
     use boa_string::JsString;
-    use std::ops::RangeInclusive;
 
     /// Undefined value in `u64`.
     pub(super) const UNDEFINED: u64 = 0x7FF4_0000_0000_0000;
@@ -143,6 +142,7 @@ mod bits {
 
     /// Checks that a value is a valid `BigInt`.
     #[inline]
+    #[allow(clippy::verbose_bit_mask)]
     pub(super) const fn is_bigint(value: u64) -> bool {
         is_pointer(value) && (value & 0x3 == 0) && (value & POINTER_MASK) != 0
     }
@@ -207,6 +207,7 @@ mod bits {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline]
+    #[allow(clippy::identity_op)]
     pub(super) unsafe fn tag_bigint(value: Box<JsBigInt>) -> u64 {
         let value = Box::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
@@ -307,8 +308,8 @@ const_assert!(f64_is_nan(f64_from_bits(bits::NULL)));
 const_assert!(f64_is_nan(f64_from_bits(bits::FALSE)));
 const_assert!(f64_is_nan(f64_from_bits(bits::TRUE)));
 const_assert!(f64_is_nan(f64_from_bits(bits::INTEGER32_ZERO)));
-const_assert!(f64_is_nan(f64_from_bits(*bits::POINTER)));
-const_assert!(f64_is_nan(f64_from_bits(*0x7FFF_FFFF_FFFF_FFFF)));
+const_assert!(f64_is_nan(f64_from_bits(bits::POINTER)));
+const_assert!(f64_is_nan(f64_from_bits(0x7FFF_FFFF_FFFF_FFFF)));
 
 /// A NaN-boxed `[super::JsValue]`'s inner.
 pub(super) struct InnerValue(pub u64);
@@ -595,6 +596,7 @@ impl InnerValue {
             bits::INTEGER32_ZERO..=0x7FF7_0000_FFFF_FFFF => {
                 JsVariant::Integer32(bits::untag_i32(self.0))
             }
+            bits::NAN => JsVariant::Float64(f64::NAN),
             bits::POINTER..=0x7FFF_FFFF_FFFF_FFFF => {
                 let ptr = self.0 & bits::POINTER_MASK;
                 match self.0 & 0x3 {
