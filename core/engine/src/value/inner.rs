@@ -73,7 +73,7 @@ const_assert!(align_of::<*mut ()>() >= 4);
 
 /// Internal module for bit masks and constants.
 ///
-///
+/// All bit magic is done here.
 mod bits {
     use boa_engine::value::inner::{f64_from_bits, f64_is_nan, f64_to_bits};
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
@@ -91,14 +91,35 @@ mod bits {
     /// True value in `u64`.
     pub(super) const TRUE: u64 = 0x7FF6_0000_0000_0001;
 
-    /// Integer32 value in `u64`.
+    /// Integer32 start (zero) value in `u64`.
     pub(super) const INTEGER32_ZERO: u64 = 0x7FF7_0000_0000_0000;
 
+    /// Integer32 end (MAX) value in `u64`.
+    pub(super) const INTEGER32_MAX: u64 = 0x7FF7_0000_FFFF_FFFF;
+
     /// Pointer starting point in `u64`.
-    pub(super) const POINTER: u64 = 0x7FF8_0000_0000_0000;
+    pub(super) const POINTER_START: u64 = 0x7FF8_0000_0000_0000;
+
+    /// Pointer starting point in `u64`.
+    pub(super) const POINTER_END: u64 = 0x7FFF_FFFF_FFFF_FFFF;
 
     /// Pointer types mask in `u64`.
     pub(super) const POINTER_MASK: u64 = 0x0007_FFFF_FFFF_FFFC;
+
+    /// Pointer mask for the type of the pointer.
+    pub(super) const POINTER_TYPE_MASK: u64 = 0x0003;
+
+    /// Pointer value for `BigInt`.
+    pub(super) const BIGINT: u64 = 0x0000;
+
+    /// Pointer value for `JsObject`.
+    pub(super) const OBJECT: u64 = 0x0001;
+
+    /// Pointer value for `JsSymbol`.
+    pub(super) const SYMBOL: u64 = 0x0002;
+
+    /// Pointer value for `JsString`.
+    pub(super) const STRING: u64 = 0x0003;
 
     /// NAN value in `u64`.
     pub(super) const NAN: u64 = 0x7FF8_0000_0000_0000;
@@ -137,32 +158,32 @@ mod bits {
     /// Untag a value as a pointer.
     #[inline]
     pub(super) const fn is_pointer(value: u64) -> bool {
-        value & POINTER == POINTER
+        value & POINTER_START == POINTER_START
     }
 
     /// Checks that a value is a valid `BigInt`.
     #[inline]
     #[allow(clippy::verbose_bit_mask)]
     pub(super) const fn is_bigint(value: u64) -> bool {
-        is_pointer(value) && (value & 0x3 == 0) && (value & POINTER_MASK) != 0
+        is_pointer(value) && (value & POINTER_TYPE_MASK == BIGINT) && (value & POINTER_MASK) != 0
     }
 
     /// Checks that a value is a valid Object.
     #[inline]
     pub(super) const fn is_object(value: u64) -> bool {
-        is_pointer(value) && (value & 0x3 == 1) && (value & POINTER_MASK) != 0
+        is_pointer(value) && (value & POINTER_TYPE_MASK == OBJECT) && (value & POINTER_MASK) != 0
     }
 
     /// Checks that a value is a valid Symbol.
     #[inline]
     pub(super) const fn is_symbol(value: u64) -> bool {
-        is_pointer(value) && (value & 0x3 == 2) && (value & POINTER_MASK) != 0
+        is_pointer(value) && (value & POINTER_TYPE_MASK == SYMBOL) && (value & POINTER_MASK) != 0
     }
 
     /// Checks that a value is a valid String.
     #[inline]
     pub(super) const fn is_string(value: u64) -> bool {
-        is_pointer(value) && (value & 0x3 == 3) && (value & POINTER_MASK) != 0
+        is_pointer(value) && (value & POINTER_TYPE_MASK == STRING) && (value & POINTER_MASK) != 0
     }
 
     /// Returns a tagged u64 of a 64-bits float.
@@ -221,7 +242,7 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER | 0 | value_masked
+        POINTER_START | 0 | value_masked
     }
 
     /// Returns a tagged u64 of a boxed `[JsObject]`.
@@ -246,7 +267,7 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER | 1 | value_masked
+        POINTER_START | 1 | value_masked
     }
 
     /// Returns a tagged u64 of a boxed `[JsSymbol]`.
@@ -271,7 +292,7 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER | 2 | value_masked
+        POINTER_START | 2 | value_masked
     }
 
     /// Returns a tagged u64 of a boxed `[JsString]`.
@@ -296,7 +317,31 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER | 3 | value_masked
+        POINTER_START | 3 | value_masked
+    }
+
+    /// Returns an Option of a boxed `[JsBigInt]` from a tagged value.
+    #[inline]
+    pub(super) const fn as_bigint<'a>(value: u64) -> Option<&'a JsBigInt> {
+        if is_bigint(value) {
+            // This is safe because the boxed object will always be on the heap.
+            let ptr = value & POINTER_MASK;
+            unsafe { Some(&*(ptr as *const _)) }
+        } else {
+            None
+        }
+    }
+
+    /// Returns an Option of a boxed `[JsObject]` from a tagged value.
+    #[inline]
+    pub(super) const fn as_object<'a>(value: u64) -> Option<&'a JsObject> {
+        if is_object(value) {
+            // This is safe because the boxed object will always be on the heap.
+            let ptr = value & POINTER_MASK;
+            unsafe { Some(&*(ptr as *const _)) }
+        } else {
+            None
+        }
     }
 }
 
@@ -308,8 +353,8 @@ const_assert!(f64_is_nan(f64_from_bits(bits::NULL)));
 const_assert!(f64_is_nan(f64_from_bits(bits::FALSE)));
 const_assert!(f64_is_nan(f64_from_bits(bits::TRUE)));
 const_assert!(f64_is_nan(f64_from_bits(bits::INTEGER32_ZERO)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER)));
-const_assert!(f64_is_nan(f64_from_bits(0x7FFF_FFFF_FFFF_FFFF)));
+const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_START)));
+const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_END)));
 
 /// A NaN-boxed `[super::JsValue]`'s inner.
 pub(super) struct InnerValue(pub u64);
@@ -536,26 +581,14 @@ impl InnerValue {
     #[must_use]
     #[inline]
     pub(super) const fn as_bigint(&self) -> Option<&JsBigInt> {
-        if self.is_bigint() {
-            // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & bits::POINTER_MASK;
-            unsafe { Some(&*(ptr as *const _)) }
-        } else {
-            None
-        }
+        bits::as_bigint::<'_>(self.0)
     }
 
     /// Returns the value as a boxed `[JsObject]`.
     #[must_use]
     #[inline]
     pub(super) const fn as_object(&self) -> Option<&JsObject> {
-        if self.is_object() {
-            // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & bits::POINTER_MASK;
-            unsafe { Some(&*(ptr as *const _)) }
-        } else {
-            None
-        }
+        bits::as_object::<'_>(self.0)
     }
 
     /// Returns the value as a boxed `[JsSymbol]`.
@@ -593,17 +626,17 @@ impl InnerValue {
             bits::NULL => JsVariant::Null,
             bits::FALSE => JsVariant::Boolean(false),
             bits::TRUE => JsVariant::Boolean(true),
-            bits::INTEGER32_ZERO..=0x7FF7_0000_FFFF_FFFF => {
+            bits::INTEGER32_ZERO..=bits::INTEGER32_MAX => {
                 JsVariant::Integer32(bits::untag_i32(self.0))
             }
             bits::NAN => JsVariant::Float64(f64::NAN),
-            bits::POINTER..=0x7FFF_FFFF_FFFF_FFFF => {
+            bits::POINTER_START..=bits::POINTER_END => {
                 let ptr = self.0 & bits::POINTER_MASK;
-                match self.0 & 0x3 {
-                    0 => JsVariant::BigInt(unsafe { &*(ptr as *const _) }),
-                    1 => JsVariant::Object(unsafe { &*(ptr as *const _) }),
-                    2 => JsVariant::Symbol(unsafe { &*(ptr as *const _) }),
-                    3 => JsVariant::String(unsafe { &*(ptr as *const _) }),
+                match self.0 & bits::POINTER_TYPE_MASK {
+                    bits::BIGINT => JsVariant::BigInt(unsafe { &*(ptr as *const _) }),
+                    bits::OBJECT => JsVariant::Object(unsafe { &*(ptr as *const _) }),
+                    bits::SYMBOL => JsVariant::Symbol(unsafe { &*(ptr as *const _) }),
+                    bits::STRING => JsVariant::String(unsafe { &*(ptr as *const _) }),
                     _ => unreachable!(),
                 }
             }
