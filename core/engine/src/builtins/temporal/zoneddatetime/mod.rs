@@ -25,9 +25,9 @@ use temporal_rs::{
 };
 
 use super::{
-    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
-    create_temporal_date, create_temporal_datetime, create_temporal_instant, create_temporal_time,
-    to_partial_date_record, to_partial_time_record, to_temporal_duration, to_temporal_time,
+    calendar::to_temporal_calendar_slot_value, create_temporal_date, create_temporal_datetime,
+    create_temporal_instant, create_temporal_time, to_partial_date_record, to_partial_time_record,
+    to_temporal_duration, to_temporal_time,
 };
 
 /// The `Temporal.ZonedDateTime` object.
@@ -246,13 +246,13 @@ impl IntrinsicObject for ZonedDateTime {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("epochMillisecond"),
+                js_string!("epochMilliseconds"),
                 Some(get_epoch_millisecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_string!("epochNanosecond"),
+                js_string!("epochNanoseconds"),
                 Some(get_epoch_nanosecond),
                 None,
                 Attribute::CONFIGURABLE,
@@ -1083,32 +1083,8 @@ pub(crate) fn to_temporal_zoneddatetime(
                 // vi. Return ! CreateTemporalZonedDateTime(item.[[EpochNanoseconds]], item.[[TimeZone]], item.[[Calendar]]).
                 return Ok(zdt.inner.clone());
             }
-            // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
-            let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
-            // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », « time-zone »).
-            let date = to_partial_date_record(object, context)?;
-            let time = to_partial_time_record(object, context)?;
-            // d. Let timeZone be fields.[[TimeZone]].
-            let timezone = object
-                .get(js_string!("timeZone"), context)?
-                .map(|v| {
-                    // TODO: to_temporal_timezone_identifier
-                    to_temporal_timezone_identifier(v, context)
-                })
-                .transpose()?
-                .unwrap_or_default();
-            // e. Let offsetString be fields.[[OffsetString]].
-            let offset = object
-                .get(js_string!("offset"), context)?
-                .map(|v| to_offset_string(v, context))
-                .transpose()?;
-            let partial = PartialZonedDateTime {
-                date,
-                time,
-                offset,
-                timezone,
-            };
-            // f. If offsetString is unset, then
+            let partial = to_partial_zoneddatetime(object, context)?;
+            // f. If offsetString is unset, the
             // i. Set offsetBehaviour to wall.
             // g. Let resolvedOptions be ? GetOptionsObject(options).
             let options = get_options_object(&options.unwrap_or_default())?;
@@ -1126,7 +1102,6 @@ pub(crate) fn to_temporal_zoneddatetime(
             // m. Let time be result.[[Time]].
             Ok(ZonedDateTimeInner::from_partial_with_provider(
                 partial,
-                Some(calendar),
                 overflow,
                 disambiguation,
                 offset_option,
@@ -1227,4 +1202,30 @@ fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> 
     let _u = TimeZone::try_from_str_with_provider(&result, context.tz_provider())?;
     // 4. Return offset.
     Ok(result)
+}
+
+pub(crate) fn to_partial_zoneddatetime(
+    object: &JsObject,
+    context: &mut Context,
+) -> JsResult<PartialZonedDateTime> {
+    // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
+    // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », « time-zone »).
+    let date = to_partial_date_record(object, context)?;
+    let time = to_partial_time_record(object, context)?;
+    // d. Let timeZone be fields.[[TimeZone]].
+    let timezone = object
+        .get(js_string!("timeZone"), context)?
+        .map(|v| to_temporal_timezone_identifier(v, context))
+        .transpose()?;
+    // e. Let offsetString be fields.[[OffsetString]].
+    let offset = object
+        .get(js_string!("offset"), context)?
+        .map(|v| to_offset_string(v, context))
+        .transpose()?;
+    Ok(PartialZonedDateTime {
+        date,
+        time,
+        offset,
+        timezone,
+    })
 }

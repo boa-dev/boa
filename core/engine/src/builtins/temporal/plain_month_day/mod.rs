@@ -22,7 +22,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, CalendarName},
     partial::PartialDate,
-    PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
+    PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
@@ -219,8 +219,8 @@ impl BuiltInConstructor for PlainMonthDay {
 
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
         let inner = InnerMonthDay::new_with_overflow(
-            m.into(),
-            d.into(),
+            m,
+            d,
             calendar,
             ArithmeticOverflow::Constrain,
             ref_year,
@@ -274,11 +274,6 @@ pub(crate) fn create_temporal_month_day(
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if !PlainDateTime::validate(&inner) {
-        return Err(JsNativeError::range()
-            .with_message("PlainMonthDay does not hold a valid ISO date time.")
-            .into());
-    }
 
     // 3. If newTarget is not present, set newTarget to %Temporal.PlainMonthDay%.
     let new_target = if let Some(target) = new_target {
@@ -334,9 +329,8 @@ fn to_temporal_month_day(
             .get_v(js_string!("day"), context)?
             .map(|v| {
                 let finite = v.to_finitef64(context)?;
-                // TODO: Update to the below to u8 after temporal_rs change
                 finite
-                    .as_positive_integer_with_truncation::<i32>()
+                    .as_positive_integer_with_truncation::<u8>()
                     .map_err(JsError::from)
             })
             .transpose()?;
@@ -345,9 +339,8 @@ fn to_temporal_month_day(
             .get_v(js_string!("month"), context)?
             .map(|v| {
                 let finite = v.to_finitef64(context)?;
-                // TODO: Update to the below to u8 after temporal_rs change
                 finite
-                    .as_positive_integer_with_truncation::<i32>()
+                    .as_positive_integer_with_truncation::<u8>()
                     .map_err(JsError::from)
             })
             .transpose()?;

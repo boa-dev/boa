@@ -189,14 +189,8 @@ impl BuiltInConstructor for PlainTime {
                 Ok(finite.as_integer_with_truncation::<u16>())
             })?;
 
-        let inner = PlainTimeInner::new(
-            hour.into(),
-            minute.into(),
-            second.into(),
-            millisecond.into(),
-            microsecond.into(),
-            nanosecond.into(),
-        )?;
+        let inner =
+            PlainTimeInner::new(hour, minute, second, millisecond, microsecond, nanosecond)?;
 
         // 8. Return ? CreateTemporalTime(hour, minute, second, millisecond, microsecond, nanosecond, NewTarget).
         create_temporal_time(inner, Some(new_target), context).map(Into::into)
@@ -655,7 +649,7 @@ pub(crate) fn to_temporal_time(
                     get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
                 return Ok(time.inner);
             // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
-            } else if let Some(_zdt) = object.downcast_ref::<ZonedDateTime>() {
+            } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
                 // i. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
                 // ii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
                 // iii. Let plainDateTime be ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
@@ -665,9 +659,10 @@ pub(crate) fn to_temporal_time(
                 let options = get_options_object(options)?;
                 let _overflow =
                     get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
-                return Err(JsNativeError::range()
-                    .with_message("Not yet implemented.")
-                    .into());
+                return zdt
+                    .inner
+                    .to_plain_time_with_provider(context.tz_provider())
+                    .map_err(Into::into);
             // c. If item has an [[InitializedTemporalDateTime]] internal slot, then
             } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
                 // i. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],

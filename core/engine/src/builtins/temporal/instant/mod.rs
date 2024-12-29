@@ -311,7 +311,7 @@ impl Instant {
         let settings =
             get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
         let result = instant.inner.until(&other, settings)?;
-        create_temporal_duration(result.into(), None, context).map(Into::into)
+        create_temporal_duration(result, None, context).map(Into::into)
     }
 
     /// 8.3.10 `Temporal.Instant.prototype.since ( other [ , options ] )`
@@ -334,7 +334,7 @@ impl Instant {
         let settings =
             get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
         let result = instant.inner.since(&other, settings)?;
-        create_temporal_duration(result.into(), None, context).map(Into::into)
+        create_temporal_duration(result, None, context).map(Into::into)
     }
 
     /// 8.3.11 `Temporal.Instant.prototype.round ( roundTo )`

@@ -1,6 +1,7 @@
 // Boa's implementation of the `Temporal.Duration` Builtin Object.
 
 use super::{
+    get_relative_to_option,
     options::{get_temporal_unit, TemporalUnitGroup},
     DateTimeValues,
 };
@@ -22,7 +23,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{RelativeTo, RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit},
+    options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit},
     partial::PartialDuration,
     Duration as InnerDuration,
 };
@@ -712,8 +713,7 @@ impl Duration {
         // 10. Let relativeToRecord be ? ToRelativeTemporalObject(roundTo).
         // 11. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 12. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
-        let (plain_relative_to, zoned_relative_to) =
-            super::to_relative_temporal_object(&round_to, context)?;
+        let relative_to = get_relative_to_option(&round_to, context)?;
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         options.increment =
@@ -735,13 +735,10 @@ impl Duration {
         // NOTE: execute step 21 earlier before initial values are shadowed.
         // 21. If smallestUnitPresent is false and largestUnitPresent is false, then
 
-        let rounded_duration = duration.inner.round(
-            options,
-            &RelativeTo {
-                date: plain_relative_to.as_ref(),
-                zdt: zoned_relative_to.as_ref(),
-            },
-        )?;
+        let rounded_duration =
+            duration
+                .inner
+                .round_with_provider(options, relative_to, context.tz_provider())?;
         create_temporal_duration(rounded_duration, None, context).map(Into::into)
     }
 
