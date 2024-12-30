@@ -64,8 +64,8 @@ pollster = "0.4.0"
 regex = "1.11.1"
 regress = { version = "0.10.1", features = ["utf16"] }
 rustc-hash = { version = "2.1.0", default-features = false }
-serde_json = "1.0.133"
-serde = "1.0.216"
+serde_json = "1.0.134"
+serde = "1.0.217"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
@@ -90,8 +90,8 @@ futures-util = "0.3.31"
 isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
-quote = "1.0.37"
-syn = { version = "2.0.90", default-features = false }
+quote = "1.0.38"
+syn = { version = "2.0.93", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.0"
@@ -101,12 +101,12 @@ rand = "0.8.5"
 num-integer = "0.1.46"
 ryu-js = "1.0.1"
 tap = "1.0.1"
-thiserror = { version = "2.0.7", default-features = false }
+thiserror = { version = "2.0.9", default-features = false }
 dashmap = "6.1.0"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
 portable-atomic = "1.10.0"
-bytemuck = { version = "1.19.0", default-features = false }
+bytemuck = { version = "1.21.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
