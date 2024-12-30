@@ -1,6 +1,6 @@
 //! This `[JsValue]` inner type is an opaque enum implementing the same
-//! interface as the NanBoxedValue type, but using an enum instead of
-//! a 64-bits float.
+//! interface as the `NanBoxedValue` type, but using an enum instead of
+//! a 64-bits NAN-boxed float.
 
 use crate::{JsBigInt, JsObject, JsSymbol};
 use boa_engine::JsVariant;
