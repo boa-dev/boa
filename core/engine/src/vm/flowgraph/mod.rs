@@ -38,13 +38,41 @@ impl CodeBlock {
             let pc = iterator.pc();
 
             match instruction {
-                Instruction::SetFunctionName { .. } => {
+                Instruction::StrictEq { .. }
+                | Instruction::StrictNotEq { .. }
+                | Instruction::SetRegisterFromAccumulator { .. }
+                | Instruction::Move { .. }
+                | Instruction::PopIntoRegister { .. }
+                | Instruction::PushFromRegister { .. }
+                | Instruction::Add { .. }
+                | Instruction::Sub { .. }
+                | Instruction::Div { .. }
+                | Instruction::Mul { .. }
+                | Instruction::Mod { .. }
+                | Instruction::Pow { .. }
+                | Instruction::ShiftRight { .. }
+                | Instruction::ShiftLeft { .. }
+                | Instruction::UnsignedShiftRight { .. }
+                | Instruction::BitOr { .. }
+                | Instruction::BitAnd { .. }
+                | Instruction::BitXor { .. }
+                | Instruction::BitNot { .. }
+                | Instruction::In { .. }
+                | Instruction::Eq { .. }
+                | Instruction::NotEq { .. }
+                | Instruction::GreaterThan { .. }
+                | Instruction::GreaterThanOrEq { .. }
+                | Instruction::LessThan { .. }
+                | Instruction::LessThanOrEq { .. }
+                | Instruction::InstanceOf { .. }
+                | Instruction::SetAccumulator { .. }
+                | Instruction::SetFunctionName { .. }
+                | Instruction::Inc { .. }
+                | Instruction::Dec { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::RotateLeft { .. }
-                | Instruction::RotateRight { .. }
-                | Instruction::CreateIteratorResult { .. } => {
+                Instruction::CreateIteratorResult { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -90,10 +118,10 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
-                Instruction::JumpIfFalse { address }
-                | Instruction::JumpIfTrue { address }
-                | Instruction::JumpIfNotUndefined { address }
-                | Instruction::JumpIfNullOrUndefined { address } => {
+                Instruction::JumpIfFalse { address, .. }
+                | Instruction::JumpIfTrue { address, .. }
+                | Instruction::JumpIfNotUndefined { address, .. }
+                | Instruction::JumpIfNullOrUndefined { address, .. } => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
@@ -114,20 +142,20 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::Red);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::LogicalAnd { exit }
-                | Instruction::LogicalOr { exit }
-                | Instruction::Coalesce { exit } => {
+                Instruction::LogicalAnd { address, .. }
+                | Instruction::LogicalOr { address, .. }
+                | Instruction::Coalesce { address, .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                     graph.add_edge(
                         previous_pc,
-                        exit as usize,
+                        address as usize,
                         Some("SHORT CIRCUIT".into()),
                         Color::Red,
                         EdgeStyle::Line,
                     );
                 }
-                Instruction::Case { address } => {
+                Instruction::Case { address, .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
@@ -144,19 +172,10 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
-                Instruction::Default { address } => {
-                    graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
-                    graph.add_edge(
-                        previous_pc,
-                        address as usize,
-                        None,
-                        Color::None,
-                        EdgeStyle::Line,
-                    );
-                }
                 Instruction::GeneratorDelegateNext {
                     return_method_undefined,
                     throw_method_undefined,
+                    ..
                 } => {
                     graph.add_node(
                         previous_pc,
@@ -180,7 +199,7 @@ impl CodeBlock {
                         EdgeStyle::Line,
                     );
                 }
-                Instruction::GeneratorDelegateResume { r#return, exit } => {
+                Instruction::GeneratorDelegateResume { r#return, exit, .. } => {
                     graph.add_node(
                         previous_pc,
                         NodeShape::Diamond,
@@ -212,11 +231,11 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::JumpIfNotResumeKind { exit, .. } => {
+                Instruction::JumpIfNotResumeKind { address, .. } => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::None);
                     graph.add_edge(
                         previous_pc,
-                        exit as usize,
+                        address as usize,
                         Some("EXIT".into()),
                         Color::Red,
                         EdgeStyle::Line,
@@ -260,6 +279,8 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Instruction::GetPropertyByName { .. }
+                | Instruction::GetPropertyByValue { .. }
+                | Instruction::GetPropertyByValuePush { .. }
                 | Instruction::SetPropertyByName { .. }
                 | Instruction::DefineOwnPropertyByName { .. }
                 | Instruction::DefineClassStaticMethodByName { .. }
@@ -298,7 +319,7 @@ impl CodeBlock {
                         );
                     }
                 }
-                Instruction::Throw | Instruction::ReThrow => {
+                Instruction::Throw { .. } | Instruction::ReThrow => {
                     if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_node(previous_pc, NodeShape::Record, label.into(), Color::None);
                         graph.add_edge(
@@ -337,130 +358,89 @@ impl CodeBlock {
                     }
                 }
                 Instruction::Pop
-                | Instruction::Dup
-                | Instruction::Swap
-                | Instruction::PushZero
-                | Instruction::PushOne
-                | Instruction::PushNaN
-                | Instruction::PushPositiveInfinity
-                | Instruction::PushNegativeInfinity
-                | Instruction::PushNull
-                | Instruction::PushTrue
-                | Instruction::PushFalse
-                | Instruction::PushUndefined
-                | Instruction::PushEmptyObject
-                | Instruction::PushClassPrototype
-                | Instruction::SetClassPrototype
-                | Instruction::SetHomeObject
-                | Instruction::Add
-                | Instruction::Sub
-                | Instruction::Div
-                | Instruction::Mul
-                | Instruction::Mod
-                | Instruction::Pow
-                | Instruction::ShiftRight
-                | Instruction::ShiftLeft
-                | Instruction::UnsignedShiftRight
-                | Instruction::BitOr
-                | Instruction::BitAnd
-                | Instruction::BitXor
-                | Instruction::BitNot
-                | Instruction::In
-                | Instruction::Eq
-                | Instruction::StrictEq
-                | Instruction::NotEq
-                | Instruction::StrictNotEq
-                | Instruction::GreaterThan
-                | Instruction::GreaterThanOrEq
-                | Instruction::LessThan
-                | Instruction::LessThanOrEq
-                | Instruction::InstanceOf
-                | Instruction::TypeOf
-                | Instruction::Void
-                | Instruction::LogicalNot
-                | Instruction::Pos
-                | Instruction::Neg
-                | Instruction::Inc
-                | Instruction::IncPost
-                | Instruction::Dec
-                | Instruction::DecPost
-                | Instruction::GetPropertyByValue
-                | Instruction::GetPropertyByValuePush
-                | Instruction::SetPropertyByValue
-                | Instruction::DefineOwnPropertyByValue
-                | Instruction::DefineClassStaticMethodByValue
-                | Instruction::DefineClassMethodByValue
-                | Instruction::SetPropertyGetterByValue
-                | Instruction::DefineClassStaticGetterByValue
-                | Instruction::DefineClassGetterByValue
-                | Instruction::SetPropertySetterByValue
-                | Instruction::DefineClassStaticSetterByValue
-                | Instruction::DefineClassSetterByValue
-                | Instruction::DeletePropertyByValue
+                | Instruction::PushZero { .. }
+                | Instruction::PushOne { .. }
+                | Instruction::PushNaN { .. }
+                | Instruction::PushPositiveInfinity { .. }
+                | Instruction::PushNegativeInfinity { .. }
+                | Instruction::PushNull { .. }
+                | Instruction::PushTrue { .. }
+                | Instruction::PushFalse { .. }
+                | Instruction::PushUndefined { .. }
+                | Instruction::PushEmptyObject { .. }
+                | Instruction::PushClassPrototype { .. }
+                | Instruction::SetClassPrototype { .. }
+                | Instruction::SetHomeObject { .. }
+                | Instruction::TypeOf { .. }
+                | Instruction::LogicalNot { .. }
+                | Instruction::Pos { .. }
+                | Instruction::Neg { .. }
+                | Instruction::SetPropertyByValue { .. }
+                | Instruction::DefineOwnPropertyByValue { .. }
+                | Instruction::DefineClassStaticMethodByValue { .. }
+                | Instruction::DefineClassMethodByValue { .. }
+                | Instruction::SetPropertyGetterByValue { .. }
+                | Instruction::DefineClassStaticGetterByValue { .. }
+                | Instruction::DefineClassGetterByValue { .. }
+                | Instruction::SetPropertySetterByValue { .. }
+                | Instruction::DefineClassStaticSetterByValue { .. }
+                | Instruction::DefineClassSetterByValue { .. }
+                | Instruction::DeletePropertyByValue { .. }
                 | Instruction::DeleteSuperThrow
-                | Instruction::ToPropertyKey
-                | Instruction::ToBoolean
-                | Instruction::This
+                | Instruction::ToPropertyKey { .. }
+                | Instruction::This { .. }
                 | Instruction::ThisForObjectEnvironmentName { .. }
-                | Instruction::Super
+                | Instruction::Super { .. }
                 | Instruction::IncrementLoopIteration
-                | Instruction::CreateForInIterator
-                | Instruction::GetIterator
-                | Instruction::GetAsyncIterator
+                | Instruction::CreateForInIterator { .. }
+                | Instruction::GetIterator { .. }
+                | Instruction::GetAsyncIterator { .. }
                 | Instruction::IteratorNext
-                | Instruction::IteratorNextWithoutPop
-                | Instruction::IteratorFinishAsyncNext
-                | Instruction::IteratorValue
-                | Instruction::IteratorValueWithoutPop
-                | Instruction::IteratorResult
-                | Instruction::IteratorDone
-                | Instruction::IteratorToArray
-                | Instruction::IteratorReturn
-                | Instruction::IteratorStackEmpty
-                | Instruction::RequireObjectCoercible
-                | Instruction::ValueNotNullOrUndefined
-                | Instruction::RestParameterInit
-                | Instruction::PushValueToArray
-                | Instruction::PushElisionToArray
-                | Instruction::PushIteratorToArray
-                | Instruction::PushNewArray
-                | Instruction::GeneratorYield
-                | Instruction::AsyncGeneratorYield
+                | Instruction::IteratorFinishAsyncNext { .. }
+                | Instruction::IteratorValue { .. }
+                | Instruction::IteratorResult { .. }
+                | Instruction::IteratorDone { .. }
+                | Instruction::IteratorToArray { .. }
+                | Instruction::IteratorReturn { .. }
+                | Instruction::IteratorStackEmpty { .. }
+                | Instruction::ValueNotNullOrUndefined { .. }
+                | Instruction::RestParameterInit { .. }
+                | Instruction::PushValueToArray { .. }
+                | Instruction::PushElisionToArray { .. }
+                | Instruction::PushIteratorToArray { .. }
+                | Instruction::PushNewArray { .. }
+                | Instruction::GeneratorYield { .. }
+                | Instruction::AsyncGeneratorYield { .. }
                 | Instruction::AsyncGeneratorClose
                 | Instruction::CreatePromiseCapability
                 | Instruction::CompletePromiseCapability
-                | Instruction::GeneratorNext
+                | Instruction::GeneratorNext { .. }
                 | Instruction::PushClassField { .. }
                 | Instruction::SuperCallDerived
-                | Instruction::Await
-                | Instruction::NewTarget
-                | Instruction::ImportMeta
+                | Instruction::Await { .. }
+                | Instruction::NewTarget { .. }
+                | Instruction::ImportMeta { .. }
                 | Instruction::CallEvalSpread { .. }
                 | Instruction::CallSpread
                 | Instruction::NewSpread
                 | Instruction::SuperCallSpread
-                | Instruction::SuperCallPrepare
-                | Instruction::SetPrototype
-                | Instruction::IsObject
-                | Instruction::SetNameByLocator
-                | Instruction::PushObjectEnvironment
+                | Instruction::SuperCallPrepare { .. }
+                | Instruction::SetPrototype { .. }
+                | Instruction::IsObject { .. }
+                | Instruction::SetNameByLocator { .. }
+                | Instruction::PushObjectEnvironment { .. }
                 | Instruction::PopPrivateEnvironment
-                | Instruction::ImportCall
-                | Instruction::GetReturnValue
-                | Instruction::SetReturnValue
-                | Instruction::Exception
-                | Instruction::MaybeException
+                | Instruction::ImportCall { .. }
+                | Instruction::Exception { .. }
+                | Instruction::MaybeException { .. }
                 | Instruction::CheckReturn
-                | Instruction::BindThisValue
-                | Instruction::CreateMappedArgumentsObject
-                | Instruction::CreateUnmappedArgumentsObject
+                | Instruction::BindThisValue { .. }
+                | Instruction::CreateMappedArgumentsObject { .. }
+                | Instruction::CreateUnmappedArgumentsObject { .. }
                 | Instruction::CreateGlobalFunctionBinding { .. }
                 | Instruction::CreateGlobalVarBinding { .. }
-                | Instruction::PopIntoRegister { .. }
-                | Instruction::PushFromRegister { .. }
                 | Instruction::PopIntoLocal { .. }
-                | Instruction::PushFromLocal { .. }
-                | Instruction::Nop => {
+                | Instruction::PushFromLocal { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
@@ -516,7 +496,19 @@ impl CodeBlock {
                 | Instruction::Reserved45
                 | Instruction::Reserved46
                 | Instruction::Reserved47
-                | Instruction::Reserved48 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved48
+                | Instruction::Reserved49
+                | Instruction::Reserved50
+                | Instruction::Reserved51
+                | Instruction::Reserved52
+                | Instruction::Reserved53
+                | Instruction::Reserved54
+                | Instruction::Reserved55
+                | Instruction::Reserved56
+                | Instruction::Reserved57
+                | Instruction::Reserved58
+                | Instruction::Reserved59
+                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 
