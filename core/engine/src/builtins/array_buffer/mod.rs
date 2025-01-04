@@ -158,6 +158,7 @@ impl BufferObject {
 
     /// Gets the mutable buffer data of the object
     #[inline]
+    #[track_caller]
     pub(crate) fn as_buffer_mut(
         &self,
     ) -> BufferRefMut<

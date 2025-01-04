@@ -78,4 +78,13 @@ features = [
     "caller",
 ]
 
-tests = ["sm"]
+tests = [
+    # Should throw an OOM error instead of filling the whole RAM.
+    "test/staging/sm/String/replace-math.js",
+    # Panics
+    "test/staging/sm/expressions/optional-chain-first-expression.js",
+    "test/staging/sm/regress/regress-554955-2.js",
+    "test/staging/sm/class/fields-static-class-name-binding-eval.js",
+    "test/staging/sm/regress/regress-554955-1.js",
+    "test/staging/sm/regress/regress-554955-3.js"
+]
