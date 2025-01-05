@@ -15,7 +15,6 @@ rust-version.workspace = true
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
 either = ["dep:either"]
-nan-box-jsvalue = []
 
 # Enables the `Intl` builtin object and bundles a default ICU4X data provider.
 # Prefer this over `intl` if you just want to enable `Intl` without dealing with the
