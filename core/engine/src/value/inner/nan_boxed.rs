@@ -34,6 +34,7 @@
 //!
 //! This only works on 4-bits aligned values, which is asserted when the
 //! `InnerValue` is created.
+#![allow(clippy::inline_always)]
 
 use crate::{JsBigInt, JsObject, JsSymbol, JsVariant};
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -44,7 +45,7 @@ use static_assertions::const_assert;
 /// Transform an `u64` into `f64`, by its bytes. This is necessary for
 /// keeping the MSRV at 1.82, as `f64::from_bits` is not const until
 /// 1.83.
-#[inline]
+#[inline(always)]
 const fn f64_from_bits(bits: u64) -> f64 {
     unsafe { std::mem::transmute(bits) }
 }
@@ -52,14 +53,14 @@ const fn f64_from_bits(bits: u64) -> f64 {
 /// Transform a `f64` into `u64`, by its bytes. This is necessary for
 /// keeping the MSRV at 1.82, as `f64::to_bits` is not const until
 /// 1.83.
-#[inline]
+#[inline(always)]
 const fn f64_to_bits(bits: f64) -> u64 {
     unsafe { std::mem::transmute(bits) }
 }
 
 /// Check that a float is a `NaN`. This is necessary for keeping the MSRV
 /// at 1.82, as `f64::is_nan` is not const until 1.53.
-#[inline]
+#[inline(always)]
 #[allow(clippy::eq_op, clippy::float_cmp)]
 const fn f64_is_nan(f: f64) -> bool {
     f != f
@@ -78,6 +79,7 @@ mod bits {
     use super::{f64_from_bits, f64_is_nan, f64_to_bits};
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
     use boa_string::JsString;
+    use std::ptr::NonNull;
 
     /// Undefined value in `u64`.
     pub(super) const UNDEFINED: u64 = 0x7FF4_0000_0000_0000;
@@ -125,69 +127,70 @@ mod bits {
     pub(super) const NAN: u64 = 0x7FF8_0000_0000_0000;
 
     /// Checks that a value is a valid boolean (either true or false).
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_bool(value: u64) -> bool {
         value == TRUE || value == FALSE
     }
 
     /// Checks that a value is a valid float, not a tagged nan boxed value.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_float(value: u64) -> bool {
         let as_float = f64_from_bits(value);
         !f64_is_nan(as_float) || value == NAN
     }
 
     /// Checks that a value is a valid undefined.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_undefined(value: u64) -> bool {
         value == UNDEFINED
     }
 
     /// Checks that a value is a valid null.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_null(value: u64) -> bool {
         value == NULL
     }
 
     /// Checks that a value is a valid integer32.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_integer32(value: u64) -> bool {
         value & INTEGER32_ZERO == INTEGER32_ZERO
     }
 
     /// Untag a value as a pointer.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_pointer(value: u64) -> bool {
         value & POINTER_START == POINTER_START
     }
 
     /// Checks that a value is a valid `BigInt`.
-    #[inline]
+    #[inline(always)]
     #[allow(clippy::verbose_bit_mask)]
     pub(super) const fn is_bigint(value: u64) -> bool {
+        // If `(value & POINTER_MASK)` is zero, then it is NaN.
         is_pointer(value) && (value & POINTER_TYPE_MASK == BIGINT) && (value & POINTER_MASK) != 0
     }
 
     /// Checks that a value is a valid Object.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_object(value: u64) -> bool {
-        is_pointer(value) && (value & POINTER_TYPE_MASK == OBJECT) && (value & POINTER_MASK) != 0
+        is_pointer(value) && (value & POINTER_TYPE_MASK == OBJECT)
     }
 
     /// Checks that a value is a valid Symbol.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_symbol(value: u64) -> bool {
-        is_pointer(value) && (value & POINTER_TYPE_MASK == SYMBOL) && (value & POINTER_MASK) != 0
+        is_pointer(value) && (value & POINTER_TYPE_MASK == SYMBOL)
     }
 
     /// Checks that a value is a valid String.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn is_string(value: u64) -> bool {
-        is_pointer(value) && (value & POINTER_TYPE_MASK == STRING) && (value & POINTER_MASK) != 0
+        is_pointer(value) && (value & POINTER_TYPE_MASK == STRING)
     }
 
     /// Returns a tagged u64 of a 64-bits float.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn tag_f64(value: f64) -> u64 {
         if f64_is_nan(value) {
             // Reduce any NAN to a canonical NAN representation.
@@ -198,19 +201,19 @@ mod bits {
     }
 
     /// Returns a tagged u64 of a 32-bits integer.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn tag_i32(value: i32) -> u64 {
         INTEGER32_ZERO | value as u64 & 0xFFFF_FFFFu64
     }
 
     /// Returns a i32-bits from a tagged integer.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn untag_i32(value: u64) -> i32 {
         ((value & 0xFFFF_FFFFu64) | 0xFFFF_FFFF_0000_0000u64) as i32
     }
 
     /// Returns a tagged u64 of a boolean.
-    #[inline]
+    #[inline(always)]
     pub(super) const fn tag_bool(value: bool) -> u64 {
         if value {
             TRUE
@@ -227,7 +230,7 @@ mod bits {
     ///
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
-    #[inline]
+    #[inline(always)]
     #[allow(clippy::identity_op)]
     pub(super) unsafe fn tag_bigint(value: Box<JsBigInt>) -> u64 {
         let value = Box::into_raw(value) as u64;
@@ -253,7 +256,7 @@ mod bits {
     ///
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
-    #[inline]
+    #[inline(always)]
     pub(super) unsafe fn tag_object(value: Box<JsObject>) -> u64 {
         let value = Box::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
@@ -278,7 +281,7 @@ mod bits {
     ///
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
-    #[inline]
+    #[inline(always)]
     pub(super) unsafe fn tag_symbol(value: Box<JsSymbol>) -> u64 {
         let value = Box::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
@@ -303,7 +306,7 @@ mod bits {
     ///
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
-    #[inline]
+    #[inline(always)]
     pub(super) unsafe fn tag_string(value: Box<JsString>) -> u64 {
         let value = Box::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
@@ -320,28 +323,15 @@ mod bits {
         POINTER_START | 3 | value_masked
     }
 
-    /// Returns an Option of a boxed `[JsBigInt]` from a tagged value.
-    #[inline]
-    pub(super) const fn as_bigint<'a>(value: u64) -> Option<&'a JsBigInt> {
-        if is_bigint(value) {
-            // This is safe because the boxed object will always be on the heap.
-            let ptr = value & POINTER_MASK;
-            unsafe { Some(&*(ptr as *const _)) }
-        } else {
-            None
-        }
-    }
-
-    /// Returns an Option of a boxed `[JsObject]` from a tagged value.
-    #[inline]
-    pub(super) const fn as_object<'a>(value: u64) -> Option<&'a JsObject> {
-        if is_object(value) {
-            // This is safe because the boxed object will always be on the heap.
-            let ptr = value & POINTER_MASK;
-            unsafe { Some(&*(ptr as *const _)) }
-        } else {
-            None
-        }
+    /// Returns a reference to T from a tagged value.
+    ///
+    /// # Safety
+    /// The pointer must be a valid pointer to a T on the heap, otherwise this
+    /// will result in undefined behavior.
+    #[inline(always)]
+    pub(super) const unsafe fn untag_pointer<'a, T>(value: u64) -> &'a T {
+        // This is safe since we already checked the pointer is not null as this point.
+        unsafe { NonNull::new_unchecked((value & POINTER_MASK) as *mut T).as_ref() }
     }
 }
 
@@ -581,14 +571,22 @@ impl NanBoxedValue {
     #[must_use]
     #[inline]
     pub(crate) const fn as_bigint(&self) -> Option<&JsBigInt> {
-        bits::as_bigint::<'_>(self.0)
+        if self.is_bigint() {
+            Some(unsafe { bits::untag_pointer::<'_, JsBigInt>(self.0) })
+        } else {
+            None
+        }
     }
 
     /// Returns the value as a boxed `[JsObject]`.
     #[must_use]
     #[inline]
     pub(crate) const fn as_object(&self) -> Option<&JsObject> {
-        bits::as_object::<'_>(self.0)
+        if self.is_object() {
+            Some(unsafe { bits::untag_pointer::<'_, JsObject>(self.0) })
+        } else {
+            None
+        }
     }
 
     /// Returns the value as a boxed `[JsSymbol]`.
@@ -596,9 +594,7 @@ impl NanBoxedValue {
     #[inline]
     pub(crate) const fn as_symbol(&self) -> Option<&JsSymbol> {
         if self.is_symbol() {
-            // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & bits::POINTER_MASK;
-            unsafe { Some(&*(ptr as *const _)) }
+            Some(unsafe { bits::untag_pointer::<'_, JsSymbol>(self.0) })
         } else {
             None
         }
@@ -609,9 +605,7 @@ impl NanBoxedValue {
     #[inline]
     pub(crate) const fn as_string(&self) -> Option<&JsString> {
         if self.is_string() {
-            // This is safe because the boxed object will always be on the heap.
-            let ptr = self.0 & bits::POINTER_MASK;
-            unsafe { Some(&*(ptr as *const _)) }
+            Some(unsafe { bits::untag_pointer::<'_, JsString>(self.0) })
         } else {
             None
         }
