@@ -345,6 +345,7 @@ dependencies = [
  "boa_parser",
  "boa_runtime",
  "clap",
+ "color-eyre",
  "colored",
  "dhat",
  "jemallocator",
