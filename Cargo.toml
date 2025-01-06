@@ -91,7 +91,7 @@ isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.38"
-syn = { version = "2.0.93", default-features = false }
+syn = { version = "2.0.95", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.0"
