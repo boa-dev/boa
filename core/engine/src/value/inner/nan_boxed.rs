@@ -19,11 +19,41 @@
 //! | `False`           | `7FF6:0000:0000:0000`    | |
 //! | `True`            | `7FF6:0000:0000:0001`    | |
 //! | `Integer32`       | `7FF7:0000:IIII:IIII`    | 32-bits integer. |
-//! | `BigInt`          | `7FF8:PPPP:PPPP:PPPP`    | 49-bits pointer. Assumes non-null pointer. |
-//! | `Object`          | `7FFA:PPPP:PPPP:PPPP`    | 49-bits pointer. |
-//! | `Symbol`          | `7FFC:PPPP:PPPP:PPPP`    | 49-bits pointer. |
-//! | `String`          | `7FFE:PPPP:PPPP:PPPP`    | 49-bits pointer. |
+//! | `BigInt`          | `7FF8:PPPP:PPPP:PPPP`    | 48-bits pointer. Assumes non-null pointer. |
+//! | `Object`          | `7FFA:PPPP:PPPP:PPPP`    | 48-bits pointer. |
+//! | `Symbol`          | `7FFC:PPPP:PPPP:PPPP`    | 48-bits pointer. |
+//! | `String`          | `7FFE:PPPP:PPPP:PPPP`    | 48-bits pointer. |
 //! | `Float64`         | Any other values.        | |
+//!
+//! Another way to vizualize this is by looking at the bit layout of a NaN-boxed
+//! value:
+//! ```text
+//!                           ....--<| The type of inner value is represented by this.
+//!                           |..|   | 1??0 - Pointer, where ?? is the subtype of pointer:
+//!                           |..|   |        b00 - BigInt, b01 - Object,
+//!                           |..|   |        b10 - Symbol, b11 - String.
+//!                           |..|   |        If the pointer is null, then it is a NaN value.
+//!                           |..|   | 0??? - Non-pointer, where ??? is the subtype:
+//!                           |..|   |        b100 - Undefined, b101 - Null,
+//!                           |..|   |        b011 - Boolean, b110 - Integer32.
+//!                           vvvv
+//! bit index: 63   59   55   51   47   43   39   35   31 .. 3  0
+//!            0000 0000 0000 0000 0000 0000 0000 0000 0000 .. 0000
+//! +Inf       0111 1111 1111 0000 0000 0000 0000 0000 0000 .. 0000
+//! -Inf       1111 1111 1111 0000 0000 0000 0000 0000 0000 .. 0000
+//! NaN (q)    0111 1111 1111 1000 0000 0000 0000 0000 0000 .. 0000
+//! NaN (s)    1111 1111 1111 1000 0000 0000 0000 0000 0000 .. 0000
+//! Undefined  0111 1111 1111 0100 0000 0000 0000 0000 0000 .. 0000
+//! Null       0111 1111 1111 0101 0000 0000 0000 0000 0000 .. 0000
+//! False      0111 1111 1111 0110 0000 0000 0000 0000 0000 .. 0000
+//! True       0111 1111 1111 0110 0000 0000 0000 0000 0000 .. 0001
+//! Integer32  0111 1111 1111 0111 0000 0000 0000 0000 IIII .. IIII
+//! BigInt     0111 1111 1111 1000 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! Object     0111 1111 1111 1010 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! Symbol     0111 1111 1111 1100 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! String     0111 1111 1111 1110 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! Float64    Any other value.
+//! ```
 //!
 //! The pointers are assumed to never be NULL, and as such no clash
 //! with regular NAN should happen.
