@@ -428,6 +428,7 @@ unsafe impl Trace for NanBoxedValue {
 }
 
 impl Clone for NanBoxedValue {
+    #[inline(always)]
     fn clone(&self) -> Self {
         if let Some(o) = self.as_object() {
             Self::object(o.clone())
@@ -447,21 +448,21 @@ impl NanBoxedValue {
     /// Creates a new `InnerValue` from an u64 value without checking the validity
     /// of the value.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     const fn from_inner_unchecked(inner: u64) -> Self {
         Self(inner)
     }
 
     /// Returns a `InnerValue` from a Null.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn null() -> Self {
         Self::from_inner_unchecked(bits::NULL)
     }
 
     /// Returns a `InnerValue` from an undefined.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn undefined() -> Self {
         Self::from_inner_unchecked(bits::UNDEFINED)
     }
@@ -469,119 +470,119 @@ impl NanBoxedValue {
     /// Returns a `InnerValue` from a 64-bits float. If the float is `NaN`,
     /// it will be reduced to a canonical `NaN` representation.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn float64(value: f64) -> Self {
         Self::from_inner_unchecked(bits::tag_f64(value))
     }
 
     /// Returns a `InnerValue` from a 32-bits integer.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn integer32(value: i32) -> Self {
         Self::from_inner_unchecked(bits::tag_i32(value))
     }
 
     /// Returns a `InnerValue` from a boolean.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn boolean(value: bool) -> Self {
         Self::from_inner_unchecked(bits::tag_bool(value))
     }
 
     /// Returns a `InnerValue` from a boxed `[JsBigInt]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) fn bigint(value: JsBigInt) -> Self {
         Self::from_inner_unchecked(unsafe { bits::tag_bigint(Box::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsObject]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) fn object(value: JsObject) -> Self {
         Self::from_inner_unchecked(unsafe { bits::tag_object(Box::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsSymbol]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) fn symbol(value: JsSymbol) -> Self {
         Self::from_inner_unchecked(unsafe { bits::tag_symbol(Box::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsString]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) fn string(value: JsString) -> Self {
         Self::from_inner_unchecked(unsafe { bits::tag_string(Box::new(value)) })
     }
 
     /// Returns true if a value is undefined.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_undefined(&self) -> bool {
         bits::is_undefined(self.0)
     }
 
     /// Returns true if a value is null.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_null(&self) -> bool {
         bits::is_null(self.0)
     }
 
     /// Returns true if a value is a boolean.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_bool(&self) -> bool {
         bits::is_bool(self.0)
     }
 
     /// Returns true if a value is a 64-bits float.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_float64(&self) -> bool {
         bits::is_float(self.0)
     }
 
     /// Returns true if a value is a 32-bits integer.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_integer32(&self) -> bool {
         bits::is_integer32(self.0)
     }
 
     /// Returns true if a value is a `[JsBigInt]`. A `NaN` will not match here.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_bigint(&self) -> bool {
         bits::is_bigint(self.0)
     }
 
     /// Returns true if a value is a boxed Object.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_object(&self) -> bool {
         bits::is_object(self.0)
     }
 
     /// Returns true if a value is a boxed Symbol.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_symbol(&self) -> bool {
         bits::is_symbol(self.0)
     }
 
     /// Returns true if a value is a boxed String.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn is_string(&self) -> bool {
         bits::is_string(self.0)
     }
 
     /// Returns the value as a f64 if it is a float.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_float64(&self) -> Option<f64> {
         if self.is_float64() {
             Some(f64_from_bits(self.0))
@@ -592,7 +593,7 @@ impl NanBoxedValue {
 
     /// Returns the value as an i32 if it is an integer.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_integer32(&self) -> Option<i32> {
         if self.is_integer32() {
             Some(bits::untag_i32(self.0))
@@ -603,7 +604,7 @@ impl NanBoxedValue {
 
     /// Returns the value as a boolean if it is a boolean.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_bool(&self) -> Option<bool> {
         match self.0 {
             bits::FALSE => Some(false),
@@ -614,7 +615,7 @@ impl NanBoxedValue {
 
     /// Returns the value as a boxed `[JsBigInt]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_bigint(&self) -> Option<&JsBigInt> {
         if self.is_bigint() {
             Some(unsafe { bits::untag_pointer::<'_, JsBigInt>(self.0) })
@@ -625,7 +626,7 @@ impl NanBoxedValue {
 
     /// Returns the value as a boxed `[JsObject]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_object(&self) -> Option<&JsObject> {
         if self.is_object() {
             Some(unsafe { bits::untag_pointer::<'_, JsObject>(self.0) })
@@ -636,7 +637,7 @@ impl NanBoxedValue {
 
     /// Returns the value as a boxed `[JsSymbol]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_symbol(&self) -> Option<&JsSymbol> {
         if self.is_symbol() {
             Some(unsafe { bits::untag_pointer::<'_, JsSymbol>(self.0) })
@@ -647,7 +648,7 @@ impl NanBoxedValue {
 
     /// Returns the value as a boxed `[JsString]`.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_string(&self) -> Option<&JsString> {
         if self.is_string() {
             Some(unsafe { bits::untag_pointer::<'_, JsString>(self.0) })
@@ -658,7 +659,7 @@ impl NanBoxedValue {
 
     /// Returns the `[JsVariant]` of this inner value.
     #[must_use]
-    #[inline]
+    #[inline(always)]
     pub(crate) const fn as_variant(&self) -> JsVariant<'_> {
         match self.0 {
             bits::UNDEFINED => JsVariant::Undefined,
