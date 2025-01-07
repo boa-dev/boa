@@ -24,7 +24,8 @@ use boa_ast::{
     },
     scope::Scope,
     statement::{If, Return},
-    Expression, Script, Statement, StatementList, StatementListItem,
+    Expression, Module, ModuleItem, ModuleItemList, Script, Statement, StatementList,
+    StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -43,6 +44,23 @@ where
             .parse_script(&Scope::new_global(), interner)
             .expect("failed to parse"),
         script,
+    );
+}
+
+/// Checks that the given JavaScript string gives the expected expression.
+#[track_caller]
+pub(super) fn check_module_parser<L>(js: &str, expr: L, interner: &mut Interner)
+where
+    L: Into<Box<[ModuleItem]>>,
+{
+    let mut module = Module::new(ModuleItemList::from(expr.into()));
+    let scope = Scope::new_global();
+    module.analyze_scope(&scope, interner);
+    assert_eq!(
+        Parser::new(Source::from_bytes(js))
+            .parse_module(&Scope::new_global(), interner)
+            .expect("failed to parse"),
+        module,
     );
 }
 
