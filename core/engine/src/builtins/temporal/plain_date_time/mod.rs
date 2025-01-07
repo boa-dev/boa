@@ -4,7 +4,7 @@
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
-        temporal::{to_integer_with_truncation, to_partial_date_record, to_partial_time_record},
+        temporal::{to_partial_date_record, to_partial_time_record},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -14,7 +14,8 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::IntoOrUndefined,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -34,6 +35,7 @@ use super::{
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
 };
+use crate::value::JsVariant;
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -308,36 +310,61 @@ impl BuiltInConstructor for PlainDateTime {
         };
 
         // 2. Set isoYear to ? ToIntegerWithTruncation(isoYear).
-        let iso_year = to_integer_with_truncation(args.get_or_undefined(0), context)?;
+        let iso_year = args
+            .get_or_undefined(0)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<i32>();
         // 3. Set isoMonth to ? ToIntegerWithTruncation(isoMonth).
-        let iso_month = to_integer_with_truncation(args.get_or_undefined(1), context)?;
+        let iso_month = args
+            .get_or_undefined(1)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
         // 4. Set isoDay to ? ToIntegerWithTruncation(isoDay).
-        let iso_day = to_integer_with_truncation(args.get_or_undefined(2), context)?;
+        let iso_day = args
+            .get_or_undefined(2)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
         // 5. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
-        let hour = args
-            .get_or_undefined(3)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+        let hour = args.get_or_undefined(3).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
         // 6. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
-        let minute = args
-            .get_or_undefined(4)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+        let minute = args.get_or_undefined(4).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
+
         // 7. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
-        let second = args
-            .get_or_undefined(5)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+        let second = args.get_or_undefined(5).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
+
         // 8. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
         let millisecond = args
             .get_or_undefined(6)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
+
         // 9. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
         let microsecond = args
             .get_or_undefined(7)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
+
         // 10. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
         let nanosecond = args
             .get_or_undefined(8)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
-        // 11. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
+
         let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
 
         let dt = InnerDateTime::new(
@@ -813,7 +840,7 @@ impl PlainDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        create_temporal_duration(dt.inner.until(&other, settings)?, None, context).map(Into::into)
+        create_temporal_duration(dt.inner.since(&other, settings)?, None, context).map(Into::into)
     }
 
     // TODO(nekevss): finish after temporal_rs impl
@@ -826,15 +853,15 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -850,7 +877,7 @@ impl PlainDateTime {
             // 5. Else,
             Some(round_to) => {
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 
@@ -977,15 +1004,16 @@ pub(crate) fn to_temporal_datetime(
             // i. Return item.
             return Ok(dt.inner.clone());
         // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        } else if let Some(_zdt) = object.downcast_ref::<ZonedDateTime>() {
+        } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
             let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return Err(JsNativeError::error()
-                .with_message("Not yet implemented.")
-                .into());
+            return zdt
+                .inner
+                .to_plain_datetime_with_provider(context.tz_provider())
+                .map_err(Into::into);
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
@@ -993,8 +1021,8 @@ pub(crate) fn to_temporal_datetime(
             // ii. Return ? CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], 0, 0, 0, 0, 0, 0, item.[[Calendar]]).
             return Ok(InnerDateTime::new(
                 date.inner.iso_year(),
-                date.inner.iso_month().into(),
-                date.inner.iso_day().into(),
+                date.inner.iso_month(),
+                date.inner.iso_day(),
                 0,
                 0,
                 0,
@@ -1041,14 +1069,14 @@ pub(crate) fn to_temporal_datetime(
 
         return InnerDateTime::new(
             date.iso_year(),
-            date.iso_month().into(),
-            date.iso_day().into(),
-            time.hour().into(),
-            time.minute().into(),
-            time.second().into(),
-            time.millisecond().into(),
-            time.microsecond().into(),
-            time.nanosecond().into(),
+            date.iso_month(),
+            date.iso_day(),
+            time.hour(),
+            time.minute(),
+            time.second(),
+            time.millisecond(),
+            time.microsecond(),
+            time.nanosecond(),
             calendar,
         )
         .map_err(Into::into);

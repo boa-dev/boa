@@ -708,6 +708,18 @@ fn to_bigint() {
     })]);
 }
 
+#[test]
+fn pad_end() {
+    run_test_actions([
+        TestAction::assert_eq("'abc'.padEnd(10, false)", js_string!("abcfalsefa")),
+        TestAction::assert_eq("'abc'.padEnd(10, true)", js_string!("abctruetru")),
+        TestAction::assert_eq("'abc'.padEnd(10, null)", js_string!("abcnullnul")),
+        TestAction::assert_eq("'abc'.padEnd(10, 0)", js_string!("abc0000000")),
+        TestAction::assert_eq("'abc'.padEnd(10, -0)", js_string!("abc0000000")),
+        TestAction::assert_eq("'abc'.padEnd(10, NaN)", js_string!("abcNaNNaNN")),
+    ]);
+}
+
 /// Test cyclic conversions that previously caused stack overflows
 /// Relevant mitigation for these are in `JsObject::ordinary_to_primitive` and
 /// `JsObject::to_json`

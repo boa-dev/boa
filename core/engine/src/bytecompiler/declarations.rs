@@ -974,6 +974,10 @@ impl ByteCompiler<'_> {
             }
         }
 
+        if arguments_object_needed {
+            arguments_object_needed = scopes.arguments_object_accessed();
+        }
+
         // 19-20
         drop(self.push_declarative_scope(scopes.parameters_eval_scope()));
 

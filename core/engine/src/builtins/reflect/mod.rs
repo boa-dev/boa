@@ -11,6 +11,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect
 
 use super::{Array, BuiltInBuilder, IntrinsicObject};
+use crate::value::JsVariant;
 use crate::{
     builtins::{self, BuiltInObject},
     context::intrinsics::Intrinsics,
@@ -272,7 +273,7 @@ impl Reflect {
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
             .__get_prototype_of__(&mut InternalMethodContext::new(context))?
-            .map_or(JsValue::Null, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -417,9 +418,9 @@ impl Reflect {
             .first()
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
-        let proto = match args.get_or_undefined(1) {
-            JsValue::Object(obj) => Some(obj.clone()),
-            JsValue::Null => None,
+        let proto = match args.get_or_undefined(1).variant() {
+            JsVariant::Object(obj) => Some(obj.clone()),
+            JsVariant::Null => None,
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("proto must be an object or null")

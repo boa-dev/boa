@@ -836,7 +836,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Console::group(&JsValue::Undefined, args, console, logger, context)
+        Console::group(&JsValue::undefined(), args, console, logger, context)
     }
 
     /// `console.groupEnd(label)`

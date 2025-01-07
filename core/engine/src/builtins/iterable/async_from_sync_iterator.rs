@@ -172,7 +172,7 @@ impl AsyncFromSyncIterator {
                 // b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iterResult »).
                 promise_capability
                     .resolve()
-                    .call(&JsValue::Undefined, &[iter_result], context)
+                    .call(&JsValue::undefined(), &[iter_result], context)
                     .expect("cannot fail according to spec");
 
                 // c. Return promiseCapability.[[Promise]].

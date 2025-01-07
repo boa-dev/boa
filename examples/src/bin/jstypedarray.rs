@@ -45,7 +45,7 @@ fn main() -> JsResult<()> {
         JsValue::new(sum)
     );
 
-    let greter_than_10_predicate = FunctionObjectBuilder::new(
+    let greater_than_10_predicate = FunctionObjectBuilder::new(
         context.realm(),
         NativeFunction::from_fn_ptr(|_this, args, _context| {
             let element = args
@@ -54,13 +54,13 @@ fn main() -> JsResult<()> {
                 .unwrap_or_default()
                 .as_number()
                 .expect("error at number conversion");
-            Ok(JsValue::Boolean(element > 10.0))
+            Ok(JsValue::from(element > 10.0))
         }),
     )
     .build();
 
     assert_eq!(
-        array.find_index(greter_than_10_predicate, None, context),
+        array.find_index(greater_than_10_predicate, None, context),
         Ok(Some(11))
     );
 
@@ -73,14 +73,14 @@ fn main() -> JsResult<()> {
                 .unwrap_or_default()
                 .as_number()
                 .expect("error at number conversion");
-            Ok(JsValue::Boolean(element < 200.0))
+            Ok(JsValue::from(element < 200.0))
         }),
     )
     .build();
 
     assert_eq!(
         array.find_last(lower_than_200_predicate.clone(), None, context),
-        Ok(JsValue::Integer(199))
+        Ok(JsValue::from(199u8))
     );
 
     let data: Vec<u8> = vec![90, 120, 150, 180, 210, 240];
@@ -107,7 +107,7 @@ fn main() -> JsResult<()> {
                     .expect("error at number conversion");
 
                 *captures.borrow_mut() += element;
-                Ok(JsValue::Undefined)
+                Ok(JsValue::undefined())
             },
             Gc::clone(&num_to_modify),
         ),
@@ -143,7 +143,7 @@ fn main() -> JsResult<()> {
     assert_eq!(initialized8_array.get(5, context)?, JsValue::new(0));
     assert_eq!(initialized8_array.get(6, context)?, JsValue::new(0));
     assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
-    assert_eq!(initialized8_array.get(8, context)?, JsValue::Undefined);
+    assert_eq!(initialized8_array.get(8, context)?, JsValue::undefined());
 
     // subarray
     let array = JsUint8Array::from_iter(vec![1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8], context)?;

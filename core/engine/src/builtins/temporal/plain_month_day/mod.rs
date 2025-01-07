@@ -22,13 +22,10 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, CalendarName},
     partial::PartialDate,
-    PlainDateTime, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
+    PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
-use super::{
-    calendar::to_temporal_calendar_slot_value, to_integer_if_integral,
-    to_positive_integer_with_trunc, DateTimeValues,
-};
+use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -201,16 +198,25 @@ impl BuiltInConstructor for PlainMonthDay {
                 .into());
         }
 
-        let year = args.get_or_undefined(3);
-        let ref_year = if year.is_undefined() {
-            None
-        } else {
-            Some(super::to_integer_with_truncation(year, context)?)
-        };
+        let ref_year = args
+            .get_or_undefined(3)
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
 
         // We can ignore 2 as the underlying temporal library handles the reference year
-        let m = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
-        let d = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
+        let m = args
+            .get_or_undefined(0)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
+
+        let d = args
+            .get_or_undefined(1)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
+
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
         let inner = InnerMonthDay::new_with_overflow(
             m,
@@ -268,11 +274,6 @@ pub(crate) fn create_temporal_month_day(
 ) -> JsResult<JsValue> {
     // 1. If IsValidISODate(referenceISOYear, isoMonth, isoDay) is false, throw a RangeError exception.
     // 2. If ISODateTimeWithinLimits(referenceISOYear, isoMonth, isoDay, 12, 0, 0, 0, 0, 0) is false, throw a RangeError exception.
-    if !PlainDateTime::validate(&inner) {
-        return Err(JsNativeError::range()
-            .with_message("PlainMonthDay does not hold a valid ISO date time.")
-            .into());
-    }
 
     // 3. If newTarget is not present, set newTarget to %Temporal.PlainMonthDay%.
     let new_target = if let Some(target) = new_target {
@@ -326,20 +327,29 @@ fn to_temporal_month_day(
     } else if item.is_object() {
         let day = item
             .get_v(js_string!("day"), context)?
-            .map(|v| to_positive_integer_with_trunc(v, context))
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                finite
+                    .as_positive_integer_with_truncation::<u8>()
+                    .map_err(JsError::from)
+            })
             .transpose()?;
 
         let month = item
             .get_v(js_string!("month"), context)?
-            .map(|v| to_positive_integer_with_trunc(v, context))
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                finite
+                    .as_positive_integer_with_truncation::<u8>()
+                    .map_err(JsError::from)
+            })
             .transpose()?;
 
         let month_code = item
             .get_v(js_string!("monthCode"), context)?
             .map(|v| {
-                let JsValue::String(month_code) =
-                    v.to_primitive(context, crate::value::PreferredType::String)?
-                else {
+                let primitive = v.to_primitive(context, crate::value::PreferredType::String)?;
+                let Some(month_code) = primitive.as_string() else {
                     return Err(JsNativeError::typ()
                         .with_message("The monthCode field value must be a string.")
                         .into());
@@ -349,11 +359,12 @@ fn to_temporal_month_day(
             })
             .transpose()?;
 
-        let year = item
-            .get_v(js_string!("year"), context)?
-            .map(|v| to_integer_if_integral(v, context))
-            .transpose()?
-            .unwrap_or(1972);
+        let year =
+            item.get_v(js_string!("year"), context)?
+                .map_or(Ok::<i32, JsError>(1972), |v| {
+                    let finite = v.to_finitef64(context)?;
+                    Ok(finite.as_integer_with_truncation::<i32>())
+                })?;
 
         let partial_date = &PartialDate {
             month,

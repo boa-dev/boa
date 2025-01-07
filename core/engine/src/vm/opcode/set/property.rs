@@ -1,11 +1,12 @@
 use boa_macros::js_str;
 
+use crate::value::JsVariant;
 use crate::{
     builtins::function::set_function_name,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult, JsValue,
+    Context, JsNativeError, JsResult,
 };
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
@@ -379,9 +380,9 @@ impl Operation for SetFunctionName {
         let function = context.vm.pop();
         let name = context.vm.pop();
 
-        let name = match name {
-            JsValue::String(name) => name.into(),
-            JsValue::Symbol(name) => name.into(),
+        let name = match name.variant() {
+            JsVariant::String(name) => PropertyKey::from(name.clone()),
+            JsVariant::Symbol(name) => PropertyKey::from(name.clone()),
             _ => unreachable!(),
         };
 

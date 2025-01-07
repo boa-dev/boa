@@ -280,25 +280,49 @@ impl PropertyDescriptor {
     #[inline]
     #[must_use]
     pub fn into_accessor_defaulted(mut self) -> Self {
-        self.kind = DescriptorKind::Accessor {
-            get: self.get().cloned(),
-            set: self.set().cloned(),
-        };
-        PropertyDescriptorBuilder { inner: self }
-            .complete_with_defaults()
-            .build()
+        match &mut self.kind {
+            DescriptorKind::Accessor { set, get } => {
+                if set.is_none() {
+                    *set = Some(JsValue::undefined());
+                }
+                if get.is_none() {
+                    *get = Some(JsValue::undefined());
+                }
+            }
+            _ => {
+                self.kind = DescriptorKind::Accessor {
+                    get: Some(JsValue::undefined()),
+                    set: Some(JsValue::undefined()),
+                };
+            }
+        }
+        self.configurable = self.configurable.or(Some(false));
+        self.enumerable = self.enumerable.or(Some(false));
+        self
     }
 
     /// Creates a data property descriptor with default values.
     #[must_use]
     pub fn into_data_defaulted(mut self) -> Self {
-        self.kind = DescriptorKind::Data {
-            value: self.value().cloned(),
-            writable: self.writable(),
-        };
-        PropertyDescriptorBuilder { inner: self }
-            .complete_with_defaults()
-            .build()
+        match &mut self.kind {
+            DescriptorKind::Data { value, writable } => {
+                if value.is_none() {
+                    *value = Some(JsValue::undefined());
+                }
+                if writable.is_none() {
+                    *writable = Some(false);
+                }
+            }
+            _ => {
+                self.kind = DescriptorKind::Data {
+                    value: Some(JsValue::undefined()),
+                    writable: Some(false),
+                };
+            }
+        }
+        self.configurable = self.configurable.or(Some(false));
+        self.enumerable = self.enumerable.or(Some(false));
+        self
     }
 
     /// Creates an generic property descriptor with default values.
@@ -317,8 +341,8 @@ impl PropertyDescriptor {
     ///
     /// Panics if the given `PropertyDescriptor` is not compatible with this one.
     #[inline]
-    pub fn fill_with(&mut self, desc: &Self) {
-        match (&mut self.kind, &desc.kind) {
+    pub fn fill_with(&mut self, mut desc: Self) {
+        match (&mut self.kind, &mut desc.kind) {
             (
                 DescriptorKind::Data { value, writable },
                 DescriptorKind::Data {
@@ -326,11 +350,11 @@ impl PropertyDescriptor {
                     writable: desc_writable,
                 },
             ) => {
-                if let Some(desc_value) = desc_value {
-                    *value = Some(desc_value.clone());
+                if desc_value.is_some() {
+                    std::mem::swap(value, desc_value);
                 }
-                if let Some(desc_writable) = desc_writable {
-                    *writable = Some(*desc_writable);
+                if desc_writable.is_some() {
+                    std::mem::swap(writable, desc_writable);
                 }
             }
             (
@@ -340,11 +364,11 @@ impl PropertyDescriptor {
                     set: desc_set,
                 },
             ) => {
-                if let Some(desc_get) = desc_get {
-                    *get = Some(desc_get.clone());
+                if desc_get.is_some() {
+                    std::mem::swap(get, desc_get);
                 }
-                if let Some(desc_set) = desc_set {
-                    *set = Some(desc_set.clone());
+                if desc_set.is_some() {
+                    std::mem::swap(set, desc_set);
                 }
             }
             (_, DescriptorKind::Generic) => {}

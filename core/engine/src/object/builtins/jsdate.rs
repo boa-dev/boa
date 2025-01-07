@@ -68,7 +68,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.now()`
     #[inline]
     pub fn now(context: &mut Context) -> JsResult<JsValue> {
-        Date::now(&JsValue::Null, &[JsValue::Null], context)
+        Date::now(&JsValue::null(), &[JsValue::null()], context)
     }
 
     // DEBUG: Uses RFC3339 internally therefore could match es6 spec of ISO8601  <========
@@ -80,7 +80,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.parse(value)`.
     #[inline]
     pub fn parse(value: JsValue, context: &mut Context) -> JsResult<JsValue> {
-        Date::parse(&JsValue::Null, &[value], context)
+        Date::parse(&JsValue::null(), &[value], context)
     }
 
     /// Takes a [year, month, day, hour, minute, second, millisecond]
@@ -89,7 +89,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.UTC()`
     #[inline]
     pub fn utc(values: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Date::utc(&JsValue::Null, values, context)
+        Date::utc(&JsValue::null(), values, context)
     }
 
     /// Returns the day of the month(1-31) for the specified date
@@ -175,7 +175,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.getTimezoneOffset()`.
     #[inline]
     pub fn get_timezone_offset(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::get_timezone_offset(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::get_timezone_offset(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the day (date) of the month (1–31) in the specified
@@ -440,7 +440,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.toDateString()`.
     #[inline]
     pub fn to_date_string(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::to_date_string(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_date_string(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// DEPRECATED: This feature is no longer recommended.
@@ -451,7 +451,7 @@ impl JsDate {
     #[deprecated]
     #[inline]
     pub fn to_gmt_string(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::to_utc_string(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_utc_string(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the given date in the ISO 8601 format according to universal
@@ -460,7 +460,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.toISOString()`.
     #[inline]
     pub fn to_iso_string(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::to_iso_string(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_iso_string(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns a string representing the Date using `to_iso_string()`.
@@ -468,7 +468,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.toJSON()`.
     #[inline]
     pub fn to_json(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::to_json(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_json(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns a string representing the date portion of the given Date instance
@@ -511,7 +511,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.toString()`.
     #[inline]
     pub fn to_string(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::to_string(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_string(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the "time" portion of the Date as human-readable string.
@@ -519,7 +519,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.toTimeString()`.
     #[inline]
     pub fn to_time_string(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::to_time_string(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_time_string(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns a string representing the given date using the UTC time zone.
@@ -527,7 +527,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.toUTCString()`.
     #[inline]
     pub fn to_utc_string(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::to_utc_string(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::to_utc_string(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Returns the primitive value pf Date object.
@@ -535,7 +535,7 @@ impl JsDate {
     /// Same as JavaScript's `Date.prototype.valueOf()`.
     #[inline]
     pub fn value_of(&self, context: &mut Context) -> JsResult<JsValue> {
-        Date::value_of(&self.inner.clone().into(), &[JsValue::Null], context)
+        Date::value_of(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Utility create a `Date` object from RFC3339 string
@@ -584,11 +584,12 @@ impl Deref for JsDate {
 
 impl TryFromJs for JsDate {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a Date object")
-                .into()),
+                .into())
         }
     }
 }

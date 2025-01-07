@@ -82,10 +82,15 @@ struct Ignored {
 }
 
 impl Ignored {
-    /// Checks if the ignore list contains the given test name in the list of
+    /// Checks if the ignore list contains the given test in the list of
     /// tests to ignore.
-    pub(crate) fn contains_test(&self, test: &str) -> bool {
-        self.tests.contains(test)
+    pub(crate) fn contains_test(&self, test_path: &Path) -> bool {
+        let Some(test_path) = test_path.to_str() else {
+            return false;
+        };
+        self.tests
+            .iter()
+            .any(|ignored| test_path.contains(&**ignored))
     }
 
     /// Checks if the ignore list contains the given feature name in the list

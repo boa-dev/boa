@@ -1,5 +1,11 @@
 // Boa's implementation of the `Temporal.Duration` Builtin Object.
 
+use super::{
+    get_relative_to_option,
+    options::{get_temporal_unit, TemporalUnitGroup},
+    DateTimeValues,
+};
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -11,20 +17,15 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{RelativeTo, RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit},
+    options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit},
     partial::PartialDuration,
-    primitive::FiniteF64,
     Duration as InnerDuration,
-};
-
-use super::{
-    options::{get_temporal_unit, TemporalUnitGroup},
-    to_integer_if_integral, DateTimeValues,
 };
 
 #[cfg(test)]
@@ -222,66 +223,96 @@ impl BuiltInConstructor for Duration {
         }
 
         // 2. If years is undefined, let y be 0; else let y be ? ToIntegerIfIntegral(years).
-        let years = args
-            .get_or_undefined(0)
-            .map_or(Ok(0), |y| to_integer_if_integral(y, context))?;
+        let years = args.get_or_undefined(0).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 3. If months is undefined, let mo be 0; else let mo be ? ToIntegerIfIntegral(months).
-        let months = args
-            .get_or_undefined(1)
-            .map_or(Ok(0), |mo| to_integer_if_integral(mo, context))?;
+        let months = args.get_or_undefined(1).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 4. If weeks is undefined, let w be 0; else let w be ? ToIntegerIfIntegral(weeks).
-        let weeks = args
-            .get_or_undefined(2)
-            .map_or(Ok(0), |wk| to_integer_if_integral(wk, context))?;
+        let weeks = args.get_or_undefined(2).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 5. If days is undefined, let d be 0; else let d be ? ToIntegerIfIntegral(days).
-        let days = args
-            .get_or_undefined(3)
-            .map_or(Ok(0), |d| to_integer_if_integral(d, context))?;
+        let days = args.get_or_undefined(3).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 6. If hours is undefined, let h be 0; else let h be ? ToIntegerIfIntegral(hours).
-        let hours = args
-            .get_or_undefined(4)
-            .map_or(Ok(0), |h| to_integer_if_integral(h, context))?;
+        let hours = args.get_or_undefined(4).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 7. If minutes is undefined, let m be 0; else let m be ? ToIntegerIfIntegral(minutes).
-        let minutes = args
-            .get_or_undefined(5)
-            .map_or(Ok(0), |m| to_integer_if_integral(m, context))?;
+        let minutes = args.get_or_undefined(5).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 8. If seconds is undefined, let s be 0; else let s be ? ToIntegerIfIntegral(seconds).
-        let seconds = args
-            .get_or_undefined(6)
-            .map_or(Ok(0), |s| to_integer_if_integral(s, context))?;
+        let seconds = args.get_or_undefined(6).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 9. If milliseconds is undefined, let ms be 0; else let ms be ? ToIntegerIfIntegral(milliseconds).
-        let milliseconds = args
-            .get_or_undefined(7)
-            .map_or(Ok(0), |ms| to_integer_if_integral(ms, context))?;
+        let milliseconds = args.get_or_undefined(7).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 10. If microseconds is undefined, let mis be 0; else let mis be ? ToIntegerIfIntegral(microseconds).
-        let microseconds = args
-            .get_or_undefined(8)
-            .map_or(Ok(0), |mis| to_integer_if_integral(mis, context))?;
+        let microseconds = args.get_or_undefined(8).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         // 11. If nanoseconds is undefined, let ns be 0; else let ns be ? ToIntegerIfIntegral(nanoseconds).
-        let nanoseconds = args
-            .get_or_undefined(9)
-            .map_or(Ok(0), |ns| to_integer_if_integral(ns, context))?;
+        let nanoseconds = args.get_or_undefined(9).map_or(Ok(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)
+        })?;
 
         let record = InnerDuration::new(
-            years.into(),
-            months.into(),
-            weeks.into(),
-            days.into(),
-            hours.into(),
-            minutes.into(),
-            seconds.into(),
-            milliseconds.into(),
-            microseconds.into(),
-            nanoseconds.into(),
+            years.try_into()?,
+            months.try_into()?,
+            weeks.try_into()?,
+            days.try_into()?,
+            hours.try_into()?,
+            minutes.try_into()?,
+            seconds.try_into()?,
+            milliseconds.try_into()?,
+            microseconds.try_into()?,
+            nanoseconds.try_into()?,
         )?;
 
         // 12. Return ? CreateTemporalDuration(y, mo, w, d, h, m, s, ms, mis, ns, NewTarget).
@@ -304,16 +335,16 @@ impl Duration {
         let inner = &duration.inner;
 
         match field {
-            DateTimeValues::Year => Ok(JsValue::Rational(inner.years().as_inner())),
-            DateTimeValues::Month => Ok(JsValue::Rational(inner.months().as_inner())),
-            DateTimeValues::Week => Ok(JsValue::Rational(inner.weeks().as_inner())),
-            DateTimeValues::Day => Ok(JsValue::Rational(inner.days().as_inner())),
-            DateTimeValues::Hour => Ok(JsValue::Rational(inner.hours().as_inner())),
-            DateTimeValues::Minute => Ok(JsValue::Rational(inner.minutes().as_inner())),
-            DateTimeValues::Second => Ok(JsValue::Rational(inner.seconds().as_inner())),
-            DateTimeValues::Millisecond => Ok(JsValue::Rational(inner.milliseconds().as_inner())),
-            DateTimeValues::Microsecond => Ok(JsValue::Rational(inner.microseconds().as_inner())),
-            DateTimeValues::Nanosecond => Ok(JsValue::Rational(inner.nanoseconds().as_inner())),
+            DateTimeValues::Year => Ok(JsValue::new(inner.years().as_inner())),
+            DateTimeValues::Month => Ok(JsValue::new(inner.months().as_inner())),
+            DateTimeValues::Week => Ok(JsValue::new(inner.weeks().as_inner())),
+            DateTimeValues::Day => Ok(JsValue::new(inner.days().as_inner())),
+            DateTimeValues::Hour => Ok(JsValue::new(inner.hours().as_inner())),
+            DateTimeValues::Minute => Ok(JsValue::new(inner.minutes().as_inner())),
+            DateTimeValues::Second => Ok(JsValue::new(inner.seconds().as_inner())),
+            DateTimeValues::Millisecond => Ok(JsValue::new(inner.milliseconds().as_inner())),
+            DateTimeValues::Microsecond => Ok(JsValue::new(inner.microseconds().as_inner())),
+            DateTimeValues::Nanosecond => Ok(JsValue::new(inner.nanoseconds().as_inner())),
             DateTimeValues::MonthCode => unreachable!(
                 "Any other DateTimeValue fields on Duration would be an implementation error."
             ),
@@ -635,15 +666,15 @@ impl Duration {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -658,8 +689,9 @@ impl Duration {
             }
             // 5. Else,
             Some(round_to) => {
+                // TODO: remove this clone.
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 
@@ -681,8 +713,7 @@ impl Duration {
         // 10. Let relativeToRecord be ? ToRelativeTemporalObject(roundTo).
         // 11. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 12. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
-        let (plain_relative_to, zoned_relative_to) =
-            super::to_relative_temporal_object(&round_to, context)?;
+        let relative_to = get_relative_to_option(&round_to, context)?;
 
         // 13. Let roundingIncrement be ? ToTemporalRoundingIncrement(roundTo).
         options.increment =
@@ -704,13 +735,10 @@ impl Duration {
         // NOTE: execute step 21 earlier before initial values are shadowed.
         // 21. If smallestUnitPresent is false and largestUnitPresent is false, then
 
-        let rounded_duration = duration.inner.round(
-            options,
-            &RelativeTo {
-                date: plain_relative_to.as_ref(),
-                zdt: zoned_relative_to.as_ref(),
-            },
-        )?;
+        let rounded_duration =
+            duration
+                .inner
+                .round_with_provider(options, relative_to, context.tz_provider())?;
         create_temporal_duration(rounded_duration, None, context).map(Into::into)
     }
 
@@ -731,15 +759,15 @@ impl Duration {
 
         let total_of = args.get_or_undefined(0);
 
-        let total_of = match total_of {
+        let total_of = match total_of.variant() {
             // 3. If totalOf is undefined, throw a TypeError exception.
-            JsValue::Undefined => {
+            JsVariant::Undefined => {
                 return Err(JsNativeError::typ()
                     .with_message("totalOf cannot be undefined.")
                     .into());
             }
             // 4. If Type(totalOf) is String, then
-            JsValue::String(param_string) => {
+            JsVariant::String(param_string) => {
                 // a. Let paramString be totalOf.
                 // b. Set totalOf to OrdinaryObjectCreate(null).
                 let total_of = JsObject::with_null_proto();
@@ -831,9 +859,9 @@ pub(crate) fn to_temporal_duration_record(
     context: &mut Context,
 ) -> JsResult<InnerDuration> {
     // 1. If Type(temporalDurationLike) is not Object, then
-    let JsValue::Object(duration_obj) = temporal_duration_like else {
+    let Some(duration_obj) = temporal_duration_like.as_object() else {
         // a. If temporalDurationLike is not a String, throw a TypeError exception.
-        let JsValue::String(duration_string) = temporal_duration_like else {
+        let Some(duration_string) = temporal_duration_like.as_string() else {
             return Err(JsNativeError::typ()
                 .with_message("Invalid TemporalDurationLike value.")
                 .into());
@@ -920,7 +948,7 @@ pub(crate) fn to_temporal_partial_duration(
     context: &mut Context,
 ) -> JsResult<PartialDuration> {
     // 1. If Type(temporalDurationLike) is not Object, then
-    let JsValue::Object(unknown_object) = duration_like else {
+    let Some(unknown_object) = duration_like.as_object() else {
         // a. Throw a TypeError exception.
         return Err(JsNativeError::typ()
             .with_message("temporalDurationLike must be an object.")
@@ -928,119 +956,160 @@ pub(crate) fn to_temporal_partial_duration(
     };
 
     // 2. Let result be a new partial Duration Record with each field set to undefined.
-    let mut result = PartialDuration::default();
-
     // 3. NOTE: The following steps read properties and perform independent validation in alphabetical order.
     // 4. Let days be ? Get(temporalDurationLike, "days").
-    let days = unknown_object.get(js_string!("days"), context)?;
-    if !days.is_undefined() {
-        // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
-        let _ = result
-            .days
-            .insert(FiniteF64::from(to_integer_if_integral(&days, context)?));
-    }
+    // 5. If days is not undefined, set result.[[Days]] to ? ToIntegerIfIntegral(days).
+    let days = unknown_object
+        .get(js_string!("days"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 6. Let hours be ? Get(temporalDurationLike, "hours").
-    let hours = unknown_object.get(js_string!("hours"), context)?;
     // 7. If hours is not undefined, set result.[[Hours]] to ? ToIntegerIfIntegral(hours).
-    if !hours.is_undefined() {
-        let _ = result
-            .hours
-            .insert(FiniteF64::from(to_integer_if_integral(&hours, context)?));
-    }
+    let hours = unknown_object
+        .get(js_string!("hours"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 8. Let microseconds be ? Get(temporalDurationLike, "microseconds").
-    let microseconds = unknown_object.get(js_string!("microseconds"), context)?;
     // 9. If microseconds is not undefined, set result.[[Microseconds]] to ? ToIntegerIfIntegral(microseconds).
-    if !microseconds.is_undefined() {
-        let _ = result
-            .microseconds
-            .insert(FiniteF64::from(to_integer_if_integral(
-                &microseconds,
-                context,
-            )?));
-    }
+    let microseconds = unknown_object
+        .get(js_string!("microseconds"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 10. Let milliseconds be ? Get(temporalDurationLike, "milliseconds").
-    let milliseconds = unknown_object.get(js_string!("milliseconds"), context)?;
     // 11. If milliseconds is not undefined, set result.[[Milliseconds]] to ? ToIntegerIfIntegral(milliseconds).
-    if !milliseconds.is_undefined() {
-        let _ = result
-            .milliseconds
-            .insert(FiniteF64::from(to_integer_if_integral(
-                &milliseconds,
-                context,
-            )?));
-    }
+    let milliseconds = unknown_object
+        .get(js_string!("milliseconds"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 12. Let minutes be ? Get(temporalDurationLike, "minutes").
-    let minutes = unknown_object.get(js_string!("minutes"), context)?;
     // 13. If minutes is not undefined, set result.[[Minutes]] to ? ToIntegerIfIntegral(minutes).
-    if !minutes.is_undefined() {
-        let _ = result
-            .minutes
-            .insert(FiniteF64::from(to_integer_if_integral(&minutes, context)?));
-    }
+    let minutes = unknown_object
+        .get(js_string!("minutes"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 14. Let months be ? Get(temporalDurationLike, "months").
-    let months = unknown_object.get(js_string!("months"), context)?;
     // 15. If months is not undefined, set result.[[Months]] to ? ToIntegerIfIntegral(months).
-    if !months.is_undefined() {
-        let _ = result
-            .months
-            .insert(FiniteF64::from(to_integer_if_integral(&months, context)?));
-    }
+    let months = unknown_object
+        .get(js_string!("months"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 16. Let nanoseconds be ? Get(temporalDurationLike, "nanoseconds").
-    let nanoseconds = unknown_object.get(js_string!("nanoseconds"), context)?;
     // 17. If nanoseconds is not undefined, set result.[[Nanoseconds]] to ? ToIntegerIfIntegral(nanoseconds).
-    if !nanoseconds.is_undefined() {
-        let _ = result
-            .nanoseconds
-            .insert(FiniteF64::from(to_integer_if_integral(
-                &nanoseconds,
-                context,
-            )?));
-    }
+    let nanoseconds = unknown_object
+        .get(js_string!("nanoseconds"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 18. Let seconds be ? Get(temporalDurationLike, "seconds").
-    let seconds = unknown_object.get(js_string!("seconds"), context)?;
     // 19. If seconds is not undefined, set result.[[Seconds]] to ? ToIntegerIfIntegral(seconds).
-    if !seconds.is_undefined() {
-        let _ = result
-            .seconds
-            .insert(FiniteF64::from(to_integer_if_integral(&seconds, context)?));
-    }
+    let seconds = unknown_object
+        .get(js_string!("seconds"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 20. Let weeks be ? Get(temporalDurationLike, "weeks").
-    let weeks = unknown_object.get(js_string!("weeks"), context)?;
     // 21. If weeks is not undefined, set result.[[Weeks]] to ? ToIntegerIfIntegral(weeks).
-    if !weeks.is_undefined() {
-        let _ = result
-            .weeks
-            .insert(FiniteF64::from(to_integer_if_integral(&weeks, context)?));
-    }
+    let weeks = unknown_object
+        .get(js_string!("weeks"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
     // 22. Let years be ? Get(temporalDurationLike, "years").
-    let years = unknown_object.get(js_string!("years"), context)?;
     // 23. If years is not undefined, set result.[[Years]] to ? ToIntegerIfIntegral(years).
-    if !years.is_undefined() {
-        let _ = result
-            .years
-            .insert(FiniteF64::from(to_integer_if_integral(&years, context)?));
-    }
+    let years = unknown_object
+        .get(js_string!("years"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            let integral_int = finite
+                .as_integer_if_integral::<i64>()
+                .map_err(JsError::from)?;
+            integral_int.try_into().map_err(JsError::from)
+        })
+        .transpose()?;
 
-    // TODO: Implement this functionality better in `temporal_rs`.
+    let partial = PartialDuration {
+        years,
+        months,
+        weeks,
+        days,
+        hours,
+        minutes,
+        seconds,
+        milliseconds,
+        microseconds,
+        nanoseconds,
+    };
+
     // 24. If years is undefined, and months is undefined, and weeks is undefined, and days
     // is undefined, and hours is undefined, and minutes is undefined, and seconds is
     // undefined, and milliseconds is undefined, and microseconds is undefined, and
     // nanoseconds is undefined, throw a TypeError exception.
-    if result.is_empty() {
+    if partial.is_empty() {
         return Err(JsNativeError::typ()
             .with_message("PartialDurationRecord must have a defined field.")
             .into());
     }
 
     // 25. Return result.
-    Ok(result)
+    Ok(partial)
 }

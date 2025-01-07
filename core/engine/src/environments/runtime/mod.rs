@@ -506,6 +506,7 @@ impl Context {
     /// # Panics
     ///
     /// Panics if the environment or binding index are out of range.
+    #[track_caller]
     pub(crate) fn get_binding(&mut self, locator: &BindingLocator) -> JsResult<Option<JsValue>> {
         match locator.scope() {
             BindingLocatorScope::GlobalObject => {

@@ -875,7 +875,8 @@ fn array_spread_non_iterable() {
 fn get_relative_start() {
     #[track_caller]
     fn assert(context: &mut Context, arg: Option<&JsValue>, len: u64, expected: u64) {
-        let arg = arg.unwrap_or(&JsValue::Undefined);
+        const UNDEFINED: &JsValue = &JsValue::undefined();
+        let arg = arg.unwrap_or(UNDEFINED);
         assert_eq!(
             Array::get_relative_start(context, arg, len).unwrap(),
             expected
@@ -902,7 +903,8 @@ fn get_relative_start() {
 fn get_relative_end() {
     #[track_caller]
     fn assert(context: &mut Context, arg: Option<&JsValue>, len: u64, expected: u64) {
-        let arg = arg.unwrap_or(&JsValue::Undefined);
+        const UNDEFINED: &JsValue = &JsValue::undefined();
+        let arg = arg.unwrap_or(UNDEFINED);
         assert_eq!(
             Array::get_relative_end(context, arg, len).unwrap(),
             expected

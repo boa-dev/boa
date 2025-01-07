@@ -1,5 +1,7 @@
 //! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
 
+use super::options::get_difference_settings;
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -28,10 +30,8 @@ use temporal_rs::{
     Instant as InnerInstant,
 };
 
-use super::options::get_difference_settings;
-
 /// The `Temporal.Instant` object.
-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
 // SAFETY: Instant does not contain any traceable values.
 #[boa_gc(unsafe_empty_trace)]
 pub struct Instant {
@@ -311,7 +311,7 @@ impl Instant {
         let settings =
             get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
         let result = instant.inner.until(&other, settings)?;
-        create_temporal_duration(result.into(), None, context).map(Into::into)
+        create_temporal_duration(result, None, context).map(Into::into)
     }
 
     /// 8.3.10 `Temporal.Instant.prototype.since ( other [ , options ] )`
@@ -334,7 +334,7 @@ impl Instant {
         let settings =
             get_difference_settings(&get_options_object(args.get_or_undefined(1))?, context)?;
         let result = instant.inner.since(&other, settings)?;
-        create_temporal_duration(result.into(), None, context).map(Into::into)
+        create_temporal_duration(result, None, context).map(Into::into)
     }
 
     /// 8.3.11 `Temporal.Instant.prototype.round ( roundTo )`
@@ -352,15 +352,15 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
@@ -375,8 +375,9 @@ impl Instant {
             }
             // 5. Else,
             Some(round_to) => {
+                // TODO: remove this clone.
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 
@@ -529,7 +530,7 @@ fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerI
         // c. NOTE: This use of ToPrimitive allows Instant-like objects to be converted.
         // d. Set item to ? ToPrimitive(item, string).
         if let Some(instant) = obj.downcast_ref::<Instant>() {
-            return Ok(instant.inner.clone());
+            return Ok(instant.inner);
         } else if let Some(_zdt) = obj.downcast_ref::<ZonedDateTime>() {
             return Err(JsNativeError::error()
                 .with_message("Not yet implemented.")

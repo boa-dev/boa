@@ -10,6 +10,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-proxy-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
+use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
+use crate::value::JsVariant;
 use crate::{
     builtins::{array, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -33,8 +35,6 @@ use crate::{
 use boa_gc::{Finalize, GcRefCell, Trace};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
-
-use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Proxy {
@@ -279,9 +279,9 @@ pub(crate) fn proxy_exotic_get_prototype_of(
     let handler_proto = trap.call(&handler.into(), &[target.clone().into()], context)?;
 
     // 8. If Type(handlerProto) is neither Object nor Null, throw a TypeError exception.
-    let handler_proto = match &handler_proto {
-        JsValue::Object(obj) => Some(obj.clone()),
-        JsValue::Null => None,
+    let handler_proto = match handler_proto.variant() {
+        JsVariant::Object(obj) => Some(obj.clone()),
+        JsVariant::Null => None,
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Proxy trap result is neither object nor null")
@@ -343,7 +343,7 @@ pub(crate) fn proxy_exotic_set_prototype_of(
             &handler.into(),
             &[
                 target.clone().into(),
-                val.clone().map_or(JsValue::Null, Into::into),
+                val.clone().map_or(JsValue::null(), Into::into),
             ],
             context,
         )?
@@ -923,8 +923,8 @@ pub(crate) fn proxy_exotic_set(
             // b. If IsAccessorDescriptor(targetDesc) is true, then
             if target_desc.is_accessor_descriptor() {
                 // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
-                match target_desc.set() {
-                    None | Some(&JsValue::Undefined) => {
+                match target_desc.set().map(JsValue::is_undefined) {
+                    None | Some(true) => {
                         return Err(JsNativeError::typ()
                             .with_message("Proxy trap set unexpected accessor descriptor")
                             .into());
@@ -1042,8 +1042,8 @@ pub(crate) fn proxy_exotic_own_property_keys(
     let mut unchecked_result_keys: FxHashSet<PropertyKey> = FxHashSet::default();
     let mut trap_result = Vec::new();
     for value in &trap_result_raw {
-        match value {
-            JsValue::String(s) => {
+        match value.variant() {
+            JsVariant::String(s) => {
                 if !unchecked_result_keys.insert(s.clone().into()) {
                     return Err(JsNativeError::typ()
                         .with_message("Proxy trap result contains duplicate string property keys")
@@ -1051,7 +1051,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
                 }
                 trap_result.push(s.clone().into());
             }
-            JsValue::Symbol(s) => {
+            JsVariant::Symbol(s) => {
                 if !unchecked_result_keys.insert(s.clone().into()) {
                     return Err(JsNativeError::typ()
                         .with_message("Proxy trap result contains duplicate symbol property keys")

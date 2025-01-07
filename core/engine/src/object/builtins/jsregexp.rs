@@ -272,11 +272,12 @@ impl Deref for JsRegExp {
 
 impl TryFromJs for JsRegExp {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a RegExp object")
-                .into()),
+                .into())
         }
     }
 }

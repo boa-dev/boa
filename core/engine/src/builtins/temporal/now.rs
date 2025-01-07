@@ -14,8 +14,9 @@ use boa_profiler::Profiler;
 use temporal_rs::{Now as NowInner, TimeZone};
 
 use super::{
-    create_temporal_datetime, create_temporal_instant, ns_max_instant, ns_min_instant,
-    time_zone::default_time_zone, to_temporal_timezone_identifier,
+    create_temporal_date, create_temporal_datetime, create_temporal_instant, create_temporal_time,
+    create_temporal_zoneddatetime, ns_max_instant, ns_min_instant, time_zone::default_time_zone,
+    to_temporal_timezone_identifier,
 };
 
 /// JavaScript `Temporal.Now` object.
@@ -41,8 +42,9 @@ impl IntrinsicObject for Now {
             .static_method(Self::time_zone_id, js_string!("timeZoneId"), 0)
             .static_method(Self::instant, js_string!("instant"), 0)
             .static_method(Self::plain_datetime, js_string!("plainDateTimeISO"), 0)
-            .static_method(Self::zoned_date_time, js_string!("zonedDateTimeISO"), 0)
+            .static_method(Self::zoneddatetime, js_string!("zonedDateTimeISO"), 0)
             .static_method(Self::plain_date, js_string!("plainDateISO"), 0)
+            .static_method(Self::plain_time, js_string!("plainTimeISO"), 0)
             .build();
     }
 
@@ -83,7 +85,7 @@ impl Now {
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
         create_temporal_datetime(
-            NowInner::plain_date_time_with_provider(tz, context.tz_provider())?,
+            NowInner::plain_datetime_iso_with_provider(tz, context.tz_provider())?,
             None,
             context,
         )
@@ -91,17 +93,32 @@ impl Now {
     }
 
     /// `Temporal.Now.zonedDateTime`
-    fn zoned_date_time(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn zoneddatetime(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let timezone = args
+            .first()
+            .map(|v| to_temporal_timezone_identifier(v, context))
+            .transpose()?;
+        let zdt = NowInner::zoneddatetime_iso(timezone)?;
+        create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 
     /// `Temporal.Now.plainDateISO`
-    fn plain_date(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn plain_date(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let tz = args
+            .first()
+            .map(|v| to_temporal_timezone_identifier(v, context))
+            .transpose()?;
+        let pd = NowInner::plain_date_iso_with_provider(tz, context.tz_provider())?;
+        create_temporal_date(pd, None, context).map(Into::into)
+    }
+
+    fn plain_time(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let tz = args
+            .first()
+            .map(|v| to_temporal_timezone_identifier(v, context))
+            .transpose()?;
+        let pt = NowInner::plain_time_iso_with_provider(tz, context.tz_provider())?;
+        create_temporal_time(pt, None, context).map(Into::into)
     }
 }
 

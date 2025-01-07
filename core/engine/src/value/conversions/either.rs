@@ -25,7 +25,7 @@ where
 
 #[test]
 fn either() {
-    let v = JsValue::Integer(123);
+    let v = JsValue::new(123);
     let mut context = Context::default();
 
     assert_eq!(

@@ -25,3 +25,48 @@ fn duration_abs() {
         TestAction::assert_eq("abs.milliseconds", 0),
     ]);
 }
+
+#[test]
+fn basic() {
+    run_test_actions([
+        TestAction::run(
+            r#"
+            var dur = new Temporal.Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 0);
+        "#,
+        ),
+        TestAction::assert_eq("dur.years", 5),
+        TestAction::assert_eq("dur.months", 5),
+        TestAction::assert_eq("dur.weeks", 5),
+        TestAction::assert_eq("dur.days", 5),
+        TestAction::assert_eq("dur.hours", 5),
+        TestAction::assert_eq("dur.minutes", 5),
+        TestAction::assert_eq("dur.seconds", 5),
+        TestAction::assert_eq("dur.milliseconds", 5),
+        TestAction::assert_eq("dur.microseconds", 5),
+        TestAction::assert_eq("dur.nanoseconds", 0),
+        // Negative
+        TestAction::run("dur = new Temporal.Duration(-5, -5, -5, -5, -5, -5, -5, -5, -5, 0)"),
+        TestAction::assert_eq("dur.years", -5),
+        TestAction::assert_eq("dur.months", -5),
+        TestAction::assert_eq("dur.weeks", -5),
+        TestAction::assert_eq("dur.days", -5),
+        TestAction::assert_eq("dur.hours", -5),
+        TestAction::assert_eq("dur.minutes", -5),
+        TestAction::assert_eq("dur.seconds", -5),
+        TestAction::assert_eq("dur.milliseconds", -5),
+        TestAction::assert_eq("dur.microseconds", -5),
+        TestAction::assert_eq("dur.nanoseconds", 0),
+        // Negative Zero
+        TestAction::run("dur = new Temporal.Duration(-0, -0, -0, -0, -0, -0, -0, -0, -0, 0)"),
+        TestAction::assert_eq("dur.years", 0),
+        TestAction::assert_eq("dur.months", 0),
+        TestAction::assert_eq("dur.weeks", 0),
+        TestAction::assert_eq("dur.days", 0),
+        TestAction::assert_eq("dur.hours", 0),
+        TestAction::assert_eq("dur.minutes", 0),
+        TestAction::assert_eq("dur.seconds", 0),
+        TestAction::assert_eq("dur.milliseconds", 0),
+        TestAction::assert_eq("dur.microseconds", 0),
+        TestAction::assert_eq("dur.nanoseconds", 0),
+    ]);
+}

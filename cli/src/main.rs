@@ -18,15 +18,26 @@ use boa_engine::{
     optimizer::OptimizerOptions,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context, JsError, JsNativeError, JsResult, Source,
+    Context, JsError, Source,
 };
+use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
+use color_eyre::{
+    eyre::{eyre, WrapErr},
+    Result, Section,
+};
 use colored::Colorize;
 use debug::init_boa_debug_object;
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{
-    cell::RefCell, collections::VecDeque, eprintln, fs::read, fs::OpenOptions, io, path::PathBuf,
-    println, rc::Rc,
+    cell::RefCell,
+    collections::VecDeque,
+    eprintln,
+    fs::OpenOptions,
+    io,
+    path::{Path, PathBuf},
+    println,
+    rc::Rc,
 };
 
 #[cfg(all(
@@ -177,19 +188,16 @@ enum FlowgraphDirection {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<S>(src: &S, args: &Opt, context: &mut Context) -> Result<(), String>
-where
-    S: AsRef<[u8]> + ?Sized,
-{
+fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> Result<()> {
     if let Some(arg) = args.dump_ast {
         let arg = arg.unwrap_or_default();
-        let mut parser = boa_parser::Parser::new(Source::from_bytes(src));
+        let mut parser = boa_parser::Parser::new(src);
         let dump =
             if args.module {
                 let scope = context.realm().scope().clone();
                 let module = parser
                     .parse_module(&scope, context.interner_mut())
-                    .map_err(|e| format!("Uncaught SyntaxError: {e}"))?;
+                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
 
                 match arg {
                     DumpFormat::Json => serde_json::to_string(&module)
@@ -202,7 +210,7 @@ where
                 let scope = context.realm().scope().clone();
                 let mut script = parser
                     .parse_script(&scope, context.interner_mut())
-                    .map_err(|e| format!("Uncaught SyntaxError: {e}"))?;
+                    .map_err(|e| eyre!("Uncaught SyntaxError: {e}"))?;
 
                 if args.optimize {
                     context.optimize_statement_list(script.statements_mut());
@@ -223,14 +231,16 @@ where
     Ok(())
 }
 
-fn generate_flowgraph(
+fn generate_flowgraph<R: ReadChar>(
     context: &mut Context,
-    src: &[u8],
+    src: Source<'_, R>,
     format: FlowgraphFormat,
     direction: Option<FlowgraphDirection>,
-) -> JsResult<String> {
-    let script = Script::parse(Source::from_bytes(src), None, context)?;
-    let code = script.codeblock(context)?;
+) -> Result<String> {
+    let script = Script::parse(src, None, context).map_err(|e| e.into_erased(context))?;
+    let code = script
+        .codeblock(context)
+        .map_err(|e| e.into_erased(context))?;
 
     let direction = match direction {
         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
@@ -248,96 +258,91 @@ fn generate_flowgraph(
     Ok(result)
 }
 
-fn evaluate_files(
+fn evaluate_file(
+    file: &Path,
     args: &Opt,
     context: &mut Context,
     loader: &SimpleModuleLoader,
-) -> Result<(), io::Error> {
-    for file in &args.files {
-        let buffer = read(file)?;
-
-        if args.has_dump_flag() {
-            if let Err(e) = dump(&buffer, args, context) {
-                eprintln!("{e}");
-            }
-        } else if let Some(flowgraph) = args.flowgraph {
-            match generate_flowgraph(
-                context,
-                &buffer,
-                flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
-                args.flowgraph_direction,
-            ) {
-                Ok(v) => println!("{v}"),
-                Err(v) => eprintln!("Uncaught {v}"),
-            }
-        } else if args.module {
-            let result: JsResult<PromiseState> = (|| {
-                let module = Module::parse(Source::from_bytes(&buffer), None, context)?;
-
-                loader.insert(
-                    file.canonicalize()
-                        .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?,
-                    module.clone(),
-                );
-
-                let promise = module.load_link_evaluate(context);
-
-                context.run_jobs();
-                Ok(promise.state())
-            })();
-
-            match result {
-                Ok(PromiseState::Pending) => {
-                    eprintln!("module `{}` didn't execute", file.display());
-                }
-                Ok(PromiseState::Fulfilled(_)) => {}
-                Ok(PromiseState::Rejected(err)) => {
-                    eprintln!("Uncaught {}", err.display());
-
-                    if let Ok(err) = JsError::from_opaque(err).try_native(context) {
-                        if let Some(cause) = err.cause() {
-                            eprintln!("\tCaused by: {cause}");
-                        }
-                    }
-                }
-                Err(err) => {
-                    eprintln!("Uncaught {err}");
-
-                    if let Ok(err) = err.try_native(context) {
-                        if let Some(cause) = err.cause() {
-                            eprintln!("\tCaused by: {cause}");
-                        }
-                    }
-                }
-            }
-        } else {
-            match context.eval(Source::from_bytes(&buffer)) {
-                Ok(v) => println!("{}", v.display()),
-                Err(v) => eprintln!("Uncaught {v}"),
-            }
-            context.run_jobs();
-        }
+) -> Result<()> {
+    if args.has_dump_flag() {
+        return dump(Source::from_filepath(file)?, args, context);
     }
+
+    if let Some(flowgraph) = args.flowgraph {
+        let flowgraph = generate_flowgraph(
+            context,
+            Source::from_filepath(file)?,
+            flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+            args.flowgraph_direction,
+        )?;
+
+        println!("{flowgraph}");
+
+        return Ok(());
+    }
+
+    if args.module {
+        let module = Module::parse(Source::from_filepath(file)?, None, context)
+            .map_err(|e| e.into_erased(context))?;
+
+        loader.insert(
+            file.canonicalize()
+                .wrap_err("could not canonicalize input file path")?,
+            module.clone(),
+        );
+
+        let promise = module.load_link_evaluate(context);
+        context.run_jobs();
+        let result = promise.state();
+
+        return match result {
+            PromiseState::Pending => Err(eyre!("module didn't execute")),
+            PromiseState::Fulfilled(_) => Ok(()),
+            PromiseState::Rejected(err) => {
+                return Err(JsError::from_opaque(err).into_erased(context).into())
+            }
+        };
+    }
+
+    match context.eval(Source::from_filepath(file)?) {
+        Ok(v) => println!("{}", v.display()),
+        Err(v) => eprintln!("Uncaught {v}"),
+    }
+    context.run_jobs();
 
     Ok(())
 }
 
-fn main() -> Result<(), io::Error> {
+fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) {
+    for file in &args.files {
+        let Err(err) = evaluate_file(file, args, context, loader)
+            .wrap_err_with(|| eyre!("could not evaluate file `{}`", file.display()))
+        else {
+            continue;
+        };
+
+        eprintln!("{err:?}");
+    }
+}
+
+fn main() -> Result<()> {
+    color_eyre::config::HookBuilder::default()
+        .display_location_section(false)
+        .display_env_section(false)
+        .install()?;
+
     #[cfg(feature = "dhat")]
     let _profiler = dhat::Profiler::new_heap();
 
     let args = Opt::parse();
 
     let queue = Rc::new(Jobs::default());
-    let loader = Rc::new(
-        SimpleModuleLoader::new(&args.root)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?,
-    );
+    let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
     let mut context = ContextBuilder::new()
         .job_queue(queue)
         .module_loader(loader.clone())
         .build()
-        .expect("cannot fail with default global object");
+        .map_err(|e| eyre!(e.to_string()))?;
 
     // Strict mode
     context.strict(args.strict);
@@ -358,82 +363,85 @@ fn main() -> Result<(), io::Error> {
     optimizer_options.set(OptimizerOptions::OPTIMIZE_ALL, args.optimize);
     context.set_optimizer_options(optimizer_options);
 
-    if args.files.is_empty() {
-        let config = Config::builder()
-            .keyseq_timeout(Some(1))
-            .edit_mode(if args.vi_mode {
-                EditMode::Vi
-            } else {
-                EditMode::Emacs
-            })
-            .build();
+    if !args.files.is_empty() {
+        evaluate_files(&args, &mut context, &loader);
+        return Ok(());
+    }
 
-        let mut editor =
-            Editor::with_config(config).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-        // Check if the history file exists. If it does, create it.
-        OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(false)
-            .open(CLI_HISTORY)?;
-        editor.load_history(CLI_HISTORY).map_err(|err| match err {
-            ReadlineError::Io(e) => e,
-            e => io::Error::new(io::ErrorKind::Other, e),
-        })?;
-        let readline = ">> ";
-        editor.set_helper(Some(helper::RLHelper::new(readline)));
+    let config = Config::builder()
+        .keyseq_timeout(Some(1))
+        .edit_mode(if args.vi_mode {
+            EditMode::Vi
+        } else {
+            EditMode::Emacs
+        })
+        .build();
 
-        loop {
-            match editor.readline(readline) {
-                Ok(line) if line == ".exit" => break,
-                Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
+    let mut editor =
+        Editor::with_config(config).wrap_err("failed to set the editor configuration")?;
+    // Check if the history file exists. If it doesn't, create it.
+    OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(CLI_HISTORY)?;
+    editor
+        .load_history(CLI_HISTORY)
+        .wrap_err("failed to read history file `.boa_history`")?;
+    let readline = ">> ";
+    editor.set_helper(Some(helper::RLHelper::new(readline)));
 
-                Ok(line) => {
-                    editor
-                        .add_history_entry(&line)
-                        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+    loop {
+        match editor.readline(readline) {
+            Ok(line) if line == ".exit" => break,
+            Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
-                    if args.has_dump_flag() {
-                        if let Err(e) = dump(&line, &args, &mut context) {
-                            eprintln!("{e}");
-                        }
-                    } else if let Some(flowgraph) = args.flowgraph {
-                        match generate_flowgraph(
-                            &mut context,
-                            line.trim_end().as_bytes(),
-                            flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
-                            args.flowgraph_direction,
-                        ) {
-                            Ok(v) => println!("{v}"),
-                            Err(v) => eprintln!("Uncaught {v}"),
-                        }
-                    } else {
-                        match context.eval(Source::from_bytes(line.trim_end())) {
-                            Ok(v) => {
-                                println!("{}", v.display());
-                            }
-                            Err(v) => {
-                                eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
-                            }
-                        }
-                        context.run_jobs();
+            Ok(line) => {
+                editor
+                    .add_history_entry(&line)
+                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+
+                if args.has_dump_flag() {
+                    if let Err(e) = dump(Source::from_bytes(&line), &args, &mut context) {
+                        eprintln!("{e:?}");
                     }
-                }
-
-                Err(err) => {
-                    eprintln!("Unknown error: {err:?}");
-                    break;
+                } else if let Some(flowgraph) = args.flowgraph {
+                    match generate_flowgraph(
+                        &mut context,
+                        Source::from_bytes(line.trim_end()),
+                        flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+                        args.flowgraph_direction,
+                    ) {
+                        Ok(v) => println!("{v}"),
+                        Err(v) => eprintln!("{v:?}"),
+                    }
+                } else {
+                    match context.eval(Source::from_bytes(line.trim_end())) {
+                        Ok(v) => {
+                            println!("{}", v.display());
+                        }
+                        Err(v) => {
+                            eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
+                        }
+                    }
+                    context.run_jobs();
                 }
             }
-        }
 
-        editor
-            .save_history(CLI_HISTORY)
-            .expect("could not save CLI history");
-    } else {
-        evaluate_files(&args, &mut context, &loader)?;
+            Err(err) => {
+                let final_error = eyre!("could not read the next line of the input");
+                let final_error = if let Err(e) = editor.save_history(CLI_HISTORY) {
+                    final_error.error(e)
+                } else {
+                    final_error
+                };
+                return Err(final_error.error(err));
+            }
+        }
     }
+
+    editor.save_history(CLI_HISTORY)?;
 
     Ok(())
 }

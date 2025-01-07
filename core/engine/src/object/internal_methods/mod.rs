@@ -320,7 +320,7 @@ impl JsObject {
 /// Then, reference this static in the creation phase of an `ObjectData`.
 ///
 /// E.g. `ObjectData::string`
-pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+pub(crate) const ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
     __get_prototype_of__: ordinary_get_prototype_of,
     __set_prototype_of__: ordinary_set_prototype_of,
     __is_extensible__: ordinary_is_extensible,
@@ -1071,7 +1071,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
     if let Some((obj, key)) = obj_and_key {
         // a. For each field of Desc that is present, set the corresponding attribute of the
         // property named P of object O to the value of the field.
-        current.fill_with(&desc);
+        current.fill_with(desc);
         obj.borrow_mut()
             .properties
             .insert_with_slot(key, current, slot);

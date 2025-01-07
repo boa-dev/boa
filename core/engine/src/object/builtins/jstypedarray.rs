@@ -426,7 +426,7 @@ impl JsTypedArray {
     /// assert_eq!(initialized8_array.get(5, context)?, JsValue::new(0));
     /// assert_eq!(initialized8_array.get(6, context)?, JsValue::new(0));
     /// assert_eq!(initialized8_array.get(7, context)?, JsValue::new(0));
-    /// assert_eq!(initialized8_array.get(8, context)?, JsValue::Undefined);
+    /// assert_eq!(initialized8_array.get(8, context)?, JsValue::undefined());
     ///
     /// # Ok(())
     /// # }
@@ -506,7 +506,7 @@ impl JsTypedArray {
     ///             .unwrap_or_default()
     ///             .as_number()
     ///             .expect("error at number conversion");
-    ///         Ok(JsValue::Boolean(element > 10.0))
+    ///         Ok(JsValue::from(element > 10.0))
     ///     }),
     /// )
     /// .build();
@@ -564,13 +564,13 @@ impl JsTypedArray {
     ///             .unwrap_or_default()
     ///             .as_number()
     ///             .expect("error at number conversion");
-    ///         Ok(JsValue::Boolean(element < 200.0))
+    ///         Ok(JsValue::from(element < 200.0))
     ///     }),
     /// )
     /// .build();
     /// assert_eq!(
     ///     array.find_last(lower_than_200_predicate.clone(), None, context),
-    ///     Ok(JsValue::Integer(199))
+    ///     Ok(JsValue::new(199))
     /// );
     ///
     /// # Ok(())
@@ -614,13 +614,13 @@ impl JsTypedArray {
     ///             .unwrap_or_default()
     ///             .as_number()
     ///             .expect("error at number conversion");
-    ///         Ok(JsValue::Boolean(element < 200.0))
+    ///         Ok(JsValue::from(element < 200.0))
     ///     }),
     /// )
     /// .build();
     /// assert_eq!(
     ///     array.find_last(lower_than_200_predicate.clone(), None, context),
-    ///     Ok(JsValue::Integer(199))
+    ///     Ok(JsValue::new(199))
     /// );
     ///
     /// # Ok(())
@@ -673,7 +673,7 @@ impl JsTypedArray {
     ///                 .to_uint8(inner_context)
     ///                 .expect("error at number conversion");
     ///             *captures.borrow_mut() += element;
-    ///             Ok(JsValue::Undefined)
+    ///             Ok(JsValue::undefined())
     ///         },
     ///         Gc::clone(&num_to_modify),
     ///     ),
@@ -912,11 +912,12 @@ impl Deref for JsTypedArray {
 
 impl TryFromJs for JsTypedArray {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a TypedArray object")
-                .into()),
+                .into())
         }
     }
 }
@@ -1062,15 +1063,16 @@ macro_rules! JsTypedArrayType {
 
         impl TryFromJs for $name {
             fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-                match value {
-                    JsValue::Object(o) => Self::from_object(o.clone()),
-                    _ => Err(JsNativeError::typ()
+                if let Some(o) = value.as_object() {
+                    Self::from_object(o.clone())
+                } else {
+                    Err(JsNativeError::typ()
                         .with_message(concat!(
                             "value is not a ",
                             stringify!($constructor_function),
                             " object"
                         ))
-                        .into()),
+                        .into())
                 }
             }
         }

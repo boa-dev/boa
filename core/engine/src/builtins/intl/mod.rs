@@ -174,7 +174,7 @@ impl Intl {
         let ll = locale::canonicalize_locale_list(locales, context)?;
 
         // 2. Return CreateArrayFromList(ll).
-        Ok(JsValue::Object(Array::create_array_from_list(
+        Ok(JsValue::new(Array::create_array_from_list(
             ll.into_iter().map(|loc| js_string!(loc.to_string()).into()),
             context,
         )))

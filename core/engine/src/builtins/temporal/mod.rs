@@ -1,5 +1,8 @@
 //! The ECMAScript `Temporal` stage 3 built-in implementation.
 //!
+//! Boa's Temporal implementation uses the `temporal_rs` crate
+//! for the core functionality of the implementation.
+//!
 //! More information:
 //!
 //! [spec]: https://tc39.es/proposal-temporal/
@@ -26,18 +29,22 @@ pub use self::{
     plain_time::*, plain_year_month::*, zoneddatetime::*,
 };
 
+use crate::value::JsVariant;
 use crate::{
-    builtins::{iterable::IteratorRecord, BuiltInBuilder, BuiltInObject, IntrinsicObject},
+    builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    value::Type,
     Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use temporal_rs::{PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime, NS_PER_DAY};
+use temporal_rs::options::RelativeTo;
+use temporal_rs::{
+    primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
+    NS_PER_DAY,
+};
 
 // TODO: Remove in favor of `temporal_rs`
 pub(crate) fn ns_max_instant() -> JsBigInt {
@@ -50,7 +57,6 @@ pub(crate) fn ns_min_instant() -> JsBigInt {
 }
 
 // An enum representing common fields across `Temporal` objects.
-#[allow(unused)]
 pub(crate) enum DateTimeValues {
     Year,
     Month,
@@ -88,27 +94,22 @@ impl IntrinsicObject for Temporal {
             .static_property(
                 js_string!("Now"),
                 realm.intrinsics().objects().now(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .static_property(
-                js_string!("Calendar"),
-                realm.intrinsics().constructors().calendar().constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("Duration"),
                 realm.intrinsics().constructors().duration().constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("Instant"),
                 realm.intrinsics().constructors().instant().constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("PlainDate"),
                 realm.intrinsics().constructors().plain_date().constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("PlainDateTime"),
@@ -117,7 +118,7 @@ impl IntrinsicObject for Temporal {
                     .constructors()
                     .plain_date_time()
                     .constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("PlainMonthDay"),
@@ -126,12 +127,12 @@ impl IntrinsicObject for Temporal {
                     .constructors()
                     .plain_month_day()
                     .constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("PlainTime"),
                 realm.intrinsics().constructors().plain_time().constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("PlainYearMonth"),
@@ -140,12 +141,7 @@ impl IntrinsicObject for Temporal {
                     .constructors()
                     .plain_year_month()
                     .constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .static_property(
-                js_string!("TimeZone"),
-                realm.intrinsics().constructors().time_zone().constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .static_property(
                 js_string!("ZonedDateTime"),
@@ -154,7 +150,7 @@ impl IntrinsicObject for Temporal {
                     .constructors()
                     .zoned_date_time()
                     .constructor(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build();
     }
@@ -174,66 +170,72 @@ fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
     format!("{n:0min_length$}")
 }
 
-/// Abstract Operation 13.1 [`IteratorToListOfType`][proposal]
-///
-/// [proposal]: https://tc39.es/proposal-temporal/#sec-iteratortolistoftype
-pub(crate) fn _iterator_to_list_of_types(
-    iterator: &mut IteratorRecord,
-    element_types: &[Type],
+pub(crate) fn get_relative_to_option(
+    options: &JsObject,
     context: &mut Context,
-) -> JsResult<Vec<JsValue>> {
-    // 1. Let values be a new empty List.
-    let mut values = Vec::new();
-
-    // 2. Repeat,
-    //     a. Let next be ? IteratorStepValue(iteratorRecord).
-    while let Some(next) = iterator.step_value(context)? {
-        // c. If Type(next) is not an element of elementTypes, then
-
-        if element_types.contains(&next.get_type()) {
-            //     i. Let completion be ThrowCompletion(a newly created TypeError object).
-            let completion = JsNativeError::typ()
-                .with_message("IteratorNext is not within allowed type values.");
-
-            //     ii. Return ? IteratorClose(iteratorRecord, completion).
-            let _never = iterator.close(Err(completion.into()), context)?;
-        }
-
-        // d. Append next to the end of the List values.
-        values.push(next);
+) -> JsResult<Option<RelativeTo>> {
+    // Let value be ? Get(options, "relativeTo").
+    let value = options.get(js_string!("relativeTo"), context)?;
+    // 2. If value is undefined, return the Record { [[PlainRelativeTo]]: undefined, [[ZonedRelativeTo]]: undefined }.
+    if value.is_undefined() {
+        return Ok(None);
     }
-
-    // b. If next is done, then
-    //     i. Return values.
-    Ok(values)
+    // 3. Let offsetBehaviour be option.
+    // 4. Let matchBehaviour be match-exactly.
+    // 5. If value is an Object, then
+    if let Some(object) = value.as_object() {
+        // a. If value has an [[InitializedTemporalZonedDateTime]] internal slot, then
+        if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
+            // i. Return the Record { [[PlainRelativeTo]]: undefined, [[ZonedRelativeTo]]: value }.
+            return Ok(Some(RelativeTo::ZonedDateTime(zdt.inner.clone())));
+        // b. If value has an [[InitializedTemporalDate]] internal slot, then
+        } else if let Some(date) = object.downcast_ref::<PlainDate>() {
+            // i. Return the Record { [[PlainRelativeTo]]: value, [[ZonedRelativeTo]]: undefined }.
+            return Ok(Some(RelativeTo::PlainDate(date.inner.clone())));
+        // c. If value has an [[InitializedTemporalDateTime]] internal slot, then
+        } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
+            // i. Let plainDate be ! CreateTemporalDate(value.[[ISODateTime]].[[ISODate]], value.[[Calendar]]).
+            // ii. Return the Record { [[PlainRelativeTo]]: plainDate, [[ZonedRelativeTo]]: undefined }.
+            return Ok(Some(RelativeTo::PlainDate(dt.inner.clone().into())));
+        }
+        // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(value).
+        // e. Let fields be ? PrepareCalendarFields(calendar, value, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », «»).
+        let partial = to_partial_zoneddatetime(object, context)?;
+        // f. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, constrain).
+        // g. Let timeZone be fields.[[TimeZone]].
+        // h. Let offsetString be fields.[[OffsetString]].
+        // i. If offsetString is unset, then
+        // i. Set offsetBehaviour to wall.
+        // j. Let isoDate be result.[[ISODate]].
+        if partial.timezone.is_none() {
+            return Ok(Some(RelativeTo::PlainDate(TemporalDate::from_partial(
+                partial.date,
+                None,
+            )?)));
+        }
+        // k. Let time be result.[[Time]].
+        let zdt = TemporalZonedDateTime::from_partial_with_provider(
+            partial,
+            None,
+            None,
+            None,
+            context.tz_provider(),
+        )?;
+        return Ok(Some(RelativeTo::ZonedDateTime(zdt)));
+    }
+    // 6. Else,
+    // a. If value is not a String, throw a TypeError exception.
+    let Some(relative_to_str) = value.as_string() else {
+        return Err(JsNativeError::typ()
+            .with_message("relativeTo must be an object or string.")
+            .into());
+    };
+    // Steps 7-12 are handled by temporal_rs
+    Ok(Some(RelativeTo::try_from_str_with_provider(
+        &relative_to_str.to_std_string_escaped(),
+        context.tz_provider(),
+    )?))
 }
-
-// Abstract Operation 13.3 `EpochDaysToEpochMs`
-// Migrated to `temporal_rs`
-
-// 13.4 Date Equations
-// implemented in temporal/date_equations.rs
-
-// Abstract Operation 13.5 `GetOptionsObject ( options )`
-// Implemented in builtin/options.rs
-
-// 13.6 `GetOption ( options, property, type, values, default )`
-// Implemented in builtin/options.rs
-
-// 13.7 `ToTemporalOverflow (options)`
-// Now implemented in temporal/options.rs
-
-// 13.10 `ToTemporalRoundingMode ( normalizedOptions, fallback )`
-// Now implemented in builtin/options.rs
-
-// 13.11 `NegateTemporalRoundingMode ( roundingMode )`
-// Now implemented in builtin/options.rs
-
-// 13.16 `ToTemporalRoundingIncrement ( normalizedOptions )`
-// Now implemented in temporal/options.rs
-
-// 13.17 `ValidateTemporalRoundingIncrement ( increment, dividend, inclusive )`
-// Moved to temporal_rs
 
 type RelativeTemporalObjectResult = JsResult<(Option<TemporalDate>, Option<TemporalZonedDateTime>)>;
 
@@ -243,10 +245,10 @@ pub(crate) fn to_relative_temporal_object(
     context: &mut Context,
 ) -> RelativeTemporalObjectResult {
     let relative_to = options.get(js_string!("relativeTo"), context)?;
-    let plain_date = match relative_to {
-        JsValue::String(relative_to_str) => JsValue::from(relative_to_str),
-        JsValue::Object(relative_to_obj) => JsValue::from(relative_to_obj),
-        JsValue::Undefined => return Ok((None, None)),
+    let plain_date = match relative_to.variant() {
+        JsVariant::String(relative_to_str) => JsValue::from(relative_to_str.clone()),
+        JsVariant::Object(relative_to_obj) => JsValue::from(relative_to_obj.clone()),
+        JsVariant::Undefined => return Ok((None, None)),
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Invalid type for converting to relativeTo object")
@@ -258,15 +260,6 @@ pub(crate) fn to_relative_temporal_object(
     // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
     Ok((Some(plain_date), None))
 }
-
-// 13.22 `LargerOfTwoTemporalUnits ( u1, u2 )`
-// use core::cmp::max
-
-// 13.23 `MaximumTemporalDurationRoundingIncrement ( unit )`
-// Implemented on TemporalUnit in temporal/options.rs
-
-// 13.26 `GetUnsignedRoundingMode ( roundingMode, isNegative )`
-// Implemented on RoundingMode in builtins/options.rs
 
 // 13.26 IsPartialTemporalObject ( object )
 pub(crate) fn is_partial_temporal_object<'value>(
@@ -308,78 +301,13 @@ pub(crate) fn is_partial_temporal_object<'value>(
     Ok(Some(obj))
 }
 
-// 13.27 `ApplyUnsignedRoundingMode ( x, r1, r2, unsignedRoundingMode )`
-// Migrated to `temporal_rs`
-
-// 13.28 `RoundNumberToIncrement ( x, increment, roundingMode )`
-// Migrated to `temporal_rs`
-
-// 13.29 `RoundNumberToIncrementAsIfPositive ( x, increment, roundingMode )`
-// Migrated to `temporal_rs`
-
-/// 13.43 `ToPositiveIntegerWithTruncation ( argument )`
-#[inline]
-#[allow(unused)]
-pub(crate) fn to_positive_integer_with_trunc(
-    value: &JsValue,
-    context: &mut Context,
-) -> JsResult<i32> {
-    // 1. Let integer be ? ToIntegerWithTruncation(argument).
-    let int = to_integer_with_truncation(value, context)?;
-    // 2. If integer ≤ 0, throw a RangeError exception.
-    if int <= 0 {
-        return Err(JsNativeError::range()
-            .with_message("value is not a positive integer")
-            .into());
+impl JsValue {
+    pub(crate) fn to_finitef64(&self, context: &mut Context) -> JsResult<FiniteF64> {
+        let number = self.to_number(context)?;
+        let result = FiniteF64::try_from(number)?;
+        Ok(result)
     }
-    // 3. Return integer.
-    Ok(int)
 }
-
-/// 13.44 `ToIntegerWithTruncation ( argument )`
-#[inline]
-pub(crate) fn to_integer_with_truncation(value: &JsValue, context: &mut Context) -> JsResult<i32> {
-    // 1. Let number be ? ToNumber(argument).
-    let number = value.to_number(context)?;
-    // 2. If number is NaN, +∞𝔽 or -∞𝔽, throw a RangeError exception.
-    if number.is_nan() || number.is_infinite() {
-        return Err(JsNativeError::range()
-            .with_message("truncation target must be an integer.")
-            .into());
-    }
-    // 3. Return truncate(ℝ(number)).
-    Ok(number.trunc() as i32)
-}
-
-/// Abstract operation 13.45 `ToIntegerIfIntegral( argument )`
-#[inline]
-pub(crate) fn to_integer_if_integral(arg: &JsValue, context: &mut Context) -> JsResult<i32> {
-    // 1. Let number be ? ToNumber(argument).
-    // 2. If IsIntegralNumber(number) is false, throw a RangeError exception.
-    // 3. Return ℝ(number).
-    if !arg.is_integral_number() {
-        return Err(JsNativeError::range()
-            .with_message("value to convert is not an integral number.")
-            .into());
-    }
-
-    arg.to_i32(context)
-}
-
-// 13.46 `PrepareTemporalFields ( fields, fieldNames, requiredFields [ , duplicateBehaviour ] )`
-// See fields.rs
-
-// NOTE: op -> true == until | false == since
-// 13.47 `GetDifferenceSettings ( operation, options, unitGroup, disallowedUnits, fallbackSmallestUnit, smallestLargestDefaultUnit )`
-// Migrated to `temporal_rs`
-
-// NOTE: used for MergeFields methods. Potentially can be omitted in favor of `TemporalFields`.
-// 14.6 `CopyDataProperties ( target, source, excludedKeys [ , excludedValues ] )`
-// Migrated or repurposed to `temporal_rs`/`fields.rs`
-
-// Note: Deviates from Proposal spec -> proto appears to be always null across the specification.
-// 14.7 `SnapshotOwnProperties ( source, proto [ , excludedKeys [ , excludedValues ] ] )`
-// Migrated or repurposed to `temporal_rs`/`fields.rs`
 
 fn extract_from_temporal_type<DF, DTF, YMF, MDF, ZDTF, Ret>(
     object: &JsObject,

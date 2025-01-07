@@ -1,3 +1,5 @@
+use super::internal_methods::InternalMethodContext;
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         function::{set_function_name, BoundFunction, ClassFieldDefinition, OrdinaryFunction},
@@ -13,8 +15,6 @@ use crate::{
     value::Type,
     Context, JsResult, JsSymbol, JsValue,
 };
-
-use super::internal_methods::InternalMethodContext;
 
 /// Object integrity level.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -756,15 +756,18 @@ impl JsObject {
         // 1. Assert: IsPropertyKey(P) is true.
         // 2. Let func be ? GetV(V, P).
 
-        match &self.__get__(
-            &key.into(),
-            self.clone().into(),
-            &mut InternalMethodContext::new(context),
-        )? {
+        match self
+            .__get__(
+                &key.into(),
+                self.clone().into(),
+                &mut InternalMethodContext::new(context),
+            )?
+            .variant()
+        {
             // 3. If func is either undefined or null, return undefined.
-            JsValue::Undefined | JsValue::Null => Ok(None),
+            JsVariant::Undefined | JsVariant::Null => Ok(None),
             // 5. Return func.
-            JsValue::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
+            JsVariant::Object(obj) if obj.is_callable() => Ok(Some(obj.clone())),
             // 4. If IsCallable(func) is false, throw a TypeError exception.
             _ => Err(JsNativeError::typ()
                 .with_message("value returned for property of object is not a function")
