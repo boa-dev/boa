@@ -1,7 +1,6 @@
 use crate::{
     expression::Expression,
     statement::Statement,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
@@ -73,7 +72,7 @@ impl VisitWith for DoWhileLoop {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_statement(&self.body));
+        visitor.visit_statement(&self.body)?;
         visitor.visit_expression(&self.condition)
     }
 
@@ -81,7 +80,7 @@ impl VisitWith for DoWhileLoop {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_statement_mut(&mut self.body));
+        visitor.visit_statement_mut(&mut self.body)?;
         visitor.visit_expression_mut(&mut self.condition)
     }
 }

@@ -3,7 +3,6 @@
 use super::Declaration;
 use crate::{
     statement::Statement,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString};
@@ -178,7 +177,7 @@ impl VisitWith for StatementList {
         V: Visitor<'a>,
     {
         for statement in &*self.statements {
-            try_break!(visitor.visit_statement_list_item(statement));
+            visitor.visit_statement_list_item(statement)?;
         }
         ControlFlow::Continue(())
     }
@@ -188,7 +187,7 @@ impl VisitWith for StatementList {
         V: VisitorMut<'a>,
     {
         for statement in &mut *self.statements {
-            try_break!(visitor.visit_statement_list_item_mut(statement));
+            visitor.visit_statement_list_item_mut(statement)?;
         }
         ControlFlow::Continue(())
     }
