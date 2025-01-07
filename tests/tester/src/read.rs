@@ -95,11 +95,19 @@ pub(super) enum TestFlag {
 pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
     let mut includes: HashMap<Box<str>, HarnessFile, FxBuildHasher> = FxHashMap::default();
 
-    read_harness_dir(&test262_path.join("harness"), &mut includes)?;
+    let harness_path = &test262_path.join("harness");
 
-    let assert = read_harness_file(test262_path.join("harness/assert.js"))?;
-    let sta = read_harness_file(test262_path.join("harness/sta.js"))?;
-    let doneprint_handle = read_harness_file(test262_path.join("harness/doneprintHandle.js"))?;
+    read_harness_dir(harness_path, harness_path, &mut includes)?;
+
+    let assert = includes
+        .remove("assert.js")
+        .ok_or_eyre("failed to load harness file `assert.js`")?;
+    let sta = includes
+        .remove("sta.js")
+        .ok_or_eyre("failed to load harness file `sta.js`")?;
+    let doneprint_handle = includes
+        .remove("doneprintHandle.js")
+        .ok_or_eyre("failed to load harness file `donePrintHandle.js`")?;
 
     Ok(Harness {
         assert,
@@ -110,24 +118,24 @@ pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
 }
 
 fn read_harness_dir(
+    harness_root: &Path,
     directory_name: &Path,
     includes: &mut HashMap<Box<str>, HarnessFile, FxBuildHasher>,
 ) -> Result<()> {
     for entry in fs::read_dir(directory_name).wrap_err("error reading the harness directory")? {
         let entry = entry?;
-        let file_name = entry.file_name();
-        let file_name = file_name.to_string_lossy().into_owned();
+        let entry_path = entry.path();
 
-        if directory_name.join(file_name.clone()).is_dir() {
-            read_harness_dir(&directory_name.join(file_name), includes)?;
+        if entry.file_type()?.is_dir() {
+            read_harness_dir(harness_root, &entry_path, includes)?;
             continue;
         }
 
-        if file_name == "assert.js" || file_name == "sta.js" || file_name == "doneprintHandle.js" {
-            continue;
-        }
+        let key = entry_path
+            .strip_prefix(harness_root)
+            .wrap_err("invalid harness file path")?;
 
-        includes.insert(file_name.into_boxed_str(), read_harness_file(entry.path())?);
+        includes.insert(key.to_string_lossy().into(), read_harness_file(entry_path)?);
     }
 
     Ok(())
@@ -154,7 +162,7 @@ pub(super) fn read_suite(
         .and_then(OsStr::to_str)
         .ok_or_eyre("invalid path for test suite")?;
 
-    ignore_suite |= ignored.contains_test(name);
+    ignore_suite |= ignored.contains_test(path);
 
     let mut suites = Vec::new();
     let mut tests = Vec::new();
@@ -198,7 +206,7 @@ pub(super) fn read_suite(
 
         if ignore_suite
             || ignored.contains_any_flag(test.flags)
-            || ignored.contains_test(&test.name)
+            || ignored.contains_test(&test.path)
             || test
                 .features
                 .iter()
