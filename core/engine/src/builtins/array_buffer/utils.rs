@@ -211,6 +211,19 @@ impl SliceRefMut<'_> {
         }
     }
 
+    /// Gets a subslice of this `SliceRefMut`.
+    pub(crate) fn subslice<I>(&self, index: I) -> SliceRef<'_>
+    where
+        I: SliceIndex<[u8], Output = [u8]> + SliceIndex<[AtomicU8], Output = [AtomicU8]>,
+    {
+        match self {
+            Self::Slice(buffer) => SliceRef::Slice(buffer.get(index).expect("index out of bounds")),
+            Self::AtomicSlice(buffer) => {
+                SliceRef::AtomicSlice(buffer.get(index).expect("index out of bounds"))
+            }
+        }
+    }
+
     /// Gets a mutable subslice of this `SliceRefMut`.
     pub(crate) fn subslice_mut<I>(&mut self, index: I) -> SliceRefMut<'_>
     where
@@ -398,6 +411,34 @@ pub(crate) unsafe fn memcpy(src: BytesConstPtr, dest: BytesMutPtr, count: usize)
         },
         // SAFETY: The invariants of this operation are ensured by the caller of the function.
         (BytesConstPtr::AtomicBytes(src), BytesMutPtr::AtomicBytes(dest)) => unsafe {
+            copy_shared_to_shared(src, dest, count);
+        },
+    }
+}
+
+/// Copies `count` bytes from the position `from` to the position `to` in `buffer`, but always
+/// copying from left to right.
+///
+///
+/// # Safety
+///
+/// - `ptr` must be valid from the offset `ptr + from` for `count` reads of bytes.
+/// - `ptr` must be valid from the offset `ptr + to` for `count` writes of bytes.
+// This looks like a worse version of `memmove`... and it is exactly that...
+// but it's the correct behaviour for a weird usage of `%TypedArray%.prototype.slice` so ¯\_(ツ)_/¯.
+// Obviously don't use this if you need to implement something that requires a "proper" memmove.
+pub(crate) unsafe fn memmove_naive(ptr: BytesMutPtr, from: usize, to: usize, count: usize) {
+    match ptr {
+        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+        BytesMutPtr::Bytes(ptr) => unsafe {
+            for i in 0..count {
+                ptr::copy(ptr.add(from + i), ptr.add(to + i), 1);
+            }
+        },
+        // SAFETY: The invariants of this operation are ensured by the caller of the function.
+        BytesMutPtr::AtomicBytes(ptr) => unsafe {
+            let src = ptr.add(from);
+            let dest = ptr.add(to);
             copy_shared_to_shared(src, dest, count);
         },
     }

@@ -1071,7 +1071,7 @@ pub(crate) fn validate_and_apply_property_descriptor(
     if let Some((obj, key)) = obj_and_key {
         // a. For each field of Desc that is present, set the corresponding attribute of the
         // property named P of object O to the value of the field.
-        current.fill_with(&desc);
+        current.fill_with(desc);
         obj.borrow_mut()
             .properties
             .insert_with_slot(key, current, slot);

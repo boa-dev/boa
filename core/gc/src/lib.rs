@@ -325,23 +325,9 @@ impl Collector {
             if node_ref.is_rooted() {
                 tracer.enqueue(*node);
 
-                while let Some(node) = tracer.next() {
-                    // SAFETY: the gc heap object should be alive if there is a root.
-                    let node_ref = unsafe { node.as_ref() };
-
-                    if !node_ref.header.is_marked() {
-                        node_ref.header.mark();
-
-                        // SAFETY: if `GcBox::trace_inner()` has been called, then,
-                        // this box must have been deemed as reachable via tracing
-                        // from a root, which by extension means that value has not
-                        // been dropped either.
-
-                        let trace_fn = node_ref.trace_fn();
-
-                        // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
-                        unsafe { trace_fn(node, tracer) }
-                    }
+                // SAFETY: all nodes must be valid as this phase cannot drop any node.
+                unsafe {
+                    tracer.trace_until_empty();
                 }
             } else if !node_ref.is_marked() {
                 strong_dead.push(*node);
@@ -378,14 +364,9 @@ impl Collector {
                 pending_ephemerons.push(*eph);
             }
 
-            while let Some(node) = tracer.next() {
-                // SAFETY: node must be valid as this phase cannot drop any node.
-                let trace_fn = unsafe { node.as_ref() }.trace_fn();
-
-                // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
-                unsafe {
-                    trace_fn(node, tracer);
-                }
+            // SAFETY: all nodes must be valid as this phase cannot drop any node.
+            unsafe {
+                tracer.trace_until_empty();
             }
         }
 
@@ -397,14 +378,9 @@ impl Collector {
             // SAFETY: The garbage collector ensures that all nodes are valid.
             unsafe { node_ref.trace(tracer) };
 
-            while let Some(node) = tracer.next() {
-                // SAFETY: node must be valid as this phase cannot drop any node.
-                let trace_fn = unsafe { node.as_ref() }.trace_fn();
-
-                // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
-                unsafe {
-                    trace_fn(node, tracer);
-                }
+            // SAFETY: all nodes must be valid as this phase cannot drop any node.
+            unsafe {
+                tracer.trace_until_empty();
             }
         }
 
@@ -419,14 +395,9 @@ impl Collector {
                 // SAFETY: the garbage collector ensures `eph_ref` always points to valid data.
                 let is_key_marked = unsafe { !eph_ref.trace(tracer) };
 
-                while let Some(node) = tracer.next() {
-                    // SAFETY: node must be valid as this phase cannot drop any node.
-                    let trace_fn = unsafe { node.as_ref() }.trace_fn();
-
-                    // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
-                    unsafe {
-                        trace_fn(node, tracer);
-                    }
+                // SAFETY: all nodes must be valid as this phase cannot drop any node.
+                unsafe {
+                    tracer.trace_until_empty();
                 }
 
                 is_key_marked
