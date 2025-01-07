@@ -16,7 +16,6 @@ use crate::{
         AsyncFunctionDeclaration, AsyncGeneratorDeclaration, ClassDeclaration, FunctionDeclaration,
         GeneratorDeclaration,
     },
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Declaration, Expression,
 };
@@ -50,7 +49,7 @@ impl VisitWith for ReExportKind {
             Self::Namespaced { name: None } => ControlFlow::Continue(()),
             Self::Named { names } => {
                 for name in &**names {
-                    try_break!(visitor.visit_export_specifier(name));
+                    visitor.visit_export_specifier(name)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -66,7 +65,7 @@ impl VisitWith for ReExportKind {
             Self::Namespaced { name: None } => ControlFlow::Continue(()),
             Self::Named { names } => {
                 for name in &mut **names {
-                    try_break!(visitor.visit_export_specifier_mut(name));
+                    visitor.visit_export_specifier_mut(name)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -117,12 +116,12 @@ impl VisitWith for ExportDeclaration {
     {
         match self {
             Self::ReExport { specifier, kind } => {
-                try_break!(visitor.visit_module_specifier(specifier));
+                visitor.visit_module_specifier(specifier)?;
                 visitor.visit_re_export_kind(kind)
             }
             Self::List(list) => {
                 for item in &**list {
-                    try_break!(visitor.visit_export_specifier(item));
+                    visitor.visit_export_specifier(item)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -147,12 +146,12 @@ impl VisitWith for ExportDeclaration {
     {
         match self {
             Self::ReExport { specifier, kind } => {
-                try_break!(visitor.visit_module_specifier_mut(specifier));
+                visitor.visit_module_specifier_mut(specifier)?;
                 visitor.visit_re_export_kind_mut(kind)
             }
             Self::List(list) => {
                 for item in &mut **list {
-                    try_break!(visitor.visit_export_specifier_mut(item));
+                    visitor.visit_export_specifier_mut(item)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -226,7 +225,7 @@ impl VisitWith for ExportSpecifier {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_sym(&self.alias));
+        visitor.visit_sym(&self.alias)?;
         visitor.visit_sym(&self.private_name)
     }
 
@@ -234,7 +233,7 @@ impl VisitWith for ExportSpecifier {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_sym_mut(&mut self.alias));
+        visitor.visit_sym_mut(&mut self.alias)?;
         visitor.visit_sym_mut(&mut self.private_name)
     }
 }
