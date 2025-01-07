@@ -15,20 +15,19 @@ use boa_engine::{
     Context, JsArgs, JsResult, JsValue, Source,
 };
 use boa_runtime::Console;
-use futures_concurrency::future::FutureGroup;
-use smol::{future, stream::StreamExt, LocalExecutor};
+use tokio::{runtime::Runtime, task, time};
 
 /// An event queue that also drives futures to completion.
-struct Queue<'a> {
-    executor: LocalExecutor<'a>,
+struct Queue {
+    runtime: Runtime,
     futures: RefCell<Vec<FutureJob>>,
     jobs: RefCell<VecDeque<NativeJob>>,
 }
 
-impl<'a> Queue<'a> {
-    fn new(executor: LocalExecutor<'a>) -> Self {
+impl Queue {
+    fn new(runtime: Runtime) -> Self {
         Self {
-            executor,
+            runtime,
             futures: RefCell::default(),
             jobs: RefCell::default(),
         }
@@ -44,7 +43,7 @@ impl<'a> Queue<'a> {
     }
 }
 
-impl JobQueue for Queue<'_> {
+impl JobQueue for Queue {
     fn enqueue_promise_job(&self, job: NativeJob, _context: &mut Context) {
         self.jobs.borrow_mut().push_back(job);
     }
@@ -59,13 +58,15 @@ impl JobQueue for Queue<'_> {
             return;
         }
 
-        future::block_on(self.executor.run(async move {
-            let mut group = FutureGroup::new();
+        task::LocalSet::default().block_on(&self.runtime, async move {
+            let mut join_set = task::JoinSet::new();
             loop {
-                group.extend(std::mem::take(&mut *self.futures.borrow_mut()));
+                for future in std::mem::take(&mut *self.futures.borrow_mut()) {
+                    join_set.spawn_local(future);
+                }
 
                 if self.jobs.borrow().is_empty() {
-                    let Some(job) = group.next().await else {
+                    let Some(job) = join_set.join_next().await else {
                         // Both queues are empty. We can exit.
                         return;
                     };
@@ -73,14 +74,18 @@ impl JobQueue for Queue<'_> {
                     // Important to schedule the returned `job` into the job queue, since that's
                     // what allows updating the `Promise` seen by ECMAScript for when the future
                     // completes.
-                    self.enqueue_promise_job(job, context);
+                    match job {
+                        Ok(job) => self.enqueue_promise_job(job, context),
+                        Err(e) => eprintln!("{e}"),
+                    }
+
                     continue;
                 }
 
                 // We have some jobs pending on the microtask queue. Try to poll the pending
                 // tasks once to see if any of them finished, and run the pending microtasks
                 // otherwise.
-                let Some(job) = future::poll_once(group.next()).await.flatten() else {
+                let Some(job) = join_set.try_join_next() else {
                     // No completed jobs. Run the microtask queue once.
                     self.drain_jobs(context);
                     continue;
@@ -89,12 +94,15 @@ impl JobQueue for Queue<'_> {
                 // Important to schedule the returned `job` into the job queue, since that's
                 // what allows updating the `Promise` seen by ECMAScript for when the future
                 // completes.
-                self.enqueue_promise_job(job, context);
+                match job {
+                    Ok(job) => self.enqueue_promise_job(job, context),
+                    Err(e) => eprintln!("{e}"),
+                }
 
                 // Only one macrotask can be executed before the next drain of the microtask queue.
                 self.drain_jobs(context);
             }
-        }));
+        });
     }
 }
 
@@ -110,7 +118,7 @@ fn delay(
         let millis = millis?;
         println!("Delaying for {millis} milliseconds ...");
         let now = Instant::now();
-        smol::Timer::after(Duration::from_millis(u64::from(millis))).await;
+        time::sleep(Duration::from_millis(u64::from(millis))).await;
         let elapsed = now.elapsed().as_secs_f64();
         Ok(elapsed.into())
     }
@@ -135,9 +143,12 @@ fn add_runtime(context: &mut Context) {
 }
 
 fn main() {
-    // Initialize the required executors and the context
-    let executor = LocalExecutor::new();
-    let queue = Queue::new(executor);
+    // Initialize the required runtime and the context
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_time()
+        .build()
+        .unwrap();
+    let queue = Queue::new(runtime);
     let context = &mut ContextBuilder::new()
         .job_queue(Rc::new(queue))
         .build()

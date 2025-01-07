@@ -86,7 +86,6 @@ getrandom = { version = "0.2.15", default-features = false }
 console_error_panic_hook = "0.1.7"
 wasm-bindgen-test = "0.3.47"
 smol = "2.0.2"
-futures-util = "0.3.31"
 isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
@@ -120,6 +119,9 @@ futures-lite = "2.5.0"
 test-case = "3.3.1"
 winapi = { version = "0.3.9", default-features = false }
 url = "2.5.4"
+tokio = { version = "1.42.0", default-features = false }
+futures-concurrency = "7.6.2"
+
 
 # ICU4X
 
