@@ -661,6 +661,24 @@ impl Array {
         iterator_record.close(error, context)
     }
 
+    /// [`Array.fromAsync ( asyncItems [ , mapfn [ , thisArg ] ] )`][spec]
+    ///
+    /// The `Array.fromAsync()` static method creates a new,
+    /// shallow-copied Array instance from a list or iterator of Promise-like values.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/proposal-array-from-async/#sec-array.fromAsync
+    #[cfg(feature = "experimental")]
+    pub(crate) fn from_async(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        use crate::object::JsPromise;
+
+        let (promise, resolvers) = JsPromise::new_pending(context);
+
+        return Ok(promise.into())
+    }
+
     /// `Array.isArray( arg )`
     ///
     /// The isArray function takes one argument arg, and returns the Boolean value true

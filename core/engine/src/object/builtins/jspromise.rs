@@ -7,11 +7,7 @@ use crate::{
     builtins::{
         promise::{PromiseState, ResolvingFunctions},
         Promise,
-    },
-    job::NativeJob,
-    object::JsObject,
-    value::TryFromJs,
-    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
+    }, job::NativeJob, native_function::NativeContinuation, object::JsObject, value::TryFromJs, Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
@@ -1151,6 +1147,10 @@ impl JsPromise {
                 PromiseState::Rejected(r) => break Err(r),
             }
         }
+    }
+
+    pub(crate) fn await_native(&self, continuation: NativeContinuation, context: &mut Context) {
+        
     }
 }
 

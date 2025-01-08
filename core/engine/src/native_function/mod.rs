@@ -20,6 +20,10 @@ use crate::{
     Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
+mod r#await;
+
+pub(crate) use r#await::NativeContinuation;
+
 /// The required signature for all native built-in function pointers.
 ///
 /// # Arguments
