@@ -12,23 +12,33 @@ use boa_engine::{
     js_string,
     native_function::NativeFunction,
     property::Attribute,
-    Context, JsArgs, JsResult, JsValue, Source,
+    Context, JsArgs, JsResult, JsValue, Script, Source,
 };
 use boa_runtime::Console;
 use futures_concurrency::future::FutureGroup;
-use smol::{future, stream::StreamExt, LocalExecutor};
+use smol::{future, stream::StreamExt};
 
-/// An event queue that also drives futures to completion.
-struct Queue<'a> {
-    executor: LocalExecutor<'a>,
+// This example shows how to create an event loop using the smol runtime.
+// The example contains two "flavors" of event loops:
+fn main() {
+    // An internally async event loop. This event loop blocks the execution of the thread
+    // while executing tasks, but internally uses async to run its tasks.
+    internally_async_event_loop();
+
+    // An externally async event loop. This event loop can yield to the runtime to concurrently
+    // run tasks with it.
+    externally_async_event_loop();
+}
+
+/// An event queue using smol to drive futures to completion.
+struct Queue {
     futures: RefCell<Vec<FutureJob>>,
     jobs: RefCell<VecDeque<NativeJob>>,
 }
 
-impl<'a> Queue<'a> {
-    fn new(executor: LocalExecutor<'a>) -> Self {
+impl Queue {
+    fn new() -> Self {
         Self {
-            executor,
             futures: RefCell::default(),
             jobs: RefCell::default(),
         }
@@ -44,7 +54,7 @@ impl<'a> Queue<'a> {
     }
 }
 
-impl JobQueue for Queue<'_> {
+impl JobQueue for Queue {
     fn enqueue_promise_job(&self, job: NativeJob, _context: &mut Context) {
         self.jobs.borrow_mut().push_back(job);
     }
@@ -53,13 +63,25 @@ impl JobQueue for Queue<'_> {
         self.futures.borrow_mut().push(future);
     }
 
+    // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
     fn run_jobs(&self, context: &mut Context) {
-        // Early return in case there were no jobs scheduled.
-        if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
-            return;
-        }
+        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(context)));
+    }
 
-        future::block_on(self.executor.run(async move {
+    // ...the async flavor won't, which allows concurrent execution with external async tasks.
+    fn run_jobs_async<'a, 'ctx, 'fut>(
+        &'a self,
+        context: &'ctx mut Context,
+    ) -> std::pin::Pin<Box<dyn Future<Output = ()> + 'fut>>
+    where
+        'a: 'fut,
+        'ctx: 'fut,
+    {
+        Box::pin(async move {
+            // Early return in case there were no jobs scheduled.
+            if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
+                return;
+            }
             let mut group = FutureGroup::new();
             loop {
                 group.extend(std::mem::take(&mut *self.futures.borrow_mut()));
@@ -94,11 +116,11 @@ impl JobQueue for Queue<'_> {
                 // Only one macrotask can be executed before the next drain of the microtask queue.
                 self.drain_jobs(context);
             }
-        }));
+        })
     }
 }
 
-// Example async code. Note that the returned future must be 'static.
+// Example async function. Note that the returned future must be 'static.
 fn delay(
     _this: &JsValue,
     args: &[JsValue],
@@ -134,51 +156,95 @@ fn add_runtime(context: &mut Context) {
         .expect("the delay builtin shouldn't exist");
 }
 
-fn main() {
-    // Initialize the required executors and the context
-    let executor = LocalExecutor::new();
-    let queue = Queue::new(executor);
+// Script that does multiple calls to multiple async timers.
+const SCRIPT: &str = r"
+    function print(elapsed) {
+        console.log(`Finished delay. Elapsed time: ${elapsed * 1000} ms`)
+    }
+    delay(1000).then(print);
+    delay(500).then(print);
+    delay(200).then(print);
+    delay(600).then(print);
+    delay(30).then(print);
+
+    for(let i = 0; i <= 100000; i++) {
+        // Emulate a long-running evaluation of a script.
+    }
+";
+
+// This flavor is most recommended when you have an application that:
+//  - Needs to wait until the engine finishes executing; depends on the execution result to continue.
+//  - Delegates the execution of the application to the engine's event loop.
+fn internally_async_event_loop() {
+    println!("====== Internally async event loop. ======");
+
+    // Initialize the queue and the context
+    let queue = Queue::new();
     let context = &mut ContextBuilder::new()
         .job_queue(Rc::new(queue))
         .build()
         .unwrap();
 
-    // Then, add a custom runtime.
+    // Then, add the custom runtime.
     add_runtime(context);
 
-    // Multiple calls to multiple async timers.
-    let script = r"
-        function print(elapsed) {
-            console.log(`Finished. elapsed time: ${elapsed * 1000} ms`)
-        }
-        delay(1000).then(print);
-        delay(500).then(print);
-        delay(200).then(print);
-        delay(600).then(print);
-        delay(30).then(print);
-    ";
-
     let now = Instant::now();
-    context.eval(Source::from_bytes(script)).unwrap();
+    println!("Evaluating script...");
+    context.eval(Source::from_bytes(SCRIPT)).unwrap();
 
     // Important to run this after evaluating, since this is what triggers to run the enqueued jobs.
+    println!("Running jobs...");
     context.run_jobs();
 
-    println!("Total elapsed time: {:?}", now.elapsed());
+    println!("Total elapsed time: {:?}\n", now.elapsed());
+}
 
-    // Example output:
+// This flavor is most recommended when you have an application that:
+//  - Cannot afford to block until the engine finishes executing.
+//  - Needs to process IO requests between executions that will be consumed by the engine.
+fn externally_async_event_loop() {
+    println!("====== Externally async event loop. ======");
+    let executor = smol::Executor::new();
 
-    // Delaying for 1000 milliseconds ...
-    // Delaying for 500 milliseconds ...
-    // Delaying for 200 milliseconds ...
-    // Delaying for 600 milliseconds ...
-    // Delaying for 30 milliseconds ...
-    // Finished. elapsed time: 30.073821000000002 ms
-    // Finished. elapsed time: 200.079116 ms
-    // Finished. elapsed time: 500.10745099999997 ms
-    // Finished. elapsed time: 600.098433 ms
-    // Finished. elapsed time: 1000.118099 ms
-    // Total elapsed time: 1.002628715s
+    smol::block_on(executor.run(async {
+        // Initialize the queue and the context
+        let queue = Queue::new();
+        let context = &mut ContextBuilder::new()
+            .job_queue(Rc::new(queue))
+            .build()
+            .unwrap();
 
-    // The queue concurrently drove several timers to completion!
+        // Then, add the custom runtime.
+        add_runtime(context);
+
+        let now = Instant::now();
+
+        // Example of an asynchronous workload that must be run alongside the engine.
+        let counter = executor.spawn(async {
+            let mut interval = smol::Timer::interval(Duration::from_millis(100));
+            println!("Starting smol interval job...");
+            for i in 0..10 {
+                interval.next().await;
+                println!("Executed interval tick {i}");
+            }
+            println!("Finished smol interval job...")
+        });
+
+        let engine = async {
+            let script = Script::parse(Source::from_bytes(SCRIPT), None, context).unwrap();
+
+            // `Script::evaluate_async` will yield to the executor from time to time, Unlike `Context::run`
+            // or `Script::evaluate` which block the current thread until the execution finishes.
+            println!("Evaluating script...");
+            script.evaluate_async(context).await.unwrap();
+
+            // Run the jobs asynchronously, which avoids blocking the main thread.
+            println!("Running jobs...");
+            context.run_jobs_async().await;
+        };
+
+        future::zip(counter, engine).await;
+
+        println!("Total elapsed time: {:?}\n", now.elapsed());
+    }));
 }

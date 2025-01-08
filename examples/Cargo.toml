@@ -20,7 +20,7 @@ time.workspace = true
 smol.workspace = true
 futures-concurrency.workspace = true
 isahc.workspace = true
-tokio = { workspace = true, features = ["rt", "time"] }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "macros"] }
 
 # use explicit lints for examples, since we don't need to lint for docs
 [lints.rust]
