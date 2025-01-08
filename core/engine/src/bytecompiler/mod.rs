@@ -21,7 +21,7 @@ use crate::{
         BindingOpcode, CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind,
         Handler, InlineCache, Opcode, VaryingOperandKind,
     },
-    JsBigInt, JsStr, JsString, SourceTextInner, SpannedSourceText,
+    JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
 };
 use boa_ast::{
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
@@ -452,7 +452,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
     pub(crate) interner: &'ctx mut Interner,
-    pub(crate) source_text_inner: Option<Gc<SourceTextInner>>,
+    pub(crate) source_text_inner: Option<SourceText>,
     pub(crate) source_text_spanned: Option<SpannedSourceText>,
 
     #[cfg(feature = "annex-b")]
@@ -554,7 +554,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
-    pub(crate) fn set_source_text_inner(&mut self, source_text_inner: Option<Gc<SourceTextInner>>) {
+    pub(crate) fn set_source_text_inner(&mut self, source_text_inner: Option<SourceText>) {
         self.source_text_inner = source_text_inner;
     }
 

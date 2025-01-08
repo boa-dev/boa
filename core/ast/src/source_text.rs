@@ -16,26 +16,31 @@ impl SourceText {
             source_text: Vec::with_capacity(capacity),
         }
     }
+
     /// Get current `LinearPosition`.
     #[must_use]
     pub fn cur_linear_position(&self) -> LinearPosition {
         LinearPosition::new(self.source_text.len())
     }
+
     /// Get code points from `pos` to the current end.
     #[must_use]
     pub fn get_code_points_from_pos(&self, pos: LinearPosition) -> &[u16] {
         &self.source_text[pos.pos()..]
     }
+
     /// Get code points within `span`.
     #[must_use]
     pub fn get_code_points_from_span(&self, span: LinearSpan) -> &[u16] {
         &self.source_text[span.start().pos()..span.end().pos()]
     }
+
     /// Remove last code point.
     #[inline]
     pub fn remove_last_code_point(&mut self) {
         self.source_text.pop();
     }
+
     /// Collect code point.
     ///
     /// # Panics
@@ -57,6 +62,7 @@ impl SourceText {
         self.push(cu1);
         self.push(cu2);
     }
+
     #[inline]
     fn push(&mut self, cp: u16) {
         self.source_text.push(cp);

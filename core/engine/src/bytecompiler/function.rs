@@ -3,7 +3,7 @@ use crate::{
     bytecompiler::ByteCompiler,
     js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    JsString, SourceTextInner, SpannedSourceText,
+    JsString, SourceText, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -25,7 +25,7 @@ pub(crate) struct FunctionCompiler {
     method: bool,
     in_with: bool,
     name_scope: Option<Scope>,
-    source_text_inner: Option<Gc<SourceTextInner>>,
+    source_text_inner: Option<SourceText>,
     source_text_span: Option<LinearSpan>,
 }
 
@@ -102,7 +102,7 @@ impl FunctionCompiler {
     pub(crate) fn linear_span(
         mut self,
         linear_span: Option<LinearSpan>,
-        source_text: Option<Gc<SourceTextInner>>,
+        source_text: Option<SourceText>,
     ) -> Self {
         self.source_text_inner = source_text;
         self.source_text_span = linear_span;
