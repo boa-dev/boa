@@ -1,7 +1,7 @@
 use super::{fmt, Display, HashSet, JsValue, JsVariant};
 use crate::{
     builtins::{
-        error::ErrorObject, map::ordered_map::OrderedMap, promise::PromiseState,
+        error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
         set::ordered_set::OrderedSet, Array, Promise,
     },
     js_string,
@@ -191,7 +191,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Set({size})")
                 }
-            } else if v_bor.is::<ErrorObject>() {
+            } else if v_bor.is::<Error>() {
                 drop(v_bor);
                 let name: Cow<'static, str> = v
                     .get_property(&js_string!("name").into())
