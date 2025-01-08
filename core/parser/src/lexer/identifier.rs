@@ -4,7 +4,7 @@ use crate::lexer::{
     token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
 };
 use crate::source::ReadChar;
-use boa_ast::{Keyword, Position, Span};
+use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -68,17 +68,17 @@ impl<R> Tokenizer<R> for Identifier {
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
         let token_kind = match identifier_name.parse() {
-            Ok(Keyword::True) => {
+            Ok(keyword) => TokenKind::Keyword((keyword, contains_escaped_chars)),
+            Err(_) if identifier_name == "true" => {
                 TokenKind::BooleanLiteral((true, ContainsEscapeSequence(contains_escaped_chars)))
             }
-            Ok(Keyword::False) => {
+            Err(_) if identifier_name == "false" => {
                 TokenKind::BooleanLiteral((false, ContainsEscapeSequence(contains_escaped_chars)))
             }
-            Ok(Keyword::Null) => {
+            Err(_) if identifier_name == "null" => {
                 TokenKind::NullLiteral(ContainsEscapeSequence(contains_escaped_chars))
             }
-            Ok(keyword) => TokenKind::Keyword((keyword, contains_escaped_chars)),
-            _ => TokenKind::IdentifierName((
+            Err(_) => TokenKind::IdentifierName((
                 interner.get_or_intern(identifier_name.as_str()),
                 ContainsEscapeSequence(contains_escaped_chars),
             )),
