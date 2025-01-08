@@ -20,7 +20,6 @@ use crate::{
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-scripts
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Default)]
 pub struct Script {
     statements: StatementList,
@@ -124,6 +123,17 @@ impl ToIndentedString for Script {
 impl PartialEq for Script {
     fn eq(&self, other: &Self) -> bool {
         self.statements == other.statements
+    }
+}
+
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for Script {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let statements = StatementList::arbitrary(u)?;
+        Ok(Self {
+            statements,
+            source: None,
+        })
     }
 }
 

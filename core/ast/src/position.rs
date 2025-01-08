@@ -176,7 +176,6 @@ impl fmt::Display for Span {
 /// Note that linear spans are of the form [start, end) i.e. that the
 /// start position is inclusive and the end position is exclusive.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct LinearSpan {
     start: LinearPosition,
@@ -241,6 +240,13 @@ impl LinearSpan {
         }
     }
 }
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for LinearSpan {
+    fn arbitrary(_: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let zero_pos = LinearPosition::new(0);
+        Ok(Self::new(zero_pos, zero_pos))
+    }
+}
 
 impl From<LinearPosition> for LinearSpan {
     fn from(pos: LinearPosition) -> Self {
@@ -267,7 +273,6 @@ impl PartialOrd for LinearSpan {
 
 /// Stores a `LinearSpan` but `PartialEq`, `Eq` always return true.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy)]
 pub struct LinearSpanIgnoreEq(pub LinearSpan);
 impl PartialEq for LinearSpanIgnoreEq {
@@ -278,6 +283,12 @@ impl PartialEq for LinearSpanIgnoreEq {
 impl From<LinearSpan> for LinearSpanIgnoreEq {
     fn from(value: LinearSpan) -> Self {
         Self(value)
+    }
+}
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for LinearSpanIgnoreEq {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        Ok(Self(LinearSpan::arbitrary(u)?))
     }
 }
 

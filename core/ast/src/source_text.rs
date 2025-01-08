@@ -2,7 +2,6 @@ use crate::{LinearPosition, LinearSpan};
 
 /// Source text.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug)]
 pub struct SourceText {
     source_text: Vec<u16>,
