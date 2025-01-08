@@ -46,7 +46,7 @@ pub(crate) use self::uri::UriError;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-/// A `NativeError` object, per the [ECMAScript spec][spec].
+/// A built-in `Error` object, per the [ECMAScript spec][spec].
 ///
 /// This is used internally to convert between [`JsObject`] and
 /// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
@@ -61,7 +61,7 @@ use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
 #[non_exhaustive]
-pub enum ErrorObject {
+pub enum Error {
     /// The `AggregateError` object type.
     ///
     /// More information:
@@ -127,20 +127,20 @@ pub enum ErrorObject {
     Uri,
 }
 
-/// Built-in `Error` object.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Error;
-
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(js_string!("name"), Self::NAME, attribute)
             .property(js_string!("message"), js_string!(), attribute)
-            .method(Self::to_string, js_string!("toString"), 0)
-            .build();
+            .method(Self::to_string, js_string!("toString"), 0);
+
+        #[cfg(feature = "experimental")]
+        let builder = builder.static_method(Error::is_error, js_string!("isError"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -162,7 +162,7 @@ impl BuiltInConstructor for Error {
 
     /// `Error( message [ , options ] )`
     ///
-    /// Create a new error object.
+    /// Creates a new error object.
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
@@ -184,7 +184,7 @@ impl BuiltInConstructor for Error {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorObject::Error,
+            Error::Error,
         );
 
         // 3. If message is not undefined, then
@@ -279,5 +279,27 @@ impl Error {
         // 9. Return the string-concatenation of name, the code unit 0x003A (COLON),
         // the code unit 0x0020 (SPACE), and msg.
         Ok(js_string!(&name, js_str!(": "), &msg).into())
+    }
+
+    /// [`Error.isError`][spec].
+    ///
+    /// Returns a boolean indicating whether the argument is a built-in Error instance or not.
+    ///
+    /// [spec]: https://tc39.es/proposal-is-error/#sec-error.iserror
+    #[cfg(feature = "experimental")]
+    #[allow(clippy::unnecessary_wraps)]
+    fn is_error(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // 1. Return IsError(arg).
+
+        // https://tc39.es/proposal-is-error/#sec-iserror
+
+        // 1. If argument is not an Object, return false.
+        // 2. If argument has an [[ErrorData]] internal slot, return true.
+        // 3. Return false.
+        Ok(args
+            .get_or_undefined(0)
+            .as_object()
+            .is_some_and(|o| o.is::<Self>())
+            .into())
     }
 }

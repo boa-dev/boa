@@ -23,7 +23,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::{Error, ErrorObject};
+use super::Error;
 
 /// JavaScript `SyntaxError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -89,7 +89,7 @@ impl BuiltInConstructor for SyntaxError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorObject::Syntax,
+            Error::Syntax,
         );
 
         // 3. If message is not undefined, then
