@@ -40,12 +40,6 @@ impl<R> Cursor<R> {
         std::mem::replace(&mut self.source_collector, replace_with)
     }
 
-    // TODO:
-    // /// Gets the current linear position of the cursor in the source code.
-    // pub(super) fn source_text(&self) -> &SourceText {
-    //     &self.source_collector
-    // }
-
     /// Advances the position to the next column.
     fn next_column(&mut self) {
         let current_line = self.pos.line_number();
