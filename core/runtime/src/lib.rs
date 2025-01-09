@@ -111,6 +111,8 @@ pub fn register(
     #[cfg(feature = "url")]
     url::Url::register(ctx)?;
 
+    interval::register(ctx)?;
+
     Ok(())
 }
 
