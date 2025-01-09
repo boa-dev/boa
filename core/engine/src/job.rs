@@ -26,9 +26,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
-/// The [`Future`] job passed to the [`JobQueue::enqueue_future_job`] operation.
-pub type FutureJob = Pin<Box<dyn Future<Output = NativeJob> + 'static>>;
-
 /// An ECMAScript [Job] closure.
 ///
 /// The specification allows scheduling any [`NativeJob`] closure by the host into the job queue.
@@ -133,6 +130,95 @@ impl NativeJob {
     }
 }
 
+/// The [`Future`] job passed to the [`JobQueue::enqueue_future_job`] operation.
+pub type BoxedFuture<'a> = Pin<Box<dyn Future<Output = JsResult<JsValue>> + 'a>>;
+
+/// An ECMAScript [Job] that can be run asynchronously.
+///
+/// ## [`Trace`]?
+///
+/// `NativeJob` doesn't implement `Trace` because it doesn't need to; all jobs can only be run once
+/// and putting a [`JobQueue`] on a garbage collected object is not allowed.
+///
+/// Additionally, the garbage collector doesn't need to trace the captured variables because the closures
+/// are always stored on the [`JobQueue`], which is always rooted, which means the captured variables
+/// are also rooted.
+///
+/// [Job]: https://tc39.es/ecma262/#sec-jobs
+/// [`NativeFunction`]: crate::native_function::NativeFunction
+pub struct NativeAsyncJob {
+    f: Box<dyn for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a>>,
+    realm: Option<Realm>,
+}
+
+impl Debug for NativeAsyncJob {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NativeAsyncJob")
+            .field("f", &"Closure")
+            .finish()
+    }
+}
+
+impl NativeAsyncJob {
+    /// Creates a new `NativeAsyncJob` from a closure.
+    pub fn new<F>(f: F) -> Self
+    where
+        F: for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a> + 'static,
+    {
+        Self {
+            f: Box::new(f),
+            realm: None,
+        }
+    }
+
+    /// Creates a new `NativeJob` from a closure and an execution realm.
+    pub fn with_realm<F>(f: F, realm: Realm) -> Self
+    where
+        F: for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a> + 'static,
+    {
+        Self {
+            f: Box::new(f),
+            realm: Some(realm),
+        }
+    }
+
+    /// Gets a reference to the execution realm of the job.
+    #[must_use]
+    pub const fn realm(&self) -> Option<&Realm> {
+        self.realm.as_ref()
+    }
+
+    /// Calls the native job with the specified [`Context`].
+    ///
+    /// # Note
+    ///
+    /// If the native job has an execution realm defined, this sets the running execution
+    /// context to the realm's before calling the inner closure, and resets it after execution.
+    pub fn call<'a>(
+        self,
+        context: &'a RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<JsValue>> + use<'a> {
+        // If realm is not null, each time job is invoked the implementation must perform
+        // implementation-defined steps such that execution is prepared to evaluate ECMAScript
+        // code at the time of job's invocation.
+        if let Some(realm) = self.realm {
+            let old_realm = context.borrow_mut().enter_realm(realm);
+
+            // Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
+            // invoked. If realm is not null, each time job is invoked the implementation must
+            // perform implementation-defined steps such that scriptOrModule is the active script or
+            // module at the time of job's invocation.
+            let result = (self.f)(context);
+
+            context.borrow_mut().enter_realm(old_realm);
+
+            result
+        } else {
+            (self.f)(context)
+        }
+    }
+}
+
 /// [`JobCallback`][spec] records.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-jobcallback-records
@@ -209,7 +295,12 @@ pub trait JobQueue {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
     /// [Jobs]: https://tc39.es/ecma262/#sec-jobs
-    fn enqueue_promise_job(&self, job: NativeJob, context: &mut Context);
+    fn enqueue_job(&self, job: NativeJob, context: &mut Context);
+
+    /// Enqueues a new [`NativeAsyncJob`] job on the job queue.
+    ///
+    /// Calling `future` returns a Rust [`Future`] that can be sent to a runtime for concurrent computation.
+    fn enqueue_async_job(&self, future: NativeAsyncJob, context: &mut Context);
 
     /// Runs all jobs in the queue.
     ///
@@ -217,14 +308,6 @@ pub trait JobQueue {
     /// determines if the method should loop until there are no more queued jobs or if
     /// it should only run one iteration of the queue.
     fn run_jobs(&self, context: &mut Context);
-
-    /// Enqueues a new [`Future`] job on the job queue.
-    ///
-    /// On completion, `future` returns a new [`NativeJob`] that needs to be enqueued into the
-    /// job queue to update the state of the inner `Promise`, which is what ECMAScript sees. Failing
-    /// to do this will leave the inner `Promise` in the `pending` state, which won't call any `then`
-    /// or `catch` handlers, even if `future` was already completed.
-    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context);
 
     /// Asynchronously runs all jobs in the queue.
     ///
@@ -234,15 +317,15 @@ pub trait JobQueue {
     ///
     /// By default forwards to [`JobQueue::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
-    fn run_jobs_async<'a, 'ctx, 'fut>(
+    fn run_jobs_async<'a, 'b, 'fut>(
         &'a self,
-        context: &'ctx mut Context,
+        context: &'b RefCell<&mut Context>,
     ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
     where
         'a: 'fut,
-        'ctx: 'fut,
+        'b: 'fut,
     {
-        Box::pin(async { self.run_jobs(context) })
+        Box::pin(async { self.run_jobs(&mut context.borrow_mut()) })
     }
 }
 
@@ -267,11 +350,11 @@ pub trait JobQueue {
 pub struct IdleJobQueue;
 
 impl JobQueue for IdleJobQueue {
-    fn enqueue_promise_job(&self, _: NativeJob, _: &mut Context) {}
+    fn enqueue_job(&self, _: NativeJob, _: &mut Context) {}
+
+    fn enqueue_async_job(&self, _: NativeAsyncJob, _: &mut Context) {}
 
     fn run_jobs(&self, _: &mut Context) {}
-
-    fn enqueue_future_job(&self, _: FutureJob, _: &mut Context) {}
 }
 
 /// A simple FIFO job queue that bails on the first error.
@@ -281,7 +364,10 @@ impl JobQueue for IdleJobQueue {
 ///
 /// To disable running promise jobs on the engine, see [`IdleJobQueue`].
 #[derive(Default)]
-pub struct SimpleJobQueue(RefCell<VecDeque<NativeJob>>);
+pub struct SimpleJobQueue {
+    job_queue: RefCell<VecDeque<NativeJob>>,
+    async_job_queue: RefCell<VecDeque<NativeAsyncJob>>,
+}
 
 impl Debug for SimpleJobQueue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -298,25 +384,40 @@ impl SimpleJobQueue {
 }
 
 impl JobQueue for SimpleJobQueue {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context) {
-        self.0.borrow_mut().push_back(job);
+    fn enqueue_job(&self, job: NativeJob, _: &mut Context) {
+        self.job_queue.borrow_mut().push_back(job);
+    }
+
+    fn enqueue_async_job(&self, job: NativeAsyncJob, _: &mut Context) {
+        self.async_job_queue.borrow_mut().push_back(job);
     }
 
     fn run_jobs(&self, context: &mut Context) {
-        // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
-        // dropped after calling `pop_front`.
-        let mut next_job = self.0.borrow_mut().pop_front();
-        while let Some(job) = next_job {
-            if job.call(context).is_err() {
-                self.0.borrow_mut().clear();
-                return;
-            };
-            next_job = self.0.borrow_mut().pop_front();
-        }
-    }
+        let context = RefCell::new(context);
+        loop {
+            let mut next_job = self.async_job_queue.borrow_mut().pop_front();
+            while let Some(job) = next_job {
+                if pollster::block_on(job.call(&context)).is_err() {
+                    self.async_job_queue.borrow_mut().clear();
+                    return;
+                };
+                next_job = self.async_job_queue.borrow_mut().pop_front();
+            }
 
-    fn enqueue_future_job(&self, future: FutureJob, context: &mut Context) {
-        let job = pollster::block_on(future);
-        self.enqueue_promise_job(job, context);
+            // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
+            // dropped after calling `pop_front`.
+            let mut next_job = self.job_queue.borrow_mut().pop_front();
+            while let Some(job) = next_job {
+                if job.call(&mut context.borrow_mut()).is_err() {
+                    self.job_queue.borrow_mut().clear();
+                    return;
+                };
+                next_job = self.job_queue.borrow_mut().pop_front();
+            }
+
+            if self.async_job_queue.borrow().is_empty() && self.job_queue.borrow().is_empty() {
+                return;
+            }
+        }
     }
 }

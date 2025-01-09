@@ -1889,7 +1889,7 @@ impl Promise {
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 context
                     .job_queue()
-                    .enqueue_promise_job(fulfill_job, context);
+                    .enqueue_job(fulfill_job, context);
             }
 
             // 11. Else,
@@ -1909,7 +1909,7 @@ impl Promise {
                 let reject_job = new_promise_reaction_job(reject_reaction, reason.clone(), context);
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
-                context.job_queue().enqueue_promise_job(reject_job, context);
+                context.job_queue().enqueue_job(reject_job, context);
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
                 promise
@@ -1985,7 +1985,7 @@ impl Promise {
                 let job = new_promise_reaction_job(reaction, argument.clone(), context);
 
                 // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                context.job_queue().enqueue_promise_job(job, context);
+                context.job_queue().enqueue_job(job, context);
             }
             // 2. Return unused.
         }
@@ -2178,7 +2178,7 @@ impl Promise {
                     );
 
                     // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                    context.job_queue().enqueue_promise_job(job, context);
+                    context.job_queue().enqueue_job(job, context);
 
                     // 16. Return undefined.
                     Ok(JsValue::undefined())

@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::VecDeque, future::Future, pin::Pin, rc::Rc
 
 use boa_engine::{
     builtins::promise::PromiseState,
-    job::{FutureJob, JobQueue, NativeJob},
+    job::{BoxedFuture, JobQueue, NativeJob},
     js_string,
     module::ModuleLoader,
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
@@ -81,7 +81,7 @@ impl ModuleLoader for HttpModuleLoader {
         // `JobQueue`.
         context
             .job_queue()
-            .enqueue_future_job(Box::pin(fetch), context)
+            .enqueue_async_job(Box::pin(fetch), context)
     }
 }
 

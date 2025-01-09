@@ -13,7 +13,7 @@ mod helper;
 use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
-    job::{FutureJob, JobQueue, NativeJob},
+    job::{BoxedFuture, JobQueue, NativeJob},
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
@@ -456,7 +456,7 @@ fn add_runtime(context: &mut Context) {
 struct Jobs(RefCell<VecDeque<NativeJob>>);
 
 impl JobQueue for Jobs {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context) {
+    fn enqueue_job(&self, job: NativeJob, _: &mut Context) {
         self.0.borrow_mut().push_back(job);
     }
 
@@ -474,7 +474,7 @@ impl JobQueue for Jobs {
         }
     }
 
-    fn enqueue_future_job(&self, future: FutureJob, _: &mut Context) {
+    fn enqueue_async_job(&self, future: BoxedFuture, _: &mut Context) {
         let job = pollster::block_on(future);
         self.0.borrow_mut().push_back(job);
     }

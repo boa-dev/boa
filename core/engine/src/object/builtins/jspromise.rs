@@ -8,7 +8,7 @@ use crate::{
         promise::{PromiseState, ResolvingFunctions},
         Promise,
     },
-    job::NativeJob,
+    job::NativeAsyncJob,
     object::JsObject,
     value::TryFromJs,
     Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
@@ -292,21 +292,23 @@ impl JsPromise {
     {
         let (promise, resolvers) = Self::new_pending(context);
 
-        let future = async move {
-            let result = future.await;
+        context.job_queue().enqueue_async_job(
+            NativeAsyncJob::new(move |context| {
+                Box::pin(async move {
+                    let result = future.await;
 
-            NativeJob::new(move |context| match result {
-                Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
-                Err(e) => {
-                    let e = e.to_opaque(context);
-                    resolvers.reject.call(&JsValue::undefined(), &[e], context)
-                }
-            })
-        };
-
-        context
-            .job_queue()
-            .enqueue_future_job(Box::pin(future), context);
+                    let context = &mut context.borrow_mut();
+                    match result {
+                        Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
+                        Err(e) => {
+                            let e = e.to_opaque(context);
+                            resolvers.reject.call(&JsValue::undefined(), &[e], context)
+                        }
+                    }
+                })
+            }),
+            context,
+        );
 
         promise
     }

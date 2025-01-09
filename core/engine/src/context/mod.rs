@@ -1,5 +1,6 @@
 //! The ECMAScript context.
 
+use std::cell::RefCell;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -13,6 +14,7 @@ use intrinsics::Intrinsics;
 #[cfg(feature = "temporal")]
 use temporal_rs::tzdb::FsTzdbProvider;
 
+use crate::job::NativeAsyncJob;
 use crate::vm::RuntimeLimits;
 use crate::{
     builtins,
@@ -470,7 +472,13 @@ impl Context {
     /// Enqueues a [`NativeJob`] on the [`JobQueue`].
     #[inline]
     pub fn enqueue_job(&mut self, job: NativeJob) {
-        self.job_queue().enqueue_promise_job(job, self);
+        self.job_queue().enqueue_job(job, self);
+    }
+
+    /// Enqueues a [`NativeAsyncJob`] on the [`JobQueue`].
+    #[inline]
+    pub fn enqueue_async_job(&mut self, job: NativeAsyncJob) {
+        self.job_queue().enqueue_async_job(job, self);
     }
 
     /// Runs all the jobs in the job queue.
@@ -489,7 +497,7 @@ impl Context {
     /// provide a custom implementor of `JobQueue` to the context.
     #[allow(clippy::future_not_send)]
     pub async fn run_jobs_async(&mut self) {
-        self.job_queue().run_jobs_async(self).await;
+        self.job_queue().run_jobs_async(&RefCell::new(self)).await;
         self.clear_kept_objects();
     }
 
