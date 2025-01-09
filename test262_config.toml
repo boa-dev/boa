@@ -1,4 +1,4 @@
-commit = "dde3050bdbfb8f425084077b6293563932d57ebc"
+commit = "8296db887368bbffa3379f995a1e628ddbe8421f"
 
 [ignored]
 # Not implemented yet:
@@ -28,6 +28,12 @@ features = [
 
     # https://github.com/tc39/proposal-import-attributes
     "import-assertions",
+
+    # https://github.com/tc39/proposal-defer-import-eval
+    "import-defer",
+
+    # https://github.com/tc39/proposal-iterator-sequencing
+    "iterator-sequencing",
 
     # https://github.com/tc39/proposal-json-modules
     "json-modules",
@@ -69,4 +75,13 @@ features = [
     "caller",
 ]
 
-tests = []
+tests = [
+    # Should throw an OOM error instead of filling the whole RAM.
+    "test/staging/sm/String/replace-math.js",
+    # Panics
+    "test/staging/sm/expressions/optional-chain-first-expression.js",
+    "test/staging/sm/regress/regress-554955-2.js",
+    "test/staging/sm/class/fields-static-class-name-binding-eval.js",
+    "test/staging/sm/regress/regress-554955-1.js",
+    "test/staging/sm/regress/regress-554955-3.js"
+]

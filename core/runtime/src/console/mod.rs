@@ -20,7 +20,7 @@ use boa_engine::{
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsError, JsResult, JsStr, JsString, JsSymbol,
+    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -174,7 +174,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                             // If a JS value implements `toString()`, call it.
                             let mut written = false;
                             if let Some(obj) = arg.as_object() {
-                                if let Ok(to_string) = obj.get(js_str!("toString"), context) {
+                                if let Ok(to_string) = obj.get(js_string!("toString"), context) {
                                     if let Some(to_string_fn) = to_string.as_function() {
                                         let arg = to_string_fn
                                             .call(arg, &[], context)?
@@ -266,7 +266,7 @@ pub struct Console {
 
 impl Console {
     /// Name of the built-in `console` property.
-    pub const NAME: JsStr<'static> = js_str!("console");
+    pub const NAME: JsString = js_string!("console");
 
     /// Modify the context to include the `console` object.
     ///
@@ -862,7 +862,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Console::group(&JsValue::Undefined, args, console, logger, context)
+        Console::group(&JsValue::undefined(), args, console, logger, context)
     }
 
     /// `console.groupEnd(label)`

@@ -96,11 +96,11 @@ fn main() -> Result<(), JsError> {
             let value: usize = args.get_or_undefined(0).try_js_into(context)?;
 
             let mut host_defined = context.realm().host_defined_mut();
-            let Some((host_defined, metrics)) =
+            let (Some(host_defined), Some(metrics)) =
                 host_defined.get_many_mut::<(CustomHostDefinedStruct, HostDefinedMetrics), 2>()
             else {
                 return Err(JsNativeError::typ()
-                    .with_message("Realm does not have HostDefined field")
+                    .with_message("Realm does not have HostDefined fields")
                     .into());
             };
 

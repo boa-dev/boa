@@ -112,7 +112,11 @@ impl Boolean {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this)?;
-        Ok(JsValue::new(js_string!(boolean.to_string())))
+        Ok(JsValue::new(if boolean {
+            js_string!("true")
+        } else {
+            js_string!("false")
+        }))
     }
 
     /// The `valueOf()` method returns the primitive value of a `Boolean` object.

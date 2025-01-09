@@ -1,3 +1,5 @@
+//! Tests for the embedded module loader.
+
 #![allow(unused_crate_dependencies)]
 
 use std::rc::Rc;

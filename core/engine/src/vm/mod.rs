@@ -6,12 +6,11 @@
 
 use crate::{
     environments::EnvironmentStack, realm::Realm, script::Script, vm::code_block::Readable,
-    Context, JsError, JsNativeError, JsObject, JsResult, JsValue, Module,
+    Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
 };
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use boa_string::JsString;
 use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]

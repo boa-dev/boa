@@ -25,7 +25,6 @@ use crate::{
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult, JsString,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::float::FloatCore;
 
@@ -34,9 +33,9 @@ pub(crate) use globals::{IsFinite, IsNaN, ParseFloat, ParseInt};
 
 mod conversions;
 
-pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
-
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
+use crate::value::JsVariant;
+pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
 
 #[cfg(test)]
 mod tests;
@@ -225,13 +224,14 @@ impl Number {
         // 1. Let x be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this)?;
         let precision = match args.first() {
-            None | Some(JsValue::Undefined) => None,
+            None => None,
+            Some(x) if x.is_undefined() => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
             Some(n) => Some(n.to_integer_or_infinity(context)?),
         };
         // 4. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
-            return Ok(JsValue::new(Self::to_js_string(this_num)));
+            return Ok(JsValue::new(JsString::from(this_num)));
         }
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
@@ -309,8 +309,7 @@ impl Number {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this)?;
-        let this_str_num = this_num.to_string();
-        Ok(JsValue::new(js_string!(this_str_num)))
+        Ok(JsValue::new(js_string!(this_num)))
     }
 
     /// `flt_str_to_exp` - used in `to_precision`
@@ -645,12 +644,6 @@ impl Number {
         ))
     }
 
-    #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_js_string(x: f64) -> JsString {
-        let mut buffer = ryu_js::Buffer::new();
-        js_string!(buffer.format(x).to_string())
-    }
-
     /// `Number.prototype.toString( [radix] )`
     ///
     /// The `toString()` method returns a string representing the specified Number object.
@@ -689,17 +682,17 @@ impl Number {
 
         // 5. If radixNumber = 10, return ! ToString(x).
         if radix_number == 10 {
-            return Ok(JsValue::new(Self::to_js_string(x)));
+            return Ok(JsValue::new(JsString::from(x)));
         }
 
         if x == -0. {
-            return Ok(JsValue::new(js_str!("0")));
+            return Ok(JsValue::new(js_string!("0")));
         } else if x.is_nan() {
-            return Ok(JsValue::new(js_str!("NaN")));
+            return Ok(JsValue::new(js_string!("NaN")));
         } else if x.is_infinite() && x.is_sign_positive() {
-            return Ok(JsValue::new(js_str!("Infinity")));
+            return Ok(JsValue::new(js_string!("Infinity")));
         } else if x.is_infinite() && x.is_sign_negative() {
-            return Ok(JsValue::new(js_str!("-Infinity")));
+            return Ok(JsValue::new(js_string!("-Infinity")));
         }
 
         // This is a Optimization from the v8 source code to print values that can fit in a single character
@@ -751,11 +744,14 @@ impl Number {
         // 1. If number is not a Number, return false.
         // 2. If number is not finite, return false.
         // 3. Otherwise, return true.
-        Ok(JsValue::new(args.first().map_or(false, |val| match val {
-            JsValue::Integer(_) => true,
-            JsValue::Rational(number) => number.is_finite(),
-            _ => false,
-        })))
+        Ok(JsValue::new(args.first().map_or(
+            false,
+            |val| match val.variant() {
+                JsVariant::Integer32(_) => true,
+                JsVariant::Float64(number) => number.is_finite(),
+                _ => false,
+            },
+        )))
     }
 
     /// `Number.isInteger( number )`
@@ -798,7 +794,7 @@ impl Number {
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(
-            if let Some(&JsValue::Rational(number)) = args.first() {
+            if let Some(number) = args.first().and_then(JsValue::as_number) {
                 number.is_nan()
             } else {
                 false
@@ -826,9 +822,9 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(match args.first() {
-            Some(JsValue::Integer(_)) => true,
-            Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {
+        Ok(JsValue::new(match args.first().map(JsValue::variant) {
+            Some(JsVariant::Integer32(_)) => true,
+            Some(JsVariant::Float64(number)) if Self::is_float_integer(number) => {
                 number.abs() <= Self::MAX_SAFE_INTEGER
             }
             _ => false,
@@ -842,9 +838,9 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
     pub(crate) fn is_integer(val: &JsValue) -> bool {
-        match val {
-            JsValue::Integer(_) => true,
-            JsValue::Rational(number) => Self::is_float_integer(*number),
+        match val.variant() {
+            JsVariant::Integer32(_) => true,
+            JsVariant::Float64(number) => Self::is_float_integer(number),
             _ => false,
         }
     }

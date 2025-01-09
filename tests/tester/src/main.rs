@@ -82,10 +82,15 @@ struct Ignored {
 }
 
 impl Ignored {
-    /// Checks if the ignore list contains the given test name in the list of
+    /// Checks if the ignore list contains the given test in the list of
     /// tests to ignore.
-    pub(crate) fn contains_test(&self, test: &str) -> bool {
-        self.tests.contains(test)
+    pub(crate) fn contains_test(&self, test_path: &Path) -> bool {
+        let Some(test_path) = test_path.to_str() else {
+            return false;
+        };
+        self.tests
+            .iter()
+            .any(|ignored| test_path.contains(&**ignored))
     }
 
     /// Checks if the ignore list contains the given feature name in the list
@@ -192,12 +197,6 @@ const DEFAULT_TEST262_DIRECTORY: &str = "test262";
 /// Program entry point.
 fn main() -> Result<()> {
     color_eyre::install()?;
-
-    // Safety: This is needed because we run tests in multiple threads.
-    // It is safe because tests do not modify the environment.
-    unsafe {
-        time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound);
-    }
 
     // initializes the monotonic clock.
     START

@@ -2,7 +2,8 @@
 
 use std::{fmt, str::FromStr};
 
-use crate::{object::JsObject, string::JsStr, Context, JsNativeError, JsResult, JsString, JsValue};
+use crate::value::JsVariant;
+use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// A type used as an option parameter for [`get_option`].
 pub(crate) trait OptionType: Sized {
@@ -50,7 +51,7 @@ where
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 pub(crate) fn get_option<T: OptionType>(
     options: &JsObject,
-    property: JsStr<'_>,
+    property: JsString,
     context: &mut Context,
 ) -> JsResult<Option<T>> {
     // 1. Let value be ? Get(options, property).
@@ -74,14 +75,14 @@ pub(crate) fn get_option<T: OptionType>(
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getoptionsobject
 pub(crate) fn get_options_object(options: &JsValue) -> JsResult<JsObject> {
-    match options {
+    match options.variant() {
         // If options is undefined, then
-        JsValue::Undefined => {
+        JsVariant::Undefined => {
             // a. Return OrdinaryObjectCreate(null).
             Ok(JsObject::with_null_proto())
         }
         // 2. If Type(options) is Object, then
-        JsValue::Object(obj) => {
+        JsVariant::Object(obj) => {
             // a. Return options.
             Ok(obj.clone())
         }

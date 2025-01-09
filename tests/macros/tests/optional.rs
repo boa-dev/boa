@@ -1,3 +1,5 @@
+//! Tests for optional values in `TryFromJs` derive.
+
 #![allow(unused_crate_dependencies)]
 
 use boa_engine::value::TryFromJs;

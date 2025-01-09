@@ -20,10 +20,9 @@ use crate::{
     string::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
-use super::{Error, ErrorObject};
+use super::Error;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct AggregateError;
@@ -36,8 +35,8 @@ impl IntrinsicObject for AggregateError {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
-            .property(js_str!("name"), Self::NAME, attribute)
-            .property(js_str!("message"), js_string!(), attribute)
+            .property(js_string!("name"), Self::NAME, attribute)
+            .property(js_string!("message"), js_string!(), attribute)
             .build();
     }
 
@@ -92,7 +91,7 @@ impl BuiltInConstructor for AggregateError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorObject::Aggregate,
+            Error::Aggregate,
         );
 
         // 3. If message is not undefined, then
@@ -102,7 +101,7 @@ impl BuiltInConstructor for AggregateError {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw(js_str!("message"), msg, context);
+            o.create_non_enumerable_data_property_or_throw(js_string!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
@@ -122,7 +121,7 @@ impl BuiltInConstructor for AggregateError {
         //      [[Value]]: CreateArrayFromList(errorsList)
         //    }).
         o.define_property_or_throw(
-            js_str!("errors"),
+            js_string!("errors"),
             PropertyDescriptorBuilder::new()
                 .configurable(true)
                 .enumerable(false)

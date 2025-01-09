@@ -2,7 +2,7 @@
 
 use crate::{js_string, string::JsStr};
 
-use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
+use super::{InnerValue, JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 
 mod either;
 mod serde_json;
@@ -15,7 +15,7 @@ impl From<JsStr<'_>> for JsValue {
     fn from(value: JsStr<'_>) -> Self {
         let _timer = Profiler::global().start_event("From<JsStr<'_>>", "value");
 
-        Self::String(value.into())
+        Self::from_inner(InnerValue::String(value.into()))
     }
 }
 
@@ -23,7 +23,7 @@ impl From<JsString> for JsValue {
     fn from(value: JsString) -> Self {
         let _timer = Profiler::global().start_event("From<JsString>", "value");
 
-        Self::String(value)
+        Self::from_inner(InnerValue::String(value))
     }
 }
 
@@ -45,7 +45,7 @@ impl From<JsSymbol> for JsValue {
     fn from(value: JsSymbol) -> Self {
         let _timer = Profiler::global().start_event("From<JsSymbol>", "value");
 
-        Self::Symbol(value)
+        Self::from_inner(InnerValue::Symbol(value))
     }
 }
 
@@ -54,7 +54,7 @@ impl From<f32> for JsValue {
     fn from(value: f32) -> Self {
         let _timer = Profiler::global().start_event("From<f32>", "value");
 
-        Self::Rational(value.into())
+        JsValue::from(f64::from(value))
     }
 }
 
@@ -63,97 +63,38 @@ impl From<f64> for JsValue {
     fn from(value: f64) -> Self {
         let _timer = Profiler::global().start_event("From<f64>", "value");
 
-        Self::Rational(value)
+        Self::from_inner(InnerValue::Float64(value))
     }
 }
 
-impl From<u8> for JsValue {
-    #[inline]
-    fn from(value: u8) -> Self {
-        let _timer = Profiler::global().start_event("From<u8>", "value");
+macro_rules! impl_from_integer {
+    ( $( $type_:ty ),* ) => {
+        $(
+            impl From<$type_> for JsValue {
+                #[inline]
+                #[allow(clippy::cast_lossless)]
+                fn from(value: $type_) -> Self {
+                    let _timer = Profiler::global().start_event(concat!("From<", stringify!($type_), ">"), "value");
 
-        Self::Integer(value.into())
-    }
+                    i32::try_from(value)
+                        .map_or_else(
+                            |_| Self::from(value as f64),
+                            |value| Self::from_inner(InnerValue::Integer32(value)),
+                        )
+                }
+            }
+        )*
+    };
 }
 
-impl From<i8> for JsValue {
-    #[inline]
-    fn from(value: i8) -> Self {
-        let _timer = Profiler::global().start_event("From<i8>", "value");
-
-        Self::Integer(value.into())
-    }
-}
-
-impl From<u16> for JsValue {
-    #[inline]
-    fn from(value: u16) -> Self {
-        let _timer = Profiler::global().start_event("From<u16>", "value");
-
-        Self::Integer(value.into())
-    }
-}
-
-impl From<i16> for JsValue {
-    #[inline]
-    fn from(value: i16) -> Self {
-        let _timer = Profiler::global().start_event("From<i16>", "value");
-
-        Self::Integer(value.into())
-    }
-}
-
-impl From<u32> for JsValue {
-    #[inline]
-    fn from(value: u32) -> Self {
-        let _timer = Profiler::global().start_event("From<u32>", "value");
-
-        i32::try_from(value).map_or_else(|_| Self::Rational(value.into()), Self::Integer)
-    }
-}
-
-impl From<i32> for JsValue {
-    #[inline]
-    fn from(value: i32) -> Self {
-        let _timer = Profiler::global().start_event("From<i32>", "value");
-
-        Self::Integer(value)
-    }
-}
+impl_from_integer!(u8, i8, u16, i16, u32, i32, u64, i64, usize, isize);
 
 impl From<JsBigInt> for JsValue {
     #[inline]
     fn from(value: JsBigInt) -> Self {
         let _timer = Profiler::global().start_event("From<JsBigInt>", "value");
 
-        Self::BigInt(value)
-    }
-}
-
-impl From<usize> for JsValue {
-    #[inline]
-    fn from(value: usize) -> Self {
-        let _timer = Profiler::global().start_event("From<usize>", "value");
-
-        i32::try_from(value).map_or(Self::Rational(value as f64), Self::Integer)
-    }
-}
-
-impl From<u64> for JsValue {
-    #[inline]
-    fn from(value: u64) -> Self {
-        let _timer = Profiler::global().start_event("From<u64>", "value");
-
-        i32::try_from(value).map_or(Self::Rational(value as f64), Self::Integer)
-    }
-}
-
-impl From<i64> for JsValue {
-    #[inline]
-    fn from(value: i64) -> Self {
-        let _timer = Profiler::global().start_event("From<i64>", "value");
-
-        i32::try_from(value).map_or(Self::Rational(value as f64), Self::Integer)
+        Self::from_inner(InnerValue::BigInt(value))
     }
 }
 
@@ -162,7 +103,7 @@ impl From<bool> for JsValue {
     fn from(value: bool) -> Self {
         let _timer = Profiler::global().start_event("From<bool>", "value");
 
-        Self::Boolean(value)
+        Self::from_inner(InnerValue::Boolean(value))
     }
 }
 
@@ -171,7 +112,7 @@ impl From<JsObject> for JsValue {
     fn from(object: JsObject) -> Self {
         let _timer = Profiler::global().start_event("From<JsObject>", "value");
 
-        Self::Object(object)
+        Self::from_inner(InnerValue::Object(object))
     }
 }
 
@@ -200,6 +141,9 @@ where
 {
     #[inline]
     fn into_or_undefined(self) -> JsValue {
-        self.map_or_else(JsValue::undefined, Into::into)
+        match self {
+            Some(value) => value.into(),
+            None => JsValue::undefined(),
+        }
     }
 }

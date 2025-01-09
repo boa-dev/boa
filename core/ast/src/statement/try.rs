@@ -2,7 +2,6 @@
 
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::Scope;
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     declaration::Binding,
@@ -112,12 +111,12 @@ impl VisitWith for Try {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_block(&self.block));
+        visitor.visit_block(&self.block)?;
         if let Some(catch) = &self.catch() {
-            try_break!(visitor.visit_catch(catch));
+            visitor.visit_catch(catch)?;
         }
         if let Some(finally) = &self.finally() {
-            try_break!(visitor.visit_finally(finally));
+            visitor.visit_finally(finally)?;
         }
         ControlFlow::Continue(())
     }
@@ -126,13 +125,13 @@ impl VisitWith for Try {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_block_mut(&mut self.block));
+        visitor.visit_block_mut(&mut self.block)?;
         match &mut self.handler {
-            ErrorHandler::Catch(c) => try_break!(visitor.visit_catch_mut(c)),
-            ErrorHandler::Finally(f) => try_break!(visitor.visit_finally_mut(f)),
+            ErrorHandler::Catch(c) => visitor.visit_catch_mut(c)?,
+            ErrorHandler::Finally(f) => visitor.visit_finally_mut(f)?,
             ErrorHandler::Full(c, f) => {
-                try_break!(visitor.visit_catch_mut(c));
-                try_break!(visitor.visit_finally_mut(f));
+                visitor.visit_catch_mut(c)?;
+                visitor.visit_finally_mut(f)?;
             }
         }
         ControlFlow::Continue(())
@@ -212,7 +211,7 @@ impl VisitWith for Catch {
         V: Visitor<'a>,
     {
         if let Some(binding) = &self.parameter {
-            try_break!(visitor.visit_binding(binding));
+            visitor.visit_binding(binding)?;
         }
         visitor.visit_block(&self.block)
     }
@@ -222,7 +221,7 @@ impl VisitWith for Catch {
         V: VisitorMut<'a>,
     {
         if let Some(binding) = &mut self.parameter {
-            try_break!(visitor.visit_binding_mut(binding));
+            visitor.visit_binding_mut(binding)?;
         }
         visitor.visit_block_mut(&mut self.block)
     }

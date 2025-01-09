@@ -5,15 +5,7 @@ impl ByteCompiler<'_> {
     /// Compile a [`Switch`] `boa_ast` node
     pub(crate) fn compile_switch(&mut self, switch: &Switch, use_expr: bool) {
         self.compile_expr(switch.val(), true);
-
-        let outer_scope = if let Some(scope) = switch.scope() {
-            let outer_scope = self.lexical_scope.clone();
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-            Some(outer_scope)
-        } else {
-            None
-        };
+        let outer_scope = self.push_declarative_scope(switch.scope());
 
         self.block_declaration_instantiation(switch);
 
@@ -55,11 +47,6 @@ impl ByteCompiler<'_> {
         }
 
         self.pop_switch_control_info();
-
-        if let Some(outer_scope) = outer_scope {
-            self.pop_scope();
-            self.lexical_scope = outer_scope;
-            self.emit_opcode(Opcode::PopEnvironment);
-        }
+        self.pop_declarative_scope(outer_scope);
     }
 }

@@ -402,13 +402,11 @@ pub fn derive_try_from_js(input: TokenStream) -> TokenStream {
         impl ::boa_engine::value::TryFromJs for #type_name {
             fn try_from_js(value: &boa_engine::JsValue, context: &mut boa_engine::Context)
                 -> boa_engine::JsResult<Self> {
-                match value {
-                    boa_engine::JsValue::Object(o) => {#conv},
-                    _ => Err(boa_engine::JsError::from(
-                        boa_engine::JsNativeError::typ()
-                            .with_message("cannot convert value to a #type_name")
-                    )),
-                }
+                let o = value.as_object().ok_or_else(|| ::boa_engine::JsError::from(
+                    ::boa_engine::JsNativeError::typ()
+                        .with_message("value is not an object")
+                ))?;
+                #conv
             }
         }
     };
@@ -598,7 +596,7 @@ fn generate_obj_properties(fields: FieldsNamed) -> Result<proc_macro2::TokenStre
             quote! { boa_engine::value::TryIntoJs::try_into_js(&self.#name, context)? }
         };
         prop_ctors.push(quote! {
-            obj.create_data_property_or_throw(boa_engine::js_str!(#prop_key), #value, context)?;
+            obj.create_data_property_or_throw(boa_engine::js_string!(#prop_key), #value, context)?;
         });
     }
 

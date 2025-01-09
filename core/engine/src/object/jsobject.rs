@@ -21,7 +21,6 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace};
-use boa_macros::js_str;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -331,9 +330,9 @@ impl JsObject {
         // 4. Else,
         //    a. Let methodNames be « "valueOf", "toString" ».
         let method_names = if hint == PreferredType::String {
-            [js_str!("toString"), js_str!("valueOf")]
+            [js_string!("toString"), js_string!("valueOf")]
         } else {
-            [js_str!("valueOf"), js_str!("toString")]
+            [js_string!("valueOf"), js_string!("toString")]
         };
 
         // 5. For each name in methodNames in List order, do
@@ -373,7 +372,7 @@ impl JsObject {
 
         // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
         // 4. If hasEnumerable is true, then ...
-        if let Some(enumerable) = self.try_get(js_str!("enumerable"), context)? {
+        if let Some(enumerable) = self.try_get(js_string!("enumerable"), context)? {
             // a. Let enumerable be ! ToBoolean(? Get(Obj, "enumerable")).
             // b. Set desc.[[Enumerable]] to enumerable.
             desc = desc.enumerable(enumerable.to_boolean());
@@ -381,7 +380,7 @@ impl JsObject {
 
         // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
         // 6. If hasConfigurable is true, then ...
-        if let Some(configurable) = self.try_get(js_str!("configurable"), context)? {
+        if let Some(configurable) = self.try_get(js_string!("configurable"), context)? {
             // a. Let configurable be ! ToBoolean(? Get(Obj, "configurable")).
             // b. Set desc.[[Configurable]] to configurable.
             desc = desc.configurable(configurable.to_boolean());
@@ -389,7 +388,7 @@ impl JsObject {
 
         // 7. Let hasValue be ? HasProperty(Obj, "value").
         // 8. If hasValue is true, then ...
-        if let Some(value) = self.try_get(js_str!("value"), context)? {
+        if let Some(value) = self.try_get(js_string!("value"), context)? {
             // a. Let value be ? Get(Obj, "value").
             // b. Set desc.[[Value]] to value.
             desc = desc.value(value);
@@ -397,7 +396,7 @@ impl JsObject {
 
         // 9. Let hasWritable be ? HasProperty(Obj, ).
         // 10. If hasWritable is true, then ...
-        if let Some(writable) = self.try_get(js_str!("writable"), context)? {
+        if let Some(writable) = self.try_get(js_string!("writable"), context)? {
             // a. Let writable be ! ToBoolean(? Get(Obj, "writable")).
             // b. Set desc.[[Writable]] to writable.
             desc = desc.writable(writable.to_boolean());
@@ -406,7 +405,7 @@ impl JsObject {
         // 11. Let hasGet be ? HasProperty(Obj, "get").
         // 12. If hasGet is true, then
         // 12.a. Let getter be ? Get(Obj, "get").
-        let get = if let Some(getter) = self.try_get(js_str!("get"), context)? {
+        let get = if let Some(getter) = self.try_get(js_string!("get"), context)? {
             // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             if !getter.is_undefined() && getter.as_object().map_or(true, |o| !o.is_callable()) {
@@ -423,7 +422,7 @@ impl JsObject {
         // 13. Let hasSet be ? HasProperty(Obj, "set").
         // 14. If hasSet is true, then
         // 14.a. Let setter be ? Get(Obj, "set").
-        let set = if let Some(setter) = self.try_get(js_str!("set"), context)? {
+        let set = if let Some(setter) = self.try_get(js_string!("set"), context)? {
             // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
             if !setter.is_undefined() && setter.as_object().map_or(true, |o| !o.is_callable()) {

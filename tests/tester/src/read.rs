@@ -1,6 +1,7 @@
 //! Module to read the list of test suites from disk.
 
 use std::{
+    collections::HashMap,
     ffi::OsStr,
     fs,
     path::{Path, PathBuf},
@@ -10,7 +11,7 @@ use color_eyre::{
     eyre::{OptionExt, WrapErr},
     Result,
 };
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxBuildHasher, FxHashMap};
 use serde::Deserialize;
 
 use crate::{HarnessFile, Ignored};
@@ -56,6 +57,7 @@ pub(super) enum ErrorType {
     ReferenceError,
     RangeError,
     TypeError,
+    EvalError,
 }
 
 impl ErrorType {
@@ -66,6 +68,7 @@ impl ErrorType {
             Self::ReferenceError => "ReferenceError",
             Self::RangeError => "RangeError",
             Self::TypeError => "TypeError",
+            Self::EvalError => "EvalError",
         }
     }
 }
@@ -90,42 +93,61 @@ pub(super) enum TestFlag {
 
 /// Reads the Test262 defined bindings.
 pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
-    fn read_harness_file(path: PathBuf) -> Result<HarnessFile> {
-        let content = fs::read_to_string(path.as_path())
-            .wrap_err_with(|| format!("error reading the harness file `{}`", path.display()))?;
+    let mut includes: HashMap<Box<str>, HarnessFile, FxBuildHasher> = FxHashMap::default();
 
-        Ok(HarnessFile {
-            content: content.into_boxed_str(),
-            path: path.into_boxed_path(),
-        })
-    }
-    let mut includes = FxHashMap::default();
+    let harness_path = &test262_path.join("harness");
 
-    for entry in fs::read_dir(test262_path.join("harness"))
-        .wrap_err("error reading the harness directory")?
-    {
-        let entry = entry?;
-        let file_name = entry.file_name();
-        let file_name = file_name.to_string_lossy();
+    read_harness_dir(harness_path, harness_path, &mut includes)?;
 
-        if file_name == "assert.js" || file_name == "sta.js" || file_name == "doneprintHandle.js" {
-            continue;
-        }
-
-        includes.insert(
-            file_name.into_owned().into_boxed_str(),
-            read_harness_file(entry.path())?,
-        );
-    }
-    let assert = read_harness_file(test262_path.join("harness/assert.js"))?;
-    let sta = read_harness_file(test262_path.join("harness/sta.js"))?;
-    let doneprint_handle = read_harness_file(test262_path.join("harness/doneprintHandle.js"))?;
+    let assert = includes
+        .remove("assert.js")
+        .ok_or_eyre("failed to load harness file `assert.js`")?;
+    let sta = includes
+        .remove("sta.js")
+        .ok_or_eyre("failed to load harness file `sta.js`")?;
+    let doneprint_handle = includes
+        .remove("doneprintHandle.js")
+        .ok_or_eyre("failed to load harness file `donePrintHandle.js`")?;
 
     Ok(Harness {
         assert,
         sta,
         doneprint_handle,
         includes,
+    })
+}
+
+fn read_harness_dir(
+    harness_root: &Path,
+    directory_name: &Path,
+    includes: &mut HashMap<Box<str>, HarnessFile, FxBuildHasher>,
+) -> Result<()> {
+    for entry in fs::read_dir(directory_name).wrap_err("error reading the harness directory")? {
+        let entry = entry?;
+        let entry_path = entry.path();
+
+        if entry.file_type()?.is_dir() {
+            read_harness_dir(harness_root, &entry_path, includes)?;
+            continue;
+        }
+
+        let key = entry_path
+            .strip_prefix(harness_root)
+            .wrap_err("invalid harness file path")?;
+
+        includes.insert(key.to_string_lossy().into(), read_harness_file(entry_path)?);
+    }
+
+    Ok(())
+}
+
+fn read_harness_file(path: PathBuf) -> Result<HarnessFile> {
+    let content = fs::read_to_string(path.as_path())
+        .wrap_err_with(|| format!("error reading the harness file `{}`", path.display()))?;
+
+    Ok(HarnessFile {
+        content: content.into_boxed_str(),
+        path: path.into_boxed_path(),
     })
 }
 
@@ -140,7 +162,7 @@ pub(super) fn read_suite(
         .and_then(OsStr::to_str)
         .ok_or_eyre("invalid path for test suite")?;
 
-    ignore_suite |= ignored.contains_test(name);
+    ignore_suite |= ignored.contains_test(path);
 
     let mut suites = Vec::new();
     let mut tests = Vec::new();
@@ -184,7 +206,7 @@ pub(super) fn read_suite(
 
         if ignore_suite
             || ignored.contains_any_flag(test.flags)
-            || ignored.contains_test(&test.name)
+            || ignored.contains_test(&test.path)
             || test
                 .features
                 .iter()

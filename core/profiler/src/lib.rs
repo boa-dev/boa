@@ -93,6 +93,7 @@ impl Profiler {
 
     /// Return the global instance of the profiler.
     #[must_use]
+    #[allow(static_mut_refs)]
     pub fn global() -> &'static Self {
         unsafe { INSTANCE.get_or_init(Self::default) }
     }
@@ -102,6 +103,7 @@ impl Profiler {
     /// # Panics
     ///
     /// Calling `drop` will panic if `INSTANCE` cannot be taken back.
+    #[allow(static_mut_refs)]
     pub fn drop(&self) {
         // In order to drop the INSTANCE we need to get ownership of it, which isn't possible on a static unless you make it a mutable static
         // mutating statics is unsafe, so we need to wrap it as so.

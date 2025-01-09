@@ -3,7 +3,6 @@ use std::ops::ControlFlow;
 use super::{FormalParameterList, FunctionBody};
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::FunctionScopes;
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::{Expression, Identifier},
@@ -86,6 +85,13 @@ impl AsyncArrowFunction {
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
     }
+
+    /// Returns `true` if the function declaration contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for AsyncArrowFunction {
@@ -116,9 +122,9 @@ impl VisitWith for AsyncArrowFunction {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -127,9 +133,9 @@ impl VisitWith for AsyncArrowFunction {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

@@ -22,7 +22,6 @@ use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
@@ -105,7 +104,7 @@ impl BuiltInConstructor for WeakMap {
         // 5. Let adder be ? Get(map, "set").
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = map
-            .get(js_str!("set"), context)?
+            .get(js_string!("set"), context)?
             .as_function()
             .ok_or_else(|| JsNativeError::typ().with_message("WeakMap: 'add' is not a function"))?;
 

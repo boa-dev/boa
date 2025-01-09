@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue};
+use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue, JsVariant};
 
 #[derive(TryFromJs)]
 struct TestStruct {
@@ -12,9 +12,9 @@ struct TestStruct {
 fn main() {}
 
 fn lossy_float(value: &JsValue, _context: &mut Context) -> JsResult<i16> {
-    match value {
-        JsValue::Rational(r) => Ok(r.round() as i16),
-        JsValue::Integer(i) => Ok(*i as i16),
+    match value.variant() {
+        JsVariant::Float64(r) => Ok(r.round() as i16),
+        JsVariant::Integer32(i) => Ok(i as i16),
         _ => Err(JsNativeError::typ()
             .with_message("cannot convert value to an i16")
             .into()),

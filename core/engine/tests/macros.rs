@@ -1,4 +1,7 @@
+//! Tests for the macros in this crate.
+
 #![allow(unused_crate_dependencies)]
+
 use boa_engine::value::TryFromJs;
 use boa_engine::{js_string, Context, JsResult, JsValue, Source};
 use boa_string::JsString;

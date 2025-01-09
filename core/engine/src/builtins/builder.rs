@@ -1,5 +1,3 @@
-use boa_macros::js_str;
-
 use crate::{
     js_string,
     native_function::{NativeFunctionObject, NativeFunctionPointer},
@@ -119,7 +117,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
                 .configurable(true),
         );
         object.insert(
-            js_str!("name"),
+            js_string!("name"),
             PropertyDescriptor::builder()
                 .value(self.name)
                 .writable(false)
@@ -368,8 +366,8 @@ impl BuiltInConstructorWithPrototype<'_> {
         let length = self.length;
         let name = self.name.clone();
         let prototype = self.prototype.clone();
-        self = self.static_property(js_str!("length"), length, Attribute::CONFIGURABLE);
-        self = self.static_property(js_str!("name"), name, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
         self = self.static_property(PROTOTYPE, prototype, Attribute::empty());
 
         let attributes = self.attributes;
@@ -416,8 +414,8 @@ impl BuiltInConstructorWithPrototype<'_> {
     pub(crate) fn build_without_prototype(mut self) {
         let length = self.length;
         let name = self.name.clone();
-        self = self.static_property(js_str!("length"), length, Attribute::CONFIGURABLE);
-        self = self.static_property(js_str!("name"), name, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
 
         let mut object = self.object.borrow_mut();
         let function = object

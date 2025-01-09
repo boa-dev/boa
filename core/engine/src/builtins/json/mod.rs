@@ -16,7 +16,7 @@
 use std::{borrow::Cow, iter::once};
 
 use boa_ast::scope::Scope;
-use boa_macros::{js_str, utf16};
+use boa_macros::utf16;
 use itertools::Itertools;
 
 use crate::{
@@ -154,7 +154,7 @@ impl Json {
 
             // b. Let rootName be the empty String.
             // c. Perform ! CreateDataPropertyOrThrow(root, rootName, unfiltered).
-            root.create_data_property_or_throw(js_str!(""), unfiltered, context)
+            root.create_data_property_or_throw(js_string!(), unfiltered, context)
                 .expect("CreateDataPropertyOrThrow should never throw here");
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
@@ -193,12 +193,8 @@ impl Json {
                 for i in 0..len {
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
-                    let new_element = Self::internalize_json_property(
-                        obj,
-                        i.to_string().into(),
-                        reviver,
-                        context,
-                    )?;
+                    let new_element =
+                        Self::internalize_json_property(obj, i.into(), reviver, context)?;
 
                     // 3. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -386,7 +382,7 @@ impl Json {
 
         // 10. Perform ! CreateDataPropertyOrThrow(wrapper, the empty String, value).
         wrapper
-            .create_data_property_or_throw(js_str!(""), args.get_or_undefined(0).clone(), context)
+            .create_data_property_or_throw(js_string!(), args.get_or_undefined(0).clone(), context)
             .expect("CreateDataPropertyOrThrow should never fail here");
 
         // 11. Let state be the Record { [[ReplacerFunction]]: ReplacerFunction, [[Stack]]: stack, [[Indent]]: indent, [[Gap]]: gap, [[PropertyList]]: PropertyList }.
@@ -424,7 +420,7 @@ impl Json {
         // 2. If Type(value) is Object or BigInt, then
         if value.is_object() || value.is_bigint() {
             // a. Let toJSON be ? GetV(value, "toJSON").
-            let to_json = value.get_v(js_str!("toJSON"), context)?;
+            let to_json = value.get_v(js_string!("toJSON"), context)?;
 
             // b. If IsCallable(toJSON) is true, then
             if let Some(obj) = to_json.as_object() {
@@ -750,8 +746,7 @@ impl Json {
         // 8. Repeat, while index < len,
         while index < len {
             // a. Let strP be ? SerializeJSONProperty(state, ! ToString(𝔽(index)), value).
-            let str_p =
-                Self::serialize_json_property(state, index.to_string().into(), value, context)?;
+            let str_p = Self::serialize_json_property(state, index.into(), value, context)?;
 
             // b. If strP is undefined, then
             if let Some(str_p) = str_p {

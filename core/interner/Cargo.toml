@@ -24,7 +24,7 @@ once_cell = { workspace = true, features = ["std"]}
 indexmap.workspace = true
 serde = { workspace = true, features = ["derive"], optional = true }
 arbitrary = { workspace = true, features = ["derive"], optional = true }
-hashbrown = { workspace = true, default-features = false, features = ["inline-more"] }
+hashbrown.workspace = true
 
 [lints]
 workspace = true

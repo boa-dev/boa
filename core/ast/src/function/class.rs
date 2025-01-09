@@ -6,7 +6,6 @@ use crate::{
     operations::{contains, ContainsSymbol},
     property::{MethodDefinitionKind, PropertyName},
     scope::{FunctionScopes, Scope},
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Declaration,
 };
@@ -125,15 +124,15 @@ impl VisitWith for ClassDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
+        visitor.visit_identifier(&self.name)?;
         if let Some(expr) = &self.super_ref {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         if let Some(func) = &self.constructor {
-            try_break!(visitor.visit_function_expression(func));
+            visitor.visit_function_expression(func)?;
         }
         for elem in &*self.elements {
-            try_break!(visitor.visit_class_element(elem));
+            visitor.visit_class_element(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -142,15 +141,15 @@ impl VisitWith for ClassDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
+        visitor.visit_identifier_mut(&mut self.name)?;
         if let Some(expr) = &mut self.super_ref {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         if let Some(func) = &mut self.constructor {
-            try_break!(visitor.visit_function_expression_mut(func));
+            visitor.visit_function_expression_mut(func)?;
         }
         for elem in &mut *self.elements {
-            try_break!(visitor.visit_class_element_mut(elem));
+            visitor.visit_class_element_mut(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -291,16 +290,16 @@ impl VisitWith for ClassExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
         if let Some(expr) = &self.super_ref {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         if let Some(func) = &self.constructor {
-            try_break!(visitor.visit_function_expression(func));
+            visitor.visit_function_expression(func)?;
         }
         for elem in &*self.elements {
-            try_break!(visitor.visit_class_element(elem));
+            visitor.visit_class_element(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -310,16 +309,16 @@ impl VisitWith for ClassExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
         if let Some(expr) = &mut self.super_ref {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         if let Some(func) = &mut self.constructor {
-            try_break!(visitor.visit_function_expression_mut(func));
+            visitor.visit_function_expression_mut(func)?;
         }
         for elem in &mut *self.elements {
-            try_break!(visitor.visit_class_element_mut(elem));
+            visitor.visit_class_element_mut(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -583,17 +582,17 @@ impl VisitWith for ClassElement {
             Self::MethodDefinition(m) => {
                 match &m.name {
                     ClassElementName::PropertyName(pn) => {
-                        try_break!(visitor.visit_property_name(pn));
+                        visitor.visit_property_name(pn)?;
                     }
                     ClassElementName::PrivateName(pn) => {
-                        try_break!(visitor.visit_private_name(pn));
+                        visitor.visit_private_name(pn)?;
                     }
                 }
-                try_break!(visitor.visit_formal_parameter_list(&m.parameters));
+                visitor.visit_formal_parameter_list(&m.parameters)?;
                 visitor.visit_function_body(&m.body)
             }
             Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
-                try_break!(visitor.visit_property_name(&field.name));
+                visitor.visit_property_name(&field.name)?;
                 if let Some(expr) = &field.field {
                     visitor.visit_expression(expr)
                 } else {
@@ -602,7 +601,7 @@ impl VisitWith for ClassElement {
             }
             Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
             | Self::PrivateStaticFieldDefinition(name, field) => {
-                try_break!(visitor.visit_private_name(name));
+                visitor.visit_private_name(name)?;
                 if let Some(expr) = field {
                     visitor.visit_expression(expr)
                 } else {
@@ -621,17 +620,17 @@ impl VisitWith for ClassElement {
             Self::MethodDefinition(m) => {
                 match m.name {
                     ClassElementName::PropertyName(ref mut pn) => {
-                        try_break!(visitor.visit_property_name_mut(pn));
+                        visitor.visit_property_name_mut(pn)?;
                     }
                     ClassElementName::PrivateName(ref mut pn) => {
-                        try_break!(visitor.visit_private_name_mut(pn));
+                        visitor.visit_private_name_mut(pn)?;
                     }
                 }
-                try_break!(visitor.visit_formal_parameter_list_mut(&mut m.parameters));
+                visitor.visit_formal_parameter_list_mut(&mut m.parameters)?;
                 visitor.visit_function_body_mut(&mut m.body)
             }
             Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
-                try_break!(visitor.visit_property_name_mut(&mut field.name));
+                visitor.visit_property_name_mut(&mut field.name)?;
                 if let Some(expr) = &mut field.field {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -640,7 +639,7 @@ impl VisitWith for ClassElement {
             }
             Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
             | Self::PrivateStaticFieldDefinition(name, field) => {
-                try_break!(visitor.visit_private_name_mut(name));
+                visitor.visit_private_name_mut(name)?;
                 if let Some(expr) = field {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -747,6 +746,13 @@ impl ClassMethodDefinition {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Returns `true` if the class method definition contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
     }
 }
 

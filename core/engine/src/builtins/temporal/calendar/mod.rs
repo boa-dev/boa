@@ -3,8 +3,8 @@
 use std::str::FromStr;
 
 use super::extract_from_temporal_type;
-use crate::{js_str, Context, JsNativeError, JsObject, JsResult, JsValue};
-use temporal_rs::components::calendar::Calendar;
+use crate::{js_string, Context, JsNativeError, JsObject, JsResult, JsValue};
+use temporal_rs::Calendar;
 
 // -- `Calendar` Abstract Operations --
 
@@ -22,17 +22,13 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
         |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
         |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
         |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
-        |zdt| {
-            Err(JsNativeError::range()
-                .with_message("Not yet implemented.")
-                .into())
-        },
+        |zdt| Ok(Some(zdt.borrow().data().inner.calendar().clone())),
     )? {
         return Ok(calendar);
     }
 
     // 2. Let calendarLike be ? Get(item, "calendar").
-    let calendar_like = item.get(js_str!("calendar"), context)?;
+    let calendar_like = item.get(js_string!("calendar"), context)?;
 
     // 3. Return ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
     to_temporal_calendar_slot_value(&calendar_like)
@@ -62,7 +58,7 @@ pub(crate) fn to_temporal_calendar_slot_value(calendar_like: &JsValue) -> JsResu
     }
 
     // 3. If temporalCalendarLike is not a String, throw a TypeError exception.
-    let JsValue::String(calendar_id) = calendar_like else {
+    let Some(calendar_id) = calendar_like.as_string() else {
         return Err(JsNativeError::typ()
             .with_message("temporalCalendarLike is not a string.")
             .into());

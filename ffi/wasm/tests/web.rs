@@ -1,3 +1,5 @@
+//! Tests for the wasm module.
+
 #![expect(
     unused_crate_dependencies,
     reason = "https://github.com/rust-lang/rust/issues/95513"
@@ -6,6 +8,7 @@
     any(target_arch = "wasm32", target_arch = "wasm64"),
     target_os = "unknown"
 ))]
+#![allow(missing_docs)]
 
 use wasm_bindgen_test::*;
 

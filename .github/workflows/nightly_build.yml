@@ -1,4 +1,6 @@
 name: Nightly Build
+permissions:
+  "contents": "write"
 
 # Schedule this workflow to run at midnight every day
 on:
@@ -8,38 +10,26 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Check out the repository
       uses: actions/checkout@v4
-    - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
-      with:
-          toolchain: stable
-
-    - name: Install Dependencies
-      run: |
-        cargo fetch
-
-    - name: Build Project
-      run: |
-        cargo build --release
-
-    - name: Set File Name
-      id: vars
-      run: |
-        DATE=$(date +'%Y%m%d')
-        COMMIT_HASH=$(git rev-parse --short HEAD)
-        echo "FILE_NAME=boa-nightly-linux-${DATE}-${COMMIT_HASH}" >> $GITHUB_ENV
-
-    - name: Rename Binary
-      run: mv target/release/boa target/release/$FILE_NAME
-
     - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
+      uses: taiki-e/upload-rust-binary-action@v1
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/release/$FILE_NAME
-        asset_name: ${{ env.FILE_NAME }}
-        tag: nightly
-        overwrite: true
+        bin: boa
+        # We may be able to provide a custom archive name, but
+        # currently just going with the example default.
+        target: ${{ matrix.target }}
+        archive: $bin-$tag-$target
+        ref: refs/tags/nightly
+        token: ${{ secrets.GITHUB_TOKEN }}

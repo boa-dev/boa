@@ -511,12 +511,12 @@ impl BuiltInFunctionObject {
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
             if generator && contains(&parameters, ContainsSymbol::YieldExpression) {
                 return Err(JsNativeError::syntax().with_message(
-                        if r#async {
-                            "yield expression is not allowed in formal parameter list of async generator"
-                        } else {
-                            "yield expression is not allowed in formal parameter list of generator"
-                        }
-                    ).into());
+                    if r#async {
+                        "yield expression is not allowed in formal parameter list of async generator"
+                    } else {
+                        "yield expression is not allowed in formal parameter list of generator"
+                    }
+                ).into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
@@ -657,6 +657,7 @@ impl BuiltInFunctionObject {
                 context.realm().scope().clone(),
                 context.realm().scope().clone(),
                 function.scopes(),
+                function.contains_direct_eval(),
                 context.interner_mut(),
             );
 
@@ -776,7 +777,7 @@ impl BuiltInFunctionObject {
         .expect("defining the `length` property for a new object should not fail");
 
         // 8. Let targetName be ? Get(Target, "name").
-        let target_name = target.get(js_str!("name"), context)?;
+        let target_name = target.get(js_string!("name"), context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
         let target_name = target_name
@@ -849,7 +850,7 @@ impl BuiltInFunctionObject {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
-                let value = object.get(js_str!("name"), &mut *context)?;
+                let value = object.get(js_string!("name"), &mut *context)?;
                 if value.is_null_or_undefined() {
                     js_string!()
                 } else {
@@ -943,7 +944,7 @@ pub(crate) fn set_function_name(
     // [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: true }).
     function
         .define_property_or_throw(
-            js_str!("name"),
+            js_string!("name"),
             PropertyDescriptor::builder()
                 .value(name)
                 .writable(false)
@@ -1028,10 +1029,12 @@ pub(crate) fn function_call(
         last_env += 1;
     }
 
-    context.vm.environments.push_function(
-        code.constant_scope(last_env),
-        FunctionSlots::new(this, function_object.clone(), None),
-    );
+    if code.has_function_scope() {
+        context.vm.environments.push_function(
+            code.constant_scope(last_env),
+            FunctionSlots::new(this, function_object.clone(), None),
+        );
+    }
 
     Ok(CallValue::Ready)
 }

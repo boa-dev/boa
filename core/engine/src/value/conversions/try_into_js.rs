@@ -1,5 +1,4 @@
-use crate::{Context, JsNativeError, JsResult, JsValue};
-use boa_string::JsString;
+use crate::{Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// This trait adds a conversions from a Rust Type into [`JsValue`].
 pub trait TryIntoJs: Sized {
@@ -9,18 +8,18 @@ pub trait TryIntoJs: Sized {
 
 impl TryIntoJs for bool {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::Boolean(*self))
+        Ok(JsValue::from(*self))
     }
 }
 
 impl TryIntoJs for &str {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::String(JsString::from(*self)))
+        Ok(JsValue::from(JsString::from(*self)))
     }
 }
 impl TryIntoJs for String {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::String(JsString::from(self.as_str())))
+        Ok(JsValue::from(JsString::from(self.as_str())))
     }
 }
 
@@ -73,7 +72,7 @@ fn err_outside_safe_range() -> crate::JsError {
         .into()
 }
 fn convert_safe_i64(value: i64) -> JsValue {
-    i32::try_from(value).map_or(JsValue::Rational(value as f64), JsValue::Integer)
+    i32::try_from(value).map_or(JsValue::from(value as f64), JsValue::new)
 }
 
 impl TryIntoJs for i64 {
@@ -125,7 +124,7 @@ where
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
         match self {
             Some(x) => x.try_into_js(context),
-            None => Ok(JsValue::Undefined),
+            None => Ok(JsValue::undefined()),
         }
     }
 }
@@ -171,7 +170,7 @@ impl_try_into_js_for_tuples!(a: A, b: B, c: C, d: D, e: E, f: F, g: G, h: H, i: 
 
 impl TryIntoJs for () {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::Null)
+        Ok(JsValue::null())
     }
 }
 

@@ -561,7 +561,7 @@ impl AsyncGenerator {
                 generator.clone(),
             ),
         )
-        .name(js_string!(""))
+        .name(js_string!())
         .length(1)
         .build();
 
@@ -592,7 +592,7 @@ impl AsyncGenerator {
                 generator.clone(),
             ),
         )
-        .name(js_string!(""))
+        .name(js_string!())
         .length(1)
         .build();
 

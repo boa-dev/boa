@@ -1,13 +1,13 @@
 use std::cell::Cell;
 
 use boa_gc::Gc;
-use boa_macros::js_str;
 
 use crate::{
     builtins::{
         async_generator::AsyncGenerator, generator::GeneratorContext, promise::PromiseCapability,
         Promise,
     },
+    js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
@@ -85,7 +85,7 @@ impl Operation for Await {
                 captures.clone(),
             ),
         )
-        .name(js_str!(""))
+        .name(js_string!())
         .length(1)
         .build();
 
@@ -124,7 +124,7 @@ impl Operation for Await {
                 captures,
             ),
         )
-        .name(js_str!(""))
+        .name(js_string!())
         .length(1)
         .build();
 

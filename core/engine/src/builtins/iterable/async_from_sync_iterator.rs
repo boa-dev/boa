@@ -12,7 +12,6 @@ use crate::{
     Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 /// `%AsyncFromSyncIteratorPrototype%` object.
@@ -80,7 +79,7 @@ impl AsyncFromSyncIterator {
 
         // 3. Let nextMethod be ! Get(asyncIterator, "next").
         let next_method = async_iterator
-            .get(js_str!("next"), context)
+            .get(js_string!("next"), context)
             .expect("async from sync iterator prototype must have next method");
 
         // 4. Let iteratorRecord be the Iterator Record { [[Iterator]]: asyncIterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
@@ -158,7 +157,7 @@ impl AsyncFromSyncIterator {
         .expect("cannot fail with promise constructor");
 
         // 6. Let return be Completion(GetMethod(syncIterator, "return")).
-        let r#return = sync_iterator.get_method(js_str!("return"), context);
+        let r#return = sync_iterator.get_method(js_string!("return"), context);
 
         // 7. IfAbruptRejectPromise(return, promiseCapability).
         let r#return = if_abrupt_reject_promise!(r#return, promise_capability, context);
@@ -173,7 +172,7 @@ impl AsyncFromSyncIterator {
                 // b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iterResult »).
                 promise_capability
                     .resolve()
-                    .call(&JsValue::Undefined, &[iter_result], context)
+                    .call(&JsValue::undefined(), &[iter_result], context)
                     .expect("cannot fail according to spec");
 
                 // c. Return promiseCapability.[[Promise]].
@@ -235,7 +234,7 @@ impl AsyncFromSyncIterator {
         .expect("cannot fail with promise constructor");
 
         // 6. Let throw be Completion(GetMethod(syncIterator, "throw")).
-        let throw = sync_iterator.get_method(js_str!("throw"), context);
+        let throw = sync_iterator.get_method(js_string!("throw"), context);
 
         // 7. IfAbruptRejectPromise(throw, promiseCapability).
         let throw = if_abrupt_reject_promise!(throw, promise_capability, context);
@@ -360,7 +359,7 @@ impl AsyncFromSyncIterator {
                 ))
             }),
         )
-        .name(js_str!(""))
+        .name(js_string!())
         .length(1)
         .build();
 
@@ -393,7 +392,7 @@ impl AsyncFromSyncIterator {
                         sync_iterator_record,
                     ),
                 )
-                .name(js_str!(""))
+                .name(js_string!())
                 .length(1)
                 .build(),
             )

@@ -1,5 +1,4 @@
 use boa_gc::{custom_trace, Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use icu_collator::{
     provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, MaxVariable, Numeric,
@@ -243,28 +242,29 @@ impl BuiltInConstructor for Collator {
         //     a. Let localeData be %Collator%.[[SortLocaleData]].
         // 6. Else,
         //     a. Let localeData be %Collator%.[[SearchLocaleData]].
-        let usage = get_option(&options, js_str!("usage"), context)?.unwrap_or_default();
+        let usage = get_option(&options, js_string!("usage"), context)?.unwrap_or_default();
 
         // 7. Let opt be a new Record.
         // 8. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 9. Set opt.[[localeMatcher]] to matcher.
-        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher =
+            get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
         // 10. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 11. If collation is not undefined, then
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
         // 12. Set opt.[[co]] to collation.
-        let collation = get_option(&options, js_str!("collation"), context)?;
+        let collation = get_option(&options, js_string!("collation"), context)?;
 
         // 13. Let numeric be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 14. If numeric is not undefined, then
         //     a. Let numeric be ! ToString(numeric).
         // 15. Set opt.[[kn]] to numeric.
-        let numeric = get_option(&options, js_str!("numeric"), context)?;
+        let numeric = get_option(&options, js_string!("numeric"), context)?;
 
         // 16. Let caseFirst be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 17. Set opt.[[kf]] to caseFirst.
-        let case_first = get_option(&options, js_str!("caseFirst"), context)?;
+        let case_first = get_option(&options, js_string!("caseFirst"), context)?;
 
         let mut intl_options = IntlOptions {
             matcher,
@@ -316,7 +316,7 @@ impl BuiltInConstructor for Collator {
 
         // 26. Let sensitivity be ? GetOption(options, "sensitivity", string, « "base", "accent", "case", "variant" », undefined).
         // 28. Set collator.[[Sensitivity]] to sensitivity.
-        let sensitivity = get_option(&options, js_str!("sensitivity"), context)?
+        let sensitivity = get_option(&options, js_string!("sensitivity"), context)?
             // 27. If sensitivity is undefined, then
             //     a. If usage is "sort", then
             //         i. Let sensitivity be "variant".
@@ -329,7 +329,7 @@ impl BuiltInConstructor for Collator {
         // 29. Let ignorePunctuation be ? GetOption(options, "ignorePunctuation", boolean, empty, false).
         // 30. Set collator.[[IgnorePunctuation]] to ignorePunctuation.
         let ignore_punctuation: bool =
-            get_option(&options, js_str!("ignorePunctuation"), context)?.unwrap_or_default();
+            get_option(&options, js_string!("ignorePunctuation"), context)?.unwrap_or_default();
 
         let (strength, case_level) = sensitivity.map(Sensitivity::to_collator_options).unzip();
 
@@ -523,58 +523,58 @@ impl Collator {
         // 5. Return options.
         options
             .create_data_property_or_throw(
-                js_str!("locale"),
+                js_string!("locale"),
                 js_string!(collator.locale.to_string()),
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_str!("usage"),
+                js_string!("usage"),
                 match collator.usage {
-                    Usage::Search => js_str!("search"),
-                    Usage::Sort => js_str!("sort"),
+                    Usage::Search => js_string!("search"),
+                    Usage::Sort => js_string!("sort"),
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_str!("sensitivity"),
+                js_string!("sensitivity"),
                 match collator.sensitivity {
-                    Sensitivity::Base => js_str!("base"),
-                    Sensitivity::Accent => js_str!("accent"),
-                    Sensitivity::Case => js_str!("case"),
-                    Sensitivity::Variant => js_str!("variant"),
+                    Sensitivity::Base => js_string!("base"),
+                    Sensitivity::Accent => js_string!("accent"),
+                    Sensitivity::Case => js_string!("case"),
+                    Sensitivity::Variant => js_string!("variant"),
                 },
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_str!("ignorePunctuation"),
+                js_string!("ignorePunctuation"),
                 collator.ignore_punctuation,
                 context,
             )
             .expect("operation must not fail per the spec");
         options
             .create_data_property_or_throw(
-                js_str!("collation"),
+                js_string!("collation"),
                 js_string!(collator.collation.to_string()),
                 context,
             )
             .expect("operation must not fail per the spec");
         options
-            .create_data_property_or_throw(js_str!("numeric"), collator.numeric, context)
+            .create_data_property_or_throw(js_string!("numeric"), collator.numeric, context)
             .expect("operation must not fail per the spec");
         if let Some(kf) = collator.case_first {
             options
                 .create_data_property_or_throw(
-                    js_str!("caseFirst"),
+                    js_string!("caseFirst"),
                     match kf {
-                        CaseFirst::Off => js_str!("false"),
-                        CaseFirst::LowerFirst => js_str!("lower"),
-                        CaseFirst::UpperFirst => js_str!("upper"),
+                        CaseFirst::Off => js_string!("false"),
+                        CaseFirst::LowerFirst => js_string!("lower"),
+                        CaseFirst::UpperFirst => js_string!("upper"),
                         _ => unreachable!(),
                     },
                     context,

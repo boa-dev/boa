@@ -3,12 +3,13 @@ use std::{
     sync::atomic::Ordering,
 };
 
-use boa_macros::{js_str, utf16};
+use boa_macros::utf16;
 use num_traits::Zero;
 
 use super::{
     object::typed_array_set_element, ContentType, TypedArray, TypedArrayKind, TypedArrayMarker,
 };
+use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 use crate::{
     builtins::{
         array::{find_via_predicate, ArrayIterator, Direction},
@@ -204,20 +205,18 @@ impl BuiltinTypedArray {
             }
         };
 
-        let mapping = match args.get(1) {
+        let mapping = match args.get(1).map(JsValue::variant) {
             // 3. If mapfn is undefined, let mapping be false.
-            None | Some(JsValue::Undefined) => None,
+            None | Some(JsVariant::Undefined) => None,
             // 4. Else,
-            Some(v) => match v.as_object() {
-                // b. Let mapping be true.
-                Some(obj) if obj.is_callable() => Some(obj),
-                // a. If IsCallable(mapfn) is false, throw a TypeError exception.
-                _ => {
-                    return Err(JsNativeError::typ()
-                        .with_message("TypedArray.from called with non-callable mapfn")
-                        .into())
-                }
-            },
+            // b. Let mapping be true.
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
+            // a. If IsCallable(mapfn) is false, throw a TypeError exception.
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("TypedArray.from called with non-callable mapfn")
+                    .into());
+            }
         };
 
         // 5. Let usingIterator be ? GetMethod(source, @@iterator).
@@ -2049,8 +2048,8 @@ impl BuiltinTypedArray {
 
         // a. Set taRecord to MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // b. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
-        let src_buf_borrow = src_borrow.data.viewed_array_buffer().as_buffer();
-        let Some(src_buf) = src_buf_borrow
+        let mut src_buf_borrow = src_borrow.data.viewed_array_buffer().as_buffer_mut();
+        let Some(mut src_buf) = src_buf_borrow
             .bytes(Ordering::SeqCst)
             .filter(|s| !src_borrow.data.is_out_of_bounds(s.len()))
         else {
@@ -2068,61 +2067,7 @@ impl BuiltinTypedArray {
         // f. Let targetType be TypedArrayElementType(A).
         let target_type = target_borrow.data.kind();
 
-        // g. If srcType is targetType, then
-        if src_type == target_type {
-            {
-                let byte_count = count * src_type.element_size() as usize;
-
-                // i. NOTE: The transfer must be performed in a manner that preserves the bit-level encoding of the source data.
-                // ii. Let srcBuffer be O.[[ViewedArrayBuffer]].
-                // iii. Let targetBuffer be A.[[ViewedArrayBuffer]].
-                let target_borrow = target_borrow;
-                let mut target_buf = target_borrow.data.viewed_array_buffer().as_buffer_mut();
-                let mut target_buf = target_buf
-                    .bytes_with_len(byte_count)
-                    .expect("newly created array cannot be detached");
-
-                // iv. Let elementSize be TypedArrayElementSize(O).
-                let element_size = src_type.element_size();
-
-                // v. Let srcByteOffset be O.[[ByteOffset]].
-                let src_byte_offset = src_borrow.data.byte_offset();
-
-                // vi. Let srcByteIndex be (startIndex × elementSize) + srcByteOffset.
-                let src_byte_index = (start_index * element_size + src_byte_offset) as usize;
-
-                // vii. Let targetByteIndex be A.[[ByteOffset]].
-                let target_byte_index = target_borrow.data.byte_offset() as usize;
-
-                // viii. Let endByteIndex be targetByteIndex + (countBytes × elementSize).
-                // Not needed by the impl.
-
-                // ix. Repeat, while targetByteIndex < endByteIndex,
-                //     1. Let value be GetValueFromBuffer(srcBuffer, srcByteIndex, uint8, true, unordered).
-                //     2. Perform SetValueInBuffer(targetBuffer, targetByteIndex, uint8, value, true, unordered).
-                //     3. Set srcByteIndex to srcByteIndex + 1.
-                //     4. Set targetByteIndex to targetByteIndex + 1.
-
-                let src = src_buf.subslice(src_byte_index..);
-                let mut target = target_buf.subslice_mut(target_byte_index..);
-
-                #[cfg(debug_assertions)]
-                {
-                    assert!(src.len() >= byte_count);
-                    assert!(target.len() >= byte_count);
-                }
-
-                // SAFETY: All previous checks put the indices at least within the bounds of `src_buffer`.
-                // Also, `target_buffer` is precisely allocated to fit all sliced elements from
-                // `src_buffer`, making this operation safe.
-                unsafe {
-                    memcpy(src.as_ptr(), target.as_ptr(), byte_count);
-                }
-            }
-
-            // 15. Return A.
-            Ok(target.upcast().into())
-        } else {
+        if src_type != target_type {
             // h. Else,
             drop(src_buf_borrow);
             drop((src_borrow, target_borrow));
@@ -2147,8 +2092,84 @@ impl BuiltinTypedArray {
             }
 
             // 15. Return A.
-            Ok(target.into())
+            return Ok(target.into());
         }
+
+        // g. If srcType is targetType, then
+        {
+            let byte_count = count * src_type.element_size() as usize;
+
+            // i. NOTE: The transfer must be performed in a manner that preserves the bit-level encoding of the source data.
+            // ii. Let srcBuffer be O.[[ViewedArrayBuffer]].
+            // iii. Let targetBuffer be A.[[ViewedArrayBuffer]].
+
+            // iv. Let elementSize be TypedArrayElementSize(O).
+            let element_size = src_type.element_size();
+
+            // v. Let srcByteOffset be O.[[ByteOffset]].
+            let src_byte_offset = src_borrow.data.byte_offset();
+
+            // vi. Let srcByteIndex be (startIndex × elementSize) + srcByteOffset.
+            let src_byte_index = (start_index * element_size + src_byte_offset) as usize;
+
+            // vii. Let targetByteIndex be A.[[ByteOffset]].
+            let target_byte_index = target_borrow.data.byte_offset() as usize;
+
+            // viii. Let endByteIndex be targetByteIndex + (countBytes × elementSize).
+            // Not needed by the impl.
+
+            // ix. Repeat, while targetByteIndex < endByteIndex,
+            //     1. Let value be GetValueFromBuffer(srcBuffer, srcByteIndex, uint8, true, unordered).
+            //     2. Perform SetValueInBuffer(targetBuffer, targetByteIndex, uint8, value, true, unordered).
+            //     3. Set srcByteIndex to srcByteIndex + 1.
+            //     4. Set targetByteIndex to targetByteIndex + 1.
+            if BufferObject::equals(
+                src_borrow.data.viewed_array_buffer(),
+                target_borrow.data.viewed_array_buffer(),
+            ) {
+                // cannot borrow the target mutably (overlapping bytes), but we can move the data instead.
+
+                #[cfg(debug_assertions)]
+                {
+                    assert!(src_buf.subslice_mut(src_byte_index..).len() >= byte_count);
+                    assert!(src_buf.subslice_mut(target_byte_index..).len() >= byte_count);
+                }
+
+                // SAFETY: All previous checks put the copied bytes at least within the bounds of `src_buf`.
+                unsafe {
+                    memmove_naive(
+                        src_buf.as_ptr(),
+                        src_byte_index,
+                        target_byte_index,
+                        byte_count,
+                    );
+                }
+            } else {
+                let mut target_buf = target_borrow.data.viewed_array_buffer().as_buffer_mut();
+                let mut target_buf = target_buf
+                    .bytes(Ordering::SeqCst)
+                    .expect("newly created array cannot be detached");
+                let src = src_buf.subslice(src_byte_index..);
+                let mut target = target_buf.subslice_mut(target_byte_index..);
+
+                #[cfg(debug_assertions)]
+                {
+                    assert!(src.len() >= byte_count);
+                    assert!(target.len() >= byte_count);
+                }
+
+                // SAFETY: All previous checks put the indices at least within the bounds of `src_buffer`.
+                // Also, `target_buffer` is precisely allocated to fit all sliced elements from
+                // `src_buffer`, making this operation safe.
+                unsafe {
+                    memcpy(src.as_ptr(), target.as_ptr(), byte_count);
+                }
+            }
+        }
+
+        drop(target_borrow);
+        // 15. Return A.
+        Ok(target.upcast().into())
     }
 
     /// `%TypedArray%.prototype.some ( callbackfn [ , thisArg ] )`
@@ -2219,9 +2240,9 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.first() {
-            None | Some(JsValue::Undefined) => None,
-            Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
+        let compare_fn = match args.first().map(JsValue::variant) {
+            None | Some(JsVariant::Undefined) => None,
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
@@ -2271,9 +2292,9 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.first() {
-            None | Some(JsValue::Undefined) => None,
-            Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
+        let compare_fn = match args.first().map(JsValue::variant) {
+            None | Some(JsVariant::Undefined) => None,
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
@@ -2484,7 +2505,7 @@ impl BuiltinTypedArray {
             if is_fixed_len || !next_element.is_undefined() {
                 let s = next_element
                     .invoke(
-                        js_str!("toLocaleString"),
+                        js_string!("toLocaleString"),
                         &[
                             args.get_or_undefined(0).clone(),
                             args.get_or_undefined(1).clone(),
@@ -2616,7 +2637,7 @@ impl BuiltinTypedArray {
                 obj.downcast_ref::<TypedArray>()
                     .map(|o| o.kind().js_name().into())
             })
-            .unwrap_or(JsValue::Undefined))
+            .unwrap_or(JsValue::undefined()))
     }
 
     /// `TypedArraySpeciesCreate ( exemplar, argumentList )`
@@ -2665,7 +2686,7 @@ impl BuiltinTypedArray {
 
         // 2. Let taRecord be ? ValidateTypedArray(newTypedArray, seq-cst).
         let (new_ta, buf_len) =
-            TypedArray::validate(&JsValue::Object(new_typed_array), Ordering::SeqCst)?;
+            TypedArray::validate(&JsValue::new(new_typed_array), Ordering::SeqCst)?;
 
         // 3. If the number of elements in argumentList is 1 and argumentList[0] is a Number, then
         if args.len() == 1 {
@@ -3138,22 +3159,22 @@ fn compare_typed_array_elements(
         return Ok(cmp::Ordering::Less);
     }
 
-    match (x, y) {
-        (JsValue::BigInt(x), JsValue::BigInt(y)) => {
+    match (x.variant(), y.variant()) {
+        (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
             // Note: Other steps are not relevant for BigInts.
             // 6. If x < y, return -1𝔽.
             // 7. If x > y, return 1𝔽.
             // 10. Return +0𝔽.
             Ok(x.cmp(y))
         }
-        (JsValue::Integer(x), JsValue::Integer(y)) => {
+        (JsVariant::Integer32(x), JsVariant::Integer32(y)) => {
             // Note: Other steps are not relevant for integers.
             // 6. If x < y, return -1𝔽.
             // 7. If x > y, return 1𝔽.
             // 10. Return +0𝔽.
-            Ok(x.cmp(y))
+            Ok(x.cmp(&y))
         }
-        (JsValue::Rational(x), JsValue::Rational(y)) => {
+        (JsVariant::Float64(x), JsVariant::Float64(y)) => {
             // 3. If x and y are both NaN, return +0𝔽.
             if x.is_nan() && y.is_nan() {
                 return Ok(cmp::Ordering::Equal);

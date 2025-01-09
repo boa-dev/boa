@@ -5,6 +5,7 @@
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
+use crate::value::JsVariant;
 use crate::{
     builtins::{function::ConstructorKind, OrdinaryObject},
     context::intrinsics::StandardConstructors,
@@ -418,8 +419,8 @@ fn native_function_construct(
     let result = function
         .call(&new_target, &args, context)
         .map_err(|err| err.inject_realm(context.realm().clone()))
-        .and_then(|v| match v {
-            JsValue::Object(ref o) => Ok(o.clone()),
+        .and_then(|v| match v.variant() {
+            JsVariant::Object(o) => Ok(o.clone()),
             val => {
                 if constructor.expect("must be a constructor").is_base() || val.is_undefined() {
                     let prototype = get_prototype_from_constructor(

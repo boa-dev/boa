@@ -1,7 +1,6 @@
 //! Async Generator Expression
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::{FunctionScopes, Scope};
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     block_to_string,
@@ -77,6 +76,13 @@ impl AsyncGeneratorDeclaration {
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
     }
+
+    /// Returns `true` if the async generator declaration contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for AsyncGeneratorDeclaration {
@@ -95,8 +101,8 @@ impl VisitWith for AsyncGeneratorDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_identifier(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -104,8 +110,8 @@ impl VisitWith for AsyncGeneratorDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_identifier_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }
@@ -206,6 +212,13 @@ impl AsyncGeneratorExpression {
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
     }
+
+    /// Returns `true` if the async generator expression contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for AsyncGeneratorExpression {
@@ -239,9 +252,9 @@ impl VisitWith for AsyncGeneratorExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -250,9 +263,9 @@ impl VisitWith for AsyncGeneratorExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

@@ -66,6 +66,9 @@ bitflags! {
         /// Arrow and method functions don't have `"prototype"` property.
         const HAS_PROTOTYPE_PROPERTY = 0b1000_0000;
 
+        /// If the function requires a function scope.
+        const HAS_FUNCTION_SCOPE = 0b1_0000_0000;
+
         /// Trace instruction execution to `stdout`.
         #[cfg(feature = "trace")]
         const TRACEABLE = 0b1000_0000_0000_0000;
@@ -271,6 +274,13 @@ impl CodeBlock {
             .contains(CodeBlockFlags::HAS_PROTOTYPE_PROPERTY)
     }
 
+    /// Returns true if this function requires a function scope.
+    pub(crate) fn has_function_scope(&self) -> bool {
+        self.flags
+            .get()
+            .contains(CodeBlockFlags::HAS_FUNCTION_SCOPE)
+    }
+
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
     #[inline]
     pub(crate) fn find_handler(&self, pc: u32) -> Option<(usize, &Handler)> {
@@ -462,6 +472,7 @@ impl CodeBlock {
             | Instruction::DefInitVar { index }
             | Instruction::PutLexicalValue { index }
             | Instruction::GetName { index }
+            | Instruction::GetNameGlobal { index, .. }
             | Instruction::GetLocator { index }
             | Instruction::GetNameAndLocator { index }
             | Instruction::GetNameOrUndefined { index }
@@ -727,8 +738,7 @@ impl CodeBlock {
             | Instruction::Reserved45
             | Instruction::Reserved46
             | Instruction::Reserved47
-            | Instruction::Reserved48
-            | Instruction::Reserved49 => unreachable!("Reserved opcodes are unrechable"),
+            | Instruction::Reserved48 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

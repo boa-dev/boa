@@ -30,7 +30,6 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
@@ -146,7 +145,7 @@ impl BuiltInConstructor for Set {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = set.get(js_str!("add"), context)?;
+        let adder = set.get(js_string!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder.as_callable().ok_or_else(|| {
@@ -227,8 +226,6 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
     pub(crate) fn add(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Integer(0);
-
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(mut set) = this
@@ -246,7 +243,7 @@ impl Set {
         // 4. If value is -0𝔽, set value to +0𝔽.
         let value = args.get_or_undefined(0);
         let value = match value.as_number() {
-            Some(n) if n.is_zero() => JS_ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => value,
         };
 
@@ -294,8 +291,6 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/delete
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Integer(0);
-
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(mut set) = this
@@ -309,7 +304,7 @@ impl Set {
 
         let value = args.get_or_undefined(0);
         let value = match value.as_number() {
-            Some(n) if n.is_zero() => JS_ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => value,
         };
 
@@ -427,7 +422,7 @@ impl Set {
         drop(lock);
 
         // 8. Return undefined.
-        Ok(JsValue::Undefined)
+        Ok(JsValue::undefined())
     }
 
     /// `Map.prototype.has( key )`
@@ -441,8 +436,6 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Integer(0);
-
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(set) = this
@@ -456,7 +449,7 @@ impl Set {
 
         let value = args.get_or_undefined(0);
         let value = match value.as_number() {
-            Some(n) if n.is_zero() => JS_ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => value,
         };
 

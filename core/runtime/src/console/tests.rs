@@ -99,7 +99,7 @@ fn console_log_cyclic() {
     let mut context = Context::default();
     let console = Console::init_with_logger(&mut context, NullLogger);
     context
-        .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+        .register_global_property(Console::NAME, console, Attribute::all())
         .unwrap();
 
     run_test_actions_with(

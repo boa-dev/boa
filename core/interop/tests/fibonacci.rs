@@ -4,7 +4,7 @@
 // You can execute this example with `cargo run --example gcd`
 
 use boa_engine::object::builtins::{JsFunction, TypedJsFunction};
-use boa_engine::{js_error, js_str, Context, JsResult, Module, Source};
+use boa_engine::{js_error, js_string, Context, JsResult, Module, Source};
 use boa_interop::IntoJsFunctionCopied;
 use std::path::PathBuf;
 
@@ -56,7 +56,7 @@ fn fibonacci_test() {
         .unwrap();
 
     let fibonacci_js = module
-        .get_typed_fn::<(usize, JsFunction, JsFunction), usize>(js_str!("fibonacci"), context)
+        .get_typed_fn::<(usize, JsFunction, JsFunction), usize>(js_string!("fibonacci"), context)
         .unwrap();
 
     let fibonacci_rust = fibonacci

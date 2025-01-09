@@ -270,7 +270,7 @@ impl<'a> IntoIterator for JsRest<'a> {
 ///             JsValue::from(1),
 ///             JsValue::from(2),
 ///             JsValue::from(3),
-///             JsValue::Boolean(true),
+///             JsValue::from(true),
 ///             JsValue::from(4),
 ///         ],
 ///         &mut context,
@@ -473,7 +473,7 @@ mod into_js_function_impls;
 
 #[test]
 #[allow(clippy::missing_panics_doc)]
-pub fn into_js_module() {
+fn into_js_module() {
     use boa_engine::{js_string, JsValue, Source};
     use boa_gc::{Gc, GcRefCell};
     use std::cell::RefCell;
