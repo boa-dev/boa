@@ -1,17 +1,15 @@
 //! A Rust API wrapper for Boa's promise Builtin ECMAScript Object
 
-use std::{cell::Cell, future::Future, pin::Pin, task};
+use std::{future::Future, pin::Pin, task};
 
 use super::{JsArray, JsFunction};
 use crate::{
     builtins::{
-        generator::GeneratorContext,
         promise::{PromiseState, ResolvingFunctions},
         Promise,
     },
     job::NativeJob,
-    js_string,
-    object::{FunctionObjectBuilder, JsObject},
+    object::JsObject,
     value::TryFromJs,
     Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
 };
@@ -1161,7 +1159,12 @@ impl JsPromise {
         continuation: crate::native_function::NativeCoroutine,
         context: &mut Context,
     ) {
-        use crate::builtins::async_generator::AsyncGenerator;
+        use crate::{
+            builtins::{async_generator::AsyncGenerator, generator::GeneratorContext},
+            js_string,
+            object::FunctionObjectBuilder,
+        };
+        use std::cell::Cell;
 
         let mut frame = context.vm.frame().clone();
         frame.environments = context.vm.environments.clone();
