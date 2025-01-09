@@ -50,9 +50,6 @@ features = [
     # https://github.com/tc39/proposal-duplicate-named-capturing-groups
     "regexp-duplicate-named-groups",
 
-    # https://github.com/tc39/proposal-array-from-async
-    "Array.fromAsync",
-
     # https://github.com/tc39/proposal-json-parse-with-source
     "json-parse-with-source",
 

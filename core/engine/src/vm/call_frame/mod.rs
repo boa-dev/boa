@@ -62,7 +62,7 @@ pub struct CallFrame {
 
     // SAFETY: Nothing requires tracing, so this is safe.
     #[unsafe_ignore_trace]
-    pub(crate) local_binings_initialized: Box<[bool]>,
+    pub(crate) local_bindings_initialized: Box<[bool]>,
 
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
@@ -163,7 +163,7 @@ impl CallFrame {
             argument_count: 0,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
-            local_binings_initialized,
+            local_bindings_initialized: local_binings_initialized,
             loop_iteration_count: 0,
             active_runnable,
             environments,
@@ -235,6 +235,7 @@ impl CallFrame {
             .cloned()
     }
 
+    #[track_caller]
     pub(crate) fn promise_capability(&self, stack: &[JsValue]) -> Option<PromiseCapability> {
         if !self.code_block().is_async() {
             return None;

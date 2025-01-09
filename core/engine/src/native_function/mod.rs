@@ -20,9 +20,11 @@ use crate::{
     Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
-mod r#await;
+#[cfg(feature = "experimental")]
+mod continuation;
 
-pub(crate) use r#await::NativeContinuation;
+#[cfg(feature = "experimental")]
+pub(crate) use continuation::{ContinuationState, NativeContinuation};
 
 /// The required signature for all native built-in function pointers.
 ///
