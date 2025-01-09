@@ -1,0 +1,12 @@
+[package]
+name = "boa_wpt"
+publish = false
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+boa_engine.workspace = true
+boa_gc.workspace = true
+boa_interop.workspace = true
+boa_runtime.workspace = true
+rstest.workspace = true
