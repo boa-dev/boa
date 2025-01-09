@@ -25,7 +25,7 @@ pub(crate) struct FunctionCompiler {
     method: bool,
     in_with: bool,
     name_scope: Option<Scope>,
-    source_text_inner: Option<SourceText>,
+    source_text: Option<SourceText>,
     source_text_span: Option<LinearSpan>,
 }
 
@@ -41,7 +41,7 @@ impl FunctionCompiler {
             method: false,
             in_with: false,
             name_scope: None,
-            source_text_inner: None,
+            source_text: None,
             source_text_span: None,
         }
     }
@@ -104,7 +104,7 @@ impl FunctionCompiler {
         linear_span: Option<LinearSpan>,
         source_text: Option<SourceText>,
     ) -> Self {
-        self.source_text_inner = source_text;
+        self.source_text = source_text;
         self.source_text_span = linear_span;
         self
     }
@@ -135,10 +135,10 @@ impl FunctionCompiler {
             self.in_with,
         );
 
-        if let Some(gc) = self.source_text_inner {
-            compiler.set_source_text_inner(Some(gc.clone()));
+        if let Some(source_text) = self.source_text {
+            compiler.set_source_text(source_text.clone());
             if let Some(span) = self.source_text_span {
-                let source_text_spanned = SpannedSourceText::new(gc, span);
+                let source_text_spanned = SpannedSourceText::new(source_text, span);
                 compiler.set_source_text_spanned(source_text_spanned);
             }
         }

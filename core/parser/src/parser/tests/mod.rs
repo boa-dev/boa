@@ -38,7 +38,7 @@ pub(super) fn check_script_parser<L>(js: &str, expr: L, interner: &mut Interner)
 where
     L: Into<Box<[StatementListItem]>>,
 {
-    let mut script = Script::new(StatementList::from((expr.into(), PSEUDO_LINEAR_POS)), None);
+    let mut script = Script::new(StatementList::from((expr.into(), PSEUDO_LINEAR_POS)));
     let scope = Scope::new_global();
     script.analyze_scope(&scope, interner);
     assert_eq!(

@@ -452,7 +452,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
     pub(crate) interner: &'ctx mut Interner,
-    pub(crate) source_text_inner: Option<SourceText>,
+    pub(crate) source_text: Option<SourceText>,
     pub(crate) source_text_spanned: Option<SpannedSourceText>,
 
     #[cfg(feature = "annex-b")]
@@ -544,7 +544,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             variable_scope,
             lexical_scope,
             interner,
-            source_text_inner: None,
+            source_text: None,
             source_text_spanned: None,
 
             #[cfg(feature = "annex-b")]
@@ -554,8 +554,8 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
-    pub(crate) fn set_source_text_inner(&mut self, source_text_inner: Option<SourceText>) {
-        self.source_text_inner = source_text_inner;
+    pub(crate) fn set_source_text(&mut self, source_text: SourceText) {
+        self.source_text = Some(source_text);
     }
 
     pub(crate) fn set_source_text_spanned(&mut self, source_text_spanned: SpannedSourceText) {
@@ -1551,7 +1551,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .arrow(arrow)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
-            .linear_span(linear_span, self.source_text_inner.clone())
+            .linear_span(linear_span, self.source_text.clone())
             .compile(
                 parameters,
                 body,
@@ -1630,7 +1630,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
-            .linear_span(linear_span, self.source_text_inner.clone())
+            .linear_span(linear_span, self.source_text.clone())
             .compile(
                 parameters,
                 body,
@@ -1675,7 +1675,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(function.name_scope.cloned())
-            .linear_span(linear_span, self.source_text_inner.clone())
+            .linear_span(linear_span, self.source_text.clone())
             .compile(
                 parameters,
                 body,

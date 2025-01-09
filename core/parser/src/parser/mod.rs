@@ -35,6 +35,8 @@ use std::path::Path;
 
 use self::statement::ModuleItemList;
 
+type ScriptParseOutput = (boa_ast::Script, boa_ast::SourceText);
+
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
@@ -132,7 +134,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         }
     }
 
-    /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
+    /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation without source text.
     /// The resulting `Script` can be compiled into boa bytecode and executed in the boa vm.
     ///
     /// # Errors
@@ -145,15 +147,31 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         scope: &Scope,
         interner: &mut Interner,
     ) -> ParseResult<boa_ast::Script> {
+        self.parse_script_with_source(scope, interner).map(|x| x.0)
+    }
+
+    /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation with source text.
+    /// The resulting `Script` can be compiled into boa bytecode and executed in the boa vm.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Script
+    pub fn parse_script_with_source(
+        &mut self,
+        scope: &Scope,
+        interner: &mut Interner,
+    ) -> ParseResult<ScriptParseOutput> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
-        let mut ast = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
+        let (mut ast, source) = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
         if !ast.analyze_scope(scope, interner) {
             return Err(Error::general(
                 "invalid scope analysis",
                 Position::new(1, 1),
             ));
         }
-        Ok(ast)
+        Ok((ast, source))
     }
 
     /// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation.
@@ -196,7 +214,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         &mut self,
         direct: bool,
         interner: &mut Interner,
-    ) -> ParseResult<boa_ast::Script> {
+    ) -> ParseResult<ScriptParseOutput> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         ScriptParser::new(direct).parse(&mut self.cursor, interner)
     }
@@ -283,13 +301,13 @@ impl<R> TokenParser<R> for ScriptParser
 where
     R: ReadChar,
 {
-    type Output = boa_ast::Script;
+    type Output = ScriptParseOutput;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let stmts =
             ScriptBody::new(true, cursor.strict(), self.direct_eval).parse(cursor, interner)?;
-        let source = Some(cursor.take_source());
-        let script = boa_ast::Script::new(stmts, source);
+        let source = cursor.take_source();
+        let script = boa_ast::Script::new(stmts);
 
         // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
         let mut lexical_names = FxHashSet::default();
@@ -312,7 +330,7 @@ where
             }
         }
 
-        Ok(script)
+        Ok((script, source))
     }
 }
 

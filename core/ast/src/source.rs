@@ -10,7 +10,7 @@ use crate::{
         EvalDeclarationBindings,
     },
     visitor::{VisitWith, Visitor, VisitorMut},
-    ModuleItemList, SourceText, StatementList,
+    ModuleItemList, StatementList,
 };
 
 /// A Script source.
@@ -23,14 +23,13 @@ use crate::{
 #[derive(Clone, Debug, Default)]
 pub struct Script {
     statements: StatementList,
-    source: Option<SourceText>,
 }
 
 impl Script {
     /// Creates a new `ScriptNode`.
     #[must_use]
-    pub const fn new(statements: StatementList, source: Option<SourceText>) -> Self {
-        Self { statements, source }
+    pub const fn new(statements: StatementList) -> Self {
+        Self { statements }
     }
 
     /// Gets the list of statements of this `ScriptNode`.
@@ -90,11 +89,6 @@ impl Script {
         }
 
         Ok(bindings)
-    }
-
-    /// Takes the source text.
-    pub fn take_source(&mut self) -> Option<SourceText> {
-        self.source.take()
     }
 }
 

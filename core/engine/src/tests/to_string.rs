@@ -42,7 +42,7 @@ fn test_ordinary_and_arrow_to_string() {
         C = oa2.toString();
         ia2 = {arrow_2};
         D = ia2.toString();
-        return oa1(a, 5) - boba; 
+        return oa1(a, 5) - boba;
     }}"
     );
 
@@ -57,12 +57,12 @@ fn test_ordinary_and_arrow_to_string() {
         var F;
 
         ia3 = {arrow_3};
-        
+
         {ordinary_2}
 
         oa2(7, 2);
         ia3(7);
-        
+
         const x = {{
             a: A,
             a1: A1,
@@ -292,7 +292,7 @@ fn test_class_methods_to_string() {
             {get_area}
             {sides}
         }}
-        
+
         let r = new Rectangle(24, 42);
         const descr = Object.getOwnPropertyDescriptor(Rectangle.prototype, 'area');
         const x = {{
@@ -349,8 +349,8 @@ fn test_obj_methods_to_string() {
             a: descr_a.get.toString(),
             b: x.p3.toString(),
             c: descr_c.set.toString(),
-            d: x.vroom_d.toString(), 
-            e: x.vroom_e.toString(), 
+            d: x.vroom_d.toString(),
+            e: x.vroom_e.toString(),
         }};
         ret"
     );
@@ -370,6 +370,30 @@ fn test_obj_methods_to_string() {
         c: set_p0.into(),
         d: generator.into(),
         e: async_generator.into(),
+    };
+
+    assert_helper(&code, expected);
+}
+
+#[test]
+fn test_eval_fn_to_string() {
+    let function_def = "function f1(x) {
+        return 1  +  x * x
+    }";
+    let code = format!(
+        "
+        eval(`{function_def};    42`);
+
+        const ret = {{ a: f1.toString() }};
+        ret"
+    );
+
+    #[derive(Debug, TryFromJs, PartialEq, Eq)]
+    struct Expected {
+        a: String,
+    }
+    let expected = Expected {
+        a: function_def.into(),
     };
 
     assert_helper(&code, expected);

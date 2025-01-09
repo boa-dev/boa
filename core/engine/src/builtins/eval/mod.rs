@@ -18,6 +18,7 @@ use crate::{
     js_string,
     object::JsObject,
     realm::Realm,
+    spanned_source_text::SourceText,
     string::StaticJsStrings,
     vm::{CallFrame, CallFrameFlags, Constant, Opcode},
     Context, JsArgs, JsResult, JsString, JsValue,
@@ -130,7 +131,7 @@ impl Eval {
         if strict {
             parser.set_strict();
         }
-        let mut body = parser.parse_eval(direct, context.interner_mut())?;
+        let (mut body, source) = parser.parse_eval(direct, context.interner_mut())?;
 
         // 6. Let inFunction be false.
         // 7. Let inMethod be false.
@@ -272,6 +273,8 @@ impl Eval {
             context.interner_mut(),
             in_with,
         );
+        let source_text = SourceText::new(source);
+        compiler.set_source_text(source_text);
 
         compiler.current_open_environments_count += 1;
 

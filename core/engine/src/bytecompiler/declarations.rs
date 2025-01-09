@@ -515,13 +515,7 @@ impl ByteCompiler<'_> {
                 VarScopedDeclaration::VariableDeclaration(_) => continue,
             };
 
-            let func_span = match &function {
-                VarScopedDeclaration::FunctionDeclaration(f) => Some(f.linear_span()),
-                VarScopedDeclaration::GeneratorDeclaration(f) => Some(f.linear_span()),
-                VarScopedDeclaration::AsyncFunctionDeclaration(f) => Some(f.linear_span()),
-                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => Some(f.linear_span()),
-                VarScopedDeclaration::VariableDeclaration(_) => None,
-            };
+            let func_span = function.linear_span();
 
             let code = FunctionCompiler::new()
                 .name(name.sym().to_js_string(self.interner()))
@@ -529,7 +523,7 @@ impl ByteCompiler<'_> {
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
-                .linear_span(func_span, self.source_text_inner.clone())
+                .linear_span(func_span, self.source_text.clone())
                 .compile(
                     parameters,
                     body,
@@ -784,12 +778,15 @@ impl ByteCompiler<'_> {
                 }
             };
 
+            let func_span = function.linear_span();
+
             let code = FunctionCompiler::new()
                 .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
+                .linear_span(func_span, self.source_text.clone())
                 .name_scope(None)
                 .compile(
                     parameters,

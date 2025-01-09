@@ -48,7 +48,7 @@ struct Inner {
     realm: Realm,
     #[unsafe_ignore_trace]
     source: boa_ast::Script,
-    source_text: Option<SourceText>,
+    source_text: SourceText,
     codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: HostDefined,
@@ -93,12 +93,12 @@ impl Script {
             parser.set_strict();
         }
         let scope = context.realm().scope().clone();
-        let mut code = parser.parse_script(&scope, context.interner_mut())?;
+        let (mut code, source) = parser.parse_script_with_source(&scope, context.interner_mut())?;
         if !context.optimizer_options().is_empty() {
             context.optimize_statement_list(code.statements_mut());
         }
 
-        let source_text = code.take_source().map(SourceText::new);
+        let source_text = SourceText::new(source);
 
         Ok(Self {
             inner: Gc::new(Inner {
@@ -145,7 +145,7 @@ impl Script {
             context.interner_mut(),
             false,
         );
-        compiler.set_source_text_inner(self.get_source());
+        compiler.set_source_text(self.get_source());
 
         #[cfg(feature = "annex-b")]
         {
@@ -245,7 +245,7 @@ impl Script {
         self.inner.path.as_deref()
     }
 
-    pub(super) fn get_source(&self) -> Option<SourceText> {
+    pub(super) fn get_source(&self) -> SourceText {
         self.inner.source_text.clone()
     }
 }
