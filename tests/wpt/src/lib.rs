@@ -1,10 +1,6 @@
 //! Integration tests running the Web Platform Tests (WPT) for the `boa_runtime` crate.
-//!
-//! In order to run these tests, the `wpt-tests` feature must be enabled on the command line.
 #![allow(unused_crate_dependencies)]
-#![cfg(feature = "wpt-tests")]
 
-use crate::logger::RecordingLogEvent;
 use boa_engine::class::Class;
 use boa_engine::parser::source::UTF16Input;
 use boa_engine::property::Attribute;
@@ -17,6 +13,7 @@ use boa_gc::Gc;
 use boa_interop::{ContextData, IntoJsFunctionCopied};
 use boa_runtime::url::Url;
 use boa_runtime::RegisterOptions;
+use logger::RecordingLogEvent;
 use std::cell::OnceCell;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -349,7 +346,7 @@ fn execute_test_file(path: &Path) {
 }
 
 /// Test the console with the WPT test suite.
-#[cfg(not(feature = "wpt-tests-do-not-use"))]
+#[cfg(not(clippy))]
 #[rstest::rstest]
 fn console(
     #[base_dir = "${WPT_ROOT}"]
@@ -363,8 +360,8 @@ fn console(
 }
 
 /// Test the text encoder/decoder with the WPT test suite.
+#[cfg(not(clippy))]
 #[ignore] // TODO: support all encodings.
-#[cfg(not(feature = "wpt-tests-do-not-use"))]
 #[rstest::rstest]
 fn encoding(
     #[base_dir = "${WPT_ROOT}"]
@@ -378,7 +375,7 @@ fn encoding(
 /// Test the URL class with the WPT test suite.
 // A bunch of these tests are failing due to lack of support in the URL class,
 // or missing APIs such as fetch.
-#[cfg(not(feature = "wpt-tests-do-not-use"))]
+#[cfg(not(clippy))]
 #[rstest::rstest]
 fn url(
     #[base_dir = "${WPT_ROOT}"]
