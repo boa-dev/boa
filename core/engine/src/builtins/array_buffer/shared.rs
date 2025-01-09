@@ -1,5 +1,3 @@
-#![allow(unstable_name_collisions)]
-
 use std::{
     alloc,
     sync::{atomic::Ordering, Arc},
@@ -9,7 +7,6 @@ use boa_profiler::Profiler;
 use portable_atomic::{AtomicU8, AtomicUsize};
 
 use boa_gc::{Finalize, Trace};
-use sptr::Strict;
 
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},

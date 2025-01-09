@@ -137,11 +137,8 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![allow(clippy::expl_impl_clone_on_copy)]
-#![allow(unstable_name_collisions)]
 
 use std::{cell::UnsafeCell, sync::atomic::Ordering};
-
-use sptr::Strict;
 
 use crate::{
     builtins::{

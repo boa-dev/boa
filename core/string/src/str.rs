@@ -191,7 +191,7 @@ impl<'a> JsStr<'a> {
     where
         I: JsSliceIndex<'a>,
     {
-        I::get(self, index)
+        JsSliceIndex::get(self, index)
     }
 
     /// Get the element at the given index.
@@ -220,7 +220,7 @@ impl<'a> JsStr<'a> {
         I: JsSliceIndex<'a>,
     {
         // Safety: Caller must ensure the index is not out of bounds
-        unsafe { I::get_unchecked(self, index) }
+        unsafe { JsSliceIndex::get_unchecked(self, index) }
     }
 
     /// Convert the [`JsStr`] into a [`Vec<U16>`].

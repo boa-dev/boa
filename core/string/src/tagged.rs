@@ -1,9 +1,3 @@
-// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.
-// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses
-// the same names from the unstable functions of the `std::ptr` module.
-#![allow(unstable_name_collisions)]
-
-use sptr::Strict;
 use std::ptr::NonNull;
 
 /// A pointer that can be tagged with an `usize`.
@@ -50,7 +44,7 @@ impl<T> Tagged<T> {
         debug_assert!(align_of::<T>() >= 2);
         let addr = (tag << 1) | 1;
         // SAFETY: `addr` is never zero, since we always set its LSB to 1
-        unsafe { Self(NonNull::new_unchecked(sptr::invalid_mut(addr))) }
+        unsafe { Self(NonNull::new_unchecked(std::ptr::without_provenance_mut(addr))) }
     }
 
     /// Creates a new `Tagged` pointer from a raw pointer.

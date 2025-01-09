@@ -54,7 +54,6 @@ impl SliceRef<'_> {
     /// Gets the starting address of this `SliceRef`.
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
-        use sptr::Strict;
         match self {
             Self::Slice(buf) => buf.as_ptr().addr(),
             Self::AtomicSlice(buf) => buf.as_ptr().addr(),
@@ -242,7 +241,6 @@ impl SliceRefMut<'_> {
     /// Gets the starting address of this `SliceRefMut`.
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
-        use sptr::Strict;
         match self {
             Self::Slice(buf) => buf.as_ptr().addr(),
             Self::AtomicSlice(buf) => buf.as_ptr().addr(),
