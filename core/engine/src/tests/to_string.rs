@@ -77,7 +77,6 @@ fn test_ordinary_and_arrow_to_string() {
     );
 
     #[derive(Debug, TryFromJs, PartialEq, Eq)]
-    #[allow(dead_code)]
     struct Expected {
         a: String,
         a1: String,
@@ -136,7 +135,6 @@ fn test_simple_generator_to_string() {
     );
 
     #[derive(Debug, TryFromJs, PartialEq, Eq)]
-    #[allow(dead_code)]
     struct Expected {
         a: String,
         b: String,
@@ -247,7 +245,6 @@ fn test_async_arrow_to_string() {
     );
 
     #[derive(Debug, TryFromJs, PartialEq, Eq)]
-    #[allow(dead_code)]
     struct Expected {
         a: String,
         b: String,
@@ -305,7 +302,6 @@ fn test_class_methods_to_string() {
     );
 
     #[derive(Debug, TryFromJs, PartialEq, Eq)]
-    #[allow(dead_code)]
     struct Expected {
         calc_area: String,
         sides: String,
@@ -356,7 +352,6 @@ fn test_obj_methods_to_string() {
     );
 
     #[derive(Debug, TryFromJs, PartialEq, Eq)]
-    #[allow(dead_code)]
     struct Expected {
         a: String,
         b: String,
@@ -400,7 +395,6 @@ fn test_eval_fn_to_string() {
 }
 
 #[derive(Debug, TryFromJs, PartialEq, Eq)]
-#[allow(dead_code)]
 struct ExpectedOne {
     a: String,
 }
