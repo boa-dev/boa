@@ -24,7 +24,7 @@ use crate::{
 mod continuation;
 
 #[cfg(feature = "experimental")]
-pub(crate) use continuation::{ContinuationState, NativeContinuation};
+pub(crate) use continuation::{CoroutineState, NativeCoroutine};
 
 /// The required signature for all native built-in function pointers.
 ///

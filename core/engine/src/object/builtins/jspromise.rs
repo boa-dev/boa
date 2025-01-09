@@ -1158,7 +1158,7 @@ impl JsPromise {
     #[cfg(feature = "experimental")]
     pub(crate) fn await_native(
         &self,
-        continuation: crate::native_function::NativeContinuation,
+        continuation: crate::native_function::NativeCoroutine,
         context: &mut Context,
     ) {
         use crate::builtins::async_generator::AsyncGenerator;
@@ -1192,7 +1192,7 @@ impl JsPromise {
                     let frame = gen.call_frame.take().expect("should have a call frame");
                     context.vm.push_frame(frame);
 
-                    if let crate::native_function::ContinuationState::Yielded(value) =
+                    if let crate::native_function::CoroutineState::Yielded(value) =
                         continuation.call(Ok(args.get_or_undefined(0).clone()), context)
                     {
                         JsPromise::resolve(value, context)
@@ -1243,7 +1243,7 @@ impl JsPromise {
                     let frame = gen.call_frame.take().expect("should have a call frame");
                     context.vm.push_frame(frame);
 
-                    if let crate::native_function::ContinuationState::Yielded(value) = continuation
+                    if let crate::native_function::CoroutineState::Yielded(value) = continuation
                         .call(
                             Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
                             context,
