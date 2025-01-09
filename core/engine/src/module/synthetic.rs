@@ -295,7 +295,7 @@ impl SyntheticModule {
             false,
             context.interner_mut(),
             false,
-            // TODO: need source text
+            // A synthetic module does not contain `SourceText`
             SpannedSourceText::new_pseudo(),
         );
 

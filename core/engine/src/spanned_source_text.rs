@@ -25,7 +25,8 @@ impl SourceText {
         }
     }
 
-    fn new_pseudo() -> Self {
+    #[must_use]
+    pub(crate) fn new_pseudo() -> Self {
         Self { source_text: None }
     }
 
