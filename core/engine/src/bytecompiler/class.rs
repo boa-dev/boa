@@ -2,7 +2,6 @@ use super::{ByteCompiler, Literal, Operand, ToJsString};
 use crate::{
     js_string,
     vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
-    SpannedSourceText,
 };
 use boa_ast::{
     expression::Identifier,
@@ -294,8 +293,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
-                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
-                        SpannedSourceText::new_pseudo(),
+                        self.spanned_source_text.clone_only_source(),
                     );
 
                     // Function environment
@@ -332,8 +330,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
-                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
-                        SpannedSourceText::new_pseudo(),
+                        self.spanned_source_text.clone_only_source(),
                     );
                     let _ = field_compiler.push_scope(field.scope());
                     if let Some(node) = field.field() {
@@ -375,8 +372,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
-                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
-                        SpannedSourceText::new_pseudo(),
+                        self.spanned_source_text.clone_only_source(),
                     );
                     let _ = field_compiler.push_scope(field.scope());
                     let is_anonymous_function = if let Some(node) = &field.field() {
@@ -420,8 +416,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
-                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
-                        SpannedSourceText::new_pseudo(),
+                        self.spanned_source_text.clone_only_source(),
                     );
                     let _ = compiler.push_scope(block.scopes().function_scope());
 

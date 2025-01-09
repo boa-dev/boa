@@ -394,6 +394,55 @@ fn test_eval_fn_to_string() {
     assert_helper(&code, expected);
 }
 
+#[test]
+fn test_static_to_string() {
+    let fn_def = "function f3(x) {
+        return 3  +  x * x  +  3
+    }";
+    let static_fn_def = format!(
+        "staticFunc() {{
+                {fn_def};;;
+                return f3 . toString()
+            }}"
+    );
+    let fn_in_static_block = "function ff(x) { return \"f\" + \"f\" }";
+
+    let code = format!(
+        "
+        class TestClass {{
+            static {static_fn_def}
+
+            static str = \"\";
+            static {{
+                {fn_in_static_block};
+                this.str = ff.toString();
+            }}
+        }}
+
+        const ret = {{
+            a: TestClass.staticFunc(),
+            b: TestClass.staticFunc.toString(),
+            c: TestClass.str,
+        }};
+        ret
+        "
+    );
+
+    #[derive(Debug, TryFromJs, PartialEq, Eq)]
+    struct Expected {
+        a: String,
+        b: String,
+        c: String,
+    }
+    let expected = Expected {
+        a: fn_def.into(),
+        b: static_fn_def,
+        c: fn_in_static_block.into(),
+    };
+
+    assert_helper(&code, expected);
+}
+
 #[derive(Debug, TryFromJs, PartialEq, Eq)]
 struct ExpectedOne {
     a: String,
