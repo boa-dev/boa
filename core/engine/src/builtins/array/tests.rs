@@ -953,3 +953,12 @@ fn array_sort() {
             "#}),
     ]);
 }
+
+#[test]
+fn array_of_neg_zero() {
+    run_test_actions([
+        TestAction::run("let arr = [-0, -0, -0, -0];"),
+        // Assert the parity of all items of the list.
+        TestAction::assert("arr.every(x => (1/x) === -Infinity)"),
+    ]);
+}
