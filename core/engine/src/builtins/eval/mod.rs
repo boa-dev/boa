@@ -21,7 +21,7 @@ use crate::{
     spanned_source_text::SourceText,
     string::StaticJsStrings,
     vm::{CallFrame, CallFrameFlags, Constant, Opcode},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
     operations::{contains, contains_arguments, ContainsSymbol},
@@ -262,6 +262,9 @@ impl Eval {
 
         let in_with = context.vm.environments.has_object_environment();
 
+        let source_text = SourceText::new(source);
+        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
+
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             body.strict(),
@@ -272,9 +275,8 @@ impl Eval {
             false,
             context.interner_mut(),
             in_with,
+            spanned_source_text,
         );
-        let source_text = SourceText::new(source);
-        compiler.set_source_text(source_text);
 
         compiler.current_open_environments_count += 1;
 

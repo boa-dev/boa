@@ -2,6 +2,7 @@ use super::{ByteCompiler, Literal, Operand, ToJsString};
 use crate::{
     js_string,
     vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
+    SpannedSourceText,
 };
 use boa_ast::{
     expression::Identifier,
@@ -88,6 +89,8 @@ impl ByteCompiler<'_> {
             None
         };
 
+        // The new span is not the same as the parent `ByteCompiler` have.
+        let spanned_source_text = self.spanned_source_text.clone_only_source();
         let mut compiler = ByteCompiler::new(
             class_name.clone(),
             true,
@@ -98,11 +101,8 @@ impl ByteCompiler<'_> {
             false,
             self.interner,
             self.in_with,
+            spanned_source_text,
         );
-
-        if let Some(source_text) = &self.source_text {
-            compiler.set_source_text(source_text.clone());
-        }
 
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
 
@@ -294,6 +294,8 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
+                        SpannedSourceText::new_pseudo(),
                     );
 
                     // Function environment
@@ -330,6 +332,8 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
+                        SpannedSourceText::new_pseudo(),
                     );
                     let _ = field_compiler.push_scope(field.scope());
                     if let Some(node) = field.field() {
@@ -371,6 +375,8 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
+                        SpannedSourceText::new_pseudo(),
                     );
                     let _ = field_compiler.push_scope(field.scope());
                     let is_anonymous_function = if let Some(node) = &field.field() {
@@ -414,6 +420,8 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        // if you need the source text then pass `self.spanned_source_text.clone_only_source()` here
+                        SpannedSourceText::new_pseudo(),
                     );
                     let _ = compiler.push_scope(block.scopes().function_scope());
 

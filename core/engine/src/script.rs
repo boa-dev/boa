@@ -22,7 +22,7 @@ use crate::{
     realm::Realm,
     spanned_source_text::SourceText,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, HostDefined, JsResult, JsString, JsValue, Module,
+    Context, HostDefined, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
 /// ECMAScript's [**Script Record**][spec].
@@ -134,6 +134,7 @@ impl Script {
             context,
         )?;
 
+        let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             self.inner.source.strict(),
@@ -144,8 +145,8 @@ impl Script {
             false,
             context.interner_mut(),
             false,
+            spanned_source_text,
         );
-        compiler.set_source_text(self.get_source());
 
         #[cfg(feature = "annex-b")]
         {

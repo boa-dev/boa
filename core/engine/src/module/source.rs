@@ -30,6 +30,7 @@ use crate::{
         CompletionRecord, Opcode,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
+    SpannedSourceText,
 };
 
 use super::{
@@ -1434,6 +1435,8 @@ impl SourceTextModule {
             false,
             context.interner_mut(),
             false,
+            // TODO: need source text
+            SpannedSourceText::new_pseudo(),
         );
 
         compiler.async_handler = Some(compiler.push_handler());

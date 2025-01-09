@@ -14,19 +14,28 @@ impl Inner {
 
 #[derive(Trace, Finalize, Clone)]
 pub(crate) struct SourceText {
-    source_text: Gc<Inner>,
+    source_text: Option<Gc<Inner>>,
 }
 
 impl SourceText {
     #[must_use]
     pub(crate) fn new(source_text: boa_ast::SourceText) -> Self {
         Self {
-            source_text: Gc::new(Inner::new(source_text)),
+            source_text: Some(Gc::new(Inner::new(source_text))),
         }
     }
 
-    fn inner(&self) -> &boa_ast::SourceText {
-        &self.source_text.source_text
+    fn new_pseudo() -> Self {
+        Self { source_text: None }
+    }
+
+    #[inline]
+    fn inner(&self) -> Option<&boa_ast::SourceText> {
+        self.source_text.as_ref().map(|x| &x.source_text)
+    }
+
+    fn is_empty(&self) -> bool {
+        self.source_text.is_none()
     }
 }
 
@@ -35,26 +44,61 @@ impl SourceText {
 pub struct SpannedSourceText {
     source_text: SourceText,
     #[unsafe_ignore_trace]
-    span: LinearSpan,
+    span: Option<LinearSpan>,
 }
 impl SpannedSourceText {
-    pub(crate) fn new(source_text: SourceText, span: LinearSpan) -> Self {
+    pub(crate) fn new(source_text: SourceText, span: Option<LinearSpan>) -> Self {
         Self { source_text, span }
+    }
+
+    pub(crate) fn new_source_only(source_text: SourceText) -> Self {
+        Self {
+            source_text,
+            span: None,
+        }
+    }
+
+    pub(crate) fn new_pseudo() -> Self {
+        Self {
+            source_text: SourceText::new_pseudo(),
+            span: None,
+        }
+    }
+
+    /// Creates new [`SpannedSourceText`] with the same [`SourceText`] and witohut `span`.
+    pub(crate) fn clone_only_source(&self) -> Self {
+        Self {
+            source_text: self.source_text.clone(),
+            span: None,
+        }
+    }
+
+    /// Returns the [`SourceText`].
+    #[must_use]
+    pub(crate) fn source_text(&self) -> SourceText {
+        self.source_text.clone()
     }
 
     /// Test if the span is empty.
     #[inline]
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.span.is_empty()
+        let span_is_empty = if let Some(x) = self.span {
+            x.is_empty()
+        } else {
+            true
+        };
+        span_is_empty || self.source_text.is_empty()
     }
 
     /// Gets inner code points.
     #[must_use]
-    pub fn to_code_points(&self) -> &[u16] {
-        self.source_text
-            .inner()
-            .get_code_points_from_span(self.span)
+    pub fn to_code_points(&self) -> Option<&[u16]> {
+        if let (Some(source_text), Some(span)) = (self.source_text.inner(), self.span) {
+            Some(source_text.get_code_points_from_span(span))
+        } else {
+            None
+        }
     }
 }
 

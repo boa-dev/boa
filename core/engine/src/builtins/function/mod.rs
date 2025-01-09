@@ -34,7 +34,7 @@ use crate::{
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, JsArgs, JsResult, JsStr, JsString, JsValue,
+    Context, JsArgs, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -646,7 +646,9 @@ impl BuiltInFunctionObject {
         }
 
         let in_with = context.vm.environments.has_object_environment();
-        let code = FunctionCompiler::new()
+        let spanned_source_text = SpannedSourceText::new_pseudo();
+
+        let code = FunctionCompiler::new(spanned_source_text)
             .name(js_string!("anonymous"))
             .generator(generator)
             .r#async(r#async)
@@ -868,10 +870,8 @@ impl BuiltInFunctionObject {
             .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
 
         let code = function.codeblock();
-        if let Some(source) = &code.source_text_spanned {
-            if !source.is_empty() {
-                return Ok(JsString::from(source.to_code_points()).into());
-            }
+        if let Some(code_points) = code.source_text_spanned.to_code_points() {
+            return Ok(JsString::from(code_points).into());
         }
 
         Ok(js_string!(

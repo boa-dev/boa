@@ -165,7 +165,7 @@ pub struct CodeBlock {
     pub(crate) ic: Box<[InlineCache]>,
 
     /// source text of the code block
-    pub(crate) source_text_spanned: Option<SpannedSourceText>,
+    pub(crate) source_text_spanned: SpannedSourceText,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -189,7 +189,7 @@ impl CodeBlock {
             parameter_length: 0,
             handlers: ThinVec::default(),
             ic: Box::default(),
-            source_text_spanned: None,
+            source_text_spanned: SpannedSourceText::new_pseudo(),
         }
     }
 

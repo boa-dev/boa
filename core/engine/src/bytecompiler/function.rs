@@ -3,12 +3,11 @@ use crate::{
     bytecompiler::ByteCompiler,
     js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    JsString, SourceText, SpannedSourceText,
+    JsString, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
     scope::{FunctionScopes, Scope},
-    LinearSpan,
 };
 use boa_gc::Gc;
 use boa_interner::Interner;
@@ -25,13 +24,12 @@ pub(crate) struct FunctionCompiler {
     method: bool,
     in_with: bool,
     name_scope: Option<Scope>,
-    source_text: Option<SourceText>,
-    source_text_span: Option<LinearSpan>,
+    spanned_source_text: SpannedSourceText,
 }
 
 impl FunctionCompiler {
     /// Create a new `FunctionCompiler`.
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(spanned_source_text: SpannedSourceText) -> Self {
         Self {
             name: js_string!(),
             generator: false,
@@ -41,8 +39,7 @@ impl FunctionCompiler {
             method: false,
             in_with: false,
             name_scope: None,
-            source_text: None,
-            source_text_span: None,
+            spanned_source_text,
         }
     }
 
@@ -98,17 +95,6 @@ impl FunctionCompiler {
         self
     }
 
-    /// Indicate if the function is in a `with` statement.
-    pub(crate) fn linear_span(
-        mut self,
-        linear_span: Option<LinearSpan>,
-        source_text: Option<SourceText>,
-    ) -> Self {
-        self.source_text = source_text;
-        self.source_text_span = linear_span;
-        self
-    }
-
     /// Compile a function statement list and it's parameters into bytecode.
     pub(crate) fn compile(
         mut self,
@@ -133,15 +119,8 @@ impl FunctionCompiler {
             self.generator,
             interner,
             self.in_with,
+            self.spanned_source_text,
         );
-
-        if let Some(source_text) = self.source_text {
-            compiler.set_source_text(source_text.clone());
-            if let Some(span) = self.source_text_span {
-                let source_text_spanned = SpannedSourceText::new(source_text, span);
-                compiler.set_source_text_spanned(source_text_spanned);
-            }
-        }
 
         compiler.length = length;
         compiler.code_block_flags.set(

@@ -9,7 +9,7 @@ use crate::{
     js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
-    Context, JsNativeError, JsResult, JsString, JsValue, Module,
+    Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
 use super::{BindingName, ResolveExportError, ResolvedBinding};
@@ -295,6 +295,8 @@ impl SyntheticModule {
             false,
             context.interner_mut(),
             false,
+            // TODO: need source text
+            SpannedSourceText::new_pseudo(),
         );
 
         // 4. For each String exportName in module.[[ExportNames]], do

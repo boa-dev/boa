@@ -1,7 +1,7 @@
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     vm::{BindingOpcode, Opcode},
-    Context, JsNativeError, JsResult,
+    Context, JsNativeError, JsResult, SpannedSourceText,
 };
 use boa_ast::{
     declaration::Binding,
@@ -516,14 +516,14 @@ impl ByteCompiler<'_> {
             };
 
             let func_span = function.linear_span();
+            let spanned_source_text = SpannedSourceText::new(self.source_text(), func_span);
 
-            let code = FunctionCompiler::new()
+            let code = FunctionCompiler::new(spanned_source_text)
                 .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
-                .linear_span(func_span, self.source_text.clone())
                 .compile(
                     parameters,
                     body,
@@ -779,14 +779,14 @@ impl ByteCompiler<'_> {
             };
 
             let func_span = function.linear_span();
+            let spanned_source_text = SpannedSourceText::new(self.source_text(), func_span);
 
-            let code = FunctionCompiler::new()
+            let code = FunctionCompiler::new(spanned_source_text)
                 .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
-                .linear_span(func_span, self.source_text.clone())
                 .name_scope(None)
                 .compile(
                     parameters,

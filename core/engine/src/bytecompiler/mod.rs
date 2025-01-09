@@ -452,8 +452,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) emitted_mapped_arguments_object_opcode: bool,
 
     pub(crate) interner: &'ctx mut Interner,
-    pub(crate) source_text: Option<SourceText>,
-    pub(crate) source_text_spanned: Option<SpannedSourceText>,
+    spanned_source_text: SpannedSourceText,
 
     #[cfg(feature = "annex-b")]
     pub(crate) annex_b_function_names: Vec<Identifier>,
@@ -483,6 +482,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         is_generator: bool,
         interner: &'ctx mut Interner,
         in_with: bool,
+        spanned_source_text: SpannedSourceText,
     ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
@@ -544,8 +544,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             variable_scope,
             lexical_scope,
             interner,
-            source_text: None,
-            source_text_spanned: None,
+            spanned_source_text,
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
@@ -554,12 +553,8 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
     }
 
-    pub(crate) fn set_source_text(&mut self, source_text: SourceText) {
-        self.source_text = Some(source_text);
-    }
-
-    pub(crate) fn set_source_text_spanned(&mut self, source_text_spanned: SpannedSourceText) {
-        self.source_text_spanned = Some(source_text_spanned);
+    pub(crate) fn source_text(&self) -> SourceText {
+        self.spanned_source_text.source_text()
     }
 
     pub(crate) const fn strict(&self) -> bool {
@@ -1543,7 +1538,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             Some(js_string!())
         };
 
-        let code = FunctionCompiler::new()
+        let spanned_source_text = SpannedSourceText::new(self.source_text(), linear_span);
+
+        let code = FunctionCompiler::new(spanned_source_text)
             .name(name)
             .generator(generator)
             .r#async(r#async)
@@ -1551,7 +1548,6 @@ impl<'ctx> ByteCompiler<'ctx> {
             .arrow(arrow)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
-            .linear_span(linear_span, self.source_text.clone())
             .compile(
                 parameters,
                 body,
@@ -1621,7 +1617,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             Some(js_string!())
         };
 
-        let code = FunctionCompiler::new()
+        let spanned_source_text = SpannedSourceText::new(self.source_text(), linear_span);
+
+        let code = FunctionCompiler::new(spanned_source_text)
             .name(name)
             .generator(generator)
             .r#async(r#async)
@@ -1630,7 +1628,6 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
-            .linear_span(linear_span, self.source_text.clone())
             .compile(
                 parameters,
                 body,
@@ -1666,7 +1663,9 @@ impl<'ctx> ByteCompiler<'ctx> {
             Some(js_string!())
         };
 
-        let code = FunctionCompiler::new()
+        let spanned_source_text = SpannedSourceText::new(self.source_text(), linear_span);
+
+        let code = FunctionCompiler::new(spanned_source_text)
             .name(name)
             .generator(generator)
             .r#async(r#async)
@@ -1675,7 +1674,6 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(function.name_scope.cloned())
-            .linear_span(linear_span, self.source_text.clone())
             .compile(
                 parameters,
                 body,
@@ -1830,7 +1828,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),
-            source_text_spanned: self.source_text_spanned,
+            source_text_spanned: self.spanned_source_text,
         }
     }
 
