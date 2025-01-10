@@ -118,7 +118,7 @@ impl Scope {
             .borrow()
             .iter()
             .find(|b| &b.name == name)
-            .map_or(false, |binding| binding.lex)
+            .is_some_and(|binding| binding.lex)
     }
 
     /// Check if the scope has a binding with the given name.

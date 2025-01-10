@@ -489,7 +489,7 @@ impl PartialEq<f64> for JsBigInt {
     #[inline]
     fn eq(&self, other: &f64) -> bool {
         other.fract().is_zero()
-            && RawBigInt::from_f64(*other).map_or(false, |bigint| self.inner.as_ref() == &bigint)
+            && RawBigInt::from_f64(*other).is_some_and(|bigint| self.inner.as_ref() == &bigint)
     }
 }
 
@@ -497,6 +497,6 @@ impl PartialEq<JsBigInt> for f64 {
     #[inline]
     fn eq(&self, other: &JsBigInt) -> bool {
         self.fract().is_zero()
-            && RawBigInt::from_f64(*self).map_or(false, |bigint| other.inner.as_ref() == &bigint)
+            && RawBigInt::from_f64(*self).is_some_and(|bigint| other.inner.as_ref() == &bigint)
     }
 }

@@ -45,7 +45,11 @@ impl<T> Tagged<T> {
         debug_assert!(align_of::<T>() >= 2);
         let addr = (tag << 1) | 1;
         // SAFETY: `addr` is never zero, since we always set its LSB to 1
-        unsafe { Self(NonNull::new_unchecked(std::ptr::without_provenance_mut(addr))) }
+        unsafe {
+            Self(NonNull::new_unchecked(std::ptr::without_provenance_mut(
+                addr,
+            )))
+        }
     }
 
     /// Creates a new `Tagged` pointer from a raw pointer.

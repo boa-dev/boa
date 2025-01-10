@@ -69,14 +69,14 @@ impl JsValue {
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            (InnerValue::BigInt(ref a), InnerValue::String(ref b)) => JsBigInt::from_js_string(b)
-                .as_ref()
-                .map_or(false, |b| a == b),
+            (InnerValue::BigInt(ref a), InnerValue::String(ref b)) => {
+                JsBigInt::from_js_string(b).as_ref().is_some_and(|b| a == b)
+            }
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (InnerValue::String(ref a), InnerValue::BigInt(ref b)) => JsBigInt::from_js_string(a)
-                .as_ref()
-                .map_or(false, |a| a == b),
+            (InnerValue::String(ref a), InnerValue::BigInt(ref b)) => {
+                JsBigInt::from_js_string(a).as_ref().is_some_and(|a| a == b)
+            }
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
             (InnerValue::Boolean(x), _) => {

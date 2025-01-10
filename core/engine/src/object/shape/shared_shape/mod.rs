@@ -169,7 +169,7 @@ impl SharedShape {
         self.inner
             .prototype
             .as_ref()
-            .map_or(false, |this| this == prototype)
+            .is_some_and(|this| this == prototype)
     }
 
     /// Create a new [`SharedShape`].
