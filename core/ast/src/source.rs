@@ -132,9 +132,7 @@ impl PartialEq for Script {
 impl<'a> arbitrary::Arbitrary<'a> for Script {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let statements = StatementList::arbitrary(u)?;
-        Ok(Self {
-            statements,
-        })
+        Ok(Self { statements })
     }
 }
 
