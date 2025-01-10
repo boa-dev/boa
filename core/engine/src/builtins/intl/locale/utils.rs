@@ -74,7 +74,7 @@ pub(crate) fn canonicalize_locale_list(
     let o = if locales.is_string()
         || locales
             .as_object()
-            .map_or(false, |o| o.borrow().is::<Locale>())
+            .is_some_and(|o| o.borrow().is::<Locale>())
     {
         // a. Let O be CreateArrayFromList(« locales »).
         Array::create_array_from_list([locales.clone()], context)
