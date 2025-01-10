@@ -192,7 +192,7 @@ impl<R> Lexer<R> {
             return Ok(());
         }
 
-        while self.cursor.peek_char()?.map_or(false, is_whitespace) {
+        while self.cursor.peek_char()?.is_some_and(is_whitespace) {
             let _next = self.cursor.next_char();
         }
 

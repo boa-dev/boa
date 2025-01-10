@@ -54,10 +54,9 @@ impl SliceRef<'_> {
     /// Gets the starting address of this `SliceRef`.
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
-        use sptr::Strict;
         match self {
-            Self::Slice(buf) => buf.as_ptr().addr(),
-            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
+            Self::Slice(buf) => sptr::Strict::addr(buf.as_ptr()),
+            Self::AtomicSlice(buf) => sptr::Strict::addr(buf.as_ptr()),
         }
     }
 
@@ -89,11 +88,8 @@ impl SliceRef<'_> {
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
-            #[cfg(debug_assertions)]
-            {
-                assert!(buffer.len() >= size_of::<T>());
-                assert_eq!(buffer.addr() % align_of::<T>(), 0);
-            }
+            debug_assert!(buffer.len() >= size_of::<T>());
+            debug_assert_eq!(buffer.addr() % align_of::<T>(), 0);
 
             // 3. Let block be arrayBuffer.[[ArrayBufferData]].
             // 4. Let elementSize be the Element Size value specified in Table 70 for Element Type type.
@@ -242,10 +238,9 @@ impl SliceRefMut<'_> {
     /// Gets the starting address of this `SliceRefMut`.
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
-        use sptr::Strict;
         match self {
-            Self::Slice(buf) => buf.as_ptr().addr(),
-            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
+            Self::Slice(buf) => sptr::Strict::addr(buf.as_ptr()),
+            Self::AtomicSlice(buf) => sptr::Strict::addr(buf.as_ptr()),
         }
     }
 
