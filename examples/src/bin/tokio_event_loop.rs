@@ -200,7 +200,7 @@ fn add_runtime(context: &mut Context) {
     // Finally, bind the defined async job to the ECMAScript function "interval".
     context
         .register_global_builtin_callable(
-            js_string!("timeout"),
+            js_string!("interval"),
             1,
             NativeFunction::from_fn_ptr(interval),
         )
@@ -225,7 +225,7 @@ const SCRIPT: &str = r"
         i += 1;
     }
 
-    timeout(counter, 100);
+    interval(counter, 100);
 
     for(let i = 0; i <= 100000; i++) {
         // Emulate a long-running evaluation of a script.

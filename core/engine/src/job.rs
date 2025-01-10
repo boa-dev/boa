@@ -130,7 +130,7 @@ impl NativeJob {
     }
 }
 
-/// The [`Future`] job passed to the [`JobQueue::enqueue_future_job`] operation.
+/// The [`Future`] job returned by a [`NativeAsyncJob`] operation.
 pub type BoxedFuture<'a> = Pin<Box<dyn Future<Output = JsResult<JsValue>> + 'a>>;
 
 /// An ECMAScript [Job] that can be run asynchronously.
