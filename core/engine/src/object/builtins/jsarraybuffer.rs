@@ -120,10 +120,21 @@ impl JsArrayBuffer {
         let obj = JsObject::new(
             context.root_shape(),
             prototype,
-            ArrayBuffer::from_data(block, JsValue::Undefined),
+            ArrayBuffer::from_data(block, JsValue::undefined()),
         );
 
         Ok(Self { inner: obj })
+    }
+
+    /// Set a maximum length for the underlying array buffer.
+    #[inline]
+    #[must_use]
+    pub fn with_max_byte_length(self, max_byte_len: u64) -> Self {
+        self.inner
+            .borrow_mut()
+            .data
+            .set_max_byte_length(max_byte_len);
+        self
     }
 
     /// Create a [`JsArrayBuffer`] from a [`JsObject`], if the object is not an array buffer throw a `TypeError`.
@@ -302,11 +313,12 @@ impl Deref for JsArrayBuffer {
 
 impl TryFromJs for JsArrayBuffer {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not an ArrayBuffer object")
-                .into()),
+                .into())
         }
     }
 }

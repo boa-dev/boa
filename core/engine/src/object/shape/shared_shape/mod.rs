@@ -166,10 +166,7 @@ impl SharedShape {
     /// Check if the shape has the given prototype.
     #[must_use]
     pub fn has_prototype(&self, prototype: &JsObject) -> bool {
-        self.inner
-            .prototype
-            .as_ref()
-            .map_or(false, |this| this == prototype)
+        self.inner.prototype.as_ref() == Some(prototype)
     }
 
     /// Create a new [`SharedShape`].
@@ -186,7 +183,8 @@ impl SharedShape {
             forward_transitions: ForwardTransition::default(),
             prototype: None,
             property_count: 0,
-            property_table: PropertyTable::default(),
+            // Most of the time the root shape initiates with between 1-4 properties.
+            property_table: PropertyTable::with_capacity(4),
             previous: None,
             flags: ShapeFlags::default(),
             transition_count: 0,

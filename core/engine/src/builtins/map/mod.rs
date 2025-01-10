@@ -22,7 +22,6 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 
@@ -34,7 +33,9 @@ mod map_iterator;
 pub(crate) use map_iterator::MapIterator;
 
 pub mod ordered_map;
+use crate::value::JsVariant;
 use ordered_map::OrderedMap;
+
 #[cfg(test)]
 mod tests;
 
@@ -108,6 +109,8 @@ impl BuiltInObject for Map {
 
 impl BuiltInConstructor for Map {
     const LENGTH: usize = 0;
+    const P: usize = 11;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::map;
@@ -153,7 +156,7 @@ impl BuiltInConstructor for Map {
         // 5. Let adder be ? Get(map, "set").
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = map
-            .get(js_str!("set"), context)?
+            .get(js_string!("set"), context)?
             .as_function()
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -237,11 +240,11 @@ impl Map {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
             if let Some(mut map) = object.downcast_mut::<OrderedMap<JsValue>>() {
-                let key = match key {
-                    JsValue::Rational(r) => {
+                let key = match key.variant() {
+                    JsVariant::Float64(r) => {
                         // 5. If key is -0𝔽, set key to +0𝔽.
                         if r.is_zero() {
-                            JsValue::Rational(0f64)
+                            JsValue::new(0)
                         } else {
                             key.clone()
                         }
@@ -305,10 +308,9 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Integer(0);
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
-            Some(n) if n.is_zero() => JS_ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
@@ -341,15 +343,14 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
     pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Integer(0);
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
-            Some(n) if n.is_zero() => JS_ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
         // 1. Let M be the this value.
-        if let JsValue::Object(ref object) = this {
+        if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.downcast_ref::<OrderedMap<JsValue>>() {
@@ -406,15 +407,14 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        const JS_ZERO: &JsValue = &JsValue::Integer(0);
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
-            Some(n) if n.is_zero() => JS_ZERO,
+            Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
         // 1. Let M be the this value.
-        if let JsValue::Object(ref object) = this {
+        if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
             // 3. Let entries be the List that is M.[[MapData]].
             if let Some(map) = object.downcast_ref::<OrderedMap<JsValue>>() {
@@ -497,6 +497,53 @@ impl Map {
                 callback.call(this_arg, &arguments, context)?;
             }
 
+            index += 1;
+        }
+    }
+
+    /// Call `f` for each `(key, value)` in the `Map`.
+    ///
+    /// Can not be used in [`Self::for_each`] because in that case will be
+    /// incorrect order for next steps of the algo:
+    /// ```txt
+    /// 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+    /// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+    /// ```
+    pub(crate) fn for_each_native<F>(this: &JsValue, mut f: F) -> JsResult<()>
+    where
+        F: FnMut(JsValue, JsValue) -> JsResult<()>,
+    {
+        // See `Self::for_each` for comments on the algo.
+
+        let map = this
+            .as_object()
+            .filter(|obj| obj.is::<OrderedMap<JsValue>>())
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
+        let _lock = map
+            .downcast_mut::<OrderedMap<JsValue>>()
+            .expect("checked that `this` was a map")
+            .lock(map.clone());
+
+        let mut index = 0;
+        loop {
+            let (k, v) = {
+                let map = map
+                    .downcast_ref::<OrderedMap<JsValue>>()
+                    .expect("checked that `this` was a map");
+
+                if index < map.full_len() {
+                    if let Some((k, v)) = map.get_index(index) {
+                        (k.clone(), v.clone())
+                    } else {
+                        continue;
+                    }
+                } else {
+                    return Ok(());
+                }
+            };
+
+            f(k, v)?;
             index += 1;
         }
     }

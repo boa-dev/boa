@@ -22,6 +22,7 @@ impl ByteCompiler<'_> {
         use_expr: bool,
     ) {
         let mut let_binding_indices = None;
+        let mut outer_scope_local = None;
         let mut outer_scope = None;
 
         if let Some(init) = for_loop.init() {
@@ -31,9 +32,16 @@ impl ByteCompiler<'_> {
                     self.compile_var_decl(decl);
                 }
                 ForLoopInitializer::Lexical(decl) => {
-                    outer_scope = Some(self.lexical_scope.clone());
-                    let scope_index = self.push_scope(decl.scope());
-                    self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+                    let scope_index = if decl.scope().all_bindings_local() {
+                        outer_scope_local = Some(self.lexical_scope.clone());
+                        self.lexical_scope = decl.scope().clone();
+                        None
+                    } else {
+                        outer_scope = Some(self.lexical_scope.clone());
+                        let scope_index = self.push_scope(decl.scope());
+                        self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+                        Some(scope_index)
+                    };
 
                     let names = bound_names(decl.declaration());
                     if decl.declaration().is_const() {
@@ -41,8 +49,8 @@ impl ByteCompiler<'_> {
                         let mut indices = Vec::new();
                         for name in &names {
                             let name = name.to_js_string(self.interner());
-                            let binding = self
-                                .lexical_scope
+                            let binding = decl
+                                .scope()
                                 .get_binding_reference(&name)
                                 .expect("binding must exist");
                             let index = self.get_or_insert_binding(binding);
@@ -62,8 +70,10 @@ impl ByteCompiler<'_> {
                 self.emit_binding_access(Opcode::GetName, index);
             }
 
-            self.emit_opcode(Opcode::PopEnvironment);
-            self.emit_with_varying_operand(Opcode::PushScope, *scope_index);
+            if let Some(index) = scope_index {
+                self.emit_opcode(Opcode::PopEnvironment);
+                self.emit_with_varying_operand(Opcode::PushScope, *index);
+            }
 
             for index in let_binding_indices.iter().rev() {
                 self.emit_binding_access(Opcode::PutLexicalValue, index);
@@ -85,8 +95,10 @@ impl ByteCompiler<'_> {
                 self.emit_binding_access(Opcode::GetName, index);
             }
 
-            self.emit_opcode(Opcode::PopEnvironment);
-            self.emit_with_varying_operand(Opcode::PushScope, *scope_index);
+            if let Some(index) = scope_index {
+                self.emit_opcode(Opcode::PopEnvironment);
+                self.emit_with_varying_operand(Opcode::PushScope, *index);
+            }
 
             for index in let_binding_indices.iter().rev() {
                 self.emit_binding_access(Opcode::PutLexicalValue, index);
@@ -115,11 +127,10 @@ impl ByteCompiler<'_> {
         self.patch_jump(exit);
         self.pop_loop_control_info();
 
-        if let Some(outer_scope) = outer_scope {
-            self.pop_scope();
-            self.lexical_scope = outer_scope;
-            self.emit_opcode(Opcode::PopEnvironment);
+        if let Some(outer_scope_local) = outer_scope_local {
+            self.lexical_scope = outer_scope_local;
         }
+        self.pop_declarative_scope(outer_scope);
     }
 
     pub(crate) fn compile_for_in_loop(
@@ -138,17 +149,9 @@ impl ByteCompiler<'_> {
                 }
             }
         }
-        if let Some(scope) = for_in_loop.target_scope() {
-            let outer_scope = self.lexical_scope.clone();
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-            self.compile_expr(for_in_loop.target(), true);
-            self.pop_scope();
-            self.lexical_scope = outer_scope;
-            self.emit_opcode(Opcode::PopEnvironment);
-        } else {
-            self.compile_expr(for_in_loop.target(), true);
-        }
+        let outer_scope = self.push_declarative_scope(for_in_loop.target_scope());
+        self.compile_expr(for_in_loop.target(), true);
+        self.pop_declarative_scope(outer_scope);
 
         let early_exit = self.jump_if_null_or_undefined();
         self.emit_opcode(Opcode::CreateForInIterator);
@@ -163,13 +166,7 @@ impl ByteCompiler<'_> {
 
         self.emit_opcode(Opcode::IteratorValue);
 
-        let mut outer_scope = None;
-
-        if let Some(scope) = for_in_loop.scope() {
-            outer_scope = Some(self.lexical_scope.clone());
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-        }
+        let outer_scope = self.push_declarative_scope(for_in_loop.scope());
 
         match for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) => {
@@ -208,12 +205,7 @@ impl ByteCompiler<'_> {
         }
 
         self.compile_stmt(for_in_loop.body(), use_expr, true);
-
-        if let Some(outer_scope) = outer_scope {
-            self.pop_scope();
-            self.lexical_scope = outer_scope;
-            self.emit_opcode(Opcode::PopEnvironment);
-        }
+        self.pop_declarative_scope(outer_scope);
 
         self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
 
@@ -234,17 +226,9 @@ impl ByteCompiler<'_> {
         label: Option<Sym>,
         use_expr: bool,
     ) {
-        if let Some(scope) = for_of_loop.iterable_scope() {
-            let outer_scope = self.lexical_scope.clone();
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-            self.compile_expr(for_of_loop.iterable(), true);
-            self.pop_scope();
-            self.lexical_scope = outer_scope;
-            self.emit_opcode(Opcode::PopEnvironment);
-        } else {
-            self.compile_expr(for_of_loop.iterable(), true);
-        }
+        let outer_scope = self.push_declarative_scope(for_of_loop.iterable_scope());
+        self.compile_expr(for_of_loop.iterable(), true);
+        self.pop_declarative_scope(outer_scope);
 
         if for_of_loop.r#await() {
             self.emit_opcode(Opcode::GetAsyncIterator);
@@ -271,14 +255,7 @@ impl ByteCompiler<'_> {
         let exit = self.jump_if_true();
         self.emit_opcode(Opcode::IteratorValue);
 
-        let mut outer_scope = None;
-
-        if let Some(scope) = for_of_loop.scope() {
-            outer_scope = Some(self.lexical_scope.clone());
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-        }
-
+        let outer_scope = self.push_declarative_scope(for_of_loop.scope());
         let handler_index = self.push_handler();
 
         match for_of_loop.initializer() {
@@ -354,12 +331,7 @@ impl ByteCompiler<'_> {
             self.patch_jump(exit);
         }
 
-        if let Some(outer_scope) = outer_scope {
-            self.pop_scope();
-            self.lexical_scope = outer_scope;
-            self.emit_opcode(Opcode::PopEnvironment);
-        }
-
+        self.pop_declarative_scope(outer_scope);
         self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
 
         self.patch_jump(exit);

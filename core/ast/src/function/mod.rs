@@ -48,7 +48,6 @@ pub use ordinary_function::{FunctionDeclaration, FunctionExpression};
 pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
 use crate::{
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     LinearPosition, StatementList, StatementListItem,
 };
@@ -128,7 +127,7 @@ impl VisitWith for FunctionBody {
         V: Visitor<'a>,
     {
         for statement in &*self.statements {
-            try_break!(visitor.visit_statement_list_item(statement));
+            visitor.visit_statement_list_item(statement)?;
         }
         ControlFlow::Continue(())
     }
@@ -138,7 +137,7 @@ impl VisitWith for FunctionBody {
         V: VisitorMut<'a>,
     {
         for statement in &mut *self.statements.statements {
-            try_break!(visitor.visit_statement_list_item_mut(statement));
+            visitor.visit_statement_list_item_mut(statement)?;
         }
         ControlFlow::Continue(())
     }

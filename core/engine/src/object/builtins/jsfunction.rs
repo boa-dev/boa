@@ -77,17 +77,18 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
 
 impl<A: TryIntoJsArguments, R: TryFromJs> TryFromJs for TypedJsFunction<A, R> {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => JsFunction::from_object(o.clone())
+        if let Some(o) = value.as_object() {
+            JsFunction::from_object(o.clone())
                 .ok_or_else(|| {
                     JsNativeError::typ()
                         .with_message("object is not a function")
                         .into()
                 })
-                .map(JsFunction::typed),
-            _ => Err(JsNativeError::typ()
+                .map(JsFunction::typed)
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a Function object")
-                .into()),
+                .into())
         }
     }
 }
@@ -183,15 +184,16 @@ impl Deref for JsFunction {
 
 impl TryFromJs for JsFunction {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()).ok_or_else(|| {
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone()).ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("object is not a function")
                     .into()
-            }),
-            _ => Err(JsNativeError::typ()
+            })
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a Function object")
-                .into()),
+                .into())
         }
     }
 }

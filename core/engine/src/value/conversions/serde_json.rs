@@ -1,6 +1,6 @@
 //! This module implements the conversions from and into [`serde_json::Value`].
 
-use super::JsValue;
+use super::{InnerValue, JsValue};
 use crate::{
     builtins::Array,
     error::JsNativeError,
@@ -44,13 +44,13 @@ impl JsValue {
         const MIN_INT: i64 = i32::MIN as i64;
 
         match json {
-            Value::Null => Ok(Self::Null),
-            Value::Bool(b) => Ok(Self::Boolean(*b)),
+            Value::Null => Ok(Self::null()),
+            Value::Bool(b) => Ok(Self::new(*b)),
             Value::Number(num) => num
                 .as_i64()
                 .filter(|n| (MIN_INT..=MAX_INT).contains(n))
-                .map(|i| Self::Integer(i as i32))
-                .or_else(|| num.as_f64().map(Self::Rational))
+                .map(|i| Self::new(i as i32))
+                .or_else(|| num.as_f64().map(Self::new))
                 .ok_or_else(|| {
                     JsNativeError::typ()
                         .with_message(format!("could not convert JSON number {num} to JsValue"))
@@ -113,33 +113,44 @@ impl JsValue {
     ///
     /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
-        match self {
-            Self::Null => Ok(Value::Null),
-            Self::Undefined => todo!("undefined to JSON"),
-            &Self::Boolean(b) => Ok(b.into()),
-            Self::String(string) => Ok(string.to_std_string_escaped().into()),
-            &Self::Rational(rat) => Ok(rat.into()),
-            &Self::Integer(int) => Ok(int.into()),
-            Self::BigInt(_bigint) => Err(JsNativeError::typ()
+        match &self.inner {
+            InnerValue::Null => Ok(Value::Null),
+            InnerValue::Undefined => todo!("undefined to JSON"),
+            InnerValue::Boolean(b) => Ok(Value::from(*b)),
+            InnerValue::String(string) => Ok(string.to_std_string_escaped().into()),
+            InnerValue::Float64(rat) => Ok(Value::from(*rat)),
+            InnerValue::Integer32(int) => Ok(Value::from(*int)),
+            InnerValue::BigInt(_bigint) => Err(JsNativeError::typ()
                 .with_message("cannot convert bigint to JSON")
                 .into()),
-            Self::Object(obj) => {
+            InnerValue::Object(obj) => {
+                let value_by_prop_key = |property_key, context: &mut Context| {
+                    obj.borrow()
+                        .properties()
+                        .get(&property_key)
+                        .and_then(|x| x.value().map(|val| val.to_json(context)))
+                        .unwrap_or(Ok(Value::Null))
+                };
+
                 if obj.is_array() {
                     let len = obj.length_of_array_like(context)?;
                     let mut arr = Vec::with_capacity(len as usize);
 
-                    let obj = obj.borrow();
-
                     for k in 0..len as u32 {
-                        let val = obj.properties().get(&k.into()).map_or(Self::Null, |desc| {
-                            desc.value().cloned().unwrap_or(Self::Null)
-                        });
-                        arr.push(val.to_json(context)?);
+                        let val = value_by_prop_key(k.into(), context)?;
+                        arr.push(val);
                     }
 
                     Ok(Value::Array(arr))
                 } else {
                     let mut map = Map::new();
+
+                    for index in obj.borrow().properties().index_property_keys() {
+                        let key = index.to_string();
+                        let value = value_by_prop_key(index.into(), context)?;
+                        map.insert(key, value);
+                    }
+
                     for property_key in obj.borrow().properties().shape.keys() {
                         let key = match &property_key {
                             PropertyKey::String(string) => string.to_std_string_escaped(),
@@ -150,24 +161,14 @@ impl JsValue {
                                     .into())
                             }
                         };
-
-                        let value = match obj
-                            .borrow()
-                            .properties()
-                            .get(&property_key)
-                            .and_then(|x| x.value().cloned())
-                        {
-                            Some(val) => val.to_json(context)?,
-                            None => Value::Null,
-                        };
-
+                        let value = value_by_prop_key(property_key, context)?;
                         map.insert(key, value);
                     }
 
                     Ok(Value::Object(map))
                 }
             }
-            Self::Symbol(_sym) => Err(JsNativeError::typ()
+            InnerValue::Symbol(_sym) => Err(JsNativeError::typ()
                 .with_message("cannot convert Symbol to JSON")
                 .into()),
         }
@@ -181,7 +182,7 @@ mod tests {
     use serde_json::json;
 
     use crate::object::JsArray;
-    use crate::JsValue;
+    use crate::{js_string, JsValue};
     use crate::{run_test_actions, TestAction};
 
     #[test]
@@ -200,7 +201,10 @@ mod tests {
                     -45,
                     {},
                     true
-                ]
+                ],
+                "7.3": "random text",
+                "100": 1000,
+                "24": 42
             }
         "#};
 
@@ -217,6 +221,14 @@ mod tests {
             assert_eq!(obj.get(js_str!("age"), ctx).unwrap(), 43_i32.into());
             assert_eq!(obj.get(js_str!("minor"), ctx).unwrap(), false.into());
             assert_eq!(obj.get(js_str!("adult"), ctx).unwrap(), true.into());
+
+            assert_eq!(
+                obj.get(js_str!("7.3"), ctx).unwrap(),
+                js_string!("random text").into()
+            );
+            assert_eq!(obj.get(js_str!("100"), ctx).unwrap(), 1000.into());
+            assert_eq!(obj.get(js_str!("24"), ctx).unwrap(), 42.into());
+
             {
                 let extra = obj.get(js_str!("extra"), ctx).unwrap();
                 let extra = extra.as_object().unwrap();

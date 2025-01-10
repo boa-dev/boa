@@ -4,7 +4,7 @@
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
-        temporal::{to_integer_with_truncation, to_partial_date_record, to_partial_time_record},
+        temporal::{to_partial_date_record, to_partial_time_record},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -13,23 +13,20 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    value::IntoOrUndefined,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;
 
 use temporal_rs::{
-    components::{
-        calendar::{Calendar, GetTemporalCalendar},
-        DateTime as InnerDateTime, PartialDateTime, Time,
-    },
-    iso::{IsoDate, IsoDateSlots},
     options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
-    TemporalFields,
+    partial::PartialDateTime,
+    PlainDateTime as InnerDateTime, PlainTime,
 };
 
 use super::{
@@ -38,6 +35,7 @@ use super::{
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
 };
+use crate::value::JsVariant;
 
 /// The `Temporal.PlainDateTime` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -53,18 +51,6 @@ impl PlainDateTime {
 
     pub(crate) fn inner(&self) -> &InnerDateTime {
         &self.inner
-    }
-}
-
-impl IsoDateSlots for JsObject<PlainDateTime> {
-    fn iso_date(&self) -> IsoDate {
-        self.borrow().data().inner.iso_date()
-    }
-}
-
-impl GetTemporalCalendar for JsObject<PlainDateTime> {
-    fn get_calendar(&self) -> Calendar {
-        self.borrow().data().inner.get_calendar()
     }
 }
 
@@ -163,116 +149,121 @@ impl IntrinsicObject for PlainDateTime {
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("calendarId"),
+                js_string!("calendarId"),
                 Some(get_calendar_id),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("year"),
+                js_string!("year"),
                 Some(get_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("month"),
+                js_string!("month"),
                 Some(get_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("monthCode"),
+                js_string!("monthCode"),
                 Some(get_month_code),
                 None,
                 Attribute::CONFIGURABLE,
             )
-            .accessor(js_str!("day"), Some(get_day), None, Attribute::CONFIGURABLE)
             .accessor(
-                js_str!("hour"),
+                js_string!("day"),
+                Some(get_day),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("hour"),
                 Some(get_hour),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("minute"),
+                js_string!("minute"),
                 Some(get_minute),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("second"),
+                js_string!("second"),
                 Some(get_second),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("millisecond"),
+                js_string!("millisecond"),
                 Some(get_millisecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("microsecond"),
+                js_string!("microsecond"),
                 Some(get_microsecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("nanosecond"),
+                js_string!("nanosecond"),
                 Some(get_nanosecond),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("dayOfWeek"),
+                js_string!("dayOfWeek"),
                 Some(get_day_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("dayOfYear"),
+                js_string!("dayOfYear"),
                 Some(get_day_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("weekOfYear"),
+                js_string!("weekOfYear"),
                 Some(get_week_of_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("yearOfWeek"),
+                js_string!("yearOfWeek"),
                 Some(get_year_of_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInWeek"),
+                js_string!("daysInWeek"),
                 Some(get_days_in_week),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInMonth"),
+                js_string!("daysInMonth"),
                 Some(get_days_in_month),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("daysInYear"),
+                js_string!("daysInYear"),
                 Some(get_days_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("monthsInYear"),
+                js_string!("monthsInYear"),
                 Some(get_months_in_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
             .accessor(
-                js_str!("inLeapYear"),
+                js_string!("inLeapYear"),
                 Some(get_in_leap_year),
                 None,
                 Attribute::CONFIGURABLE,
@@ -288,6 +279,7 @@ impl IntrinsicObject for PlainDateTime {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -298,6 +290,8 @@ impl IntrinsicObject for PlainDateTime {
 
 impl BuiltInConstructor for PlainDateTime {
     const LENGTH: usize = 3;
+    const P: usize = 29;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_date_time;
@@ -316,36 +310,61 @@ impl BuiltInConstructor for PlainDateTime {
         };
 
         // 2. Set isoYear to ? ToIntegerWithTruncation(isoYear).
-        let iso_year = to_integer_with_truncation(args.get_or_undefined(0), context)?;
+        let iso_year = args
+            .get_or_undefined(0)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<i32>();
         // 3. Set isoMonth to ? ToIntegerWithTruncation(isoMonth).
-        let iso_month = to_integer_with_truncation(args.get_or_undefined(1), context)?;
+        let iso_month = args
+            .get_or_undefined(1)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
         // 4. Set isoDay to ? ToIntegerWithTruncation(isoDay).
-        let iso_day = to_integer_with_truncation(args.get_or_undefined(2), context)?;
+        let iso_day = args
+            .get_or_undefined(2)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
         // 5. If hour is undefined, set hour to 0; else set hour to ? ToIntegerWithTruncation(hour).
-        let hour = args
-            .get(3)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+        let hour = args.get_or_undefined(3).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
         // 6. If minute is undefined, set minute to 0; else set minute to ? ToIntegerWithTruncation(minute).
-        let minute = args
-            .get(4)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+        let minute = args.get_or_undefined(4).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
+
         // 7. If second is undefined, set second to 0; else set second to ? ToIntegerWithTruncation(second).
-        let second = args
-            .get(5)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+        let second = args.get_or_undefined(5).map_or(Ok::<u8, JsError>(0), |v| {
+            let finite = v.to_finitef64(context)?;
+            Ok(finite.as_integer_with_truncation::<u8>())
+        })?;
+
         // 8. If millisecond is undefined, set millisecond to 0; else set millisecond to ? ToIntegerWithTruncation(millisecond).
         let millisecond = args
-            .get(6)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .get_or_undefined(6)
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
+
         // 9. If microsecond is undefined, set microsecond to 0; else set microsecond to ? ToIntegerWithTruncation(microsecond).
         let microsecond = args
-            .get(7)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
+            .get_or_undefined(7)
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
+
         // 10. If nanosecond is undefined, set nanosecond to 0; else set nanosecond to ? ToIntegerWithTruncation(nanosecond).
         let nanosecond = args
-            .get(8)
-            .map_or(Ok(0), |v| to_integer_with_truncation(v, context))?;
-        // 11. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
+            .get_or_undefined(8)
+            .map_or(Ok::<u16, JsError>(0), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<u16>())
+            })?;
+
         let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
 
         let dt = InnerDateTime::new(
@@ -552,7 +571,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.week_of_year()?.into())
+        Ok(dt.inner.week_of_year()?.into_or_undefined())
     }
 
     /// 5.3.17 get `Temporal.PlainDatedt.prototype.yearOfWeek`
@@ -564,7 +583,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.year_of_week()?.into())
+        Ok(dt.inner.year_of_week()?.into_or_undefined())
     }
 
     /// 5.3.18 get `Temporal.PlainDatedt.prototype.daysInWeek`
@@ -648,7 +667,7 @@ impl PlainDateTime {
         let dt = if let Some(pdt) = item.as_object().and_then(JsObject::downcast_ref::<Self>) {
             // a. Perform ? GetTemporalOverflowOption(options).
             let options = get_options_object(args.get_or_undefined(1))?;
-            let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // b. Return ! CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]],
             // item.[[ISODay]], item.[[ISOHour]], item.[[ISOMinute]], item.[[ISOSecond]],
             // item.[[ISOMillisecond]], item.[[ISOMicrosecond]], item.[[ISONanosecond]],
@@ -697,14 +716,14 @@ impl PlainDateTime {
                 .with_message("with object was not a PartialTemporalObject.")
                 .into());
         };
-        let options = get_options_object(args.get_or_undefined(1))?;
 
         let date = to_partial_date_record(partial_object, context)?;
         let time = to_partial_time_record(partial_object, context)?;
 
         let partial_dt = PartialDateTime { date, time };
 
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         create_temporal_datetime(dt.inner.with(partial_dt, overflow)?, None, context)
             .map(Into::into)
@@ -758,7 +777,7 @@ impl PlainDateTime {
 
         // 4. Set options to ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         // 5. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
         // 6. Return ? AddDate(calendarRec, temporalDate, duration, options).
@@ -781,7 +800,7 @@ impl PlainDateTime {
 
         // 4. Set options to ? GetOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(1))?;
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
         // 5. Let negatedDuration be CreateNegatedTemporalDuration(duration).
         // 6. Let calendarRec be ? CreateCalendarMethodsRecord(temporalDate.[[Calendar]], « date-add »).
@@ -821,7 +840,7 @@ impl PlainDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let settings = get_difference_settings(&options, context)?;
 
-        create_temporal_duration(dt.inner.until(&other, settings)?, None, context).map(Into::into)
+        create_temporal_duration(dt.inner.since(&other, settings)?, None, context).map(Into::into)
     }
 
     // TODO(nekevss): finish after temporal_rs impl
@@ -834,22 +853,22 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
 
-        let round_to = match args.first() {
+        let round_to = match args.first().map(JsValue::variant) {
             // 3. If roundTo is undefined, then
-            None | Some(JsValue::Undefined) => {
+            None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
                     .into())
             }
             // 4. If Type(roundTo) is String, then
-            Some(JsValue::String(rt)) => {
+            Some(JsVariant::String(rt)) => {
                 // a. Let paramString be roundTo.
                 let param_string = rt.clone();
                 // b. Set roundTo to OrdinaryObjectCreate(null).
                 let new_round_to = JsObject::with_null_proto();
                 // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
                 new_round_to.create_data_property_or_throw(
-                    js_str!("smallestUnit"),
+                    js_string!("smallestUnit"),
                     param_string,
                     context,
                 )?;
@@ -858,7 +877,7 @@ impl PlainDateTime {
             // 5. Else,
             Some(round_to) => {
                 // a. Set roundTo to ? GetOptionsObject(roundTo).
-                get_options_object(round_to)?
+                get_options_object(&JsValue::from(round_to))?
             }
         };
 
@@ -868,16 +887,16 @@ impl PlainDateTime {
         let mut options = RoundingOptions::default();
 
         options.increment =
-            get_option::<RoundingIncrement>(&round_to, js_str!("roundingIncrement"), context)?;
+            get_option::<RoundingIncrement>(&round_to, js_string!("roundingIncrement"), context)?;
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         options.rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_str!("roundingMode"), context)?;
+            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", TIME, REQUIRED, undefined).
         options.smallest_unit = get_temporal_unit(
             &round_to,
-            js_str!("smallestUnit"),
+            js_string!("smallestUnit"),
             TemporalUnitGroup::Time,
             None,
             context,
@@ -912,6 +931,12 @@ impl PlainDateTime {
         // 5. If result is not 0, return false.
         // 6. Return ? CalendarEquals(dateTime.[[Calendar]], other.[[Calendar]]).
         Ok((dt.inner == other).into())
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
+            .into())
     }
 }
 
@@ -979,24 +1004,25 @@ pub(crate) fn to_temporal_datetime(
             // i. Return item.
             return Ok(dt.inner.clone());
         // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        } else if let Some(_zdt) = object.downcast_ref::<ZonedDateTime>() {
+        } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
-            let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
             // iv. Return ? GetPlainDateTimeFor(timeZoneRec, instant, item.[[Calendar]]).
-            return Err(JsNativeError::range()
-                .with_message("Not yet implemented.")
-                .into());
+            return zdt
+                .inner
+                .to_plain_datetime_with_provider(context.tz_provider())
+                .map_err(Into::into);
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
-            let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+            let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // ii. Return ? CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], 0, 0, 0, 0, 0, 0, item.[[Calendar]]).
             return Ok(InnerDateTime::new(
                 date.inner.iso_year(),
-                date.inner.iso_month().into(),
-                date.inner.iso_day().into(),
+                date.inner.iso_month(),
+                date.inner.iso_day(),
                 0,
                 0,
                 0,
@@ -1027,31 +1053,30 @@ pub(crate) fn to_temporal_datetime(
                 .into());
         }
         // g. Let result be ? InterpretTemporalDateTimeFields(calendarRec, fields, resolvedOptions).
-        let overflow = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
-        let date = calendar.date_from_fields(
-            &mut TemporalFields::from(partial_date),
+        let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
+        let date = calendar.date_from_partial(
+            &partial_date,
             overflow.unwrap_or(ArithmeticOverflow::Constrain),
         )?;
-        let time = Time::new(
+        let time = PlainTime::new(
             partial_time.hour.unwrap_or(0),
             partial_time.minute.unwrap_or(0),
             partial_time.second.unwrap_or(0),
             partial_time.millisecond.unwrap_or(0),
             partial_time.microsecond.unwrap_or(0),
             partial_time.nanosecond.unwrap_or(0),
-            ArithmeticOverflow::Constrain,
         )?;
 
         return InnerDateTime::new(
             date.iso_year(),
-            date.iso_month().into(),
-            date.iso_day().into(),
-            time.hour().into(),
-            time.minute().into(),
-            time.second().into(),
-            time.millisecond().into(),
-            time.microsecond().into(),
-            time.nanosecond().into(),
+            date.iso_month(),
+            date.iso_day(),
+            time.hour(),
+            time.minute(),
+            time.second(),
+            time.millisecond(),
+            time.microsecond(),
+            time.nanosecond(),
             calendar,
         )
         .map_err(Into::into);
@@ -1073,7 +1098,7 @@ pub(crate) fn to_temporal_datetime(
     // h. Set calendar to CanonicalizeUValue("ca", calendar).
     let date = string.to_std_string_escaped().parse::<InnerDateTime>()?;
     // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
-    let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+    let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
     // 5. Return ? CreateTemporalDateTime(result.[[Year]], result.[[Month]], result.[[Day]],
     // result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]],
     // result.[[Microsecond]], result.[[Nanosecond]], calendar).

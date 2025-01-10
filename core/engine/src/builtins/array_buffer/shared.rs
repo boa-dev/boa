@@ -9,7 +9,6 @@ use boa_profiler::Profiler;
 use portable_atomic::{AtomicU8, AtomicUsize};
 
 use boa_gc::{Finalize, Trace};
-use sptr::Strict;
 
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -155,6 +154,8 @@ impl BuiltInObject for SharedArrayBuffer {
 
 impl BuiltInConstructor for SharedArrayBuffer {
     const LENGTH: usize = 1;
+    const P: usize = 6;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::shared_array_buffer;
@@ -609,7 +610,7 @@ pub(crate) fn create_shared_byte_data_block(
     // This could be replaced with a custom `Box` implementation, but most architectures
     // already align pointers to 8 bytes, so it's a lot of work for such a small
     // compatibility improvement.
-    assert_eq!(buffer.as_ptr().addr() % align_of::<u64>(), 0);
+    assert_eq!(sptr::Strict::addr(buffer.as_ptr()) % align_of::<u64>(), 0);
 
     // 3. Return db.
     Ok(buffer)

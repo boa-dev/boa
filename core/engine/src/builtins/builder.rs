@@ -1,5 +1,3 @@
-use boa_macros::js_str;
-
 use crate::{
     js_string,
     native_function::{NativeFunctionObject, NativeFunctionPointer},
@@ -119,7 +117,7 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
                 .configurable(true),
         );
         object.insert(
-            js_str!("name"),
+            js_string!("name"),
             PropertyDescriptor::builder()
                 .value(self.name)
                 .writable(false)
@@ -134,6 +132,9 @@ impl<S: ApplyToObject + IsConstructor> ApplyToObject for Callable<S> {
 impl ApplyToObject for OrdinaryObject {
     fn apply_to(self, _: &JsObject) {}
 }
+
+// The number of properties that are always present in a standard constructor. See build method
+const OWN_PROPS: usize = 3;
 
 /// Builder for creating built-in objects, like `Array`.
 ///
@@ -365,8 +366,8 @@ impl BuiltInConstructorWithPrototype<'_> {
         let length = self.length;
         let name = self.name.clone();
         let prototype = self.prototype.clone();
-        self = self.static_property(js_str!("length"), length, Attribute::CONFIGURABLE);
-        self = self.static_property(js_str!("name"), name, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
         self = self.static_property(PROTOTYPE, prototype, Attribute::empty());
 
         let attributes = self.attributes;
@@ -413,8 +414,8 @@ impl BuiltInConstructorWithPrototype<'_> {
     pub(crate) fn build_without_prototype(mut self) {
         let length = self.length;
         let name = self.name.clone();
-        self = self.static_property(js_str!("length"), length, Attribute::CONFIGURABLE);
-        self = self.static_property(js_str!("name"), name, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
+        self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
 
         let mut object = self.object.borrow_mut();
         let function = object
@@ -528,6 +529,7 @@ impl<'ctx> BuiltInBuilder<'ctx, OrdinaryObject> {
 }
 
 impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
+    /// Create a new builder for a constructor function setting the properties ahead of time for optimizations (less reallocations)
     pub(crate) fn from_standard_constructor<SC: BuiltInConstructor>(
         realm: &'ctx Realm,
     ) -> BuiltInConstructorWithPrototype<'ctx> {
@@ -537,11 +539,11 @@ impl<'ctx> BuiltInBuilder<'ctx, Callable<Constructor>> {
             function: SC::constructor,
             name: js_string!(SC::NAME),
             length: SC::LENGTH,
-            object_property_table: PropertyTableInner::default(),
-            object_storage: Vec::default(),
+            object_property_table: PropertyTableInner::with_capacity(SC::SP + OWN_PROPS),
+            object_storage: Vec::with_capacity(SC::SP + OWN_PROPS),
             object: constructor.constructor(),
-            prototype_property_table: PropertyTableInner::default(),
-            prototype_storage: Vec::default(),
+            prototype_property_table: PropertyTableInner::with_capacity(SC::P),
+            prototype_storage: Vec::with_capacity(SC::P),
             prototype: constructor.prototype(),
             __proto__: Some(realm.intrinsics().constructors().function().prototype()),
             inherits: Some(realm.intrinsics().constructors().object().prototype()),

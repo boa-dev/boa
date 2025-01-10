@@ -479,41 +479,46 @@ impl ByteCompiler<'_> {
         // 16. For each Parse Node f of functionsToInitialize, do
         for function in functions_to_initialize {
             // a. Let fn be the sole element of the BoundNames of f.
-            let (name, generator, r#async, parameters, body, scopes) = match &function {
-                VarScopedDeclaration::FunctionDeclaration(f) => (
-                    f.name(),
-                    false,
-                    false,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::GeneratorDeclaration(f) => (
-                    f.name(),
-                    true,
-                    false,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::AsyncFunctionDeclaration(f) => (
-                    f.name(),
-                    false,
-                    true,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => (
-                    f.name(),
-                    true,
-                    true,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::VariableDeclaration(_) => continue,
-            };
+            let (name, generator, r#async, parameters, body, scopes, contains_direct_eval) =
+                match &function {
+                    VarScopedDeclaration::FunctionDeclaration(f) => (
+                        f.name(),
+                        false,
+                        false,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::GeneratorDeclaration(f) => (
+                        f.name(),
+                        true,
+                        false,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::AsyncFunctionDeclaration(f) => (
+                        f.name(),
+                        false,
+                        true,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::AsyncGeneratorDeclaration(f) => (
+                        f.name(),
+                        true,
+                        true,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::VariableDeclaration(_) => continue,
+                };
 
             let func_span = function.linear_span();
             let spanned_source_text = SpannedSourceText::new(self.source_text(), func_span);
@@ -530,6 +535,7 @@ impl ByteCompiler<'_> {
                     self.variable_scope.clone(),
                     self.lexical_scope.clone(),
                     &scopes,
+                    contains_direct_eval,
                     self.interner,
                 );
 
@@ -740,43 +746,48 @@ impl ByteCompiler<'_> {
         // 17. For each Parse Node f of functionsToInitialize, do
         for function in functions_to_initialize {
             // a. Let fn be the sole element of the BoundNames of f.
-            let (name, generator, r#async, parameters, body, scopes) = match &function {
-                VarScopedDeclaration::FunctionDeclaration(f) => (
-                    f.name(),
-                    false,
-                    false,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::GeneratorDeclaration(f) => (
-                    f.name(),
-                    true,
-                    false,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::AsyncFunctionDeclaration(f) => (
-                    f.name(),
-                    false,
-                    true,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::AsyncGeneratorDeclaration(f) => (
-                    f.name(),
-                    true,
-                    true,
-                    f.parameters(),
-                    f.body(),
-                    f.scopes().clone(),
-                ),
-                VarScopedDeclaration::VariableDeclaration(_) => {
-                    continue;
-                }
-            };
+            let (name, generator, r#async, parameters, body, scopes, contains_direct_eval) =
+                match &function {
+                    VarScopedDeclaration::FunctionDeclaration(f) => (
+                        f.name(),
+                        false,
+                        false,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::GeneratorDeclaration(f) => (
+                        f.name(),
+                        true,
+                        false,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::AsyncFunctionDeclaration(f) => (
+                        f.name(),
+                        false,
+                        true,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::AsyncGeneratorDeclaration(f) => (
+                        f.name(),
+                        true,
+                        true,
+                        f.parameters(),
+                        f.body(),
+                        f.scopes().clone(),
+                        f.contains_direct_eval(),
+                    ),
+                    VarScopedDeclaration::VariableDeclaration(_) => {
+                        continue;
+                    }
+                };
 
             let func_span = function.linear_span();
             let spanned_source_text = SpannedSourceText::new(self.source_text(), func_span);
@@ -794,6 +805,7 @@ impl ByteCompiler<'_> {
                     self.variable_scope.clone(),
                     self.lexical_scope.clone(),
                     &scopes,
+                    contains_direct_eval,
                     self.interner,
                 );
 
@@ -968,11 +980,12 @@ impl ByteCompiler<'_> {
             }
         }
 
-        // 19-20
-        if let Some(scope) = scopes.parameters_eval_scope() {
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+        if arguments_object_needed {
+            arguments_object_needed = scopes.arguments_object_accessed();
         }
+
+        // 19-20
+        drop(self.push_declarative_scope(scopes.parameters_eval_scope()));
 
         let scope = self.lexical_scope.clone();
 
@@ -1063,8 +1076,7 @@ impl ByteCompiler<'_> {
                 //          visibility of declarations in the function body.
                 // b. Let varEnv be NewDeclarativeEnvironment(env).
                 // c. Set the VariableEnvironment of calleeContext to varEnv.
-                let scope_index = self.push_scope(scope);
-                self.emit_with_varying_operand(Opcode::PushScope, scope_index);
+                drop(self.push_declarative_scope(Some(scope)));
 
                 let mut variable_scope = self.lexical_scope.clone();
 
@@ -1183,10 +1195,7 @@ impl ByteCompiler<'_> {
         }
 
         // 30-31
-        if let Some(scope) = scopes.lexical_scope() {
-            let scope_index = self.push_scope(scope);
-            self.emit_with_varying_operand(Opcode::PushScope, scope_index);
-        }
+        drop(self.push_declarative_scope(scopes.lexical_scope()));
 
         // 35. Let privateEnv be the PrivateEnvironment of calleeContext.
         // 36. For each Parse Node f of functionsToInitialize, do

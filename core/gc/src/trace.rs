@@ -34,8 +34,24 @@ impl Tracer {
         self.queue.push_back(node);
     }
 
-    pub(crate) fn next(&mut self) -> Option<GcErasedPointer> {
-        self.queue.pop_front()
+    /// Traces through all the queued nodes until the queue is empty.
+    ///
+    /// # Safety
+    ///
+    /// All the pointers inside of the queue must point to valid memory.
+    pub(crate) unsafe fn trace_until_empty(&mut self) {
+        while let Some(node) = self.queue.pop_front() {
+            let node_ref = unsafe { node.as_ref() };
+            if node_ref.is_marked() {
+                continue;
+            }
+            node_ref.header.mark();
+            let trace_fn = node_ref.trace_fn();
+
+            // SAFETY: The function pointer is appropriate for this node type because we extract it from it's VTable.
+            // Additionally, the node pointer is valid per the caller's guarantee.
+            unsafe { trace_fn(node, self) }
+        }
     }
 
     pub(crate) fn is_empty(&mut self) -> bool {
@@ -179,7 +195,7 @@ simple_empty_finalize_trace![
     char,
     TypeId,
     String,
-    Box<str>,
+    str,
     Rc<str>,
     Path,
     PathBuf,

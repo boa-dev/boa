@@ -1,7 +1,7 @@
 use super::{access::PropertyAccessField, Expression};
 use crate::{
     function::PrivateName,
-    join_nodes, try_break,
+    join_nodes,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
@@ -39,7 +39,7 @@ impl VisitWith for OptionalOperationKind {
             Self::PrivatePropertyAccess { field } => visitor.visit_private_name(field),
             Self::Call { args } => {
                 for arg in args {
-                    try_break!(visitor.visit_expression(arg));
+                    visitor.visit_expression(arg)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -55,7 +55,7 @@ impl VisitWith for OptionalOperationKind {
             Self::PrivatePropertyAccess { field } => visitor.visit_private_name_mut(field),
             Self::Call { args } => {
                 for arg in args.iter_mut() {
-                    try_break!(visitor.visit_expression_mut(arg));
+                    visitor.visit_expression_mut(arg)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -185,9 +185,9 @@ impl VisitWith for Optional {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.target));
+        visitor.visit_expression(&self.target)?;
         for op in &*self.chain {
-            try_break!(visitor.visit_optional_operation(op));
+            visitor.visit_optional_operation(op)?;
         }
         ControlFlow::Continue(())
     }
@@ -196,9 +196,9 @@ impl VisitWith for Optional {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.target));
+        visitor.visit_expression_mut(&mut self.target)?;
         for op in &mut *self.chain {
-            try_break!(visitor.visit_optional_operation_mut(op));
+            visitor.visit_optional_operation_mut(op)?;
         }
         ControlFlow::Continue(())
     }

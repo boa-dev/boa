@@ -21,10 +21,9 @@ use crate::{
     string::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
-use super::{Error, ErrorObject};
+use super::Error;
 
 /// JavaScript `SyntaxError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -38,8 +37,8 @@ impl IntrinsicObject for SyntaxError {
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
             .inherits(Some(realm.intrinsics().constructors().error().prototype()))
-            .property(js_str!("name"), Self::NAME, attribute)
-            .property(js_str!("message"), js_string!(), attribute)
+            .property(js_string!("name"), Self::NAME, attribute)
+            .property(js_string!("message"), js_string!(), attribute)
             .build();
     }
 
@@ -54,6 +53,8 @@ impl BuiltInObject for SyntaxError {
 
 impl BuiltInConstructor for SyntaxError {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::syntax_error;
@@ -88,7 +89,7 @@ impl BuiltInConstructor for SyntaxError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            ErrorObject::Syntax,
+            Error::Syntax,
         );
 
         // 3. If message is not undefined, then
@@ -98,7 +99,7 @@ impl BuiltInConstructor for SyntaxError {
             let msg = message.to_string(context)?;
 
             // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
-            o.create_non_enumerable_data_property_or_throw(js_str!("message"), msg, context);
+            o.create_non_enumerable_data_property_or_throw(js_string!("message"), msg, context);
         }
 
         // 4. Perform ? InstallErrorCause(O, options).

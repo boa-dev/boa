@@ -3,7 +3,6 @@
 // the same names from the unstable functions of the `std::ptr` module.
 #![allow(unstable_name_collisions)]
 
-use sptr::Strict;
 use std::ptr::NonNull;
 
 /// A pointer that can be tagged with an `usize`.
@@ -80,7 +79,7 @@ impl<T> Tagged<T> {
 
     /// Unwraps the `Tagged` pointer.
     pub(crate) fn unwrap(self) -> UnwrappedTagged<T> {
-        let addr = self.0.as_ptr().addr();
+        let addr = sptr::Strict::addr(self.0.as_ptr());
         if addr & 1 == 0 {
             UnwrappedTagged::Ptr(self.0)
         } else {
@@ -91,13 +90,13 @@ impl<T> Tagged<T> {
     /// Gets the address of the inner pointer.
     #[allow(unused)]
     pub(crate) fn addr(self) -> usize {
-        self.0.as_ptr().addr()
+        sptr::Strict::addr(self.0.as_ptr())
     }
 
     /// Returns `true` if `self ` is a tagged pointer.
     #[allow(unused)]
     pub(crate) fn is_tagged(self) -> bool {
-        self.0.as_ptr().addr() & 1 > 0
+        sptr::Strict::addr(self.0.as_ptr()) & 1 > 0
     }
 }
 

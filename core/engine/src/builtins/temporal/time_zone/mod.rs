@@ -96,7 +96,7 @@ fn canonicalize_time_zone_name(time_zone: &str) -> String {
     // do not include local political rules for any time zones performs the following steps when
     // called:
     // 1. Assert: timeZone is an ASCII-case-insensitive match for "UTC".
-    assert!(time_zone.to_ascii_uppercase() == "UTC");
+    assert_eq!(time_zone.to_ascii_uppercase(), "UTC");
     // 2. Return "UTC".
     "UTC".to_owned()
 }

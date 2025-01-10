@@ -51,6 +51,8 @@ impl BuiltInObject for Boolean {
 
 impl BuiltInConstructor for Boolean {
     const LENGTH: usize = 1;
+    const P: usize = 2;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::boolean;
@@ -64,7 +66,7 @@ impl BuiltInConstructor for Boolean {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // Get the argument, if any
-        let data = args.first().map_or(false, JsValue::to_boolean);
+        let data = args.first().is_some_and(JsValue::to_boolean);
         if new_target.is_undefined() {
             return Ok(JsValue::new(data));
         }
@@ -110,7 +112,11 @@ impl Boolean {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this)?;
-        Ok(JsValue::new(js_string!(boolean.to_string())))
+        Ok(JsValue::new(if boolean {
+            js_string!("true")
+        } else {
+            js_string!("false")
+        }))
     }
 
     /// The `valueOf()` method returns the primitive value of a `Boolean` object.

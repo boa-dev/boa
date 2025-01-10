@@ -1,7 +1,7 @@
 //! Error-related types and conversions.
 
 use crate::{
-    builtins::{error::ErrorObject, Array},
+    builtins::{error::Error, Array},
     js_string,
     object::JsObject,
     property::PropertyDescriptor,
@@ -9,8 +9,7 @@ use crate::{
     Context, JsString, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
-use boa_macros::js_str;
-use std::{error, fmt};
+use std::{borrow::Cow, error, fmt};
 use thiserror::Error;
 
 /// Create an error object from a value or string literal. Optionally the
@@ -59,80 +58,80 @@ use thiserror::Error;
 macro_rules! js_error {
     (Error: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::error().with_message($value)
+            $crate::JsNativeError::ERROR.with_message($value)
         )
     };
     (Error: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::error()
+            $crate::JsNativeError::ERROR
                 .with_message(format!($value $(, $args)*))
         )
     };
 
     (TypeError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::typ().with_message($value)
+            $crate::JsNativeError::TYP.with_message($value)
         )
     };
     (TypeError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::typ()
+            $crate::JsNativeError::TYP
                 .with_message(format!($value $(, $args)*))
         )
     };
 
     (SyntaxError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::syntax().with_message($value)
+            $crate::JsNativeError::SYNTAX.with_message($value)
         )
     };
     (SyntaxError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::syntax().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::SYNTAX.with_message(format!($value $(, $args)*))
         )
     };
 
     (RangeError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::range().with_message($value)
+            $crate::JsNativeError::RANGE.with_message($value)
         )
     };
     (RangeError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::range().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::RANGE.with_message(format!($value $(, $args)*))
         )
     };
 
     (EvalError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::eval().with_message($value)
+            $crate::JsNativeError::EVAL.with_message($value)
         )
     };
     (EvalError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::eval().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::EVAL.with_message(format!($value $(, $args)*))
         )
     };
 
     (ReferenceError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::reference().with_message($value)
+            $crate::JsNativeError::REFERENCE.with_message($value)
         )
     };
     (ReferenceError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::reference().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::REFERENCE.with_message(format!($value $(, $args)*))
         )
     };
 
     (URIError: $value: literal) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::uri().with_message($value)
+            $crate::JsNativeError::URI.with_message($value)
         )
     };
     (URIError: $value: literal $(, $args: expr)* $(,)?) => {
         $crate::JsError::from_native(
-            $crate::JsNativeError::uri().with_message(format!($value $(, $args)*))
+            $crate::JsNativeError::URI.with_message(format!($value $(, $args)*))
         )
     };
 
@@ -169,13 +168,13 @@ macro_rules! js_error {
 /// # Examples
 ///
 /// ```rust
-/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue, js_str};
-/// let cause = JsError::from_opaque(js_str!("error!").into());
+/// # use boa_engine::{JsError, JsNativeError, JsNativeErrorKind, JsValue, js_string};
+/// let cause = JsError::from_opaque(js_string!("error!").into());
 ///
 /// assert!(cause.as_opaque().is_some());
 /// assert_eq!(
 ///     cause.as_opaque().unwrap(),
-///     &JsValue::from(js_str!("error!"))
+///     &JsValue::from(js_string!("error!"))
 /// );
 ///
 /// let native_error: JsError = JsNativeError::typ()
@@ -333,12 +332,12 @@ impl JsError {
     ///
     /// ```rust
     /// # use boa_engine::{Context, JsError, JsNativeError};
-    /// # use boa_engine::builtins::error::ErrorObject;
+    /// # use boa_engine::builtins::error::Error;
     /// let context = &mut Context::default();
     /// let error: JsError = JsNativeError::eval().with_message("invalid script").into();
     /// let error_val = error.to_opaque(context);
     ///
-    /// assert!(error_val.as_object().unwrap().is::<ErrorObject>());
+    /// assert!(error_val.as_object().unwrap().is::<Error>());
     /// ```
     pub fn to_opaque(&self, context: &mut Context) -> JsValue {
         match &self.inner {
@@ -393,7 +392,7 @@ impl JsError {
                     .as_object()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
                 let error = *obj
-                    .downcast_ref::<ErrorObject>()
+                    .downcast_ref::<Error>()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
@@ -407,28 +406,29 @@ impl JsError {
                 let message = if let Some(msg) =
                     try_get_property(js_string!("message"), "message", context)?
                 {
-                    msg.as_string()
-                        .map(JsString::to_std_string)
-                        .transpose()
-                        .map_err(|_| TryNativeError::InvalidMessageEncoding)?
-                        .ok_or(TryNativeError::InvalidPropertyType("message"))?
-                        .into()
+                    Cow::Owned(
+                        msg.as_string()
+                            .map(JsString::to_std_string)
+                            .transpose()
+                            .map_err(|_| TryNativeError::InvalidMessageEncoding)?
+                            .ok_or(TryNativeError::InvalidPropertyType("message"))?,
+                    )
                 } else {
-                    Box::default()
+                    Cow::Borrowed("")
                 };
 
                 let cause = try_get_property(js_string!("cause"), "cause", context)?;
 
                 let kind = match error {
-                    ErrorObject::Error => JsNativeErrorKind::Error,
-                    ErrorObject::Eval => JsNativeErrorKind::Eval,
-                    ErrorObject::Type => JsNativeErrorKind::Type,
-                    ErrorObject::Range => JsNativeErrorKind::Range,
-                    ErrorObject::Reference => JsNativeErrorKind::Reference,
-                    ErrorObject::Syntax => JsNativeErrorKind::Syntax,
-                    ErrorObject::Uri => JsNativeErrorKind::Uri,
-                    ErrorObject::Aggregate => {
-                        let errors = obj.get(js_str!("errors"), context).map_err(|e| {
+                    Error::Error => JsNativeErrorKind::Error,
+                    Error::Eval => JsNativeErrorKind::Eval,
+                    Error::Type => JsNativeErrorKind::Type,
+                    Error::Range => JsNativeErrorKind::Range,
+                    Error::Reference => JsNativeErrorKind::Reference,
+                    Error::Syntax => JsNativeErrorKind::Syntax,
+                    Error::Uri => JsNativeErrorKind::Uri,
+                    Error::Aggregate => {
+                        let errors = obj.get(js_string!("errors"), context).map_err(|e| {
                             TryNativeError::InaccessibleProperty {
                                 property: "errors",
                                 source: e,
@@ -559,7 +559,7 @@ impl JsError {
     pub fn into_erased(self, context: &mut Context) -> JsErasedError {
         let Ok(native) = self.try_native(context) else {
             return JsErasedError {
-                inner: ErasedRepr::Opaque(self.to_string().into_boxed_str()),
+                inner: ErasedRepr::Opaque(Cow::Owned(self.to_string())),
             };
         };
 
@@ -671,7 +671,7 @@ impl fmt::Display for JsError {
 pub struct JsNativeError {
     /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
     pub kind: JsNativeErrorKind,
-    message: Box<str>,
+    message: Cow<'static, str>,
     #[source]
     cause: Option<Box<JsError>>,
     realm: Option<Realm>,
@@ -710,8 +710,34 @@ impl fmt::Debug for JsNativeError {
 }
 
 impl JsNativeError {
+    /// Default `AggregateError` kind `JsNativeError`.
+    pub const AGGREGATE: Self = Self::aggregate(Vec::new());
+    /// Default `Error` kind `JsNativeError`.
+    pub const ERROR: Self = Self::error();
+    /// Default `EvalError` kind `JsNativeError`.
+    pub const EVAL: Self = Self::eval();
+    /// Default `RangeError` kind `JsNativeError`.
+    pub const RANGE: Self = Self::range();
+    /// Default `ReferenceError` kind `JsNativeError`.
+    pub const REFERENCE: Self = Self::reference();
+    /// Default `SyntaxError` kind `JsNativeError`.
+    pub const SYNTAX: Self = Self::syntax();
+    /// Default `error` kind `JsNativeError`.
+    pub const TYP: Self = Self::typ();
+    /// Default `UriError` kind `JsNativeError`.
+    pub const URI: Self = Self::uri();
+    #[cfg(feature = "fuzz")]
+    /// Default `NoInstructionsRemain` kind `JsNativeError`.
+    pub const NO_INSTRUCTIONS_REMAIN: Self = Self::no_instructions_remain();
+    /// Default `error` kind `JsNativeError`.
+    pub const RUNTIME_LIMIT: Self = Self::runtime_limit();
+
     /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
-    fn new(kind: JsNativeErrorKind, message: Box<str>, cause: Option<Box<JsError>>) -> Self {
+    const fn new(
+        kind: JsNativeErrorKind,
+        message: Cow<'static, str>,
+        cause: Option<Box<JsError>>,
+    ) -> Self {
         Self {
             kind,
             message,
@@ -740,8 +766,12 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn aggregate(errors: Vec<JsError>) -> Self {
-        Self::new(JsNativeErrorKind::Aggregate(errors), Box::default(), None)
+    pub const fn aggregate(errors: Vec<JsError>) -> Self {
+        Self::new(
+            JsNativeErrorKind::Aggregate(errors),
+            Cow::Borrowed(""),
+            None,
+        )
     }
 
     /// Check if it's a [`JsNativeErrorKind::Aggregate`].
@@ -763,8 +793,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn error() -> Self {
-        Self::new(JsNativeErrorKind::Error, Box::default(), None)
+    pub const fn error() -> Self {
+        Self::new(JsNativeErrorKind::Error, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Error`].
@@ -786,8 +816,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn eval() -> Self {
-        Self::new(JsNativeErrorKind::Eval, Box::default(), None)
+    pub const fn eval() -> Self {
+        Self::new(JsNativeErrorKind::Eval, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Eval`].
@@ -809,8 +839,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn range() -> Self {
-        Self::new(JsNativeErrorKind::Range, Box::default(), None)
+    pub const fn range() -> Self {
+        Self::new(JsNativeErrorKind::Range, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Range`].
@@ -832,8 +862,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn reference() -> Self {
-        Self::new(JsNativeErrorKind::Reference, Box::default(), None)
+    pub const fn reference() -> Self {
+        Self::new(JsNativeErrorKind::Reference, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Reference`].
@@ -855,8 +885,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn syntax() -> Self {
-        Self::new(JsNativeErrorKind::Syntax, Box::default(), None)
+    pub const fn syntax() -> Self {
+        Self::new(JsNativeErrorKind::Syntax, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Syntax`].
@@ -878,8 +908,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn typ() -> Self {
-        Self::new(JsNativeErrorKind::Type, Box::default(), None)
+    pub const fn typ() -> Self {
+        Self::new(JsNativeErrorKind::Type, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Type`].
@@ -901,8 +931,8 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub fn uri() -> Self {
-        Self::new(JsNativeErrorKind::Uri, Box::default(), None)
+    pub const fn uri() -> Self {
+        Self::new(JsNativeErrorKind::Uri, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::Uri`].
@@ -916,10 +946,10 @@ impl JsNativeError {
     /// is only used in a fuzzing context.
     #[cfg(feature = "fuzz")]
     #[must_use]
-    pub fn no_instructions_remain() -> Self {
+    pub const fn no_instructions_remain() -> Self {
         Self::new(
             JsNativeErrorKind::NoInstructionsRemain,
-            Box::default(),
+            Cow::Borrowed(""),
             None,
         )
     }
@@ -935,8 +965,8 @@ impl JsNativeError {
     /// Creates a new `JsNativeError` that indicates that the context exceeded the runtime limits.
     #[must_use]
     #[inline]
-    pub fn runtime_limit() -> Self {
-        Self::new(JsNativeErrorKind::RuntimeLimit, Box::default(), None)
+    pub const fn runtime_limit() -> Self {
+        Self::new(JsNativeErrorKind::RuntimeLimit, Cow::Borrowed(""), None)
     }
 
     /// Check if it's a [`JsNativeErrorKind::RuntimeLimit`].
@@ -960,7 +990,7 @@ impl JsNativeError {
     #[inline]
     pub fn with_message<S>(mut self, message: S) -> Self
     where
-        S: Into<Box<str>>,
+        S: Into<Cow<'static, str>>,
     {
         self.message = message.into();
         self
@@ -1004,7 +1034,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
-    pub const fn message(&self) -> &str {
+    pub fn message(&self) -> &str {
         &self.message
     }
 
@@ -1035,17 +1065,17 @@ impl JsNativeError {
     /// # Examples
     ///
     /// ```rust
-    /// # use boa_engine::{Context, JsError, JsNativeError, js_str};
-    /// # use boa_engine::builtins::error::ErrorObject;
+    /// # use boa_engine::{Context, JsError, JsNativeError, js_string};
+    /// # use boa_engine::builtins::error::Error;
     /// let context = &mut Context::default();
     ///
     /// let error = JsNativeError::error().with_message("error!");
     /// let error_obj = error.to_opaque(context);
     ///
-    /// assert!(error_obj.is::<ErrorObject>());
+    /// assert!(error_obj.is::<Error>());
     /// assert_eq!(
-    ///     error_obj.get(js_str!("message"), context).unwrap(),
-    ///     js_str!("error!").into()
+    ///     error_obj.get(js_string!("message"), context).unwrap(),
+    ///     js_string!("error!").into()
     /// )
     /// ```
     ///
@@ -1065,24 +1095,18 @@ impl JsNativeError {
             |realm| realm.intrinsics().constructors(),
         );
         let (prototype, tag) = match kind {
-            JsNativeErrorKind::Aggregate(_) => (
-                constructors.aggregate_error().prototype(),
-                ErrorObject::Aggregate,
-            ),
-            JsNativeErrorKind::Error => (constructors.error().prototype(), ErrorObject::Error),
-            JsNativeErrorKind::Eval => (constructors.eval_error().prototype(), ErrorObject::Eval),
-            JsNativeErrorKind::Range => {
-                (constructors.range_error().prototype(), ErrorObject::Range)
+            JsNativeErrorKind::Aggregate(_) => {
+                (constructors.aggregate_error().prototype(), Error::Aggregate)
             }
-            JsNativeErrorKind::Reference => (
-                constructors.reference_error().prototype(),
-                ErrorObject::Reference,
-            ),
-            JsNativeErrorKind::Syntax => {
-                (constructors.syntax_error().prototype(), ErrorObject::Syntax)
+            JsNativeErrorKind::Error => (constructors.error().prototype(), Error::Error),
+            JsNativeErrorKind::Eval => (constructors.eval_error().prototype(), Error::Eval),
+            JsNativeErrorKind::Range => (constructors.range_error().prototype(), Error::Range),
+            JsNativeErrorKind::Reference => {
+                (constructors.reference_error().prototype(), Error::Reference)
             }
-            JsNativeErrorKind::Type => (constructors.type_error().prototype(), ErrorObject::Type),
-            JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorObject::Uri),
+            JsNativeErrorKind::Syntax => (constructors.syntax_error().prototype(), Error::Syntax),
+            JsNativeErrorKind::Type => (constructors.type_error().prototype(), Error::Type),
+            JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), Error::Uri),
             #[cfg(feature = "fuzz")]
             JsNativeErrorKind::NoInstructionsRemain => {
                 unreachable!(
@@ -1098,14 +1122,14 @@ impl JsNativeError {
             JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
 
         o.create_non_enumerable_data_property_or_throw(
-            js_str!("message"),
-            js_string!(&**message),
+            js_string!("message"),
+            js_string!(message.as_ref()),
             context,
         );
 
         if let Some(cause) = cause {
             o.create_non_enumerable_data_property_or_throw(
-                js_str!("cause"),
+                js_string!("cause"),
                 cause.to_opaque(context),
                 context,
             );
@@ -1118,7 +1142,7 @@ impl JsNativeError {
                 .collect::<Vec<_>>();
             let errors = Array::create_array_from_list(errors, context);
             o.define_property_or_throw(
-                js_str!("errors"),
+                js_string!("errors"),
                 PropertyDescriptor::builder()
                     .configurable(true)
                     .enumerable(false)
@@ -1288,18 +1312,18 @@ impl JsNativeErrorKind {
     }
 }
 
-impl PartialEq<ErrorObject> for JsNativeErrorKind {
-    fn eq(&self, other: &ErrorObject) -> bool {
+impl PartialEq<Error> for JsNativeErrorKind {
+    fn eq(&self, other: &Error) -> bool {
         matches!(
             (self, other),
-            (Self::Aggregate(_), ErrorObject::Aggregate)
-                | (Self::Error, ErrorObject::Error)
-                | (Self::Eval, ErrorObject::Eval)
-                | (Self::Range, ErrorObject::Range)
-                | (Self::Reference, ErrorObject::Reference)
-                | (Self::Syntax, ErrorObject::Syntax)
-                | (Self::Type, ErrorObject::Type)
-                | (Self::Uri, ErrorObject::Uri)
+            (Self::Aggregate(_), Error::Aggregate)
+                | (Self::Error, Error::Error)
+                | (Self::Eval, Error::Eval)
+                | (Self::Range, Error::Range)
+                | (Self::Reference, Error::Reference)
+                | (Self::Syntax, Error::Syntax)
+                | (Self::Type, Error::Type)
+                | (Self::Uri, Error::Uri)
         )
     }
 }
@@ -1340,7 +1364,7 @@ pub struct JsErasedError {
 #[derive(Debug, Clone, Trace, Finalize, PartialEq, Eq)]
 enum ErasedRepr {
     Native(JsErasedNativeError),
-    Opaque(Box<str>),
+    Opaque(Cow<'static, str>),
 }
 
 impl fmt::Display for JsErasedError {
@@ -1365,7 +1389,7 @@ impl JsErasedError {
     /// Gets the inner [`str`] if the error is an opaque error,
     /// or `None` otherwise.
     #[must_use]
-    pub const fn as_opaque(&self) -> Option<&str> {
+    pub fn as_opaque(&self) -> Option<&str> {
         match self.inner {
             ErasedRepr::Native(_) => None,
             ErasedRepr::Opaque(ref v) => Some(v),
@@ -1388,7 +1412,7 @@ impl JsErasedError {
 pub struct JsErasedNativeError {
     /// The kind of native error (e.g. `TypeError`, `SyntaxError`, etc.)
     pub kind: JsErasedNativeErrorKind,
-    message: Box<str>,
+    message: Cow<'static, str>,
     #[source]
     cause: Option<Box<JsErasedError>>,
 }

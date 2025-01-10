@@ -1,7 +1,6 @@
 mod options;
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use fixed_decimal::FixedDecimal;
 use icu_locid::Locale;
@@ -25,7 +24,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsStr, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{
@@ -83,6 +82,8 @@ impl BuiltInObject for PluralRules {
 
 impl BuiltInConstructor for PluralRules {
     const LENGTH: usize = 0;
+    const P: usize = 4;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plural_rules;
@@ -124,12 +125,13 @@ impl BuiltInConstructor for PluralRules {
         // 3. Let opt be a new Record.
         // 4. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 5. Set opt.[[localeMatcher]] to matcher.
-        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher =
+            get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
         // 6. Let t be ? GetOption(options, "type", string, « "cardinal", "ordinal" », "cardinal").
         // 7. Set pluralRules.[[Type]] to t.
         let rule_type =
-            get_option(&options, js_str!("type"), context)?.unwrap_or(PluralRuleType::Cardinal);
+            get_option(&options, js_string!("type"), context)?.unwrap_or(PluralRuleType::Cardinal);
 
         // 8. Perform ? SetNumberFormatDigitOptions(pluralRules, options, +0𝔽, 3𝔽, "standard").
         let format_options =
@@ -328,21 +330,21 @@ impl PluralRules {
         let mut options = ObjectInitializer::new(context);
         options
             .property(
-                js_str!("locale"),
+                js_string!("locale"),
                 js_string!(plural_rules.locale.to_string()),
                 Attribute::all(),
             )
             .property(
-                js_str!("type"),
+                js_string!("type"),
                 match plural_rules.rule_type {
-                    PluralRuleType::Cardinal => js_str!("cardinal"),
-                    PluralRuleType::Ordinal => js_str!("ordinal"),
-                    _ => js_str!("unknown"),
+                    PluralRuleType::Cardinal => js_string!("cardinal"),
+                    PluralRuleType::Ordinal => js_string!("ordinal"),
+                    _ => js_string!("unknown"),
                 },
                 Attribute::all(),
             )
             .property(
-                js_str!("minimumIntegerDigits"),
+                js_string!("minimumIntegerDigits"),
                 plural_rules.format_options.minimum_integer_digits,
                 Attribute::all(),
             );
@@ -351,8 +353,16 @@ impl PluralRules {
             plural_rules.format_options.rounding_type.fraction_digits()
         {
             options
-                .property(js_str!("minimumFractionDigits"), minimum, Attribute::all())
-                .property(js_str!("maximumFractionDigits"), maximum, Attribute::all());
+                .property(
+                    js_string!("minimumFractionDigits"),
+                    minimum,
+                    Attribute::all(),
+                )
+                .property(
+                    js_string!("maximumFractionDigits"),
+                    maximum,
+                    Attribute::all(),
+                );
         }
 
         if let Some(Extrema { minimum, maximum }) = plural_rules
@@ -362,12 +372,12 @@ impl PluralRules {
         {
             options
                 .property(
-                    js_str!("minimumSignificantDigits"),
+                    js_string!("minimumSignificantDigits"),
                     minimum,
                     Attribute::all(),
                 )
                 .property(
-                    js_str!("maximumSignificantDigits"),
+                    js_string!("maximumSignificantDigits"),
                     maximum,
                     Attribute::all(),
                 );
@@ -375,17 +385,17 @@ impl PluralRules {
 
         options
             .property(
-                js_str!("roundingMode"),
+                js_string!("roundingMode"),
                 js_string!(plural_rules.format_options.rounding_mode.to_js_string()),
                 Attribute::all(),
             )
             .property(
-                js_str!("roundingIncrement"),
+                js_string!("roundingIncrement"),
                 plural_rules.format_options.rounding_increment.to_u16(),
                 Attribute::all(),
             )
             .property(
-                js_str!("trailingZeroDisplay"),
+                js_string!("trailingZeroDisplay"),
                 plural_rules
                     .format_options
                     .trailing_zero_display
@@ -406,7 +416,7 @@ impl PluralRules {
 
         // 6. Perform ! CreateDataProperty(options, "pluralCategories", CreateArrayFromList(pluralCategories)).
         options.property(
-            js_str!("pluralCategories"),
+            js_string!("pluralCategories"),
             plural_categories,
             Attribute::all(),
         );
@@ -418,7 +428,7 @@ impl PluralRules {
         // 9. Else,
         //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "auto").
         options.property(
-            js_str!("roundingPriority"),
+            js_string!("roundingPriority"),
             js_string!(plural_rules.format_options.rounding_priority.to_js_string()),
             Attribute::all(),
         );
@@ -470,13 +480,13 @@ fn resolve_plural(plural_rules: &PluralRules, n: f64) -> ResolvedPlural {
     }
 }
 
-fn plural_category_to_js_string(category: PluralCategory) -> JsStr<'static> {
+fn plural_category_to_js_string(category: PluralCategory) -> JsString {
     match category {
-        PluralCategory::Zero => js_str!("zero"),
-        PluralCategory::One => js_str!("one"),
-        PluralCategory::Two => js_str!("two"),
-        PluralCategory::Few => js_str!("few"),
-        PluralCategory::Many => js_str!("many"),
-        PluralCategory::Other => js_str!("other"),
+        PluralCategory::Zero => js_string!("zero"),
+        PluralCategory::One => js_string!("one"),
+        PluralCategory::Two => js_string!("two"),
+        PluralCategory::Few => js_string!("few"),
+        PluralCategory::Many => js_string!("many"),
+        PluralCategory::Other => js_string!("other"),
     }
 }

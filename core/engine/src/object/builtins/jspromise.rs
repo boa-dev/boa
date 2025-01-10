@@ -25,7 +25,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// ```
 /// # use boa_engine::{
 /// #     builtins::promise::PromiseState,
-/// #     js_str,
+/// #     js_string,
 /// #     object::{builtins::JsPromise, FunctionObjectBuilder},
 /// #     property::Attribute,
 /// #     Context, JsArgs, JsError, JsValue, NativeFunction,
@@ -34,11 +34,11 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 /// # fn main() -> Result<(), Box<dyn Error>> {
 /// let context = &mut Context::default();
 ///
-/// context.register_global_property(js_str!("finally"), false, Attribute::all());
+/// context.register_global_property(js_string!("finally"), false, Attribute::all());
 ///
 /// let promise = JsPromise::new(
 ///     |resolvers, context| {
-///         let result = js_str!("hello world!").into();
+///         let result = js_string!("hello world!").into();
 ///         resolvers
 ///             .resolve
 ///             .call(&JsValue::undefined(), &[result], context)?;
@@ -66,7 +66,7 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///     .finally(
 ///         NativeFunction::from_fn_ptr(|_, _, context| {
 ///             context.global_object().clone().set(
-///                 js_str!("finally"),
+///                 js_string!("finally"),
 ///                 JsValue::from(true),
 ///                 true,
 ///                 context,
@@ -81,14 +81,14 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 ///
 /// assert_eq!(
 ///     promise.state(),
-///     PromiseState::Fulfilled(js_str!("hello world!").into())
+///     PromiseState::Fulfilled(js_string!("hello world!").into())
 /// );
 ///
 /// assert_eq!(
 ///     context
 ///         .global_object()
 ///         .clone()
-///         .get(js_str!("finally"), context)?,
+///         .get(js_string!("finally"), context)?,
 ///     JsValue::from(true)
 /// );
 ///
@@ -309,6 +309,47 @@ impl JsPromise {
             .enqueue_future_job(Box::pin(future), context);
 
         promise
+    }
+
+    /// Creates a new `JsPromise` from a `Result<T, JsError>`, where `T` is the fulfilled value of
+    /// the promise, and `JsError` is the rejection reason. This is a simpler way to create a
+    /// promise that is either fulfilled or rejected based on the result of a computation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::error::Error;
+    /// # use boa_engine::{
+    /// #    object::builtins::JsPromise,
+    /// #    builtins::promise::PromiseState,
+    /// #    Context, JsResult, JsString, js_string, js_error
+    /// # };
+    /// let context = &mut Context::default();
+    ///
+    /// fn do_thing(success: bool) -> JsResult<JsString> {
+    ///     success.then(|| js_string!("resolved!")).ok_or(js_error!("rejected!"))
+    /// }
+    ///
+    /// let promise = JsPromise::from_result(do_thing(true), context);
+    /// assert_eq!(
+    ///     promise.state(),
+    ///     PromiseState::Fulfilled(js_string!("resolved!").into())
+    /// );
+    ///
+    /// let promise = JsPromise::from_result(do_thing(false), context);
+    /// assert_eq!(
+    ///     promise.state(),
+    ///     PromiseState::Rejected(js_string!("rejected!").into())
+    /// );
+    /// ```
+    pub fn from_result<V: Into<JsValue>, E: Into<JsError>>(
+        value: Result<V, E>,
+        context: &mut Context,
+    ) -> Self {
+        match value {
+            Ok(v) => Self::resolve(v, context),
+            Err(e) => Self::reject(e, context),
+        }
     }
 
     /// Resolves a `JsValue` into a `JsPromise`.
@@ -1082,7 +1123,7 @@ impl JsPromise {
     ///
     /// let context = &mut Context::default();
     /// let p1 = JsPromise::new(|fns, context| {
-    ///     fns.resolve.call(&JsValue::Undefined, &[], context)
+    ///     fns.resolve.call(&JsValue::undefined(), &[], context)
     /// }, context)
     ///     .then(
     ///         Some(
@@ -1138,11 +1179,12 @@ impl std::ops::Deref for JsPromise {
 
 impl TryFromJs for JsPromise {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a Promise object")
-                .into()),
+                .into())
         }
     }
 }

@@ -1,0 +1,35 @@
+name: Nightly Build
+permissions:
+  "contents": "write"
+
+# Schedule this workflow to run at midnight every day
+on:
+  schedule:
+    - cron: "0 0 * * *"  
+  workflow_dispatch: 
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v4
+    - name: Upload binaries to release
+      uses: taiki-e/upload-rust-binary-action@v1
+      with:
+        bin: boa
+        # We may be able to provide a custom archive name, but
+        # currently just going with the example default.
+        target: ${{ matrix.target }}
+        archive: $bin-$tag-$target
+        ref: refs/tags/nightly
+        token: ${{ secrets.GITHUB_TOKEN }}

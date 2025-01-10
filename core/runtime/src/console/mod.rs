@@ -20,7 +20,7 @@ use boa_engine::{
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsError, JsResult, JsStr, JsString, JsSymbol,
+    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -28,6 +28,14 @@ use std::{cell::RefCell, collections::hash_map::Entry, io::Write, rc::Rc, time::
 
 /// A trait that can be used to forward console logs to an implementation.
 pub trait Logger: Trace + Sized {
+    /// Log a debug message (`console.debug`). By default, passes the message to `log`.
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn debug(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)
+    }
+
     /// Log a log message (`console.log`).
     ///
     /// # Errors
@@ -58,8 +66,8 @@ pub trait Logger: Trace + Sized {
 /// Implements the [`Logger`] trait and output errors to stderr and all
 /// the others to stdout. Will add indentation based on the number of
 /// groups.
-#[derive(Trace, Finalize)]
-struct DefaultLogger;
+#[derive(Debug, Trace, Finalize)]
+pub struct DefaultLogger;
 
 impl Logger for DefaultLogger {
     #[inline]
@@ -140,7 +148,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                             // If a JS value implements `toString()`, call it.
                             let mut written = false;
                             if let Some(obj) = arg.as_object() {
-                                if let Ok(to_string) = obj.get(js_str!("toString"), context) {
+                                if let Ok(to_string) = obj.get(js_string!("toString"), context) {
                                     if let Some(to_string_fn) = to_string.as_function() {
                                         let arg = to_string_fn
                                             .call(arg, &[], context)?
@@ -232,7 +240,7 @@ pub struct Console {
 
 impl Console {
     /// Name of the built-in `console` property.
-    pub const NAME: JsStr<'static> = js_str!("console");
+    pub const NAME: JsString = js_string!("console");
 
     /// Modify the context to include the `console` object.
     ///
@@ -413,7 +421,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let assertion = args.first().map_or(false, JsValue::to_boolean);
+        let assertion = args.first().is_some_and(JsValue::to_boolean);
 
         if !assertion {
             let mut args: Vec<JsValue> = args.iter().skip(1).cloned().collect();
@@ -473,7 +481,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.log(formatter(args, context)?, &console.state, context)?;
+        logger.debug(formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -828,7 +836,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Console::group(&JsValue::Undefined, args, console, logger, context)
+        Console::group(&JsValue::undefined(), args, console, logger, context)
     }
 
     /// `console.groupEnd(label)`

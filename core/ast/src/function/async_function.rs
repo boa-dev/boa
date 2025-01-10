@@ -7,7 +7,6 @@ use crate::{
     join_nodes,
     operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
@@ -92,6 +91,13 @@ impl AsyncFunctionDeclaration {
     pub const fn linear_span(&self) -> LinearSpan {
         self.linear_span.0
     }
+
+    /// Returns `true` if the async function declaration contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for AsyncFunctionDeclaration {
@@ -110,8 +116,8 @@ impl VisitWith for AsyncFunctionDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_identifier(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -119,8 +125,8 @@ impl VisitWith for AsyncFunctionDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_identifier_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }
@@ -231,6 +237,13 @@ impl AsyncFunctionExpression {
     pub const fn linear_span(&self) -> LinearSpan {
         self.linear_span.0
     }
+
+    /// Returns `true` if the async function expression contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for AsyncFunctionExpression {
@@ -271,9 +284,9 @@ impl VisitWith for AsyncFunctionExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -282,9 +295,9 @@ impl VisitWith for AsyncFunctionExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

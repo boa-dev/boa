@@ -572,7 +572,7 @@ impl<K: PartialEq + Ord, V: PartialEq, const LHS_SIZE: usize, const RHS_SIZE: us
         }
 
         self.iter()
-            .all(|(key, value)| other.get(key).map_or(false, |v| *value == *v))
+            .all(|(key, value)| other.get(key).is_some_and(|v| *value == *v))
     }
 }
 

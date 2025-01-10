@@ -141,8 +141,6 @@
 
 use std::{cell::UnsafeCell, sync::atomic::Ordering};
 
-use sptr::Strict;
-
 use crate::{
     builtins::{
         array_buffer::{utils::SliceRef, SharedArrayBuffer},
@@ -328,7 +326,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
     // SAFETY: waiter is valid and we call `remove_node` below.
     unsafe {
-        waiters.add_waiter(waiter_ptr, buffer.as_ptr().addr());
+        waiters.add_waiter(waiter_ptr, sptr::Strict::addr(buffer.as_ptr()));
     }
 
     // 18. Let notified be SuspendAgent(WL, W, t).
@@ -397,7 +395,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
 /// Notifies at most `count` agents waiting on the memory address pointed to by `buffer[offset..]`.
 pub(super) fn notify(buffer: &SharedArrayBuffer, offset: usize, count: u64) -> JsResult<u64> {
-    let addr = buffer.as_ptr().addr() + offset;
+    let addr = sptr::Strict::addr(buffer.as_ptr()) + offset;
 
     // 7. Let WL be GetWaiterList(block, indexedPosition).
     // 8. Perform EnterCriticalSection(WL).

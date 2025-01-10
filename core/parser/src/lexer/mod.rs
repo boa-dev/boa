@@ -112,17 +112,20 @@ impl<R> Lexer<R> {
         }
     }
 
-    // Handles lexing of a token starting '/' with the '/' already being consumed.
-    // This could be a divide symbol or the start of a regex.
-    //
-    // A '/' symbol can always be a comment but if as tested above it is not then
-    // that means it could be multiple different tokens depending on the input token.
-    //
-    // As per https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
+    /// Handles lexing of a token starting '/' with the '/' already being consumed.
+    /// This could be a divide symbol or the start of a regex.
+    ///
+    /// If `init_with_eq` is `true`, assume that '/=' has already been consumed.
+    ///
+    /// A '/' symbol can always be a comment but if as tested above it is not then
+    /// that means it could be multiple different tokens depending on the input token.
+    ///
+    /// As per <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
     pub(crate) fn lex_slash_token(
         &mut self,
         start: PositionGroup,
         interner: &mut Interner,
+        init_with_eq: bool,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
@@ -130,26 +133,30 @@ impl<R> Lexer<R> {
         let _timer = Profiler::global().start_event("lex_slash_token", "Lexing");
 
         if let Some(c) = self.cursor.peek_char()? {
-            match c {
+            match (c, init_with_eq) {
                 // /
-                0x002F => {
+                (0x002F, false) => {
                     self.cursor.next_char()?.expect("/ token vanished"); // Consume the '/'
                     SingleLineComment.lex(&mut self.cursor, start, interner)
                 }
                 // *
-                0x002A => {
+                (0x002A, false) => {
                     self.cursor.next_char()?.expect("* token vanished"); // Consume the '*'
                     MultiLineComment.lex(&mut self.cursor, start, interner)
                 }
-                ch => {
+                (ch, init_with_eq) => {
                     match self.get_goal() {
                         InputElement::Div | InputElement::TemplateTail => {
                             // Only div punctuator allowed, regex not.
 
                             // =
-                            if ch == 0x003D {
-                                // Indicates this is an AssignDiv.
-                                self.cursor.next_char()?.expect("= token vanished"); // Consume the '='
+                            if init_with_eq || ch == 0x003D {
+                                // if `=` is not consumed, consume it
+                                if !init_with_eq {
+                                    // Indicates this is an AssignDiv.
+                                    // Consume the '='
+                                    self.cursor.next_char()?.expect("= token vanished");
+                                }
                                 Ok(Token::new_by_position_group(
                                     Punctuator::AssignDiv.into(),
                                     start,
@@ -165,15 +172,16 @@ impl<R> Lexer<R> {
                         }
                         InputElement::RegExp | InputElement::HashbangOrRegExp => {
                             // Can be a regular expression.
-                            RegexLiteral.lex(&mut self.cursor, start, interner)
+                            RegexLiteral::new(init_with_eq).lex(&mut self.cursor, start, interner)
                         }
                     }
                 }
             }
         } else {
-            Err(Error::syntax(
-                "Abrupt end: Expecting Token /,*,= or regex",
-                start.position(),
+            Ok(Token::new_by_position_group(
+                Punctuator::Div.into(),
+                start,
+                self.cursor.pos_group(),
             ))
         }
     }
@@ -187,7 +195,7 @@ impl<R> Lexer<R> {
             return Ok(());
         }
 
-        while self.cursor.peek_char()?.map_or(false, is_whitespace) {
+        while self.cursor.peek_char()?.is_some_and(is_whitespace) {
             let _next = self.cursor.next_char();
         }
 
@@ -312,7 +320,7 @@ impl<R> Lexer<R> {
                     self.cursor.pos_group(),
                 )),
                 '#' => PrivateIdentifier::new().lex(&mut self.cursor, start, interner),
-                '/' => self.lex_slash_token(start, interner),
+                '/' => self.lex_slash_token(start, interner, false),
                 #[cfg(feature = "annex-b")]
                 // <!--
                 '<' if !self.module()

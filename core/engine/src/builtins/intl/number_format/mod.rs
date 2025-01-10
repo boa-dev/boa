@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 use fixed_decimal::{FixedDecimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
@@ -20,6 +19,12 @@ use num_bigint::BigInt;
 use num_traits::Num;
 pub(crate) use options::*;
 
+use super::{
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
+    options::{coerce_options_to_object, IntlOptions},
+    Service,
+};
+use crate::value::JsVariant;
 use crate::{
     builtins::{
         builder::BuiltInBuilder, options::get_option, string::is_trimmable_whitespace,
@@ -40,12 +45,6 @@ use crate::{
     value::PreferredType,
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     NativeFunction,
-};
-
-use super::{
-    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
-    options::{coerce_options_to_object, IntlOptions},
-    Service,
 };
 
 #[cfg(test)]
@@ -173,6 +172,8 @@ impl BuiltInObject for NumberFormat {
 
 impl BuiltInConstructor for NumberFormat {
     const LENGTH: usize = 0;
+    const P: usize = 3;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::number_format;
@@ -225,13 +226,14 @@ impl BuiltInConstructor for NumberFormat {
 
         // 4. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
         // 5. Set opt.[[localeMatcher]] to matcher.
-        let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
+        let matcher =
+            get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
         // 6. Let numberingSystem be ? GetOption(options, "numberingSystem", string, empty, undefined).
         // 7. If numberingSystem is not undefined, then
         //     a. If numberingSystem cannot be matched by the type Unicode locale nonterminal, throw a RangeError exception.
         // 8. Set opt.[[nu]] to numberingSystem.
-        let numbering_system = get_option(&options, js_str!("numberingSystem"), context)?;
+        let numbering_system = get_option(&options, js_string!("numberingSystem"), context)?;
 
         let mut intl_options = IntlOptions {
             matcher,
@@ -281,7 +283,7 @@ impl BuiltInConstructor for NumberFormat {
 
         // 18. Let notation be ? GetOption(options, "notation", string, « "standard", "scientific", "engineering", "compact" », "standard").
         // 19. Set numberFormat.[[Notation]] to notation.
-        let notation = get_option(&options, js_str!("notation"), context)?.unwrap_or_default();
+        let notation = get_option(&options, js_string!("notation"), context)?.unwrap_or_default();
 
         // 20. Perform ? SetNumberFormatDigitOptions(numberFormat, options, mnfdDefault, mxfdDefault, notation).
         let digit_options = DigitFormatOptions::from_options(
@@ -294,7 +296,7 @@ impl BuiltInConstructor for NumberFormat {
 
         // 21. Let compactDisplay be ? GetOption(options, "compactDisplay", string, « "short", "long" », "short").
         let compact_display =
-            get_option(&options, js_str!("compactDisplay"), context)?.unwrap_or_default();
+            get_option(&options, js_string!("compactDisplay"), context)?.unwrap_or_default();
 
         // 22. Let defaultUseGrouping be "auto".
         let mut default_use_grouping = GroupingStrategy::Auto;
@@ -329,14 +331,14 @@ impl BuiltInConstructor for NumberFormat {
             // <https://tc39.es/ecma402/#sec-getbooleanorstringnumberformatoption>
 
             // 1. Let value be ? Get(options, property).
-            let value = options.get(js_str!("useGrouping"), context)?;
+            let value = options.get(js_string!("useGrouping"), context)?;
 
             // 2. If value is undefined, return fallback.
             if value.is_undefined() {
                 break 'block default_use_grouping;
             }
             // 3. If value is true, return true.
-            if let &JsValue::Boolean(true) = &value {
+            if let Some(true) = value.as_boolean() {
                 break 'block GroupingStrategy::Always;
             }
 
@@ -367,7 +369,7 @@ impl BuiltInConstructor for NumberFormat {
         // 29. Let signDisplay be ? GetOption(options, "signDisplay", string, « "auto", "never", "always", "exceptZero", "negative" », "auto").
         // 30. Set numberFormat.[[SignDisplay]] to signDisplay.
         let sign_display =
-            get_option(&options, js_str!("signDisplay"), context)?.unwrap_or(SignDisplay::Auto);
+            get_option(&options, js_string!("signDisplay"), context)?.unwrap_or(SignDisplay::Auto);
 
         let mut options = FixedDecimalFormatterOptions::default();
         options.grouping_strategy = use_grouping;
@@ -748,8 +750,8 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
 
         //    a. Return ? Get(nf, %Intl%.[[FallbackSymbol]]).
         let nf = nf_o.get(fallback_symbol, context)?;
-        if let JsValue::Object(nf) = nf {
-            if let Ok(nf) = nf.downcast::<NumberFormat>() {
+        if let Some(nf) = nf.as_object() {
+            if let Ok(nf) = nf.clone().downcast::<NumberFormat>() {
                 return Ok(nf);
             }
         }
@@ -769,16 +771,16 @@ fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResul
 
     // TODO: Add support in `FixedDecimal` for infinity and NaN, which
     // should remove the returned errors.
-    match prim_value {
+    match prim_value.variant() {
         // 2. If Type(primValue) is BigInt, return ℝ(primValue).
-        JsValue::BigInt(bi) => {
+        JsVariant::BigInt(bi) => {
             let bi = bi.to_string();
             FixedDecimal::try_from(bi.as_bytes())
                 .map_err(|err| JsNativeError::range().with_message(err.to_string()).into())
         }
         // 3. If Type(primValue) is String, then
         //     a. Let str be primValue.
-        JsValue::String(s) => {
+        JsVariant::String(s) => {
             // 5. Let text be StringToCodePoints(str).
             // 6. Let literal be ParseText(text, StringNumericLiteral).
             // 7. If literal is a List of errors, return not-a-number.
@@ -789,18 +791,18 @@ fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResul
             //     c. If rounded is +∞𝔽, return positive-infinity.
             //     d. If rounded is +0𝔽 and intlMV < 0, return negative-zero.
             //     e. If rounded is +0𝔽, return 0.
-            js_string_to_fixed_decimal(&s).ok_or_else(|| {
+            js_string_to_fixed_decimal(s).ok_or_else(|| {
                 JsNativeError::syntax()
                     .with_message("could not parse the provided string")
                     .into()
             })
         }
         // 4. Else,
-        other => {
+        _ => {
             // a. Let x be ? ToNumber(primValue).
             // b. If x is -0𝔽, return negative-zero.
             // c. Let str be Number::toString(x, 10).
-            let x = other.to_number(context)?;
+            let x = prim_value.to_number(context)?;
 
             FixedDecimal::try_from_f64(x, FloatPrecision::Floating)
                 .map_err(|err| JsNativeError::range().with_message(err.to_string()).into())

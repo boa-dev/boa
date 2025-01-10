@@ -22,7 +22,8 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_macros::{js_str, utf16};
+use boa_macros::utf16;
+
 use boa_profiler::Profiler;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::cmp::{max, min};
@@ -33,7 +34,7 @@ mod string_iterator;
 pub(crate) use string_iterator::StringIterator;
 
 #[cfg(feature = "annex-b")]
-pub use crate::JsStr;
+pub use crate::{js_str, JsStr};
 
 /// The set of normalizers required for the `String.prototype.normalize` function.
 #[derive(Debug)]
@@ -198,6 +199,8 @@ impl BuiltInObject for String {
 
 impl BuiltInConstructor for String {
     const LENGTH: usize = 1;
+    const P: usize = 36;
+    const SP: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::string;
@@ -215,8 +218,12 @@ impl BuiltInConstructor for String {
         let string = match args.first() {
             // 2. Else,
             // a. If NewTarget is undefined and Type(value) is Symbol, return SymbolDescriptiveString(value).
-            Some(JsValue::Symbol(ref sym)) if new_target.is_undefined() => {
-                return Ok(sym.descriptive_string().into())
+            Some(value) if new_target.is_undefined() && value.is_symbol() => {
+                return Ok(value
+                    .as_symbol()
+                    .expect("Already checked for a symbol")
+                    .descriptive_string()
+                    .into())
             }
             // b. Let s be ? ToString(value).
             Some(value) => value.to_string(context)?,
@@ -385,7 +392,7 @@ impl String {
         let cooked = args.get_or_undefined(0).to_object(context)?;
 
         // 3. Let raw be ? ToObject(? Get(cooked, "raw")).
-        let raw = cooked.get(js_str!("raw"), context)?.to_object(context)?;
+        let raw = cooked.get(js_string!("raw"), context)?.to_object(context)?;
 
         // 4. Let literalSegments be ? LengthOfArrayLike(raw).
         let literal_segments = raw.length_of_array_like(context)?;
@@ -837,10 +844,11 @@ impl String {
         let len = string.len() as i64;
 
         // 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).
-        let pos = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(0),
-            position => position.to_integer_or_infinity(context)?,
-        };
+        let pos = args
+            .get_or_undefined(1)
+            .map_or(Ok(IntegerOrInfinity::Integer(0)), |pos| {
+                pos.to_integer_or_infinity(context)
+            })?;
 
         // 8. Let start be the result of clamping pos between 0 and len.
         let start = pos.clamp_finite(0, len) as usize;
@@ -1127,7 +1135,7 @@ impl String {
             // b. If isRegExp is true, then
             if let Some(obj) = RegExp::is_reg_exp(search_value, context)? {
                 // i. Let flags be ? Get(searchValue, "flags").
-                let flags = obj.get(js_str!("flags"), context)?;
+                let flags = obj.get(js_string!("flags"), context)?;
 
                 // ii. Perform ? RequireObjectCoercible(flags).
                 flags.require_object_coercible()?;
@@ -1493,7 +1501,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
+        let rx = RegExp::create(regexp, &JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
         rx.invoke(JsSymbol::r#match(), &[JsValue::new(s)], context)
@@ -1884,10 +1892,11 @@ impl String {
         let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
         // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
-        let int_end = match args.get_or_undefined(1) {
-            &JsValue::Undefined => IntegerOrInfinity::Integer(len),
-            end => end.to_integer_or_infinity(context)?,
-        };
+        let int_end = args
+            .get_or_undefined(1)
+            .map_or(Ok(IntegerOrInfinity::Integer(len)), |end| {
+                end.to_integer_or_infinity(context)
+            })?;
 
         // 6. Let finalStart be the result of clamping intStart between 0 and len.
         let final_start = int_start.clamp_finite(0, len) as usize;
@@ -2072,7 +2081,7 @@ impl String {
             // b. If isRegExp is true, then
             if let Some(regexp) = RegExp::is_reg_exp(regexp, context)? {
                 // i. Let flags be ? Get(regexp, "flags").
-                let flags = regexp.get(js_str!("flags"), context)?;
+                let flags = regexp.get(js_string!("flags"), context)?;
 
                 // ii. Perform ? RequireObjectCoercible(flags).
                 flags.require_object_coercible()?;
@@ -2098,7 +2107,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::create(regexp, &JsValue::new(js_str!("g")), context)?;
+        let rx = RegExp::create(regexp, &JsValue::new(js_string!("g")), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
         rx.invoke(JsSymbol::match_all(), &[JsValue::new(s)], context)
@@ -2137,11 +2146,13 @@ impl String {
         // 6. Let ns be the String value that is the result of normalizing S
         // into the normalization form named by f as specified in
         // https://unicode.org/reports/tr15/.
-        let normalization = match args.get_or_undefined(0) {
-            // 3. If form is undefined, let f be "NFC".
-            &JsValue::Undefined => Normalization::Nfc,
+        let first = args.get_or_undefined(0);
+        // 3. If form is undefined, let f be "NFC".
+        let normalization = if first.is_undefined() {
+            Normalization::Nfc
+        } else {
             // 4. Else, let f be ? ToString(form).
-            f => match f.to_string(context)? {
+            match first.to_string(context)? {
                 ntype if &ntype == "NFC" => Normalization::Nfc,
                 ntype if &ntype == "NFD" => Normalization::Nfd,
                 ntype if &ntype == "NFKC" => Normalization::Nfkc,
@@ -2154,7 +2165,7 @@ impl String {
                         )
                         .into());
                 }
-            },
+            }
         };
 
         let normalizers = {
@@ -2221,7 +2232,7 @@ impl String {
         let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
+        let rx = RegExp::create(regexp, &JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
         rx.invoke(JsSymbol::search(), &[JsValue::new(string)], context)
@@ -2650,7 +2661,7 @@ pub(crate) fn get_substitution(
             let second_is_digit = second
                 .and_then(CodePoint::as_char)
                 .as_ref()
-                .map_or(false, char::is_ascii_digit);
+                .is_some_and(char::is_ascii_digit);
 
             match second {
                 // $$

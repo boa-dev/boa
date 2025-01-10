@@ -1,5 +1,6 @@
 use std::path::{Component, Path, PathBuf};
 
+use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
 use boa_gc::GcRefCell;
@@ -251,6 +252,7 @@ pub struct SimpleModuleLoader {
 impl SimpleModuleLoader {
     /// Creates a new `SimpleModuleLoader` from a root module path.
     pub fn new<P: AsRef<Path>>(root: P) -> JsResult<Self> {
+        let _timer = Profiler::global().start_event("Loader::new", "Loader");
         if cfg!(target_family = "wasm") {
             return Err(JsNativeError::typ()
                 .with_message("cannot resolve a relative path in WASM targets")

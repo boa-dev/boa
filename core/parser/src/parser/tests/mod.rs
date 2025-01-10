@@ -24,7 +24,8 @@ use boa_ast::{
     },
     scope::Scope,
     statement::{If, Return},
-    Expression, LinearPosition, LinearSpan, Script, Statement, StatementList, StatementListItem,
+    Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Statement,
+    StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -46,6 +47,23 @@ where
             .parse_script(&Scope::new_global(), interner)
             .expect("failed to parse"),
         script,
+    );
+}
+
+/// Checks that the given JavaScript string gives the expected expression.
+#[track_caller]
+pub(super) fn check_module_parser<L>(js: &str, expr: L, interner: &mut Interner)
+where
+    L: Into<Box<[ModuleItem]>>,
+{
+    let mut module = Module::new(ModuleItemList::from(expr.into()));
+    let scope = Scope::new_global();
+    module.analyze_scope(&scope, interner);
+    assert_eq!(
+        Parser::new(Source::from_bytes(js))
+            .parse_module(&Scope::new_global(), interner)
+            .expect("failed to parse"),
+        module,
     );
 }
 
@@ -629,4 +647,15 @@ fn deny_unicode_escape_in_true_expression() {
 #[test]
 fn deny_unicode_escape_in_null_expression() {
     check_invalid_script(r"let x = n\u{75}ll;");
+}
+
+#[test]
+fn stress_test_operations() {
+    let src = ("1 * 2 + /* comment why not */ 3 / 4 % 5 + ".repeat(1_000)
+        + "1; // end of line\n\n")
+        .repeat(1_000);
+
+    assert!(Parser::new(Source::from_bytes(&src))
+        .parse_script(&Scope::new_global(), &mut Interner::default())
+        .is_ok());
 }

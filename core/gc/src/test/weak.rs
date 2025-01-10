@@ -2,7 +2,8 @@ use std::{cell::Cell, rc::Rc};
 
 use super::run_test;
 use crate::{
-    force_collect, test::Harness, Ephemeron, Finalize, Gc, GcBox, GcRefCell, Trace, WeakGc,
+    force_collect, internals::EphemeronBox, test::Harness, Ephemeron, Finalize, Gc, GcBox,
+    GcRefCell, Trace, WeakGc,
 };
 
 #[test]
@@ -288,5 +289,46 @@ fn eph_gc_finalizer() {
         assert!(!eph.has_value());
         // finalize ran when collecting
         assert_eq!(val.inner.get(), 1);
+    });
+}
+
+#[test]
+fn eph_strong_self_reference() {
+    type Inner = GcRefCell<(Option<TestCell>, Option<TestCell>)>;
+    #[derive(Trace, Finalize, Clone)]
+    struct TestCell {
+        inner: Gc<Inner>,
+    }
+    run_test(|| {
+        let root = TestCell {
+            inner: Gc::new(GcRefCell::new((None, None))),
+        };
+        let root_size = size_of::<GcBox<Inner>>();
+
+        Harness::assert_exact_bytes_allocated(root_size);
+
+        let watched = Gc::new(0);
+        let watched_size = size_of::<GcBox<i32>>();
+
+        {
+            let eph = Ephemeron::new(&watched, root.clone());
+            let eph_size = size_of::<EphemeronBox<Gc<i32>, TestCell>>();
+
+            root.inner.borrow_mut().0 = Some(root.clone());
+            root.inner.borrow_mut().1 = Some(root.clone());
+
+            force_collect();
+
+            assert!(eph.value().is_some());
+            Harness::assert_exact_bytes_allocated(root_size + eph_size + watched_size);
+        }
+
+        force_collect();
+
+        drop(watched);
+
+        force_collect();
+
+        Harness::assert_exact_bytes_allocated(root_size);
     });
 }

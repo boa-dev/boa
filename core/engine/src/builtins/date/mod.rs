@@ -185,6 +185,8 @@ impl BuiltInObject for Date {
 
 impl BuiltInConstructor for Date {
     const LENGTH: usize = 7;
+    const P: usize = 47;
+    const SP: usize = 3;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::date;
@@ -421,7 +423,7 @@ impl Date {
 
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
-            return Ok(JsValue::from(f64::NAN));
+            return Ok(JsValue::new(f64::NAN));
         };
 
         if LOCAL {
@@ -814,13 +816,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let mut t = date_object.0;
+        let mut t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         // 4. Let dt be ? ToNumber(date).
         let dt = args.get_or_undefined(0).to_number(context)?;
@@ -849,8 +857,13 @@ impl Date {
             time_clip(new_date)
         };
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 9. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 10. Return u.
         Ok(JsValue::from(u))
@@ -871,13 +884,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let t = date_object.0;
+        let t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         let t = if LOCAL {
             // 5. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
@@ -923,8 +942,13 @@ impl Date {
             time_clip(new_date)
         };
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 10. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 11. Return u.
         Ok(JsValue::from(u))
@@ -947,13 +971,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let mut t = date_object.0;
+        let mut t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         // 4. Let h be ? ToNumber(hour).
         let h = args.get_or_undefined(0).to_number(context)?;
@@ -997,8 +1027,13 @@ impl Date {
             time_clip(date)
         };
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 15. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 16. Return u.
         Ok(JsValue::from(u))
@@ -1018,13 +1053,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let mut t = date_object.0;
+        let mut t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         // 4. Set ms to ? ToNumber(ms).
         let ms = args.get_or_undefined(0).to_number(context)?;
@@ -1055,8 +1096,13 @@ impl Date {
             time_clip(make_date(day(t), time))
         };
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 9. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 10. Return u.
         Ok(JsValue::from(u))
@@ -1076,13 +1122,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let mut t = date_object.0;
+        let mut t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         // 4. Let m be ? ToNumber(min).
         let m = args.get_or_undefined(0).to_number(context)?;
@@ -1120,8 +1172,13 @@ impl Date {
             time_clip(date)
         };
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 13. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 14. Return u.
         Ok(JsValue::from(u))
@@ -1142,13 +1199,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let mut t = date_object.0;
+        let mut t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         // 4. Let m be ? ToNumber(month).
         let m = args.get_or_undefined(0).to_number(context)?;
@@ -1183,8 +1246,13 @@ impl Date {
             time_clip(new_date)
         };
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 11. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 12. Return u.
         Ok(JsValue::from(u))
@@ -1204,13 +1272,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let mut t = date_object.0;
+        let mut t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         // 4. Let s be ? ToNumber(sec).
         let s = args.get_or_undefined(0).to_number(context)?;
@@ -1245,8 +1319,13 @@ impl Date {
             time_clip(date)
         };
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 11. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 12. Return u.
         Ok(JsValue::from(u))
@@ -1273,13 +1352,19 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be dateObject.[[DateValue]].
-        let t = date_object.0;
+        let t = date.0;
+
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
 
         // 4. Let y be ? ToNumber(year).
         let y = args.get_or_undefined(0).to_number(context)?;
@@ -1303,8 +1388,13 @@ impl Date {
         // 9. Let u be TimeClip(UTC(date)).
         let u = time_clip(utc_t(date, context.host_hooks()));
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 10. Set dateObject.[[DateValue]] to u.
-        date_object.0 = u;
+        date_mut.0 = u;
 
         // 11. Return u.
         Ok(JsValue::from(u))
@@ -1327,19 +1417,30 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let mut date_object = this
+        let date = this
             .as_object()
-            .and_then(JsObject::downcast_mut::<Date>)
+            .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
         // 3. Let t be ? ToNumber(time).
         let t = args.get_or_undefined(0).to_number(context)?;
 
+        // NOTE (nekevss): `downcast_ref` is used and then dropped for a short lived borrow.
+        // ToNumber() may call userland code which can modify the underlying date
+        // which will cause a panic. In order to avoid this, we drop the borrow,
+        // here and only `downcast_mut` when date will be modified.
+        drop(date);
+
         // 4. Let v be TimeClip(t).
         let v = time_clip(t);
 
+        let mut date_mut = this
+            .as_object()
+            .and_then(JsObject::downcast_mut::<Date>)
+            .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
+
         // 5. Set dateObject.[[DateValue]] to v.
-        date_object.0 = v;
+        date_mut.0 = v;
 
         // 6. Return v.
         Ok(JsValue::from(v))

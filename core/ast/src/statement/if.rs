@@ -3,7 +3,6 @@
 use crate::{
     expression::Expression,
     statement::Statement,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
@@ -97,10 +96,10 @@ impl VisitWith for If {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.condition));
-        try_break!(visitor.visit_statement(&self.body));
+        visitor.visit_expression(&self.condition)?;
+        visitor.visit_statement(&self.body)?;
         if let Some(stmt) = &self.else_node {
-            try_break!(visitor.visit_statement(stmt));
+            visitor.visit_statement(stmt)?;
         }
         ControlFlow::Continue(())
     }
@@ -109,10 +108,10 @@ impl VisitWith for If {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.condition));
-        try_break!(visitor.visit_statement_mut(&mut self.body));
+        visitor.visit_expression_mut(&mut self.condition)?;
+        visitor.visit_statement_mut(&mut self.body)?;
         if let Some(stmt) = &mut self.else_node {
-            try_break!(visitor.visit_statement_mut(stmt));
+            visitor.visit_statement_mut(stmt)?;
         }
         ControlFlow::Continue(())
     }

@@ -1,7 +1,6 @@
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 
 use super::Expression;
@@ -111,15 +110,15 @@ impl VisitWith for TaggedTemplate {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.tag));
+        visitor.visit_expression(&self.tag)?;
         for raw in &*self.raws {
-            try_break!(visitor.visit_sym(raw));
+            visitor.visit_sym(raw)?;
         }
         for cooked in self.cookeds.iter().flatten() {
-            try_break!(visitor.visit_sym(cooked));
+            visitor.visit_sym(cooked)?;
         }
         for expr in &*self.exprs {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         ControlFlow::Continue(())
     }
@@ -128,15 +127,15 @@ impl VisitWith for TaggedTemplate {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.tag));
+        visitor.visit_expression_mut(&mut self.tag)?;
         for raw in &mut *self.raws {
-            try_break!(visitor.visit_sym_mut(raw));
+            visitor.visit_sym_mut(raw)?;
         }
         for cooked in self.cookeds.iter_mut().flatten() {
-            try_break!(visitor.visit_sym_mut(cooked));
+            visitor.visit_sym_mut(cooked)?;
         }
         for expr in &mut *self.exprs {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         ControlFlow::Continue(())
     }

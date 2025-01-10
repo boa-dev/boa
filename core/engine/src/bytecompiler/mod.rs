@@ -123,6 +123,7 @@ pub(crate) struct FunctionSpec<'a> {
     pub(crate) scopes: &'a FunctionScopes,
     pub(crate) name_scope: Option<&'a Scope>,
     linear_span: Option<LinearSpan>,
+    pub(crate) contains_direct_eval: bool,
 }
 
 impl PartialEq for FunctionSpec<'_> {
@@ -147,6 +148,7 @@ impl<'a> From<&'a FunctionDeclaration> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: None,
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -161,6 +163,7 @@ impl<'a> From<&'a GeneratorDeclaration> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: None,
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -175,6 +178,7 @@ impl<'a> From<&'a AsyncFunctionDeclaration> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: None,
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -189,6 +193,7 @@ impl<'a> From<&'a AsyncGeneratorDeclaration> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: None,
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -203,6 +208,7 @@ impl<'a> From<&'a FunctionExpression> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: function.name_scope(),
             linear_span: function.linear_span(),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -217,6 +223,7 @@ impl<'a> From<&'a ArrowFunction> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: None,
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -231,6 +238,7 @@ impl<'a> From<&'a AsyncArrowFunction> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: None,
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -245,6 +253,7 @@ impl<'a> From<&'a AsyncFunctionExpression> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: function.name_scope(),
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -259,6 +268,7 @@ impl<'a> From<&'a GeneratorExpression> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: function.name_scope(),
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -273,6 +283,7 @@ impl<'a> From<&'a AsyncGeneratorExpression> for FunctionSpec<'a> {
             scopes: function.scopes(),
             name_scope: function.name_scope(),
             linear_span: Some(function.linear_span()),
+            contains_direct_eval: function.contains_direct_eval(),
         }
     }
 }
@@ -294,6 +305,7 @@ impl<'a> From<&'a ClassMethodDefinition> for FunctionSpec<'a> {
             scopes: method.scopes(),
             name_scope: None,
             linear_span: Some(method.linear_span()),
+            contains_direct_eval: method.contains_direct_eval(),
         }
     }
 }
@@ -315,6 +327,7 @@ impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
             scopes: method.scopes(),
             name_scope: None,
             linear_span: Some(method.linear_span()),
+            contains_direct_eval: method.contains_direct_eval(),
         }
     }
 }
@@ -413,6 +426,9 @@ pub struct ByteCompiler<'ctx> {
     /// Parameters passed to this function.
     pub(crate) params: FormalParameterList,
 
+    /// Scope of the function parameters.
+    pub(crate) parameter_scope: Scope,
+
     /// Bytecode
     pub(crate) bytecode: Vec<u8>,
 
@@ -461,6 +477,7 @@ pub struct ByteCompiler<'ctx> {
 pub(crate) enum BindingKind {
     Stack(u32),
     Local(u32),
+    Global(u32),
 }
 
 impl<'ctx> ByteCompiler<'ctx> {
@@ -527,6 +544,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             local_binding_registers: FxHashMap::default(),
             this_mode: ThisMode::Global,
             params: FormalParameterList::default(),
+            parameter_scope: Scope::default(),
             current_open_environments_count: 0,
 
             register_allocator,
@@ -616,6 +634,17 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     #[inline]
     pub(crate) fn get_or_insert_binding(&mut self, binding: IdentifierReference) -> BindingKind {
+        if binding.is_global_object() {
+            if let Some(index) = self.bindings_map.get(&binding.locator()) {
+                return BindingKind::Global(*index);
+            }
+
+            let index = self.bindings.len() as u32;
+            self.bindings.push(binding.locator().clone());
+            self.bindings_map.insert(binding.locator(), index);
+            return BindingKind::Global(index);
+        }
+
         if binding.local() {
             return BindingKind::Local(
                 *self
@@ -747,6 +776,19 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     pub(crate) fn emit_binding_access(&mut self, opcode: Opcode, binding: &BindingKind) {
         match binding {
+            BindingKind::Global(index) => match opcode {
+                Opcode::SetNameByLocator => self.emit_opcode(opcode),
+                Opcode::GetName => {
+                    let ic_index = self.ic.len() as u32;
+                    let name = self.bindings[*index as usize].name().clone();
+                    self.ic.push(InlineCache::new(name));
+                    self.emit(
+                        Opcode::GetNameGlobal,
+                        &[Operand::Varying(*index), Operand::Varying(ic_index)],
+                    );
+                }
+                _ => self.emit_with_varying_operand(opcode, *index),
+            },
             BindingKind::Stack(index) => match opcode {
                 Opcode::SetNameByLocator => self.emit_opcode(opcode),
                 _ => self.emit_with_varying_operand(opcode, *index),
@@ -1554,6 +1596,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.variable_scope.clone(),
                 self.lexical_scope.clone(),
                 scopes,
+                function.contains_direct_eval,
                 self.interner,
             );
 
@@ -1634,6 +1677,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.variable_scope.clone(),
                 self.lexical_scope.clone(),
                 scopes,
+                function.contains_direct_eval,
                 self.interner,
             );
 
@@ -1680,6 +1724,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.variable_scope.clone(),
                 self.lexical_scope.clone(),
                 scopes,
+                function.contains_direct_eval,
                 self.interner,
             );
 
@@ -1798,7 +1843,9 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let mapped_arguments_binding_indices = self
             .emitted_mapped_arguments_object_opcode
-            .then(|| MappedArguments::binding_indices(&self.params))
+            .then(|| {
+                MappedArguments::binding_indices(&self.params, &self.parameter_scope, self.interner)
+            })
             .unwrap_or_default();
 
         let max_local_binding_register_index =

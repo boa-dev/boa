@@ -42,7 +42,7 @@
         "program": "${workspaceFolder}/target/debug/boa_tester.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa_tester",
-      "args": ["run", "-s", "${input:testPath}", "-vvv"],
+      "args": ["run", "-s", "${input:testPath}", "-vvv", "-d"],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build boa_tester"
     }
@@ -51,13 +51,11 @@
     {
       "id": "filePath",
       "description": "Relative path to the file to run",
-      "default": "debug/script.js",
       "type": "promptString"
     },
     {
       "id": "modulePath",
       "description": "Relative path to the module root directory",
-      "default": "debug",
       "type": "promptString"
     },
     {

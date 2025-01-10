@@ -73,10 +73,9 @@
     clippy::missing_panics_doc,
 )]
 
+extern crate self as boa_engine;
 #[cfg(not(target_has_atomic = "ptr"))]
 compile_error!("Boa requires a lock free `AtomicUsize` in order to work properly.");
-
-extern crate self as boa_engine;
 
 pub use boa_ast as ast;
 pub use boa_gc as gc;
@@ -129,7 +128,7 @@ pub mod prelude {
         script::Script,
         string::{JsStr, JsString},
         symbol::JsSymbol,
-        value::JsValue,
+        value::{JsValue, JsVariant},
     };
     pub use boa_gc::{Finalize, Trace};
     pub use boa_macros::{js_str, JsData};
@@ -166,8 +165,8 @@ mod try_into_js_result_impls;
 
 /// A utility trait to make working with function arguments easier.
 pub trait JsArgs {
-    /// Utility function to `get` a parameter from a `[JsValue]` or default to `JsValue::Undefined`
-    /// if `get` returns `None`.
+    /// Utility function to `get` a parameter from a `[JsValue]` or default to
+    /// `JsValue::undefined()` if `get` returns `None`.
     ///
     /// Call this if you are thinking of calling something similar to
     /// `args.get(n).cloned().unwrap_or_default()` or
@@ -179,7 +178,7 @@ pub trait JsArgs {
 
 impl JsArgs for [JsValue] {
     fn get_or_undefined(&self, index: usize) -> &JsValue {
-        const UNDEFINED: &JsValue = &JsValue::Undefined;
+        const UNDEFINED: &JsValue = &JsValue::undefined();
         self.get(index).unwrap_or(UNDEFINED)
     }
 }

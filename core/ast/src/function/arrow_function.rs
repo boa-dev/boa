@@ -5,7 +5,7 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes,
 };
-use crate::{try_break, LinearSpan, LinearSpanIgnoreEq};
+use crate::{LinearSpan, LinearSpanIgnoreEq};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -96,6 +96,13 @@ impl ArrowFunction {
     pub const fn linear_span(&self) -> LinearSpan {
         self.linear_span.0
     }
+
+    /// Returns `true` if the arrow function contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for ArrowFunction {
@@ -126,9 +133,9 @@ impl VisitWith for ArrowFunction {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -137,9 +144,9 @@ impl VisitWith for ArrowFunction {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

@@ -3,7 +3,6 @@
 use crate::expression::operator::assign::{AssignOp, AssignTarget};
 use crate::expression::Expression;
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
@@ -223,7 +222,7 @@ impl VisitWith for ArrayLiteral {
         V: Visitor<'a>,
     {
         for expr in self.arr.iter().flatten() {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         ControlFlow::Continue(())
     }
@@ -233,7 +232,7 @@ impl VisitWith for ArrayLiteral {
         V: VisitorMut<'a>,
     {
         for expr in self.arr.iter_mut().flatten() {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         ControlFlow::Continue(())
     }

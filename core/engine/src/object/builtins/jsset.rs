@@ -63,7 +63,7 @@ impl JsSet {
     /// Same as JavaScript's `set.clear()`.
     #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
-        Set::clear(&self.inner.clone().into(), &[JsValue::Null], context)
+        Set::clear(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Removes the element associated to the value.
@@ -76,8 +76,8 @@ impl JsSet {
         T: Into<JsValue>,
     {
         // TODO: Make `delete` return a native `bool`
-        match Set::delete(&self.inner.clone().into(), &[value.into()], context)? {
-            JsValue::Boolean(bool) => Ok(bool),
+        match Set::delete(&self.inner.clone().into(), &[value.into()], context)?.as_boolean() {
+            Some(bool) => Ok(bool),
             _ => unreachable!("`delete` must always return a bool"),
         }
     }
@@ -91,8 +91,8 @@ impl JsSet {
         T: Into<JsValue>,
     {
         // TODO: Make `has` return a native `bool`
-        match Set::has(&self.inner.clone().into(), &[value.into()], context)? {
-            JsValue::Boolean(bool) => Ok(bool),
+        match Set::has(&self.inner.clone().into(), &[value.into()], context)?.as_boolean() {
+            Some(bool) => Ok(bool),
             _ => unreachable!("`has` must always return a bool"),
         }
     }
@@ -103,7 +103,7 @@ impl JsSet {
     /// Same as JavaScript's `set.values()`.
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsSetIterator> {
-        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(IteratorHint::Sync, context)?;
 
         JsSetIterator::from_object(iterator_object.iterator().clone())
@@ -116,7 +116,7 @@ impl JsSet {
     /// Same as JavaScript's `set.keys()`.
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsSetIterator> {
-        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(IteratorHint::Sync, context)?;
 
         JsSetIterator::from_object(iterator_object.iterator().clone())
@@ -187,11 +187,12 @@ impl Deref for JsSet {
 
 impl TryFromJs for JsSet {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match value {
-            JsValue::Object(o) => Self::from_object(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Self::from_object(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("value is not a Set object")
-                .into()),
+                .into())
         }
     }
 }

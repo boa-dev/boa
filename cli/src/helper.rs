@@ -3,7 +3,7 @@ use phf::{phf_set, Set};
 use regex::{Captures, Regex, Replacer};
 use rustyline::{
     error::ReadlineError,
-    highlight::Highlighter,
+    highlight::{CmdKind, Highlighter},
     validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
     Completer, Helper, Hinter,
 };
@@ -97,7 +97,7 @@ impl Highlighter for RLHelper {
         self.highlighter.highlight(candidate, 0)
     }
 
-    fn highlight_char(&self, line: &str, _: usize, _: bool) -> bool {
+    fn highlight_char(&self, line: &str, _: usize, _: CmdKind) -> bool {
         !line.is_empty()
     }
 }

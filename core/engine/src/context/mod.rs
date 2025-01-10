@@ -10,6 +10,8 @@ pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
+#[cfg(feature = "temporal")]
+use temporal_rs::tzdb::FsTzdbProvider;
 
 use crate::vm::RuntimeLimits;
 use crate::{
@@ -51,7 +53,7 @@ thread_local! {
 ///
 /// ```rust
 /// use boa_engine::{
-///     js_str,
+///     js_string,
 ///     object::ObjectInitializer,
 ///     property::{Attribute, PropertyDescriptor},
 ///     Context, Source,
@@ -73,10 +75,10 @@ thread_local! {
 ///
 /// // Create an object that can be used in eval calls.
 /// let arg = ObjectInitializer::new(&mut context)
-///     .property(js_str!("x"), 12, Attribute::READONLY)
+///     .property(js_string!("x"), 12, Attribute::READONLY)
 ///     .build();
 /// context
-///     .register_global_property(js_str!("arg"), arg, Attribute::all())
+///     .register_global_property(js_string!("arg"), arg, Attribute::all())
 ///     .expect("property shouldn't exist");
 ///
 /// let value = context.eval(Source::from_bytes("test(arg)")).unwrap();
@@ -99,6 +101,9 @@ pub struct Context {
     pub(crate) kept_alive: Vec<JsObject>,
 
     can_block: bool,
+
+    #[cfg(feature = "temporal")]
+    tz_provider: FsTzdbProvider,
 
     /// Intl data provider.
     #[cfg(feature = "intl")]
@@ -211,7 +216,7 @@ impl Context {
     /// # Example
     /// ```
     /// use boa_engine::{
-    ///     js_str,
+    ///     js_string,
     ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
     ///     Context,
@@ -220,15 +225,15 @@ impl Context {
     /// let mut context = Context::default();
     ///
     /// context
-    ///     .register_global_property(js_str!("myPrimitiveProperty"), 10, Attribute::all())
+    ///     .register_global_property(js_string!("myPrimitiveProperty"), 10, Attribute::all())
     ///     .expect("property shouldn't exist");
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///     .property(js_str!("x"), 0, Attribute::all())
-    ///     .property(js_str!("y"), 1, Attribute::all())
+    ///     .property(js_string!("x"), 0, Attribute::all())
+    ///     .property(js_string!("y"), 1, Attribute::all())
     ///     .build();
     /// context
-    ///     .register_global_property(js_str!("myObjectProperty"), object, Attribute::all())
+    ///     .register_global_property(js_string!("myObjectProperty"), object, Attribute::all())
     ///     .expect("property shouldn't exist");
     /// ```
     pub fn register_global_property<K, V>(
@@ -860,6 +865,12 @@ impl Context {
     pub(crate) const fn intl_provider(&self) -> &icu::IntlProvider {
         &self.intl_provider
     }
+
+    /// Get the Time Zone Provider
+    #[cfg(feature = "temporal")]
+    pub(crate) fn tz_provider(&self) -> &FsTzdbProvider {
+        &self.tz_provider
+    }
 }
 
 /// Builder for the [`Context`] type.
@@ -1052,6 +1063,7 @@ impl ContextBuilder {
     // TODO: try to use a custom error here, since most of the `JsError` APIs
     // require having a `Context` in the first place.
     pub fn build(self) -> JsResult<Context> {
+        let _timer = Profiler::global().start_event("Ctx::build", "context");
         if self.can_block {
             if CANNOT_BLOCK_COUNTER.get() > 0 {
                 return Err(JsNativeError::typ()
@@ -1086,6 +1098,8 @@ impl ContextBuilder {
             interner: self.interner.unwrap_or_default(),
             vm,
             strict: false,
+            #[cfg(feature = "temporal")]
+            tz_provider: FsTzdbProvider::default(),
             #[cfg(feature = "intl")]
             intl_provider: if let Some(icu) = self.icu {
                 icu

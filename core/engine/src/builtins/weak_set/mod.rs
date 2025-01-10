@@ -19,7 +19,6 @@ use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use super::iterable::IteratorHint;
@@ -58,6 +57,8 @@ impl BuiltInObject for WeakSet {
 impl BuiltInConstructor for WeakSet {
     /// The amount of arguments the `WeakSet` constructor takes.
     const LENGTH: usize = 0;
+    const P: usize = 4;
+    const SP: usize = 0;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::weak_set;
@@ -99,7 +100,7 @@ impl BuiltInConstructor for WeakSet {
         }
 
         // 5. Let adder be ? Get(set, "add").
-        let adder = weak_set.get(js_str!("add"), context)?;
+        let adder = weak_set.get(js_string!("add"), context)?;
 
         // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder

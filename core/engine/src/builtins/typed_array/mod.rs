@@ -26,7 +26,6 @@ use crate::{
     Context, JsArgs, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 mod builtin;
@@ -72,12 +71,12 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
                 Attribute::CONFIGURABLE,
             )
             .property(
-                js_str!("BYTES_PER_ELEMENT"),
+                js_string!("BYTES_PER_ELEMENT"),
                 size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
             .static_property(
-                js_str!("BYTES_PER_ELEMENT"),
+                js_string!("BYTES_PER_ELEMENT"),
                 size_of::<T::Element>(),
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
             )
@@ -94,6 +93,8 @@ impl<T: TypedArrayMarker> BuiltInObject for T {
 
 impl<T: TypedArrayMarker> BuiltInConstructor for T {
     const LENGTH: usize = 3;
+    const P: usize = 1;
+    const SP: usize = 2;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         <Self as TypedArrayMarker>::ERASED.standard_constructor();

@@ -280,25 +280,49 @@ impl PropertyDescriptor {
     #[inline]
     #[must_use]
     pub fn into_accessor_defaulted(mut self) -> Self {
-        self.kind = DescriptorKind::Accessor {
-            get: self.get().cloned(),
-            set: self.set().cloned(),
-        };
-        PropertyDescriptorBuilder { inner: self }
-            .complete_with_defaults()
-            .build()
+        match &mut self.kind {
+            DescriptorKind::Accessor { set, get } => {
+                if set.is_none() {
+                    *set = Some(JsValue::undefined());
+                }
+                if get.is_none() {
+                    *get = Some(JsValue::undefined());
+                }
+            }
+            _ => {
+                self.kind = DescriptorKind::Accessor {
+                    get: Some(JsValue::undefined()),
+                    set: Some(JsValue::undefined()),
+                };
+            }
+        }
+        self.configurable = self.configurable.or(Some(false));
+        self.enumerable = self.enumerable.or(Some(false));
+        self
     }
 
     /// Creates a data property descriptor with default values.
     #[must_use]
     pub fn into_data_defaulted(mut self) -> Self {
-        self.kind = DescriptorKind::Data {
-            value: self.value().cloned(),
-            writable: self.writable(),
-        };
-        PropertyDescriptorBuilder { inner: self }
-            .complete_with_defaults()
-            .build()
+        match &mut self.kind {
+            DescriptorKind::Data { value, writable } => {
+                if value.is_none() {
+                    *value = Some(JsValue::undefined());
+                }
+                if writable.is_none() {
+                    *writable = Some(false);
+                }
+            }
+            _ => {
+                self.kind = DescriptorKind::Data {
+                    value: Some(JsValue::undefined()),
+                    writable: Some(false),
+                };
+            }
+        }
+        self.configurable = self.configurable.or(Some(false));
+        self.enumerable = self.enumerable.or(Some(false));
+        self
     }
 
     /// Creates an generic property descriptor with default values.
@@ -317,8 +341,8 @@ impl PropertyDescriptor {
     ///
     /// Panics if the given `PropertyDescriptor` is not compatible with this one.
     #[inline]
-    pub fn fill_with(&mut self, desc: &Self) {
-        match (&mut self.kind, &desc.kind) {
+    pub fn fill_with(&mut self, mut desc: Self) {
+        match (&mut self.kind, &mut desc.kind) {
             (
                 DescriptorKind::Data { value, writable },
                 DescriptorKind::Data {
@@ -326,11 +350,11 @@ impl PropertyDescriptor {
                     writable: desc_writable,
                 },
             ) => {
-                if let Some(desc_value) = desc_value {
-                    *value = Some(desc_value.clone());
+                if desc_value.is_some() {
+                    std::mem::swap(value, desc_value);
                 }
-                if let Some(desc_writable) = desc_writable {
-                    *writable = Some(*desc_writable);
+                if desc_writable.is_some() {
+                    std::mem::swap(writable, desc_writable);
                 }
             }
             (
@@ -340,11 +364,11 @@ impl PropertyDescriptor {
                     set: desc_set,
                 },
             ) => {
-                if let Some(desc_get) = desc_get {
-                    *get = Some(desc_get.clone());
+                if desc_get.is_some() {
+                    std::mem::swap(get, desc_get);
                 }
-                if let Some(desc_set) = desc_set {
-                    *set = Some(desc_set.clone());
+                if desc_set.is_some() {
+                    std::mem::swap(set, desc_set);
                 }
             }
             (_, DescriptorKind::Generic) => {}
@@ -669,15 +693,14 @@ where
 impl From<JsStr<'_>> for PropertyKey {
     #[inline]
     fn from(string: JsStr<'_>) -> Self {
-        return parse_u32_index(string.iter())
-            .map_or_else(|| Self::String(string.into()), Self::Index);
+        parse_u32_index(string.iter()).map_or_else(|| Self::String(string.into()), Self::Index)
     }
 }
 
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        return parse_u32_index(string.as_str().iter()).map_or(Self::String(string), Self::Index);
+        parse_u32_index(string.as_str().iter()).map_or(Self::String(string), Self::Index)
     }
 }
 
@@ -718,7 +741,7 @@ impl From<PropertyKey> for JsValue {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
-            PropertyKey::Index(index) => js_string!(index.get().to_string()).into(),
+            PropertyKey::Index(index) => js_string!(index.get()).into(),
         }
     }
 }
@@ -739,8 +762,7 @@ impl From<u16> for PropertyKey {
 
 impl From<u32> for PropertyKey {
     fn from(value: u32) -> Self {
-        NonMaxU32::new(value)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+        NonMaxU32::new(value).map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -749,7 +771,7 @@ impl From<usize> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -758,7 +780,7 @@ impl From<i64> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -767,7 +789,7 @@ impl From<u64> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -776,7 +798,7 @@ impl From<isize> for PropertyKey {
         u32::try_from(value)
             .ok()
             .and_then(NonMaxU32::new)
-            .map_or_else(|| Self::String(js_string!(value.to_string())), Self::Index)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 
@@ -786,7 +808,7 @@ impl From<i32> for PropertyKey {
             // Safety: A positive i32 value fits in 31 bits, so it can never be u32::MAX.
             return Self::Index(unsafe { NonMaxU32::new_unchecked(value as u32) });
         }
-        Self::String(js_string!(value.to_string()))
+        Self::String(value.into())
     }
 }
 
@@ -794,10 +816,9 @@ impl From<f64> for PropertyKey {
     fn from(value: f64) -> Self {
         use num_traits::cast::FromPrimitive;
 
-        u32::from_f64(value).and_then(NonMaxU32::new).map_or_else(
-            || Self::String(ryu_js::Buffer::new().format(value).into()),
-            Self::Index,
-        )
+        u32::from_f64(value)
+            .and_then(NonMaxU32::new)
+            .map_or_else(|| Self::String(value.into()), Self::Index)
     }
 }
 

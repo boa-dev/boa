@@ -2,13 +2,12 @@
 // but with some adjustments to use `Ephemeron<K,V>` instead of `(K,V)`
 
 use hashbrown::{
-    hash_map::DefaultHashBuilder,
-    raw::{RawIter, RawTable},
-    TryReserveError,
+    hash_table::{Entry as RawEntry, Iter as RawIter},
+    DefaultHashBuilder, HashTable, TryReserveError,
 };
 
 use crate::{custom_trace, Allocator, Ephemeron, Finalize, Gc, GcRefCell, Trace};
-use std::{fmt, hash::BuildHasher, marker::PhantomData, mem};
+use std::{fmt, hash::BuildHasher, marker::PhantomData};
 
 /// A map that holds weak references to its keys and is traced by the garbage collector.
 #[derive(Clone, Debug, Default, Finalize)]
@@ -68,7 +67,7 @@ where
     V: Trace + 'static,
 {
     hash_builder: S,
-    table: RawTable<Ephemeron<K, V>>,
+    table: HashTable<Ephemeron<K, V>>,
 }
 
 impl<K, V, S> Finalize for RawWeakMap<K, V, S>
@@ -138,7 +137,7 @@ where
     pub(crate) const fn with_hasher(hash_builder: S) -> Self {
         Self {
             hash_builder,
-            table: RawTable::new(),
+            table: HashTable::new(),
         }
     }
 
@@ -150,7 +149,7 @@ where
     pub(crate) fn with_capacity_and_hasher(capacity: usize, hash_builder: S) -> Self {
         Self {
             hash_builder,
-            table: RawTable::with_capacity(capacity),
+            table: HashTable::with_capacity(capacity),
         }
     }
 
@@ -172,12 +171,9 @@ where
     /// An iterator visiting all entries in arbitrary order.
     /// The iterator element type is <code>[Ephemeron]<K, V></code>.
     pub(crate) fn iter(&self) -> Iter<'_, K, V> {
-        // SAFETY: The returned iterator is tied to the lifetime of self.
-        unsafe {
-            Iter {
-                inner: self.table.iter(),
-                marker: PhantomData,
-            }
+        Iter {
+            inner: self.table.iter(),
+            marker: PhantomData,
         }
     }
 
@@ -212,14 +208,7 @@ where
         // SAFETY:
         // - `item` is only used internally, which means it outlives self.
         // - `item` pointer is not used after the call to `erase`.
-        unsafe {
-            for item in self.table.iter() {
-                let eph = item.as_ref();
-                if !f(eph) {
-                    self.table.erase(item);
-                }
-            }
-        }
+        self.table.retain(|item| f(item));
     }
 
     /// Clears the map, removing all key-value pairs. Keeps the allocated memory
@@ -293,7 +282,7 @@ where
             None
         } else {
             let hash = make_hash_from_gc(&self.hash_builder, k);
-            self.table.get(hash, equivalent_key(k))?.value()
+            self.table.find(hash, equivalent_key(k))?.value()
         }
     }
 
@@ -311,30 +300,29 @@ where
     pub(crate) fn insert(&mut self, k: &Gc<K>, v: V) -> Option<Ephemeron<K, V>> {
         let hash = make_hash_from_gc(&self.hash_builder, k);
         let hasher = make_hasher(&self.hash_builder);
-        let eph = Ephemeron::new(k, v);
-        match self
-            .table
-            .find_or_find_insert_slot(hash, equivalent_key(k), hasher)
-        {
-            // SAFETY: `bucket` is only used inside the replace call, meaning it doesn't
-            // outlive self.
-            Ok(bucket) => Some(mem::replace(unsafe { bucket.as_mut() }, eph)),
-            Err(slot) => {
-                // SAFETY: `slot` comes from a call to `find_or_find_insert_slot`, and `self`
-                // is not mutated until the call to `insert_in_slot`.
-                unsafe {
-                    self.table.insert_in_slot(hash, slot, eph);
-                }
-                None
+        let entry = self.table.entry(hash, equivalent_key(k), hasher);
+        let (old, slot) = match entry {
+            RawEntry::Occupied(occupied_entry) => {
+                let (v, slot) = occupied_entry.remove();
+                (Some(v), slot)
             }
-        }
+            RawEntry::Vacant(vacant_entry) => (None, vacant_entry),
+        };
+
+        slot.insert(Ephemeron::new(k, v));
+        old
     }
 
     /// Removes a key from the map, returning the value at the key if the key
     /// was previously in the map. Keeps the allocated memory for reuse.
     pub(crate) fn remove(&mut self, k: &Gc<K>) -> Option<V> {
         let hash = make_hash_from_gc(&self.hash_builder, k);
-        self.table.remove_entry(hash, equivalent_key(k))?.value()
+        self.table
+            .find_entry(hash, equivalent_key(k))
+            .ok()?
+            .remove()
+            .0
+            .value()
     }
 
     /// Clears all the expired keys in the map.
@@ -348,7 +336,7 @@ where
     K: Trace + ?Sized + 'static,
     V: Trace + 'static,
 {
-    inner: RawIter<Ephemeron<K, V>>,
+    inner: RawIter<'a, Ephemeron<K, V>>,
     marker: PhantomData<&'a Ephemeron<K, V>>,
 }
 
@@ -386,9 +374,7 @@ where
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        // SAFETY: The original map outlives the iterator thanks to the lifetime parameter,
-        // and since the returned ephemeron carries that information, the call to `as_ref` is safe.
-        unsafe { self.inner.next().map(|b| b.as_ref()) }
+        self.inner.next()
     }
 
     #[inline]

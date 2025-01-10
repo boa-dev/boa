@@ -13,7 +13,6 @@ use crate::{
     Context, JsNativeError, JsResult, JsValue,
 };
 
-use boa_macros::js_str;
 use icu_locid::{
     extensions::unicode::{Key, Value},
     subtags::Variants,
@@ -75,7 +74,7 @@ pub(crate) fn canonicalize_locale_list(
     let o = if locales.is_string()
         || locales
             .as_object()
-            .map_or(false, |o| o.borrow().is::<Locale>())
+            .is_some_and(|o| o.borrow().is::<Locale>())
     {
         // a. Let O be CreateArrayFromList(« locales »).
         Array::create_array_from_list([locales.clone()], context)
@@ -420,7 +419,7 @@ where
     let options = coerce_options_to_object(options, context)?;
 
     // 2. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-    let matcher = get_option(&options, js_str!("localeMatcher"), context)?.unwrap_or_default();
+    let matcher = get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
 
     // 3. Let subset be a new empty List.
     let mut subset = Vec::with_capacity(requested_locales.len());

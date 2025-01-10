@@ -369,18 +369,15 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                     // The non-digit character at this point must be an 'e' or 'E' to indicate an Exponent Part.
                     // Another '.' or 'n' is not allowed.
-                    match cursor.peek_char()? {
-                        Some(0x0065 /*e */ | 0x0045 /* E */) => {
-                            // Consume the ExponentIndicator.
-                            cursor.next_char()?.expect("e or E token vanished");
+                    if let Some(0x0065 /*e */ | 0x0045 /* E */) = cursor.peek_char()? {
+                        // Consume the ExponentIndicator.
+                        cursor.next_char()?.expect("e or E token vanished");
 
-                            buf.push(b'E');
+                        buf.push(b'E');
 
-                            take_signed_integer(&mut buf, cursor, kind)?;
-                        }
-                        Some(_) | None => {
-                            // Finished lexing.
-                        }
+                        take_signed_integer(&mut buf, cursor, kind)?;
+                    } else {
+                        // Finished lexing.
                     }
                 }
             }
@@ -407,7 +404,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
             // casting precisely to check if the float doesn't lose info on truncation
             #[allow(clippy::cast_possible_truncation)]
             NumericKind::Rational /* base: 10 */ => {
-                let val: f64 = fast_float::parse(num_str).expect("Failed to parse float after checks");
+                let val: f64 = fast_float2::parse(num_str).expect("Failed to parse float after checks");
                 let int_val = val as i32;
 
                 // The truncated float should be identically to the non-truncated float for the conversion to be loss-less,

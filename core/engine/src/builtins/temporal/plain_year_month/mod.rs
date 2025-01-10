@@ -13,19 +13,15 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_macros::js_str;
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    components::{
-        calendar::{Calendar as InnerCalendar, GetTemporalCalendar},
-        Duration, YearMonth as InnerYearMonth,
-    },
-    iso::IsoDateSlots,
     options::{ArithmeticOverflow, CalendarName},
+    Duration, PlainYearMonth as InnerYearMonth,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, to_temporal_duration, DateTimeValues};
@@ -40,18 +36,6 @@ pub struct PlainYearMonth {
 impl PlainYearMonth {
     pub(crate) fn new(inner: InnerYearMonth) -> Self {
         Self { inner }
-    }
-}
-
-impl IsoDateSlots for JsObject<PlainYearMonth> {
-    fn iso_date(&self) -> temporal_rs::iso::IsoDate {
-        self.borrow().data().inner.iso_date()
-    }
-}
-
-impl GetTemporalCalendar for JsObject<PlainYearMonth> {
-    fn get_calendar(&self) -> InnerCalendar {
-        self.borrow().data().inner.get_calendar()
     }
 }
 
@@ -157,6 +141,7 @@ impl IntrinsicObject for PlainYearMonth {
             .method(Self::since, js_string!("since"), 2)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
 
@@ -167,6 +152,8 @@ impl IntrinsicObject for PlainYearMonth {
 
 impl BuiltInConstructor for PlainYearMonth {
     const LENGTH: usize = 2;
+    const P: usize = 16;
+    const SP: usize = 1;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::plain_year_month;
@@ -184,25 +171,40 @@ impl BuiltInConstructor for PlainYearMonth {
                 .into());
         }
 
-        let day = args.get_or_undefined(3);
         // 2. If referenceISODay is undefined, then
-        let ref_day = if day.is_undefined() {
-            // a. Set referenceISODay to 1𝔽.
-            None
-        } else {
-            // 6. Let ref be ? ToIntegerWithTruncation(referenceISODay).
-            Some(super::to_integer_with_truncation(day, context)?)
-        };
-
+        // a. Set referenceISODay to 1𝔽.
         // 3. Let y be ? ToIntegerWithTruncation(isoYear).
-        let y = super::to_integer_with_truncation(args.get_or_undefined(0), context)?;
+        let y = args
+            .get_or_undefined(0)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<i32>();
+
         // 4. Let m be ? ToIntegerWithTruncation(isoMonth).
-        let m = super::to_integer_with_truncation(args.get_or_undefined(1), context)?;
+        let m = args
+            .get_or_undefined(1)
+            .to_finitef64(context)?
+            .as_integer_with_truncation::<u8>();
+
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
         let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
 
+        // 6. Let ref be ? ToIntegerWithTruncation(referenceISODay).
+        let ref_day = args
+            .get_or_undefined(3)
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+            })
+            .transpose()?;
+
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
-        let inner = InnerYearMonth::new(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
+        let inner = InnerYearMonth::new_with_overflow(
+            y,
+            m,
+            ref_day.map(Into::into),
+            calendar,
+            ArithmeticOverflow::Reject,
+        )?;
 
         create_temporal_year_month(inner, Some(new_target), context)
     }
@@ -224,29 +226,46 @@ impl PlainYearMonth {
             {
                 // Perform ? [GetTemporalOverflowOption](https://tc39.es/proposal-temporal/#sec-temporal-gettemporaloverflowoption)(options).
                 let options = get_options_object(args.get_or_undefined(1))?;
-                let _ = get_option::<ArithmeticOverflow>(&options, js_str!("overflow"), context)?;
+                let _ =
+                    get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
                 data.inner.clone()
             } else {
                 let options = get_options_object(args.get_or_undefined(1))?;
-                let overflow = get_option(&options, js_str!("overflow"), context)?
+                let overflow = get_option(&options, js_string!("overflow"), context)?
                     .unwrap_or(ArithmeticOverflow::Constrain);
+
+                let year = item
+                    .get_v(js_string!("year"), context)?
+                    .map(|v| {
+                        let finite = v.to_finitef64(context)?;
+                        Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+                    })
+                    .transpose()?
+                    .unwrap_or_default();
+
+                let month = item
+                    .get_v(js_string!("month"), context)?
+                    .map(|v| {
+                        let finite = v.to_finitef64(context)?;
+                        Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+                    })
+                    .transpose()?
+                    .unwrap_or_default();
+
+                let ref_day = item
+                    .get_v(js_string!("day"), context)?
+                    .map(|v| {
+                        let finite = v.to_finitef64(context)?;
+                        Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+                    })
+                    .transpose()?;
 
                 // a. Let calendar be ? ToTemporalCalendar(item).
                 let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(1))?;
-                InnerYearMonth::new(
-                    super::to_integer_with_truncation(
-                        &item.get_v(js_str!("year"), context)?,
-                        context,
-                    )?,
-                    super::to_integer_with_truncation(
-                        &item.get_v(js_str!("month"), context)?,
-                        context,
-                    )?,
-                    super::to_integer_with_truncation(
-                        &item.get_v(js_str!("day"), context)?,
-                        context,
-                    )
-                    .ok(),
+                InnerYearMonth::new_with_overflow(
+                    year,
+                    month,
+                    ref_day.map(Into::into),
                     calendar,
                     overflow,
                 )?
@@ -296,7 +315,8 @@ impl PlainYearMonth {
                 .into());
         };
 
-        Ok(js_string!(year_month.get_calendar().identifier()).into())
+        let calendar = year_month.borrow().data().inner.calendar().clone();
+        Ok(js_string!(calendar.identifier()).into())
     }
 
     fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -360,7 +380,7 @@ impl PlainYearMonth {
 
 impl PlainYearMonth {
     fn with(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::typ()
+        Err(JsNativeError::error()
             .with_message("not yet implemented.")
             .into())
     }
@@ -412,10 +432,17 @@ impl PlainYearMonth {
         let options = get_options_object(args.get_or_undefined(0))?;
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
-        let show_calendar = get_option::<CalendarName>(&options, js_str!("calendarName"), context)?
-            .unwrap_or(CalendarName::Auto);
+        let show_calendar =
+            get_option::<CalendarName>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(CalendarName::Auto);
 
         Ok(year_month_to_string(inner, show_calendar))
+    }
+
+    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::typ()
+            .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
+            .into())
     }
 }
 
@@ -482,8 +509,8 @@ fn add_or_subtract_duration(
             .into());
     };
 
-    let overflow =
-        get_option(options, js_str!("overflow"), context)?.unwrap_or(ArithmeticOverflow::Constrain);
+    let overflow = get_option(options, js_string!("overflow"), context)?
+        .unwrap_or(ArithmeticOverflow::Constrain);
 
     let year_month = this
         .as_object()

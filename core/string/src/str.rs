@@ -1,4 +1,7 @@
-use crate::{is_trimmable_whitespace, is_trimmable_whitespace_latin1, CodePoint, Iter};
+use crate::{
+    display::{JsStrDisplayEscaped, JsStrDisplayLossy},
+    is_trimmable_whitespace, is_trimmable_whitespace_latin1, CodePoint, Iter,
+};
 use std::{
     hash::{Hash, Hasher},
     slice::SliceIndex,
@@ -47,7 +50,7 @@ pub enum JsStrVariant<'a> {
 }
 
 /// This is equivalent to Rust's `&str`.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct JsStr<'a> {
     inner: JsStrVariant<'a>,
 }
@@ -191,6 +194,20 @@ impl<'a> JsStr<'a> {
         I::get(self, index)
     }
 
+    /// Get the element at the given index.
+    ///
+    /// # Panics
+    ///
+    /// If the index is out of bounds.
+    #[inline]
+    #[must_use]
+    pub fn get_expect<I>(&self, index: I) -> I::Value
+    where
+        I: JsSliceIndex<'a>,
+    {
+        self.get(index).expect("Index out of bounds")
+    }
+
     /// Returns an element or subslice depending on the type of index, without doing bounds check.
     ///
     /// # Safety
@@ -235,14 +252,275 @@ impl<'a> JsStr<'a> {
         m >= n && needle == self.get(m - n..).expect("already checked size")
     }
 
-    /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
-    /// This is not optimized for Latin1 strings.
+    /// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
+    ///
+    /// Note: Instead of returning an isize with `-1` as the "not found" value, we make use of the
+    /// type system and return <code>[Option]\<usize\></code> with [`None`] as the "not found" value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
     #[inline]
-    pub(crate) fn code_points(self) -> impl Iterator<Item = CodePoint> + Clone + 'a {
+    #[must_use]
+    pub fn index_of(&self, search_value: JsStr<'_>, from_index: usize) -> Option<usize> {
+        // 1. Assert: Type(string) is String.
+        // 2. Assert: Type(searchValue) is String.
+        // 3. Assert: fromIndex is a non-negative integer.
+
+        // 4. Let len be the length of string.
+        let len = self.len();
+
+        // 5. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.
+        if search_value.is_empty() {
+            return if from_index <= len {
+                Some(from_index)
+            } else {
+                None
+            };
+        }
+
+        // 6. Let searchLen be the length of searchValue.
+        // 7. For each integer i starting with fromIndex such that i ≤ len - searchLen, in ascending order, do
+        // a. Let candidate be the substring of string from i to i + searchLen.
+        // b. If candidate is the same sequence of code units as searchValue, return i.
+        // 8. Return -1.
+        self.windows(search_value.len())
+            .skip(from_index)
+            .position(|s| s == search_value)
+            .map(|i| i + from_index)
+    }
+
+    /// Abstract operation `CodePointAt( string, position )`.
+    ///
+    /// The abstract operation `CodePointAt` takes arguments `string` (a String) and `position` (a
+    /// non-negative integer) and returns a Record with fields `[[CodePoint]]` (a code point),
+    /// `[[CodeUnitCount]]` (a positive integer), and `[[IsUnpairedSurrogate]]` (a Boolean). It
+    /// interprets string as a sequence of UTF-16 encoded code points, as described in 6.1.4, and reads
+    /// from it a single code point starting with the code unit at index `position`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-codepointat
+    ///
+    /// # Panics
+    ///
+    /// If `position` is smaller than size of string.
+    #[inline]
+    #[must_use]
+    pub fn code_point_at(&self, position: usize) -> CodePoint {
+        // 1. Let size be the length of string.
+        let size = self.len();
+
+        // 2. Assert: position ≥ 0 and position < size.
+        // position >= 0 ensured by position: usize
+        assert!(position < size);
+
+        match self.variant() {
+            JsStrVariant::Latin1(v) => {
+                let code_point = v.get(position).expect("Already checked the size");
+                CodePoint::Unicode(*code_point as char)
+            }
+            // 3. Let first be the code unit at index position within string.
+            // 4. Let cp be the code point whose numeric value is that of first.
+            // 5. If first is not a leading surrogate or trailing surrogate, then
+            // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: false }.
+            // 6. If first is a trailing surrogate or position + 1 = size, then
+            // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+            // 7. Let second be the code unit at index position + 1 within string.
+            // 8. If second is not a trailing surrogate, then
+            // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+            // 9. Set cp to ! UTF16SurrogatePairToCodePoint(first, second).
+            JsStrVariant::Utf16(v) => {
+                // We can skip the checks and instead use the `char::decode_utf16` function to take care of that for us.
+                let code_point = v
+                    .get(position..=position + 1)
+                    .unwrap_or(&v[position..=position]);
+
+                match char::decode_utf16(code_point.iter().copied())
+                    .next()
+                    .expect("code_point always has a value")
+                {
+                    Ok(c) => CodePoint::Unicode(c),
+                    Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
+                }
+            }
+        }
+    }
+
+    /// Abstract operation `StringToNumber ( str )`
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringtonumber
+    #[inline]
+    #[must_use]
+    pub fn to_number(&self) -> f64 {
+        // 1. Let text be ! StringToCodePoints(str).
+        // 2. Let literal be ParseText(text, StringNumericLiteral).
+        let Ok(string) = self.to_std_string() else {
+            // 3. If literal is a List of errors, return NaN.
+            return f64::NAN;
+        };
+        // 4. Return StringNumericValue of literal.
+        let string = string.trim_matches(is_trimmable_whitespace);
+        match string {
+            "" => return 0.0,
+            "-Infinity" => return f64::NEG_INFINITY,
+            "Infinity" | "+Infinity" => return f64::INFINITY,
+            _ => {}
+        }
+
+        let mut s = string.bytes();
+        let base = match (s.next(), s.next()) {
+            (Some(b'0'), Some(b'b' | b'B')) => Some(2),
+            (Some(b'0'), Some(b'o' | b'O')) => Some(8),
+            (Some(b'0'), Some(b'x' | b'X')) => Some(16),
+            // Make sure that no further variants of "infinity" are parsed.
+            (Some(b'i' | b'I'), _) => {
+                return f64::NAN;
+            }
+            _ => None,
+        };
+
+        // Parse numbers that begin with `0b`, `0o` and `0x`.
+        if let Some(base) = base {
+            let string = &string[2..];
+            if string.is_empty() {
+                return f64::NAN;
+            }
+
+            // Fast path
+            if let Ok(value) = u32::from_str_radix(string, base) {
+                return f64::from(value);
+            }
+
+            // Slow path
+            let mut value: f64 = 0.0;
+            for c in s {
+                if let Some(digit) = char::from(c).to_digit(base) {
+                    value = value.mul_add(f64::from(base), f64::from(digit));
+                } else {
+                    return f64::NAN;
+                }
+            }
+            return value;
+        }
+
+        fast_float2::parse(string).unwrap_or(f64::NAN)
+    }
+
+    /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
+    // TODO: optimize for Latin1 strings.
+    #[inline]
+    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + 'a {
         char::decode_utf16(self.iter()).map(|res| match res {
             Ok(c) => CodePoint::Unicode(c),
             Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
         })
+    }
+
+    /// Checks if the [`JsStr`] contains a byte.
+    #[inline]
+    #[must_use]
+    pub fn contains(&self, element: u8) -> bool {
+        match self.variant() {
+            JsStrVariant::Latin1(v) => v.contains(&element),
+            JsStrVariant::Utf16(v) => v.contains(&u16::from(element)),
+        }
+    }
+
+    /// Gets an iterator of all the Unicode codepoints of a [`JsStr`], replacing
+    /// unpaired surrogates with the replacement character. This is faster than
+    /// using [`Self::code_points`].
+    #[inline]
+    pub fn code_points_lossy(self) -> impl Iterator<Item = char> + 'a {
+        char::decode_utf16(self.iter()).map(|res| res.unwrap_or('\u{FFFD}'))
+    }
+
+    /// Decodes a [`JsStr`] into an iterator of [`Result<String, u16>`], returning surrogates as
+    /// errors.
+    #[inline]
+    #[allow(clippy::missing_panics_doc)]
+    pub fn to_std_string_with_surrogates(&self) -> impl Iterator<Item = Result<String, u16>> + 'a {
+        let mut iter = self.code_points().peekable();
+
+        std::iter::from_fn(move || {
+            let cp = iter.next()?;
+            let char = match cp {
+                CodePoint::Unicode(c) => c,
+                CodePoint::UnpairedSurrogate(surr) => return Some(Err(surr)),
+            };
+
+            let mut string = String::from(char);
+
+            loop {
+                let Some(cp) = iter.peek().and_then(|cp| match cp {
+                    CodePoint::Unicode(c) => Some(*c),
+                    CodePoint::UnpairedSurrogate(_) => None,
+                }) else {
+                    break;
+                };
+
+                string.push(cp);
+
+                iter.next().expect("should exist by the check above");
+            }
+
+            Some(Ok(string))
+        })
+    }
+
+    /// Decodes a [`JsStr`] into a [`String`], returning an error if it contains any invalid data.
+    ///
+    /// # Errors
+    ///
+    /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
+    #[inline]
+    pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
+        match self.variant() {
+            JsStrVariant::Latin1(v) => Ok(v.iter().copied().map(char::from).collect()),
+            JsStrVariant::Utf16(v) => String::from_utf16(v),
+        }
+    }
+
+    /// Decodes a [`JsStr`] into a [`String`], replacing invalid data with its escaped representation
+    /// in 4 digit hexadecimal.
+    #[inline]
+    #[must_use]
+    pub fn to_std_string_escaped(&self) -> String {
+        self.display_escaped().to_string()
+    }
+
+    /// Decodes a [`JsStr`] into a [`String`], replacing invalid data with the
+    /// replacement character U+FFFD.
+    #[inline]
+    #[must_use]
+    pub fn to_std_string_lossy(&self) -> String {
+        self.display_lossy().to_string()
+    }
+
+    /// Gets a displayable escaped string.
+    ///
+    /// This may be faster and has fewer
+    /// allocations than `format!("{}", str.to_string_escaped())` when
+    /// displaying.
+    #[inline]
+    #[must_use]
+    pub fn display_escaped(&self) -> JsStrDisplayEscaped<'a> {
+        JsStrDisplayEscaped::from(*self)
+    }
+
+    /// Gets a displayable lossy string.
+    ///
+    /// This may be faster and has fewer
+    /// allocations than `format!("{}", str.to_string_lossy())` when displaying.
+    #[inline]
+    #[must_use]
+    pub fn display_lossy(&self) -> JsStrDisplayLossy<'a> {
+        JsStrDisplayLossy::from(*self)
     }
 }
 
@@ -330,6 +608,13 @@ impl<'a> PartialEq<JsStr<'a>> for [u16] {
             }
         }
         true
+    }
+}
+
+impl std::fmt::Debug for JsStr<'_> {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.to_std_string_escaped().fmt(f)
     }
 }
 

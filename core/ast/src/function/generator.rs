@@ -5,7 +5,6 @@ use crate::{
     join_nodes,
     operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
@@ -90,6 +89,13 @@ impl GeneratorDeclaration {
     pub const fn linear_span(&self) -> LinearSpan {
         self.linear_span.0
     }
+
+    /// Returns `true` if the generator declaration contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for GeneratorDeclaration {
@@ -108,8 +114,8 @@ impl VisitWith for GeneratorDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_identifier(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -117,8 +123,8 @@ impl VisitWith for GeneratorDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_identifier_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }
@@ -229,6 +235,13 @@ impl GeneratorExpression {
     pub const fn linear_span(&self) -> LinearSpan {
         self.linear_span.0
     }
+
+    /// Returns `true` if the generator expression contains a direct call to `eval`.
+    #[inline]
+    #[must_use]
+    pub const fn contains_direct_eval(&self) -> bool {
+        self.contains_direct_eval
+    }
 }
 
 impl ToIndentedString for GeneratorExpression {
@@ -262,9 +275,9 @@ impl VisitWith for GeneratorExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -273,9 +286,9 @@ impl VisitWith for GeneratorExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

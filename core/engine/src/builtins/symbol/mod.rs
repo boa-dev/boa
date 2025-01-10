@@ -186,6 +186,8 @@ impl BuiltInObject for Symbol {
 
 impl BuiltInConstructor for Symbol {
     const LENGTH: usize = 0;
+    const P: usize = 5;
+    const SP: usize = 15;
 
     const STANDARD_CONSTRUCTOR: fn(&StandardConstructors) -> &StandardConstructor =
         StandardConstructors::symbol;
@@ -278,7 +280,7 @@ impl Symbol {
     pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? thisSymbolValue(this value).
         let symbol = Self::this_symbol_value(this)?;
-        Ok(JsValue::Symbol(symbol))
+        Ok(symbol.into())
     }
 
     /// `get Symbol.prototype.description`

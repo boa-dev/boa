@@ -36,7 +36,7 @@ pub mod weak_set;
 
 mod builder;
 
-use boa_macros::js_str;
+use boa_profiler::Profiler;
 use builder::BuiltInBuilder;
 
 #[cfg(feature = "annex-b")]
@@ -106,6 +106,7 @@ use crate::{
         weak_set::WeakSet,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
+    js_string,
     object::JsObject,
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
@@ -157,6 +158,10 @@ pub(crate) trait BuiltInObject: IntrinsicObject {
 ///
 /// [built-in object]: https://tc39.es/ecma262/#sec-built-in-object
 pub(crate) trait BuiltInConstructor: BuiltInObject {
+    /// Const Generic `P` is the minimum storage capacity for the prototype's Property table.
+    const P: usize;
+    /// Const Generic `SP` is the minimum storage capacity for the object's Static Property table.
+    const SP: usize;
     /// The amount of arguments this function object takes.
     const LENGTH: usize;
 
@@ -304,10 +309,12 @@ impl Realm {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
 pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()> {
+    let _timer =
+        Profiler::global().start_event("Builtins::set_default_global_bindings", "Builtins");
     let global_object = context.global_object();
 
     global_object.define_property_or_throw(
-        js_str!("globalThis"),
+        js_string!("globalThis"),
         PropertyDescriptor::builder()
             .value(context.realm().global_this().clone())
             .writable(true)
@@ -320,17 +327,17 @@ pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()>
         .enumerable(false)
         .configurable(false);
     global_object.define_property_or_throw(
-        js_str!("Infinity"),
+        js_string!("Infinity"),
         restricted.clone().value(f64::INFINITY),
         context,
     )?;
     global_object.define_property_or_throw(
-        js_str!("NaN"),
+        js_string!("NaN"),
         restricted.clone().value(f64::NAN),
         context,
     )?;
     global_object.define_property_or_throw(
-        js_str!("undefined"),
+        js_string!("undefined"),
         restricted.value(JsValue::undefined()),
         context,
     )?;

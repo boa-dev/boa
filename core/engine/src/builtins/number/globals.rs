@@ -254,7 +254,7 @@ pub(crate) fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) ->
             return Ok(JsValue::new(-0_f64));
         }
 
-        return Ok(JsValue::new(0_f64));
+        return Ok(JsValue::new(0));
     }
 
     // 16. Return 𝔽(sign × mathInt).
@@ -318,7 +318,7 @@ pub(crate) fn parse_float(
             // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
             Ok(JsValue::nan())
         } else {
-            Ok(fast_float::parse_partial::<f64, _>(s).map_or_else(
+            Ok(fast_float2::parse_partial::<f64, _>(s).map_or_else(
                 |_| JsValue::nan(),
                 |(f, len)| {
                     if len > 0 {
