@@ -154,16 +154,15 @@ impl CallFrame {
         environments: EnvironmentStack,
         realm: Realm,
     ) -> Self {
-        let local_binings_initialized = code_block.local_bindings_initialized.clone();
         Self {
-            code_block,
             pc: 0,
             rp: 0,
             env_fp: 0,
             argument_count: 0,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
-            local_bindings_initialized: local_binings_initialized,
+            local_bindings_initialized: code_block.local_bindings_initialized.clone(),
+            code_block,
             loop_iteration_count: 0,
             active_runnable,
             environments,
