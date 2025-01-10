@@ -134,7 +134,6 @@ impl<'a> arbitrary::Arbitrary<'a> for Script {
         let statements = StatementList::arbitrary(u)?;
         Ok(Self {
             statements,
-            source: None,
         })
     }
 }
