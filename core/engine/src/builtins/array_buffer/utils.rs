@@ -88,8 +88,11 @@ impl SliceRef<'_> {
 
             // 1. Assert: IsDetachedBuffer(arrayBuffer) is false.
             // 2. Assert: There are sufficient bytes in arrayBuffer starting at byteIndex to represent a value of type.
-            debug_assert!(buffer.len() >= size_of::<T>());
-            debug_assert_eq!(buffer.addr() % align_of::<T>(), 0);
+            #[cfg(debug_assertions)]
+            {
+                assert!(buffer.len() >= size_of::<T>());
+                assert_eq!(buffer.addr() % align_of::<T>(), 0);
+            }
 
             // 3. Let block be arrayBuffer.[[ArrayBufferData]].
             // 4. Let elementSize be the Element Size value specified in Table 70 for Element Type type.
