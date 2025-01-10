@@ -646,7 +646,7 @@ impl BuiltInFunctionObject {
         }
 
         let in_with = context.vm.environments.has_object_environment();
-        let spanned_source_text = SpannedSourceText::new_pseudo();
+        let spanned_source_text = SpannedSourceText::new_empty();
 
         let code = FunctionCompiler::new(spanned_source_text)
             .name(js_string!("anonymous"))

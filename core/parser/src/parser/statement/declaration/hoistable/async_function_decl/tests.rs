@@ -6,7 +6,7 @@ use boa_ast::{
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 
-const PSEUDO_LINEAR_SPAN: LinearSpan =
+const EMPTY_LINEAR_SPAN: LinearSpan =
     LinearSpan::new(LinearPosition::new(0), LinearPosition::new(0));
 
 /// Async function declaration parsing.
@@ -22,7 +22,7 @@ fn async_function_declaration() {
                     .into(),
                 FormalParameterList::default(),
                 FunctionBody::default(),
-                PSEUDO_LINEAR_SPAN,
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],
@@ -41,7 +41,7 @@ fn async_function_declaration_keywords() {
                 Sym::YIELD.into(),
                 FormalParameterList::default(),
                 FunctionBody::default(),
-                PSEUDO_LINEAR_SPAN,
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],
@@ -56,7 +56,7 @@ fn async_function_declaration_keywords() {
                 Sym::AWAIT.into(),
                 FormalParameterList::default(),
                 FunctionBody::default(),
-                PSEUDO_LINEAR_SPAN,
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],

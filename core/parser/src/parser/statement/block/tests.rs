@@ -20,7 +20,7 @@ use boa_interner::Interner;
 use boa_macros::utf16;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
-const PSEUDO_LINEAR_SPAN: boa_ast::LinearSpan =
+const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
     boa_ast::LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
 
 /// Helper function to check a block.
@@ -92,7 +92,7 @@ fn non_empty() {
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
-                PSEUDO_LINEAR_SPAN,
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
             Statement::Var(VarDeclaration(
@@ -151,7 +151,7 @@ fn hoisting() {
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
-                PSEUDO_LINEAR_SPAN,
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],

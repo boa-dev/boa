@@ -118,7 +118,7 @@ impl Json {
         let code_block = {
             let in_with = context.vm.environments.has_object_environment();
             // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
-            let spanned_source_text = SpannedSourceText::new_pseudo();
+            let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
                 js_string!("<main>"),
                 script.strict(),

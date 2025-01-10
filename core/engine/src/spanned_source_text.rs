@@ -25,8 +25,7 @@ impl SourceText {
         }
     }
 
-    #[must_use]
-    pub(crate) fn new_pseudo() -> Self {
+    fn new_empty() -> Self {
         Self { source_text: None }
     }
 
@@ -59,9 +58,9 @@ impl SpannedSourceText {
         }
     }
 
-    pub(crate) fn new_pseudo() -> Self {
+    pub(crate) fn new_empty() -> Self {
         Self {
-            source_text: SourceText::new_pseudo(),
+            source_text: SourceText::new_empty(),
             span: None,
         }
     }

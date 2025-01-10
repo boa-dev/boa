@@ -296,7 +296,7 @@ impl SyntheticModule {
             context.interner_mut(),
             false,
             // A synthetic module does not contain `SourceText`
-            SpannedSourceText::new_pseudo(),
+            SpannedSourceText::new_empty(),
         );
 
         // 4. For each String exportName in module.[[ExportNames]], do

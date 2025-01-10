@@ -30,7 +30,7 @@ use boa_interner::Interner;
 use boa_macros::utf16;
 
 const PSEUDO_LINEAR_POS: LinearPosition = LinearPosition::new(0);
-const PSEUDO_LINEAR_SPAN: LinearSpan = LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
+const EMPTY_LINEAR_SPAN: LinearSpan = LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[track_caller]
@@ -137,7 +137,7 @@ fn hoisting() {
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
-                PSEUDO_LINEAR_SPAN,
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],
@@ -521,7 +521,7 @@ fn spread_in_arrow_function() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,

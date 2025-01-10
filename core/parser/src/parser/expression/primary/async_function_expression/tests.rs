@@ -10,7 +10,7 @@ use boa_interner::Interner;
 use boa_macros::utf16;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
-const PSEUDO_LINEAR_SPAN: boa_ast::LinearSpan =
+const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
     boa_ast::LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
 
 /// Checks async expression parsing.
@@ -37,7 +37,7 @@ fn check_async_expression() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                         false,
                     )
                     .into(),
@@ -86,7 +86,7 @@ fn check_nested_async_expression() {
                                                 PSEUDO_LINEAR_POS,
                                                 false,
                                             ),
-                                            PSEUDO_LINEAR_SPAN,
+                                            EMPTY_LINEAR_SPAN,
                                             false,
                                         )
                                         .into(),
@@ -99,7 +99,7 @@ fn check_nested_async_expression() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                         false,
                     )
                     .into(),

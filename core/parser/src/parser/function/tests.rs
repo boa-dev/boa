@@ -16,7 +16,7 @@ use boa_interner::Interner;
 use boa_macros::utf16;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
-const PSEUDO_LINEAR_SPAN: boa_ast::LinearSpan =
+const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
     boa_ast::LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
 
 /// Checks basic function declaration parsing.
@@ -44,7 +44,7 @@ fn check_basic() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         ))
         .into()],
         interner,
@@ -84,7 +84,7 @@ fn check_duplicates_strict_off() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         ))
         .into()],
         interner,
@@ -122,7 +122,7 @@ fn check_basic_semicolon_insertion() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         ))
         .into()],
         interner,
@@ -151,7 +151,7 @@ fn check_empty_return() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         ))
         .into()],
         interner,
@@ -180,7 +180,7 @@ fn check_empty_return_semicolon_insertion() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         ))
         .into()],
         interner,
@@ -212,7 +212,7 @@ fn check_rest_operator() {
             interner.get_or_intern_static("foo", utf16!("foo")).into(),
             params,
             FunctionBody::default(),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         ))
         .into()],
         interner,
@@ -238,7 +238,7 @@ fn check_arrow_only_rest() {
             None,
             params,
             FunctionBody::default(),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,
@@ -274,7 +274,7 @@ fn check_arrow_rest() {
             None,
             params,
             FunctionBody::default(),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,
@@ -316,7 +316,7 @@ fn check_arrow() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,
@@ -356,7 +356,7 @@ fn check_arrow_semicolon_insertion() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,
@@ -389,7 +389,7 @@ fn check_arrow_epty_return() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,
@@ -422,7 +422,7 @@ fn check_arrow_empty_return_semicolon_insertion() {
                 PSEUDO_LINEAR_POS,
                 false,
             ),
-            PSEUDO_LINEAR_SPAN,
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,
@@ -459,7 +459,7 @@ fn check_arrow_assignment() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
@@ -502,7 +502,7 @@ fn check_arrow_assignment_nobrackets() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
@@ -545,7 +545,7 @@ fn check_arrow_assignment_noparenthesis() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
@@ -588,7 +588,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
@@ -637,7 +637,7 @@ fn check_arrow_assignment_2arg() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
@@ -686,7 +686,7 @@ fn check_arrow_assignment_2arg_nobrackets() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
@@ -739,7 +739,7 @@ fn check_arrow_assignment_3arg() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
@@ -792,7 +792,7 @@ fn check_arrow_assignment_3arg_nobrackets() {
                             PSEUDO_LINEAR_POS,
                             false,
                         ),
-                        PSEUDO_LINEAR_SPAN,
+                        EMPTY_LINEAR_SPAN,
                     )
                     .into(),
                 ),
