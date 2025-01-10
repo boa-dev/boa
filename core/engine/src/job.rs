@@ -146,6 +146,7 @@ pub type BoxedFuture<'a> = Pin<Box<dyn Future<Output = JsResult<JsValue>> + 'a>>
 ///
 /// [Job]: https://tc39.es/ecma262/#sec-jobs
 /// [`NativeFunction`]: crate::native_function::NativeFunction
+#[allow(clippy::type_complexity)]
 pub struct NativeAsyncJob {
     f: Box<dyn for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a>>,
     realm: Option<Realm>,
@@ -171,7 +172,7 @@ impl NativeAsyncJob {
         }
     }
 
-    /// Creates a new `NativeJob` from a closure and an execution realm.
+    /// Creates a new `NativeAsyncJob` from a closure and an execution realm.
     pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
         F: for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a> + 'static,
@@ -188,11 +189,11 @@ impl NativeAsyncJob {
         self.realm.as_ref()
     }
 
-    /// Calls the native job with the specified [`Context`].
+    /// Calls the native async job with the specified [`Context`].
     ///
     /// # Note
     ///
-    /// If the native job has an execution realm defined, this sets the running execution
+    /// If the native async job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
     pub fn call<'a>(
         self,
@@ -300,7 +301,7 @@ pub trait JobQueue {
     /// Enqueues a new [`NativeAsyncJob`] job on the job queue.
     ///
     /// Calling `future` returns a Rust [`Future`] that can be sent to a runtime for concurrent computation.
-    fn enqueue_async_job(&self, future: NativeAsyncJob, context: &mut Context);
+    fn enqueue_async_job(&self, async_job: NativeAsyncJob, context: &mut Context);
 
     /// Runs all jobs in the queue.
     ///

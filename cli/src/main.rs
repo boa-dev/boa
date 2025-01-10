@@ -13,7 +13,7 @@ mod helper;
 use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
-    job::{BoxedFuture, JobQueue, NativeJob},
+    job::{JobQueue, NativeAsyncJob, NativeJob},
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
@@ -453,29 +453,37 @@ fn add_runtime(context: &mut Context) {
 }
 
 #[derive(Default)]
-struct Jobs(RefCell<VecDeque<NativeJob>>);
+struct Jobs {
+    jobs: RefCell<VecDeque<NativeJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+}
 
 impl JobQueue for Jobs {
     fn enqueue_job(&self, job: NativeJob, _: &mut Context) {
-        self.0.borrow_mut().push_back(job);
+        self.jobs.borrow_mut().push_back(job);
+    }
+
+    fn enqueue_async_job(&self, async_job: NativeAsyncJob, _: &mut Context) {
+        self.async_jobs.borrow_mut().push_back(async_job);
     }
 
     fn run_jobs(&self, context: &mut Context) {
         loop {
-            let jobs = std::mem::take(&mut *self.0.borrow_mut());
-            if jobs.is_empty() {
+            if self.jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
                 return;
             }
-            for job in jobs {
-                if let Err(e) = job.call(context) {
-                    eprintln!("Uncaught {e}");
+            let async_jobs = std::mem::take(&mut *self.async_jobs.borrow_mut());
+            for async_job in async_jobs {
+                if let Err(err) = pollster::block_on(async_job.call(&RefCell::new(context))) {
+                    eprintln!("Uncaught {err}");
+                }
+                let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
+                for job in jobs {
+                    if let Err(e) = job.call(context) {
+                        eprintln!("Uncaught {e}");
+                    }
                 }
             }
         }
-    }
-
-    fn enqueue_async_job(&self, future: BoxedFuture, _: &mut Context) {
-        let job = pollster::block_on(future);
-        self.0.borrow_mut().push_back(job);
     }
 }

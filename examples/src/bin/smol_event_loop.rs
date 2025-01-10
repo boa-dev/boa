@@ -2,17 +2,18 @@ use std::{
     cell::RefCell,
     collections::VecDeque,
     future::Future,
+    pin::Pin,
     rc::Rc,
     time::{Duration, Instant},
 };
 
 use boa_engine::{
     context::ContextBuilder,
-    job::{FutureJob, JobQueue, NativeJob},
+    job::{JobQueue, NativeAsyncJob, NativeJob},
     js_string,
     native_function::NativeFunction,
     property::Attribute,
-    Context, JsArgs, JsResult, JsValue, Script, Source,
+    Context, JsArgs, JsNativeError, JsResult, JsValue, Script, Source,
 };
 use boa_runtime::Console;
 use futures_concurrency::future::FutureGroup;
@@ -30,16 +31,17 @@ fn main() {
     externally_async_event_loop();
 }
 
+// Taken from the `smol_event_loop.rs` example.
 /// An event queue using smol to drive futures to completion.
 struct Queue {
-    futures: RefCell<Vec<FutureJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     jobs: RefCell<VecDeque<NativeJob>>,
 }
 
 impl Queue {
     fn new() -> Self {
         Self {
-            futures: RefCell::default(),
+            async_jobs: RefCell::default(),
             jobs: RefCell::default(),
         }
     }
@@ -55,66 +57,66 @@ impl Queue {
 }
 
 impl JobQueue for Queue {
-    fn enqueue_promise_job(&self, job: NativeJob, _context: &mut Context) {
+    fn enqueue_job(&self, job: NativeJob, _context: &mut Context) {
         self.jobs.borrow_mut().push_back(job);
     }
 
-    fn enqueue_future_job(&self, future: FutureJob, _context: &mut Context) {
-        self.futures.borrow_mut().push(future);
+    fn enqueue_async_job(&self, async_job: NativeAsyncJob, _context: &mut Context) {
+        self.async_jobs.borrow_mut().push_back(async_job);
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
     fn run_jobs(&self, context: &mut Context) {
-        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(context)));
+        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))));
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
-    fn run_jobs_async<'a, 'ctx, 'fut>(
+    fn run_jobs_async<'a, 'b, 'fut>(
         &'a self,
-        context: &'ctx mut Context,
-    ) -> std::pin::Pin<Box<dyn Future<Output = ()> + 'fut>>
+        context: &'b RefCell<&mut Context>,
+    ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
     where
         'a: 'fut,
-        'ctx: 'fut,
+        'b: 'fut,
     {
         Box::pin(async move {
             // Early return in case there were no jobs scheduled.
-            if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
+            if self.jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
                 return;
             }
             let mut group = FutureGroup::new();
             loop {
-                group.extend(std::mem::take(&mut *self.futures.borrow_mut()));
+                for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
+                    group.insert(job.call(context));
+                }
 
                 if self.jobs.borrow().is_empty() {
-                    let Some(job) = group.next().await else {
+                    let Some(result) = group.next().await else {
                         // Both queues are empty. We can exit.
                         return;
                     };
 
-                    // Important to schedule the returned `job` into the job queue, since that's
-                    // what allows updating the `Promise` seen by ECMAScript for when the future
-                    // completes.
-                    self.enqueue_promise_job(job, context);
+                    if let Err(err) = result {
+                        eprintln!("Uncaught {err}");
+                    }
                     continue;
                 }
 
                 // We have some jobs pending on the microtask queue. Try to poll the pending
                 // tasks once to see if any of them finished, and run the pending microtasks
                 // otherwise.
-                let Some(job) = future::poll_once(group.next()).await.flatten() else {
+                let Some(result) = future::poll_once(group.next()).await.flatten() else {
                     // No completed jobs. Run the microtask queue once.
-                    self.drain_jobs(context);
+                    self.drain_jobs(&mut context.borrow_mut());
                     continue;
                 };
 
-                // Important to schedule the returned `job` into the job queue, since that's
-                // what allows updating the `Promise` seen by ECMAScript for when the future
-                // completes.
-                self.enqueue_promise_job(job, context);
+                if let Err(err) = result {
+                    eprintln!("Uncaught {err}");
+                }
 
                 // Only one macrotask can be executed before the next drain of the microtask queue.
-                self.drain_jobs(context);
+                self.drain_jobs(&mut context.borrow_mut());
             }
         })
     }
@@ -138,6 +140,38 @@ fn delay(
     }
 }
 
+// Example interval function. We cannot use a function returning async in this case since it would
+// borrow the context for too long, but using a `NativeAsyncJob` we can!
+fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    let Some(function) = args.get_or_undefined(0).as_callable().cloned() else {
+        return Err(JsNativeError::typ()
+            .with_message("arg must be a callable")
+            .into());
+    };
+
+    let this = this.clone();
+    let delay = args.get_or_undefined(1).to_u32(context)?;
+    let args = args.get(2..).unwrap_or_default().to_vec();
+
+    context.enqueue_async_job(NativeAsyncJob::with_realm(
+        move |context| {
+            Box::pin(async move {
+                let mut timer = smol::Timer::interval(Duration::from_millis(u64::from(delay)));
+                for _ in 0..10 {
+                    timer.next().await;
+                    if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
+                        eprintln!("Uncaught {err}");
+                    }
+                }
+                Ok(JsValue::undefined())
+            })
+        },
+        context.realm().clone(),
+    ));
+
+    Ok(JsValue::undefined())
+}
+
 /// Adds the custom runtime to the context.
 fn add_runtime(context: &mut Context) {
     // First add the `console` object, to be able to call `console.log()`.
@@ -154,18 +188,36 @@ fn add_runtime(context: &mut Context) {
             NativeFunction::from_async_fn(delay),
         )
         .expect("the delay builtin shouldn't exist");
+
+    // Finally, bind the defined async job to the ECMAScript function "interval".
+    context
+        .register_global_builtin_callable(
+            js_string!("timeout"),
+            1,
+            NativeFunction::from_fn_ptr(interval),
+        )
+        .expect("the delay builtin shouldn't exist");
 }
 
 // Script that does multiple calls to multiple async timers.
 const SCRIPT: &str = r"
     function print(elapsed) {
-        console.log(`Finished delay. Elapsed time: ${elapsed * 1000} ms`)
+        console.log(`Finished delay. Elapsed time: ${elapsed * 1000} ms`);
     }
+
     delay(1000).then(print);
     delay(500).then(print);
     delay(200).then(print);
     delay(600).then(print);
     delay(30).then(print);
+
+    let i = 0;
+    function counter() {
+        console.log(`Iteration number ${i} for JS interval`);
+        i += 1;
+    }
+
+    timeout(counter, 100);
 
     for(let i = 0; i <= 100000; i++) {
         // Emulate a long-running evaluation of a script.

@@ -1887,9 +1887,7 @@ impl Promise {
                     new_promise_reaction_job(fulfill_reaction, value.clone(), context);
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
-                context
-                    .job_queue()
-                    .enqueue_job(fulfill_job, context);
+                context.job_queue().enqueue_job(fulfill_job, context);
             }
 
             // 11. Else,

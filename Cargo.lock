@@ -439,6 +439,7 @@ dependencies = [
  "boa_parser",
  "boa_runtime",
  "futures-concurrency",
+ "futures-lite 2.5.0",
  "isahc",
  "smol",
  "time",
