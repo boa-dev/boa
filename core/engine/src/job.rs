@@ -195,15 +195,19 @@ impl NativeAsyncJob {
     ///
     /// If the native async job has an execution realm defined, this sets the running execution
     /// context to the realm's before calling the inner closure, and resets it after execution.
-    pub fn call<'a>(
+    pub fn call<'a, 'b>(
         self,
-        context: &'a RefCell<&mut Context>,
-    ) -> impl Future<Output = JsResult<JsValue>> + use<'a> {
+        context: &'a RefCell<&'b mut Context>,
+        // We can make our users assume `Unpin` because `self.f` is already boxed, so we shouldn't
+        // need pin at all.
+    ) -> impl Future<Output = JsResult<JsValue>> + Unpin + use<'a, 'b> {
         // If realm is not null, each time job is invoked the implementation must perform
         // implementation-defined steps such that execution is prepared to evaluate ECMAScript
         // code at the time of job's invocation.
-        if let Some(realm) = self.realm {
-            let old_realm = context.borrow_mut().enter_realm(realm);
+        let realm = self.realm;
+
+        let mut future = if let Some(realm) = &realm {
+            let old_realm = context.borrow_mut().enter_realm(realm.clone());
 
             // Let scriptOrModule be GetActiveScriptOrModule() at the time HostEnqueuePromiseJob is
             // invoked. If realm is not null, each time job is invoked the implementation must
@@ -212,11 +216,25 @@ impl NativeAsyncJob {
             let result = (self.f)(context);
 
             context.borrow_mut().enter_realm(old_realm);
-
             result
         } else {
             (self.f)(context)
-        }
+        };
+
+        std::future::poll_fn(move |cx| {
+            // We need to do the same dance again since the inner code could assume we're still
+            // on the same realm.
+            if let Some(realm) = &realm {
+                let old_realm = context.borrow_mut().enter_realm(realm.clone());
+
+                let poll_result = future.as_mut().poll(cx);
+
+                context.borrow_mut().enter_realm(old_realm);
+                poll_result
+            } else {
+                future.as_mut().poll(cx)
+            }
+        })
     }
 }
 
