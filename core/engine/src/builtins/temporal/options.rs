@@ -13,7 +13,7 @@ use crate::{
     js_string, Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
 };
 use temporal_rs::options::{
-    ArithmeticOverflow, DisplayCalendar, DifferenceSettings, Disambiguation, DurationOverflow,
+    ArithmeticOverflow, DifferenceSettings, Disambiguation, DisplayCalendar, DurationOverflow,
     OffsetDisambiguation, RoundingIncrement, TemporalRoundingMode, TemporalUnit,
 };
 

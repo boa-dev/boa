@@ -532,7 +532,7 @@ fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerI
         if let Some(instant) = obj.downcast_ref::<Instant>() {
             return Ok(instant.inner);
         } else if let Some(zdt) = obj.downcast_ref::<ZonedDateTime>() {
-            return Ok(zdt.inner.to_instant())
+            return Ok(zdt.inner.to_instant());
         }
         item.to_primitive(context, PreferredType::String)?
     } else {

@@ -20,7 +20,9 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{ArithmeticOverflow, DisplayCalendar}, partial::PartialDate, PlainDate as InnerDate, TinyAsciiStr,
+    options::{ArithmeticOverflow, DisplayCalendar},
+    partial::PartialDate,
+    PlainDate as InnerDate, TinyAsciiStr,
 };
 
 use super::{
@@ -742,7 +744,9 @@ impl PlainDate {
             })?;
 
         let options = get_options_object(args.get_or_undefined(0))?;
-        let display_calendar = get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?.unwrap_or(DisplayCalendar::Auto);
+        let display_calendar =
+            get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(DisplayCalendar::Auto);
         Ok(JsString::from(date.inner.to_ixdtf_string(display_calendar)).into())
     }
 
