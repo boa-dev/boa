@@ -472,6 +472,14 @@ impl JobExecutor for Executor {
             if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
                 return;
             }
+
+            let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
+            for job in jobs {
+                if let Err(e) = job.call(context) {
+                    eprintln!("Uncaught {e}");
+                }
+            }
+
             let async_jobs = std::mem::take(&mut *self.async_jobs.borrow_mut());
             for async_job in async_jobs {
                 if let Err(err) = pollster::block_on(async_job.call(&RefCell::new(context))) {
