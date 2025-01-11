@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::VecDeque, future::Future, pin::Pin, rc::Rc
 
 use boa_engine::{
     builtins::promise::PromiseState,
-    job::{JobQueue, NativeAsyncJob, NativeJob},
+    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     js_string,
     module::ModuleLoader,
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
@@ -29,58 +29,61 @@ impl ModuleLoader for HttpModuleLoader {
         let url = specifier.to_std_string_escaped();
 
         // Just enqueue the future for now. We'll advance all the enqueued futures inside our custom
-        // `JobQueue`.
-        context.enqueue_async_job(NativeAsyncJob::with_realm(
-            move |context| {
-                Box::pin(async move {
-                    // Adding some prints to show the non-deterministic nature of the async fetches.
-                    // Try to run the example several times to see how sometimes the fetches start in order
-                    // but finish in disorder.
-                    println!("Fetching `{url}`...");
+        // `JobExecutor`.
+        context.enqueue_job(
+            NativeAsyncJob::with_realm(
+                move |context| {
+                    Box::pin(async move {
+                        // Adding some prints to show the non-deterministic nature of the async fetches.
+                        // Try to run the example several times to see how sometimes the fetches start in order
+                        // but finish in disorder.
+                        println!("Fetching `{url}`...");
 
-                    // This could also retry fetching in case there's an error while requesting the module.
-                    let body: Result<_, isahc::Error> = async {
-                        let mut response = Request::get(&url)
-                            .redirect_policy(RedirectPolicy::Limit(5))
-                            .body(())?
-                            .send_async()
-                            .await?;
+                        // This could also retry fetching in case there's an error while requesting the module.
+                        let body: Result<_, isahc::Error> = async {
+                            let mut response = Request::get(&url)
+                                .redirect_policy(RedirectPolicy::Limit(5))
+                                .body(())?
+                                .send_async()
+                                .await?;
 
-                        Ok(response.text().await?)
-                    }
-                    .await;
-
-                    println!("Finished fetching `{url}`");
-
-                    let body = match body {
-                        Ok(body) => body,
-                        Err(err) => {
-                            // On error we always call `finish_load` to notify the load promise about the
-                            // error.
-                            finish_load(
-                                Err(JsNativeError::typ().with_message(err.to_string()).into()),
-                                &mut context.borrow_mut(),
-                            );
-
-                            // Just returns anything to comply with `NativeAsyncJob::new`'s signature.
-                            return Ok(JsValue::undefined());
+                            Ok(response.text().await?)
                         }
-                    };
+                        .await;
 
-                    // Could also add a path if needed.
-                    let source = Source::from_bytes(body.as_bytes());
+                        println!("Finished fetching `{url}`");
 
-                    let module = Module::parse(source, None, &mut context.borrow_mut());
+                        let body = match body {
+                            Ok(body) => body,
+                            Err(err) => {
+                                // On error we always call `finish_load` to notify the load promise about the
+                                // error.
+                                finish_load(
+                                    Err(JsNativeError::typ().with_message(err.to_string()).into()),
+                                    &mut context.borrow_mut(),
+                                );
 
-                    // We don't do any error handling, `finish_load` takes care of that for us.
-                    finish_load(module, &mut context.borrow_mut());
+                                // Just returns anything to comply with `NativeAsyncJob::new`'s signature.
+                                return Ok(JsValue::undefined());
+                            }
+                        };
 
-                    // Also needed to match `NativeAsyncJob::new`.
-                    Ok(JsValue::undefined())
-                })
-            },
-            context.realm().clone(),
-        ));
+                        // Could also add a path if needed.
+                        let source = Source::from_bytes(body.as_bytes());
+
+                        let module = Module::parse(source, None, &mut context.borrow_mut());
+
+                        // We don't do any error handling, `finish_load` takes care of that for us.
+                        finish_load(module, &mut context.borrow_mut());
+
+                        // Also needed to match `NativeAsyncJob::new`.
+                        Ok(JsValue::undefined())
+                    })
+                },
+                context.realm().clone(),
+            )
+            .into(),
+        );
     }
 }
 
@@ -108,7 +111,7 @@ fn main() -> JsResult<()> {
     "#;
 
     let context = &mut Context::builder()
-        .job_queue(Rc::new(Queue::new()))
+        .job_executor(Rc::new(Queue::new()))
         // NEW: sets the context module loader to our custom loader
         .module_loader(Rc::new(HttpModuleLoader))
         .build()?;
@@ -169,20 +172,20 @@ fn main() -> JsResult<()> {
 // Taken from the `smol_event_loop.rs` example.
 /// An event queue using smol to drive futures to completion.
 struct Queue {
-    async_jobs: RefCell<Vec<NativeAsyncJob>>,
-    jobs: RefCell<VecDeque<NativeJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
 }
 
 impl Queue {
     fn new() -> Self {
         Self {
             async_jobs: RefCell::default(),
-            jobs: RefCell::default(),
+            promise_jobs: RefCell::default(),
         }
     }
 
     fn drain_jobs(&self, context: &mut Context) {
-        let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
+        let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
         for job in jobs {
             if let Err(e) = job.call(context) {
                 eprintln!("Uncaught {e}");
@@ -191,13 +194,13 @@ impl Queue {
     }
 }
 
-impl JobQueue for Queue {
-    fn enqueue_job(&self, job: NativeJob, _context: &mut Context) {
-        self.jobs.borrow_mut().push_back(job);
-    }
-
-    fn enqueue_async_job(&self, async_job: NativeAsyncJob, _context: &mut Context) {
-        self.async_jobs.borrow_mut().push(async_job);
+impl JobExecutor for Queue {
+    fn enqueue_job(&self, job: Job, _context: &mut Context) {
+        match job {
+            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
+            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            _ => panic!("unsupported job type"),
+        }
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
@@ -216,7 +219,7 @@ impl JobQueue for Queue {
     {
         Box::pin(async move {
             // Early return in case there were no jobs scheduled.
-            if self.jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
                 return;
             }
             let mut group = FutureGroup::new();
@@ -225,7 +228,7 @@ impl JobQueue for Queue {
                     group.insert(job.call(context));
                 }
 
-                if self.jobs.borrow().is_empty() {
+                if self.promise_jobs.borrow().is_empty() {
                     let Some(result) = group.next().await else {
                         // Both queues are empty. We can exit.
                         return;

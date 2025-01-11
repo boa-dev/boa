@@ -11,7 +11,7 @@ use crate::{
     builtins::{Array, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
-    job::{JobCallback, NativeJob},
+    job::{JobCallback, PromiseJob},
     js_string,
     native_function::NativeFunction,
     object::{
@@ -1887,7 +1887,9 @@ impl Promise {
                     new_promise_reaction_job(fulfill_reaction, value.clone(), context);
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
-                context.job_queue().enqueue_job(fulfill_job, context);
+                context
+                    .job_executor()
+                    .enqueue_job(fulfill_job.into(), context);
             }
 
             // 11. Else,
@@ -1907,7 +1909,9 @@ impl Promise {
                 let reject_job = new_promise_reaction_job(reject_reaction, reason.clone(), context);
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
-                context.job_queue().enqueue_job(reject_job, context);
+                context
+                    .job_executor()
+                    .enqueue_job(reject_job.into(), context);
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
                 promise
@@ -1983,7 +1987,7 @@ impl Promise {
                 let job = new_promise_reaction_job(reaction, argument.clone(), context);
 
                 // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                context.job_queue().enqueue_job(job, context);
+                context.job_executor().enqueue_job(job.into(), context);
             }
             // 2. Return unused.
         }
@@ -2176,7 +2180,7 @@ impl Promise {
                     );
 
                     // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                    context.job_queue().enqueue_job(job, context);
+                    context.job_executor().enqueue_job(job.into(), context);
 
                     // 16. Return undefined.
                     Ok(JsValue::undefined())
@@ -2237,7 +2241,7 @@ fn new_promise_reaction_job(
     mut reaction: ReactionRecord,
     argument: JsValue,
     context: &mut Context,
-) -> NativeJob {
+) -> PromiseJob {
     // Inverting order since `job` captures `reaction` by value.
 
     // 2. Let handlerRealm be null.
@@ -2318,7 +2322,7 @@ fn new_promise_reaction_job(
     };
 
     // 4. Return the Record { [[Job]]: job, [[Realm]]: handlerRealm }.
-    NativeJob::with_realm(job, realm, context)
+    PromiseJob::with_realm(job, realm, context)
 }
 
 /// More information:
@@ -2330,7 +2334,7 @@ fn new_promise_resolve_thenable_job(
     thenable: JsValue,
     then: JobCallback,
     context: &mut Context,
-) -> NativeJob {
+) -> PromiseJob {
     // Inverting order since `job` captures variables by value.
 
     // 2. Let getThenRealmResult be Completion(GetFunctionRealm(then.[[Callback]])).
@@ -2372,5 +2376,5 @@ fn new_promise_resolve_thenable_job(
     };
 
     // 6. Return the Record { [[Job]]: job, [[Realm]]: thenRealm }.
-    NativeJob::with_realm(job, realm, context)
+    PromiseJob::with_realm(job, realm, context)
 }

@@ -13,7 +13,7 @@ mod helper;
 use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
-    job::{JobQueue, NativeAsyncJob, NativeJob},
+    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
@@ -336,10 +336,10 @@ fn main() -> Result<()> {
 
     let args = Opt::parse();
 
-    let queue = Rc::new(Jobs::default());
+    let executor = Rc::new(Executor::default());
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
     let mut context = ContextBuilder::new()
-        .job_queue(queue)
+        .job_executor(executor)
         .module_loader(loader.clone())
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
@@ -453,23 +453,23 @@ fn add_runtime(context: &mut Context) {
 }
 
 #[derive(Default)]
-struct Jobs {
-    jobs: RefCell<VecDeque<NativeJob>>,
+struct Executor {
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
 }
 
-impl JobQueue for Jobs {
-    fn enqueue_job(&self, job: NativeJob, _: &mut Context) {
-        self.jobs.borrow_mut().push_back(job);
-    }
-
-    fn enqueue_async_job(&self, async_job: NativeAsyncJob, _: &mut Context) {
-        self.async_jobs.borrow_mut().push_back(async_job);
+impl JobExecutor for Executor {
+    fn enqueue_job(&self, job: Job, _: &mut Context) {
+        match job {
+            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
+            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            job => eprintln!("unsupported job type {job:?}"),
+        }
     }
 
     fn run_jobs(&self, context: &mut Context) {
         loop {
-            if self.jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
                 return;
             }
             let async_jobs = std::mem::take(&mut *self.async_jobs.borrow_mut());
@@ -477,7 +477,7 @@ impl JobQueue for Jobs {
                 if let Err(err) = pollster::block_on(async_job.call(&RefCell::new(context))) {
                     eprintln!("Uncaught {err}");
                 }
-                let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
+                let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
                 for job in jobs {
                     if let Err(e) = job.call(context) {
                         eprintln!("Uncaught {e}");

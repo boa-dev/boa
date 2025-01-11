@@ -9,7 +9,7 @@ use std::{
 
 use boa_engine::{
     context::ContextBuilder,
-    job::{JobQueue, NativeAsyncJob, NativeJob},
+    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     js_string,
     native_function::NativeFunction,
     property::Attribute,
@@ -35,19 +35,19 @@ fn main() {
 /// An event queue using tokio to drive futures to completion.
 struct Queue {
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    jobs: RefCell<VecDeque<NativeJob>>,
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
 }
 
 impl Queue {
     fn new() -> Self {
         Self {
             async_jobs: RefCell::default(),
-            jobs: RefCell::default(),
+            promise_jobs: RefCell::default(),
         }
     }
 
     fn drain_jobs(&self, context: &mut Context) {
-        let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
+        let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
         for job in jobs {
             if let Err(e) = job.call(context) {
                 eprintln!("Uncaught {e}");
@@ -56,13 +56,13 @@ impl Queue {
     }
 }
 
-impl JobQueue for Queue {
-    fn enqueue_job(&self, job: NativeJob, _context: &mut Context) {
-        self.jobs.borrow_mut().push_back(job);
-    }
-
-    fn enqueue_async_job(&self, async_job: NativeAsyncJob, _context: &mut Context) {
-        self.async_jobs.borrow_mut().push_back(async_job);
+impl JobExecutor for Queue {
+    fn enqueue_job(&self, job: Job, _context: &mut Context) {
+        match job {
+            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
+            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            _ => panic!("unsupported job type"),
+        }
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
@@ -86,7 +86,7 @@ impl JobQueue for Queue {
     {
         Box::pin(async move {
             // Early return in case there were no jobs scheduled.
-            if self.jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
                 return;
             }
             let mut group = FutureGroup::new();
@@ -95,7 +95,7 @@ impl JobQueue for Queue {
                     group.insert(job.call(context));
                 }
 
-                if self.jobs.borrow().is_empty() {
+                if self.promise_jobs.borrow().is_empty() {
                     let Some(result) = group.next().await else {
                         // Both queues are empty. We can exit.
                         return;
@@ -161,21 +161,24 @@ fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult
     let delay = args.get_or_undefined(1).to_u32(context)?;
     let args = args.get(2..).unwrap_or_default().to_vec();
 
-    context.enqueue_async_job(NativeAsyncJob::with_realm(
-        move |context| {
-            Box::pin(async move {
-                let mut timer = time::interval(Duration::from_millis(u64::from(delay)));
-                for _ in 0..10 {
-                    timer.tick().await;
-                    if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
-                        eprintln!("Uncaught {err}");
+    context.enqueue_job(
+        NativeAsyncJob::with_realm(
+            move |context| {
+                Box::pin(async move {
+                    let mut timer = time::interval(Duration::from_millis(u64::from(delay)));
+                    for _ in 0..10 {
+                        timer.tick().await;
+                        if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
+                            eprintln!("Uncaught {err}");
+                        }
                     }
-                }
-                Ok(JsValue::undefined())
-            })
-        },
-        context.realm().clone(),
-    ));
+                    Ok(JsValue::undefined())
+                })
+            },
+            context.realm().clone(),
+        )
+        .into(),
+    );
 
     Ok(JsValue::undefined())
 }
@@ -241,7 +244,7 @@ fn internally_async_event_loop() {
     // Initialize the queue and the context
     let queue = Queue::new();
     let context = &mut ContextBuilder::new()
-        .job_queue(Rc::new(queue))
+        .job_executor(Rc::new(queue))
         .build()
         .unwrap();
 
@@ -268,7 +271,7 @@ async fn externally_async_event_loop() {
     // Initialize the queue and the context
     let queue = Queue::new();
     let context = &mut ContextBuilder::new()
-        .job_queue(Rc::new(queue))
+        .job_executor(Rc::new(queue))
         .build()
         .unwrap();
 

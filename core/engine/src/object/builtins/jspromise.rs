@@ -292,7 +292,7 @@ impl JsPromise {
     {
         let (promise, resolvers) = Self::new_pending(context);
 
-        context.job_queue().enqueue_async_job(
+        context.enqueue_job(
             NativeAsyncJob::new(move |context| {
                 Box::pin(async move {
                     let result = future.await;
@@ -306,8 +306,8 @@ impl JsPromise {
                         }
                     }
                 })
-            }),
-            context,
+            })
+            .into(),
         );
 
         promise
@@ -1085,7 +1085,7 @@ impl JsPromise {
 
     /// Run jobs until this promise is resolved or rejected. This could
     /// result in an infinite loop if the promise is never resolved or
-    /// rejected (e.g. with a [`boa_engine::job::JobQueue`] that does
+    /// rejected (e.g. with a [`boa_engine::job::JobExecutor`] that does
     /// not prioritize properly). If you need more control over how
     /// the promise handles timing out, consider using
     /// [`Context::run_jobs`] directly.

@@ -1,21 +1,33 @@
 //! Boa's API to create and customize `ECMAScript` jobs and job queues.
 //!
-//! [`NativeJob`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
-//! there's no other computation running.
+//! [`Job`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
+//! there's no other computation running. The module defines several type of jobs:
+//! - [`PromiseJob`] for Promise related jobs.
+//! - [`NativeAsyncJob`] for jobs that support [`Future`].
+//! - [`NativeJob`] for generic jobs that aren't related to Promises.
 //!
 //! [`JobCallback`] is an ECMAScript [`JobCallback`] record, containing an `ECMAScript` function
 //! that is executed when a promise is either fulfilled or rejected.
 //!
-//! [`JobQueue`] is a trait encompassing the required functionality for a job queue; this allows
+//! [`JobExecutor`] is a trait encompassing the required functionality for a job executor; this allows
 //! implementing custom event loops, custom handling of Jobs or other fun things.
 //! This trait is also accompanied by two implementors of the trait:
-//! - [`IdleJobQueue`], which is a queue that does nothing, and the default queue if no queue is
+//! - [`IdleJobExecutor`], which is an executor that does nothing, and the default executor if no executor is
 //!   provided. Useful for hosts that want to disable promises.
-//! - [`SimpleJobQueue`], which is a simple FIFO queue that runs all jobs to completion, bailing
+//! - [`SimpleJobExecutor`], which is a simple FIFO queue that runs all jobs to completion, bailing
 //!   on the first error encountered.
+//!
+//! ## [`Trace`]?
+//!
+//! Most of the types defined in this module don't implement `Trace`. This is because most jobs can only
+//! be run once, and putting a `JobExecutor` on a garbage collected object is not allowed.
+//!
+//! In addition to that, not implementing `Trace` makes it so that the garbage collector can consider
+//! any captured variables inside jobs as roots, since you cannot store jobs within a [`Gc`].
 //!
 //! [Job]: https://tc39.es/ecma262/#sec-jobs
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
+//! [`Gc`]: boa_gc::Gc
 
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
@@ -26,41 +38,14 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 
-/// An ECMAScript [Job] closure.
+/// An ECMAScript [Job Abstract Closure].
 ///
-/// The specification allows scheduling any [`NativeJob`] closure by the host into the job queue.
-/// However, host-defined jobs must abide to a set of requirements.
-///
-/// ### Requirements
-///
-/// - At some future point in time, when there is no running execution context and the execution
-///   context stack is empty, the implementation must:
-///     - Perform any host-defined preparation steps.
-///     - Invoke the Job Abstract Closure.
-///     - Perform any host-defined cleanup steps, after which the execution context stack must be empty.
-/// - Only one Job may be actively undergoing evaluation at any point in time.
-/// - Once evaluation of a Job starts, it must run to completion before evaluation of any other Job starts.
-/// - The Abstract Closure must return a normal completion, implementing its own handling of errors.
-///
-/// `NativeJob`s API differs slightly on the last requirement, since it allows closures returning
-/// [`JsResult`], but it's okay because `NativeJob`s are handled by the host anyways; a host could
-/// pass a closure returning `Err` and handle the error on [`JobQueue::run_jobs`], making the closure
-/// effectively run as if it never returned `Err`.
-///
-/// ## [`Trace`]?
-///
-/// `NativeJob` doesn't implement `Trace` because it doesn't need to; all jobs can only be run once
-/// and putting a [`JobQueue`] on a garbage collected object is not allowed.
-///
-/// On the other hand, it seems like this type breaks all the safety checks of the
-/// [`NativeFunction`] API, since you can capture any `Trace` variable into the closure... but it
-/// doesn't!
-/// The garbage collector doesn't need to trace the captured variables because the closures
-/// are always stored on the [`JobQueue`], which is always rooted, which means the captured variables
-/// are also rooted, allowing us to capture any variable in the closure for free!
+/// This is basically a synchronous task that needs to be run to progress [`Promise`] objects,
+/// or unblock threads waiting on [`Atomics.waitAsync`].
 ///
 /// [Job]: https://tc39.es/ecma262/#sec-jobs
-/// [`NativeFunction`]: crate::native_function::NativeFunction
+/// [`Promise`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+/// [`Atomics.waitAsync`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/waitAsync
 pub struct NativeJob {
     #[allow(clippy::type_complexity)]
     f: Box<dyn FnOnce(&mut Context) -> JsResult<JsValue>>,
@@ -69,7 +54,7 @@ pub struct NativeJob {
 
 impl Debug for NativeJob {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("NativeJob").field("f", &"Closure").finish()
+        f.debug_struct("NativeJob").finish_non_exhaustive()
     }
 }
 
@@ -135,17 +120,8 @@ pub type BoxedFuture<'a> = Pin<Box<dyn Future<Output = JsResult<JsValue>> + 'a>>
 
 /// An ECMAScript [Job] that can be run asynchronously.
 ///
-/// ## [`Trace`]?
-///
-/// `NativeJob` doesn't implement `Trace` because it doesn't need to; all jobs can only be run once
-/// and putting a [`JobQueue`] on a garbage collected object is not allowed.
-///
-/// Additionally, the garbage collector doesn't need to trace the captured variables because the closures
-/// are always stored on the [`JobQueue`], which is always rooted, which means the captured variables
-/// are also rooted.
-///
-/// [Job]: https://tc39.es/ecma262/#sec-jobs
-/// [`NativeFunction`]: crate::native_function::NativeFunction
+/// This is an additional type of job that is not defined by the specification, enabling running `Future` tasks
+/// created by ECMAScript code in an easier way.
 #[allow(clippy::type_complexity)]
 pub struct NativeAsyncJob {
     f: Box<dyn for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a>>,
@@ -238,6 +214,69 @@ impl NativeAsyncJob {
     }
 }
 
+/// An ECMAScript [Job Abstract Closure] executing code related to [`Promise`] objects.
+///
+/// This represents the [`HostEnqueuePromiseJob`] operation from the specification.
+///
+/// ### [Requirements]
+///
+/// - If realm is not null, each time job is invoked the implementation must perform implementation-defined
+///   steps such that execution is prepared to evaluate ECMAScript code at the time of job's invocation.
+/// - Let `scriptOrModule` be [`GetActiveScriptOrModule()`] at the time `HostEnqueuePromiseJob` is invoked.
+///   If realm is not null, each time job is invoked the implementation must perform implementation-defined steps
+///   such that `scriptOrModule` is the active script or module at the time of job's invocation.
+/// - Jobs must run in the same order as the `HostEnqueuePromiseJob` invocations that scheduled them.
+///
+/// Of all the requirements, Boa guarantees the first two by its internal implementation of `NativeJob`, meaning
+/// implementations of [`JobExecutor`] must only guarantee that jobs are run in the same order as they're enqueued.
+///
+/// [`Promise`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+/// [`HostEnqueuePromiseJob`]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
+/// [Job Abstract Closure]: https://tc39.es/ecma262/#sec-jobs
+/// [Requirements]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-hostenqueuepromisejob
+/// [`GetActiveScriptOrModule()`]: https://tc39.es/ecma262/multipage/executable-code-and-execution-contexts.html#sec-getactivescriptormodule
+pub struct PromiseJob(NativeJob);
+
+impl Debug for PromiseJob {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PromiseJob").finish_non_exhaustive()
+    }
+}
+
+impl PromiseJob {
+    /// Creates a new `PromiseJob` from a closure.
+    pub fn new<F>(f: F) -> Self
+    where
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self(NativeJob::new(f))
+    }
+
+    /// Creates a new `PromiseJob` from a closure and an execution realm.
+    pub fn with_realm<F>(f: F, realm: Realm, context: &mut Context) -> Self
+    where
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self(NativeJob::with_realm(f, realm, context))
+    }
+
+    /// Gets a reference to the execution realm of the `PromiseJob`.
+    #[must_use]
+    pub const fn realm(&self) -> Option<&Realm> {
+        self.0.realm()
+    }
+
+    /// Calls the `PromiseJob` with the specified [`Context`].
+    ///
+    /// # Note
+    ///
+    /// If the job has an execution realm defined, this sets the running execution
+    /// context to the realm's before calling the inner closure, and resets it after execution.
+    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+        self.0.call(context)
+    }
+}
+
 /// [`JobCallback`][spec] records.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-jobcallback-records
@@ -287,54 +326,71 @@ impl JobCallback {
     }
 }
 
-/// A queue of `ECMAscript` [Jobs].
+/// A job that needs to be handled by a [`JobExecutor`].
 ///
-/// This is the main API that allows creating custom event loops with custom job queues.
+/// # Requirements
+///
+/// The specification defines many types of jobs, but all of them must adhere to a set of requirements:
+///
+/// - At some future point in time, when there is no running execution context and the execution
+///   context stack is empty, the implementation must:
+///     - Perform any host-defined preparation steps.
+///     - Invoke the Job Abstract Closure.
+///     - Perform any host-defined cleanup steps, after which the execution context stack must be empty.
+/// - Only one Job may be actively undergoing evaluation at any point in time.
+/// - Once evaluation of a Job starts, it must run to completion before evaluation of any other Job starts.
+/// - The Abstract Closure must return a normal completion, implementing its own handling of errors.
+///
+/// Boa is a little bit flexible on the last requirement, since it allows jobs to return either
+/// values or errors, but the rest of the requirements must be followed for all conformant implementations.
+///
+/// Additionally, each job type can have additional requirements that must also be followed in addition
+/// to the previous ones.
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum Job {
+    /// A `Promise`-related job.
+    ///
+    /// See [`PromiseJob`] for more information.
+    PromiseJob(PromiseJob),
+    /// A [`Future`]-related job.
+    ///
+    /// See [`NativeAsyncJob`] for more information.
+    AsyncJob(NativeAsyncJob),
+}
+
+impl From<NativeAsyncJob> for Job {
+    fn from(native_async_job: NativeAsyncJob) -> Self {
+        Job::AsyncJob(native_async_job)
+    }
+}
+
+impl From<PromiseJob> for Job {
+    fn from(promise_job: PromiseJob) -> Self {
+        Job::PromiseJob(promise_job)
+    }
+}
+
+/// An executor of `ECMAscript` [Jobs].
+///
+/// This is the main API that allows creating custom event loops.
 ///
 /// [Jobs]: https://tc39.es/ecma262/#sec-jobs
-pub trait JobQueue {
-    /// [`HostEnqueuePromiseJob ( job, realm )`][spec].
+pub trait JobExecutor {
+    /// Enqueues a `Job` on the executor.
     ///
-    /// Enqueues a [`NativeJob`] on the job queue.
+    /// This method combines all the host-defined job enqueueing operations into a single method.
+    /// See the [spec] for more information on the requirements that each operation must follow.
     ///
-    /// # Requirements
-    ///
-    /// Per the [spec]:
-    /// > An implementation of `HostEnqueuePromiseJob` must conform to the requirements in [9.5][Jobs] as well as the
-    /// > following:
-    /// > - If `realm` is not null, each time `job` is invoked the implementation must perform implementation-defined steps
-    ///   > such that execution is prepared to evaluate ECMAScript code at the time of job's invocation.
-    /// > - Let `scriptOrModule` be `GetActiveScriptOrModule()` at the time `HostEnqueuePromiseJob` is invoked. If realm
-    ///   > is not null, each time job is invoked the implementation must perform implementation-defined steps such that
-    ///   > `scriptOrModule` is the active script or module at the time of job's invocation.
-    /// > - Jobs must run in the same order as the `HostEnqueuePromiseJob` invocations that scheduled them.
-    ///
-    /// Of all the requirements, Boa guarantees the first two by its internal implementation of `NativeJob`, meaning
-    /// the implementer must only guarantee that jobs are run in the same order as they're enqueued.
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
-    /// [Jobs]: https://tc39.es/ecma262/#sec-jobs
-    fn enqueue_job(&self, job: NativeJob, context: &mut Context);
+    /// [spec]: https://tc39.es/ecma262/#sec-jobs
+    fn enqueue_job(&self, job: Job, context: &mut Context);
 
-    /// Enqueues a new [`NativeAsyncJob`] job on the job queue.
-    ///
-    /// Calling `future` returns a Rust [`Future`] that can be sent to a runtime for concurrent computation.
-    fn enqueue_async_job(&self, async_job: NativeAsyncJob, context: &mut Context);
-
-    /// Runs all jobs in the queue.
-    ///
-    /// Running a job could enqueue more jobs in the queue. The implementor of the trait
-    /// determines if the method should loop until there are no more queued jobs or if
-    /// it should only run one iteration of the queue.
+    /// Runs all jobs in the executor.
     fn run_jobs(&self, context: &mut Context);
 
-    /// Asynchronously runs all jobs in the queue.
+    /// Asynchronously runs all jobs in the executor.
     ///
-    /// Running a job could enqueue more jobs in the queue. The implementor of the trait
-    /// determines if the method should loop until there are no more queued jobs or if
-    /// it should only run one iteration of the queue.
-    ///
-    /// By default forwards to [`JobQueue::run_jobs`]. Implementors using async should override this
+    /// By default forwards to [`JobExecutor::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
     fn run_jobs_async<'a, 'b, 'fut>(
         &'a self,
@@ -348,93 +404,90 @@ pub trait JobQueue {
     }
 }
 
-/// A job queue that does nothing.
+/// A job executor that does nothing.
 ///
-/// This queue is mostly useful if you want to disable the promise capabilities of the engine. This
+/// This executor is mostly useful if you want to disable the promise capabilities of the engine. This
 /// can be done by passing it to the [`ContextBuilder`]:
 ///
 /// ```
 /// use boa_engine::{
 ///     context::ContextBuilder,
-///     job::{IdleJobQueue, JobQueue},
+///     job::{IdleJobExecutor, JobExecutor},
 /// };
 /// use std::rc::Rc;
 ///
-/// let queue = Rc::new(IdleJobQueue);
-/// let context = ContextBuilder::new().job_queue(queue).build();
+/// let executor = Rc::new(IdleJobExecutor);
+/// let context = ContextBuilder::new().job_executor(executor).build();
 /// ```
 ///
 /// [`ContextBuilder`]: crate::context::ContextBuilder
 #[derive(Debug, Clone, Copy)]
-pub struct IdleJobQueue;
+pub struct IdleJobExecutor;
 
-impl JobQueue for IdleJobQueue {
-    fn enqueue_job(&self, _: NativeJob, _: &mut Context) {}
-
-    fn enqueue_async_job(&self, _: NativeAsyncJob, _: &mut Context) {}
+impl JobExecutor for IdleJobExecutor {
+    fn enqueue_job(&self, _: Job, _: &mut Context) {}
 
     fn run_jobs(&self, _: &mut Context) {}
 }
 
-/// A simple FIFO job queue that bails on the first error.
+/// A simple FIFO executor that bails on the first error.
 ///
-/// This is the default job queue for the [`Context`], but it is mostly pretty limited for
-/// custom event queues.
+/// This is the default job executor for the [`Context`], but it is mostly pretty limited for
+/// custom event loop.
 ///
-/// To disable running promise jobs on the engine, see [`IdleJobQueue`].
+/// To disable running promise jobs on the engine, see [`IdleJobExecutor`].
 #[derive(Default)]
-pub struct SimpleJobQueue {
-    job_queue: RefCell<VecDeque<NativeJob>>,
-    async_job_queue: RefCell<VecDeque<NativeAsyncJob>>,
+pub struct SimpleJobExecutor {
+    jobs: RefCell<VecDeque<PromiseJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
 }
 
-impl Debug for SimpleJobQueue {
+impl Debug for SimpleJobExecutor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("SimpleQueue").field(&"..").finish()
+        f.debug_struct("SimpleJobExecutor").finish_non_exhaustive()
     }
 }
 
-impl SimpleJobQueue {
-    /// Creates an empty `SimpleJobQueue`.
+impl SimpleJobExecutor {
+    /// Creates a new `SimpleJobExecutor`.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl JobQueue for SimpleJobQueue {
-    fn enqueue_job(&self, job: NativeJob, _: &mut Context) {
-        self.job_queue.borrow_mut().push_back(job);
-    }
-
-    fn enqueue_async_job(&self, job: NativeAsyncJob, _: &mut Context) {
-        self.async_job_queue.borrow_mut().push_back(job);
+impl JobExecutor for SimpleJobExecutor {
+    fn enqueue_job(&self, job: Job, _: &mut Context) {
+        match job {
+            Job::PromiseJob(p) => self.jobs.borrow_mut().push_back(p),
+            Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
+        }
     }
 
     fn run_jobs(&self, context: &mut Context) {
         let context = RefCell::new(context);
         loop {
-            let mut next_job = self.async_job_queue.borrow_mut().pop_front();
+            let mut next_job = self.async_jobs.borrow_mut().pop_front();
             while let Some(job) = next_job {
                 if pollster::block_on(job.call(&context)).is_err() {
-                    self.async_job_queue.borrow_mut().clear();
+                    self.async_jobs.borrow_mut().clear();
                     return;
                 };
-                next_job = self.async_job_queue.borrow_mut().pop_front();
+                next_job = self.async_jobs.borrow_mut().pop_front();
             }
 
             // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
             // dropped after calling `pop_front`.
-            let mut next_job = self.job_queue.borrow_mut().pop_front();
+            let mut next_job = self.jobs.borrow_mut().pop_front();
             while let Some(job) = next_job {
                 if job.call(&mut context.borrow_mut()).is_err() {
-                    self.job_queue.borrow_mut().clear();
+                    self.jobs.borrow_mut().clear();
                     return;
                 };
-                next_job = self.job_queue.borrow_mut().pop_front();
+                next_job = self.jobs.borrow_mut().pop_front();
             }
 
-            if self.async_job_queue.borrow().is_empty() && self.job_queue.borrow().is_empty() {
+            if self.async_jobs.borrow().is_empty() && self.jobs.borrow().is_empty() {
                 return;
             }
         }
