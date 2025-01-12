@@ -372,6 +372,7 @@ dependencies = [
  "boa_string",
  "bytemuck",
  "cfg-if",
+ "cow-utils",
  "criterion",
  "dashmap",
  "either",
@@ -920,6 +921,12 @@ checksum = "e3b02505ccb8c50b0aa21ace0fc08c3e53adebd4e58caa18a36152803c7709a3"
 dependencies = [
  "libm",
 ]
+
+[[package]]
+name = "cow-utils"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "417bef24afe1460300965a25ff4a24b8b45ad011948302ec221e8a0a81eb2c79"
 
 [[package]]
 name = "crc32fast"
