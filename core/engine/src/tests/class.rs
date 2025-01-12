@@ -51,17 +51,23 @@ fn class_superclass_from_regex_error() {
 fn class_can_access_super_from_static_initializer() {
     run_test_actions([
         TestAction::run(indoc! {r#"
-            class b {
+            class a {
                 static field = "super field";
             }
 
-            class a extends b {
+            class b extends a {
                 static #field = super.field;
                 static get field() {
                     return this.#field;
                 }
             }
+
+            class c extends a {
+                static field = super.field;
+            }
+
         "#}),
         TestAction::assert_eq("a.field", js_str!("super field")),
+        TestAction::assert_eq("b.field", js_str!("super field")),
     ]);
 }
