@@ -346,6 +346,11 @@ impl Console {
             0,
         )
         .function(
+            console_method(Self::table, state.clone(), logger.clone()),
+            js_string!("table"),
+            0
+        )
+        .function(
             console_method_mut(Self::count, state.clone(), logger.clone()),
             js_string!("count"),
             0,
@@ -538,6 +543,17 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
     fn log(
+        _: &JsValue,
+        args: &[JsValue],
+        console: &Self,
+        logger: &impl Logger,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        logger.log(formatter(args, context)?, &console.state, context)?;
+        Ok(JsValue::undefined())
+    }
+
+    fn table(
         _: &JsValue,
         args: &[JsValue],
         console: &Self,
