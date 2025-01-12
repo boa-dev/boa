@@ -434,19 +434,14 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             ),
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
                 self.visit_property_name_mut(&mut field.name)?;
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
-                if let Some(e) = &mut field.field {
-                    self.visit_expression_mut(e)?;
-                }
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 ControlFlow::Continue(())
@@ -816,27 +811,22 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
                 self.visit_property_name_mut(&mut field.name)?;
                 let mut scope = Scope::new(self.scope.clone(), true);
                 std::mem::swap(&mut self.scope, &mut scope);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 std::mem::swap(&mut self.scope, &mut scope);
                 field.scope = scope;
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
                 let mut scope = Scope::new(self.scope.clone(), true);
                 std::mem::swap(&mut self.scope, &mut scope);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 std::mem::swap(&mut self.scope, &mut scope);
                 field.scope = scope;
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
-                    self.visit_expression_mut(e)?;
-                }
                 ControlFlow::Continue(())
             }
             ClassElement::StaticBlock(node) => {
@@ -1423,26 +1413,21 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 let index = self.index;
                 self.index += 1;
                 field.scope.set_index(self.index);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 self.index = index;
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
                 let index = self.index;
                 self.index += 1;
                 field.scope.set_index(self.index);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 self.index = index;
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
-                    self.visit_expression_mut(e)?;
-                }
                 ControlFlow::Continue(())
             }
             ClassElement::StaticBlock(node) => {

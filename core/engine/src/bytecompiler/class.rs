@@ -22,7 +22,12 @@ enum StaticElement {
     StaticBlock(Gc<CodeBlock>),
 
     // A static class field with it's function code, an optional name index and the information if the function is an anonymous function.
-    StaticField((Gc<CodeBlock>, Option<u32>, bool)),
+    StaticField {
+        code: Gc<CodeBlock>,
+        name_index: Option<u32>,
+        is_anonymous_function: bool,
+        is_private: bool,
+    },
 }
 
 /// Describes the complete specification of a class.
@@ -165,9 +170,9 @@ impl ByteCompiler<'_> {
                     let index = self.get_or_insert_private_name(*field.name());
                     self.emit_u32(index);
                 }
-                ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                ClassElement::PrivateStaticFieldDefinition(field) => {
                     count += 1;
-                    let index = self.get_or_insert_private_name(*name);
+                    let index = self.get_or_insert_private_name(*field.name());
                     self.emit_u32(index);
                 }
                 _ => {}
@@ -294,7 +299,7 @@ impl ByteCompiler<'_> {
                     // Function environment
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
-                    let is_anonymous_function = if let Some(node) = &field.field() {
+                    let is_anonymous_function = if let Some(node) = &field.initializer() {
                         field_compiler.compile_expr(node, true);
                         node.is_anonymous_function_definition()
                     } else {
@@ -329,7 +334,7 @@ impl ByteCompiler<'_> {
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
-                    if let Some(node) = field.field() {
+                    if let Some(node) = field.initializer() {
                         field_compiler.compile_expr(node, true);
                     } else {
                         field_compiler.emit_opcode(Opcode::PushUndefined);
@@ -371,7 +376,7 @@ impl ByteCompiler<'_> {
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
-                    let is_anonymous_function = if let Some(node) = &field.field() {
+                    let is_anonymous_function = if let Some(node) = &field.initializer() {
                         field_compiler.compile_expr(node, true);
                         node.is_anonymous_function_definition()
                     } else {
@@ -385,21 +390,48 @@ impl ByteCompiler<'_> {
                     let code = field_compiler.finish();
                     let code = Gc::new(code);
 
-                    static_elements.push(StaticElement::StaticField((
+                    static_elements.push(StaticElement::StaticField {
                         code,
                         name_index,
                         is_anonymous_function,
-                    )));
+                        is_private: false,
+                    });
                 }
-                ClassElement::PrivateStaticFieldDefinition(name, field) => {
-                    self.emit_opcode(Opcode::Dup);
-                    if let Some(node) = field {
-                        self.compile_expr(node, true);
+                ClassElement::PrivateStaticFieldDefinition(field) => {
+                    let name_index = self.get_or_insert_private_name(*field.name());
+                    let mut field_compiler = ByteCompiler::new(
+                        class_name.clone(),
+                        true,
+                        self.json_parse,
+                        self.variable_scope.clone(),
+                        self.lexical_scope.clone(),
+                        false,
+                        false,
+                        self.interner,
+                        self.in_with,
+                    );
+                    field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+                    let _ = field_compiler.push_scope(field.scope());
+                    let is_anonymous_function = if let Some(node) = &field.initializer() {
+                        field_compiler.compile_expr(node, true);
+                        node.is_anonymous_function_definition()
                     } else {
-                        self.emit_opcode(Opcode::PushUndefined);
-                    }
-                    let index = self.get_or_insert_private_name(*name);
-                    self.emit_with_varying_operand(Opcode::DefinePrivateField, index);
+                        field_compiler.emit_opcode(Opcode::PushUndefined);
+                        false
+                    };
+                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+
+                    field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
+
+                    let code = field_compiler.finish();
+                    let code = Gc::new(code);
+
+                    static_elements.push(StaticElement::StaticField {
+                        code,
+                        name_index: Some(name_index),
+                        is_anonymous_function,
+                        is_private: true,
+                    });
                 }
                 ClassElement::StaticBlock(block) => {
                     let mut compiler = ByteCompiler::new(
@@ -447,7 +479,12 @@ impl ByteCompiler<'_> {
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     self.emit_opcode(Opcode::Pop);
                 }
-                StaticElement::StaticField((code, name_index, is_anonymous_function)) => {
+                StaticElement::StaticField {
+                    code,
+                    name_index,
+                    is_anonymous_function,
+                    is_private,
+                } => {
                     self.emit_opcode(Opcode::Dup);
                     self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
@@ -455,8 +492,16 @@ impl ByteCompiler<'_> {
                     self.emit_opcode(Opcode::SetHomeObject);
                     self.emit_with_varying_operand(Opcode::Call, 0);
                     if let Some(name_index) = name_index {
-                        self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, name_index);
+                        if is_private {
+                            self.emit_with_varying_operand(Opcode::DefinePrivateField, name_index);
+                        } else {
+                            self.emit_with_varying_operand(
+                                Opcode::DefineOwnPropertyByName,
+                                name_index,
+                            );
+                        }
                     } else {
+                        // Assume the name is not private. Private names cannot be dynamically computed.
                         self.emit(Opcode::RotateLeft, &[Operand::U8(5)]);
                         if is_anonymous_function {
                             self.emit_opcode(Opcode::Dup);
