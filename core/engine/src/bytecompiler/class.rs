@@ -165,12 +165,8 @@ impl ByteCompiler<'_> {
                         self.emit_u32(index);
                     }
                 }
-                ClassElement::PrivateFieldDefinition(field) => {
-                    count += 1;
-                    let index = self.get_or_insert_private_name(*field.name());
-                    self.emit_u32(index);
-                }
-                ClassElement::PrivateStaticFieldDefinition(field) => {
+                ClassElement::PrivateFieldDefinition(field)
+                | ClassElement::PrivateStaticFieldDefinition(field) => {
                     count += 1;
                     let index = self.get_or_insert_private_name(*field.name());
                     self.emit_u32(index);
