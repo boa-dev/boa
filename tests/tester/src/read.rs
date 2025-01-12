@@ -1,5 +1,5 @@
 //! Module to read the list of test suites from disk.
-
+use cow_utils::CowUtils;
 use std::{
     collections::HashMap,
     ffi::OsStr,
@@ -247,7 +247,7 @@ fn read_metadata(test: &Path) -> Result<MetaData> {
     let (metadata, _) = metadata
         .split_once("---*/")
         .ok_or_eyre("invalid test metadata")?;
-    let metadata = metadata.replace('\r', "\n");
+    let metadata = metadata.cow_replace('\r', "\n");
 
     serde_yaml::from_str(&metadata).map_err(Into::into)
 }

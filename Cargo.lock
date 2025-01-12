@@ -347,6 +347,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "colored",
+ "cow-utils",
  "dhat",
  "jemallocator",
  "phf",
@@ -439,6 +440,7 @@ dependencies = [
  "boa_parser",
  "boa_runtime",
  "futures-concurrency",
+ "futures-lite 2.5.0",
  "isahc",
  "smol",
  "time",
@@ -507,6 +509,7 @@ dependencies = [
 name = "boa_macros"
 version = "0.20.0"
 dependencies = [
+ "cow-utils",
  "proc-macro2",
  "quote",
  "syn",
@@ -586,6 +589,7 @@ dependencies = [
  "color-eyre",
  "colored",
  "comfy-table",
+ "cow-utils",
  "phf",
  "rayon",
  "rustc-hash 2.1.0",
@@ -3548,7 +3552,7 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=8b796edec18a2652af282735aab4a2d0512b9a1d#8b796edec18a2652af282735aab4a2d0512b9a1d"
+source = "git+https://github.com/boa-dev/temporal.git?rev=436b07d9b27e3e2274905c9a4eabf8bbff9ad9ec#436b07d9b27e3e2274905c9a4eabf8bbff9ad9ec"
 dependencies = [
  "bitflags 2.6.0",
  "combine",
@@ -3561,6 +3565,7 @@ dependencies = [
  "tinystr 0.8.0",
  "tzif",
  "web-time",
+ "writeable 0.6.0",
 ]
 
 [[package]]

@@ -25,6 +25,7 @@ use crate::{
 use boa_macros::utf16;
 
 use boa_profiler::Profiler;
+use cow_utils::CowUtils;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::cmp::{max, min};
 
@@ -1727,9 +1728,9 @@ impl String {
         // the Unicode Default Case Conversion algorithm.
         let text = string.map_valid_segments(|s| {
             if UPPER {
-                s.to_uppercase()
+                s.cow_to_uppercase().to_string()
             } else {
-                s.to_lowercase()
+                s.cow_to_lowercase().to_string()
             }
         });
 

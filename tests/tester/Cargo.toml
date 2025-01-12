@@ -15,6 +15,7 @@ rust-version.workspace = true
 boa_engine.workspace = true
 boa_runtime.workspace = true
 boa_gc.workspace = true
+cow-utils.workspace = true
 clap = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 serde_yaml = "0.9.34" # TODO: Track https://github.com/saphyr-rs/saphyr.
