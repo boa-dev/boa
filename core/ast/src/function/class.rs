@@ -532,8 +532,9 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, initializer, .. }) => match initializer
-            {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            }) => match initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}#{} = {};\n",
@@ -548,7 +549,11 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::PrivateStaticFieldDefinition(PrivateFieldDefinition { name, initializer, .. }) => match initializer {
+            Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => match initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}static #{} = {};\n",
@@ -599,8 +604,14 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, initializer, .. })
-            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition { name, initializer, .. }) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            })
+            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => {
                 visitor.visit_private_name(name)?;
                 if let Some(expr) = initializer {
                     visitor.visit_expression(expr)
@@ -637,8 +648,14 @@ impl VisitWith for ClassElement {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, initializer, .. })
-            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition { name, initializer, .. }) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            })
+            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => {
                 visitor.visit_private_name_mut(name)?;
                 if let Some(expr) = initializer {
                     visitor.visit_expression_mut(expr)

@@ -1180,7 +1180,9 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     }
                 }
                 ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
-                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition { name, .. }) => {
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    name, ..
+                }) => {
                     names.push(name.description());
                 }
                 _ => {}
@@ -1209,8 +1211,14 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                         visitor.visit(expression)?;
                     }
                 }
-                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { initializer, .. })
-                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition { initializer, .. }) => {
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                })
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                }) => {
                     if let Some(expression) = initializer {
                         visitor.visit(expression)?;
                     }
@@ -1241,7 +1249,9 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     }
                 }
                 ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
-                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition { name, .. }) => {
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    name, ..
+                }) => {
                     names.push(name.description());
                 }
                 _ => {}
@@ -1270,8 +1280,14 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                         visitor.visit(expression)?;
                     }
                 }
-                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { initializer, .. })
-                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition { initializer, .. }) => {
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                })
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                }) => {
                     if let Some(expression) = initializer {
                         visitor.visit(expression)?;
                     }
