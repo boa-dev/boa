@@ -45,3 +45,23 @@ fn class_superclass_from_regex_error() {
         "superclass must be a constructor",
     )]);
 }
+
+// https://github.com/boa-dev/boa/issues/3055
+#[test]
+fn class_can_access_super_from_static_initializer() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class b {
+                static field = "super field";
+            }
+
+            class a extends b {
+                static #field = super.field;
+                static get field() {
+                    return this.#field;
+                }
+            }
+        "#}),
+        TestAction::assert_eq("a.field", js_str!("super field"))
+    ]);
+}
