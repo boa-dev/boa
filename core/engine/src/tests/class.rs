@@ -69,5 +69,6 @@ fn class_can_access_super_from_static_initializer() {
         "#}),
         TestAction::assert_eq("a.field", js_str!("super field")),
         TestAction::assert_eq("b.field", js_str!("super field")),
+        TestAction::assert_eq("c.field", js_str!("super field")),
     ]);
 }
