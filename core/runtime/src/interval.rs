@@ -21,7 +21,7 @@ pub trait Clock: Trace + Sized {
 }
 
 /// A default implementation of `Clock` for the standard library's `SystemTime`.
-#[derive(Clone, Trace, Finalize)]
+#[derive(Clone, Debug, Trace, Finalize)]
 pub struct StdClock;
 
 impl Clock for StdClock {
@@ -32,34 +32,22 @@ impl Clock for StdClock {
 
 /// The internal state of the interval module. The value is whether the interval
 /// function is still active.
-#[derive(Trace, Finalize, JsData)]
-struct IntervalInnerState<T: Clock> {
+#[derive(Default, Trace, Finalize, JsData)]
+struct IntervalInnerState {
     active_map: HashSet<u32>,
     next_id: u32,
-    clock: T,
 }
 
-impl<T> IntervalInnerState<T: Clock> {
-    fn new(clock: T) -> Self {
-        Self {
-            active_map: HashSet::new(),
-            next_id: 0,
-            clock,
-        }
-    }
-
+impl IntervalInnerState {
     /// Get the interval handler map from the context, or add it to the context if not
     /// present.
     fn from_context(context: &mut Context) -> JsResult<Gc<GcRefCell<Self>>> {
         if !context.has_data::<Gc<GcRefCell<IntervalInnerState>>>() {
-            let clock = context
-                .get_data::<Gc<T>>()
-                .ok_or(js_error!(Error: "Clock not found in context"))?;
-            context.insert_data(Gc::new(GcRefCell::new(Self::new(clock))));
+            context.insert_data(Gc::new(GcRefCell::new(Self::default())));
         }
 
         Ok(context
-            .get_data::<Gc<GcRefCell<IntervalInnerState>>>()
+            .get_data::<Gc<GcRefCell<Self>>>()
             .expect("Should have inserted.")
             .clone())
     }
@@ -88,7 +76,7 @@ impl<T> IntervalInnerState<T: Clock> {
 
 /// Inner handler function for handling intervals and timeout.
 #[allow(clippy::too_many_arguments)]
-fn handle(
+fn handle<C: Clock>(
     handler_map: Gc<GcRefCell<IntervalInnerState>>,
     id: u32,
     function_ref: JsFunction,
@@ -96,6 +84,7 @@ fn handle(
     start: SystemTime,
     delay_in_msec: u64,
     reschedule: bool,
+    clock: Gc<C>,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     if !handler_map.borrow().is_interval_valid(id) {
@@ -104,14 +93,15 @@ fn handle(
 
     // `as_millis()` is u128, but we know it's less than `u64::MAX` (which would be waiting
     // for about 600 million years).
-    let elapsed: u64 = start
-        .elapsed()
-        .expect("Time should go forward")
+    let elapsed: u64 = clock
+        .now()
+        .duration_since(start)
+        .unwrap_or(std::time::Duration::from_secs(0))
         .as_millis()
         .try_into()
         .unwrap_or(u64::MAX);
 
-    if elapsed <= delay_in_msec {
+    if elapsed < delay_in_msec {
         // Reschedule the timeout.
         context.enqueue_job(NativeJob::new(move |context| {
             handle(
@@ -122,6 +112,7 @@ fn handle(
                 start,
                 delay_in_msec,
                 reschedule,
+                clock,
                 context,
             )
         }));
@@ -133,7 +124,8 @@ fn handle(
     let result = function_ref.call(&JsValue::undefined(), &args, context);
 
     if reschedule {
-        // Reschedule the timeout.
+        // Reschedule the timeout as an interval.
+        let start = clock.now();
         context.enqueue_job(NativeJob::new(move |context| {
             handle(
                 handler_map,
@@ -143,6 +135,7 @@ fn handle(
                 start,
                 delay_in_msec,
                 reschedule,
+                clock,
                 context,
             )
         }));
@@ -161,14 +154,19 @@ fn handle(
 /// # Errors
 /// Any errors when trying to read the context, converting the arguments or
 /// enqueuing the job.
-pub fn set_timeout(
+pub fn set_timeout<C: Clock + 'static>(
     function_ref: JsFunction,
     delay_in_msec: Option<JsValue>,
     rest: JsRest<'_>,
     context: &mut Context,
 ) -> JsResult<u32> {
-    let handler_map = IntervalInnerState::from_context(context);
+    let handler_map = IntervalInnerState::from_context(context)?;
     let id = handler_map.borrow_mut().new_interval()?;
+
+    let clock = context
+        .get_data::<Gc<C>>()
+        .ok_or(js_error!("Clock not found"))?
+        .clone();
 
     // Spec says if delay is not a number, it should be equal to 0.
     let delay = delay_in_msec
@@ -177,7 +175,7 @@ pub fn set_timeout(
         .unwrap_or(IntegerOrInfinity::Integer(0));
     // The spec converts the delay to a 32-bit signed integer.
     let delay = delay.clamp_finite(0, i64::from(i32::MAX)).unsigned_abs();
-    let start = SystemTime::now();
+    let start = clock.now();
 
     // Get ownership of rest arguments.
     let rest = rest.to_vec();
@@ -191,6 +189,7 @@ pub fn set_timeout(
             start,
             delay,
             false,
+            clock.clone(),
             context,
         )
     }));
@@ -206,14 +205,19 @@ pub fn set_timeout(
 /// # Errors
 /// Any errors when trying to read the context, converting the arguments or
 /// enqueuing the job.
-pub fn set_interval(
+pub fn set_interval<C: Clock + 'static>(
     function_ref: JsFunction,
     delay_in_msec: Option<JsValue>,
     rest: JsRest<'_>,
     context: &mut Context,
 ) -> JsResult<u32> {
-    let handler_map = IntervalInnerState::from_context(context);
+    let handler_map = IntervalInnerState::from_context(context)?;
     let id = handler_map.borrow_mut().new_interval()?;
+
+    let clock = context
+        .get_data::<Gc<C>>()
+        .ok_or(js_error!("Clock not found"))?
+        .clone();
 
     // Spec says if delay is not a number, it should be equal to 0.
     let delay = delay_in_msec
@@ -221,7 +225,7 @@ pub fn set_interval(
         .to_integer_or_infinity(context)
         .unwrap_or(IntegerOrInfinity::Integer(0));
     let delay = delay.clamp_finite(0, i64::MAX).unsigned_abs();
-    let start = SystemTime::now();
+    let start = clock.now();
 
     // Get ownership of rest arguments.
     let rest = rest.to_vec();
@@ -235,6 +239,7 @@ pub fn set_interval(
             start,
             delay,
             true,
+            clock.clone(),
             context,
         )
     }));
@@ -248,9 +253,11 @@ pub fn set_interval(
 ///
 /// Please note that this is the same exact method as `clearInterval`, as both can be
 /// used interchangeably.
-pub fn clear_timeout(id: u32, context: &mut Context) {
-    let handler_map = IntervalInnerState::from_context(context);
+#[must_use]
+pub fn clear_timeout(id: u32, context: &mut Context) -> JsResult<()> {
+    let handler_map = IntervalInnerState::from_context(context)?;
     handler_map.borrow_mut().clear_interval(id);
+    Ok(())
 }
 
 /// Register the interval module into the given context.
@@ -258,10 +265,28 @@ pub fn clear_timeout(id: u32, context: &mut Context) {
 /// # Errors
 /// Any error returned by the context when registering the global functions.
 pub fn register(context: &mut Context) -> JsResult<()> {
-    let set_timeout_ = set_timeout.into_js_function_copied(context);
+    register_with_clock(context, StdClock)
+}
+
+/// Register the interval module into the given context with a custom clock.
+///
+/// # Errors
+/// Any error returned by the context when registering the global functions.
+pub fn register_with_clock<C: Clock + 'static>(context: &mut Context, clock: C) -> JsResult<()> {
+    context.insert_data(Gc::new(clock));
+    register_functions::<C>(context)
+}
+
+/// Register the interval module without any clock. This still needs the proper
+/// typing for the clock, even if it is not registerd to the context.
+///
+/// # Errors
+/// Any error returned by the context when registering the global functions.
+pub fn register_functions<C: Clock + 'static>(context: &mut Context) -> JsResult<()> {
+    let set_timeout_ = set_timeout::<C>.into_js_function_copied(context);
     context.register_global_callable(js_string!("setTimeout"), 1, set_timeout_)?;
 
-    let set_interval_ = set_interval.into_js_function_copied(context);
+    let set_interval_ = set_interval::<C>.into_js_function_copied(context);
     context.register_global_callable(js_string!("setInterval"), 1, set_interval_)?;
 
     // These two methods are identical, just under different names in JavaScript.

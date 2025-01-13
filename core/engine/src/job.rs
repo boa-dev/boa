@@ -303,15 +303,14 @@ impl JobQueue for SimpleJobQueue {
     }
 
     fn run_jobs(&self, context: &mut Context) {
-        // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
-        // dropped after calling `pop_front`.
-        let mut next_job = self.0.borrow_mut().pop_front();
-        while let Some(job) = next_job {
+        // Make sure we take all jobs out of the queue before running them.
+        // If a job enqueues another job we'll wait for the next run to pick it up.
+        let jobs_to_run = self.0.borrow_mut().drain(..).collect::<Vec<_>>();
+        for job in jobs_to_run {
             if job.call(context).is_err() {
                 self.0.borrow_mut().clear();
                 return;
             };
-            next_job = self.0.borrow_mut().pop_front();
         }
     }
 
