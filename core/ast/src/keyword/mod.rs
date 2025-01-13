@@ -196,16 +196,6 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/extends
     Extends,
 
-    /// The `false` keyword.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
-    False,
-
     /// The `finally` keyword.
     ///
     /// More information:
@@ -308,16 +298,6 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
     New,
 
-    /// The `null` keyword.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-NullLiteral
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null
-    Null,
-
     /// The `of` keyword.
     ///
     /// More information:
@@ -385,16 +365,6 @@ pub enum Keyword {
     /// [spec]: https://tc39.es/ecma262/#sec-throw-statement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
     Throw,
-
-    /// The `true` keyword
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
-    True,
 
     /// The `try` keyword.
     ///
@@ -509,7 +479,6 @@ impl Keyword {
             Self::Enum => ("enum", utf16!("enum")),
             Self::Extends => ("extends", utf16!("extends")),
             Self::Export => ("export", utf16!("export")),
-            Self::False => ("false", utf16!("false")),
             Self::Finally => ("finally", utf16!("finally")),
             Self::For => ("for", utf16!("for")),
             Self::Function => ("function", utf16!("function")),
@@ -519,14 +488,12 @@ impl Keyword {
             Self::Import => ("import", utf16!("import")),
             Self::Let => ("let", utf16!("let")),
             Self::New => ("new", utf16!("new")),
-            Self::Null => ("null", utf16!("null")),
             Self::Of => ("of", utf16!("of")),
             Self::Return => ("return", utf16!("return")),
             Self::Super => ("super", utf16!("super")),
             Self::Switch => ("switch", utf16!("switch")),
             Self::This => ("this", utf16!("this")),
             Self::Throw => ("throw", utf16!("throw")),
-            Self::True => ("true", utf16!("true")),
             Self::Try => ("try", utf16!("try")),
             Self::TypeOf => ("typeof", utf16!("typeof")),
             Self::Var => ("var", utf16!("var")),
@@ -557,7 +524,6 @@ impl Keyword {
             Self::Enum => Sym::ENUM,
             Self::Export => Sym::EXPORT,
             Self::Extends => Sym::EXTENDS,
-            Self::False => Sym::FALSE,
             Self::Finally => Sym::FINALLY,
             Self::For => Sym::FOR,
             Self::Function => Sym::FUNCTION,
@@ -567,14 +533,12 @@ impl Keyword {
             Self::Import => Sym::IMPORT,
             Self::Let => Sym::LET,
             Self::New => Sym::NEW,
-            Self::Null => Sym::NULL,
             Self::Of => Sym::OF,
             Self::Return => Sym::RETURN,
             Self::Super => Sym::SUPER,
             Self::Switch => Sym::SWITCH,
             Self::This => Sym::THIS,
             Self::Throw => Sym::THROW,
-            Self::True => Sym::TRUE,
             Self::Try => Sym::TRY,
             Self::TypeOf => Sym::TYPEOF,
             Self::Var => Sym::VAR,
@@ -629,7 +593,6 @@ impl FromStr for Keyword {
             "enum" => Ok(Self::Enum),
             "extends" => Ok(Self::Extends),
             "export" => Ok(Self::Export),
-            "false" => Ok(Self::False),
             "finally" => Ok(Self::Finally),
             "for" => Ok(Self::For),
             "function" => Ok(Self::Function),
@@ -639,14 +602,12 @@ impl FromStr for Keyword {
             "import" => Ok(Self::Import),
             "let" => Ok(Self::Let),
             "new" => Ok(Self::New),
-            "null" => Ok(Self::Null),
             "of" => Ok(Self::Of),
             "return" => Ok(Self::Return),
             "super" => Ok(Self::Super),
             "switch" => Ok(Self::Switch),
             "this" => Ok(Self::This),
             "throw" => Ok(Self::Throw),
-            "true" => Ok(Self::True),
             "try" => Ok(Self::Try),
             "typeof" => Ok(Self::TypeOf),
             "var" => Ok(Self::Var),

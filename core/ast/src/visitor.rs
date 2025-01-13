@@ -48,17 +48,6 @@ use crate::{
 };
 use boa_interner::Sym;
 
-/// `Try`-like conditional unwrapping of `ControlFlow`.
-#[macro_export]
-macro_rules! try_break {
-    ($expr:expr) => {
-        match $expr {
-            core::ops::ControlFlow::Continue(c) => c,
-            core::ops::ControlFlow::Break(b) => return core::ops::ControlFlow::Break(b),
-        }
-    };
-}
-
 /// Creates the default visit function implementation for a particular type
 macro_rules! define_visit {
     ($fn_name:ident, $type_name:ident) => {

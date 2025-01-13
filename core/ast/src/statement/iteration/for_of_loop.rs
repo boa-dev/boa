@@ -1,6 +1,5 @@
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::Scope;
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::Expression,
@@ -130,8 +129,8 @@ impl VisitWith for ForOfLoop {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_iterable_loop_initializer(&self.init));
-        try_break!(visitor.visit_expression(&self.iterable));
+        visitor.visit_iterable_loop_initializer(&self.init)?;
+        visitor.visit_expression(&self.iterable)?;
         visitor.visit_statement(&self.body)
     }
 
@@ -139,8 +138,8 @@ impl VisitWith for ForOfLoop {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_iterable_loop_initializer_mut(&mut self.init));
-        try_break!(visitor.visit_expression_mut(&mut self.iterable));
+        visitor.visit_iterable_loop_initializer_mut(&mut self.init)?;
+        visitor.visit_expression_mut(&mut self.iterable)?;
         visitor.visit_statement_mut(&mut self.body)
     }
 }

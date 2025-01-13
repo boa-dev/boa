@@ -13,7 +13,6 @@ use crate::{
     },
     expression::Identifier,
     operations::{bound_names, BoundNamesVisitor},
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     StatementListItem,
 };
@@ -86,7 +85,7 @@ impl ModuleItemList {
                             ReExportKind::Namespaced { name: None } => {}
                             ReExportKind::Named { names } => {
                                 for specifier in &**names {
-                                    try_break!(self.visit_export_specifier(specifier));
+                                    self.visit_export_specifier(specifier)?;
                                 }
                             }
                         }
@@ -94,7 +93,7 @@ impl ModuleItemList {
                     }
                     ExportDeclaration::List(list) => {
                         for specifier in &**list {
-                            try_break!(self.visit_export_specifier(specifier));
+                            self.visit_export_specifier(specifier)?;
                         }
                         ControlFlow::Continue(())
                     }
@@ -163,7 +162,7 @@ impl ModuleItemList {
                     ExportDeclaration::ReExport { .. } => return ControlFlow::Continue(()),
                     ExportDeclaration::List(list) => {
                         for specifier in &**list {
-                            try_break!(self.visit_export_specifier(specifier));
+                            self.visit_export_specifier(specifier)?;
                         }
                         return ControlFlow::Continue(());
                     }
@@ -428,7 +427,7 @@ impl VisitWith for ModuleItemList {
         V: Visitor<'a>,
     {
         for item in &*self.items {
-            try_break!(visitor.visit_module_item(item));
+            visitor.visit_module_item(item)?;
         }
 
         ControlFlow::Continue(())
@@ -439,7 +438,7 @@ impl VisitWith for ModuleItemList {
         V: VisitorMut<'a>,
     {
         for item in &mut *self.items {
-            try_break!(visitor.visit_module_item_mut(item));
+            visitor.visit_module_item_mut(item)?;
         }
 
         ControlFlow::Continue(())

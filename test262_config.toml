@@ -16,9 +16,6 @@ features = [
 
     ### Pending proposals
 
-    # https://github.com/tc39/proposal-is-error
-    "Error.isError",
-
     # https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info",
 
@@ -32,7 +29,7 @@ features = [
     # https://github.com/tc39/proposal-import-attributes
     "import-assertions",
 
-    # https://tc39.es/proposal-defer-import-eval
+    # https://github.com/tc39/proposal-defer-import-eval
     "import-defer",
 
     # https://github.com/tc39/proposal-iterator-sequencing

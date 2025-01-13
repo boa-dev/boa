@@ -1,6 +1,5 @@
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::Scope;
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     declaration::{LexicalDeclaration, VarDeclaration},
@@ -108,13 +107,13 @@ impl VisitWith for ForLoop {
         V: Visitor<'a>,
     {
         if let Some(fli) = &self.inner.init {
-            try_break!(visitor.visit_for_loop_initializer(fli));
+            visitor.visit_for_loop_initializer(fli)?;
         }
         if let Some(expr) = &self.inner.condition {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         if let Some(expr) = &self.inner.final_expr {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         visitor.visit_statement(&self.inner.body)
     }
@@ -124,13 +123,13 @@ impl VisitWith for ForLoop {
         V: VisitorMut<'a>,
     {
         if let Some(fli) = &mut self.inner.init {
-            try_break!(visitor.visit_for_loop_initializer_mut(fli));
+            visitor.visit_for_loop_initializer_mut(fli)?;
         }
         if let Some(expr) = &mut self.inner.condition {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         if let Some(expr) = &mut self.inner.final_expr {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         visitor.visit_statement_mut(&mut self.inner.body)
     }

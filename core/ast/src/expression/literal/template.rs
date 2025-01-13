@@ -2,7 +2,6 @@
 
 use crate::{
     expression::Expression,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -108,7 +107,7 @@ impl VisitWith for TemplateLiteral {
         V: Visitor<'a>,
     {
         for element in &*self.elements {
-            try_break!(visitor.visit_template_element(element));
+            visitor.visit_template_element(element)?;
         }
         ControlFlow::Continue(())
     }
@@ -118,7 +117,7 @@ impl VisitWith for TemplateLiteral {
         V: VisitorMut<'a>,
     {
         for element in &mut *self.elements {
-            try_break!(visitor.visit_template_element_mut(element));
+            visitor.visit_template_element_mut(element)?;
         }
         ControlFlow::Continue(())
     }

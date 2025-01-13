@@ -6,7 +6,6 @@ use crate::{
     operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
     scope_analyzer::{analyze_binding_escapes, collect_bindings},
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Declaration,
 };
@@ -102,8 +101,8 @@ impl VisitWith for FunctionDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_identifier(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -111,8 +110,8 @@ impl VisitWith for FunctionDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_identifier_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }
@@ -261,9 +260,9 @@ impl VisitWith for FunctionExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -272,9 +271,9 @@ impl VisitWith for FunctionExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

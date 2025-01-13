@@ -41,6 +41,6 @@ fn string_null_option_value() {
     run_test_actions([TestAction::assert_native_error(
         "Temporal.PlainDate.from('1976-11-18Z', null)",
         JsNativeErrorKind::Range,
-        "Error: Unexpected character found after parsing was completed.",
+        "RangeError: Unexpected character found after parsing was completed.",
     )]);
 }

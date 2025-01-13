@@ -317,6 +317,10 @@ where
             }
             TokenKind::IdentifierName((ident, _)) => Ok((*ident, false)),
             TokenKind::Keyword((kw, _)) => Ok((kw.to_sym(), false)),
+            TokenKind::BooleanLiteral((b, _)) => {
+                Ok((if *b { Sym::TRUE } else { Sym::FALSE }, false))
+            }
+            TokenKind::NullLiteral(_) => Ok((Sym::NULL, false)),
             _ => Err(Error::expected(
                 ["identifier".to_owned(), "string literal".to_owned()],
                 tok.to_string(interner),

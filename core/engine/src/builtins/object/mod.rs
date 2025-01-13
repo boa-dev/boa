@@ -14,7 +14,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 use super::{
-    error::ErrorObject, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
+    error::Error, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
 };
 use crate::value::JsVariant;
 use crate::{
@@ -850,7 +850,7 @@ impl OrdinaryObject {
             } else if o.is_callable() {
                 // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
                 js_str!("Function")
-            } else if o.is::<ErrorObject>() {
+            } else if o.is::<Error>() {
                 // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
                 js_str!("Error")
             } else if o.is::<bool>() {

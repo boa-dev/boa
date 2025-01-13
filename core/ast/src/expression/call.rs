@@ -1,5 +1,4 @@
 use crate::join_nodes;
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
@@ -77,9 +76,9 @@ impl VisitWith for Call {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.function));
+        visitor.visit_expression(&self.function)?;
         for expr in &*self.args {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         ControlFlow::Continue(())
     }
@@ -88,9 +87,9 @@ impl VisitWith for Call {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.function));
+        visitor.visit_expression_mut(&mut self.function)?;
         for expr in &mut *self.args {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         ControlFlow::Continue(())
     }
@@ -147,7 +146,7 @@ impl VisitWith for SuperCall {
         V: Visitor<'a>,
     {
         for expr in &*self.args {
-            try_break!(visitor.visit_expression(expr));
+            visitor.visit_expression(expr)?;
         }
         ControlFlow::Continue(())
     }
@@ -157,7 +156,7 @@ impl VisitWith for SuperCall {
         V: VisitorMut<'a>,
     {
         for expr in &mut *self.args {
-            try_break!(visitor.visit_expression_mut(expr));
+            visitor.visit_expression_mut(expr)?;
         }
         ControlFlow::Continue(())
     }

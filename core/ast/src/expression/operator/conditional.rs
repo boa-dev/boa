@@ -1,6 +1,5 @@
 use crate::{
     expression::Expression,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
@@ -87,8 +86,8 @@ impl VisitWith for Conditional {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.condition));
-        try_break!(visitor.visit_expression(&self.if_true));
+        visitor.visit_expression(&self.condition)?;
+        visitor.visit_expression(&self.if_true)?;
         visitor.visit_expression(&self.if_false)
     }
 
@@ -96,8 +95,8 @@ impl VisitWith for Conditional {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.condition));
-        try_break!(visitor.visit_expression_mut(&mut self.if_true));
+        visitor.visit_expression_mut(&mut self.condition)?;
+        visitor.visit_expression_mut(&mut self.if_true)?;
         visitor.visit_expression_mut(&mut self.if_false)
     }
 }

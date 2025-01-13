@@ -11,10 +11,7 @@ use std::ops::ControlFlow;
 
 use boa_interner::{Interner, Sym, ToInternedString};
 
-use crate::{
-    try_break,
-    visitor::{VisitWith, Visitor, VisitorMut},
-};
+use crate::visitor::{VisitWith, Visitor, VisitorMut};
 
 use super::Expression;
 
@@ -79,7 +76,7 @@ impl VisitWith for RegExpLiteral {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_sym(&self.pattern));
+        visitor.visit_sym(&self.pattern)?;
         visitor.visit_sym(&self.flags)
     }
 
@@ -88,7 +85,7 @@ impl VisitWith for RegExpLiteral {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_sym_mut(&mut self.pattern));
+        visitor.visit_sym_mut(&mut self.pattern)?;
         visitor.visit_sym_mut(&mut self.flags)
     }
 }

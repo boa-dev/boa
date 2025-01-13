@@ -25,7 +25,6 @@
 use crate::{
     expression::{access::PropertyAccess, Identifier},
     property::PropertyName,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Expression,
 };
@@ -172,7 +171,7 @@ impl VisitWith for ObjectPattern {
         V: Visitor<'a>,
     {
         for elem in &*self.0 {
-            try_break!(visitor.visit_object_pattern_element(elem));
+            visitor.visit_object_pattern_element(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -182,7 +181,7 @@ impl VisitWith for ObjectPattern {
         V: VisitorMut<'a>,
     {
         for elem in &mut *self.0 {
-            try_break!(visitor.visit_object_pattern_element_mut(elem));
+            visitor.visit_object_pattern_element_mut(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -250,7 +249,7 @@ impl VisitWith for ArrayPattern {
         V: Visitor<'a>,
     {
         for elem in &*self.0 {
-            try_break!(visitor.visit_array_pattern_element(elem));
+            visitor.visit_array_pattern_element(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -260,7 +259,7 @@ impl VisitWith for ArrayPattern {
         V: VisitorMut<'a>,
     {
         for elem in &mut *self.0 {
-            try_break!(visitor.visit_array_pattern_element_mut(elem));
+            visitor.visit_array_pattern_element_mut(elem)?;
         }
         ControlFlow::Continue(())
     }
@@ -466,8 +465,8 @@ impl VisitWith for ObjectPatternElement {
                 ident,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_name(name));
-                try_break!(visitor.visit_identifier(ident));
+                visitor.visit_property_name(name)?;
+                visitor.visit_identifier(ident)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression(expr)
                 } else {
@@ -480,8 +479,8 @@ impl VisitWith for ObjectPatternElement {
                 access,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_name(name));
-                try_break!(visitor.visit_property_access(access));
+                visitor.visit_property_name(name)?;
+                visitor.visit_property_access(access)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression(expr)
                 } else {
@@ -496,8 +495,8 @@ impl VisitWith for ObjectPatternElement {
                 pattern,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_name(name));
-                try_break!(visitor.visit_pattern(pattern));
+                visitor.visit_property_name(name)?;
+                visitor.visit_pattern(pattern)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression(expr)
                 } else {
@@ -517,8 +516,8 @@ impl VisitWith for ObjectPatternElement {
                 ident,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_name_mut(name));
-                try_break!(visitor.visit_identifier_mut(ident));
+                visitor.visit_property_name_mut(name)?;
+                visitor.visit_identifier_mut(ident)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -531,8 +530,8 @@ impl VisitWith for ObjectPatternElement {
                 access,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_name_mut(name));
-                try_break!(visitor.visit_property_access_mut(access));
+                visitor.visit_property_name_mut(name)?;
+                visitor.visit_property_access_mut(access)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -547,8 +546,8 @@ impl VisitWith for ObjectPatternElement {
                 pattern,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_name_mut(name));
-                try_break!(visitor.visit_pattern_mut(pattern));
+                visitor.visit_property_name_mut(name)?;
+                visitor.visit_pattern_mut(pattern)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -718,7 +717,7 @@ impl VisitWith for ArrayPatternElement {
                 ident,
                 default_init,
             } => {
-                try_break!(visitor.visit_identifier(ident));
+                visitor.visit_identifier(ident)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression(expr)
                 } else {
@@ -729,7 +728,7 @@ impl VisitWith for ArrayPatternElement {
                 access,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_access(access));
+                visitor.visit_property_access(access)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression(expr)
                 } else {
@@ -741,7 +740,7 @@ impl VisitWith for ArrayPatternElement {
                 pattern,
                 default_init,
             } => {
-                try_break!(visitor.visit_pattern(pattern));
+                visitor.visit_pattern(pattern)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression(expr)
                 } else {
@@ -766,7 +765,7 @@ impl VisitWith for ArrayPatternElement {
                 ident,
                 default_init,
             } => {
-                try_break!(visitor.visit_identifier_mut(ident));
+                visitor.visit_identifier_mut(ident)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -777,7 +776,7 @@ impl VisitWith for ArrayPatternElement {
                 access,
                 default_init,
             } => {
-                try_break!(visitor.visit_property_access_mut(access));
+                visitor.visit_property_access_mut(access)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression_mut(expr)
                 } else {
@@ -789,7 +788,7 @@ impl VisitWith for ArrayPatternElement {
                 pattern,
                 default_init,
             } => {
-                try_break!(visitor.visit_pattern_mut(pattern));
+                visitor.visit_pattern_mut(pattern)?;
                 if let Some(expr) = default_init {
                     visitor.visit_expression_mut(expr)
                 } else {

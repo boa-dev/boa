@@ -1,8 +1,4 @@
-use std::{
-    cell::{Cell, RefCell},
-    collections::VecDeque,
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::VecDeque, future::Future, pin::Pin, rc::Rc};
 
 use boa_engine::{
     builtins::promise::PromiseState,
@@ -12,15 +8,12 @@ use boa_engine::{
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
 };
 use boa_parser::Source;
-use futures_util::{stream::FuturesUnordered, StreamExt};
+use futures_concurrency::future::FutureGroup;
 use isahc::{
     config::{Configurable, RedirectPolicy},
     AsyncReadResponseExt, Request, RequestExt,
 };
-use smol::{future, LocalExecutor};
-
-// Most of the boilerplate is taken from the `futures.rs` example.
-// This file only explains what is exclusive of async module loading.
+use smol::{future, stream::StreamExt};
 
 #[derive(Debug, Default)]
 struct HttpModuleLoader;
@@ -115,9 +108,8 @@ fn main() -> JsResult<()> {
         export default result;
     "#;
 
-    let queue = Rc::new(Queue::new(LocalExecutor::new()));
     let context = &mut Context::builder()
-        .job_queue(queue)
+        .job_queue(Rc::new(Queue::new()))
         // NEW: sets the context module loader to our custom loader
         .module_loader(Rc::new(HttpModuleLoader))
         .build()?;
@@ -175,94 +167,93 @@ fn main() -> JsResult<()> {
     Ok(())
 }
 
-// Taken from the `futures.rs` example.
-struct Queue<'a> {
-    executor: LocalExecutor<'a>,
-    futures: RefCell<FuturesUnordered<FutureJob>>,
+// Taken from the `smol_event_loop.rs` example.
+/// An event queue using smol to drive futures to completion.
+struct Queue {
+    futures: RefCell<Vec<FutureJob>>,
     jobs: RefCell<VecDeque<NativeJob>>,
 }
 
-impl<'a> Queue<'a> {
-    fn new(executor: LocalExecutor<'a>) -> Self {
+impl Queue {
+    fn new() -> Self {
         Self {
-            executor,
             futures: RefCell::default(),
             jobs: RefCell::default(),
         }
     }
+
+    fn drain_jobs(&self, context: &mut Context) {
+        let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
+        for job in jobs {
+            if let Err(e) = job.call(context) {
+                eprintln!("Uncaught {e}");
+            }
+        }
+    }
 }
 
-impl JobQueue for Queue<'_> {
+impl JobQueue for Queue {
     fn enqueue_promise_job(&self, job: NativeJob, _context: &mut Context) {
         self.jobs.borrow_mut().push_back(job);
     }
 
     fn enqueue_future_job(&self, future: FutureJob, _context: &mut Context) {
-        self.futures.borrow().push(future)
+        self.futures.borrow_mut().push(future);
     }
 
+    // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
     fn run_jobs(&self, context: &mut Context) {
-        // Early return in case there were no jobs scheduled.
-        if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
-            return;
-        }
+        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(context)));
+    }
 
-        let context = RefCell::new(context);
+    // ...the async flavor won't, which allows concurrent execution with external async tasks.
+    fn run_jobs_async<'a, 'ctx, 'fut>(
+        &'a self,
+        context: &'ctx mut Context,
+    ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
+    where
+        'a: 'fut,
+        'ctx: 'fut,
+    {
+        Box::pin(async move {
+            // Early return in case there were no jobs scheduled.
+            if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
+                return;
+            }
+            let mut group = FutureGroup::new();
+            loop {
+                group.extend(std::mem::take(&mut *self.futures.borrow_mut()));
 
-        future::block_on(self.executor.run(async move {
-            // Used to sync the finalization of both tasks
-            let finished = Cell::new(0b00u8);
-
-            let fqueue = async {
-                loop {
-                    if self.futures.borrow().is_empty() {
-                        finished.set(finished.get() | 0b01);
-                        if finished.get() >= 0b11 {
-                            // All possible futures and jobs were completed. Exit.
-                            return;
-                        }
-                        // All possible jobs were completed, but `jqueue` could have
-                        // pending jobs. Yield to the executor to try to progress on
-                        // `jqueue` until we have more pending futures.
-                        future::yield_now().await;
-                        continue;
-                    }
-                    finished.set(finished.get() & 0b10);
-
-                    let futures = &mut std::mem::take(&mut *self.futures.borrow_mut());
-                    while let Some(job) = futures.next().await {
-                        self.enqueue_promise_job(job, &mut context.borrow_mut());
-                    }
-                }
-            };
-
-            let jqueue = async {
-                loop {
-                    if self.jobs.borrow().is_empty() {
-                        finished.set(finished.get() | 0b10);
-                        if finished.get() >= 0b11 {
-                            // All possible futures and jobs were completed. Exit.
-                            return;
-                        }
-                        // All possible jobs were completed, but `fqueue` could have
-                        // pending futures. Yield to the executor to try to progress on
-                        // `fqueue` until we have more pending jobs.
-                        future::yield_now().await;
-                        continue;
+                if self.jobs.borrow().is_empty() {
+                    let Some(job) = group.next().await else {
+                        // Both queues are empty. We can exit.
+                        return;
                     };
-                    finished.set(finished.get() & 0b01);
 
-                    let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
-                    for job in jobs {
-                        if let Err(e) = job.call(&mut context.borrow_mut()) {
-                            eprintln!("Uncaught {e}");
-                        }
-                        future::yield_now().await;
-                    }
+                    // Important to schedule the returned `job` into the job queue, since that's
+                    // what allows updating the `Promise` seen by ECMAScript for when the future
+                    // completes.
+                    self.enqueue_promise_job(job, context);
+                    continue;
                 }
-            };
 
-            future::zip(fqueue, jqueue).await;
-        }))
+                // We have some jobs pending on the microtask queue. Try to poll the pending
+                // tasks once to see if any of them finished, and run the pending microtasks
+                // otherwise.
+                let Some(job) = future::poll_once(group.next()).await.flatten() else {
+                    // No completed jobs. Run the microtask queue once.
+                    self.drain_jobs(context);
+                    continue;
+                };
+
+                // Important to schedule the returned `job` into the job queue, since that's
+                // what allows updating the `Promise` seen by ECMAScript for when the future
+                // completes.
+                self.enqueue_promise_job(job, context);
+
+                // Only one macrotask can be executed before the next drain of the microtask queue.
+                self.drain_jobs(context);
+            }
+        })
     }
 }

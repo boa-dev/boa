@@ -5,7 +5,6 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Statement,
 };
@@ -197,7 +196,7 @@ impl VisitWith for VariableList {
         V: Visitor<'a>,
     {
         for variable in &*self.list {
-            try_break!(visitor.visit_variable(variable));
+            visitor.visit_variable(variable)?;
         }
         ControlFlow::Continue(())
     }
@@ -207,7 +206,7 @@ impl VisitWith for VariableList {
         V: VisitorMut<'a>,
     {
         for variable in &mut *self.list {
-            try_break!(visitor.visit_variable_mut(variable));
+            visitor.visit_variable_mut(variable)?;
         }
         ControlFlow::Continue(())
     }
@@ -309,9 +308,9 @@ impl VisitWith for Variable {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_binding(&self.binding));
+        visitor.visit_binding(&self.binding)?;
         if let Some(init) = &self.init {
-            try_break!(visitor.visit_expression(init));
+            visitor.visit_expression(init)?;
         }
         ControlFlow::Continue(())
     }
@@ -320,9 +319,9 @@ impl VisitWith for Variable {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_binding_mut(&mut self.binding));
+        visitor.visit_binding_mut(&mut self.binding)?;
         if let Some(init) = &mut self.init {
-            try_break!(visitor.visit_expression_mut(init));
+            visitor.visit_expression_mut(init)?;
         }
         ControlFlow::Continue(())
     }

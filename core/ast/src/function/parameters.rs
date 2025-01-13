@@ -2,7 +2,6 @@ use crate::{
     declaration::{Binding, Variable},
     expression::Expression,
     operations::bound_names,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use bitflags::bitflags;
@@ -149,7 +148,7 @@ impl VisitWith for FormalParameterList {
         V: Visitor<'a>,
     {
         for parameter in &*self.parameters {
-            try_break!(visitor.visit_formal_parameter(parameter));
+            visitor.visit_formal_parameter(parameter)?;
         }
 
         ControlFlow::Continue(())
@@ -160,7 +159,7 @@ impl VisitWith for FormalParameterList {
         V: VisitorMut<'a>,
     {
         for parameter in &mut *self.parameters {
-            try_break!(visitor.visit_formal_parameter_mut(parameter));
+            visitor.visit_formal_parameter_mut(parameter)?;
         }
 
         // TODO recompute flags

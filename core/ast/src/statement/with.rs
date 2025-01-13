@@ -2,7 +2,6 @@ use crate::{
     expression::Expression,
     scope::Scope,
     statement::Statement,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
@@ -78,7 +77,7 @@ impl VisitWith for With {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.expression));
+        visitor.visit_expression(&self.expression)?;
         visitor.visit_statement(&self.statement)
     }
 
@@ -86,7 +85,7 @@ impl VisitWith for With {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.expression));
+        visitor.visit_expression_mut(&mut self.expression)?;
         visitor.visit_statement_mut(&mut self.statement)
     }
 }

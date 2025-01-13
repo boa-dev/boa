@@ -1522,7 +1522,7 @@ impl Promise {
             // b. If SameValue(xConstructor, C) is true, return x.
             if x_constructor
                 .as_object()
-                .map_or(false, |o| JsObject::equals(o, c))
+                .is_some_and(|o| JsObject::equals(o, c))
             {
                 return Ok(x.clone());
             }

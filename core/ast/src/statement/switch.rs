@@ -4,7 +4,6 @@ use crate::{
     operations::{contains, ContainsSymbol},
     scope::Scope,
     statement::Statement,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     StatementList,
 };
@@ -79,7 +78,7 @@ impl VisitWith for Case {
         V: Visitor<'a>,
     {
         if let Some(condition) = &self.condition {
-            try_break!(visitor.visit_expression(condition));
+            visitor.visit_expression(condition)?;
         }
 
         visitor.visit_statement_list(&self.body)
@@ -90,7 +89,7 @@ impl VisitWith for Case {
         V: VisitorMut<'a>,
     {
         if let Some(condition) = &mut self.condition {
-            try_break!(visitor.visit_expression_mut(condition));
+            visitor.visit_expression_mut(condition)?;
         }
         visitor.visit_statement_list_mut(&mut self.body)
     }
@@ -212,9 +211,9 @@ impl VisitWith for Switch {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.val));
+        visitor.visit_expression(&self.val)?;
         for case in &*self.cases {
-            try_break!(visitor.visit_case(case));
+            visitor.visit_case(case)?;
         }
         ControlFlow::Continue(())
     }
@@ -223,9 +222,9 @@ impl VisitWith for Switch {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.val));
+        visitor.visit_expression_mut(&mut self.val)?;
         for case in &mut *self.cases {
-            try_break!(visitor.visit_case_mut(case));
+            visitor.visit_case_mut(case)?;
         }
         ControlFlow::Continue(())
     }

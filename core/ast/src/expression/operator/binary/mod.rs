@@ -19,7 +19,6 @@ mod op;
 use crate::{
     expression::Expression,
     function::PrivateName,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
@@ -111,7 +110,7 @@ impl VisitWith for Binary {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.lhs));
+        visitor.visit_expression(&self.lhs)?;
         visitor.visit_expression(&self.rhs)
     }
 
@@ -119,7 +118,7 @@ impl VisitWith for Binary {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.lhs));
+        visitor.visit_expression_mut(&mut self.lhs)?;
         visitor.visit_expression_mut(&mut self.rhs)
     }
 }
@@ -186,7 +185,7 @@ impl VisitWith for BinaryInPrivate {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_private_name(&self.lhs));
+        visitor.visit_private_name(&self.lhs)?;
         visitor.visit_expression(&self.rhs)
     }
 
@@ -194,7 +193,7 @@ impl VisitWith for BinaryInPrivate {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_private_name_mut(&mut self.lhs));
+        visitor.visit_private_name_mut(&mut self.lhs)?;
         visitor.visit_expression_mut(&mut self.rhs)
     }
 }

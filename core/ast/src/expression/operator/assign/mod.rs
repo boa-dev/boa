@@ -22,7 +22,6 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use crate::{
     expression::{access::PropertyAccess, identifier::Identifier, Expression},
     pattern::Pattern,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 
@@ -96,7 +95,7 @@ impl VisitWith for Assign {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_assign_target(&self.lhs));
+        visitor.visit_assign_target(&self.lhs)?;
         visitor.visit_expression(&self.rhs)
     }
 
@@ -104,7 +103,7 @@ impl VisitWith for Assign {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_assign_target_mut(&mut self.lhs));
+        visitor.visit_assign_target_mut(&mut self.lhs)?;
         visitor.visit_expression_mut(&mut self.rhs)
     }
 }

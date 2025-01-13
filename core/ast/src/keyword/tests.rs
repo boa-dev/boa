@@ -21,7 +21,6 @@ fn all_keywords() -> impl Iterator<Item = Keyword> {
         Keyword::Enum,
         Keyword::Export,
         Keyword::Extends,
-        Keyword::False,
         Keyword::Finally,
         Keyword::For,
         Keyword::Function,
@@ -31,14 +30,12 @@ fn all_keywords() -> impl Iterator<Item = Keyword> {
         Keyword::Import,
         Keyword::Let,
         Keyword::New,
-        Keyword::Null,
         Keyword::Of,
         Keyword::Return,
         Keyword::Super,
         Keyword::Switch,
         Keyword::This,
         Keyword::Throw,
-        Keyword::True,
         Keyword::Try,
         Keyword::TypeOf,
         Keyword::Var,
@@ -135,10 +132,6 @@ fn as_str() {
                 assert_eq!(k, Keyword::Export);
                 assert_eq!(utf16, utf16!("export"));
             }
-            ("false", utf16) => {
-                assert_eq!(k, Keyword::False);
-                assert_eq!(utf16, utf16!("false"));
-            }
             ("finally", utf16) => {
                 assert_eq!(k, Keyword::Finally);
                 assert_eq!(utf16, utf16!("finally"));
@@ -175,10 +168,6 @@ fn as_str() {
                 assert_eq!(k, Keyword::New);
                 assert_eq!(utf16, utf16!("new"));
             }
-            ("null", utf16) => {
-                assert_eq!(k, Keyword::Null);
-                assert_eq!(utf16, utf16!("null"));
-            }
             ("of", utf16) => {
                 assert_eq!(k, Keyword::Of);
                 assert_eq!(utf16, utf16!("of"));
@@ -202,10 +191,6 @@ fn as_str() {
             ("throw", utf16) => {
                 assert_eq!(k, Keyword::Throw);
                 assert_eq!(utf16, utf16!("throw"));
-            }
-            ("true", utf16) => {
-                assert_eq!(k, Keyword::True);
-                assert_eq!(utf16, utf16!("true"));
             }
             ("try", utf16) => {
                 assert_eq!(k, Keyword::Try);
@@ -260,7 +245,6 @@ fn to_sym() {
             Sym::ENUM => assert_eq!(k, Keyword::Enum),
             Sym::EXPORT => assert_eq!(k, Keyword::Export),
             Sym::EXTENDS => assert_eq!(k, Keyword::Extends),
-            Sym::FALSE => assert_eq!(k, Keyword::False),
             Sym::FINALLY => assert_eq!(k, Keyword::Finally),
             Sym::FOR => assert_eq!(k, Keyword::For),
             Sym::FUNCTION => assert_eq!(k, Keyword::Function),
@@ -270,14 +254,12 @@ fn to_sym() {
             Sym::IMPORT => assert_eq!(k, Keyword::Import),
             Sym::LET => assert_eq!(k, Keyword::Let),
             Sym::NEW => assert_eq!(k, Keyword::New),
-            Sym::NULL => assert_eq!(k, Keyword::Null),
             Sym::OF => assert_eq!(k, Keyword::Of),
             Sym::RETURN => assert_eq!(k, Keyword::Return),
             Sym::SUPER => assert_eq!(k, Keyword::Super),
             Sym::SWITCH => assert_eq!(k, Keyword::Switch),
             Sym::THIS => assert_eq!(k, Keyword::This),
             Sym::THROW => assert_eq!(k, Keyword::Throw),
-            Sym::TRUE => assert_eq!(k, Keyword::True),
             Sym::TRY => assert_eq!(k, Keyword::Try),
             Sym::TYPEOF => assert_eq!(k, Keyword::TypeOf),
             Sym::VAR => assert_eq!(k, Keyword::Var),
@@ -311,7 +293,6 @@ fn try_into_binary_op() {
             | Keyword::Enum
             | Keyword::Export
             | Keyword::Extends
-            | Keyword::False
             | Keyword::Finally
             | Keyword::For
             | Keyword::Function
@@ -319,14 +300,12 @@ fn try_into_binary_op() {
             | Keyword::Import
             | Keyword::Let
             | Keyword::New
-            | Keyword::Null
             | Keyword::Of
             | Keyword::Return
             | Keyword::Super
             | Keyword::Switch
             | Keyword::This
             | Keyword::Throw
-            | Keyword::True
             | Keyword::Try
             | Keyword::TypeOf
             | Keyword::Var

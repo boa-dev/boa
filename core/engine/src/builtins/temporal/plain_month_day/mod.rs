@@ -20,7 +20,7 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    options::{ArithmeticOverflow, CalendarName},
+    options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
     PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
@@ -110,8 +110,8 @@ impl PlainMonthDay {
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
         let show_calendar =
-            get_option::<CalendarName>(&options, js_string!("calendarName"), context)?
-                .unwrap_or(CalendarName::Auto);
+            get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(DisplayCalendar::Auto);
 
         Ok(month_day_to_string(inner, show_calendar))
     }
@@ -231,7 +231,7 @@ impl BuiltInConstructor for PlainMonthDay {
 
 // ==== `PlainMonthDay` Abstract Operations ====
 
-fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> JsValue {
+fn month_day_to_string(inner: &InnerMonthDay, show_calendar: DisplayCalendar) -> JsValue {
     // Let month be monthDay.[[ISOMonth]] formatted as a two-digit decimal number, padded to the left with a zero if necessary
     let month = inner.iso_month().to_string();
 
@@ -252,11 +252,11 @@ fn month_day_to_string(inner: &InnerMonthDay, show_calendar: CalendarName) -> Js
     //     b. Set result to the string-concatenation of result, the code unit 0x0040 (COMMERCIAL AT), and calendarString.
     if (matches!(
         show_calendar,
-        CalendarName::Critical | CalendarName::Always | CalendarName::Auto
-    )) && !(matches!(show_calendar, CalendarName::Auto) && calendar_id == "iso8601")
+        DisplayCalendar::Critical | DisplayCalendar::Always | DisplayCalendar::Auto
+    )) && !(matches!(show_calendar, DisplayCalendar::Auto) && calendar_id == "iso8601")
     {
         let year = inner.iso_year().to_string();
-        let flag = if matches!(show_calendar, CalendarName::Critical) {
+        let flag = if matches!(show_calendar, DisplayCalendar::Critical) {
             "!"
         } else {
             ""

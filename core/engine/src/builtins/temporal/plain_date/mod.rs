@@ -20,7 +20,9 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::ArithmeticOverflow, partial::PartialDate, PlainDate as InnerDate, TinyAsciiStr,
+    options::{ArithmeticOverflow, DisplayCalendar},
+    partial::PartialDate,
+    PlainDate as InnerDate, TinyAsciiStr,
 };
 
 use super::{
@@ -214,6 +216,8 @@ impl IntrinsicObject for PlainDate {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_plain_datetime, js_string!("toPlainDateTime"), 0)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
@@ -730,6 +734,35 @@ impl PlainDate {
         create_temporal_datetime(date.inner.to_date_time(time)?, None, context).map(Into::into)
     }
 
+    /// 3.3.30 `Temporal.PlainDate.prototype.toString ( [ options ] )`
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        let options = get_options_object(args.get_or_undefined(0))?;
+        let display_calendar =
+            get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(DisplayCalendar::Auto);
+        Ok(JsString::from(date.inner.to_ixdtf_string(display_calendar)).into())
+    }
+
+    // 3.3.32 `Temporal.PlainDate.prototype.toJSON ( )`
+    fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        Ok(JsString::from(date.inner.to_string()).into())
+    }
+
+    /// 3.3.33 `Temporal.PlainDate.prototype.valueOf ( )`
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")

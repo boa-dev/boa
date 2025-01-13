@@ -1,8 +1,10 @@
-use crate::parser::tests::{check_invalid_script, check_script_parser};
+use crate::parser::tests::{check_invalid_script, check_module_parser, check_script_parser};
 use boa_ast::{
-    declaration::{LexicalDeclaration, VarDeclaration, Variable},
+    declaration::{
+        ExportDeclaration, ExportSpecifier, LexicalDeclaration, VarDeclaration, Variable,
+    },
     expression::literal::Literal,
-    Declaration, Statement,
+    Declaration, ModuleItem, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -359,4 +361,39 @@ fn lexical_declaration_early_errors() {
     check_invalid_script("for (let let = 0; ; ) {}");
     check_invalid_script("for (let a = 0, a = 0; ; ) {}");
     check_invalid_script("for (const a = 0, a = 0; ; ) {}");
+}
+
+/// Checks module exports with reserved keywords
+#[test]
+fn module_export_reserved() {
+    let interner = &mut Interner::default();
+    let val = interner.get_or_intern_static("val", utf16!("val"));
+    check_module_parser(
+        r#"
+            const val = null;
+            export { val as null, val as true, val as false };
+        "#,
+        vec![
+            ModuleItem::StatementListItem(
+                Declaration::Lexical(LexicalDeclaration::Const(
+                    vec![Variable::from_identifier(
+                        val.into(),
+                        Some(Literal::Null.into()),
+                    )]
+                    .try_into()
+                    .unwrap(),
+                ))
+                .into(),
+            ),
+            ModuleItem::ExportDeclaration(ExportDeclaration::List(
+                vec![
+                    ExportSpecifier::new(Sym::NULL, val, false),
+                    ExportSpecifier::new(Sym::TRUE, val, false),
+                    ExportSpecifier::new(Sym::FALSE, val, false),
+                ]
+                .into(),
+            )),
+        ],
+        interner,
+    );
 }

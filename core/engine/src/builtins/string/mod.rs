@@ -2661,7 +2661,7 @@ pub(crate) fn get_substitution(
             let second_is_digit = second
                 .and_then(CodePoint::as_char)
                 .as_ref()
-                .map_or(false, char::is_ascii_digit);
+                .is_some_and(char::is_ascii_digit);
 
             match second {
                 // $$

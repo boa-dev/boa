@@ -13,7 +13,6 @@ use std::ops::ControlFlow;
 
 use crate::{
     expression::Identifier,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::Sym;
@@ -49,7 +48,7 @@ impl VisitWith for ImportKind {
             Self::Namespaced { binding } => visitor.visit_identifier(binding),
             Self::Named { names } => {
                 for name in &**names {
-                    try_break!(visitor.visit_import_specifier(name));
+                    visitor.visit_import_specifier(name)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -65,7 +64,7 @@ impl VisitWith for ImportKind {
             Self::Namespaced { binding } => visitor.visit_identifier_mut(binding),
             Self::Named { names } => {
                 for name in &mut **names {
-                    try_break!(visitor.visit_import_specifier_mut(name));
+                    visitor.visit_import_specifier_mut(name)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -134,9 +133,9 @@ impl VisitWith for ImportDeclaration {
         V: Visitor<'a>,
     {
         if let Some(default) = &self.default {
-            try_break!(visitor.visit_identifier(default));
+            visitor.visit_identifier(default)?;
         }
-        try_break!(visitor.visit_import_kind(&self.kind));
+        visitor.visit_import_kind(&self.kind)?;
         visitor.visit_module_specifier(&self.specifier)
     }
 
@@ -145,9 +144,9 @@ impl VisitWith for ImportDeclaration {
         V: VisitorMut<'a>,
     {
         if let Some(default) = &mut self.default {
-            try_break!(visitor.visit_identifier_mut(default));
+            visitor.visit_identifier_mut(default)?;
         }
-        try_break!(visitor.visit_import_kind_mut(&mut self.kind));
+        visitor.visit_import_kind_mut(&mut self.kind)?;
         visitor.visit_module_specifier_mut(&mut self.specifier)
     }
 }
@@ -197,7 +196,7 @@ impl VisitWith for ImportSpecifier {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.binding));
+        visitor.visit_identifier(&self.binding)?;
         visitor.visit_sym(&self.export_name)
     }
 
@@ -205,7 +204,7 @@ impl VisitWith for ImportSpecifier {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.binding));
+        visitor.visit_identifier_mut(&mut self.binding)?;
         visitor.visit_sym_mut(&mut self.export_name)
     }
 }

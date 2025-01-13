@@ -384,9 +384,10 @@ where
                 _ => {
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    let init = if cursor.peek(0, interner)?.map_or(false, |tok| {
-                        tok.kind() == &TokenKind::Punctuator(Punctuator::Assign)
-                    }) {
+                    let init = if cursor
+                        .peek(0, interner)?
+                        .is_some_and(|tok| tok.kind() == &TokenKind::Punctuator(Punctuator::Assign))
+                    {
                         Some(
                             Initializer::new(true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?,
