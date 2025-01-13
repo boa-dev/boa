@@ -41,21 +41,21 @@ struct IntervalInnerState {
 impl IntervalInnerState {
     /// Get the interval handler map from the context, or add it to the context if not
     /// present.
-    fn from_context(context: &mut Context) -> JsResult<Gc<GcRefCell<Self>>> {
+    fn from_context(context: &mut Context) -> Gc<GcRefCell<Self>> {
         if !context.has_data::<Gc<GcRefCell<IntervalInnerState>>>() {
             context.insert_data(Gc::new(GcRefCell::new(Self::default())));
         }
 
-        Ok(context
+        context
             .get_data::<Gc<GcRefCell<Self>>>()
             .expect("Should have inserted.")
-            .clone())
+            .clone()
     }
 
     /// Get whether an interval is still active.
     #[inline]
     fn is_interval_valid(&self, id: u32) -> bool {
-        self.active_map.get(&id).is_some()
+        self.active_map.contains(&id)
     }
 
     /// Create an interval ID, insert it in the active map and return it.
@@ -160,7 +160,7 @@ pub fn set_timeout<C: Clock + 'static>(
     rest: JsRest<'_>,
     context: &mut Context,
 ) -> JsResult<u32> {
-    let handler_map = IntervalInnerState::from_context(context)?;
+    let handler_map = IntervalInnerState::from_context(context);
     let id = handler_map.borrow_mut().new_interval()?;
 
     let clock = context
@@ -211,7 +211,7 @@ pub fn set_interval<C: Clock + 'static>(
     rest: JsRest<'_>,
     context: &mut Context,
 ) -> JsResult<u32> {
-    let handler_map = IntervalInnerState::from_context(context)?;
+    let handler_map = IntervalInnerState::from_context(context);
     let id = handler_map.borrow_mut().new_interval()?;
 
     let clock = context
@@ -253,11 +253,9 @@ pub fn set_interval<C: Clock + 'static>(
 ///
 /// Please note that this is the same exact method as `clearInterval`, as both can be
 /// used interchangeably.
-#[must_use]
-pub fn clear_timeout(id: u32, context: &mut Context) -> JsResult<()> {
-    let handler_map = IntervalInnerState::from_context(context)?;
+pub fn clear_timeout(id: u32, context: &mut Context) {
+    let handler_map = IntervalInnerState::from_context(context);
     handler_map.borrow_mut().clear_interval(id);
-    Ok(())
 }
 
 /// Register the interval module into the given context.
