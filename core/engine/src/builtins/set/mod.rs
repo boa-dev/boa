@@ -59,6 +59,10 @@ impl IntrinsicObject for Set {
             .name(js_string!("values"))
             .build();
 
+        let difference = BuiltInBuilder::callable(realm, Self::difference)
+            .name(js_string!("difference"))
+            .build();
+
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
@@ -86,6 +90,11 @@ impl IntrinsicObject for Set {
             .property(
                 js_string!("values"),
                 values_function.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                js_string!("difference"),
+                difference.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
@@ -548,11 +557,6 @@ impl Set {
         // 10. Return a new Set created from resultSet.
         Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
     }
-
-
-    /// ` Set.prototype.intersection( other )`
-    /// 
-    /// This method performs the folo
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_size(this).map(JsValue::from)
