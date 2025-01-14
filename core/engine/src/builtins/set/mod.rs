@@ -491,6 +491,69 @@ impl Set {
         ))
     }
 
+    /// ` Set.prototype.difference ( other ) `
+    /// 
+    /// This method returns a new Set containing all elements that are in the current Set
+    /// but not in the given iterable `other`.
+    /// 
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    /// 
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.difference
+    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
+    
+    pub(crate) fn difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
+                .into());
+        };
+    
+        // 3. Let other be the first argument.
+        let other = args.get_or_undefined(0);
+    
+        // 4. If other is null or undefined, return a clone of S.
+        if other.is_null_or_undefined() {
+            return Ok(Set::create_set_from_list(set.iter().cloned(), context).into());
+        }
+    
+        // 5. Let otherSet be a new empty Set.
+        let mut other_set = OrderedSet::new();
+    
+        // 6. Let otherIterator be ? GetIterator(other, sync).
+        let mut other_iterator = other.clone().get_iterator(IteratorHint::Sync, context)?;
+    
+        // 7. Repeat, while otherIterator is not exhausted
+        while let Some(next_value) = other_iterator.step_value(context)? {
+            other_set.add(next_value);
+        }
+    
+        // 8. Create a new Set resultSet to store the difference.
+        let mut result_set = OrderedSet::new();
+    
+        // 9. For each value e in S.[[SetData]], do
+        for value in set.iter() {
+            // a. If otherSet does not contain e, add e to resultSet.
+            if !other_set.contains(value) {
+                result_set.add(value.clone());
+            }
+        }
+    
+        // 10. Return a new Set created from resultSet.
+        Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
+    }
+
+
+    /// ` Set.prototype.intersection( other )`
+    /// 
+    /// This method performs the folo
+
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_size(this).map(JsValue::from)
     }
