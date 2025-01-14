@@ -1,18 +1,22 @@
 //! Data structures that contain intrinsic objects and constructors.
 
-use boa_gc::{Finalize, Trace};
-
 use crate::{
-    builtins::{iterable::IteratorPrototypes, uri::UriFunctions, Array, OrdinaryObject},
+    builtins::{
+        function::ConstructorKind, iterable::IteratorPrototypes, uri::UriFunctions, Array,
+        IntrinsicObject, OrdinaryObject,
+    },
     js_string,
+    native_function::NativeFunctionObject,
     object::{
         internal_methods::immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
         shape::{shared_shape::template::ObjectTemplate, RootShape},
-        JsFunction, JsObject, Object, CONSTRUCTOR, PROTOTYPE,
+        BuiltinKind, JsFunction, JsObject, LazyBuiltIn, Object, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyKey},
-    JsSymbol,
+    realm::{Realm, RealmInner},
+    JsSymbol, JsValue, NativeFunction,
 };
+use boa_gc::{Finalize, Trace, WeakGc};
 
 #[cfg(feature = "intl")]
 use crate::builtins::intl::Intl;
@@ -39,8 +43,8 @@ impl Intrinsics {
     /// To initialize all the intrinsics with their spec properties, see [`Realm::initialize`].
     ///
     /// [`Realm::initialize`]: crate::realm::Realm::initialize
-    pub(crate) fn uninit(root_shape: &RootShape) -> Option<Self> {
-        let constructors = StandardConstructors::default();
+    pub(crate) fn uninit(root_shape: &RootShape, realm_inner: &WeakGc<RealmInner>) -> Option<Self> {
+        let constructors = StandardConstructors::new(realm_inner);
         let templates = ObjectTemplates::new(root_shape, &constructors);
 
         Some(Self {
@@ -91,6 +95,46 @@ impl StandardConstructor {
         Self {
             constructor,
             prototype,
+        }
+    }
+
+    /// Build a constructor that is lazily initialized.
+    /// Both the constructor and the prototype are lazily initialized.
+    ///
+    /// For example: Both the initiation of the `Array` and accessing its prototype will fire `init` once.
+    /// This means that the actual creation of the array and the retrieval of its
+    /// prototype are deferred until they are actually needed.
+    ///
+    /// ## Example
+    ///
+    /// ```javascript
+    /// // Lazy initiation of the Array
+    /// let array = new Array(10); // Creates an array with 10 empty slots
+    ///
+    /// // Lazy access to the prototype
+    /// let prototype = Object.getPrototypeOf(array);
+    ///
+    /// // Accessing an index in the array
+    /// array[0] = 42; // Sets the first element to 42
+    /// console.log(array[0]); // Logs 42
+    /// ```
+    fn lazy_array(init: fn(&Realm) -> (), realm_inner: &WeakGc<RealmInner>) -> Self {
+        let obj: JsObject<LazyBuiltIn> = JsObject::new_unique(
+            None,
+            LazyBuiltIn {
+                init_and_realm: Some((init, realm_inner.clone())),
+                kind: BuiltinKind::Function(NativeFunctionObject {
+                    f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+                    constructor: Some(ConstructorKind::Base),
+                    realm: None,
+                }),
+            },
+        );
+        let constructor = JsFunction::from_object_unchecked(obj.clone().upcast());
+
+        Self {
+            constructor: constructor.clone(),
+            prototype: JsObject::lazy_array_prototype(obj),
         }
     }
 
@@ -202,8 +246,8 @@ pub struct StandardConstructors {
     calendar: StandardConstructor,
 }
 
-impl Default for StandardConstructors {
-    fn default() -> Self {
+impl StandardConstructors {
+    fn new(realm_inner: &WeakGc<RealmInner>) -> Self {
         Self {
             object: StandardConstructor::with_prototype(JsObject::from_object_and_vtable(
                 Object::<OrdinaryObject>::default(),
@@ -218,7 +262,7 @@ impl Default for StandardConstructors {
             },
             async_function: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
-            array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, Array)),
+            array: StandardConstructor::lazy_array(Array::init, realm_inner),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(None, 0.0)),
             boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
