@@ -31,7 +31,7 @@ fn issue_2658() {
                     genTwo.next().then(v => { result2 = v; });
                 "#
         }),
-        TestAction::inspect_context(|ctx| ctx.run_jobs()),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert("!result1.done"),
         TestAction::assert_eq("result1.value", 5),
         TestAction::assert("!result2.done"),

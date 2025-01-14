@@ -13,8 +13,7 @@ fn promise() {
                     count += 1;
                 "#}),
         TestAction::assert_eq("count", 2),
-        #[allow(clippy::redundant_closure_for_method_calls)]
-        TestAction::inspect_context(|ctx| ctx.run_jobs()),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert_eq("count", 3),
     ]);
 }

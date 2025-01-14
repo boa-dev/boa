@@ -525,7 +525,7 @@ fn js_class_test() {
     let root_module = Module::parse(source, None, &mut context).unwrap();
 
     let promise_result = root_module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     // Checking if the final promise didn't return an error.
     assert!(

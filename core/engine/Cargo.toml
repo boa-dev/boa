@@ -75,6 +75,7 @@ boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
 boa_string.workspace = true
+cow-utils.workspace = true
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand.workspace = true

@@ -1,5 +1,6 @@
 //! The ECMAScript context.
 
+use std::cell::RefCell;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -13,11 +14,12 @@ use intrinsics::Intrinsics;
 #[cfg(feature = "temporal")]
 use temporal_rs::tzdb::FsTzdbProvider;
 
+use crate::job::Job;
 use crate::vm::RuntimeLimits;
 use crate::{
     builtins,
     class::{Class, ClassBuilder},
-    job::{JobQueue, NativeJob, SimpleJobQueue},
+    job::{JobExecutor, SimpleJobExecutor},
     js_string,
     module::{IdleModuleLoader, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
@@ -111,7 +113,7 @@ pub struct Context {
 
     host_hooks: &'static dyn HostHooks,
 
-    job_queue: Rc<dyn JobQueue>,
+    job_executor: Rc<dyn JobExecutor>,
 
     module_loader: Rc<dyn ModuleLoader>,
 
@@ -133,7 +135,7 @@ impl std::fmt::Debug for Context {
             .field("interner", &self.interner)
             .field("vm", &self.vm)
             .field("strict", &self.strict)
-            .field("promise_job_queue", &"JobQueue")
+            .field("job_executor", &"JobExecutor")
             .field("hooks", &"HostHooks")
             .field("module_loader", &"ModuleLoader")
             .field("optimizer_options", &self.optimizer_options);
@@ -186,7 +188,7 @@ impl Context {
     /// ```
     ///
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
-    /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
+    /// on the context or [`JobExecutor::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, dropping_copy_types)]
     pub fn eval<R: ReadChar>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
         let main_timer = Profiler::global().start_event("Script evaluation", "Main");
@@ -467,30 +469,35 @@ impl Context {
         self.strict = strict;
     }
 
-    /// Enqueues a [`NativeJob`] on the [`JobQueue`].
+    /// Enqueues a [`Job`] on the [`JobExecutor`].
     #[inline]
-    pub fn enqueue_job(&mut self, job: NativeJob) {
-        self.job_queue().enqueue_promise_job(job, self);
+    pub fn enqueue_job(&mut self, job: Job) {
+        self.job_executor().enqueue_job(job, self);
     }
 
-    /// Runs all the jobs in the job queue.
+    /// Runs all the jobs with the provided job executor.
     #[inline]
-    pub fn run_jobs(&mut self) {
-        self.job_queue().run_jobs(self);
+    pub fn run_jobs(&mut self) -> JsResult<()> {
+        let result = self.job_executor().run_jobs(self);
         self.clear_kept_objects();
+        result
     }
 
-    /// Asynchronously runs all the jobs in the job queue.
+    /// Asynchronously runs all the jobs with the provided job executor.
     ///
     /// # Note
     ///
     /// Concurrent job execution cannot be guaranteed by the engine, since this depends on the
-    /// specific handling of each [`JobQueue`]. If you want to execute jobs concurrently, you must
-    /// provide a custom implementor of `JobQueue` to the context.
+    /// specific handling of each [`JobExecutor`]. If you want to execute jobs concurrently, you must
+    /// provide a custom implementatin of `JobExecutor` to the context.
     #[allow(clippy::future_not_send)]
-    pub async fn run_jobs_async(&mut self) {
-        self.job_queue().run_jobs_async(self).await;
+    pub async fn run_jobs_async(&mut self) -> JsResult<()> {
+        let result = self
+            .job_executor()
+            .run_jobs_async(&RefCell::new(self))
+            .await;
         self.clear_kept_objects();
+        result
     }
 
     /// Abstract operation [`ClearKeptObjects`][clear].
@@ -546,11 +553,11 @@ impl Context {
         self.host_hooks
     }
 
-    /// Gets the job queue.
+    /// Gets the job executor.
     #[inline]
     #[must_use]
-    pub fn job_queue(&self) -> Rc<dyn JobQueue> {
-        self.job_queue.clone()
+    pub fn job_executor(&self) -> Rc<dyn JobExecutor> {
+        self.job_executor.clone()
     }
 
     /// Gets the module loader.
@@ -881,7 +888,7 @@ impl Context {
 pub struct ContextBuilder {
     interner: Option<Interner>,
     host_hooks: Option<&'static dyn HostHooks>,
-    job_queue: Option<Rc<dyn JobQueue>>,
+    job_executor: Option<Rc<dyn JobExecutor>>,
     module_loader: Option<Rc<dyn ModuleLoader>>,
     can_block: bool,
     #[cfg(feature = "intl")]
@@ -893,7 +900,7 @@ pub struct ContextBuilder {
 impl std::fmt::Debug for ContextBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         #[derive(Clone, Copy, Debug)]
-        struct JobQueue;
+        struct JobExecutor;
         #[derive(Clone, Copy, Debug)]
         struct HostHooks;
         #[derive(Clone, Copy, Debug)]
@@ -903,7 +910,10 @@ impl std::fmt::Debug for ContextBuilder {
 
         out.field("interner", &self.interner)
             .field("host_hooks", &self.host_hooks.as_ref().map(|_| HostHooks))
-            .field("job_queue", &self.job_queue.as_ref().map(|_| JobQueue))
+            .field(
+                "job_executor",
+                &self.job_executor.as_ref().map(|_| JobExecutor),
+            )
             .field(
                 "module_loader",
                 &self.module_loader.as_ref().map(|_| ModuleLoader),
@@ -1016,10 +1026,10 @@ impl ContextBuilder {
         self
     }
 
-    /// Initializes the [`JobQueue`] for the context.
+    /// Initializes the [`JobExecutor`] for the context.
     #[must_use]
-    pub fn job_queue<Q: JobQueue + 'static>(mut self, job_queue: Rc<Q>) -> Self {
-        self.job_queue = Some(job_queue);
+    pub fn job_executor<Q: JobExecutor + 'static>(mut self, job_executor: Rc<Q>) -> Self {
+        self.job_executor = Some(job_executor);
         self
     }
 
@@ -1090,9 +1100,9 @@ impl ContextBuilder {
             Rc::new(IdleModuleLoader)
         };
 
-        let job_queue = self
-            .job_queue
-            .unwrap_or_else(|| Rc::new(SimpleJobQueue::new()));
+        let job_executor = self
+            .job_executor
+            .unwrap_or_else(|| Rc::new(SimpleJobExecutor::new()));
 
         let mut context = Context {
             interner: self.interner.unwrap_or_default(),
@@ -1119,7 +1129,7 @@ impl ContextBuilder {
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
             host_hooks,
-            job_queue,
+            job_executor,
             module_loader,
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
             root_shape,
