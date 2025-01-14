@@ -42,7 +42,7 @@ Location  Count    Handler    Opcode                     Operands
 000016    0007      none      GetName                           0000: 'x'
 000018    0008      none      GetName                           0001: 'y'
 000020    0009      none      Add
-000021    0010      none      SetReturnValue
+000021    0010      none      SetAccumulatorFromStack
 000022    0011      none      CheckReturn
 000023    0012      none      Return
 000024    0013      none      CheckReturn

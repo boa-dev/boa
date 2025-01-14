@@ -4,19 +4,19 @@ use boa_ast::{
 };
 
 use crate::{
-    bytecompiler::{Access, ByteCompiler, ToJsString},
+    bytecompiler::{Access, ByteCompiler, Operand, Register, ToJsString},
     vm::Opcode,
 };
 
 impl ByteCompiler<'_> {
-    pub(crate) fn compile_unary(&mut self, unary: &Unary, use_expr: bool) {
+    pub(crate) fn compile_unary(&mut self, unary: &Unary, dst: &Register) {
         let opcode = match unary.op() {
             UnaryOp::Delete => {
                 if let Some(access) = Access::from_expression(unary.target()) {
-                    self.access_delete(access);
+                    self.access_delete(access, dst);
                 } else {
-                    self.compile_expr(unary.target(), false);
-                    self.emit(Opcode::PushTrue, &[]);
+                    self.compile_expr(unary.target(), dst);
+                    self.push_true(dst);
                 }
                 None
             }
@@ -30,23 +30,23 @@ impl ByteCompiler<'_> {
                         let identifier = identifier.to_js_string(self.interner());
                         let binding = self.lexical_scope.get_identifier_reference(identifier);
                         let index = self.get_or_insert_binding(binding);
-                        self.emit_binding_access(Opcode::GetNameOrUndefined, &index);
+                        self.emit_binding_access(Opcode::GetNameOrUndefined, &index, dst);
                     }
-                    expr => self.compile_expr(expr, true),
+                    expr => self.compile_expr(expr, dst),
                 }
-                self.emit_opcode(Opcode::TypeOf);
+                self.emit(Opcode::TypeOf, &[Operand::Register(dst)]);
                 None
             }
-            UnaryOp::Void => Some(Opcode::Void),
+            UnaryOp::Void => {
+                self.compile_expr(unary.target(), dst);
+                self.push_undefined(dst);
+                None
+            }
         };
 
         if let Some(opcode) = opcode {
-            self.compile_expr(unary.target(), true);
-            self.emit(opcode, &[]);
-        }
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
+            self.compile_expr(unary.target(), dst);
+            self.emit(opcode, &[Operand::Register(dst)]);
         }
     }
 }

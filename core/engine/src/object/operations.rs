@@ -13,6 +13,7 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
+    vm::Registers,
     Context, JsResult, JsSymbol, JsValue,
 };
 
@@ -405,11 +406,9 @@ impl JsObject {
 
         // 3. Return ? F.[[Call]](V, argumentsList).
         let frame_index = context.vm.frames.len();
-        let is_complete = self.__call__(argument_count).resolve(context)?;
-
-        if is_complete {
+        let Some(register_count) = self.__call__(argument_count).resolve(context)? else {
             return Ok(context.vm.pop());
-        }
+        };
 
         if frame_index + 1 == context.vm.frames.len() {
             context.vm.frame.set_exit_early(true);
@@ -417,7 +416,7 @@ impl JsObject {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }
 
-        let result = context.run().consume();
+        let result = context.run(&mut Registers::new(register_count)).consume();
 
         context.vm.pop_frame().expect("frame must exist");
 
@@ -455,15 +454,14 @@ impl JsObject {
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
         let frame_index = context.vm.frames.len();
-        let is_complete = self.__construct__(argument_count).resolve(context)?;
 
-        if is_complete {
+        let Some(register_count) = self.__construct__(argument_count).resolve(context)? else {
             let result = context.vm.pop();
             return Ok(result
                 .as_object()
                 .expect("construct value should be an object")
                 .clone());
-        }
+        };
 
         if frame_index + 1 == context.vm.frames.len() {
             context.vm.frame.set_exit_early(true);
@@ -471,7 +469,7 @@ impl JsObject {
             context.vm.frames[frame_index + 1].set_exit_early(true);
         }
 
-        let result = context.run().consume();
+        let result = context.run(&mut Registers::new(register_count)).consume();
 
         context.vm.pop_frame().expect("frame must exist");
 
