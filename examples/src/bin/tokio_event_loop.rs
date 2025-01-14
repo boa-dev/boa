@@ -22,14 +22,14 @@ use tokio::{task, time};
 
 // This example shows how to create an event loop using the tokio runtime.
 // The example contains two "flavors" of event loops:
-fn main() {
+fn main() -> JsResult<()> {
     // An internally async event loop. This event loop blocks the execution of the thread
     // while executing tasks, but internally uses async to run its tasks.
-    internally_async_event_loop();
+    internally_async_event_loop()?;
 
     // An externally async event loop. This event loop can yield to the runtime to concurrently
     // run tasks with it.
-    externally_async_event_loop();
+    externally_async_event_loop()
 }
 
 /// An event queue using tokio to drive futures to completion.
@@ -66,20 +66,20 @@ impl JobExecutor for Queue {
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
-    fn run_jobs(&self, context: &mut Context) {
+    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_time()
             .build()
             .unwrap();
 
-        task::LocalSet::default().block_on(&runtime, self.run_jobs_async(&RefCell::new(context)));
+        task::LocalSet::default().block_on(&runtime, self.run_jobs_async(&RefCell::new(context)))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
     fn run_jobs_async<'a, 'b, 'fut>(
         &'a self,
         context: &'b RefCell<&mut Context>,
-    ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
+    ) -> Pin<Box<dyn Future<Output = JsResult<()>> + 'fut>>
     where
         'a: 'fut,
         'b: 'fut,
@@ -87,7 +87,7 @@ impl JobExecutor for Queue {
         Box::pin(async move {
             // Early return in case there were no jobs scheduled.
             if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
-                return;
+                return Ok(());
             }
             let mut group = FutureGroup::new();
             loop {
@@ -98,7 +98,7 @@ impl JobExecutor for Queue {
                 if self.promise_jobs.borrow().is_empty() {
                     let Some(result) = group.next().await else {
                         // Both queues are empty. We can exit.
-                        return;
+                        return Ok(());
                     };
 
                     if let Err(err) = result {
@@ -238,7 +238,7 @@ const SCRIPT: &str = r"
 // This flavor is most recommended when you have an application that:
 //  - Needs to wait until the engine finishes executing; depends on the execution result to continue.
 //  - Delegates the execution of the application to the engine's event loop.
-fn internally_async_event_loop() {
+fn internally_async_event_loop() -> JsResult<()> {
     println!("====== Internally async event loop. ======");
 
     // Initialize the queue and the context
@@ -257,16 +257,18 @@ fn internally_async_event_loop() {
 
     // Important to run this after evaluating, since this is what triggers to run the enqueued jobs.
     println!("Running jobs...");
-    context.run_jobs();
+    context.run_jobs()?;
 
     println!("Total elapsed time: {:?}\n", now.elapsed());
+
+    Ok(())
 }
 
 // This flavor is most recommended when you have an application that:
 //  - Cannot afford to block until the engine finishes executing.
 //  - Needs to process IO requests between executions that will be consumed by the engine.
 #[tokio::main]
-async fn externally_async_event_loop() {
+async fn externally_async_event_loop() -> JsResult<()> {
     println!("====== Externally async event loop. ======");
     // Initialize the queue and the context
     let queue = Queue::new();
@@ -281,15 +283,19 @@ async fn externally_async_event_loop() {
     let now = Instant::now();
 
     // Example of an asynchronous workload that must be run alongside the engine.
-    let counter = tokio::spawn(async {
-        let mut interval = time::interval(Duration::from_millis(100));
-        println!("Starting tokio interval job...");
-        for i in 0..10 {
-            interval.tick().await;
-            println!("Executed interval tick {i}");
-        }
-        println!("Finished tokio interval job...")
-    });
+    let counter = async {
+        tokio::spawn(async {
+            let mut interval = time::interval(Duration::from_millis(100));
+            println!("Starting tokio interval job...");
+            for i in 0..10 {
+                interval.tick().await;
+                println!("Executed interval tick {i}");
+            }
+            println!("Finished tokio interval job...")
+        })
+        .await
+        .map_err(|err| JsNativeError::typ().with_message(err.to_string()).into())
+    };
 
     let local_set = &mut task::LocalSet::default();
     let engine = local_set.run_until(async {
@@ -302,11 +308,12 @@ async fn externally_async_event_loop() {
 
         // Run the jobs asynchronously, which avoids blocking the main thread.
         println!("Running jobs...");
-        context.run_jobs_async().await;
-        Ok(())
+        context.run_jobs_async().await
     });
 
-    tokio::try_join!(counter, engine).unwrap();
+    tokio::try_join!(counter, engine)?;
 
     println!("Total elapsed time: {:?}\n", now.elapsed());
+
+    Ok(())
 }

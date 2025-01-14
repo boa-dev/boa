@@ -124,7 +124,7 @@ fn main() -> JsResult<()> {
 
     // Important to call `Context::run_jobs`, or else all the futures and promises won't be
     // pushed forward by the job queue.
-    context.run_jobs();
+    context.run_jobs()?;
 
     match promise.state() {
         // Our job queue guarantees that all promises and futures are finished after returning
@@ -204,15 +204,15 @@ impl JobExecutor for Queue {
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
-    fn run_jobs(&self, context: &mut Context) {
-        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))));
+    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
+        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
     fn run_jobs_async<'a, 'b, 'fut>(
         &'a self,
         context: &'b RefCell<&mut Context>,
-    ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
+    ) -> Pin<Box<dyn Future<Output = JsResult<()>> + 'fut>>
     where
         'a: 'fut,
         'b: 'fut,
@@ -220,7 +220,7 @@ impl JobExecutor for Queue {
         Box::pin(async move {
             // Early return in case there were no jobs scheduled.
             if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
-                return;
+                return Ok(());
             }
             let mut group = FutureGroup::new();
             loop {
@@ -231,7 +231,7 @@ impl JobExecutor for Queue {
                 if self.promise_jobs.borrow().is_empty() {
                     let Some(result) = group.next().await else {
                         // Both queues are empty. We can exit.
-                        return;
+                        return Ok(());
                     };
 
                     if let Err(err) = result {

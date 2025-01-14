@@ -1143,14 +1143,14 @@ impl JsPromise {
     /// // Uncommenting the following line would panic.
     /// // context.run_jobs();
     /// ```
-    pub fn await_blocking(&self, context: &mut Context) -> Result<JsValue, JsValue> {
+    pub fn await_blocking(&self, context: &mut Context) -> Result<JsValue, JsError> {
         loop {
             match self.state() {
                 PromiseState::Pending => {
-                    context.run_jobs();
+                    context.run_jobs()?;
                 }
                 PromiseState::Fulfilled(f) => break Ok(f),
-                PromiseState::Rejected(r) => break Err(r),
+                PromiseState::Rejected(r) => break Err(JsError::from_opaque(r)),
             }
         }
     }

@@ -477,9 +477,10 @@ impl Context {
 
     /// Runs all the jobs with the provided job executor.
     #[inline]
-    pub fn run_jobs(&mut self) {
-        self.job_executor().run_jobs(self);
+    pub fn run_jobs(&mut self) -> JsResult<()> {
+        let result = self.job_executor().run_jobs(self);
         self.clear_kept_objects();
+        result
     }
 
     /// Asynchronously runs all the jobs with the provided job executor.
@@ -490,11 +491,13 @@ impl Context {
     /// specific handling of each [`JobExecutor`]. If you want to execute jobs concurrently, you must
     /// provide a custom implementatin of `JobExecutor` to the context.
     #[allow(clippy::future_not_send)]
-    pub async fn run_jobs_async(&mut self) {
-        self.job_executor()
+    pub async fn run_jobs_async(&mut self) -> JsResult<()> {
+        let result = self
+            .job_executor()
             .run_jobs_async(&RefCell::new(self))
             .await;
         self.clear_kept_objects();
+        result
     }
 
     /// Abstract operation [`ClearKeptObjects`][clear].

@@ -386,7 +386,7 @@ pub trait JobExecutor {
     fn enqueue_job(&self, job: Job, context: &mut Context);
 
     /// Runs all jobs in the executor.
-    fn run_jobs(&self, context: &mut Context);
+    fn run_jobs(&self, context: &mut Context) -> JsResult<()>;
 
     /// Asynchronously runs all jobs in the executor.
     ///
@@ -395,7 +395,7 @@ pub trait JobExecutor {
     fn run_jobs_async<'a, 'b, 'fut>(
         &'a self,
         context: &'b RefCell<&mut Context>,
-    ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
+    ) -> Pin<Box<dyn Future<Output = JsResult<()>> + 'fut>>
     where
         'a: 'fut,
         'b: 'fut,
@@ -427,7 +427,9 @@ pub struct IdleJobExecutor;
 impl JobExecutor for IdleJobExecutor {
     fn enqueue_job(&self, _: Job, _: &mut Context) {}
 
-    fn run_jobs(&self, _: &mut Context) {}
+    fn run_jobs(&self, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
 }
 
 /// A simple FIFO executor that bails on the first error.
@@ -438,7 +440,7 @@ impl JobExecutor for IdleJobExecutor {
 /// To disable running promise jobs on the engine, see [`IdleJobExecutor`].
 #[derive(Default)]
 pub struct SimpleJobExecutor {
-    jobs: RefCell<VecDeque<PromiseJob>>,
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
 }
 
@@ -459,36 +461,38 @@ impl SimpleJobExecutor {
 impl JobExecutor for SimpleJobExecutor {
     fn enqueue_job(&self, job: Job, _: &mut Context) {
         match job {
-            Job::PromiseJob(p) => self.jobs.borrow_mut().push_back(p),
+            Job::PromiseJob(p) => self.promise_jobs.borrow_mut().push_back(p),
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
         }
     }
 
-    fn run_jobs(&self, context: &mut Context) {
+    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
         let context = RefCell::new(context);
         loop {
             let mut next_job = self.async_jobs.borrow_mut().pop_front();
             while let Some(job) = next_job {
-                if pollster::block_on(job.call(&context)).is_err() {
+                if let Err(err) = pollster::block_on(job.call(&context)) {
                     self.async_jobs.borrow_mut().clear();
-                    return;
+                    self.promise_jobs.borrow_mut().clear();
+                    return Err(err);
                 };
                 next_job = self.async_jobs.borrow_mut().pop_front();
             }
 
             // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
             // dropped after calling `pop_front`.
-            let mut next_job = self.jobs.borrow_mut().pop_front();
+            let mut next_job = self.promise_jobs.borrow_mut().pop_front();
             while let Some(job) = next_job {
-                if job.call(&mut context.borrow_mut()).is_err() {
-                    self.jobs.borrow_mut().clear();
-                    return;
+                if let Err(err) = job.call(&mut context.borrow_mut()) {
+                    self.async_jobs.borrow_mut().clear();
+                    self.promise_jobs.borrow_mut().clear();
+                    return Err(err);
                 };
-                next_job = self.jobs.borrow_mut().pop_front();
+                next_job = self.promise_jobs.borrow_mut().pop_front();
             }
 
-            if self.async_jobs.borrow().is_empty() && self.jobs.borrow().is_empty() {
-                return;
+            if self.async_jobs.borrow().is_empty() && self.promise_jobs.borrow().is_empty() {
+                return Ok(());
             }
         }
     }

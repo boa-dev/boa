@@ -18,7 +18,7 @@ use boa_engine::{
     optimizer::OptimizerOptions,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context, JsError, Source,
+    Context, JsError, JsResult, Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
@@ -292,7 +292,7 @@ fn evaluate_file(
         );
 
         let promise = module.load_link_evaluate(context);
-        context.run_jobs();
+        context.run_jobs().map_err(|err| err.into_erased(context))?;
         let result = promise.state();
 
         return match result {
@@ -308,9 +308,9 @@ fn evaluate_file(
         Ok(v) => println!("{}", v.display()),
         Err(v) => eprintln!("Uncaught {v}"),
     }
-    context.run_jobs();
-
-    Ok(())
+    context
+        .run_jobs()
+        .map_err(|err| err.into_erased(context).into())
 }
 
 fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) {
@@ -425,7 +425,9 @@ fn main() -> Result<()> {
                             eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
                         }
                     }
-                    context.run_jobs();
+                    if let Err(err) = context.run_jobs() {
+                        eprintln!("{err}");
+                    };
                 }
             }
 
@@ -467,10 +469,10 @@ impl JobExecutor for Executor {
         }
     }
 
-    fn run_jobs(&self, context: &mut Context) {
+    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
         loop {
             if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
-                return;
+                return Ok(());
             }
 
             let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
