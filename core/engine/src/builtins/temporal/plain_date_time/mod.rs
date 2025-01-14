@@ -24,7 +24,10 @@ use boa_profiler::Profiler;
 mod tests;
 
 use temporal_rs::{
-    options::{ArithmeticOverflow, RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+    options::{
+        ArithmeticOverflow, DisplayCalendar, RoundingIncrement, RoundingOptions,
+        TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
+    },
     partial::PartialDateTime,
     PlainDateTime as InnerDateTime, PlainTime,
 };
@@ -32,7 +35,7 @@ use temporal_rs::{
 use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_duration,
-    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
+    options::{get_difference_settings, get_digits_option, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
 };
 use crate::value::JsVariant;
@@ -279,6 +282,8 @@ impl IntrinsicObject for PlainDateTime {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
@@ -931,6 +936,50 @@ impl PlainDateTime {
         // 5. If result is not 0, return false.
         // 6. Return ? CalendarEquals(dateTime.[[Calendar]], other.[[Calendar]]).
         Ok((dt.inner == other).into())
+    }
+
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let options = get_options_object(args.get_or_undefined(0))?;
+
+        let show_calendar =
+            get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(DisplayCalendar::Auto);
+        let precision = get_digits_option(&options, context)?;
+        let rounding_mode =
+            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit =
+            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+
+        let ixdtf = dt.inner.to_ixdtf_string(
+            ToStringRoundingOptions {
+                precision,
+                smallest_unit,
+                rounding_mode,
+            },
+            show_calendar,
+        )?;
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    fn to_json(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let ixdtf = dt
+            .inner
+            .to_ixdtf_string(ToStringRoundingOptions::default(), DisplayCalendar::Auto)?;
+        Ok(JsString::from(ixdtf).into())
     }
 
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {

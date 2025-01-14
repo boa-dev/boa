@@ -5,7 +5,7 @@ use super::{
     options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration_record, PlainDateTime, ZonedDateTime,
 };
-use crate::value::JsVariant;
+use crate::{builtins::temporal::options::get_digits_option, value::JsVariant};
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -23,7 +23,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{ArithmeticOverflow, TemporalRoundingMode},
+    options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions},
     partial::PartialTime,
     PlainTime as PlainTimeInner,
 };
@@ -118,7 +118,8 @@ impl IntrinsicObject for PlainTime {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
-            .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
@@ -530,58 +531,50 @@ impl PlainTime {
         Ok((time.inner == other).into())
     }
 
-    /// 4.3.18 Temporal.PlainTime.prototype.getISOFields ( )
-    fn get_iso_fields(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let temporalTime be the this value.
-        // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
+    /// 4.3.16 `Temporal.PlainTime.prototype.toString ( [ options ] )`
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let time = this
             .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
 
-        // 3. Let fields be OrdinaryObjectCreate(%Object.prototype%).
-        let fields = JsObject::with_object_proto(context.intrinsics());
+        let options = get_options_object(args.get_or_undefined(0))?;
 
-        // 4. Perform ! CreateDataPropertyOrThrow(fields, "isoHour", 𝔽(temporalTime.[[ISOHour]])).
-        fields.create_data_property_or_throw(js_string!("isoHour"), time.inner.hour(), context)?;
-        // 5. Perform ! CreateDataPropertyOrThrow(fields, "isoMicrosecond", 𝔽(temporalTime.[[ISOMicrosecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoMicrosecond"),
-            time.inner.microsecond(),
-            context,
-        )?;
-        // 6. Perform ! CreateDataPropertyOrThrow(fields, "isoMillisecond", 𝔽(temporalTime.[[ISOMillisecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoMillisecond"),
-            time.inner.millisecond(),
-            context,
-        )?;
-        // 7. Perform ! CreateDataPropertyOrThrow(fields, "isoMinute", 𝔽(temporalTime.[[ISOMinute]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoMinute"),
-            time.inner.minute(),
-            context,
-        )?;
-        // 8. Perform ! CreateDataPropertyOrThrow(fields, "isoNanosecond", 𝔽(temporalTime.[[ISONanosecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoNanosecond"),
-            time.inner.nanosecond(),
-            context,
-        )?;
-        // 9. Perform ! CreateDataPropertyOrThrow(fields, "isoSecond", 𝔽(temporalTime.[[ISOSecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoSecond"),
-            time.inner.second(),
-            context,
-        )?;
+        let precision = get_digits_option(&options, context)?;
+        let rounding_mode =
+            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit =
+            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
 
-        // 10. Return fields.
-        Ok(fields.into())
+        let options = ToStringRoundingOptions {
+            precision,
+            rounding_mode,
+            smallest_unit,
+        };
+
+        let ixdtf = time.inner.to_ixdtf_string(options)?;
+
+        Ok(JsString::from(ixdtf).into())
     }
 
-    /// 4.3.22 Temporal.PlainTime.prototype.valueOf ( )
+    /// 4.3.18 `Temporal.PlainTime.prototype.toJSON ( )`
+    fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let ixdtf = time
+            .inner
+            .to_ixdtf_string(ToStringRoundingOptions::default())?;
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 4.3.19 Temporal.PlainTime.prototype.valueOf ( )
     fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
         Err(JsNativeError::typ()
