@@ -115,8 +115,7 @@ where
                 Ok(ast::Expression::This)
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
-                cursor.advance(interner);
-                let next_token = cursor.peek(0, interner).or_abrupt()?;
+                let next_token = cursor.peek(1, interner).or_abrupt()?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new()
                         .parse(cursor, interner)
@@ -152,8 +151,7 @@ where
                     Some(TokenKind::Keyword((Keyword::Function, _)))
                         if !is_line_terminator && !contain_escaped_char =>
                     {
-                        cursor.advance(interner);
-                        match cursor.peek(1, interner)?.map(Token::kind) {
+                        match cursor.peek(2, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
                                 AsyncGeneratorExpression::new()
                                     .parse(cursor, interner)
@@ -249,9 +247,9 @@ where
             TokenKind::Punctuator(div @ (Punctuator::Div | Punctuator::AssignDiv)) => {
                 let init_with_eq = div == &Punctuator::AssignDiv;
 
-                let position = tok.span().start();
+                let start_pos_group = tok.start_group();
                 cursor.advance(interner);
-                let tok = cursor.lex_regex(position, interner, init_with_eq)?;
+                let tok = cursor.lex_regex(start_pos_group, interner, init_with_eq)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
                     Ok(AstRegExp::new(body, flags).into())
@@ -274,7 +272,7 @@ where
                 let parser = TemplateLiteral::new(
                     self.allow_yield,
                     self.allow_await,
-                    tok.span().start(),
+                    tok.start_group(),
                     cooked,
                 );
                 cursor.advance(interner);

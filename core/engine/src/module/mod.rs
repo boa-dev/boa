@@ -42,6 +42,7 @@ use source::SourceTextModule;
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 use crate::object::TypedJsFunction;
+use crate::spanned_source_text::SourceText;
 use crate::{
     builtins,
     builtins::promise::{PromiseCapability, PromiseState},
@@ -166,9 +167,11 @@ impl Module {
 
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
-        let module = parser.parse_module(realm.scope(), context.interner_mut())?;
+        let (module, source) =
+            parser.parse_module_with_source(realm.scope(), context.interner_mut())?;
 
-        let src = SourceTextModule::new(module, context.interner());
+        let source_text = SourceText::new(source);
+        let src = SourceTextModule::new(module, context.interner(), source_text);
 
         Ok(Self {
             inner: Gc::new(ModuleRepr {

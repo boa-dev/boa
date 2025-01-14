@@ -4,7 +4,7 @@ use crate::lexer::{
     token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
 };
 use crate::source::ReadChar;
-use boa_ast::{Position, Span};
+use boa_ast::PositionGroup;
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -56,7 +56,7 @@ impl<R> Tokenizer<R> for Identifier {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -84,14 +84,18 @@ impl<R> Tokenizer<R> for Identifier {
             )),
         };
 
-        Ok(Token::new(token_kind, Span::new(start_pos, cursor.pos())))
+        Ok(Token::new_by_position_group(
+            token_kind,
+            start_pos,
+            cursor.pos_group(),
+        ))
     }
 }
 
 impl Identifier {
     pub(super) fn take_identifier_name<R>(
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         init: char,
     ) -> Result<(String, bool), Error>
     where
@@ -101,7 +105,7 @@ impl Identifier {
 
         let mut contains_escaped_chars = false;
         let mut identifier_name = if init == '\\' && cursor.next_if(0x75 /* u */)? {
-            let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos)?;
+            let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos.position())?;
 
             if Self::is_identifier_start(ch) {
                 contains_escaped_chars = true;
@@ -110,7 +114,7 @@ impl Identifier {
                         .expect("all identifier starts must be convertible to strings"),
                 )
             } else {
-                return Err(Error::Syntax("invalid identifier start".into(), start_pos));
+                return Err(Error::syntax("invalid identifier start", start_pos));
             }
         } else {
             // The caller guarantees that `init` is a valid identifier start

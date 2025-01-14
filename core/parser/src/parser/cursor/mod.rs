@@ -7,7 +7,7 @@ use crate::{
     source::ReadChar,
     Error,
 };
-use boa_ast::{Position, Punctuator};
+use boa_ast::{LinearPosition, PositionGroup, Punctuator};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
 
@@ -72,7 +72,7 @@ where
     /// If `init_with_eq` is `true`, then assuming that the starting '/=' has already been consumed.
     pub(super) fn lex_regex(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
         init_with_eq: bool,
     ) -> ParseResult<Token> {
@@ -81,7 +81,7 @@ where
 
     pub(super) fn lex_template(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> ParseResult<Token> {
         self.buffered_lexer.lex_template(start, interner)
@@ -303,5 +303,15 @@ where
         } else {
             None
         })
+    }
+
+    /// Gets current linear position in the source code.
+    #[inline]
+    pub(super) fn linear_pos(&self) -> LinearPosition {
+        self.buffered_lexer.linear_pos()
+    }
+
+    pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
+        self.buffered_lexer.take_source()
     }
 }

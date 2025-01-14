@@ -8,7 +8,7 @@ use crate::{
         OrdinaryObject,
     },
     object::JsObject,
-    Context, JsBigInt, JsString, JsValue,
+    Context, JsBigInt, JsString, JsValue, SpannedSourceText,
 };
 use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
@@ -166,6 +166,9 @@ pub struct CodeBlock {
 
     /// inline caching
     pub(crate) ic: Box<[InlineCache]>,
+
+    /// source text of the code block
+    pub(crate) source_text_spanned: SpannedSourceText,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -189,6 +192,7 @@ impl CodeBlock {
             parameter_length: 0,
             handlers: ThinVec::default(),
             ic: Box::default(),
+            source_text_spanned: SpannedSourceText::new_empty(),
         }
     }
 

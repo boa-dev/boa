@@ -53,6 +53,12 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncGeneratorExpression", "Parsing");
+        let token = cursor.expect(
+            (Keyword::Async, false),
+            "async function expression",
+            interner,
+        )?;
+        let start_linear_span = token.linear_span();
 
         cursor.peek_expect_no_lineterminator(0, "async generator expression", interner)?;
         cursor.expect(
@@ -176,7 +182,9 @@ where
             interner,
         )?;
 
-        let function = AsyncGeneratorExpressionNode::new(name, params, body, name.is_some());
+        let span = start_linear_span.union(body.linear_pos_end());
+
+        let function = AsyncGeneratorExpressionNode::new(name, params, body, span, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

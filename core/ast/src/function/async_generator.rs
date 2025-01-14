@@ -7,6 +7,7 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes, Declaration,
 };
+use crate::{LinearSpan, LinearSpanIgnoreEq};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -31,13 +32,19 @@ pub struct AsyncGeneratorDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl AsyncGeneratorDeclaration {
     /// Creates a new async generator declaration.
     #[inline]
     #[must_use]
-    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+    pub fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
@@ -46,6 +53,7 @@ impl AsyncGeneratorDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -75,6 +83,13 @@ impl AsyncGeneratorDeclaration {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
     }
 
     /// Returns `true` if the async generator declaration contains a direct call to `eval`.
@@ -146,6 +161,7 @@ pub struct AsyncGeneratorExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl AsyncGeneratorExpression {
@@ -156,6 +172,7 @@ impl AsyncGeneratorExpression {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
         has_binding_identifier: bool,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -168,6 +185,7 @@ impl AsyncGeneratorExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -211,6 +229,13 @@ impl AsyncGeneratorExpression {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
     }
 
     /// Returns `true` if the async generator expression contains a direct call to `eval`.

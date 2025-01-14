@@ -4,7 +4,7 @@ use crate::{
     source::{ReadChar, UTF8Input},
     Error,
 };
-use boa_ast::Position;
+use boa_ast::{LinearPosition, PositionGroup};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -30,6 +30,7 @@ pub(super) struct BufferedLexer<R> {
     peeked: [Option<Token>; PEEK_BUF_SIZE],
     read_index: usize,
     write_index: usize,
+    last_linear_pos: LinearPosition,
 }
 
 impl<R> From<Lexer<R>> for BufferedLexer<R>
@@ -52,6 +53,7 @@ where
             ],
             read_index: 0,
             write_index: 0,
+            last_linear_pos: LinearPosition::default(),
         }
     }
 }
@@ -85,7 +87,7 @@ where
     /// If `init_with_eq` is `true`, then assuming that the starting '/=' has already been consumed.
     pub(super) fn lex_regex(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
         init_with_eq: bool,
     ) -> ParseResult<Token> {
@@ -100,7 +102,7 @@ where
     /// '}' has already been consumed.
     pub(super) fn lex_template(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> ParseResult<Token> {
         self.lexer
@@ -202,6 +204,10 @@ where
             let tok = self.peeked[self.read_index].take();
             self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
 
+            if let Some(tok) = &tok {
+                self.last_linear_pos = tok.linear_span().end();
+            }
+
             Ok(tok)
         } else {
             // We do not update the read index, since we should always return `None` from now on.
@@ -264,5 +270,15 @@ where
         };
 
         Ok(res_token)
+    }
+
+    /// Gets current linear position in the source code.
+    #[inline]
+    pub(super) fn linear_pos(&self) -> LinearPosition {
+        self.last_linear_pos
+    }
+
+    pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
+        self.lexer.take_source()
     }
 }

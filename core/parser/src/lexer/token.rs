@@ -7,7 +7,7 @@
 
 use crate::lexer::template::TemplateString;
 use bitflags::bitflags;
-use boa_ast::{Keyword, Punctuator, Span};
+use boa_ast::{Keyword, LinearSpan, PositionGroup, Punctuator, Span};
 use boa_interner::{Interner, Sym};
 use num_bigint::BigInt;
 
@@ -23,14 +23,35 @@ pub struct Token {
     kind: TokenKind,
     /// The token position in the original source code.
     span: Span,
+    /// The token linear position in the original source code.
+    linear_span: LinearSpan,
 }
 
 impl Token {
+    /// Create a new detailed token from the token data, line number, column number, and linear position
+    #[inline]
+    #[must_use]
+    pub const fn new(kind: TokenKind, span: Span, linear_span: LinearSpan) -> Self {
+        Self {
+            kind,
+            span,
+            linear_span,
+        }
+    }
+
     /// Create a new detailed token from the token data, line number and column number
     #[inline]
     #[must_use]
-    pub const fn new(kind: TokenKind, span: Span) -> Self {
-        Self { kind, span }
+    pub fn new_by_position_group(
+        kind: TokenKind,
+        start: PositionGroup,
+        end: PositionGroup,
+    ) -> Self {
+        Self::new(
+            kind,
+            Span::new(start.position(), end.position()),
+            LinearSpan::new(start.linear_position(), end.linear_position()),
+        )
     }
 
     /// Gets the kind of the token.
@@ -45,6 +66,20 @@ impl Token {
     #[must_use]
     pub const fn span(&self) -> Span {
         self.span
+    }
+
+    /// Gets the starting position group of the token.
+    #[inline]
+    #[must_use]
+    pub const fn start_group(&self) -> PositionGroup {
+        PositionGroup::new(self.span.start(), self.linear_span.start())
+    }
+
+    /// Gets the token span in the original source code.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span
     }
 
     /// Converts the token to a `String`.

@@ -202,6 +202,8 @@ where
         );
 
         let token = cursor.peek(0, interner).or_abrupt()?;
+        let start_linear_pos = token.linear_span().start();
+
         match token.kind() {
             TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
                 return Err(Error::general(
@@ -243,6 +245,7 @@ where
                             params,
                             body,
                             MethodDefinitionKind::AsyncGenerator,
+                            start_linear_pos,
                         ),
                     ));
                 }
@@ -270,6 +273,7 @@ where
                         params,
                         body,
                         MethodDefinitionKind::Async,
+                        start_linear_pos,
                     ),
                 ));
             }
@@ -277,6 +281,7 @@ where
         }
 
         let token = cursor.peek(0, interner).or_abrupt()?;
+        let start_linear_pos = token.linear_span().start();
 
         if token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
             let position = cursor.peek(0, interner).or_abrupt()?.span().start();
@@ -304,6 +309,7 @@ where
                     params,
                     body,
                     MethodDefinitionKind::Generator,
+                    start_linear_pos,
                 ),
             ));
         }
@@ -387,6 +393,7 @@ where
                         FormalParameterList::default(),
                         body,
                         MethodDefinitionKind::Get,
+                        start_linear_pos,
                     ),
                 ))
             }
@@ -474,6 +481,7 @@ where
                         params,
                         body,
                         MethodDefinitionKind::Set,
+                        start_linear_pos,
                     ),
                 ))
             }
@@ -547,6 +555,7 @@ where
                         params,
                         body,
                         MethodDefinitionKind::Ordinary,
+                        start_linear_pos,
                     ),
                 ))
             }
