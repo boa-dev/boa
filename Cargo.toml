@@ -47,8 +47,8 @@ boa_string = { version = "~0.20.0", path = "core/string" }
 
 # Shared deps
 arbitrary = "1"
-bitflags = "2.5.0"
-clap = "4.5.23"
+bitflags = "2.7.0"
+clap = "4.5.26"
 colored = "2.2.0"
 cow-utils = "0.1.3"
 fast-float2 = "0.2.3"
@@ -63,7 +63,7 @@ once_cell = { version = "1.20.2", default-features = false }
 phf = { version = "0.11.2", default-features = false }
 pollster = "0.4.0"
 regex = "1.11.1"
-regress = { version = "0.10.1", features = ["utf16"] }
+regress = { version = "0.10.2", features = ["utf16"] }
 rustc-hash = { version = "2.1.0", default-features = false }
 serde_json = "1.0.134"
 serde = "1.0.217"
@@ -91,7 +91,7 @@ isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.38"
-syn = { version = "2.0.95", default-features = false }
+syn = { version = "2.0.96", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.0"
@@ -102,7 +102,7 @@ rand = "0.8.5"
 num-integer = "0.1.46"
 ryu-js = "1.0.1"
 tap = "1.0.1"
-thiserror = { version = "2.0.9", default-features = false }
+thiserror = { version = "2.0.11", default-features = false }
 dashmap = "6.1.0"
 num_enum = "0.7.3"
 itertools = { version = "0.13.0", default-features = false }
@@ -117,10 +117,10 @@ temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "436b07d9
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.10.0"
-futures-lite = "2.5.0"
+futures-lite = "2.6.0"
 test-case = "3.3.1"
 url = "2.5.4"
-tokio = { version = "1.42.0", default-features = false }
+tokio = { version = "1.43.0", default-features = false }
 futures-concurrency = "7.6.2"
 
 
