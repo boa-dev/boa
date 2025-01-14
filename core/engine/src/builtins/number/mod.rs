@@ -26,6 +26,7 @@ use crate::{
     Context, JsArgs, JsResult, JsString,
 };
 use boa_profiler::Profiler;
+use cow_utils::CowUtils;
 use num_traits::float::FloatCore;
 
 mod globals;
@@ -916,7 +917,7 @@ impl Number {
 /// Helper function that formats a float as a ES6-style exponential number string.
 fn f64_to_exponential(n: f64) -> JsString {
     js_string!(match n.abs() {
-        x if x >= 1.0 || x == 0.0 => format!("{n:e}").replace('e', "e+"),
+        x if x >= 1.0 || x == 0.0 => format!("{n:e}").cow_replace('e', "e+").to_string(),
         _ => format!("{n:e}"),
     })
 }
