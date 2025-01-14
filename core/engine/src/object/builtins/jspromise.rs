@@ -8,7 +8,7 @@ use crate::{
         promise::{PromiseState, ResolvingFunctions},
         Promise,
     },
-    job::NativeJob,
+    job::NativeAsyncJob,
     object::JsObject,
     value::TryFromJs,
     Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
@@ -292,21 +292,23 @@ impl JsPromise {
     {
         let (promise, resolvers) = Self::new_pending(context);
 
-        let future = async move {
-            let result = future.await;
+        context.enqueue_job(
+            NativeAsyncJob::new(move |context| {
+                Box::pin(async move {
+                    let result = future.await;
 
-            NativeJob::new(move |context| match result {
-                Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
-                Err(e) => {
-                    let e = e.to_opaque(context);
-                    resolvers.reject.call(&JsValue::undefined(), &[e], context)
-                }
+                    let context = &mut context.borrow_mut();
+                    match result {
+                        Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
+                        Err(e) => {
+                            let e = e.to_opaque(context);
+                            resolvers.reject.call(&JsValue::undefined(), &[e], context)
+                        }
+                    }
+                })
             })
-        };
-
-        context
-            .job_queue()
-            .enqueue_future_job(Box::pin(future), context);
+            .into(),
+        );
 
         promise
     }
@@ -1083,7 +1085,7 @@ impl JsPromise {
 
     /// Run jobs until this promise is resolved or rejected. This could
     /// result in an infinite loop if the promise is never resolved or
-    /// rejected (e.g. with a [`boa_engine::job::JobQueue`] that does
+    /// rejected (e.g. with a [`boa_engine::job::JobExecutor`] that does
     /// not prioritize properly). If you need more control over how
     /// the promise handles timing out, consider using
     /// [`Context::run_jobs`] directly.
@@ -1141,14 +1143,14 @@ impl JsPromise {
     /// // Uncommenting the following line would panic.
     /// // context.run_jobs();
     /// ```
-    pub fn await_blocking(&self, context: &mut Context) -> Result<JsValue, JsValue> {
+    pub fn await_blocking(&self, context: &mut Context) -> Result<JsValue, JsError> {
         loop {
             match self.state() {
                 PromiseState::Pending => {
-                    context.run_jobs();
+                    context.run_jobs()?;
                 }
                 PromiseState::Fulfilled(f) => break Ok(f),
-                PromiseState::Rejected(r) => break Err(r),
+                PromiseState::Rejected(r) => break Err(JsError::from_opaque(r)),
             }
         }
     }

@@ -41,7 +41,7 @@ fn test_json_module_from_str() {
 
     let module = Module::parse(source, None, &mut context).unwrap();
     let promise = module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     match promise.state() {
         PromiseState::Pending => {}
