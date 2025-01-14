@@ -1154,6 +1154,139 @@ impl JsPromise {
             }
         }
     }
+
+    #[cfg(feature = "experimental")]
+    pub(crate) fn await_native(
+        &self,
+        continuation: crate::native_function::NativeCoroutine,
+        context: &mut Context,
+    ) {
+        use crate::{
+            builtins::{async_generator::AsyncGenerator, generator::GeneratorContext},
+            js_string,
+            object::FunctionObjectBuilder,
+        };
+        use std::cell::Cell;
+
+        let mut frame = context.vm.frame().clone();
+        frame.environments = context.vm.environments.clone();
+        frame.realm = context.realm().clone();
+
+        let gen_ctx = GeneratorContext {
+            call_frame: Some(frame),
+            stack: context.vm.stack.clone(),
+        };
+
+        // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
+        // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
+        let on_fulfilled = FunctionObjectBuilder::new(
+            context.realm(),
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    // a. Let prevContext be the running execution context.
+                    // b. Suspend prevContext.
+                    // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
+                    // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
+                    let continuation = &captures.0;
+                    let mut gen = captures.1.take().expect("should only run once");
+
+                    // NOTE: We need to get the object before resuming, since it could clear the stack.
+                    let async_generator = gen.async_generator_object();
+
+                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
+                    let frame = gen.call_frame.take().expect("should have a call frame");
+                    context.vm.push_frame(frame);
+
+                    if let crate::native_function::CoroutineState::Yielded(value) =
+                        continuation.call(Ok(args.get_or_undefined(0).clone()), context)
+                    {
+                        JsPromise::resolve(value, context)
+                            .await_native(continuation.clone(), context);
+                    }
+
+                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
+                    gen.call_frame = context.vm.pop_frame();
+                    assert!(gen.call_frame.is_some());
+
+                    if let Some(async_generator) = async_generator {
+                        async_generator
+                            .downcast_mut::<AsyncGenerator>()
+                            .expect("must be async generator")
+                            .context = Some(gen);
+                    }
+
+                    // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
+                    // f. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                (continuation.clone(), Cell::new(Some(gen_ctx.clone()))),
+            ),
+        )
+        .name(js_string!())
+        .length(1)
+        .build();
+
+        // 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
+        // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
+        let on_rejected = FunctionObjectBuilder::new(
+            context.realm(),
+            NativeFunction::from_copy_closure_with_captures(
+                |_this, args, captures, context| {
+                    // a. Let prevContext be the running execution context.
+                    // b. Suspend prevContext.
+                    // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
+                    // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
+                    // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
+                    // f. Return undefined.
+                    let continuation = &captures.0;
+                    let mut gen = captures.1.take().expect("should only run once");
+
+                    // NOTE: We need to get the object before resuming, since it could clear the stack.
+                    let async_generator = gen.async_generator_object();
+
+                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
+                    let frame = gen.call_frame.take().expect("should have a call frame");
+                    context.vm.push_frame(frame);
+
+                    if let crate::native_function::CoroutineState::Yielded(value) = continuation
+                        .call(
+                            Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
+                            context,
+                        )
+                    {
+                        JsPromise::resolve(value, context)
+                            .await_native(continuation.clone(), context);
+                    }
+
+                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
+                    gen.call_frame = context.vm.pop_frame();
+                    assert!(gen.call_frame.is_some());
+
+                    if let Some(async_generator) = async_generator {
+                        async_generator
+                            .downcast_mut::<AsyncGenerator>()
+                            .expect("must be async generator")
+                            .context = Some(gen);
+                    }
+
+                    Ok(JsValue::undefined())
+                },
+                (continuation, Cell::new(Some(gen_ctx))),
+            ),
+        )
+        .name(js_string!())
+        .length(1)
+        .build();
+
+        // 7. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
+        Promise::perform_promise_then(
+            &self.inner,
+            Some(on_fulfilled),
+            Some(on_rejected),
+            None,
+            context,
+        );
+    }
 }
 
 impl From<JsPromise> for JsObject {

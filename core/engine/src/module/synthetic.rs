@@ -58,7 +58,8 @@ pub struct SyntheticModuleInitializer {
 
 impl std::fmt::Debug for SyntheticModuleInitializer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ModuleInitializer").finish_non_exhaustive()
+        f.debug_struct("SyntheticModuleInitializer")
+            .finish_non_exhaustive()
     }
 }
 

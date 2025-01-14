@@ -20,6 +20,12 @@ use crate::{
     Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
+#[cfg(feature = "experimental")]
+mod continuation;
+
+#[cfg(feature = "experimental")]
+pub(crate) use continuation::{CoroutineState, NativeCoroutine};
+
 /// The required signature for all native built-in function pointers.
 ///
 /// # Arguments
