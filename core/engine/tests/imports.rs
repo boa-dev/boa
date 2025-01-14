@@ -23,7 +23,7 @@ fn subdirectories() {
     let module = boa_engine::Module::parse(source, None, &mut context).unwrap();
     let result = module.load_link_evaluate(&mut context);
 
-    context.run_jobs();
+    context.run_jobs().unwrap();
     match result.state() {
         PromiseState::Pending => {}
         PromiseState::Fulfilled(v) => {
