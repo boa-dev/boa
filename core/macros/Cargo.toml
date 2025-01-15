@@ -12,6 +12,7 @@ rust-version.workspace = true
 proc-macro = true
 
 [dependencies]
+cow-utils.workspace = true
 quote.workspace = true
 syn = { workspace = true, features = ["full"] }
 proc-macro2.workspace = true

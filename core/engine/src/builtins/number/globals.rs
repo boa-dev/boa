@@ -8,6 +8,7 @@ use crate::{
 };
 
 use boa_macros::js_str;
+use cow_utils::CowUtils;
 
 /// Builtin javascript 'isFinite(number)' function.
 ///
@@ -304,8 +305,8 @@ pub(crate) fn parse_float(
         // TODO: parse float with optimal utf16 algorithm
         let input_string = val.to_string(context)?.to_std_string_escaped();
         let s = input_string.trim_start_matches(is_trimmable_whitespace);
-        let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
-
+        let s_prefix = s.chars().take(4).collect::<String>();
+        let s_prefix_lower = s_prefix.cow_to_ascii_lowercase();
         // TODO: write our own lexer to match syntax StrDecimalLiteral
         if s.starts_with("Infinity") || s.starts_with("+Infinity") {
             Ok(JsValue::new(f64::INFINITY))

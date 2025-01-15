@@ -347,6 +347,7 @@ dependencies = [
  "clap",
  "color-eyre",
  "colored",
+ "cow-utils",
  "dhat",
  "jemallocator",
  "phf",
@@ -508,6 +509,7 @@ dependencies = [
 name = "boa_macros"
 version = "0.20.0"
 dependencies = [
+ "cow-utils",
  "proc-macro2",
  "quote",
  "syn",
@@ -587,6 +589,7 @@ dependencies = [
  "color-eyre",
  "colored",
  "comfy-table",
+ "cow-utils",
  "phf",
  "rayon",
  "rustc-hash 2.1.0",

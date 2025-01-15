@@ -5,6 +5,7 @@ use boa_engine::{
     vm::flowgraph::{Direction, Graph},
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
+use cow_utils::CowUtils;
 
 use crate::FlowgraphFormat;
 
@@ -14,7 +15,7 @@ fn flowgraph_parse_format_option(value: &JsValue) -> JsResult<FlowgraphFormat> {
     }
 
     if let Some(string) = value.as_string() {
-        return match string.to_std_string_escaped().to_lowercase().as_str() {
+        return match string.to_std_string_escaped().cow_to_lowercase().as_ref() {
             "mermaid" => Ok(FlowgraphFormat::Mermaid),
             "graphviz" => Ok(FlowgraphFormat::Graphviz),
             format => Err(JsNativeError::typ()
@@ -34,7 +35,7 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
     }
 
     if let Some(string) = value.as_string() {
-        return match string.to_std_string_escaped().to_lowercase().as_str() {
+        return match string.to_std_string_escaped().cow_to_lowercase().as_ref() {
             "leftright" | "lr" => Ok(Direction::LeftToRight),
             "rightleft" | "rl" => Ok(Direction::RightToLeft),
             "topbottom" | "tb" => Ok(Direction::TopToBottom),

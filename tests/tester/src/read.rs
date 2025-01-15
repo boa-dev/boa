@@ -11,6 +11,7 @@ use color_eyre::{
     eyre::{OptionExt, WrapErr},
     Result,
 };
+use cow_utils::CowUtils;
 use rustc_hash::{FxBuildHasher, FxHashMap};
 use serde::Deserialize;
 
@@ -247,7 +248,7 @@ fn read_metadata(test: &Path) -> Result<MetaData> {
     let (metadata, _) = metadata
         .split_once("---*/")
         .ok_or_eyre("invalid test metadata")?;
-    let metadata = metadata.replace('\r', "\n");
+    let metadata = metadata.cow_replace('\r', "\n");
 
     serde_yaml::from_str(&metadata).map_err(Into::into)
 }

@@ -6,6 +6,7 @@
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 
+use cow_utils::CowUtils;
 use proc_macro::TokenStream;
 use proc_macro2::Literal;
 use quote::{quote, ToTokens};
@@ -65,14 +66,14 @@ impl Parse for Static {
                 let ident = if let Some(ident) = ident {
                     syn::parse2::<Ident>(ident.into_token_stream())?
                 } else {
-                    Ident::new(&literal.value().to_uppercase(), literal.span())
+                    Ident::new(&literal.value().cow_to_uppercase(), literal.span())
                 };
 
                 Ok(Self { literal, ident })
             }
             Expr::Lit(expr) => match expr.lit {
                 Lit::Str(str) => Ok(Self {
-                    ident: Ident::new(&str.value().to_uppercase(), str.span()),
+                    ident: Ident::new(&str.value().cow_to_uppercase(), str.span()),
                     literal: str,
                 }),
                 _ => Err(syn::Error::new_spanned(
@@ -108,9 +109,9 @@ pub fn static_syms(input: TokenStream) -> TokenStream {
             "Symbol for the \"{}\" string.",
             lit.literal
                 .value()
-                .replace('<', r"\<")
-                .replace('>', r"\>")
-                .replace('*', r"\*")
+                .cow_replace('<', r"\<")
+                .cow_replace('>', r"\>")
+                .cow_replace('*', r"\*")
         );
         let ident = &lit.ident;
         idx += 1;
