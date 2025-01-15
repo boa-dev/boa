@@ -1,2 +1,5 @@
 doc-valid-idents = ['ECMAScript', 'JavaScript', 'SpiderMonkey', 'GitHub']
 allow-print-in-tests = true
+disallowed-methods = [
+  { path = "str::to_ascii_uppercase", reason = "To avoid memory allocation, use `cow_utils::CowUtils::cow_to_ascii_uppercase` instead." },
+]

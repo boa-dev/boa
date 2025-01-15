@@ -13,12 +13,12 @@ mod helper;
 use boa_engine::{
     builtins::promise::PromiseState,
     context::ContextBuilder,
-    job::{FutureJob, JobQueue, NativeJob},
+    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context, JsError, Source,
+    Context, JsError, JsResult, Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
@@ -292,7 +292,7 @@ fn evaluate_file(
         );
 
         let promise = module.load_link_evaluate(context);
-        context.run_jobs();
+        context.run_jobs().map_err(|err| err.into_erased(context))?;
         let result = promise.state();
 
         return match result {
@@ -308,9 +308,9 @@ fn evaluate_file(
         Ok(v) => println!("{}", v.display()),
         Err(v) => eprintln!("Uncaught {v}"),
     }
-    context.run_jobs();
-
-    Ok(())
+    context
+        .run_jobs()
+        .map_err(|err| err.into_erased(context).into())
 }
 
 fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) {
@@ -336,10 +336,10 @@ fn main() -> Result<()> {
 
     let args = Opt::parse();
 
-    let queue = Rc::new(Jobs::default());
+    let executor = Rc::new(Executor::default());
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
     let mut context = ContextBuilder::new()
-        .job_queue(queue)
+        .job_executor(executor)
         .module_loader(loader.clone())
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
@@ -425,7 +425,9 @@ fn main() -> Result<()> {
                             eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
                         }
                     }
-                    context.run_jobs();
+                    if let Err(err) = context.run_jobs() {
+                        eprintln!("{err}");
+                    };
                 }
             }
 
@@ -453,29 +455,45 @@ fn add_runtime(context: &mut Context) {
 }
 
 #[derive(Default)]
-struct Jobs(RefCell<VecDeque<NativeJob>>);
+struct Executor {
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+}
 
-impl JobQueue for Jobs {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context) {
-        self.0.borrow_mut().push_back(job);
+impl JobExecutor for Executor {
+    fn enqueue_job(&self, job: Job, _: &mut Context) {
+        match job {
+            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
+            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            job => eprintln!("unsupported job type {job:?}"),
+        }
     }
 
-    fn run_jobs(&self, context: &mut Context) {
+    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
         loop {
-            let jobs = std::mem::take(&mut *self.0.borrow_mut());
-            if jobs.is_empty() {
-                return;
+            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+                return Ok(());
             }
+
+            let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
             for job in jobs {
                 if let Err(e) = job.call(context) {
                     eprintln!("Uncaught {e}");
                 }
             }
-        }
-    }
 
-    fn enqueue_future_job(&self, future: FutureJob, _: &mut Context) {
-        let job = pollster::block_on(future);
-        self.0.borrow_mut().push_back(job);
+            let async_jobs = std::mem::take(&mut *self.async_jobs.borrow_mut());
+            for async_job in async_jobs {
+                if let Err(err) = pollster::block_on(async_job.call(&RefCell::new(context))) {
+                    eprintln!("Uncaught {err}");
+                }
+                let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
+                for job in jobs {
+                    if let Err(e) = job.call(context) {
+                        eprintln!("Uncaught {e}");
+                    }
+                }
+            }
+        }
     }
 }

@@ -565,7 +565,7 @@ fn into_js_module() {
     let root_module = Module::parse(source, None, &mut context).unwrap();
 
     let promise_result = root_module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     // Checking if the final promise didn't return an error.
     assert!(
@@ -617,7 +617,7 @@ fn can_throw_exception() {
     let root_module = Module::parse(source, None, &mut context).unwrap();
 
     let promise_result = root_module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     // Checking if the final promise didn't return an error.
     assert_eq!(
@@ -721,7 +721,7 @@ fn class() {
     let root_module = Module::parse(source, None, &mut context).unwrap();
 
     let promise_result = root_module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     // Checking if the final promise didn't return an error.
     assert!(
