@@ -992,8 +992,9 @@ impl From<String> for JsString {
 }
 
 impl<'a> From<Cow<'a, str>> for JsString {
-    fn from(value: Cow<'a, str>) -> Self {
-        match value {
+    #[inline]
+    fn from(s: Cow<'a, str>) -> Self {
+        match s {
             Cow::Borrowed(s) => s.into(),
             Cow::Owned(s) => s.into(),
         }
