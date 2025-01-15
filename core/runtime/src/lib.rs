@@ -63,21 +63,25 @@ pub use text::{TextDecoder, TextEncoder};
 
 pub mod url;
 
+pub mod interval;
+
 /// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
 #[derive(Debug)]
-pub struct RegisterOptions<L: Logger> {
+pub struct RegisterOptions<L: Logger, C: interval::Clock> {
     console_logger: L,
+    clock: C,
 }
 
-impl Default for RegisterOptions<console::DefaultLogger> {
+impl Default for RegisterOptions<console::DefaultLogger, interval::StdClock> {
     fn default() -> Self {
         Self {
             console_logger: console::DefaultLogger,
+            clock: interval::StdClock,
         }
     }
 }
 
-impl RegisterOptions<console::DefaultLogger> {
+impl RegisterOptions<console::DefaultLogger, interval::StdClock> {
     /// Create a new `RegisterOptions` with the default options.
     #[must_use]
     pub fn new() -> Self {
@@ -85,11 +89,12 @@ impl RegisterOptions<console::DefaultLogger> {
     }
 }
 
-impl<L: Logger> RegisterOptions<L> {
+impl<L: Logger, C: interval::Clock> RegisterOptions<L, C> {
     /// Set the logger for the console object.
-    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptions<L2> {
-        RegisterOptions::<L2> {
+    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptions<L2, C> {
+        RegisterOptions::<L2, C> {
             console_logger: logger,
+            clock: self.clock,
         }
     }
 }
@@ -100,7 +105,7 @@ impl<L: Logger> RegisterOptions<L> {
 /// This will error is any of the built-in objects or functions cannot be registered.
 pub fn register(
     ctx: &mut boa_engine::Context,
-    options: RegisterOptions<impl Logger + 'static>,
+    options: RegisterOptions<impl Logger + 'static, impl interval::Clock + 'static>,
 ) -> boa_engine::JsResult<()> {
     Console::register_with_logger(ctx, options.console_logger)?;
     TextDecoder::register(ctx)?;
@@ -108,6 +113,8 @@ pub fn register(
 
     #[cfg(feature = "url")]
     url::Url::register(ctx)?;
+
+    interval::register_with_clock(ctx, options.clock)?;
 
     Ok(())
 }
@@ -120,10 +127,8 @@ pub(crate) mod test {
 
     /// A test action executed in a test function.
     #[allow(missing_debug_implementations)]
-    #[derive(Clone)]
     pub(crate) struct TestAction(Inner);
 
-    #[derive(Clone)]
     #[allow(dead_code)]
     enum Inner {
         RunHarness,
@@ -131,7 +136,7 @@ pub(crate) mod test {
             source: Cow<'static, str>,
         },
         InspectContext {
-            op: fn(&mut Context),
+            op: Box<dyn FnOnce(&mut Context)>,
         },
         Assert {
             source: Cow<'static, str>,
@@ -169,8 +174,8 @@ pub(crate) mod test {
         /// Executes `op` with the currently active context.
         ///
         /// Useful to make custom assertions that must be done from Rust code.
-        pub(crate) fn inspect_context(op: fn(&mut Context)) -> Self {
-            Self(Inner::InspectContext { op })
+        pub(crate) fn inspect_context(op: impl FnOnce(&mut Context) + 'static) -> Self {
+            Self(Inner::InspectContext { op: Box::new(op) })
         }
     }
 
