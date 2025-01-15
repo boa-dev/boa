@@ -301,9 +301,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.6.0"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
+checksum = "1be3f42a67d6d345ecd59f675f3f012d6974981560836e938c22b424b85ce1be"
 dependencies = [
  "serde",
 ]
@@ -326,7 +326,7 @@ name = "boa_ast"
 version = "0.20.0"
 dependencies = [
  "arbitrary",
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "boa_interner",
  "boa_macros",
  "boa_string",
@@ -361,7 +361,7 @@ name = "boa_engine"
 version = "0.20.0"
 dependencies = [
  "arrayvec",
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "boa_ast",
  "boa_gc",
  "boa_icu_provider",
@@ -524,7 +524,7 @@ dependencies = [
 name = "boa_parser"
 version = "0.20.0"
 dependencies = [
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "boa_ast",
  "boa_interner",
  "boa_macros",
@@ -576,7 +576,7 @@ dependencies = [
 name = "boa_tester"
 version = "0.20.0"
 dependencies = [
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "boa_engine",
  "boa_gc",
  "boa_runtime",
@@ -1012,7 +1012,7 @@ version = "0.28.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "829d955a0bb380ef178a640b91779e3987da38c9aea133b20614cfed8cdea9c6"
 dependencies = [
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "crossterm_winapi",
  "parking_lot",
  "rustix",
@@ -2519,7 +2519,7 @@ version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71e2746dc3a24dd78b3cfcb7be93368c6de9963d30f43a6a73998a9cf4b17b46"
 dependencies = [
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "cfg-if",
  "cfg_aliases",
  "libc",
@@ -3018,7 +3018,7 @@ version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03a862b389f93e68874fbf580b9de08dd02facb9a788ebadaf4a3fd33cf58834"
 dependencies = [
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
 ]
 
 [[package]]
@@ -3124,7 +3124,7 @@ version = "0.38.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f93dc38ecbab2eb790ff964bb77fa94faf256fd3e73285fd7ba0903b76bedb85"
 dependencies = [
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "errno",
  "libc",
  "linux-raw-sys",
@@ -3175,7 +3175,7 @@ version = "15.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2ee1e066dc922e513bda599c6ccb5f3bb2b0ea5870a579448f2622993f0a9a2f"
 dependencies = [
- "bitflags 2.6.0",
+ "bitflags 2.7.0",
  "cfg-if",
  "clipboard-win",
  "fd-lock",
@@ -3541,16 +3541,14 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=a92149d907252749098eb2305f1cae2e4fdf19fe#a92149d907252749098eb2305f1cae2e4fdf19fe"
+source = "git+https://github.com/boa-dev/temporal.git?rev=53fc1fc11f039574000d3d22a5d06d75836a4494#53fc1fc11f039574000d3d22a5d06d75836a4494"
 dependencies = [
- "bitflags 2.6.0",
  "combine",
  "iana-time-zone",
  "icu_calendar 2.0.0-beta1",
  "ixdtf",
  "jiff-tzdb",
  "num-traits",
- "rustc-hash 2.1.0",
  "tinystr 0.8.0",
  "tzif",
  "web-time",
