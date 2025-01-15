@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
+        temporal::options::get_digits_option,
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -19,7 +20,10 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
 use temporal_rs::{
-    options::{ArithmeticOverflow, Disambiguation, OffsetDisambiguation},
+    options::{
+        ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
+        OffsetDisambiguation, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
+    },
     partial::PartialZonedDateTime,
     Calendar, TimeZone, ZonedDateTime as ZonedDateTimeInner,
 };
@@ -325,6 +329,8 @@ impl IntrinsicObject for ZonedDateTime {
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .method(Self::start_of_day, js_string!("startOfDay"), 0)
             .method(Self::to_instant, js_string!("toInstant"), 0)
@@ -430,16 +436,15 @@ impl ZonedDateTime {
 
     /// 6.3.4 get `Temporal.ZonedDateTime.prototype.timeZoneId`
     fn get_timezone_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let _zdt = this
+        let zdt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Err(JsNativeError::error()
-            .with_message("Not yet implemented.")
-            .into())
+        let tz_id = zdt.inner.timezone().id()?;
+        Ok(JsString::from(tz_id).into())
     }
 
     /// 6.3.5 get `Temporal.ZonedDateTime.prototype.era`
@@ -930,6 +935,66 @@ impl ZonedDateTime {
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
         Ok((zdt.inner == other).into())
+    }
+
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let options = get_options_object(args.get_or_undefined(0))?;
+
+        let show_calendar =
+            get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(DisplayCalendar::Auto);
+        let precision = get_digits_option(&options, context)?;
+        let show_offset = get_option::<DisplayOffset>(&options, js_string!("offset"), context)?
+            .unwrap_or(DisplayOffset::Auto);
+        let rounding_mode =
+            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit =
+            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+        // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
+        let display_timezone =
+            get_option::<DisplayTimeZone>(&options, js_string!("offset"), context)?
+                .unwrap_or(DisplayTimeZone::Auto);
+
+        let options = ToStringRoundingOptions {
+            precision,
+            smallest_unit,
+            rounding_mode,
+        };
+        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+            show_offset,
+            display_timezone,
+            show_calendar,
+            options,
+            context.tz_provider(),
+        )?;
+
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+            DisplayOffset::Auto,
+            DisplayTimeZone::Auto,
+            DisplayCalendar::Auto,
+            ToStringRoundingOptions::default(),
+            context.tz_provider(),
+        )?;
+
+        Ok(JsString::from(ixdtf).into())
     }
 
     /// 6.3.44 `Temporal.ZonedDateTime.prototype.valueOf ( )`
