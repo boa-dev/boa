@@ -5,7 +5,7 @@
 use super::{
     internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
-    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
+    JsPrototype, LazyArrayPrototype, LazyBuiltIn, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
     builtins::{
@@ -90,6 +90,12 @@ impl JsObject {
         Self {
             inner: coerce_gc(gc),
         }
+    }
+
+    /// Creates a new lazy array prototype object from its inner object and its vtable.
+    /// This is used for built-in objects that are prototypes of Constructors.
+    pub(crate) fn lazy_array_prototype(constructor: JsObject<LazyBuiltIn>) -> Self {
+        Self::from_proto_and_data(None, LazyArrayPrototype { constructor })
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
@@ -280,6 +286,12 @@ impl JsObject {
     #[must_use]
     #[track_caller]
     pub fn is_array(&self) -> bool {
+        // The prototype of an array should be an exotic Array object.
+        // If its the lazyArrayPrototype we know its an array.
+        if self.is::<LazyArrayPrototype>() {
+            return true;
+        }
+
         std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
     }
 
@@ -928,6 +940,7 @@ impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
         if !limiter.visited && !limiter.live {
             let ptr: *const _ = self.as_ref();
             let ptr = ptr.cast::<()>();
+            let borrow_flag = self.inner.object.flags.get();
             let obj = self.borrow();
             let kind = obj.data.type_name_of_value();
             if self.is_callable() {
@@ -943,10 +956,16 @@ impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
                         .unwrap_or_default(),
                 };
 
-                return f.write_fmt(format_args!("({:?}) {:?} 0x{:X}", kind, name, ptr as usize));
+                return f.write_fmt(format_args!(
+                    "({:?}) {:?} 0x{:X} {:?}",
+                    kind, name, ptr as usize, borrow_flag
+                ));
             }
 
-            f.write_fmt(format_args!("({:?}) 0x{:X}", kind, ptr as usize))
+            f.write_fmt(format_args!(
+                "({:?}) 0x{:X} {:?}",
+                kind, ptr as usize, borrow_flag
+            ))
         } else {
             f.write_str("{ ... }")
         }

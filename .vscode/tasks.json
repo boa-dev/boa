@@ -37,7 +37,7 @@
       "type": "process",
       "label": "Run JS file",
       "command": "cargo",
-      "args": ["run", "--bin", "boa", "${file}"],
+      "args": ["run", "--bin", "boa", "${workspaceFolder}/debug/script.js"],
       "group": {
         "kind": "build",
         "isDefault": true
