@@ -14,23 +14,31 @@ Show
 
 Type "boa"
 
-Sleep 100ms
+Sleep 150ms
 
 Enter
+
+Sleep 500ms
 
 Type "2 + '2'"
 
+Sleep 150ms
+
 Enter
 
-Sleep 100ms
+Sleep 500ms
 
 Type "const sayHello = () => { return 'Hello World!' };"
 
+Sleep 150ms
+
 Enter
 
-Sleep 100ms
+Sleep 500ms
 
 Type "sayHello();"
+
+Sleep 150ms
 
 Enter
 

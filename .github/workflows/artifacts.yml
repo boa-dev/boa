@@ -6,10 +6,16 @@ on:
       - main
 
 jobs: 
-  build_cli_tape:
-    name: Generate boa_cli GIF
+  validate_artifacts:
+    name: Generate ASCII artifacts
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - artifact: boa_cli_intro
+          name: boa_cli
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -18,11 +24,10 @@ jobs:
       # https://github.com/charmbracelet/vhs-action/blob/main/examples/auto-commit.yml
       - uses: charmbracelet/vhs-action@v1
         with:
-          version: v0.7.1
-          path: './.github/tapes/ci_cli_intro.tape'
-      - uses: mfinelli/setup-imagemagick@v5
-        with:
-          cache: true
-      - run: magick compare -verbose ./tmp/boa_cli.gif ./cli/assets/boa_cli.gif
-      # Clean up tmp directory created by ci_cli_intro.tape
+          version: v0.9.0
+          path: './.github/tapes/ci/${{ matrix.name }}.tape'
+      - run: |
+          diff ./tmp/${{ matrix.name }}.ascii \
+            ./.github/tapes/diff/${{ matrix.name }}.ascii
+      # Clean up tmp directory created by ci/boa_cli.tape, just in case
       - run: rm -rf ./tmp
