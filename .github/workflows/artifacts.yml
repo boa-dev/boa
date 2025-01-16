@@ -1,0 +1,33 @@
+name: Validate artifacts
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs: 
+  validate_artifacts:
+    name: Generate ASCII artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - artifact: boa_cli_intro
+          name: boa_cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install --path ./cli
+      # Below is from vhs-actions examples
+      # https://github.com/charmbracelet/vhs-action/blob/main/examples/auto-commit.yml
+      - uses: charmbracelet/vhs-action@v1
+        with:
+          version: v0.8.0
+          path: './.github/tapes/ci/${{ matrix.name }}.tape'
+      - run: |
+          diff ./tmp/${{ matrix.name }}.ascii \
+            ./.github/tapes/diff/${{ matrix.name }}.ascii
+      # Clean up tmp directory created by ci/boa_cli.tape, just in case
+      - run: rm -rf ./tmp
