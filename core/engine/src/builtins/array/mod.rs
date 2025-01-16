@@ -41,6 +41,9 @@ mod array_iterator;
 use crate::value::JsVariant;
 pub(crate) use array_iterator::ArrayIterator;
 
+#[cfg(feature = "experimental")]
+mod from_async;
+
 #[cfg(test)]
 mod tests;
 
@@ -106,7 +109,7 @@ impl IntrinsicObject for Array {
 
         let unscopables_object = Self::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             // Static Methods
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::is_array, js_string!("isArray"), 1)
@@ -177,8 +180,12 @@ impl IntrinsicObject for Array {
                 symbol_unscopables,
                 unscopables_object,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "experimental")]
+        let builder = builder.static_method(Self::from_async, js_string!("fromAsync"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
