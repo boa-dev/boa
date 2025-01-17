@@ -416,7 +416,7 @@ where
                     }
                 }
                 function::ClassElement::PrivateFieldDefinition(field) => {
-                    if let Some(node) = field.field() {
+                    if let Some(node) = field.initializer() {
                         if contains(node, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
@@ -434,8 +434,8 @@ where
                         ));
                     }
                 }
-                function::ClassElement::PrivateStaticFieldDefinition(name, init) => {
-                    if let Some(node) = init {
+                function::ClassElement::PrivateStaticFieldDefinition(field) => {
+                    if let Some(node) = field.initializer() {
                         if contains(node, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
@@ -444,7 +444,7 @@ where
                         }
                     }
                     if private_elements_names
-                        .insert(name.description(), PrivateElement::StaticValue)
+                        .insert(field.name().description(), PrivateElement::StaticValue)
                         .is_some()
                     {
                         return Err(Error::general(
@@ -455,7 +455,7 @@ where
                 }
                 function::ClassElement::FieldDefinition(field)
                 | function::ClassElement::StaticFieldDefinition(field) => {
-                    if let Some(field) = field.field() {
+                    if let Some(field) = field.initializer() {
                         if contains(field, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
@@ -1094,15 +1094,11 @@ where
                                 .as_slice(),
                         );
                         rhs.set_anonymous_function_definition_name(&Identifier::new(function_name));
+                        let field = PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs));
                         if r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(
-                                PrivateName::new(name),
-                                Some(rhs),
-                            )
+                            function::ClassElement::PrivateStaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::PrivateFieldDefinition(
-                                PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs)),
-                            )
+                            function::ClassElement::PrivateFieldDefinition(field)
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1141,15 +1137,11 @@ where
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = PrivateFieldDefinition::new(PrivateName::new(name), None);
                         if r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(
-                                PrivateName::new(name),
-                                None,
-                            )
+                            function::ClassElement::PrivateStaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::PrivateFieldDefinition(
-                                PrivateFieldDefinition::new(PrivateName::new(name), None),
-                            )
+                            function::ClassElement::PrivateFieldDefinition(field)
                         }
                     }
                 }
@@ -1274,7 +1266,7 @@ where
             // It is a Syntax Error if Initializer is present and ContainsArguments of Initializer is true.
             function::ClassElement::FieldDefinition(field)
             | function::ClassElement::StaticFieldDefinition(field) => {
-                if let Some(field) = field.field() {
+                if let Some(field) = field.initializer() {
                     if contains_arguments(field) {
                         return Err(Error::general(
                             "'arguments' not allowed in class field definition",
@@ -1283,22 +1275,15 @@ where
                     }
                 }
             }
-            function::ClassElement::PrivateFieldDefinition(field) => {
-                if let Some(node) = field.field() {
+            function::ClassElement::PrivateFieldDefinition(field)
+            | function::ClassElement::PrivateStaticFieldDefinition(field) => {
+                if let Some(node) = field.initializer() {
                     if contains_arguments(node) {
                         return Err(Error::general(
                             "'arguments' not allowed in class field definition",
                             position,
                         ));
                     }
-                }
-            }
-            function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
-                if contains_arguments(node) {
-                    return Err(Error::general(
-                        "'arguments' not allowed in class field definition",
-                        position,
-                    ));
                 }
             }
 
