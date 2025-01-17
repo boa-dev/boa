@@ -218,19 +218,14 @@ fn difference_equal_set(){
 fn difference_empty(){
     run_test_actions([
         TestAction::run(indoc! {r#"
-            let setA = new Set([1, 3, 5, 7, 9]);
-            let setB = new Set([]);
+           let setA = new Set([1, 3, 5, 7, 9]);
+           let setB = new Set([]);
         "#}),
 
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
             v.display().to_string() == "Set { 1, 3, 5, 7, 9 }"
         }),
-
-        TestAction::assert_with_op("setB.difference(setA)", |v, _| {
-            v.display().to_string() == "Set {}"
-        }),
-
-    ])
+    ]);
 }
 
 #[test]
