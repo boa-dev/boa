@@ -63,6 +63,10 @@ impl IntrinsicObject for Set {
             .name(js_string!("difference"))
             .build();
 
+        let intersection = BuiltInBuilder::callable(realm, Self::intersection)
+            .name(js_string!("intersection"))
+            .build();
+
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
@@ -95,6 +99,11 @@ impl IntrinsicObject for Set {
             .property(
                 js_string!("difference"),
                 difference.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                js_string!("intersection"),
+                intersection.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
@@ -511,11 +520,12 @@ impl Set {
     /// 
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.difference
     /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
-    
+
     pub(crate) fn difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let Some(set) = this
+        let set = this.clone();
+        let Some(set_data) = set
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
@@ -523,44 +533,110 @@ impl Set {
                 .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
-    
+
         // 3. Let other be the first argument.
         let other = args.get_or_undefined(0);
-    
-        // 4. If other is null or undefined, return a clone of S.
-        if other.is_null_or_undefined() {
-            return Ok(Set::create_set_from_list(set.iter().cloned(), context).into());
+        let Some(other_set) = other
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
+                .into());
+        };
+
+        // 4. Let otherSet be a new empty Set.
+        let mut result_set = set_data.clone();
+
+
+       if set_data.len() <= other_set.len(){
+           for value in other_set.iter(){
+               if result_set.contains(value){
+                   result_set.delete(&value.clone());
+               }
+           }
+       } else {
+           for value in set_data.iter() {
+               if other_set.contains(value){
+                   result_set.delete(&value.clone());
+               }
+           }
+       }
+
+        // 10. Return a new Set created from resultSet.
+        Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
+    }
+
+    /// `Set.prototype.intersection ( other )`
+    ///
+    /// This method returns a new Set containing all elements that are present in both
+    /// the current Set and the given iterable `other`.
+    ///
+    /// It effectively computes the intersection of the two Sets.
+    ///
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.intersection
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
+
+    pub(crate) fn intersection(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context) -> JsResult<JsValue> {
+        //
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Method Set.prototype.difference called on incompatible receiver")
+                .into());
+        };
+
+        let other = args.get_or_undefined(0);
+        let Some(other_set) = other
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Method Set.prototype.difference called on incompatible receiver")
+                .into());
+        };
+
+        if set.is_empty() || other_set.is_empty() {
+            return Ok(this.clone());
         }
-    
-        // 5. Let otherSet be a new empty Set.
-        let mut other_set = OrderedSet::new();
-    
-        // 6. Let otherIterator be ? GetIterator(other, sync).
-        let mut other_iterator = other.clone().get_iterator(IteratorHint::Sync, context)?;
-    
-        // 7. Repeat, while otherIterator is not exhausted
-        while let Some(next_value) = other_iterator.step_value(context)? {
-            other_set.add(next_value);
-        }
-    
-        // 8. Create a new Set resultSet to store the difference.
+
         let mut result_set = OrderedSet::new();
-    
-        // 9. For each value e in S.[[SetData]], do
-        for value in set.iter() {
-            // a. If otherSet does not contain e, add e to resultSet.
-            if !other_set.contains(value) {
-                result_set.add(value.clone());
+
+        if set.len() <= other_set.len(){
+            for value in set.iter() {
+                if other_set.contains(value) {
+                    result_set.add(value.clone());
+                }
+            }
+        } else {
+            for value in other_set.iter() {
+                if set.contains(value) {
+                    result_set.add(value.clone());
+                }
             }
         }
-    
-        // 10. Return a new Set created from resultSet.
+
         Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_size(this).map(JsValue::from)
     }
+
+
+
 
     /// Helper function to get the size of the `Set` object.
     pub(crate) fn get_size(set: &JsValue) -> JsResult<usize> {

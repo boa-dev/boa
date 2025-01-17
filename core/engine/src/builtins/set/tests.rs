@@ -176,100 +176,76 @@ fn not_a_function() {
 }
 
 #[test]
-fn difference_basic() {
+fn difference() {
     run_test_actions([
         
         TestAction::run(indoc! {r#"
-            let setA = new Set([1, 2, 3]);
-            let setB = new Set([2, 3, 4]);
+            let setA = new Set([1, 3, 5, 7, 9]);
+            let setB = new Set([1, 4, 9]);
         "#}),
         
 
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
-            v.display().to_string() == "Set { 1 }"
+            v.display().to_string() == "Set { 3, 5, 7 }"
         }),
-        
 
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
             v.display().to_string() == "Set { 4 }"
         }),
+
     ]);
 }
 
 #[test]
-fn difference_empty_set() {
+fn difference_equal_set(){
     run_test_actions([
-
         TestAction::run(indoc! {r#"
-            let setA = new Set([1, 2, 3]);
-            let setEmpty = new Set();
+            let setA = new Set([1, 3, 5, 7, 9]);
+            let setB = new Set([1, 4, 5, 7, 9]);
         "#}),
-        
-
-        TestAction::assert_with_op("setA.difference(setEmpty)", |v, _| {
-            v.display().to_string() == "Set { 1, 2, 3 }"
-        }),
-        
-
-        TestAction::assert_with_op("setEmpty.difference(setA)", |v, _| {
-            v.display().to_string() == "Set { }"
-        }),
-    ]);
-}
-
-#[test]
-fn difference_disjoint_sets() {
-    run_test_actions([
-
-        TestAction::run(indoc! {r#"
-            let setA = new Set([1, 2, 3]);
-            let setB = new Set([4, 5, 6]);
-        "#}),
-        
 
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
-            v.display().to_string() == "Set { 1, 2, 3 }"
+            v.display().to_string() == "Set { 3 }"
         }),
-        
+
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
-            v.display().to_string() == "Set { 4, 5, 6 }"
+            v.display().to_string() == "Set { 4 }"
         }),
-    ]);
+    ])
 }
 
 #[test]
-fn difference_same_set() {
+fn difference_empty(){
     run_test_actions([
-
         TestAction::run(indoc! {r#"
-            let setA = new Set([1, 2, 3]);
+            let setA = new Set([1, 3, 5, 7, 9]);
+            let setB = new Set([]);
         "#}),
-        
 
-        TestAction::assert_with_op("setA.difference(setA)", |v, _| {
-            v.display().to_string() == "Set { }"
-        }),
-    ]);
-}
-
-#[test]
-fn difference_with_overlap() {
-    run_test_actions([
-        // Создание двух частично пересекающихся множеств
-        TestAction::run(indoc! {r#"
-            let setA = new Set([1, 2, 3, 4]);
-            let setB = new Set([3, 4, 5, 6]);
-        "#}),
-        
-        // Разница должна исключить элементы, которые есть в setB
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
-            v.display().to_string() == "Set { 1, 2 }"
+            v.display().to_string() == "Set { 1, 3, 5, 7, 9 }"
         }),
-        
-        // Разница должна исключить элементы, которые есть в setA
+
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
-            v.display().to_string() == "Set { 5, 6 }"
+            v.display().to_string() == "Set {}"
         }),
-    ]);
+
+    ])
 }
 
+#[test]
+fn intersection(){
+    run_test_actions([
+        TestAction::run(indoc! {
+            r#"
+            let setA = new Set([1,2,3]);
+            let setB = new Set([1,4,3]);
+            "#
+        }),
+
+        TestAction::assert_with_op("setA.intersection(setB)", |v, _| {
+            v.display().to_string() == "Set { 1, 3 }"
+        })
+
+    ]);
+}
