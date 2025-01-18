@@ -29,6 +29,7 @@ phf = { workspace = true, features = ["macros"] }
 comfy-table.workspace = true
 serde_repr.workspace = true
 bus.workspace = true
+cow-utils.workspace = true
 
 [features]
 default = ["boa_engine/intl_bundled", "boa_engine/experimental", "boa_engine/annex-b"]

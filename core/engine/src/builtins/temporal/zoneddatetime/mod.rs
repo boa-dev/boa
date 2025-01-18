@@ -18,6 +18,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
+use cow_utils::CowUtils;
 use num_traits::ToPrimitive;
 use temporal_rs::{
     options::{
@@ -458,7 +459,7 @@ impl ZonedDateTime {
 
         let era = zdt.inner.era_with_provider(context.tz_provider())?;
         Ok(era
-            .map(|tinystr| JsString::from(tinystr.to_lowercase()))
+            .map(|tinystr| JsString::from(tinystr.cow_to_lowercase().to_string()))
             .into_or_undefined())
     }
 
