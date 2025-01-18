@@ -225,6 +225,7 @@ fn difference_empty(){
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
             v.display().to_string() == "Set { 1, 3, 5, 7, 9 }"
         }),
+
     ]);
 }
 
@@ -235,12 +236,46 @@ fn intersection(){
             r#"
             let setA = new Set([1,2,3]);
             let setB = new Set([1,4,3]);
+            let setC = new Set([]);
             "#
         }),
 
         TestAction::assert_with_op("setA.intersection(setB)", |v, _| {
             v.display().to_string() == "Set { 1, 3 }"
-        })
+        }),
+        TestAction::assert_with_op("setB.intersection(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 3 }"
+        }),
+        TestAction::assert_with_op("setA.intersection(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 2, 3 }"
+        }),
+        TestAction::assert_with_op("setB.intersection(setB)", |v, _| {
+            v.display().to_string() == "Set { 1, 4, 3 }"
+        }),
+        TestAction::assert_with_op("setB.intersection(setC)", |v, _| {
+            v.display().to_string() == "Set { 1, 4, 3 }"
+        }),
+        TestAction::assert_with_op("setA.intersection(setC)", |v, _| {
+            v.display().to_string() == "Set { 1, 2, 3 }"
+        }),
+    ]);
+}
 
+#[test]
+fn is_dist_joint_from() {
+    run_test_actions([
+        TestAction::run(indoc! {
+            r#"
+            let setA = new Set([1, 2, 3]);
+            let setB = new Set([1, 4, 6]);
+            let setC = new Set([4, 8, 15, 16 ,23 ,42]);
+            "#
+        }),
+        TestAction::assert_with_op("setA.isDisjointFrom(setB)", |v, _| {
+            v.as_boolean().unwrap_or(false) == false
+        }),
+        TestAction::assert_with_op("setA.isDisjointFrom(setC)", |v, _| {
+            v.as_boolean().unwrap_or(true) == true
+        }),
     ]);
 }

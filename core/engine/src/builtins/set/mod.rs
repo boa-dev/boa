@@ -17,6 +17,7 @@ mod tests;
 
 pub mod ordered_set;
 
+
 use self::ordered_set::OrderedSet;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -67,6 +68,10 @@ impl IntrinsicObject for Set {
             .name(js_string!("intersection"))
             .build();
 
+        let is_dis_joint_from = BuiltInBuilder::callable(realm, Self::is_dis_joint_from)
+            .name(js_string!("isDisjointFrom"))
+            .build();
+
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
@@ -104,6 +109,11 @@ impl IntrinsicObject for Set {
             .property(
                 js_string!("intersection"),
                 intersection.clone(),
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                js_string!("isDisjointFrom"),
+                is_dis_joint_from.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
@@ -524,8 +534,8 @@ impl Set {
     pub(crate) fn difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        let set = this.clone();
-        let Some(set_data) = set
+
+        let Some(set_data) = this
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
@@ -549,19 +559,23 @@ impl Set {
         let mut result_set = set_data.clone();
 
 
-       if set_data.len() <= other_set.len(){
-           for value in other_set.iter(){
-               if result_set.contains(value){
-                   result_set.delete(&value.clone());
-               }
-           }
-       } else {
-           for value in set_data.iter() {
-               if other_set.contains(value){
-                   result_set.delete(&value.clone());
-               }
-           }
-       }
+        let (iter_set,
+            check_set) = if set_data.len() <= other_set.len() {
+            (other_set.iter(), set_data)
+        } else {
+            (set_data.iter(), other_set)
+        };
+
+        for value in iter_set {
+            if check_set.contains(value) {
+                result_set.delete(&value.clone());
+            }
+        }
+
+        if result_set.is_empty(){
+            return Ok(this.clone());
+        }
+
 
         // 10. Return a new Set created from resultSet.
         Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
@@ -581,62 +595,145 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.intersection
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
-
     pub(crate) fn intersection(
         this: &JsValue,
         args: &[JsValue],
-        context: &mut Context) -> JsResult<JsValue> {
-        //
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        // Here, the variable `S` holds the value of `this`, which represents the current set over which the operation is being performed.
         let Some(set) = this
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
                 .with_message(
-                    "Method Set.prototype.difference called on incompatible receiver")
+                    "Method Set.prototype.difference called on incompatible receiver"
+                )
                 .into());
         };
 
+        // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        // This step checks if the object calling the method has an internal data structure `[[SetData]]`.
+        // This is important to ensure that the object is a valid set that can be operated on.
+        // The error handling for this case is already done in the previous step when trying to access the internal data.
+
+        // 3. Let other be the first argument.
+        // We retrieve the first argument passed to the `intersection` method. This is the second set with which we want to find the intersection.
         let other = args.get_or_undefined(0);
+
+        // 4. Let other_set be the second argument.
+        // We try to downcast the second argument into an `OrderedSet`, which is the other set with which we perform the intersection.
         let Some(other_set) = other
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
                 .with_message(
-                    "Method Set.prototype.difference called on incompatible receiver")
+                    "Method Set.prototype.difference called on incompatible receiver"
+                )
                 .into());
         };
 
+        // 5. If S or other is empty, return an empty Set.
+        // If either of the sets is empty, the intersection will also be empty.
+        // In this case, we immediately return an empty set.
         if set.is_empty() || other_set.is_empty() {
-            return Ok(this.clone());
+            return Ok(Self::create_set_from_list(set.iter().cloned(), context).into());
         }
 
+        // 6. Create an empty result set.
+        // We create an empty set that will hold the common elements of the two sets.
         let mut result_set = OrderedSet::new();
 
-        if set.len() <= other_set.len(){
+        // 7. Let iter_set and check_set be the set with fewer elements.
+        // For optimization, we choose to iterate over the smaller set. This reduces the number of operations when one set is much smaller than the other.
+        let (
+            iter_set, check_set
+        ) = if set.len() <= other_set.len() {
+            (other_set.iter(), set)
+        } else {
+            (set.iter(), other_set)
+        };
+
+        // 8. Iterate through iter_set and add elements to result_set if they are contained in check_set.
+        // We loop through the smaller set and add the elements that are found in the larger set to the result set.
+        for value in iter_set {
+            if check_set.contains(value) {
+                result_set.add(value.clone());
+            }
+        }
+
+        // 9. Return the result set.
+        // After the iteration, we return the result set containing the intersected elements.
+        Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
+    }
+
+
+
+
+    /// `Set.prototype.isDisjointFrom ( other )`
+    ///
+    /// This method checks whether the current Set and the given iterable `other` have no elements in common.
+    /// It returns `true` if the two Sets are disjoint (i.e., they have no overlapping elements),
+    /// and `false` otherwise.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.isdisjointfrom
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isDisjointFrom
+    pub(crate) fn is_dis_joint_from (
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isDisjointFrom called on incompatible receiver")
+                .into());
+        };
+
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let Some(other_set) = other
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isDisjointFrom called on incompatible receiver")
+                .into());
+        };
+
+        // 4. Iterate over the smaller set to check for common elements.
+        if set.len() <= other_set.len() {
             for value in set.iter() {
                 if other_set.contains(value) {
-                    result_set.add(value.clone());
+                    return Ok(JsValue::from(false));
                 }
             }
         } else {
             for value in other_set.iter() {
                 if set.contains(value) {
-                    result_set.add(value.clone());
+                    return Ok(JsValue::from(false));
                 }
             }
         }
 
-        Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
+        // 5. If no common elements are found, return true.
+        Ok(JsValue::from(true))
     }
+
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_size(this).map(JsValue::from)
     }
-
-
-
 
     /// Helper function to get the size of the `Set` object.
     pub(crate) fn get_size(set: &JsValue) -> JsResult<usize> {
