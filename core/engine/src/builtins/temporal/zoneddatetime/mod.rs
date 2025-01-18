@@ -443,7 +443,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let tz_id = zdt.inner.timezone().id()?;
+        let tz_id = zdt.inner.timezone().identifier()?;
         Ok(JsString::from(tz_id).into())
     }
 
