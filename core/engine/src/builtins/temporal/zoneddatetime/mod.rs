@@ -444,7 +444,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let tz_id = zdt.inner.timezone().id()?;
+        let tz_id = zdt.inner.timezone().identifier()?;
         Ok(JsString::from(tz_id).into())
     }
 
@@ -960,7 +960,7 @@ impl ZonedDateTime {
             get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
         // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
         let display_timezone =
-            get_option::<DisplayTimeZone>(&options, js_string!("offset"), context)?
+            get_option::<DisplayTimeZone>(&options, js_string!("timeZoneName"), context)?
                 .unwrap_or(DisplayTimeZone::Auto);
 
         let options = ToStringRoundingOptions {

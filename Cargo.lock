@@ -2287,8 +2287,7 @@ checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
 [[package]]
 name = "ixdtf"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb6cd1080e64f68b07c577e3c687f4a894b3d1bd6093cb36b55c7bd07675aa3a"
+source = "git+https://github.com/unicode-org/icu4x.git?rev=3d187da4d3f05b7e37603c4be3f2c1ce45100e03#3d187da4d3f05b7e37603c4be3f2c1ce45100e03"
 dependencies = [
  "displaydoc",
  "utf8_iter",
@@ -3552,7 +3551,7 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=53fc1fc11f039574000d3d22a5d06d75836a4494#53fc1fc11f039574000d3d22a5d06d75836a4494"
+source = "git+https://github.com/boa-dev/temporal.git?rev=c61468264e27bed14bd7717f2153a7178e2dfe5f#c61468264e27bed14bd7717f2153a7178e2dfe5f"
 dependencies = [
  "combine",
  "iana-time-zone",
