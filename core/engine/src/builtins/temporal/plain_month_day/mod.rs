@@ -195,8 +195,9 @@ impl PlainMonthDay {
 }
 
 // ==== `Temporal.PlainMonthDay` Methods ====
+
 impl PlainMonthDay {
-    /// 10.3.8 Temporal.PlainMonthDay.prototype.toString ( [ options ] )
+    /// 10.3.8 `Temporal.PlainMonthDay.prototype.toString ( [ options ] )`
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
         // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
