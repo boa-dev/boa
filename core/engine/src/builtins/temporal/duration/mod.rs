@@ -23,7 +23,10 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions},
+    options::{
+        RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit,
+        ToStringRoundingOptions,
+    },
     partial::PartialDuration,
     Duration as InnerDuration,
 };
@@ -811,7 +814,11 @@ impl Duration {
     }
 
     /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
-    pub(crate) fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn to_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let duration = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -829,7 +836,7 @@ impl Duration {
         let result = duration.inner.to_temporal_string(ToStringRoundingOptions {
             precision,
             smallest_unit,
-            rounding_mode
+            rounding_mode,
         })?;
 
         Ok(JsString::from(result).into())
@@ -844,7 +851,9 @@ impl Duration {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
             })?;
 
-        let result = duration.inner.to_temporal_string(ToStringRoundingOptions::default())?;
+        let result = duration
+            .inner
+            .to_temporal_string(ToStringRoundingOptions::default())?;
 
         Ok(JsString::from(result).into())
     }
