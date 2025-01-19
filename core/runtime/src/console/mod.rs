@@ -11,6 +11,7 @@
 //! [spec]: https://console.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Console
 
+mod table;
 #[cfg(test)]
 mod tests;
 
@@ -348,7 +349,7 @@ impl Console {
         .function(
             console_method(Self::table, state.clone(), logger.clone()),
             js_string!("table"),
-            0
+            0,
         )
         .function(
             console_method_mut(Self::count, state.clone(), logger.clone()),
@@ -560,7 +561,11 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        logger.log(formatter(args, context)?, &console.state, context)?;
+        // logger.log(formatter(args, context)?, &console.state, context)?;
+
+
+        table::table_formatter(args, context, console, logger);
+        // table::table(args, logger, context);
         Ok(JsValue::undefined())
     }
 
