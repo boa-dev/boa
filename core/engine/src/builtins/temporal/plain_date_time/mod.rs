@@ -27,7 +27,9 @@ use temporal_rs::{
     options::{
         ArithmeticOverflow, DisplayCalendar, RoundingIncrement, RoundingOptions,
         TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
-    }, partial::PartialDateTime, Calendar, PlainDateTime as InnerDateTime, PlainTime
+    },
+    partial::PartialDateTime,
+    Calendar, PlainDateTime as InnerDateTime, PlainTime,
 };
 
 use super::{

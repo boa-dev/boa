@@ -1,4 +1,3 @@
-
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -12,8 +11,8 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::{IntoOrUndefined, PreferredType},
-    Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString,
-    JsSymbol, JsValue, JsVariant,
+    Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -404,7 +403,6 @@ impl BuiltInConstructor for ZonedDateTime {
             .map(|s| Calendar::from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
-
 
         let inner = ZonedDateTimeInner::try_new(epoch_nanos.to_i128(), calendar, timezone)?;
 

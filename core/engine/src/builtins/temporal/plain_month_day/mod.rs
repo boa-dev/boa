@@ -19,7 +19,9 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    options::{ArithmeticOverflow, DisplayCalendar}, partial::PartialDate, Calendar, PlainMonthDay as InnerMonthDay, TinyAsciiStr
+    options::{ArithmeticOverflow, DisplayCalendar},
+    partial::PartialDate,
+    Calendar, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
