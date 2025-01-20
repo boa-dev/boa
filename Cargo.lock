@@ -3551,7 +3551,7 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=c61468264e27bed14bd7717f2153a7178e2dfe5f#c61468264e27bed14bd7717f2153a7178e2dfe5f"
+source = "git+https://github.com/boa-dev/temporal.git?rev=cb10eecbd68a5249f5f60f08ba9e09d2a24040a9#cb10eecbd68a5249f5f60f08ba9e09d2a24040a9"
 dependencies = [
  "combine",
  "iana-time-zone",

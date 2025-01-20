@@ -22,7 +22,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    PlainDate as InnerDate, TinyAsciiStr,
+    Calendar, PlainDate as InnerDate, TinyAsciiStr,
 };
 
 use super::{
@@ -258,7 +258,17 @@ impl BuiltInConstructor for PlainDate {
             .get_or_undefined(2)
             .to_finitef64(context)?
             .as_integer_with_truncation::<u8>();
-        let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(3))?;
+        let calendar_slot = args
+            .get_or_undefined(3)
+            .map(|s| {
+                s.as_string()
+                    .map(JsString::to_std_string_lossy)
+                    .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
+            })
+            .transpose()?
+            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .transpose()?
+            .unwrap_or_default();
 
         let inner = InnerDate::try_new(year, month, day, calendar_slot)?;
 

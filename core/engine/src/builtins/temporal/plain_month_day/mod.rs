@@ -21,7 +21,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    PlainMonthDay as InnerMonthDay, TinyAsciiStr,
+    Calendar, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
@@ -134,7 +134,18 @@ impl BuiltInConstructor for PlainMonthDay {
             .to_finitef64(context)?
             .as_integer_with_truncation::<u8>();
 
-        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
+        let calendar = args
+            .get_or_undefined(2)
+            .map(|s| {
+                s.as_string()
+                    .map(JsString::to_std_string_lossy)
+                    .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
+            })
+            .transpose()?
+            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .transpose()?
+            .unwrap_or_default();
+
         let inner = InnerMonthDay::new_with_overflow(
             m,
             d,

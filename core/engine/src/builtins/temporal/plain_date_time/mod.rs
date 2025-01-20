@@ -29,7 +29,7 @@ use temporal_rs::{
         TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
     partial::PartialDateTime,
-    PlainDateTime as InnerDateTime, PlainTime,
+    Calendar, PlainDateTime as InnerDateTime, PlainTime,
 };
 
 use super::{
@@ -370,7 +370,17 @@ impl BuiltInConstructor for PlainDateTime {
                 Ok(finite.as_integer_with_truncation::<u16>())
             })?;
 
-        let calendar_slot = to_temporal_calendar_slot_value(args.get_or_undefined(9))?;
+        let calendar_slot = args
+            .get_or_undefined(9)
+            .map(|s| {
+                s.as_string()
+                    .map(JsString::to_std_string_lossy)
+                    .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
+            })
+            .transpose()?
+            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .transpose()?
+            .unwrap_or_default();
 
         let dt = InnerDateTime::new(
             iso_year,
