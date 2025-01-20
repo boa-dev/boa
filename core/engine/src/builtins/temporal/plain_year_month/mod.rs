@@ -20,8 +20,7 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    options::{ArithmeticOverflow, DisplayCalendar},
-    Duration, PlainYearMonth as InnerYearMonth,
+    options::{ArithmeticOverflow, DisplayCalendar}, Calendar, Duration, PlainYearMonth as InnerYearMonth
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, to_temporal_duration, DateTimeValues};
@@ -187,7 +186,18 @@ impl BuiltInConstructor for PlainYearMonth {
             .as_integer_with_truncation::<u8>();
 
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
-        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
+        let calendar = args
+            .get_or_undefined(2)
+            .map(|s| {
+                s.as_string()
+                    .map(JsString::to_std_string_lossy)
+                    .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
+            })
+            .transpose()?
+            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .transpose()?
+            .unwrap_or_default();
+
 
         // 6. Let ref be ? ToIntegerWithTruncation(referenceISODay).
         let ref_day = args

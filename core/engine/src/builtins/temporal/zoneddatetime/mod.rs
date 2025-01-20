@@ -1,4 +1,3 @@
-use std::str::FromStr;
 
 use crate::{
     builtins::{
@@ -13,7 +12,7 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::{IntoOrUndefined, PreferredType},
-    Context, JsArgs, JsBigInt, JsData, JsError, JsNativeError, JsObject, JsResult, JsString,
+    Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString,
     JsSymbol, JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
@@ -395,19 +394,17 @@ impl BuiltInConstructor for ZonedDateTime {
         //  9. If calendar is not a String, throw a TypeError exception.
         //  10. Set calendar to ? CanonicalizeCalendar(calendar).
         let calendar = args
-            .get(2)
-            .map(|v| {
-                if let Some(calendar_str) = v.as_string() {
-                    Calendar::from_str(&calendar_str.to_std_string_escaped())
-                        .map_err(Into::<JsError>::into)
-                } else {
-                    Err(JsNativeError::typ()
-                        .with_message("calendar must be a string.")
-                        .into())
-                }
+            .get_or_undefined(2)
+            .map(|s| {
+                s.as_string()
+                    .map(JsString::to_std_string_lossy)
+                    .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
             .transpose()?
+            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .transpose()?
             .unwrap_or_default();
+
 
         let inner = ZonedDateTimeInner::try_new(epoch_nanos.to_i128(), calendar, timezone)?;
 
