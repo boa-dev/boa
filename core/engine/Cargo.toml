@@ -76,6 +76,7 @@ boa_ast.workspace = true
 boa_parser.workspace = true
 boa_string.workspace = true
 cow-utils.workspace = true
+futures-lite.workspace = true
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand.workspace = true
@@ -139,7 +140,6 @@ criterion.workspace = true
 float-cmp.workspace = true
 indoc.workspace = true
 textwrap.workspace = true
-futures-lite.workspace = true
 test-case.workspace = true
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]

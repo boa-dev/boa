@@ -3,6 +3,7 @@
 //! [`Job`] is an ECMAScript [Job], or a closure that runs an `ECMAScript` computation when
 //! there's no other computation running. The module defines several type of jobs:
 //! - [`PromiseJob`] for Promise related jobs.
+//! - [`TimeoutJob`] for jobs that run after a certain amount of time.
 //! - [`NativeAsyncJob`] for jobs that support [`Future`].
 //! - [`NativeJob`] for generic jobs that aren't related to Promises.
 //!
@@ -15,7 +16,7 @@
 //! - [`IdleJobExecutor`], which is an executor that does nothing, and the default executor if no executor is
 //!   provided. Useful for hosts that want to disable promises.
 //! - [`SimpleJobExecutor`], which is a simple FIFO queue that runs all jobs to completion, bailing
-//!   on the first error encountered.
+//!   on the first error encountered. This simple executor will block on any async job queued.
 //!
 //! ## [`Trace`]?
 //!
@@ -29,14 +30,14 @@
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 //! [`Gc`]: boa_gc::Gc
 
-use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
-
 use crate::{
     object::{JsFunction, NativeObject},
     realm::Realm,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use futures_lite::FutureExt;
+use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 /// An ECMAScript [Job Abstract Closure].
 ///
@@ -112,6 +113,87 @@ impl NativeJob {
         } else {
             (self.f)(context)
         }
+    }
+}
+
+/// An ECMAScript [Job] that runs after a certain amount of time.
+///
+/// This represents the [`HostEnqueueTimeoutJob`] operation from the specification.
+///
+/// [HostEnqueueTimeoutJob]: https://tc39.es/ecma262/#sec-hostenqueuetimeoutjob
+pub struct TimeoutJob {
+    /// The instant this job should be run, in msec since epoch. This will be compared
+    /// to the host's [`HostHooks::utc_now`] method.
+    timeout: i64,
+    /// The job to run after the time has passed.
+    job: NativeJob,
+}
+
+impl Debug for TimeoutJob {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TimeoutJob")
+            .field("timeout", &self.timeout)
+            .field("job", &self.job)
+            .finish()
+    }
+}
+
+impl TimeoutJob {
+    /// Create a new `TimeoutJob` with a timeout and a job.
+    #[must_use]
+    pub fn new_unchecked(job: NativeJob, timeout: i64) -> Self {
+        Self { timeout, job }
+    }
+
+    /// Create a new `TimeoutJob` with a job and a timeout in milliseconds in the future.
+    #[must_use]
+    pub fn delayed(job: NativeJob, delay: u64, context: &mut Context) -> Self {
+        Self::new_unchecked(job, context.host_hooks().utc_now() + (delay as i64))
+    }
+
+    /// Creates a new `TimeoutJob` from a closure and a timeout as [`std::time::SystemTime`].
+    #[must_use]
+    pub fn new<F>(f: F, timeout: std::time::SystemTime) -> Self
+    where
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self::new_unchecked(
+            NativeJob::new(f),
+            timeout
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("Invalid SystemTime")
+                .as_millis() as i64,
+        )
+    }
+
+    /// Creates a new `TimeoutJob` from a closure, a timeout, and an execution realm.
+    #[must_use]
+    pub fn with_realm<F>(
+        f: F,
+        timeout: std::time::SystemTime,
+        realm: Realm,
+        context: &mut Context,
+    ) -> Self
+    where
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self::new_unchecked(
+            NativeJob::with_realm(f, realm, context),
+            timeout
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("Invalid SystemTime")
+                .as_millis() as i64,
+        )
+    }
+
+    /// Calls the native job with the specified [`Context`].
+    ///
+    /// # Note
+    ///
+    /// If the native job has an execution realm defined, this sets the running execution
+    /// context to the realm's before calling the inner closure, and resets it after execution.
+    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+        self.job.call(context)
     }
 }
 
@@ -357,6 +439,10 @@ pub enum Job {
     ///
     /// See [`NativeAsyncJob`] for more information.
     AsyncJob(NativeAsyncJob),
+    /// A generic job that is to be executed after a number of milliseconds.
+    ///
+    /// See [`TimeoutJob`] for more information.
+    TimeoutJob(TimeoutJob),
 }
 
 impl From<NativeAsyncJob> for Job {
@@ -368,6 +454,12 @@ impl From<NativeAsyncJob> for Job {
 impl From<PromiseJob> for Job {
     fn from(promise_job: PromiseJob) -> Self {
         Job::PromiseJob(promise_job)
+    }
+}
+
+impl From<TimeoutJob> for Job {
+    fn from(job: TimeoutJob) -> Self {
+        Job::TimeoutJob(job)
     }
 }
 
@@ -442,6 +534,7 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    timeout_jobs: RefCell<Vec<TimeoutJob>>,
 }
 
 impl Debug for SimpleJobExecutor {
@@ -463,37 +556,57 @@ impl JobExecutor for SimpleJobExecutor {
         match job {
             Job::PromiseJob(p) => self.promise_jobs.borrow_mut().push_back(p),
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
+            Job::TimeoutJob(t) => self.timeout_jobs.borrow_mut().push(t),
         }
     }
 
     fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
-        let context = RefCell::new(context);
-        loop {
-            let mut next_job = self.async_jobs.borrow_mut().pop_front();
-            while let Some(job) = next_job {
-                if let Err(err) = pollster::block_on(job.call(&context)) {
-                    self.async_jobs.borrow_mut().clear();
-                    self.promise_jobs.borrow_mut().clear();
-                    return Err(err);
-                };
-                next_job = self.async_jobs.borrow_mut().pop_front();
-            }
+        let now = context.host_hooks().utc_now();
 
-            // Yeah, I have no idea why Rust extends the lifetime of a `RefCell` that should be immediately
-            // dropped after calling `pop_front`.
-            let mut next_job = self.promise_jobs.borrow_mut().pop_front();
-            while let Some(job) = next_job {
-                if let Err(err) = job.call(&mut context.borrow_mut()) {
-                    self.async_jobs.borrow_mut().clear();
-                    self.promise_jobs.borrow_mut().clear();
-                    return Err(err);
-                };
-                next_job = self.promise_jobs.borrow_mut().pop_front();
-            }
+        // Execute timeout jobs first. We do not execute them in a loop.
+        self.timeout_jobs.borrow_mut().sort_by_key(|a| a.timeout);
 
-            if self.async_jobs.borrow().is_empty() && self.promise_jobs.borrow().is_empty() {
-                return Ok(());
+        let i = self
+            .timeout_jobs
+            .borrow()
+            .iter()
+            .position(|job| job.timeout <= now);
+        if let Some(i) = i {
+            let jobs_to_run: Vec<_> = self.timeout_jobs.borrow_mut().drain(..=i).collect();
+            for job in jobs_to_run {
+                job.call(context)?;
             }
         }
+
+        let context = RefCell::new(context);
+        loop {
+            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+                break;
+            }
+
+            // Block on ALL async jobs running in the queue. We don't block on a single
+            // job, but loop through them in context.
+            futures_lite::future::block_on(async {
+                // Fold all futures into a single future.
+                self.async_jobs
+                    .borrow_mut()
+                    .drain(..)
+                    .fold(async { Ok(()) }.boxed_local(), |acc, job| {
+                        let context = &context;
+                        async move {
+                            futures_lite::future::try_zip(acc, job.call(context)).await?;
+                            Ok(())
+                        }
+                        .boxed_local()
+                    })
+                    .await
+            })?;
+
+            while let Some(job) = self.promise_jobs.borrow_mut().pop_front() {
+                job.call(&mut context.borrow_mut())?;
+            }
+        }
+
+        Ok(())
     }
 }

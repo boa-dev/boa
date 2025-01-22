@@ -176,7 +176,7 @@ pub trait HostHooks {
         None
     }
 
-    /// Gets the current UTC time of the host.
+    /// Gets the current UTC time of the host, in milliseconds since epoch.
     ///
     /// Defaults to using [`OffsetDateTime::now_utc`] on all targets,
     /// which can cause panics if the target doesn't support [`SystemTime::now`][time].
