@@ -111,7 +111,7 @@ pub struct Context {
     #[cfg(feature = "intl")]
     intl_provider: icu::IntlProvider,
 
-    host_hooks: &'static dyn HostHooks,
+    host_hooks: Rc<dyn HostHooks>,
 
     job_executor: Rc<dyn JobExecutor>,
 
@@ -530,7 +530,7 @@ impl Context {
 
     /// Create a new Realm with the default global bindings.
     pub fn create_realm(&mut self) -> JsResult<Realm> {
-        let realm = Realm::create(self.host_hooks, &self.root_shape)?;
+        let realm = Realm::create(self.host_hooks.as_ref(), &self.root_shape)?;
 
         let old_realm = self.enter_realm(realm);
 
@@ -549,8 +549,8 @@ impl Context {
     /// Gets the host hooks.
     #[inline]
     #[must_use]
-    pub fn host_hooks(&self) -> &'static dyn HostHooks {
-        self.host_hooks
+    pub fn host_hooks(&self) -> Rc<dyn HostHooks> {
+        self.host_hooks.clone()
     }
 
     /// Gets the job executor.
@@ -887,7 +887,7 @@ impl Context {
 #[derive(Default)]
 pub struct ContextBuilder {
     interner: Option<Interner>,
-    host_hooks: Option<&'static dyn HostHooks>,
+    host_hooks: Option<Rc<dyn HostHooks>>,
     job_executor: Option<Rc<dyn JobExecutor>>,
     module_loader: Option<Rc<dyn ModuleLoader>>,
     can_block: bool,
@@ -1021,7 +1021,7 @@ impl ContextBuilder {
     ///
     /// [`Host Hooks`]: https://tc39.es/ecma262/#sec-host-hooks-summary
     #[must_use]
-    pub fn host_hooks<H: HostHooks + 'static>(mut self, host_hooks: &'static H) -> Self {
+    pub fn host_hooks<H: HostHooks + 'static>(mut self, host_hooks: Rc<H>) -> Self {
         self.host_hooks = Some(host_hooks);
         self
     }
@@ -1088,8 +1088,8 @@ impl ContextBuilder {
 
         let root_shape = RootShape::default();
 
-        let host_hooks = self.host_hooks.unwrap_or(&DefaultHooks);
-        let realm = Realm::create(host_hooks, &root_shape)?;
+        let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
+        let realm = Realm::create(host_hooks.as_ref(), &root_shape)?;
         let vm = Vm::new(realm);
 
         let module_loader: Rc<dyn ModuleLoader> = if let Some(loader) = self.module_loader {
