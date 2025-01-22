@@ -1024,7 +1024,7 @@ pub(crate) fn to_temporal_partial_duration(
         .map(|v| {
             let finite = v.to_finitef64(context)?;
             let integral_int = finite
-                .as_integer_if_integral::<i64>()
+                .as_integer_if_integral::<i128>()
                 .map_err(JsError::from)?;
             integral_int.try_into().map_err(JsError::from)
         })
@@ -1076,7 +1076,7 @@ pub(crate) fn to_temporal_partial_duration(
         .map(|v| {
             let finite = v.to_finitef64(context)?;
             let integral_int = finite
-                .as_integer_if_integral::<i64>()
+                .as_integer_if_integral::<i128>()
                 .map_err(JsError::from)?;
             integral_int.try_into().map_err(JsError::from)
         })
