@@ -36,6 +36,7 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
+use std::borrow::Cow;
 use std::fmt::Write;
 use std::{
     alloc::{alloc, dealloc, Layout},
@@ -982,10 +983,21 @@ impl From<&[JsString]> for JsString {
         )
     }
 }
+
 impl From<String> for JsString {
     #[inline]
     fn from(s: String) -> Self {
         Self::from(s.as_str())
+    }
+}
+
+impl<'a> From<Cow<'a, str>> for JsString {
+    #[inline]
+    fn from(s: Cow<'a, str>) -> Self {
+        match s {
+            Cow::Borrowed(s) => s.into(),
+            Cow::Owned(s) => s.into(),
+        }
     }
 }
 

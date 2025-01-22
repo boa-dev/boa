@@ -14,7 +14,7 @@ impl PopIntoLocal {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
     fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
-        context.vm.frame_mut().local_binings_initialized[dst as usize] = true;
+        context.vm.frame_mut().local_bindings_initialized[dst as usize] = true;
         let value = context.vm.pop();
 
         let rp = context.vm.frame().rp;
@@ -55,7 +55,7 @@ impl PushFromLocal {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
     fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
-        if !context.vm.frame().local_binings_initialized[dst as usize] {
+        if !context.vm.frame().local_bindings_initialized[dst as usize] {
             return Err(JsNativeError::reference()
                 .with_message("access to uninitialized binding")
                 .into());

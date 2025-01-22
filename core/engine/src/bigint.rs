@@ -80,6 +80,15 @@ impl JsBigInt {
         self.inner.to_f64().unwrap_or(f64::INFINITY)
     }
 
+    /// Converts the `BigInt` to a i128 type.
+    ///
+    /// Returns `i128::MAX` if the `BigInt` is too big.
+    #[inline]
+    #[must_use]
+    pub fn to_i128(&self) -> i128 {
+        self.inner.to_i128().unwrap_or(i128::MAX)
+    }
+
     /// Converts a string to a `BigInt` with the specified radix.
     #[inline]
     #[must_use]

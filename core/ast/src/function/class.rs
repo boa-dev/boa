@@ -389,7 +389,7 @@ pub enum ClassElement {
 
     /// A private static field definition, only accessible from static methods and fields inside the
     /// class declaration.
-    PrivateStaticFieldDefinition(PrivateName, Option<Expression>),
+    PrivateStaticFieldDefinition(PrivateFieldDefinition),
 
     /// A static block, where a class can have initialization logic for its static fields.
     StaticBlock(StaticBlockBody),
@@ -406,7 +406,7 @@ pub enum ClassElement {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ClassFieldDefinition {
     pub(crate) name: PropertyName,
-    pub(crate) field: Option<Expression>,
+    pub(crate) initializer: Option<Expression>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
@@ -416,10 +416,10 @@ impl ClassFieldDefinition {
     /// Creates a new class field definition.
     #[inline]
     #[must_use]
-    pub fn new(name: PropertyName, field: Option<Expression>) -> Self {
+    pub fn new(name: PropertyName, initializer: Option<Expression>) -> Self {
         Self {
             name,
-            field,
+            initializer,
             scope: Scope::default(),
         }
     }
@@ -431,11 +431,11 @@ impl ClassFieldDefinition {
         &self.name
     }
 
-    /// Returns the field of the class field definition.
+    /// Returns the initializer of the class field definition.
     #[inline]
     #[must_use]
-    pub const fn field(&self) -> Option<&Expression> {
-        self.field.as_ref()
+    pub const fn initializer(&self) -> Option<&Expression> {
+        self.initializer.as_ref()
     }
 
     /// Returns the scope of the class field definition.
@@ -457,7 +457,7 @@ impl ClassFieldDefinition {
 #[derive(Clone, Debug, PartialEq)]
 pub struct PrivateFieldDefinition {
     pub(crate) name: PrivateName,
-    pub(crate) field: Option<Expression>,
+    pub(crate) initializer: Option<Expression>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
@@ -467,10 +467,10 @@ impl PrivateFieldDefinition {
     /// Creates a new private field definition.
     #[inline]
     #[must_use]
-    pub fn new(name: PrivateName, field: Option<Expression>) -> Self {
+    pub fn new(name: PrivateName, initializer: Option<Expression>) -> Self {
         Self {
             name,
-            field,
+            initializer,
             scope: Scope::default(),
         }
     }
@@ -482,11 +482,11 @@ impl PrivateFieldDefinition {
         &self.name
     }
 
-    /// Returns the field of the private field definition.
+    /// Returns the initializer of the private field definition.
     #[inline]
     #[must_use]
-    pub const fn field(&self) -> Option<&Expression> {
-        self.field.as_ref()
+    pub const fn initializer(&self) -> Option<&Expression> {
+        self.initializer.as_ref()
     }
 
     /// Returns the scope of the private field definition.
@@ -502,7 +502,7 @@ impl ToIndentedString for ClassElement {
         let indentation = "    ".repeat(indent_n + 1);
         match self {
             Self::MethodDefinition(m) => m.to_indented_string(interner, indent_n),
-            Self::FieldDefinition(field) => match &field.field {
+            Self::FieldDefinition(field) => match &field.initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}{} = {};\n",
@@ -517,7 +517,7 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::StaticFieldDefinition(field) => match &field.field {
+            Self::StaticFieldDefinition(field) => match &field.initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}static {} = {};\n",
@@ -532,8 +532,9 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. }) => match field
-            {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            }) => match initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}#{} = {};\n",
@@ -548,7 +549,11 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::PrivateStaticFieldDefinition(name, field) => match field {
+            Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => match initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}static #{} = {};\n",
@@ -593,16 +598,22 @@ impl VisitWith for ClassElement {
             }
             Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
                 visitor.visit_property_name(&field.name)?;
-                if let Some(expr) = &field.field {
+                if let Some(expr) = &field.initializer {
                     visitor.visit_expression(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
-            | Self::PrivateStaticFieldDefinition(name, field) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            })
+            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => {
                 visitor.visit_private_name(name)?;
-                if let Some(expr) = field {
+                if let Some(expr) = initializer {
                     visitor.visit_expression(expr)
                 } else {
                     ControlFlow::Continue(())
@@ -631,16 +642,22 @@ impl VisitWith for ClassElement {
             }
             Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
                 visitor.visit_property_name_mut(&mut field.name)?;
-                if let Some(expr) = &mut field.field {
+                if let Some(expr) = &mut field.initializer {
                     visitor.visit_expression_mut(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
-            | Self::PrivateStaticFieldDefinition(name, field) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            })
+            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => {
                 visitor.visit_private_name_mut(name)?;
-                if let Some(expr) = field {
+                if let Some(expr) = initializer {
                     visitor.visit_expression_mut(expr)
                 } else {
                     ControlFlow::Continue(())

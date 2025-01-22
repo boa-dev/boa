@@ -12,9 +12,13 @@ use crate::{
     builtins::options::{get_option, OptionType, ParsableOptionType},
     js_string, Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
 };
-use temporal_rs::options::{
-    ArithmeticOverflow, DifferenceSettings, Disambiguation, DisplayCalendar, DurationOverflow,
-    OffsetDisambiguation, RoundingIncrement, TemporalRoundingMode, TemporalUnit,
+use temporal_rs::{
+    options::{
+        ArithmeticOverflow, DifferenceSettings, Disambiguation, DisplayCalendar, DisplayOffset,
+        DisplayTimeZone, DurationOverflow, OffsetDisambiguation, RoundingIncrement,
+        TemporalRoundingMode, TemporalUnit,
+    },
+    parsers::Precision,
 };
 
 // TODO: Expand docs on the below options.
@@ -60,6 +64,43 @@ pub(crate) fn get_difference_settings(
     settings.smallest_unit =
         get_option::<TemporalUnit>(options, js_string!("smallestUnit"), context)?;
     Ok(settings)
+}
+
+pub(crate) fn get_digits_option(options: &JsObject, context: &mut Context) -> JsResult<Precision> {
+    // 1. Let digitsValue be ? Get(options, "fractionalSecondDigits").
+    let digits_value = options.get(js_string!("fractionalSecondDigits"), context)?;
+    // 2. If digitsValue is undefined, return auto.
+    if digits_value.is_undefined() {
+        return Ok(Precision::Auto);
+    }
+    // 3. If digitsValue is not a Number, then
+    let Some(digits_number) = digits_value.as_number() else {
+        // a. If ? ToString(digitsValue) is not "auto", throw a RangeError exception.
+        if digits_value.to_string(context)? != js_string!("auto") {
+            return Err(JsNativeError::range()
+                .with_message("fractionalSecondDigits must be a digit or 'auto'")
+                .into());
+        }
+        // b. Return auto.
+        return Ok(Precision::Auto);
+    };
+
+    // 4. If digitsValue is NaN, +∞𝔽, or -∞𝔽, throw a RangeError exception.
+    if !digits_number.is_finite() {
+        return Err(JsNativeError::range()
+            .with_message("fractionalSecondDigits must be a finite number")
+            .into());
+    }
+    // 5. Let digitCount be floor(ℝ(digitsValue)).
+    let digits = digits_number.floor() as i32;
+    // 6. If digitCount < 0 or digitCount > 9, throw a RangeError exception.
+    if !(0..=9).contains(&digits) {
+        return Err(JsNativeError::range()
+            .with_message("fractionalSecondDigits must be in an inclusive range of 0-9")
+            .into());
+    }
+    // 7. Return digitCount.
+    Ok(Precision::Digit(digits as u8))
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -117,6 +158,8 @@ impl ParsableOptionType for Disambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
 impl ParsableOptionType for TemporalRoundingMode {}
 impl ParsableOptionType for DisplayCalendar {}
+impl ParsableOptionType for DisplayOffset {}
+impl ParsableOptionType for DisplayTimeZone {}
 
 impl OptionType for RoundingIncrement {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
