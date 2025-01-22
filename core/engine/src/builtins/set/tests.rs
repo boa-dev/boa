@@ -225,7 +225,9 @@ fn difference_empty(){
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
             v.display().to_string() == "Set { 1, 3, 5, 7, 9 }"
         }),
-
+        TestAction::assert_with_op("setA.difference(setB)", |v, _| {
+            v.display().to_string() == "Set {  }"
+        }),
     ]);
 }
 

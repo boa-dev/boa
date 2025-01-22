@@ -18,6 +18,7 @@ mod tests;
 pub mod ordered_set;
 
 
+
 use self::ordered_set::OrderedSet;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -33,9 +34,8 @@ use crate::{
 };
 use boa_profiler::Profiler;
 use num_traits::Zero;
-
 pub(crate) use set_iterator::SetIterator;
-
+use crate::property::PropertyKey;
 use super::iterable::IteratorHint;
 
 #[derive(Debug, Clone)]
@@ -60,18 +60,6 @@ impl IntrinsicObject for Set {
             .name(js_string!("values"))
             .build();
 
-        let difference = BuiltInBuilder::callable(realm, Self::difference)
-            .name(js_string!("difference"))
-            .build();
-
-        let intersection = BuiltInBuilder::callable(realm, Self::intersection)
-            .name(js_string!("intersection"))
-            .build();
-
-        let is_dis_joint_from = BuiltInBuilder::callable(realm, Self::is_dis_joint_from)
-            .name(js_string!("isDisjointFrom"))
-            .build();
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_accessor(
                 JsSymbol::species(),
@@ -85,6 +73,9 @@ impl IntrinsicObject for Set {
             .method(Self::entries, js_string!("entries"), 0)
             .method(Self::for_each, js_string!("forEach"), 1)
             .method(Self::has, js_string!("has"), 1)
+            .method(Self::difference, js_string!("difference"), 1)
+            .method(Self::intersection, js_string!("intersection"), 1)
+            .method(Self::is_dis_joint_from, js_string!("isDisjointFrom"), 0)
             .property(
                 js_string!("keys"),
                 values_function.clone(),
@@ -99,21 +90,6 @@ impl IntrinsicObject for Set {
             .property(
                 js_string!("values"),
                 values_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                js_string!("difference"),
-                difference.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                js_string!("intersection"),
-                intersection.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                js_string!("isDisjointFrom"),
-                is_dis_joint_from.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
@@ -529,55 +505,93 @@ impl Set {
     ///  - [MDN documentation][mdn]
     /// 
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.difference
-    /// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
 
     pub(crate) fn difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-
-        let Some(set_data) = this
+        let Some(set) = this
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.difference called on incompatible receiver")
+                .with_message(
+                    "Method Set.prototype.difference called on incompatible receiver"
+                )
                 .into());
         };
-
-        // 3. Let other be the first argument.
+        // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
-        let Some(other_set) = other
-            .as_object()
+        let Some(other_set) = other.as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.difference called on incompatible receiver")
+                .with_message(
+                    "Method Set.prototype.difference called on incompatible receiver"
+                )
                 .into());
         };
-
-        // 4. Let otherSet be a new empty Set.
-        let mut result_set = set_data.clone();
-
-
-        let (iter_set,
-            check_set) = if set_data.len() <= other_set.len() {
-            (other_set.iter(), set_data)
+        // 4. Let resultSetData be a copy of O.[[SetData]].
+        let mut result_set = set.clone();
+        // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
+        if Self::get_size_full(this)? <= other_set.len(){
+            // a. Let thisSize be the number of elements in O.[[SetData]].
+            // b. Let index be 0.
+            let mut index = 0;
+            // c. Repeat, while index < thisSize
+            while index <  Self::get_size_full(this)? {
+                // i. let resultSetData[index]
+                if let Some(e) =  result_set.get_index(index) {
+                    if other_set.contains(&e){
+                        result_set.delete(&e.clone());
+                    }else {
+                        index +=1;
+                    }
+                }else {
+                    index +=1;
+                }
+             }
         } else {
-            (set_data.iter(), other_set)
-        };
+            // a. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+            let Some(keys_iter) = other
+                .as_object()
+                .and_then(|o| o.get(PropertyKey::String(JsString::from("keys")), context).ok())
+                .and_then(|keys| keys.as_function())
+                .and_then(|keys_fn| keys_fn.call(&other.clone().into(), &[], context).ok())
+                .and_then(|iter| iter.as_function())
+            else {
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot get iterator from method `keys`")
+                    .into());
+            };
 
-        for value in iter_set {
-            if check_set.contains(value) {
-                result_set.delete(&value.clone());
+            loop {
+                // i. Let next be ? IteratorStep(keysIter).
+                let next = keys_iter.get(PropertyKey::String(JsString::from("next")), context).ok()
+                    .and_then(|next_fn| next_fn.as_function())
+                    .and_then(|next_fn| next_fn.call(&keys_iter.clone().into(), &[], context).ok());
+
+                // If next is undefined, break the loop
+                if next.is_none() || next == Some(JsValue::undefined()) {
+                    break;
+                }
+
+                // ii. Let nextValue be ? IteratorValue(next).
+                let next_value = next
+                    .and_then(|n| n.as_function())
+                    .and_then(|obj| obj.get(PropertyKey::String(JsString::from("value")), context).ok());
+
+                // iii. If resultSetData contains nextValue, remove it.
+                if let Some(value) = next_value {
+                    if result_set.contains(&value) {
+                        result_set.delete(&value);
+                    }
+                }
             }
+
+
         }
 
-        if result_set.is_empty(){
-            return Ok(this.clone());
-        }
-
-
-        // 10. Return a new Set created from resultSet.
         Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
