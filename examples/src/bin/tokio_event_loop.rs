@@ -7,6 +7,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use boa_engine::job::TimeoutJob;
 use boa_engine::{
     context::ContextBuilder,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
@@ -36,6 +37,7 @@ fn main() -> JsResult<()> {
 struct Queue {
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
+    timeout_jobs: RefCell<Vec<TimeoutJob>>,
 }
 
 impl Queue {
@@ -43,10 +45,33 @@ impl Queue {
         Self {
             async_jobs: RefCell::default(),
             promise_jobs: RefCell::default(),
+            timeout_jobs: RefCell::default(),
+        }
+    }
+
+    fn drain_timeout_jobs(&self, context: &mut Context) {
+        let now = context.host_hooks().utc_now();
+        let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+        // Execute timeout jobs first. We do not execute them in a loop.
+        timeouts_borrow.sort_by_key(|a| a.timeout());
+
+        let i = timeouts_borrow.iter().position(|job| job.timeout() <= now);
+        if let Some(i) = i {
+            let jobs_to_run: Vec<_> = timeouts_borrow.drain(..=i).collect();
+            drop(timeouts_borrow);
+
+            for job in jobs_to_run {
+                if let Err(e) = job.call(context) {
+                    eprintln!("Uncaught {e}");
+                }
+            }
         }
     }
 
     fn drain_jobs(&self, context: &mut Context) {
+        // Run the timeout jobs first.
+        self.drain_timeout_jobs(context);
+
         let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
         for job in jobs {
             if let Err(e) = job.call(context) {
@@ -61,6 +86,7 @@ impl JobExecutor for Queue {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            Job::TimeoutJob(job) => self.timeout_jobs.borrow_mut().push(job),
             _ => panic!("unsupported job type"),
         }
     }

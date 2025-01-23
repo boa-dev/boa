@@ -95,7 +95,6 @@ sptr.workspace = true
 thiserror.workspace = true
 dashmap.workspace = true
 num_enum.workspace = true
-pollster.workspace = true
 thin-vec.workspace = true
 itertools = { workspace = true, default-features = false }
 icu_normalizer = { workspace = true, features = ["compiled_data"] }

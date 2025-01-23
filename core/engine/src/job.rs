@@ -36,7 +36,6 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use futures_lite::FutureExt;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 /// An ECMAScript [Job Abstract Closure].
@@ -194,6 +193,13 @@ impl TimeoutJob {
     /// context to the realm's before calling the inner closure, and resets it after execution.
     pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
         self.job.call(context)
+    }
+
+    /// Returns the timeout value in milliseconds since epoch.
+    #[inline]
+    #[must_use]
+    pub fn timeout(&self) -> i64 {
+        self.timeout
     }
 }
 
@@ -563,18 +569,19 @@ impl JobExecutor for SimpleJobExecutor {
     fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
         let now = context.host_hooks().utc_now();
 
-        // Execute timeout jobs first. We do not execute them in a loop.
-        self.timeout_jobs.borrow_mut().sort_by_key(|a| a.timeout);
+        {
+            let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+            // Execute timeout jobs first. We do not execute them in a loop.
+            timeouts_borrow.sort_by_key(|a| a.timeout);
 
-        let i = self
-            .timeout_jobs
-            .borrow()
-            .iter()
-            .position(|job| job.timeout <= now);
-        if let Some(i) = i {
-            let jobs_to_run: Vec<_> = self.timeout_jobs.borrow_mut().drain(..=i).collect();
-            for job in jobs_to_run {
-                job.call(context)?;
+            let i = timeouts_borrow.iter().position(|job| job.timeout <= now);
+            if let Some(i) = i {
+                let jobs_to_run: Vec<_> = timeouts_borrow.drain(..=i).collect();
+                drop(timeouts_borrow);
+
+                for job in jobs_to_run {
+                    job.call(context)?;
+                }
             }
         }
 
@@ -584,26 +591,24 @@ impl JobExecutor for SimpleJobExecutor {
                 break;
             }
 
-            // Block on ALL async jobs running in the queue. We don't block on a single
-            // job, but loop through them in context.
-            futures_lite::future::block_on(async {
-                // Fold all futures into a single future.
-                self.async_jobs
-                    .borrow_mut()
-                    .drain(..)
-                    .fold(async { Ok(()) }.boxed_local(), |acc, job| {
-                        let context = &context;
-                        async move {
-                            futures_lite::future::try_zip(acc, job.call(context)).await?;
-                            Ok(())
-                        }
-                        .boxed_local()
-                    })
-                    .await
-            })?;
-
-            while let Some(job) = self.promise_jobs.borrow_mut().pop_front() {
-                job.call(&mut context.borrow_mut())?;
+            // Block on each async jobs running in the queue.
+            let mut next_job = self.async_jobs.borrow_mut().pop_front();
+            while let Some(job) = next_job {
+                if let Err(err) = futures_lite::future::block_on(job.call(&context)) {
+                    self.async_jobs.borrow_mut().clear();
+                    self.promise_jobs.borrow_mut().clear();
+                    return Err(err);
+                };
+                next_job = self.async_jobs.borrow_mut().pop_front();
+            }
+            let mut next_job = self.promise_jobs.borrow_mut().pop_front();
+            while let Some(job) = next_job {
+                if let Err(err) = job.call(&mut context.borrow_mut()) {
+                    self.async_jobs.borrow_mut().clear();
+                    self.promise_jobs.borrow_mut().clear();
+                    return Err(err);
+                };
+                next_job = self.promise_jobs.borrow_mut().pop_front();
             }
         }
 
