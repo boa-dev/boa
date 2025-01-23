@@ -45,6 +45,7 @@ impl Queue {
         Self {
             async_jobs: RefCell::default(),
             promise_jobs: RefCell::default(),
+            timeout_jobs: RefCell::default(),
         }
     }
 
