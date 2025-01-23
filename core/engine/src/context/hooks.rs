@@ -19,6 +19,7 @@ use time::{OffsetDateTime, UtcOffset};
 /// need to be redefined:
 ///
 /// ```
+/// use std::rc::Rc;
 /// use boa_engine::{
 ///     context::{Context, ContextBuilder, HostHooks},
 ///     realm::Realm,
@@ -42,7 +43,7 @@ use time::{OffsetDateTime, UtcOffset};
 ///     }
 /// }
 ///
-/// let context = &mut ContextBuilder::new().host_hooks(&Hooks).build().unwrap();
+/// let context = &mut ContextBuilder::new().host_hooks(Rc::new(Hooks)).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
 /// assert_eq!(
 ///     result.unwrap_err().to_string(),
