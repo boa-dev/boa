@@ -2315,9 +2315,9 @@ dependencies = [
 
 [[package]]
 name = "jiff-tzdb"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91335e575850c5c4c673b9bd467b0e025f164ca59d0564f69d0c2ee0ffad4653"
+checksum = "cf2cec2f5d266af45a071ece48b1fb89f3b00b2421ac3a5fe10285a6caaa60d3"
 
 [[package]]
 name = "js-sys"
@@ -3551,7 +3551,7 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=cb10eecbd68a5249f5f60f08ba9e09d2a24040a9#cb10eecbd68a5249f5f60f08ba9e09d2a24040a9"
+source = "git+https://github.com/boa-dev/temporal.git?rev=40e5dfbb8f04657b9dc17d994b8b934094bc11a1#40e5dfbb8f04657b9dc17d994b8b934094bc11a1"
 dependencies = [
  "combine",
  "iana-time-zone",
