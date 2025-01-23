@@ -117,12 +117,12 @@ impl NativeJob {
 
 /// An ECMAScript [Job] that runs after a certain amount of time.
 ///
-/// This represents the [`HostEnqueueTimeoutJob`] operation from the specification.
+/// This represents the [HostEnqueueTimeoutJob] operation from the specification.
 ///
 /// [HostEnqueueTimeoutJob]: https://tc39.es/ecma262/#sec-hostenqueuetimeoutjob
 pub struct TimeoutJob {
     /// The instant this job should be run, in msec since epoch. This will be compared
-    /// to the host's [`HostHooks::utc_now`] method.
+    /// to the host's [`crate::context::HostHooks::utc_now`] method.
     timeout: i64,
     /// The job to run after the time has passed.
     job: NativeJob,
