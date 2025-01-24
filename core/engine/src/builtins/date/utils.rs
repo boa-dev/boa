@@ -1,6 +1,9 @@
 use crate::{context::HostHooks, js_string, value::IntegerOrInfinity, JsStr, JsString};
 use boa_macros::js_str;
-use std::{iter::Peekable, str::Chars};
+use boa_string::JsStrVariant;
+use std::iter::Peekable;
+use std::slice::Iter;
+use std::str;
 use time::{macros::format_description, OffsetDateTime, PrimitiveDateTime};
 
 // Time-related Constants
@@ -750,8 +753,16 @@ pub(super) fn pad_six(t: u32, output: &mut [u8; 6]) -> JsStr<'_> {
 /// [spec-format]: https://tc39.es/ecma262/#sec-date-time-string-format
 pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> {
     // All characters must be ASCII so we can return early if we find a non-ASCII character.
-    let Ok(date) = date.to_std_string() else {
-        return None;
+    let owned_js_str = date.as_str();
+    let owned_string: String;
+    let date = match owned_js_str.variant() {
+        JsStrVariant::Latin1(s) =>
+        // SAFETY: Since all characters are ASCII we can safely convert this into str.
+        unsafe { str::from_utf8_unchecked(s) },
+        JsStrVariant::Utf16(s) => {
+            owned_string = String::from_utf16(s).ok()?;
+            owned_string.as_str()
+        }
     };
 
     // Date Time String Format: 'YYYY-MM-DDTHH:mm:ss.sssZ'
