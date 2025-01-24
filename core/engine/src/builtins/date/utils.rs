@@ -761,6 +761,9 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
         unsafe { str::from_utf8_unchecked(s) },
         JsStrVariant::Utf16(s) => {
             owned_string = String::from_utf16(s).ok()?;
+            if !owned_string.is_ascii() {
+                return None;
+            }
             owned_string.as_str()
         }
     };
@@ -789,7 +792,7 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
 /// [spec]: https://tc39.es/ecma262/#sec-date-time-string-format
 struct DateParser<'a> {
     hooks: &'a dyn HostHooks,
-    input: Peekable<Chars<'a>>,
+    input: Peekable<Iter<'a, u8>>,
     year: i32,
     month: u32,
     day: u32,
@@ -804,7 +807,7 @@ impl<'a> DateParser<'a> {
     fn new(s: &'a str, hooks: &'a dyn HostHooks) -> Self {
         Self {
             hooks,
-            input: s.chars().peekable(),
+            input: s.as_bytes().iter().peekable(),
             year: 0,
             month: 1,
             day: 1,
@@ -816,20 +819,37 @@ impl<'a> DateParser<'a> {
         }
     }
 
-    fn next_expect(&mut self, expect: char) -> Option<()> {
+    fn next_expect(&mut self, expect: u8) -> Option<()> {
         self.input
             .next()
-            .and_then(|c| if c == expect { Some(()) } else { None })
+            .and_then(|c| if *c == expect { Some(()) } else { None })
     }
 
+    #[allow(unused)]
     fn next_digit(&mut self) -> Option<u8> {
         self.input.next().and_then(|c| {
             if c.is_ascii_digit() {
-                Some((u32::from(c) - u32::from('0')) as u8)
+                Some(c - b'0')
             } else {
                 None
             }
         })
+    }
+
+    fn next_n_digits<const N: usize>(&mut self) -> Option<[u8; N]> {
+        if self.input.len() < N {
+            return None;
+        }
+        let mut res = [0; N];
+        for i in 0..N {
+            // SAFETY: Bound check has been done above.
+            let c = unsafe { *self.input.next().unwrap_unchecked() };
+            if !c.is_ascii_digit() {
+                return None;
+            }
+            res[i] = c - b'0';
+        }
+        Some(res)
     }
 
     fn finish(&mut self) -> Option<i64> {
@@ -883,60 +903,54 @@ impl<'a> DateParser<'a> {
     fn parse(&mut self) -> Option<i64> {
         self.parse_year()?;
         match self.input.peek() {
-            Some('T') => return self.parse_time(),
+            Some(b'T') => return self.parse_time(),
             None => return self.finish(),
             _ => {}
         }
-        self.next_expect('-')?;
-        self.month = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b'-')?;
+        let month_digits = self.next_n_digits::<2>()?;
+        self.month = u32::from(month_digits[0] * 10 + month_digits[1]);
         if self.month < 1 || self.month > 12 {
             return None;
         }
         match self.input.peek() {
-            Some('T') => return self.parse_time(),
+            Some(b'T') => return self.parse_time(),
             None => return self.finish(),
             _ => {}
         }
-        self.next_expect('-')?;
-        self.day = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b'-')?;
+        let day_digits = self.next_n_digits::<2>()?;
+        self.day = u32::from(day_digits[0] * 10 + day_digits[1]);
         if self.day < 1 || self.day > 31 {
             return None;
         }
         match self.input.peek() {
-            Some('T') => self.parse_time(),
+            Some(b'T') => self.parse_time(),
             _ => self.finish(),
         }
     }
 
     fn parse_year(&mut self) -> Option<()> {
         match self.input.next()? {
-            '+' => {
-                self.year = i32::from(self.next_digit()?) * 100_000
-                    + i32::from(self.next_digit()?) * 10000
-                    + i32::from(self.next_digit()?) * 1000
-                    + i32::from(self.next_digit()?) * 100
-                    + i32::from(self.next_digit()?) * 10
-                    + i32::from(self.next_digit()?);
-                Some(())
-            }
-            '-' => {
-                let year = i32::from(self.next_digit()?) * 100_000
-                    + i32::from(self.next_digit()?) * 10000
-                    + i32::from(self.next_digit()?) * 1000
-                    + i32::from(self.next_digit()?) * 100
-                    + i32::from(self.next_digit()?) * 10
-                    + i32::from(self.next_digit()?);
-                if year == 0 {
+            &b @ (b'+' | b'-') => {
+                let digits = self.next_n_digits::<6>()?.map(i32::from);
+                let year = digits[0] * 100_000
+                    + digits[1] * 10000
+                    + digits[2] * 1000
+                    + digits[3] * 100
+                    + digits[4] * 10
+                    + digits[5];
+                let neg = b == b'-';
+                if neg && year == 0 {
                     return None;
                 }
-                self.year = -year;
+                self.year = if neg { -year } else { year };
                 Some(())
             }
             c if c.is_ascii_digit() => {
-                self.year = i32::from((u32::from(c) - u32::from('0')) as u8) * 1000
-                    + i32::from(self.next_digit()?) * 100
-                    + i32::from(self.next_digit()?) * 10
-                    + i32::from(self.next_digit()?);
+                let digits = self.next_n_digits::<3>()?.map(i32::from);
+                self.year =
+                    i32::from(c - b'0') * 1000 + digits[0] * 100 + digits[1] * 10 + digits[2];
                 Some(())
             }
             _ => None,
@@ -944,41 +958,46 @@ impl<'a> DateParser<'a> {
     }
 
     fn parse_time(&mut self) -> Option<i64> {
-        self.next_expect('T')?;
-        self.hour = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b'T')?;
+        let hour_digits = self.next_n_digits::<2>()?;
+        self.hour = u32::from(hour_digits[0] * 10 + hour_digits[1]);
         if self.hour > 24 {
             return None;
         }
-        self.next_expect(':')?;
-        self.minute = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b':')?;
+        let minute_digits = self.next_n_digits::<2>()?;
+        self.minute = u32::from(minute_digits[0] * 10 + minute_digits[1]);
         if self.minute > 59 {
             return None;
         }
         match self.input.peek() {
-            Some(':') => {}
+            Some(b':') => {
+                self.input.next();
+            }
             None => return self.finish_local(),
             _ => {
                 self.parse_timezone()?;
                 return self.finish();
             }
         }
-        self.next_expect(':')?;
-        self.second = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        let second_digits = self.next_n_digits::<2>()?;
+        self.second = u32::from(second_digits[0] * 10 + second_digits[1]);
         if self.second > 59 {
             return None;
         }
         match self.input.peek() {
-            Some('.') => {}
+            Some(b'.') => {
+                self.input.next();
+            }
             None => return self.finish_local(),
             _ => {
                 self.parse_timezone()?;
                 return self.finish();
             }
         }
-        self.next_expect('.')?;
-        self.millisecond = u32::from(self.next_digit()?) * 100
-            + u32::from(self.next_digit()?) * 10
-            + u32::from(self.next_digit()?);
+        let millisecond_digits = self.next_n_digits::<3>()?.map(u32::from);
+        self.millisecond =
+            millisecond_digits[0] * 100 + millisecond_digits[1] * 10 + millisecond_digits[2];
         if self.input.peek().is_some() {
             self.parse_timezone()?;
             self.finish()
@@ -989,10 +1008,10 @@ impl<'a> DateParser<'a> {
 
     fn parse_timezone(&mut self) -> Option<()> {
         match self.input.next() {
-            Some('Z') => return Some(()),
-            Some('+') => {
-                let offset_hour =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
+            Some(b'Z') => return Some(()),
+            Some(&b @ (b'+' | b'-')) => {
+                let offset_hour_digits = self.next_n_digits::<2>()?;
+                let offset_hour = i64::from(offset_hour_digits[0] * 10 + offset_hour_digits[1]);
                 if offset_hour > 23 {
                     return None;
                 }
@@ -1000,31 +1019,18 @@ impl<'a> DateParser<'a> {
                 if self.input.peek().is_none() {
                     return Some(());
                 }
-                self.next_expect(':')?;
+                self.next_expect(b':')?;
+                let offset_minute_digits = self.next_n_digits::<2>()?;
                 let offset_minute =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
+                    i64::from(offset_minute_digits[0] * 10 + offset_minute_digits[1]);
                 if offset_minute > 59 {
                     return None;
                 }
-                self.offset += -offset_minute;
-            }
-            Some('-') => {
-                let offset_hour =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
-                if offset_hour > 23 {
-                    return None;
-                }
-                self.offset = offset_hour * 60;
-                if self.input.peek().is_none() {
-                    return Some(());
-                }
-                self.next_expect(':')?;
-                let offset_minute =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
-                if offset_minute > 59 {
-                    return None;
-                }
-                self.offset += offset_minute;
+                self.offset += if b == b'-' {
+                    -offset_minute
+                } else {
+                    offset_minute
+                };
             }
             _ => return None,
         }
