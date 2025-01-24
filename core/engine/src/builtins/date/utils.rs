@@ -769,17 +769,17 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
     };
 
     // Date Time String Format: 'YYYY-MM-DDTHH:mm:ss.sssZ'
-    if let Some(dt) = DateParser::new(&date, hooks).parse() {
+    if let Some(dt) = DateParser::new(date, hooks).parse() {
         return Some(dt);
     }
 
     // `toString` format: `Thu Jan 01 1970 00:00:00 GMT+0000`
-    if let Ok(t) = OffsetDateTime::parse(&date, &format_description!("[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]")) {
+    if let Ok(t) = OffsetDateTime::parse(date, &format_description!("[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]")) {
         return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
 
     // `toUTCString` format: `Thu, 01 Jan 1970 00:00:00 GMT`
-    if let Ok(t) = PrimitiveDateTime::parse(&date, &format_description!("[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT[end]")) {
+    if let Ok(t) = PrimitiveDateTime::parse(date, &format_description!("[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT[end]")) {
         let t = t.assume_utc();
         return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
@@ -840,16 +840,16 @@ impl<'a> DateParser<'a> {
         if self.input.len() < N {
             return None;
         }
-        let mut res = [0; N];
-        for i in 0..N {
+        let mut digits = [0; N];
+        for digit in &mut digits {
             // SAFETY: Bound check has been done above.
             let c = unsafe { *self.input.next().unwrap_unchecked() };
             if !c.is_ascii_digit() {
                 return None;
             }
-            res[i] = c - b'0';
+            *digit = c - b'0';
         }
-        Some(res)
+        Some(digits)
     }
 
     fn finish(&mut self) -> Option<i64> {
@@ -932,7 +932,7 @@ impl<'a> DateParser<'a> {
 
     fn parse_year(&mut self) -> Option<()> {
         match self.input.next()? {
-            &b @ (b'+' | b'-') => {
+            sign @ (b'+' | b'-') => {
                 let digits = self.next_n_digits::<6>()?.map(i32::from);
                 let year = digits[0] * 100_000
                     + digits[1] * 10000
@@ -940,7 +940,7 @@ impl<'a> DateParser<'a> {
                     + digits[3] * 100
                     + digits[4] * 10
                     + digits[5];
-                let neg = b == b'-';
+                let neg = *sign == b'-';
                 if neg && year == 0 {
                     return None;
                 }
@@ -971,30 +971,26 @@ impl<'a> DateParser<'a> {
             return None;
         }
         match self.input.peek() {
-            Some(b':') => {
-                self.input.next();
-            }
+            Some(b':') => self.input.next(),
             None => return self.finish_local(),
             _ => {
                 self.parse_timezone()?;
                 return self.finish();
             }
-        }
+        };
         let second_digits = self.next_n_digits::<2>()?;
         self.second = u32::from(second_digits[0] * 10 + second_digits[1]);
         if self.second > 59 {
             return None;
         }
         match self.input.peek() {
-            Some(b'.') => {
-                self.input.next();
-            }
+            Some(b'.') => self.input.next(),
             None => return self.finish_local(),
             _ => {
                 self.parse_timezone()?;
                 return self.finish();
             }
-        }
+        };
         let millisecond_digits = self.next_n_digits::<3>()?.map(u32::from);
         self.millisecond =
             millisecond_digits[0] * 100 + millisecond_digits[1] * 10 + millisecond_digits[2];
@@ -1009,13 +1005,14 @@ impl<'a> DateParser<'a> {
     fn parse_timezone(&mut self) -> Option<()> {
         match self.input.next() {
             Some(b'Z') => return Some(()),
-            Some(&b @ (b'+' | b'-')) => {
+            Some(sign @ (b'+' | b'-')) => {
+                let neg = *sign == b'-';
                 let offset_hour_digits = self.next_n_digits::<2>()?;
                 let offset_hour = i64::from(offset_hour_digits[0] * 10 + offset_hour_digits[1]);
                 if offset_hour > 23 {
                     return None;
                 }
-                self.offset = -offset_hour * 60;
+                self.offset = if neg { offset_hour } else { -offset_hour } * 60;
                 if self.input.peek().is_none() {
                     return Some(());
                 }
@@ -1026,11 +1023,7 @@ impl<'a> DateParser<'a> {
                 if offset_minute > 59 {
                     return None;
                 }
-                self.offset += if b == b'-' {
-                    -offset_minute
-                } else {
-                    offset_minute
-                };
+                self.offset += if neg { offset_minute } else { -offset_minute };
             }
             _ => return None,
         }
