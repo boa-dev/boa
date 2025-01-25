@@ -825,7 +825,6 @@ impl<'a> DateParser<'a> {
             .and_then(|c| if *c == expect { Some(()) } else { None })
     }
 
-    #[allow(unused)]
     fn next_digit(&mut self) -> Option<u8> {
         self.input.next().and_then(|c| {
             if c.is_ascii_digit() {
@@ -837,17 +836,9 @@ impl<'a> DateParser<'a> {
     }
 
     fn next_n_digits<const N: usize>(&mut self) -> Option<[u8; N]> {
-        if self.input.len() < N {
-            return None;
-        }
         let mut digits = [0; N];
         for digit in &mut digits {
-            // SAFETY: Bound check has been done above.
-            let c = unsafe { *self.input.next().unwrap_unchecked() };
-            if !c.is_ascii_digit() {
-                return None;
-            }
-            *digit = c - b'0';
+            *digit = self.next_digit()?;
         }
         Some(digits)
     }
