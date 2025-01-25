@@ -225,9 +225,9 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        // 4. Let ms be floor(ℝ(ns) / 106).
+        // 4. Let ms be floor(ℝ(ns) / 10^6).
         // 5. Return 𝔽(ms).
-        Ok(JsBigInt::from(instant.inner.epoch_milliseconds()).into())
+        Ok(instant.inner.epoch_milliseconds().into())
     }
 
     /// 8.3.6 get Temporal.Instant.prototype.epochNanoseconds
@@ -509,7 +509,7 @@ impl Instant {
             rounding_mode,
         };
 
-        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
+        let ixdtf = instant.inner.as_ixdtf_string_with_provider(
             timezone.as_ref(),
             options,
             context.tz_provider(),
@@ -527,7 +527,7 @@ impl Instant {
                     .with_message("the this object must be a Temporal.Instant object.")
             })?;
 
-        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
+        let ixdtf = instant.inner.as_ixdtf_string_with_provider(
             None,
             ToStringRoundingOptions::default(),
             context.tz_provider(),

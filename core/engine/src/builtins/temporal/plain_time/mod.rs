@@ -554,7 +554,7 @@ impl PlainTime {
             smallest_unit,
         };
 
-        let ixdtf = time.inner.to_ixdtf_string(options)?;
+        let ixdtf = time.inner.as_ixdtf_string(options)?;
 
         Ok(JsString::from(ixdtf).into())
     }
@@ -570,7 +570,7 @@ impl PlainTime {
 
         let ixdtf = time
             .inner
-            .to_ixdtf_string(ToStringRoundingOptions::default())?;
+            .as_ixdtf_string(ToStringRoundingOptions::default())?;
         Ok(JsString::from(ixdtf).into())
     }
 

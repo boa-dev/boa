@@ -833,7 +833,7 @@ impl Duration {
         let smallest_unit =
             get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
 
-        let result = duration.inner.to_temporal_string(ToStringRoundingOptions {
+        let result = duration.inner.as_temporal_string(ToStringRoundingOptions {
             precision,
             smallest_unit,
             rounding_mode,
@@ -853,7 +853,7 @@ impl Duration {
 
         let result = duration
             .inner
-            .to_temporal_string(ToStringRoundingOptions::default())?;
+            .as_temporal_string(ToStringRoundingOptions::default())?;
 
         Ok(JsString::from(result).into())
     }
