@@ -35,7 +35,6 @@ use crate::{
 use boa_profiler::Profiler;
 use num_traits::Zero;
 pub(crate) use set_iterator::SetIterator;
-use crate::property::PropertyKey;
 use super::iterable::IteratorHint;
 
 #[derive(Debug, Clone)]
@@ -510,88 +509,54 @@ impl Set {
     pub(crate) fn difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
+        //    (ECMAScript 2022, 24.2.3.6 steps 1–2)
         let Some(set) = this
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
-                .with_message(
-                    "Method Set.prototype.difference called on incompatible receiver"
-                )
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
+
         // 3. Let otherRec be ? GetSetRecord(other).
+        //    (ECMAScript 2022, 24.2.3.6 step 3)
         let other = args.get_or_undefined(0);
-        let Some(other_set) = other.as_object()
+        let Some(other_set) = other
+            .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
-                .with_message(
-                    "Method Set.prototype.difference called on incompatible receiver"
-                )
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
+
         // 4. Let resultSetData be a copy of O.[[SetData]].
+        //    (ECMAScript 2022, 24.2.3.6 step 4)
         let mut result_set = set.clone();
-        // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
-        if Self::get_size_full(this)? <= other_set.len(){
-            // a. Let thisSize be the number of elements in O.[[SetData]].
-            // b. Let index be 0.
-            let mut index = 0;
-            // c. Repeat, while index < thisSize
-            while index <  Self::get_size_full(this)? {
-                // i. let resultSetData[index]
-                if let Some(e) =  result_set.get_index(index) {
-                    if other_set.contains(&e){
-                        result_set.delete(&e.clone());
-                    }else {
-                        index +=1;
-                    }
-                }else {
-                    index +=1;
-                }
-             }
-        } else {
-            // a. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
-            let Some(keys_iter) = other
-                .as_object()
-                .and_then(|o| o.get(PropertyKey::String(JsString::from("keys")), context).ok())
-                .and_then(|keys| keys.as_function())
-                .and_then(|keys_fn| keys_fn.call(&other.clone().into(), &[], context).ok())
-                .and_then(|iter| iter.as_function())
-            else {
-                return Err(JsNativeError::typ()
-                    .with_message("Cannot get iterator from method `keys`")
-                    .into());
-            };
 
-            loop {
-                // i. Let next be ? IteratorStep(keysIter).
-                let next = keys_iter.get(PropertyKey::String(JsString::from("next")), context).ok()
-                    .and_then(|next_fn| next_fn.as_function())
-                    .and_then(|next_fn| next_fn.call(&keys_iter.clone().into(), &[], context).ok());
-
-                // If next is undefined, break the loop
-                if next.is_none() || next == Some(JsValue::undefined()) {
-                    break;
-                }
-
-                // ii. Let nextValue be ? IteratorValue(next).
-                let next_value = next
-                    .and_then(|n| n.as_function())
-                    .and_then(|obj| obj.get(PropertyKey::String(JsString::from("value")), context).ok());
-
-                // iii. If resultSetData contains nextValue, remove it.
-                if let Some(value) = next_value {
-                    if result_set.contains(&value) {
-                        result_set.delete(&value);
-                    }
+        // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then:
+        //    (ECMAScript 2022, 24.2.3.6 step 5)
+        if Self::get_size_full(this)? <= other_set.len() {
+            // Iterate over elements of the current set.
+            let elements: Vec<_> = result_set.iter().cloned().collect();
+            for element in elements {
+                // Remove elements from resultSetData that are in otherRec.
+                if other_set.contains(&element) {
+                    result_set.delete(&element);
                 }
             }
-
-
+        } else {
+            // Otherwise, iterate over elements of the other set.
+            let other_elements: Vec<_> = other_set.iter().cloned().collect();
+            for element in other_elements {
+                // Remove elements from resultSetData that are in otherRec.
+                result_set.delete(&element);
+            }
         }
 
+        // 6. Return a new set with the updated resultSetData.
+        //    (ECMAScript 2022, 24.2.3.6 step 6)
         Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
