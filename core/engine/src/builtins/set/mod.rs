@@ -577,11 +577,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.intersection
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
-    pub(crate) fn intersection(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn intersection(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // Here, the variable `S` holds the value of `this`, which represents the current set over which the operation is being performed.
         let Some(set) = this
@@ -666,11 +662,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.isdisjointfrom
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isDisjointFrom
-    pub(crate) fn is_dis_joint_from (
-        this: &JsValue,
-        args: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn is_dis_joint_from (this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(set) = this
@@ -724,11 +716,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issubsetof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSubsetOf
-    pub(crate) fn is_subset_of(
-        this: &JsValue,
-        args: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn is_subset_of(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let Some(set) = this
             .as_object()
@@ -783,11 +771,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issupersetof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSupersetOf
-    pub(crate) fn is_superset_of(
-        this: &JsValue,
-        args: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn is_superset_of(this: &JsValue, args: &[JsValue], _: &mut Context,) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let Some(set) = this
             .as_object()
@@ -837,11 +821,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.symmerticDifference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference
-    pub(crate) fn symmetric_difference(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn symmetric_difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let Some(set) = this
             .as_object()
