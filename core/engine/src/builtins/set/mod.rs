@@ -17,9 +17,8 @@ mod tests;
 
 pub mod ordered_set;
 
-
-
 use self::ordered_set::OrderedSet;
+use super::iterable::IteratorHint;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -35,7 +34,6 @@ use crate::{
 use boa_profiler::Profiler;
 use num_traits::Zero;
 pub(crate) use set_iterator::SetIterator;
-use super::iterable::IteratorHint;
 
 #[derive(Debug, Clone)]
 pub(crate) struct Set;
@@ -77,7 +75,11 @@ impl IntrinsicObject for Set {
             .method(Self::is_dis_joint_from, js_string!("isDisjointFrom"), 0)
             .method(Self::is_subset_of, js_string!("isSubsetOf"), 0)
             .method(Self::is_superset_of, js_string!("isSupersetOf"), 0)
-            .method(Self::symmetric_difference, js_string!("symmetricDifference"), 1)
+            .method(
+                Self::symmetric_difference,
+                js_string!("symmetricDifference"),
+                1,
+            )
             .method(Self::union, js_string!("union"), 1)
             .property(
                 js_string!("keys"),
@@ -499,20 +501,23 @@ impl Set {
     }
 
     /// ` Set.prototype.difference ( other ) `
-    /// 
+    ///
     /// This method returns a new Set containing all elements that are in the current Set
     /// but not in the given iterable `other`.
-    /// 
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
-    /// 
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.difference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
-    pub(crate) fn difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn difference(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
-        //    (ECMAScript 2022, 24.2.3.6 steps 1–2)
         let Some(set) = this
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
@@ -521,7 +526,6 @@ impl Set {
                 .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
-
         // 3. Let otherRec be ? GetSetRecord(other).
         //    (ECMAScript 2022, 24.2.3.6 step 3)
         let other = args.get_or_undefined(0);
@@ -533,13 +537,9 @@ impl Set {
                 .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
-
         // 4. Let resultSetData be a copy of O.[[SetData]].
-        //    (ECMAScript 2022, 24.2.3.6 step 4)
         let mut result_set = set.clone();
-
         // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then:
-        //    (ECMAScript 2022, 24.2.3.6 step 5)
         if Self::get_size_full(this)? <= other_set.len() {
             // Iterate over elements of the current set.
             let elements: Vec<_> = result_set.iter().cloned().collect();
@@ -557,9 +557,7 @@ impl Set {
                 result_set.delete(&element);
             }
         }
-
         // 6. Return a new set with the updated resultSetData.
-        //    (ECMAScript 2022, 24.2.3.6 step 6)
         Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
@@ -577,7 +575,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.intersection
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
-    pub(crate) fn intersection(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn intersection(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // Here, the variable `S` holds the value of `this`, which represents the current set over which the operation is being performed.
         let Some(set) = this
@@ -585,21 +587,16 @@ impl Set {
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
-                .with_message(
-                    "Method Set.prototype.difference called on incompatible receiver"
-                )
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
-
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         // This step checks if the object calling the method has an internal data structure `[[SetData]]`.
         // This is important to ensure that the object is a valid set that can be operated on.
         // The error handling for this case is already done in the previous step when trying to access the internal data.
-
         // 3. Let other be the first argument.
         // We retrieve the first argument passed to the `intersection` method. This is the second set with which we want to find the intersection.
         let other = args.get_or_undefined(0);
-
         // 4. Let other_set be the second argument.
         // We try to downcast the second argument into an `OrderedSet`, which is the other set with which we perform the intersection.
         let Some(other_set) = other
@@ -607,33 +604,25 @@ impl Set {
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
-                .with_message(
-                    "Method Set.prototype.difference called on incompatible receiver"
-                )
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
-
         // 5. If S or other is empty, return an empty Set.
         // If either of the sets is empty, the intersection will also be empty.
         // In this case, we immediately return an empty set.
         if set.is_empty() || other_set.is_empty() {
             return Ok(Self::create_set_from_list(set.iter().cloned(), context).into());
         }
-
         // 6. Create an empty result set.
         // We create an empty set that will hold the common elements of the two sets.
         let mut result_set = OrderedSet::new();
-
         // 7. Let iter_set and check_set be the set with fewer elements.
         // For optimization, we choose to iterate over the smaller set. This reduces the number of operations when one set is much smaller than the other.
-        let (
-            iter_set, check_set
-        ) = if set.len() <= other_set.len() {
+        let (iter_set, check_set) = if set.len() <= other_set.len() {
             (other_set.iter(), set)
         } else {
             (set.iter(), other_set)
         };
-
         // 8. Iterate through iter_set and add elements to result_set if they are contained in check_set.
         // We loop through the smaller set and add the elements that are found in the larger set to the result set.
         for value in iter_set {
@@ -641,14 +630,10 @@ impl Set {
                 result_set.add(value.clone());
             }
         }
-
         // 9. Return the result set.
         // After the iteration, we return the result set containing the intersected elements.
         Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
     }
-
-
-
 
     /// `Set.prototype.isDisjointFrom ( other )`
     ///
@@ -662,7 +647,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.isdisjointfrom
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isDisjointFrom
-    pub(crate) fn is_dis_joint_from (this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn is_dis_joint_from(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(set) = this
@@ -686,7 +675,7 @@ impl Set {
         };
 
         // 4. Iterate over the smaller set to check for common elements.
-        if Self::get_size_full(this)? <= other_set.len(){
+        if Self::get_size_full(this)? <= other_set.len() {
             for value in set.iter() {
                 if other_set.contains(value) {
                     return Ok(JsValue::from(false));
@@ -716,7 +705,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issubsetof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSubsetOf
-    pub(crate) fn is_subset_of(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn is_subset_of(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let Some(set) = this
             .as_object()
@@ -771,7 +764,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issupersetof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSupersetOf
-    pub(crate) fn is_superset_of(this: &JsValue, args: &[JsValue], _: &mut Context,) -> JsResult<JsValue> {
+    pub(crate) fn is_superset_of(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let Some(set) = this
             .as_object()
@@ -809,7 +806,6 @@ impl Set {
         Ok(JsValue::from(true))
     }
 
-
     /// ` Set.prototype.symmetricDifference(other)`
     ///
     /// Returns a new set containing the symmetric difference between the current set (`this`)
@@ -821,7 +817,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.symmerticDifference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference
-    pub(crate) fn symmetric_difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn symmetric_difference(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         let Some(set) = this
             .as_object()
@@ -874,7 +874,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.union
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/union
-    pub(crate) fn union(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn union(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // Ensure the `this` value is a valid set object.
         let Some(set) = this
             .as_object()

@@ -178,7 +178,6 @@ fn not_a_function() {
 #[test]
 fn difference() {
     run_test_actions([
-        
         TestAction::run(indoc! {r#"
             let setA = new Set([1, 3, 5, 7, 9]);
             let setB = new Set([1, 4, 9]);
@@ -189,12 +188,11 @@ fn difference() {
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
             v.display().to_string() == "Set { 4 }"
         }),
-
     ]);
 }
 
 #[test]
-fn difference_equal_set(){
+fn difference_equal_set() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             let setA = new Set([1, 3, 5, 7, 9]);
@@ -210,7 +208,7 @@ fn difference_equal_set(){
 }
 
 #[test]
-fn difference_empty(){
+fn difference_empty() {
     run_test_actions([
         TestAction::run(indoc! {r#"
            let setA = new Set([1, 3, 5, 7, 9]);
@@ -221,13 +219,12 @@ fn difference_empty(){
         }),
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
             v.display().to_string() == "Set(0)"
-        })
+        }),
     ]);
 }
 
-
 #[test]
-fn intersection(){
+fn intersection() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             let setA = new Set([1,2,3]);
@@ -273,7 +270,7 @@ fn is_dist_joint_from() {
 }
 
 #[test]
-fn is_subset_of(){
+fn is_subset_of() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             let setA = new Set([4, 8, 15]);
@@ -307,7 +304,7 @@ fn is_subset_of(){
 }
 
 #[test]
-fn is_superset_of(){
+fn is_superset_of() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             let setA = new Set(["JavaScript", "HTML", "CSS"]);
@@ -323,7 +320,7 @@ fn is_superset_of(){
 }
 
 #[test]
-fn symmetric_difference(){
+fn symmetric_difference() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             let setA = new Set(["JavaScript", "HTML", "CSS"]);
@@ -349,9 +346,8 @@ fn symmetric_difference(){
     ]);
 }
 
-
 #[test]
-fn union(){
+fn union() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             let setA = new Set([2, 4, 6, 8]);
