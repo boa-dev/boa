@@ -186,12 +186,10 @@ fn difference() {
         
 
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 3, 5, 7 }"
         }),
 
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 4 }"
         }),
 
@@ -207,15 +205,13 @@ fn difference_equal_set(){
         "#}),
 
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 3 }"
         }),
 
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 4 }"
         }),
-    ])
+    ]);
 }
 
 #[test]
@@ -227,11 +223,9 @@ fn difference_empty(){
         "#}),
 
         TestAction::assert_with_op("setA.difference(setB)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 3, 5, 7, 9 }"
         }),
         TestAction::assert_with_op("setB.difference(setA)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set(0)"
         })
     ]);
@@ -250,27 +244,21 @@ fn intersection(){
         }),
 
         TestAction::assert_with_op("setA.intersection(setB)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 3 }"
         }),
         TestAction::assert_with_op("setB.intersection(setA)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 3 }"
         }),
         TestAction::assert_with_op("setA.intersection(setA)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 2, 3 }"
         }),
         TestAction::assert_with_op("setB.intersection(setB)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 4, 3 }"
         }),
         TestAction::assert_with_op("setB.intersection(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 4, 3 }"
         }),
         TestAction::assert_with_op("setA.intersection(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 2, 3 }"
         }),
     ]);
@@ -287,12 +275,10 @@ fn is_dist_joint_from() {
             "#
         }),
         TestAction::assert_with_op("setA.isDisjointFrom(setB)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(false) == false
+            !v.as_boolean().unwrap_or(false)
         }),
         TestAction::assert_with_op("setA.isDisjointFrom(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(true) == true
+            v.as_boolean().unwrap_or(true)
         }),
     ]);
 }
@@ -310,32 +296,25 @@ fn is_subset_of(){
             "#
         }),
         TestAction::assert_with_op("setA.isSubsetOf(setB)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(false) == false
+            !v.as_boolean().unwrap_or(false)
         }),
         TestAction::assert_with_op("setA.isSubsetOf(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(true) == true
+            v.as_boolean().unwrap_or(true)
         }),
         TestAction::assert_with_op("setB.isSubsetOf(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(false) == false
+            !v.as_boolean().unwrap_or(false)
         }),
         TestAction::assert_with_op("setC.isSubsetOf(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(true) == true
+            v.as_boolean().unwrap_or(true)
         }),
         TestAction::assert_with_op("setD.isSubsetOf(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(true) == true
+            v.as_boolean().unwrap_or(true)
         }),
         TestAction::assert_with_op("setE.isSubsetOf(setC)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(true) == true
+            v.as_boolean().unwrap_or(true)
         }),
         TestAction::assert_with_op("setA.isSubsetOf(setE)", |v, _| {
-            println!("Difference result: {:?}", v.display().to_string());
-            v.as_boolean().unwrap_or(false) == false
+            !v.as_boolean().unwrap_or(false)
         }),
     ]);
 }
@@ -350,11 +329,9 @@ fn is_superset_of(){
             "#
         }),
         TestAction::assert_with_op("setA.isSupersetOf(setB)", |v, _| {
-            println!("Result for setA.isSupersetOf(setB): {:?}", v.display().to_string());
             v.as_boolean().unwrap_or(false) == true
         }),
         TestAction::assert_with_op("setB.isSupersetOf(setA)", |v, _| {
-            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
             v.as_boolean().unwrap_or(false) == false
         }),
     ]);
@@ -372,23 +349,19 @@ fn symmetric_difference(){
             "#
         }),
         TestAction::assert_with_op("setA.symmetricDifference(setB)", |v, _| {
-            println!("Result for setA.isSupersetOf(setB): {:?}", v.display().to_string());
             v.display().to_string() == "Set { \"HTML\", \"CSS\", \"Python\", \"Java\", \"PHP\" }"
         }),
         TestAction::assert_with_op("setB.symmetricDifference(setA)", |v, _| {
-            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
             v.display().to_string() == "Set { \"Python\", \"Java\", \"PHP\", \"HTML\", \"CSS\" }"
         }),
         TestAction::assert_with_op("setA.symmetricDifference(setA)", |v, _| {
-            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
             v.display().to_string() == "Set(0)"
         }),
         TestAction::assert_with_op("setC.symmetricDifference(setD)", |v, _| {
-            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
             v.display().to_string() == "Set { 2, 6, 8, 1, 9 }"
         }),
         TestAction::assert_with_op("setD.symmetricDifference(setC)", |v, _| {
-            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
+
             v.display().to_string() == "Set { 1, 9, 2, 6, 8 }"
         }),
     ]);
@@ -406,11 +379,9 @@ fn union(){
             "#
         }),
         TestAction::assert_with_op("setA.union(setB)", |v, _| {
-            println!("Result for setA.isSupersetOf(setB): {:?}", v.display().to_string());
             v.display().to_string() == "Set { 2, 4, 6, 8, 1, 9 }"
         }),
         TestAction::assert_with_op("setB.union(setA)", |v, _| {
-            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
             v.display().to_string() == "Set { 1, 4, 9, 2, 6, 8 }"
         }),
     ]);

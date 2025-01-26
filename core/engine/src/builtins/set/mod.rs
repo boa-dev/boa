@@ -509,7 +509,6 @@ impl Set {
     /// 
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.difference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
-
     pub(crate) fn difference(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
@@ -869,8 +868,8 @@ impl Set {
 
         for value in other_set.iter() {
             // If value is in the current set, remove it from result_set.
-            if set.contains(&value) {
-                result_set.delete(&value);
+            if set.contains(value) {
+                result_set.delete(value);
             } else {
                 // Otherwise, add it to result_set.
                 result_set.add(value.clone());
