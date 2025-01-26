@@ -76,6 +76,7 @@ impl IntrinsicObject for Set {
             .method(Self::intersection, js_string!("intersection"), 1)
             .method(Self::is_dis_joint_from, js_string!("isDisjointFrom"), 0)
             .method(Self::is_subset_of, js_string!("isSubsetOf"), 0)
+            .method(Self::is_superset_of, js_string!("isSupersetOf"), 0)
             .property(
                 js_string!("keys"),
                 values_function.clone(),
@@ -769,6 +770,59 @@ impl Set {
         Ok(JsValue::from(true))
     }
 
+    /// `Set.prototype.isSupersetOf ( other )`
+    ///
+    /// This method checks whether the current Set is a superset of the given iterable `other`.
+    /// It returns `true` if the current Set contains all elements from the given iterable,
+    /// and `false` otherwise.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issupersetof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSupersetOf
+    pub(crate) fn is_superset_of(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSupersetOf called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        let other = args.get_or_undefined(0);
+        let Some(other_set) = other
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSupersetOf called on incompatible argument")
+                .into());
+        };
+
+        // 3. If SetDataSize(O.[[SetData]]) < otherRec.[[Size]], return false.
+        if Self::get_size_full(this)? <= other_set.len() {
+            return Ok(JsValue::from(false));
+        }
+
+        // 4. Let thisSize be the number of elements in O.[[SetData]].
+        for value in other_set.iter() {
+            if !set.contains(value) {
+                return Ok(JsValue::from(false));
+            }
+        }
+
+        // 5. Return true if all elements of `other` are in `this`.
+        Ok(JsValue::from(true))
+    }
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Self::get_size(this).map(JsValue::from)

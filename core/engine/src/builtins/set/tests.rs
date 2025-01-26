@@ -339,3 +339,24 @@ fn is_subset_of(){
         }),
     ]);
 }
+
+#[test]
+fn is_superset_of(){
+    run_test_actions([
+        TestAction::run(indoc! {
+            r#"
+            let setA = new Set(["JavaScript", "HTML", "CSS"]);
+            let setB = new Set(["HTML", "CSS"]);
+            "#
+        }),
+        TestAction::assert_with_op("setA.isSupersetOf(setB)", |v, _| {
+            println!("Result for setA.isSupersetOf(setB): {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(false) == true
+        }),
+        TestAction::assert_with_op("setB.isSupersetOf(setA)", |v, _| {
+            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(false) == false
+        }),
+    ]);
+}
+
