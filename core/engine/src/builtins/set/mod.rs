@@ -75,6 +75,7 @@ impl IntrinsicObject for Set {
             .method(Self::difference, js_string!("difference"), 1)
             .method(Self::intersection, js_string!("intersection"), 1)
             .method(Self::is_dis_joint_from, js_string!("isDisjointFrom"), 0)
+            .method(Self::is_subset_of, js_string!("isSubsetOf"), 0)
             .property(
                 js_string!("keys"),
                 values_function.clone(),
@@ -691,7 +692,7 @@ impl Set {
         };
 
         // 4. Iterate over the smaller set to check for common elements.
-        if set.len() <= other_set.len() {
+        if Self::get_size_full(this)? <= other_set.len(){
             for value in set.iter() {
                 if other_set.contains(value) {
                     return Ok(JsValue::from(false));
@@ -706,6 +707,65 @@ impl Set {
         }
 
         // 5. If no common elements are found, return true.
+        Ok(JsValue::from(true))
+    }
+
+    /// `Set.prototype.isSubsetOf ( other )`
+    ///
+    /// This method checks whether the current Set is a subset of the given iterable `other`.
+    /// It returns `true` if all elements of the current Set are present in the given iterable,
+    /// and `false` otherwise.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issubsetof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSubsetOf
+    pub(crate) fn is_subset_of(
+        this: &JsValue,
+        args: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSubsetOf called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let Some(other_set) = other
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSubsetOf called on incompatible argument")
+                .into());
+        };
+
+        // 4. If SetDataSize(O.[[SetData]]) > otherRec.[[Size]], return false.
+        if set.len() > other_set.len() {
+            return Ok(JsValue::from(false));
+        }
+
+        // 5. Let thisSize be the number of elements in O.[[SetData]].
+
+        // 6. Let index be 0.
+        for value in set.iter() {
+            // 7. If e is not empty, then
+            // 8. Call the Has method of other_set to check if `value` is contained in it.
+            if !other_set.contains(value) {
+                return Ok(JsValue::from(false));
+            }
+        }
+
+        // 9. Return true if all elements of `this` are in `other`.
         Ok(JsValue::from(true))
     }
 

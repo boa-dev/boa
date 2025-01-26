@@ -296,3 +296,46 @@ fn is_dist_joint_from() {
         }),
     ]);
 }
+
+#[test]
+fn is_subset_of(){
+    run_test_actions([
+        TestAction::run(indoc! {
+            r#"
+            let setA = new Set([4, 8, 15]);
+            let setB = new Set([1, 4, 6]);
+            let setC = new Set([4, 8, 15, 16 ,23 ,42]);
+            let setD = new Set([16]);
+            let setE = new Set([]);
+            "#
+        }),
+        TestAction::assert_with_op("setA.isSubsetOf(setB)", |v, _| {
+            println!("Difference result: {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(false) == false
+        }),
+        TestAction::assert_with_op("setA.isSubsetOf(setC)", |v, _| {
+            println!("Difference result: {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(true) == true
+        }),
+        TestAction::assert_with_op("setB.isSubsetOf(setC)", |v, _| {
+            println!("Difference result: {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(false) == false
+        }),
+        TestAction::assert_with_op("setC.isSubsetOf(setC)", |v, _| {
+            println!("Difference result: {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(true) == true
+        }),
+        TestAction::assert_with_op("setD.isSubsetOf(setC)", |v, _| {
+            println!("Difference result: {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(true) == true
+        }),
+        TestAction::assert_with_op("setE.isSubsetOf(setC)", |v, _| {
+            println!("Difference result: {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(true) == true
+        }),
+        TestAction::assert_with_op("setA.isSubsetOf(setE)", |v, _| {
+            println!("Difference result: {:?}", v.display().to_string());
+            v.as_boolean().unwrap_or(false) == false
+        }),
+    ]);
+}
