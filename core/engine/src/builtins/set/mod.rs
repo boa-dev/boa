@@ -77,6 +77,7 @@ impl IntrinsicObject for Set {
             .method(Self::is_dis_joint_from, js_string!("isDisjointFrom"), 0)
             .method(Self::is_subset_of, js_string!("isSubsetOf"), 0)
             .method(Self::is_superset_of, js_string!("isSupersetOf"), 0)
+            .method(Self::symmetric_difference, js_string!("symmetricDifference"), 1)
             .property(
                 js_string!("keys"),
                 values_function.clone(),
@@ -822,6 +823,52 @@ impl Set {
 
         // 5. Return true if all elements of `other` are in `this`.
         Ok(JsValue::from(true))
+    }
+
+    pub(crate) fn symmetric_difference(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSupersetOf called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        let other = args.get_or_undefined(0);
+        let Some(other_set) = other
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSupersetOf called on incompatible argument")
+                .into());
+        };
+
+        // 4. Let resultSetData be a copy of O.[[SetData]].
+        let mut result_set = set.clone();
+
+        for value in other_set.iter() {
+            // If value is in the current set, remove it from result_set.
+            if set.contains(&value) {
+                result_set.delete(&value);
+            } else {
+                // Otherwise, add it to result_set.
+                result_set.add(value.clone());
+            }
+        }
+
+        // Ensure we return a valid Set object.
+        let result_set_obj = Self::create_set_from_list(result_set.iter().cloned(), context);
+
+        // Return the new Set object as a JsValue.
+        Ok(result_set_obj.into())
     }
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {

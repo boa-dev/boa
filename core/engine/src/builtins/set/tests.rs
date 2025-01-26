@@ -360,3 +360,37 @@ fn is_superset_of(){
     ]);
 }
 
+#[test]
+fn symmetric_difference(){
+    run_test_actions([
+        TestAction::run(indoc! {
+            r#"
+            let setA = new Set(["JavaScript", "HTML", "CSS"]);
+            let setB = new Set(["Python", "Java", "JavaScript", "PHP"]);
+            let setC = new Set([2, 4, 6, 8]);
+            let setD = new Set([1, 4, 9]);
+            "#
+        }),
+        TestAction::assert_with_op("setA.symmetricDifference(setB)", |v, _| {
+            println!("Result for setA.isSupersetOf(setB): {:?}", v.display().to_string());
+            v.display().to_string() == "Set { \"HTML\", \"CSS\", \"Python\", \"Java\", \"PHP\" }"
+        }),
+        TestAction::assert_with_op("setB.symmetricDifference(setA)", |v, _| {
+            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
+            v.display().to_string() == "Set { \"Python\", \"Java\", \"PHP\", \"HTML\", \"CSS\" }"
+        }),
+        TestAction::assert_with_op("setA.symmetricDifference(setA)", |v, _| {
+            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
+            v.display().to_string() == "Set(0)"
+        }),
+        TestAction::assert_with_op("setC.symmetricDifference(setD)", |v, _| {
+            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
+            v.display().to_string() == "Set { 2, 6, 8, 1, 9 }"
+        }),
+        TestAction::assert_with_op("setD.symmetricDifference(setC)", |v, _| {
+            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
+            v.display().to_string() == "Set { 1, 9, 2, 6, 8 }"
+        }),
+    ]);
+}
+
