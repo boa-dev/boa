@@ -394,3 +394,24 @@ fn symmetric_difference(){
     ]);
 }
 
+
+#[test]
+fn union(){
+    run_test_actions([
+        TestAction::run(indoc! {
+            r#"
+            let setA = new Set([2, 4, 6, 8]);
+            let setB = new Set([1, 4, 9]);
+
+            "#
+        }),
+        TestAction::assert_with_op("setA.union(setB)", |v, _| {
+            println!("Result for setA.isSupersetOf(setB): {:?}", v.display().to_string());
+            v.display().to_string() == "Set { 2, 4, 6, 8, 1, 9 }"
+        }),
+        TestAction::assert_with_op("setB.union(setA)", |v, _| {
+            println!("Result for setB.isSupersetOf(setA): {:?}", v.display().to_string());
+            v.display().to_string() == "Set { 1, 4, 9, 2, 6, 8 }"
+        }),
+    ]);
+}

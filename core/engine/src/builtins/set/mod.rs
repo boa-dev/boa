@@ -78,6 +78,7 @@ impl IntrinsicObject for Set {
             .method(Self::is_subset_of, js_string!("isSubsetOf"), 0)
             .method(Self::is_superset_of, js_string!("isSupersetOf"), 0)
             .method(Self::symmetric_difference, js_string!("symmetricDifference"), 1)
+            .method(Self::union, js_string!("union"), 1)
             .property(
                 js_string!("keys"),
                 values_function.clone(),
@@ -825,6 +826,18 @@ impl Set {
         Ok(JsValue::from(true))
     }
 
+
+    /// ` Set.prototype.symmetricDifference(other)`
+    ///
+    /// Returns a new set containing the symmetric difference between the current set (`this`)
+    /// and the provided set (`other`)
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.symmerticDifference
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference
     pub(crate) fn symmetric_difference(
         this: &JsValue,
         args: &[JsValue],
@@ -869,6 +882,51 @@ impl Set {
 
         // Return the new Set object as a JsValue.
         Ok(result_set_obj.into())
+    }
+
+    /// `Set.prototype.union ( other )`
+    ///
+    /// Returns a new set containing the union of the elements in the current set (`this`)
+    /// and the set provided as the argument (`other`).
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.union
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/union
+    pub(crate) fn union(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // Ensure the `this` value is a valid set object.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.union called on incompatible receiver")
+                .into());
+        };
+
+        // Get the other set from the arguments.
+        let other = args.get_or_undefined(0);
+        let Some(other_set) = other
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Argument passed to Set.prototype.union is not a Set")
+                .into());
+        };
+
+        // Create a new set to store the union of the two sets.
+        let mut result_set = set.clone();
+
+        // Add all elements from the other set to the result set.
+        for value in other_set.iter() {
+            result_set.add(value.clone());
+        }
+
+        // Return a new Set object created from the union of the two sets.
+        Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
