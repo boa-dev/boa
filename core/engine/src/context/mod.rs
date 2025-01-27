@@ -34,6 +34,10 @@ use crate::{
 
 use self::intrinsics::StandardConstructor;
 
+pub mod time;
+use crate::context::time::StdClock;
+pub use time::Clock;
+
 mod hooks;
 #[cfg(feature = "intl")]
 pub(crate) mod icu;
@@ -113,6 +117,8 @@ pub struct Context {
 
     host_hooks: Rc<dyn HostHooks>,
 
+    clock: Rc<dyn Clock>,
+
     job_executor: Rc<dyn JobExecutor>,
 
     module_loader: Rc<dyn ModuleLoader>,
@@ -137,6 +143,7 @@ impl std::fmt::Debug for Context {
             .field("strict", &self.strict)
             .field("job_executor", &"JobExecutor")
             .field("hooks", &"HostHooks")
+            .field("clock", &"Clock")
             .field("module_loader", &"ModuleLoader")
             .field("optimizer_options", &self.optimizer_options);
 
@@ -553,6 +560,13 @@ impl Context {
         self.host_hooks.clone()
     }
 
+    /// Gets the internal clock.
+    #[inline]
+    #[must_use]
+    pub fn clock(&self) -> &dyn Clock {
+        self.clock.as_ref()
+    }
+
     /// Gets the job executor.
     #[inline]
     #[must_use]
@@ -888,6 +902,7 @@ impl Context {
 pub struct ContextBuilder {
     interner: Option<Interner>,
     host_hooks: Option<Rc<dyn HostHooks>>,
+    clock: Option<Rc<dyn Clock>>,
     job_executor: Option<Rc<dyn JobExecutor>>,
     module_loader: Option<Rc<dyn ModuleLoader>>,
     can_block: bool,
@@ -904,12 +919,15 @@ impl std::fmt::Debug for ContextBuilder {
         #[derive(Clone, Copy, Debug)]
         struct HostHooks;
         #[derive(Clone, Copy, Debug)]
+        struct Clock;
+        #[derive(Clone, Copy, Debug)]
         struct ModuleLoader;
 
         let mut out = f.debug_struct("ContextBuilder");
 
         out.field("interner", &self.interner)
             .field("host_hooks", &self.host_hooks.as_ref().map(|_| HostHooks))
+            .field("clock", &self.clock.as_ref().map(|_| Clock))
             .field(
                 "job_executor",
                 &self.job_executor.as_ref().map(|_| JobExecutor),
@@ -1026,6 +1044,13 @@ impl ContextBuilder {
         self
     }
 
+    /// Initializes the [`Clock`] for the context.
+    #[must_use]
+    pub fn clock<C: Clock + 'static>(mut self, clock: Rc<C>) -> Self {
+        self.clock = Some(clock);
+        self
+    }
+
     /// Initializes the [`JobExecutor`] for the context.
     #[must_use]
     pub fn job_executor<Q: JobExecutor + 'static>(mut self, job_executor: Rc<Q>) -> Self {
@@ -1089,6 +1114,7 @@ impl ContextBuilder {
         let root_shape = RootShape::default();
 
         let host_hooks = self.host_hooks.unwrap_or(Rc::new(DefaultHooks));
+        let clock = self.clock.unwrap_or_else(|| Rc::new(StdClock));
         let realm = Realm::create(host_hooks.as_ref(), &root_shape)?;
         let vm = Vm::new(realm);
 
@@ -1129,6 +1155,7 @@ impl ContextBuilder {
             instructions_remaining: self.instructions_remaining,
             kept_alive: Vec::new(),
             host_hooks,
+            clock,
             job_executor,
             module_loader,
             optimizer_options: OptimizerOptions::OPTIMIZE_ALL,
