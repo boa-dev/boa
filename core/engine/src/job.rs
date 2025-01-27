@@ -30,12 +30,15 @@
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 //! [`Gc`]: boa_gc::Gc
 
+use crate::context::time::{JsDuration, JsInstant};
 use crate::{
     object::{JsFunction, NativeObject},
     realm::Realm,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use std::collections::BTreeMap;
+use std::ops::DerefMut;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 /// An ECMAScript [Job Abstract Closure].
@@ -121,9 +124,9 @@ impl NativeJob {
 ///
 /// [HostEnqueueTimeoutJob]: https://tc39.es/ecma262/#sec-hostenqueuetimeoutjob
 pub struct TimeoutJob {
-    /// The instant this job should be run, in msec since epoch. This will be compared
-    /// to the host's [`crate::context::HostHooks::utc_now`] method.
-    timeout: i64,
+    /// The distance in milliseconds in the future when the job should run.
+    /// This will be added to the current time when the job is enqueued.
+    timeout: u64,
     /// The job to run after the time has passed.
     job: NativeJob,
 }
@@ -140,48 +143,36 @@ impl Debug for TimeoutJob {
 impl TimeoutJob {
     /// Create a new `TimeoutJob` with a timeout and a job.
     #[must_use]
-    pub fn new_unchecked(job: NativeJob, timeout: i64) -> Self {
-        Self { timeout, job }
+    pub fn new(job: NativeJob, timeout_in_msecs: u64) -> Self {
+        Self {
+            timeout: timeout_in_msecs,
+            job,
+        }
     }
 
-    /// Create a new `TimeoutJob` with a job and a timeout in milliseconds in the future.
+    /// Creates a new `TimeoutJob` from a closure and a timeout as [`std::time::Duration`].
     #[must_use]
-    pub fn delayed(job: NativeJob, delay: u64, context: &mut Context) -> Self {
-        Self::new_unchecked(job, context.host_hooks().utc_now() + (delay as i64))
-    }
-
-    /// Creates a new `TimeoutJob` from a closure and a timeout as [`std::time::SystemTime`].
-    #[must_use]
-    pub fn new<F>(f: F, timeout: std::time::SystemTime) -> Self
+    pub fn from_duration<F>(f: F, timeout: impl Into<JsDuration>) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
-        Self::new_unchecked(
-            NativeJob::new(f),
-            timeout
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("Invalid SystemTime")
-                .as_millis() as i64,
-        )
+        Self::new(NativeJob::new(f), timeout.into().as_millis())
     }
 
     /// Creates a new `TimeoutJob` from a closure, a timeout, and an execution realm.
     #[must_use]
     pub fn with_realm<F>(
         f: F,
-        timeout: std::time::SystemTime,
         realm: Realm,
+        timeout: std::time::Duration,
         context: &mut Context,
     ) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
-        Self::new_unchecked(
+        Self::new(
             NativeJob::with_realm(f, realm, context),
-            timeout
-                .duration_since(std::time::UNIX_EPOCH)
-                .expect("Invalid SystemTime")
-                .as_millis() as i64,
+            timeout.as_millis() as u64,
         )
     }
 
@@ -198,7 +189,7 @@ impl TimeoutJob {
     /// Returns the timeout value in milliseconds since epoch.
     #[inline]
     #[must_use]
-    pub fn timeout(&self) -> i64 {
+    pub fn timeout(&self) -> u64 {
         self.timeout
     }
 }
@@ -540,7 +531,7 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<Vec<TimeoutJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
 }
 
 impl Debug for SimpleJobExecutor {
@@ -558,30 +549,32 @@ impl SimpleJobExecutor {
 }
 
 impl JobExecutor for SimpleJobExecutor {
-    fn enqueue_job(&self, job: Job, _: &mut Context) {
+    fn enqueue_job(&self, job: Job, context: &mut Context) {
         match job {
             Job::PromiseJob(p) => self.promise_jobs.borrow_mut().push_back(p),
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
-            Job::TimeoutJob(t) => self.timeout_jobs.borrow_mut().push(t),
+            Job::TimeoutJob(t) => {
+                let now = context.clock().now();
+                let timeout = JsDuration::from_millis(t.timeout);
+                self.timeout_jobs.borrow_mut().insert(now + timeout, t);
+            }
         }
     }
 
     fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
-        let now = context.host_hooks().utc_now();
+        let now = context.clock().now();
 
         {
             let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
-            // Execute timeout jobs first. We do not execute them in a loop.
-            timeouts_borrow.sort_by_key(|a| a.timeout);
+            // `split_off` returns the jobs after (or equal to) the key. So we need to add 1ms to
+            // the current time to get the jobs that are due, then swap with the inner timeout
+            // tree so that we get the jobs to actually run.
+            let jobs_to_keep = timeouts_borrow.split_off(&(now + JsDuration::from_millis(1)));
+            let jobs_to_run = std::mem::replace(timeouts_borrow.deref_mut(), jobs_to_keep);
+            drop(timeouts_borrow);
 
-            let i = timeouts_borrow.iter().position(|job| job.timeout <= now);
-            if let Some(i) = i {
-                let jobs_to_run: Vec<_> = timeouts_borrow.drain(..=i).collect();
-                drop(timeouts_borrow);
-
-                for job in jobs_to_run {
-                    job.call(context)?;
-                }
+            for job in jobs_to_run.into_values() {
+                job.call(context)?;
             }
         }
 

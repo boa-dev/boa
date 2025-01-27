@@ -1,46 +1,19 @@
 use crate::interval;
 use crate::test::{run_test_actions_with, TestAction};
-use boa_engine::context::{ContextBuilder, HostHooks};
+use boa_engine::context::time::FixedClock;
+use boa_engine::context::{Clock, ContextBuilder};
 use boa_engine::{js_str, Context};
-use std::cell::RefCell;
 use std::rc::Rc;
 
-/// A simple clock that can be used for testing.
-#[derive(Clone)]
-struct TestClockHooks {
-    time: Rc<RefCell<i64>>,
-}
-
-impl Default for TestClockHooks {
-    fn default() -> Self {
-        Self {
-            time: Rc::new(RefCell::new(1_000_000)),
-        }
-    }
-}
-
-impl TestClockHooks {
-    /// Move the clock forwards a number of milliseconds.
-    fn forward(&self, ms: i64) {
-        *self.time.borrow_mut() += ms;
-    }
-}
-
-impl HostHooks for TestClockHooks {
-    fn utc_now(&self) -> i64 {
-        *self.time.borrow()
-    }
-}
-
-fn create_context(hooks: Rc<TestClockHooks>) -> Context {
-    let mut context = ContextBuilder::default().host_hooks(hooks).build().unwrap();
+fn create_context(clock: Rc<impl Clock + 'static>) -> Context {
+    let mut context = ContextBuilder::default().clock(clock).build().unwrap();
     interval::register(&mut context).unwrap();
     context
 }
 
 #[test]
 fn set_timeout_basic() {
-    let clock = Rc::new(TestClockHooks::default());
+    let clock = Rc::new(FixedClock::default());
     let context = &mut create_context(clock.clone());
 
     run_test_actions_with(
@@ -67,7 +40,7 @@ fn set_timeout_basic() {
 
 #[test]
 fn set_timeout_cancel() {
-    let clock = Rc::new(TestClockHooks::default());
+    let clock = Rc::new(FixedClock::default());
     let context = &mut create_context(clock.clone());
     let clock1 = clock.clone();
     let clock2 = clock.clone();
@@ -106,7 +79,7 @@ fn set_timeout_cancel() {
 
 #[test]
 fn set_timeout_delay() {
-    let clock = Rc::new(TestClockHooks::default());
+    let clock = Rc::new(FixedClock::default());
     let context = &mut create_context(clock.clone());
 
     run_test_actions_with(
@@ -143,7 +116,7 @@ fn set_timeout_delay() {
 
 #[test]
 fn set_interval_delay() {
-    let clock = Rc::new(TestClockHooks::default());
+    let clock = Rc::new(FixedClock::default());
     let context = &mut create_context(clock.clone());
     let clock1 = clock.clone(); // For the first test.
     let clock2 = clock.clone(); // For the first test.

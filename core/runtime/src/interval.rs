@@ -77,12 +77,11 @@ fn handle(
     let result = function_ref.call(&JsValue::undefined(), &args, context);
     if let Some(delay) = reschedule {
         if handler_map.borrow().is_interval_valid(id) {
-            let job = TimeoutJob::delayed(
+            let job = TimeoutJob::new(
                 NativeJob::new(move |context| {
                     handle(handler_map, id, function_ref, args, reschedule, context)
                 }),
                 delay,
-                context,
             );
             context.enqueue_job(job.into());
         }
@@ -121,10 +120,9 @@ pub fn set_timeout(
     // Get ownership of rest arguments.
     let rest = rest.to_vec();
 
-    let job = TimeoutJob::delayed(
+    let job = TimeoutJob::new(
         NativeJob::new(move |context| handle(handler_map, id, function_ref, rest, None, context)),
         delay,
-        context,
     );
     context.enqueue_job(job.into());
 
@@ -158,12 +156,11 @@ pub fn set_interval(
     // Get ownership of rest arguments.
     let rest = rest.to_vec();
 
-    let job = TimeoutJob::delayed(
+    let job = TimeoutJob::new(
         NativeJob::new(move |context| {
             handle(handler_map, id, function_ref, rest, Some(delay), context)
         }),
         delay,
-        context,
     );
     context.enqueue_job(job.into());
 
