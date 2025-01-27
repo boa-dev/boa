@@ -126,7 +126,7 @@ impl NativeJob {
 pub struct TimeoutJob {
     /// The distance in milliseconds in the future when the job should run.
     /// This will be added to the current time when the job is enqueued.
-    timeout: u64,
+    timeout: JsDuration,
     /// The job to run after the time has passed.
     job: NativeJob,
 }
@@ -143,9 +143,9 @@ impl Debug for TimeoutJob {
 impl TimeoutJob {
     /// Create a new `TimeoutJob` with a timeout and a job.
     #[must_use]
-    pub fn new(job: NativeJob, timeout_in_msecs: u64) -> Self {
+    pub fn new(job: NativeJob, timeout_in_millis: u64) -> Self {
         Self {
-            timeout: timeout_in_msecs,
+            timeout: JsDuration::from_millis(timeout_in_millis),
             job,
         }
     }
@@ -189,7 +189,7 @@ impl TimeoutJob {
     /// Returns the timeout value in milliseconds since epoch.
     #[inline]
     #[must_use]
-    pub fn timeout(&self) -> u64 {
+    pub fn timeout(&self) -> JsDuration {
         self.timeout
     }
 }
@@ -555,8 +555,7 @@ impl JobExecutor for SimpleJobExecutor {
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
             Job::TimeoutJob(t) => {
                 let now = context.clock().now();
-                let timeout = JsDuration::from_millis(t.timeout);
-                self.timeout_jobs.borrow_mut().insert(now + timeout, t);
+                self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
             }
         }
     }
