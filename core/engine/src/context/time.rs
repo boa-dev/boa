@@ -51,28 +51,28 @@ pub struct JsDuration {
 impl JsDuration {
     /// Creates a new `JsDuration` from the given number of milliseconds.
     #[must_use]
-    pub fn from_millis(millis: i64) -> Self {
+    pub fn from_millis(millis: u64) -> Self {
         Self {
-            inner: std::time::Duration::from_millis(millis as u64),
+            inner: std::time::Duration::from_millis(millis),
         }
     }
 
     /// Returns the number of milliseconds in this duration.
     #[must_use]
-    pub fn as_millis(&self) -> i64 {
-        self.inner.as_millis() as i64
+    pub fn as_millis(&self) -> u64 {
+        self.inner.as_millis() as u64
     }
 
     /// Returns the number of seconds in this duration.
     #[must_use]
-    pub fn as_secs(&self) -> i64 {
-        self.inner.as_secs() as i64
+    pub fn as_secs(&self) -> u64 {
+        self.inner.as_secs()
     }
 
     /// Returns the number of nanoseconds in this duration.
     #[must_use]
-    pub fn as_nanos(&self) -> i64 {
-        self.inner.as_nanos() as i64
+    pub fn as_nanos(&self) -> u128 {
+        self.inner.as_nanos()
     }
 }
 
