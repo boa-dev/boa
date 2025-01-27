@@ -38,7 +38,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use std::collections::BTreeMap;
-use std::ops::DerefMut;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 /// An ECMAScript [Job Abstract Closure].
@@ -569,7 +568,7 @@ impl JobExecutor for SimpleJobExecutor {
             // the current time to get the jobs that are due, then swap with the inner timeout
             // tree so that we get the jobs to actually run.
             let jobs_to_keep = timeouts_borrow.split_off(&(now + JsDuration::from_millis(1)));
-            let jobs_to_run = std::mem::replace(timeouts_borrow.deref_mut(), jobs_to_keep);
+            let jobs_to_run = std::mem::replace(&mut *timeouts_borrow, jobs_to_keep);
             drop(timeouts_borrow);
 
             for job in jobs_to_run.into_values() {
