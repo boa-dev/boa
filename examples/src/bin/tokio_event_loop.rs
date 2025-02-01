@@ -1,12 +1,5 @@
-use std::{
-    cell::RefCell,
-    collections::VecDeque,
-    future::Future,
-    pin::Pin,
-    rc::Rc,
-    time::{Duration, Instant},
-};
-
+use boa_engine::context::time::{JsDuration, JsInstant};
+use boa_engine::job::TimeoutJob;
 use boa_engine::{
     context::ContextBuilder,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
@@ -18,6 +11,16 @@ use boa_engine::{
 use boa_runtime::Console;
 use futures_concurrency::future::FutureGroup;
 use futures_lite::{future, StreamExt};
+use std::collections::BTreeMap;
+use std::ops::DerefMut;
+use std::{
+    cell::RefCell,
+    collections::VecDeque,
+    future::Future,
+    pin::Pin,
+    rc::Rc,
+    time::{Duration, Instant},
+};
 use tokio::{task, time};
 
 // This example shows how to create an event loop using the tokio runtime.
@@ -36,6 +39,7 @@ fn main() -> JsResult<()> {
 struct Queue {
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
 }
 
 impl Queue {
@@ -43,10 +47,32 @@ impl Queue {
         Self {
             async_jobs: RefCell::default(),
             promise_jobs: RefCell::default(),
+            timeout_jobs: RefCell::default(),
+        }
+    }
+
+    fn drain_timeout_jobs(&self, context: &mut Context) {
+        let now = context.clock().now();
+
+        let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+        // `split_off` returns the jobs after (or equal to) the key. So we need to add 1ms to
+        // the current time to get the jobs that are due, then swap with the inner timeout
+        // tree so that we get the jobs to actually run.
+        let jobs_to_keep = timeouts_borrow.split_off(&(now + JsDuration::from_millis(1)));
+        let jobs_to_run = std::mem::replace(timeouts_borrow.deref_mut(), jobs_to_keep);
+        drop(timeouts_borrow);
+
+        for job in jobs_to_run.into_values() {
+            if let Err(e) = job.call(context) {
+                eprintln!("Uncaught {e}");
+            }
         }
     }
 
     fn drain_jobs(&self, context: &mut Context) {
+        // Run the timeout jobs first.
+        self.drain_timeout_jobs(context);
+
         let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
         for job in jobs {
             if let Err(e) = job.call(context) {
@@ -57,10 +83,14 @@ impl Queue {
 }
 
 impl JobExecutor for Queue {
-    fn enqueue_job(&self, job: Job, _context: &mut Context) {
+    fn enqueue_job(&self, job: Job, context: &mut Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            Job::TimeoutJob(t) => {
+                let now = context.clock().now();
+                self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
+            }
             _ => panic!("unsupported job type"),
         }
     }

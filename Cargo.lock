@@ -392,7 +392,6 @@ dependencies = [
  "num-traits",
  "num_enum",
  "once_cell",
- "pollster",
  "portable-atomic",
  "rand",
  "regress",
