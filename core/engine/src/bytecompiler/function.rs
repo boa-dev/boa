@@ -3,7 +3,7 @@ use crate::{
     bytecompiler::ByteCompiler,
     js_string,
     vm::{CodeBlock, CodeBlockFlags, Opcode},
-    JsString,
+    JsString, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -24,11 +24,12 @@ pub(crate) struct FunctionCompiler {
     method: bool,
     in_with: bool,
     name_scope: Option<Scope>,
+    spanned_source_text: SpannedSourceText,
 }
 
 impl FunctionCompiler {
     /// Create a new `FunctionCompiler`.
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(spanned_source_text: SpannedSourceText) -> Self {
         Self {
             name: js_string!(),
             generator: false,
@@ -38,6 +39,7 @@ impl FunctionCompiler {
             method: false,
             in_with: false,
             name_scope: None,
+            spanned_source_text,
         }
     }
 
@@ -119,7 +121,9 @@ impl FunctionCompiler {
             self.generator,
             interner,
             self.in_with,
+            self.spanned_source_text,
         );
+
         compiler.length = length;
         compiler.code_block_flags.set(
             CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,

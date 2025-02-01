@@ -55,6 +55,9 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("GeneratorExpression", "Parsing");
 
+        let token = cursor.expect((Keyword::Function, false), "generator expression", interner)?;
+        let start_linear_span = token.linear_span();
+
         cursor.expect(
             TokenKind::Punctuator(Punctuator::Mul),
             "generator expression",
@@ -151,7 +154,9 @@ where
             )));
         }
 
-        let function = GeneratorExpressionNode::new(name, params, body, name.is_some());
+        let span = start_linear_span.union(body.linear_pos_end());
+
+        let function = GeneratorExpressionNode::new(name, params, body, span, name.is_some());
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

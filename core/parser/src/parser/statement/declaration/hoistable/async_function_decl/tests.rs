@@ -1,10 +1,13 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     function::{AsyncFunctionDeclaration, FormalParameterList, FunctionBody},
-    Declaration,
+    Declaration, LinearPosition, LinearSpan,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
+
+const EMPTY_LINEAR_SPAN: LinearSpan =
+    LinearSpan::new(LinearPosition::new(0), LinearPosition::new(0));
 
 /// Async function declaration parsing.
 #[test]
@@ -19,6 +22,7 @@ fn async_function_declaration() {
                     .into(),
                 FormalParameterList::default(),
                 FunctionBody::default(),
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],
@@ -37,6 +41,7 @@ fn async_function_declaration_keywords() {
                 Sym::YIELD.into(),
                 FormalParameterList::default(),
                 FunctionBody::default(),
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],
@@ -51,6 +56,7 @@ fn async_function_declaration_keywords() {
                 Sym::AWAIT.into(),
                 FormalParameterList::default(),
                 FunctionBody::default(),
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],

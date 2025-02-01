@@ -568,6 +568,9 @@ where
         );
 
         let token = cursor.peek(0, interner).or_abrupt()?;
+        let start_linear_span = token.linear_span();
+        let start_linear_pos = start_linear_span.start();
+
         let position = token.span().start();
         let element = match token.kind() {
             TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -590,8 +593,12 @@ where
                 )?;
                 cursor.set_strict(strict);
 
+                let span = Some(start_linear_span.union(body.linear_pos_end()));
+
                 return Ok((
-                    Some(FunctionExpression::new(self.name, parameters, body, false)),
+                    Some(FunctionExpression::new(
+                        self.name, parameters, body, span, false,
+                    )),
                     None,
                 ));
             }
@@ -724,6 +731,7 @@ where
                     body,
                     MethodDefinitionKind::Generator,
                     r#static,
+                    start_linear_pos,
                 ))
             }
             TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
@@ -783,6 +791,7 @@ where
                             body,
                             MethodDefinitionKind::AsyncGenerator,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -826,6 +835,7 @@ where
                             body,
                             MethodDefinitionKind::Async,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                 }
@@ -883,6 +893,7 @@ where
                             body,
                             MethodDefinitionKind::Get,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -936,6 +947,7 @@ where
                             body,
                             MethodDefinitionKind::Get,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {
@@ -997,6 +1009,7 @@ where
                             body,
                             MethodDefinitionKind::Set,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -1052,6 +1065,7 @@ where
                             body,
                             MethodDefinitionKind::Set,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {
@@ -1133,6 +1147,7 @@ where
                             body,
                             MethodDefinitionKind::Ordinary,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {
@@ -1230,6 +1245,7 @@ where
                             body,
                             MethodDefinitionKind::Ordinary,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {

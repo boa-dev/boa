@@ -28,6 +28,7 @@ fn check_async_ordinary_method() {
         FunctionBody::default(),
         MethodDefinitionKind::Ordinary,
         false,
+        boa_ast::LinearPosition::default(),
     ))];
 
     check_script_parser(
@@ -121,7 +122,12 @@ fn check_new_target_with_property_access() {
     let constructor = FunctionExpression::new(
         Some(interner.get_or_intern_static("A", utf16!("A")).into()),
         FormalParameterList::default(),
-        FunctionBody::new([Statement::Expression(console).into()], false),
+        FunctionBody::new(
+            [Statement::Expression(console).into()],
+            boa_ast::LinearPosition::new(0),
+            false,
+        ),
+        None,
         false,
     );
 

@@ -12,6 +12,7 @@ mod iterators;
 mod operators;
 mod promise;
 mod spread;
+mod to_string;
 
 use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
 

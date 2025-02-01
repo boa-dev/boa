@@ -7,7 +7,7 @@ use crate::{
     source::ReadChar,
     Error,
 };
-use boa_ast::{self as ast, expression::TaggedTemplate, Position, Punctuator};
+use boa_ast::{self as ast, expression::TaggedTemplate, PositionGroup, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -21,7 +21,7 @@ use boa_profiler::Profiler;
 pub(super) struct TaggedTemplateLiteral {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    start: Position,
+    start: PositionGroup,
     tag: ast::Expression,
 }
 
@@ -30,7 +30,7 @@ impl TaggedTemplateLiteral {
     pub(super) fn new<Y, A>(
         allow_yield: Y,
         allow_await: A,
-        start: Position,
+        start: PositionGroup,
         tag: ast::Expression,
     ) -> Self
     where

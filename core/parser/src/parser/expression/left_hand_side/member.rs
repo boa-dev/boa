@@ -268,7 +268,7 @@ where
                     lhs = TaggedTemplateLiteral::new(
                         self.allow_yield,
                         self.allow_await,
-                        tok.span().start(),
+                        tok.start_group(),
                         lhs,
                     )
                     .parse(cursor, interner)?
