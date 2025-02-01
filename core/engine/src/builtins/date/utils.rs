@@ -825,22 +825,46 @@ impl<'a> DateParser<'a> {
             .and_then(|c| if *c == expect { Some(()) } else { None })
     }
 
-    fn next_digit(&mut self) -> Option<u8> {
-        self.input.next().and_then(|c| {
-            if c.is_ascii_digit() {
-                Some(c - b'0')
-            } else {
-                None
-            }
-        })
+    fn next_ascii_digit(&mut self) -> Option<u8> {
+        self.input
+            .next()
+            .and_then(|c| if c.is_ascii_digit() { Some(*c) } else { None })
     }
 
-    fn next_n_digits<const N: usize>(&mut self) -> Option<[u8; N]> {
+    fn next_n_ascii_digits<const N: usize>(&mut self) -> Option<[u8; N]> {
         let mut digits = [0; N];
         for digit in &mut digits {
-            *digit = self.next_digit()?;
+            *digit = self.next_ascii_digit()?;
         }
         Some(digits)
+    }
+
+    #[allow(clippy::items_after_statements)]
+    #[allow(clippy::inline_always)]
+    fn parse_n_ascii_digits<const N: usize>(&mut self) -> Option<u64> {
+        assert!(N <= 8, "parse_n_ascii_digits parses no more than 8 digits");
+
+        let digits = self.next_n_ascii_digits::<N>()?;
+        if N <= 4 {
+            let mut res = 0;
+            for digit in digits {
+                res = res * 10 + u64::from(digit & 0xF);
+            }
+            Some(res)
+        } else {
+            // Copied from https://github.com/RoDmitry/atoi_simd/blob/master/src/fallback.rs
+            #[inline(always)]
+            fn process_8(mut val: u64, len: usize) -> u64 {
+                val <<= 64_usize.saturating_sub(len << 3); // << 3 - same as mult by 8
+                val = (val & 0x0F0F_0F0F_0F0F_0F0F).wrapping_mul(0xA01) >> 8;
+                val = (val & 0x00FF_00FF_00FF_00FF).wrapping_mul(0x64_0001) >> 16;
+                (val & 0x0000_FFFF_0000_FFFF).wrapping_mul(0x2710_0000_0001) >> 32
+            }
+            let mut src = [0; 8];
+            src[..N].copy_from_slice(&digits);
+            let val = u64::from_le_bytes(src);
+            Some(process_8(val, N))
+        }
     }
 
     fn finish(&mut self) -> Option<i64> {
@@ -891,6 +915,7 @@ impl<'a> DateParser<'a> {
         }
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse(&mut self) -> Option<i64> {
         self.parse_year()?;
         match self.input.peek() {
@@ -899,8 +924,7 @@ impl<'a> DateParser<'a> {
             _ => {}
         }
         self.next_expect(b'-')?;
-        let month_digits = self.next_n_digits::<2>()?;
-        self.month = u32::from(month_digits[0] * 10 + month_digits[1]);
+        self.month = self.parse_n_ascii_digits::<2>()? as u32;
         if self.month < 1 || self.month > 12 {
             return None;
         }
@@ -910,8 +934,7 @@ impl<'a> DateParser<'a> {
             _ => {}
         }
         self.next_expect(b'-')?;
-        let day_digits = self.next_n_digits::<2>()?;
-        self.day = u32::from(day_digits[0] * 10 + day_digits[1]);
+        self.day = self.parse_n_ascii_digits::<2>()? as u32;
         if self.day < 1 || self.day > 31 {
             return None;
         }
@@ -921,43 +944,32 @@ impl<'a> DateParser<'a> {
         }
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse_year(&mut self) -> Option<()> {
-        match self.input.next()? {
-            sign @ (b'+' | b'-') => {
-                let digits = self.next_n_digits::<6>()?.map(i32::from);
-                let year = digits[0] * 100_000
-                    + digits[1] * 10000
-                    + digits[2] * 1000
-                    + digits[3] * 100
-                    + digits[4] * 10
-                    + digits[5];
-                let neg = *sign == b'-';
-                if neg && year == 0 {
-                    return None;
-                }
-                self.year = if neg { -year } else { year };
-                Some(())
+        if let &&sign @ (b'+' | b'-') = self.input.peek()? {
+            // Consume the sign.
+            self.input.next();
+            let year = self.parse_n_ascii_digits::<6>()? as i32;
+            let neg = sign == b'-';
+            if neg && year == 0 {
+                return None;
             }
-            c if c.is_ascii_digit() => {
-                let digits = self.next_n_digits::<3>()?.map(i32::from);
-                self.year =
-                    i32::from(c - b'0') * 1000 + digits[0] * 100 + digits[1] * 10 + digits[2];
-                Some(())
-            }
-            _ => None,
+            self.year = if neg { -year } else { year };
+        } else {
+            self.year = self.parse_n_ascii_digits::<4>()? as i32;
         }
+        Some(())
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse_time(&mut self) -> Option<i64> {
         self.next_expect(b'T')?;
-        let hour_digits = self.next_n_digits::<2>()?;
-        self.hour = u32::from(hour_digits[0] * 10 + hour_digits[1]);
+        self.hour = self.parse_n_ascii_digits::<2>()? as u32;
         if self.hour > 24 {
             return None;
         }
         self.next_expect(b':')?;
-        let minute_digits = self.next_n_digits::<2>()?;
-        self.minute = u32::from(minute_digits[0] * 10 + minute_digits[1]);
+        self.minute = self.parse_n_ascii_digits::<2>()? as u32;
         if self.minute > 59 {
             return None;
         }
@@ -969,8 +981,7 @@ impl<'a> DateParser<'a> {
                 return self.finish();
             }
         };
-        let second_digits = self.next_n_digits::<2>()?;
-        self.second = u32::from(second_digits[0] * 10 + second_digits[1]);
+        self.second = self.parse_n_ascii_digits::<2>()? as u32;
         if self.second > 59 {
             return None;
         }
@@ -982,9 +993,7 @@ impl<'a> DateParser<'a> {
                 return self.finish();
             }
         };
-        let millisecond_digits = self.next_n_digits::<3>()?.map(u32::from);
-        self.millisecond =
-            millisecond_digits[0] * 100 + millisecond_digits[1] * 10 + millisecond_digits[2];
+        self.millisecond = self.parse_n_ascii_digits::<3>()? as u32;
         if self.input.peek().is_some() {
             self.parse_timezone()?;
             self.finish()
@@ -993,13 +1002,13 @@ impl<'a> DateParser<'a> {
         }
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse_timezone(&mut self) -> Option<()> {
         match self.input.next() {
             Some(b'Z') => return Some(()),
             Some(sign @ (b'+' | b'-')) => {
                 let neg = *sign == b'-';
-                let offset_hour_digits = self.next_n_digits::<2>()?;
-                let offset_hour = i64::from(offset_hour_digits[0] * 10 + offset_hour_digits[1]);
+                let offset_hour = self.parse_n_ascii_digits::<2>()? as i64;
                 if offset_hour > 23 {
                     return None;
                 }
@@ -1008,9 +1017,7 @@ impl<'a> DateParser<'a> {
                     return Some(());
                 }
                 self.next_expect(b':')?;
-                let offset_minute_digits = self.next_n_digits::<2>()?;
-                let offset_minute =
-                    i64::from(offset_minute_digits[0] * 10 + offset_minute_digits[1]);
+                let offset_minute = self.parse_n_ascii_digits::<2>()? as i64;
                 if offset_minute > 59 {
                     return None;
                 }
