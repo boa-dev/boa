@@ -8,6 +8,8 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+
 /// Checks parsing malformed switch with no closeblock.
 #[test]
 fn check_switch_no_closeblock() {
@@ -169,48 +171,63 @@ fn check_separated_switch() {
                 vec![
                     Case::new(
                         Literal::from(5).into(),
-                        vec![
-                            Statement::Expression(Expression::from(Call::new(
-                                Expression::PropertyAccess(
-                                    SimplePropertyAccess::new(Identifier::new(console).into(), log)
+                        (
+                            vec![
+                                Statement::Expression(Expression::from(Call::new(
+                                    Expression::PropertyAccess(
+                                        SimplePropertyAccess::new(
+                                            Identifier::new(console).into(),
+                                            log,
+                                        )
                                         .into(),
-                                ),
-                                vec![Literal::from(5).into()].into(),
-                            )))
+                                    ),
+                                    vec![Literal::from(5).into()].into(),
+                                )))
+                                .into(),
+                                Statement::Break(Break::new(None)).into(),
+                            ],
+                            PSEUDO_LINEAR_POS,
+                        )
                             .into(),
-                            Statement::Break(Break::new(None)).into(),
-                        ]
-                        .into(),
                     ),
                     Case::new(
                         Literal::from(10).into(),
-                        vec![
-                            Statement::Expression(Expression::from(Call::new(
+                        (
+                            vec![
+                                Statement::Expression(Expression::from(Call::new(
+                                    Expression::PropertyAccess(
+                                        SimplePropertyAccess::new(
+                                            Identifier::new(console).into(),
+                                            log,
+                                        )
+                                        .into(),
+                                    ),
+                                    vec![Literal::from(10).into()].into(),
+                                )))
+                                .into(),
+                                Statement::Break(Break::new(None)).into(),
+                            ],
+                            PSEUDO_LINEAR_POS,
+                        )
+                            .into(),
+                    ),
+                    Case::default(
+                        (
+                            vec![Statement::Expression(Expression::from(Call::new(
                                 Expression::PropertyAccess(
                                     SimplePropertyAccess::new(Identifier::new(console).into(), log)
                                         .into(),
                                 ),
-                                vec![Literal::from(10).into()].into(),
+                                vec![Literal::from(
+                                    interner.get_or_intern_static("Default", utf16!("Default")),
+                                )
+                                .into()]
+                                .into(),
                             )))
+                            .into()],
+                            PSEUDO_LINEAR_POS,
+                        )
                             .into(),
-                            Statement::Break(Break::new(None)).into(),
-                        ]
-                        .into(),
-                    ),
-                    Case::default(
-                        vec![Statement::Expression(Expression::from(Call::new(
-                            Expression::PropertyAccess(
-                                SimplePropertyAccess::new(Identifier::new(console).into(), log)
-                                    .into(),
-                            ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("Default", utf16!("Default")),
-                            )
-                            .into()]
-                            .into(),
-                        )))
-                        .into()]
-                        .into(),
                     ),
                 ]
                 .into(),

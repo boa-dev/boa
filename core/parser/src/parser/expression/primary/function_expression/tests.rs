@@ -9,6 +9,8 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+
 /// Checks async expression parsing.
 #[test]
 fn check_function_expression() {
@@ -30,8 +32,10 @@ fn check_function_expression() {
                             [StatementListItem::Statement(Statement::Return(
                                 Return::new(Some(Literal::from(1).into())),
                             ))],
+                            PSEUDO_LINEAR_POS,
                             false,
                         ),
+                        None,
                         false,
                     )
                     .into(),
@@ -76,8 +80,10 @@ fn check_nested_function_expression() {
                                                 [StatementListItem::Statement(Statement::Return(
                                                     Return::new(Some(Literal::from(1).into())),
                                                 ))],
+                                                PSEUDO_LINEAR_POS,
                                                 false,
                                             ),
+                                            None,
                                             false,
                                         )
                                         .into(),
@@ -87,8 +93,10 @@ fn check_nested_function_expression() {
                                 .unwrap(),
                             ))
                             .into()],
+                            PSEUDO_LINEAR_POS,
                             false,
                         ),
+                        None,
                         false,
                     )
                     .into(),
@@ -121,8 +129,10 @@ fn check_function_non_reserved_keyword() {
                                         )
                                     )
                                 )],
+                                PSEUDO_LINEAR_POS,
                                 false,
                             ),
+                            None,
                             true,
                         )
                         .into(),

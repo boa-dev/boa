@@ -1,7 +1,7 @@
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     vm::{BindingOpcode, Opcode},
-    Context, JsNativeError, JsResult,
+    Context, JsNativeError, JsResult, SpannedSourceText,
 };
 use boa_ast::{
     declaration::Binding,
@@ -520,7 +520,10 @@ impl ByteCompiler<'_> {
                     VarScopedDeclaration::VariableDeclaration(_) => continue,
                 };
 
-            let code = FunctionCompiler::new()
+            let func_span = function.linear_span();
+            let spanned_source_text = SpannedSourceText::new(self.source_text(), func_span);
+
+            let code = FunctionCompiler::new(spanned_source_text)
                 .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)
@@ -786,7 +789,10 @@ impl ByteCompiler<'_> {
                     }
                 };
 
-            let code = FunctionCompiler::new()
+            let func_span = function.linear_span();
+            let spanned_source_text = SpannedSourceText::new(self.source_text(), func_span);
+
+            let code = FunctionCompiler::new(spanned_source_text)
                 .name(name.sym().to_js_string(self.interner()))
                 .generator(generator)
                 .r#async(r#async)

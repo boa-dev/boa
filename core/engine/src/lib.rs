@@ -108,6 +108,10 @@ mod host_defined;
 mod small_map;
 mod sys;
 
+mod spanned_source_text;
+use spanned_source_text::SourceText;
+pub use spanned_source_text::SpannedSourceText;
+
 #[cfg(test)]
 mod tests;
 

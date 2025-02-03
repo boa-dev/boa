@@ -12,6 +12,8 @@ use boa_ast::{
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+
 /// Checks object literal parsing.
 #[test]
 fn check_object_literal() {
@@ -62,6 +64,7 @@ fn check_object_short_function() {
             FormalParameterList::default(),
             FunctionBody::default(),
             MethodDefinitionKind::Ordinary,
+            PSEUDO_LINEAR_POS,
         )),
     ];
 
@@ -110,6 +113,7 @@ fn check_object_short_function_arguments() {
             parameters,
             FunctionBody::default(),
             MethodDefinitionKind::Ordinary,
+            PSEUDO_LINEAR_POS,
         )),
     ];
 
@@ -146,6 +150,7 @@ fn check_object_getter() {
             FormalParameterList::default(),
             FunctionBody::default(),
             MethodDefinitionKind::Get,
+            PSEUDO_LINEAR_POS,
         )),
     ];
 
@@ -193,6 +198,7 @@ fn check_object_setter() {
             params,
             FunctionBody::default(),
             MethodDefinitionKind::Set,
+            PSEUDO_LINEAR_POS,
         )),
     ];
 
@@ -225,6 +231,7 @@ fn check_object_short_function_get() {
             FormalParameterList::default(),
             FunctionBody::default(),
             MethodDefinitionKind::Ordinary,
+            PSEUDO_LINEAR_POS,
         ),
     )];
 
@@ -256,6 +263,7 @@ fn check_object_short_function_set() {
             FormalParameterList::default(),
             FunctionBody::default(),
             MethodDefinitionKind::Ordinary,
+            PSEUDO_LINEAR_POS,
         ),
     )];
 
@@ -404,6 +412,7 @@ fn check_async_method() {
             FormalParameterList::default(),
             FunctionBody::default(),
             MethodDefinitionKind::Async,
+            PSEUDO_LINEAR_POS,
         ),
     )];
 
@@ -435,6 +444,7 @@ fn check_async_generator_method() {
             FormalParameterList::default(),
             FunctionBody::default(),
             MethodDefinitionKind::AsyncGenerator,
+            PSEUDO_LINEAR_POS,
         ),
     )];
 
@@ -488,6 +498,7 @@ fn check_async_ordinary_method() {
             FormalParameterList::default(),
             FunctionBody::default(),
             MethodDefinitionKind::Ordinary,
+            PSEUDO_LINEAR_POS,
         ),
     )];
 

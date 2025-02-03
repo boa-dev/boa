@@ -2,7 +2,7 @@
 
 use crate::lexer::{Cursor, Error, Token, Tokenizer};
 use crate::source::ReadChar;
-use boa_ast::{Position, Punctuator, Span};
+use boa_ast::{PositionGroup, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -30,7 +30,7 @@ impl<R> Tokenizer<R> for SpreadLiteral {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -41,9 +41,10 @@ impl<R> Tokenizer<R> for SpreadLiteral {
         // . or ...
         if cursor.next_if(0x2E /* . */)? {
             if cursor.next_if(0x2E /* . */)? {
-                Ok(Token::new(
+                Ok(Token::new_by_position_group(
                     Punctuator::Spread.into(),
-                    Span::new(start_pos, cursor.pos()),
+                    start_pos,
+                    cursor.pos_group(),
                 ))
             } else {
                 Err(Error::syntax(
@@ -52,9 +53,10 @@ impl<R> Tokenizer<R> for SpreadLiteral {
                 ))
             }
         } else {
-            Ok(Token::new(
+            Ok(Token::new_by_position_group(
                 Punctuator::Dot.into(),
-                Span::new(start_pos, cursor.pos()),
+                start_pos,
+                cursor.pos_group(),
             ))
         }
     }

@@ -8,6 +8,10 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
+    boa_ast::LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
+
 #[test]
 fn check_generator_function_expression() {
     let interner = &mut Interner::default();
@@ -28,8 +32,10 @@ fn check_generator_function_expression() {
                             [StatementListItem::Statement(Statement::Expression(
                                 Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
                             ))],
+                            PSEUDO_LINEAR_POS,
                             false,
                         ),
+                        EMPTY_LINEAR_SPAN,
                         false,
                     )
                     .into(),
@@ -63,8 +69,10 @@ fn check_generator_function_delegate_yield_expression() {
                             [StatementListItem::Statement(Statement::Expression(
                                 Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
                             ))],
+                            PSEUDO_LINEAR_POS,
                             false,
                         ),
+                        EMPTY_LINEAR_SPAN,
                         false,
                     )
                     .into(),

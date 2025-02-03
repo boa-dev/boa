@@ -9,6 +9,10 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
+    boa_ast::LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
+
 ///checks async generator expression parsing
 
 #[test]
@@ -31,8 +35,10 @@ fn check_async_generator_expr() {
                             [StatementListItem::Statement(Statement::Return(
                                 Return::new(Some(Literal::from(1).into())),
                             ))],
+                            PSEUDO_LINEAR_POS,
                             false,
                         ),
+                        EMPTY_LINEAR_SPAN,
                         false,
                     )
                     .into(),
@@ -77,8 +83,10 @@ fn check_nested_async_generator_expr() {
                                                 [StatementListItem::Statement(Statement::Return(
                                                     Return::new(Some(Literal::from(1).into())),
                                                 ))],
+                                                PSEUDO_LINEAR_POS,
                                                 false,
                                             ),
+                                            EMPTY_LINEAR_SPAN,
                                             false,
                                         )
                                         .into(),
@@ -88,8 +96,10 @@ fn check_nested_async_generator_expr() {
                                 .unwrap(),
                             ))
                             .into()],
+                            PSEUDO_LINEAR_POS,
                             false,
                         ),
+                        EMPTY_LINEAR_SPAN,
                         false,
                     )
                     .into(),
