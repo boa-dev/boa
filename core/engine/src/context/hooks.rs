@@ -19,6 +19,7 @@ use time::{OffsetDateTime, UtcOffset};
 /// need to be redefined:
 ///
 /// ```
+/// use std::rc::Rc;
 /// use boa_engine::{
 ///     context::{Context, ContextBuilder, HostHooks},
 ///     realm::Realm,
@@ -42,7 +43,7 @@ use time::{OffsetDateTime, UtcOffset};
 ///     }
 /// }
 ///
-/// let context = &mut ContextBuilder::new().host_hooks(&Hooks).build().unwrap();
+/// let context = &mut ContextBuilder::new().host_hooks(Rc::new(Hooks)).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
 /// assert_eq!(
 ///     result.unwrap_err().to_string(),
@@ -181,6 +182,10 @@ pub trait HostHooks {
     /// which can cause panics if the target doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
+    #[deprecated(
+        since = "0.21.0",
+        note = "Use `context.clock().now().millis_since_epoch()` instead"
+    )]
     fn utc_now(&self) -> i64 {
         let now = OffsetDateTime::now_utc();
         now.unix_timestamp() * 1000 + i64::from(now.millisecond())

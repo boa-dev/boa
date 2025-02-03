@@ -68,7 +68,7 @@ impl Now {
     fn time_zone_id(_: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ! SystemTimeZone().
         system_time_zone(context)?
-            .id()
+            .identifier()
             .map(|s| JsValue::from(js_string!(s.as_str())))
             .map_err(Into::into)
     }

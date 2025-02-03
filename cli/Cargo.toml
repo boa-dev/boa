@@ -25,6 +25,7 @@ phf = { workspace = true, features = ["macros"] }
 pollster.workspace = true
 dhat = { workspace = true, optional = true }
 color-eyre.workspace = true
+cow-utils.workspace = true
 
 [features]
 default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl_bundled"]

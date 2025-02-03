@@ -1181,7 +1181,9 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     }
                 }
                 ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
-                | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    name, ..
+                }) => {
                     names.push(name.description());
                 }
                 _ => {}
@@ -1206,13 +1208,19 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                 ClassElement::FieldDefinition(field)
                 | ClassElement::StaticFieldDefinition(field) => {
                     visitor.visit(&field.name)?;
-                    if let Some(expression) = &field.field {
+                    if let Some(expression) = &field.initializer {
                         visitor.visit(expression)?;
                     }
                 }
-                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { field, .. })
-                | ClassElement::PrivateStaticFieldDefinition(_, field) => {
-                    if let Some(expression) = field {
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                })
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                }) => {
+                    if let Some(expression) = initializer {
                         visitor.visit(expression)?;
                     }
                 }
@@ -1242,7 +1250,9 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     }
                 }
                 ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
-                | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    name, ..
+                }) => {
                     names.push(name.description());
                 }
                 _ => {}
@@ -1267,13 +1277,19 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                 ClassElement::FieldDefinition(field)
                 | ClassElement::StaticFieldDefinition(field) => {
                     visitor.visit(&field.name)?;
-                    if let Some(expression) = &field.field {
+                    if let Some(expression) = &field.initializer {
                         visitor.visit(expression)?;
                     }
                 }
-                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { field, .. })
-                | ClassElement::PrivateStaticFieldDefinition(_, field) => {
-                    if let Some(expression) = field {
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                })
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                }) => {
+                    if let Some(expression) = initializer {
                         visitor.visit(expression)?;
                     }
                 }

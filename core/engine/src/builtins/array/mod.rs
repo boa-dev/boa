@@ -41,6 +41,9 @@ mod array_iterator;
 use crate::value::JsVariant;
 pub(crate) use array_iterator::ArrayIterator;
 
+#[cfg(feature = "experimental")]
+mod from_async;
+
 #[cfg(test)]
 mod tests;
 
@@ -106,7 +109,7 @@ impl IntrinsicObject for Array {
 
         let unscopables_object = Self::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             // Static Methods
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::is_array, js_string!("isArray"), 1)
@@ -177,8 +180,12 @@ impl IntrinsicObject for Array {
                 symbol_unscopables,
                 unscopables_object,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "experimental")]
+        let builder = builder.static_method(Self::from_async, js_string!("fromAsync"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -3424,6 +3431,33 @@ fn array_exotic_define_own_property(
         // 3. Else if P is an array index, then
         PropertyKey::Index(index) => {
             let index = index.get();
+            let new_len = index + 1;
+
+            // Optimization: If the shape of the object is the array template shape,
+            // we know the position of the "length" property.
+            if u64::from(new_len) < (2u64.pow(32) - 1) {
+                let borrowed_object = obj.borrow();
+                if borrowed_object.properties().shape.to_addr_usize()
+                    == context
+                        .intrinsics()
+                        .templates()
+                        .array()
+                        .shape()
+                        .to_addr_usize()
+                {
+                    let old_len = borrowed_object.properties().storage[0].clone();
+                    drop(borrowed_object);
+                    let old_len = old_len.to_u32(context)?;
+                    if new_len >= old_len {
+                        if ordinary_define_own_property(obj, key, desc, context)? {
+                            let mut borrowed_object = obj.borrow_mut();
+                            borrowed_object.properties_mut().storage[0] = JsValue::new(new_len);
+                            return Ok(true);
+                        }
+                        return Ok(false);
+                    }
+                }
+            }
 
             // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
             let old_len_desc =
@@ -3455,7 +3489,7 @@ fn array_exotic_define_own_property(
                 if index >= old_len {
                     // i. Set oldLenDesc.[[Value]] to index + 1𝔽.
                     let old_len_desc = PropertyDescriptor::builder()
-                        .value(index + 1)
+                        .value(new_len)
                         .maybe_writable(old_len_desc.writable())
                         .maybe_enumerable(old_len_desc.enumerable())
                         .maybe_configurable(old_len_desc.configurable());

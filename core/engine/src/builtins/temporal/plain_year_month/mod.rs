@@ -20,8 +20,8 @@ use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
 use temporal_rs::{
-    options::{ArithmeticOverflow, CalendarName},
-    Duration, PlainYearMonth as InnerYearMonth,
+    options::{ArithmeticOverflow, DisplayCalendar},
+    Calendar, Duration, PlainYearMonth as InnerYearMonth,
 };
 
 use super::{calendar::to_temporal_calendar_slot_value, to_temporal_duration, DateTimeValues};
@@ -134,13 +134,14 @@ impl IntrinsicObject for PlainYearMonth {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 2)
-            .method(Self::with, js_string!("with"), 2)
-            .method(Self::add, js_string!("add"), 2)
-            .method(Self::subtract, js_string!("subtract"), 2)
-            .method(Self::until, js_string!("until"), 2)
-            .method(Self::since, js_string!("since"), 2)
+            .method(Self::with, js_string!("with"), 1)
+            .method(Self::add, js_string!("add"), 1)
+            .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::until, js_string!("until"), 1)
+            .method(Self::since, js_string!("since"), 1)
             .method(Self::equals, js_string!("equals"), 1)
-            .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
@@ -186,7 +187,17 @@ impl BuiltInConstructor for PlainYearMonth {
             .as_integer_with_truncation::<u8>();
 
         // 5. Let calendar be ? ToTemporalCalendarSlotValue(calendarLike, "iso8601").
-        let calendar = to_temporal_calendar_slot_value(args.get_or_undefined(2))?;
+        let calendar = args
+            .get_or_undefined(2)
+            .map(|s| {
+                s.as_string()
+                    .map(JsString::to_std_string_lossy)
+                    .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
+            })
+            .transpose()?
+            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .transpose()?
+            .unwrap_or_default();
 
         // 6. Let ref be ? ToIntegerWithTruncation(referenceISODay).
         let ref_day = args
@@ -417,6 +428,7 @@ impl PlainYearMonth {
             .into())
     }
 
+    /// `9.3.19 Temporal.PlainYearMonth.prototype.toString ( [ options ] )`
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let YearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
@@ -427,18 +439,31 @@ impl PlainYearMonth {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
             })?;
 
-        let inner = &year_month.inner;
         // 3. Set options to ? NormalizeOptionsObject(options).
         let options = get_options_object(args.get_or_undefined(0))?;
         // 4. Let showCalendar be ? ToShowCalendarOption(options).
         // Get calendarName from the options object
         let show_calendar =
-            get_option::<CalendarName>(&options, js_string!("calendarName"), context)?
-                .unwrap_or(CalendarName::Auto);
+            get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(DisplayCalendar::Auto);
 
-        Ok(year_month_to_string(inner, show_calendar))
+        let ixdtf = year_month.inner.to_ixdtf_string(show_calendar);
+        Ok(JsString::from(ixdtf).into())
     }
 
+    /// `9.3.21 Temporal.PlainYearMonth.prototype.toJSON ( )`
+    pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let year_month = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+
+        Ok(JsString::from(year_month.inner.to_string()).into())
+    }
+
+    /// `9.3.22 Temporal.PlainYearMonth.prototype.valueOf ( )`
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
@@ -527,36 +552,4 @@ fn add_or_subtract_duration(
     };
 
     create_temporal_year_month(year_month_result, None, context)
-}
-
-fn year_month_to_string(inner: &InnerYearMonth, show_calendar: CalendarName) -> JsValue {
-    // Let year be PadISOYear(yearMonth.[[ISOYear]]).
-    let year = inner.padded_iso_year_string();
-    // Let month be ToZeroPaddedDecimalString(yearMonth.[[ISOMonth]], 2).
-    let month = inner.iso_month().to_string();
-
-    // Let result be the string-concatenation of year, the code unit 0x002D (HYPHEN-MINUS), and month.
-    let mut result = format!("{year}-{month:0>2}");
-
-    // 5. If showCalendar is one of "always" or "critical", or if calendarIdentifier is not "iso8601", then
-    // a. Let day be ToZeroPaddedDecimalString(yearMonth.[[ISODay]], 2).
-    // b. Set result to the string-concatenation of result, the code unit 0x002D (HYPHEN-MINUS), and day.
-    // 6. Let calendarString be FormatCalendarAnnotation(calendarIdentifier, showCalendar).
-    // 7. Set result to the string-concatenation of result and calendarString.
-    if matches!(
-        show_calendar,
-        CalendarName::Critical | CalendarName::Always | CalendarName::Auto
-    ) && !(matches!(show_calendar, CalendarName::Auto) && inner.calendar_id() == "iso8601")
-    {
-        let calendar = inner.calendar_id();
-        let calendar_string = calendar.to_string();
-        let flag = if matches!(show_calendar, CalendarName::Critical) {
-            "!"
-        } else {
-            ""
-        };
-        result.push_str(&format!("[{flag}c={calendar_string}]",));
-    }
-    // 8. Return result.
-    js_string!(result).into()
 }

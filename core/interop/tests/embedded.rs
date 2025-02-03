@@ -35,7 +35,7 @@ fn simple() {
     )
     .expect("failed to parse module");
     let promise = module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     match promise.state() {
         PromiseState::Fulfilled(value) => {
