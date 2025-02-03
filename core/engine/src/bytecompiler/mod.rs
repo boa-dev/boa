@@ -831,17 +831,27 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         match binding {
             BindingKind::Global(index) => match opcode {
-                Opcode::SetNameByLocator => self.emit_opcode(opcode),
+                Opcode::SetNameByLocator => self.emit(opcode, &[Operand::Register(value)]),
                 Opcode::GetName => {
                     let ic_index = self.ic.len() as u32;
                     let name = self.bindings[*index as usize].name().clone();
                     self.ic.push(InlineCache::new(name));
                     self.emit(
                         Opcode::GetNameGlobal,
-                        &[Operand::Varying(*index), Operand::Varying(ic_index)],
+                        &[
+                            Operand::Register(value),
+                            Operand::Varying(*index),
+                            Operand::Varying(ic_index),
+                        ],
                     );
                 }
-                _ => self.emit_with_varying_operand(opcode, *index),
+                Opcode::GetLocator | Opcode::DefVar => {
+                    self.emit(opcode, &[Operand::Varying(*index)]);
+                }
+                _ => self.emit(
+                    opcode,
+                    &[Operand::Register(value), Operand::Varying(*index)],
+                ),
             },
             BindingKind::Stack(index) => match opcode {
                 Opcode::SetNameByLocator => self.emit(opcode, &[Operand::Register(value)]),
@@ -2173,8 +2183,11 @@ impl<'ctx> ByteCompiler<'ctx> {
                         let name = self.resolve_identifier_expect(*ident);
                         let binding = self.lexical_scope.get_identifier_reference(name);
                         let index = self.get_or_insert_binding(binding);
-                        let BindingKind::Stack(index) = index else {
-                            unreachable!("with binding cannot be local")
+                        let index = match index {
+                            BindingKind::Global(index) | BindingKind::Stack(index) => index,
+                            BindingKind::Local(_) => {
+                                unreachable!("with binding cannot be local")
+                            }
                         };
                         let value = self.register_allocator.alloc();
                         self.emit(

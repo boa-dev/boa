@@ -1169,11 +1169,10 @@ impl JsPromise {
         };
         use std::cell::Cell;
 
-        let mut frame = context.vm.frame().clone();
-        frame.environments = context.vm.environments.clone();
-        frame.realm = context.realm().clone();
-
+        // Clone the stack since we split it.
+        let stack = context.vm.stack.clone();
         let gen_ctx = GeneratorContext::from_current(context, Registers::new(0), None);
+        context.vm.stack = stack;
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -1193,7 +1192,9 @@ impl JsPromise {
 
                     std::mem::swap(&mut context.vm.stack, &mut gen.stack);
                     let frame = gen.call_frame.take().expect("should have a call frame");
+                    let rp = frame.rp;
                     context.vm.push_frame(frame);
+                    context.vm.frame_mut().set_register_pointer(rp);
 
                     if let crate::native_function::CoroutineState::Yielded(value) =
                         continuation.call(Ok(args.get_or_undefined(0).clone()), context)
@@ -1246,7 +1247,9 @@ impl JsPromise {
 
                     std::mem::swap(&mut context.vm.stack, &mut gen.stack);
                     let frame = gen.call_frame.take().expect("should have a call frame");
+                    let rp = frame.rp;
                     context.vm.push_frame(frame);
+                    context.vm.frame_mut().set_register_pointer(rp);
 
                     if let crate::native_function::CoroutineState::Yielded(value) = continuation
                         .call(

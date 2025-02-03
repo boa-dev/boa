@@ -26,7 +26,6 @@ enum StaticElement {
         code: Gc<CodeBlock>,
         name_index: StaticFieldName,
         is_anonymous_function: bool,
-        is_private: bool,
     },
 }
 
@@ -514,7 +513,6 @@ impl ByteCompiler<'_> {
                         code,
                         name_index,
                         is_anonymous_function,
-                        is_private: false,
                     });
                 }
                 ClassElement::PrivateStaticFieldDefinition(field) => {
@@ -554,7 +552,6 @@ impl ByteCompiler<'_> {
                         code,
                         name_index: StaticFieldName::PrivateName(name_index),
                         is_anonymous_function,
-                        is_private: true,
                     });
                 }
                 ClassElement::StaticBlock(block) => {
@@ -617,7 +614,6 @@ impl ByteCompiler<'_> {
                     code,
                     name_index,
                     is_anonymous_function,
-                    is_private,
                 } => {
                     let index = self.push_function_to_constants(code);
                     let function = self.register_allocator.alloc();
@@ -633,27 +629,6 @@ impl ByteCompiler<'_> {
                     self.push_from_register(&function);
                     self.register_allocator.dealloc(function);
                     self.emit_with_varying_operand(Opcode::Call, 0);
-                    //if let Some(name_index) = name_index {
-                    //    if is_private {
-                    //        self.emit_with_varying_operand(Opcode::DefinePrivateField, name_index);
-                    //    } else {
-                    //        self.emit_with_varying_operand(
-                    //            Opcode::DefineOwnPropertyByName,
-                    //            name_index,
-                    //        );
-                    //    }
-                    //} else {
-                    //    // Assume the name is not private. Private names cannot be dynamically computed.
-                    //    self.emit(Opcode::RotateLeft, &[Operand::U8(5)]);
-                    //    if is_anonymous_function {
-                    //        self.emit_opcode(Opcode::Dup);
-                    //        self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
-                    //        self.emit_opcode(Opcode::Swap);
-                    //        self.emit_opcode(Opcode::ToPropertyKey);
-                    //        self.emit_opcode(Opcode::Swap);
-                    //        self.emit(Opcode::SetFunctionName, &[Operand::U8(0)]);
-                    //    } else {
-                    //        self.emit_opcode(Opcode::Swap);
                     let value = self.register_allocator.alloc();
                     self.pop_into_register(&value);
                     match name_index {
