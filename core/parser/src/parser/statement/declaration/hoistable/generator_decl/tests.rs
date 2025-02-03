@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     function::{FormalParameterList, FunctionBody, GeneratorDeclaration},
-    Declaration,
+    Declaration, LinearPosition, LinearSpan,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -15,6 +15,7 @@ fn generator_function_declaration() {
             interner.get_or_intern_static("gen", utf16!("gen")).into(),
             FormalParameterList::default(),
             FunctionBody::default(),
+            LinearSpan::new(LinearPosition::default(), LinearPosition::default()),
         ))
         .into()],
         interner,

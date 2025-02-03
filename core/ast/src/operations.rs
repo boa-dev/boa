@@ -29,7 +29,8 @@ use crate::{
         LabelledItem, With,
     },
     visitor::{NodeRef, VisitWith, Visitor},
-    Declaration, Expression, ModuleItem, Script, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearSpan, ModuleItem, Script, Statement, StatementList,
+    StatementListItem,
 };
 
 /// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
@@ -2005,6 +2006,18 @@ impl VarScopedDeclaration {
             Self::GeneratorDeclaration(g) => bound_names(g),
             Self::AsyncFunctionDeclaration(f) => bound_names(f),
             Self::AsyncGeneratorDeclaration(g) => bound_names(g),
+        }
+    }
+
+    /// Return [`LinearSpan`] of this declaration (if there is).
+    #[must_use]
+    pub fn linear_span(&self) -> Option<LinearSpan> {
+        match self {
+            VarScopedDeclaration::FunctionDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::GeneratorDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::AsyncFunctionDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::AsyncGeneratorDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::VariableDeclaration(_) => None,
         }
     }
 }

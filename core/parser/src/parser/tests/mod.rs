@@ -24,11 +24,14 @@ use boa_ast::{
     },
     scope::Scope,
     statement::{If, Return},
-    Expression, Module, ModuleItem, ModuleItemList, Script, Statement, StatementList,
-    StatementListItem,
+    Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Statement,
+    StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+
+const PSEUDO_LINEAR_POS: LinearPosition = LinearPosition::new(0);
+const EMPTY_LINEAR_SPAN: LinearSpan = LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[track_caller]
@@ -36,7 +39,7 @@ pub(super) fn check_script_parser<L>(js: &str, expr: L, interner: &mut Interner)
 where
     L: Into<Box<[StatementListItem]>>,
 {
-    let mut script = Script::new(StatementList::from(expr.into()));
+    let mut script = Script::new(StatementList::from((expr.into(), PSEUDO_LINEAR_POS)));
     let scope = Scope::new_global();
     script.analyze_scope(&scope, interner);
     assert_eq!(
@@ -149,8 +152,10 @@ fn hoisting() {
                 FormalParameterList::default(),
                 FunctionBody::new(
                     [Statement::Return(Return::new(Some(Literal::from(10).into()))).into()],
+                    PSEUDO_LINEAR_POS,
                     false,
                 ),
+                EMPTY_LINEAR_SPAN,
             ))
             .into(),
         ],
@@ -531,8 +536,10 @@ fn spread_in_arrow_function() {
             params,
             FunctionBody::new(
                 [Statement::Expression(Expression::from(Identifier::from(b))).into()],
+                PSEUDO_LINEAR_POS,
                 false,
             ),
+            EMPTY_LINEAR_SPAN,
         )))
         .into()],
         interner,

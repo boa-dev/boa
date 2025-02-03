@@ -86,6 +86,8 @@ impl ByteCompiler<'_> {
 
         let outer_scope = self.push_declarative_scope(class.name_scope);
 
+        // The new span is not the same as the parent `ByteCompiler` have.
+        let spanned_source_text = self.spanned_source_text.clone_only_source();
         let mut compiler = ByteCompiler::new(
             class_name.clone(),
             true,
@@ -96,6 +98,7 @@ impl ByteCompiler<'_> {
             false,
             self.interner,
             self.in_with,
+            spanned_source_text,
         );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
@@ -290,6 +293,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
                     );
 
                     // Function environment
@@ -327,6 +331,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -369,6 +374,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -405,6 +411,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -440,6 +447,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
                     );
                     compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = compiler.push_scope(block.scopes().function_scope());

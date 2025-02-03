@@ -81,7 +81,7 @@ where
         if let Some(tk) = cursor.peek(0, interner)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
                 cursor.advance(interner);
-                return Ok(statement::Block::from(vec![]));
+                return Ok(statement::Block::from((vec![], cursor.linear_pos())));
             }
         }
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
