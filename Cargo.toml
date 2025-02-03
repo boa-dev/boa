@@ -65,7 +65,7 @@ pollster = "0.4.0"
 regex = "1.11.1"
 regress = { version = "0.10.3", features = ["utf16"] }
 rustc-hash = { version = "2.1.0", default-features = false }
-serde_json = "1.0.137"
+serde_json = "1.0.138"
 serde = "1.0.217"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
@@ -91,7 +91,7 @@ isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.38"
-syn = { version = "2.0.96", default-features = false }
+syn = { version = "2.0.98", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.0"
@@ -121,7 +121,7 @@ futures-lite = "2.6.0"
 test-case = "3.3.1"
 url = "2.5.4"
 tokio = { version = "1.43.0", default-features = false }
-futures-concurrency = "7.6.2"
+futures-concurrency = "7.6.3"
 
 
 # ICU4X
