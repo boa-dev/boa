@@ -65,7 +65,7 @@ impl SpannedSourceText {
         }
     }
 
-    /// Creates new [`SpannedSourceText`] with the same [`SourceText`] and witohut `span`.
+    /// Creates new [`SpannedSourceText`] with the same [`SourceText`] but without its span.
     pub(crate) fn clone_only_source(&self) -> Self {
         Self {
             source_text: self.source_text.clone(),

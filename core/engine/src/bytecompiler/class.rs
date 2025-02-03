@@ -411,6 +411,7 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
