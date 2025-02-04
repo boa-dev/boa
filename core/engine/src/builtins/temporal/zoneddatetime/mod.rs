@@ -826,7 +826,7 @@ impl ZonedDateTime {
             })?;
 
         let time = args
-            .first()
+            .get_or_undefined(0)
             .map(|v| to_temporal_time(v, None, context))
             .transpose()?;
 
