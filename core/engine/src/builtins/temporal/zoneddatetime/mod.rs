@@ -809,7 +809,7 @@ impl ZonedDateTime {
         // 1. Return ? ToTemporalZonedDateTime(item, options).
         let one = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
         let two = to_temporal_zoneddatetime(args.get_or_undefined(1), None, context)?;
-        Ok((one.cmp(&two) as i8).into())
+        Ok((one.compare_instant(&two) as i8).into())
     }
 
     /// 6.3.32 `Temporal.ZonedDateTime.prototype.withPlainTime ( [ plainTimeLike ] )`

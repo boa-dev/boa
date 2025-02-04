@@ -168,7 +168,7 @@ impl Instant {
         // 4. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
         // 5. Return ! CreateTemporalInstant(epochNanoseconds).
         create_temporal_instant(
-            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i128().unwrap_or(i128::MAX))?,
+            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i64().unwrap_or(i64::MAX))?,
             None,
             context,
         )
@@ -509,7 +509,7 @@ impl Instant {
             rounding_mode,
         };
 
-        let ixdtf = instant.inner.as_ixdtf_string_with_provider(
+        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             timezone.as_ref(),
             options,
             context.tz_provider(),
@@ -527,7 +527,7 @@ impl Instant {
                     .with_message("the this object must be a Temporal.Instant object.")
             })?;
 
-        let ixdtf = instant.inner.as_ixdtf_string_with_provider(
+        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
             None,
             ToStringRoundingOptions::default(),
             context.tz_provider(),

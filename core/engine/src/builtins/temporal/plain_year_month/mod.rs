@@ -350,7 +350,7 @@ impl PlainYearMonth {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
             })?;
         let inner = &year_month.inner;
-        Ok(inner.get_days_in_year()?.into())
+        Ok(inner.days_in_year()?.into())
     }
 
     fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -361,7 +361,7 @@ impl PlainYearMonth {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
             })?;
         let inner = &year_month.inner;
-        Ok(inner.get_days_in_month()?.into())
+        Ok(inner.days_in_month()?.into())
     }
 
     fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -372,7 +372,7 @@ impl PlainYearMonth {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
             })?;
         let inner = &year_month.inner;
-        Ok(inner.get_months_in_year()?.into())
+        Ok(inner.months_in_year()?.into())
     }
 
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
