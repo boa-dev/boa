@@ -674,19 +674,9 @@ pub(crate) fn to_temporal_time(
 
             let options = get_options_object(options)?;
             let overflow =
-                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
-                    .unwrap_or(ArithmeticOverflow::Constrain);
+                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
-            PlainTimeInner::new_with_overflow(
-                partial.hour.unwrap_or(0),
-                partial.minute.unwrap_or(0),
-                partial.second.unwrap_or(0),
-                partial.millisecond.unwrap_or(0),
-                partial.microsecond.unwrap_or(0),
-                partial.nanosecond.unwrap_or(0),
-                overflow,
-            )
-            .map_err(Into::into)
+            PlainTimeInner::from_partial(partial, overflow).map_err(Into::into)
         }
         // 3. Else,
         JsVariant::String(str) => {
@@ -718,20 +708,11 @@ pub(crate) fn to_partial_time_record(
         .transpose()?
         .map(Into::into);
 
-    let minute = partial_object
-        .get(js_string!("minute"), context)?
+    let microsecond = partial_object
+        .get(js_string!("microsecond"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
-        })
-        .transpose()?
-        .map(Into::into);
-
-    let second = partial_object
-        .get(js_string!("second"), context)?
-        .map(|v| {
-            let finite = v.to_finitef64(context)?;
-            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
         .transpose()?
         .map(Into::into);
@@ -745,11 +726,11 @@ pub(crate) fn to_partial_time_record(
         .transpose()?
         .map(Into::into);
 
-    let microsecond = partial_object
-        .get(js_string!("microsecond"), context)?
+    let minute = partial_object
+        .get(js_string!("minute"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
         .transpose()?
         .map(Into::into);
@@ -759,6 +740,15 @@ pub(crate) fn to_partial_time_record(
         .map(|v| {
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?
+        .map(Into::into);
+
+    let second = partial_object
+        .get(js_string!("second"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
         .transpose()?
         .map(Into::into);
