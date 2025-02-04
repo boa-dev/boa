@@ -14,7 +14,7 @@ rust-version.workspace = true
 [dependencies]
 boa_engine = { workspace = true, features = ["js"] }
 wasm-bindgen = { workspace = true, default-features = false }
-getrandom = { workspace = true, features = ["js"] }
+getrandom = { workspace = true, features = ["wasm_js"] }
 console_error_panic_hook.workspace = true
 
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dev-dependencies]
