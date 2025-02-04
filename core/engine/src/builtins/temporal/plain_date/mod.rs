@@ -510,7 +510,7 @@ impl PlainDate {
         let one = to_temporal_date(args.get_or_undefined(0), None, context)?;
         let two = to_temporal_date(args.get_or_undefined(1), None, context)?;
 
-        Ok((one.cmp(&two) as i8).into())
+        Ok((one.compare_iso(&two) as i8).into())
     }
 }
 

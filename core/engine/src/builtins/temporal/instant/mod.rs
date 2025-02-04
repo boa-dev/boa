@@ -168,7 +168,7 @@ impl Instant {
         // 4. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
         // 5. Return ! CreateTemporalInstant(epochNanoseconds).
         create_temporal_instant(
-            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i128().unwrap_or(i128::MAX))?,
+            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i64().unwrap_or(i64::MAX))?,
             None,
             context,
         )
@@ -225,9 +225,9 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        // 4. Let ms be floor(ℝ(ns) / 106).
+        // 4. Let ms be floor(ℝ(ns) / 10^6).
         // 5. Return 𝔽(ms).
-        Ok(JsBigInt::from(instant.inner.epoch_milliseconds()).into())
+        Ok(instant.inner.epoch_milliseconds().into())
     }
 
     /// 8.3.6 get Temporal.Instant.prototype.epochNanoseconds

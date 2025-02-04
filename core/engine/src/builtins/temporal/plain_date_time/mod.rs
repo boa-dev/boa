@@ -708,7 +708,7 @@ impl PlainDateTime {
         // one.[[ISOMicrosecond]], one.[[ISONanosecond]], two.[[ISOYear]], two.[[ISOMonth]],
         // two.[[ISODay]], two.[[ISOHour]], two.[[ISOMinute]], two.[[ISOSecond]],
         // two.[[ISOMillisecond]], two.[[ISOMicrosecond]], two.[[ISONanosecond]])).
-        Ok((one.cmp(&two) as i8).into())
+        Ok((one.compare_iso(&two) as i8).into())
     }
 }
 

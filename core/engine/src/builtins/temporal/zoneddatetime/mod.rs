@@ -158,6 +158,14 @@ impl IntrinsicObject for ZonedDateTime {
             .name(js_string!("get inLeapYear"))
             .build();
 
+        let get_offset_nanos = BuiltInBuilder::callable(realm, Self::get_offset_nanoseconds)
+            .name(js_string!("get offsetNanoseconds"))
+            .build();
+
+        let get_offset = BuiltInBuilder::callable(realm, Self::get_offset)
+            .name(js_string!("get offset"))
+            .build();
+
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
@@ -317,6 +325,18 @@ impl IntrinsicObject for ZonedDateTime {
             .accessor(
                 js_string!("inLeapYear"),
                 Some(get_in_leap_year),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("offsetNanoseconds"),
+                Some(get_offset_nanos),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("offset"),
+                Some(get_offset),
                 None,
                 Attribute::CONFIGURABLE,
             )
@@ -790,6 +810,37 @@ impl ZonedDateTime {
             .in_leap_year_with_provider(context.tz_provider())?
             .into())
     }
+
+    /// 6.3.29 get Temporal.ZonedDateTime.prototype.offsetNanoseconds
+    fn get_offset_nanoseconds(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        Ok(zdt
+            .inner
+            .offset_nanoseconds_with_provider(context.tz_provider())?
+            .into())
+    }
+
+    /// 6.3.30 get Temporal.ZonedDateTime.prototype.offset
+    fn get_offset(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        Ok(JsString::from(zdt.inner.offset_with_provider(context.tz_provider())?).into())
+    }
 }
 
 // ==== `ZonedDateTime` method implementations ====
@@ -809,7 +860,7 @@ impl ZonedDateTime {
         // 1. Return ? ToTemporalZonedDateTime(item, options).
         let one = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
         let two = to_temporal_zoneddatetime(args.get_or_undefined(1), None, context)?;
-        Ok((one.cmp(&two) as i8).into())
+        Ok((one.compare_instant(&two) as i8).into())
     }
 
     /// 6.3.32 `Temporal.ZonedDateTime.prototype.withPlainTime ( [ plainTimeLike ] )`
