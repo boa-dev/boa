@@ -39,9 +39,6 @@ pub trait Logger: Trace + Sized {
         let stack_trace_dump = context
             .stack_trace()
             .map(|frame| frame.code_block().name())
-            .filter(|name| !name.is_empty()) // The last frame has an empty name.
-            .collect::<Vec<_>>()
-            .into_iter()
             .map(JsString::to_std_string_escaped)
             .collect::<Vec<_>>();
 

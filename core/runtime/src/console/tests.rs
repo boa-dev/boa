@@ -367,7 +367,9 @@ fn trace_with_stack_trace() {
         logs,
         indoc! { r#"
             one
+            <main>
             two
+            b
             a
             <main>
         "# }

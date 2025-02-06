@@ -521,9 +521,21 @@ impl Context {
     }
 
     /// Retrieves the current stack trace of the context.
+    ///
+    /// When constructing the stack trace the current frame is taken from [`Vm::frame`],
+    /// and the rest of the frames are taken from [`Vm::frames`].
+    /// The first frame is always a dummy frame (see [`Vm::frame`]).
+    ///
+    /// The stack trace is returned ordered with the most recent frames first.
     #[inline]
     pub fn stack_trace(&self) -> impl Iterator<Item = &CallFrame> {
-        self.vm.frames.iter().rev()
+        let frames: Vec<_> = self
+            .vm
+            .frames
+            .iter()
+            .chain(std::iter::once(&self.vm.frame))
+            .collect();
+        frames.into_iter().skip(1).rev()
     }
 
     /// Replaces the currently active realm with `realm`, and returns the old realm.
