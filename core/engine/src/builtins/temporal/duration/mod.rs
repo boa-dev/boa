@@ -194,6 +194,7 @@ impl IntrinsicObject for Duration {
             .method(Self::round, js_string!("round"), 1)
             .method(Self::total, js_string!("total"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
@@ -858,6 +859,29 @@ impl Duration {
         Ok(JsString::from(result).into())
     }
 
+    // TODO: Potentially update docs if localeString is inverted.
+    /// 7.3.24 `Temporal.Duration.prototype.toLocaleString ( )`
+    pub(crate) fn to_locale_string(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Duration object.")
+            })?;
+
+        let result = duration
+            .inner
+            .as_temporal_string(ToStringRoundingOptions::default())?;
+
+        Ok(JsString::from(result).into())
+    }
+
+    /// 7.3.25 `Temporal.Duration.prototype.valueOf ( )`
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")

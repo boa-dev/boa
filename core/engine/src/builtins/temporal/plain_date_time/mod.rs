@@ -69,6 +69,14 @@ impl IntrinsicObject for PlainDateTime {
             .name(js_string!("get calendarId"))
             .build();
 
+        let get_era = BuiltInBuilder::callable(realm, Self::get_era)
+            .name(js_string!("get era"))
+            .build();
+
+        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year)
+            .name(js_string!("get eraYear"))
+            .build();
+
         let get_year = BuiltInBuilder::callable(realm, Self::get_year)
             .name(js_string!("get year"))
             .build();
@@ -154,6 +162,18 @@ impl IntrinsicObject for PlainDateTime {
             .accessor(
                 js_string!("calendarId"),
                 Some(get_calendar_id),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("era"),
+                Some(get_era),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("eraYear"),
+                Some(get_era_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
@@ -283,6 +303,7 @@ impl IntrinsicObject for PlainDateTime {
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
@@ -416,6 +437,34 @@ impl PlainDateTime {
     }
 
     /// 5.3.4 get `Temporal.PlainDatedt.prototype.year`
+    fn get_era(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        Ok(dt
+            .inner
+            .era()?
+            .map(|s| JsString::from(s.as_str()))
+            .into_or_undefined())
+    }
+
+    /// 5.3.5 get `Temporal.PlainDatedt.prototype.eraYear`
+    fn get_era_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        Ok(dt.inner.era_year()?.into_or_undefined())
+    }
+
+    /// 5.3.6 get `Temporal.PlainDatedt.prototype.year`
     fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -427,7 +476,7 @@ impl PlainDateTime {
         Ok(dt.inner.year()?.into())
     }
 
-    /// 5.3.5 get `Temporal.PlainDatedt.prototype.month`
+    /// 5.3.7 get `Temporal.PlainDatedt.prototype.month`
     fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -439,7 +488,7 @@ impl PlainDateTime {
         Ok(dt.inner.month()?.into())
     }
 
-    /// 5.3.6 get Temporal.PlainDatedt.prototype.monthCode
+    /// 5.3.8 get Temporal.PlainDatedt.prototype.monthCode
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -451,7 +500,7 @@ impl PlainDateTime {
         Ok(JsString::from(dt.inner.month_code()?.as_str()).into())
     }
 
-    /// 5.3.7 get `Temporal.PlainDatedt.prototype.day`
+    /// 5.3.9 get `Temporal.PlainDatedt.prototype.day`
     fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -463,7 +512,7 @@ impl PlainDateTime {
         Ok(dt.inner.day()?.into())
     }
 
-    /// 5.3.8 get `Temporal.PlainDatedt.prototype.hour`
+    /// 5.3.10 get `Temporal.PlainDatedt.prototype.hour`
     fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
@@ -478,7 +527,7 @@ impl PlainDateTime {
         Ok(dt.inner.hour().into())
     }
 
-    /// 5.3.9 get `Temporal.PlainDatedt.prototype.minute`
+    /// 5.3.11 get `Temporal.PlainDatedt.prototype.minute`
     fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
@@ -493,7 +542,7 @@ impl PlainDateTime {
         Ok(dt.inner.minute().into())
     }
 
-    /// 5.3.10 get `Temporal.PlainDatedt.prototype.second`
+    /// 5.3.12 get `Temporal.PlainDatedt.prototype.second`
     fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
@@ -508,7 +557,7 @@ impl PlainDateTime {
         Ok(dt.inner.second().into())
     }
 
-    /// 5.3.11 get `Temporal.PlainDatedt.prototype.millisecond`
+    /// 5.3.13 get `Temporal.PlainDatedt.prototype.millisecond`
     fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
@@ -523,7 +572,7 @@ impl PlainDateTime {
         Ok(dt.inner.millisecond().into())
     }
 
-    /// 5.3.12 get `Temporal.PlainDatedt.prototype.microsecond`
+    /// 5.3.14 get `Temporal.PlainDatedt.prototype.microsecond`
     fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
@@ -538,7 +587,7 @@ impl PlainDateTime {
         Ok(dt.inner.microsecond().into())
     }
 
-    /// 5.3.13 get `Temporal.PlainDatedt.prototype.nanosecond`
+    /// 5.3.15 get `Temporal.PlainDatedt.prototype.nanosecond`
     fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let dateTime be the this value.
         // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
@@ -553,7 +602,7 @@ impl PlainDateTime {
         Ok(dt.inner.nanosecond().into())
     }
 
-    /// 5.3.14 get `Temporal.PlainDatedt.prototype.dayOfWeek`
+    /// 5.3.16 get `Temporal.PlainDatedt.prototype.dayOfWeek`
     fn get_day_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -565,7 +614,7 @@ impl PlainDateTime {
         Ok(dt.inner.day_of_week()?.into())
     }
 
-    /// 5.3.15 get `Temporal.PlainDatedt.prototype.dayOfYear`
+    /// 5.3.17 get `Temporal.PlainDatedt.prototype.dayOfYear`
     fn get_day_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -577,7 +626,7 @@ impl PlainDateTime {
         Ok(dt.inner.day_of_year()?.into())
     }
 
-    /// 5.3.16 get `Temporal.PlainDatedt.prototype.weekOfYear`
+    /// 5.3.18 get `Temporal.PlainDatedt.prototype.weekOfYear`
     fn get_week_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -589,7 +638,7 @@ impl PlainDateTime {
         Ok(dt.inner.week_of_year()?.into_or_undefined())
     }
 
-    /// 5.3.17 get `Temporal.PlainDatedt.prototype.yearOfWeek`
+    /// 5.3.19 get `Temporal.PlainDatedt.prototype.yearOfWeek`
     fn get_year_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -601,7 +650,7 @@ impl PlainDateTime {
         Ok(dt.inner.year_of_week()?.into_or_undefined())
     }
 
-    /// 5.3.18 get `Temporal.PlainDatedt.prototype.daysInWeek`
+    /// 5.3.20 get `Temporal.PlainDatedt.prototype.daysInWeek`
     fn get_days_in_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -613,7 +662,7 @@ impl PlainDateTime {
         Ok(dt.inner.days_in_week()?.into())
     }
 
-    /// 5.3.19 get `Temporal.PlainDatedt.prototype.daysInMonth`
+    /// 5.3.21 get `Temporal.PlainDatedt.prototype.daysInMonth`
     fn get_days_in_month(
         this: &JsValue,
         _: &[JsValue],
@@ -629,7 +678,7 @@ impl PlainDateTime {
         Ok(dt.inner.days_in_month()?.into())
     }
 
-    /// 5.3.20 get `Temporal.PlainDatedt.prototype.daysInYear`
+    /// 5.3.22 get `Temporal.PlainDatedt.prototype.daysInYear`
     fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -641,7 +690,7 @@ impl PlainDateTime {
         Ok(dt.inner.days_in_year()?.into())
     }
 
-    /// 5.3.21 get `Temporal.PlainDatedt.prototype.monthsInYear`
+    /// 5.3.23 get `Temporal.PlainDatedt.prototype.monthsInYear`
     fn get_months_in_year(
         this: &JsValue,
         _: &[JsValue],
@@ -657,7 +706,7 @@ impl PlainDateTime {
         Ok(dt.inner.months_in_year()?.into())
     }
 
-    /// 5.3.22 get `Temporal.PlainDatedt.prototype.inLeapYear`
+    /// 5.3.24 get `Temporal.PlainDatedt.prototype.inLeapYear`
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -978,6 +1027,27 @@ impl PlainDateTime {
         Ok(JsString::from(ixdtf).into())
     }
 
+    /// 5.3.35 `Temporal.PlainDateTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    fn to_locale_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let ixdtf = dt
+            .inner
+            .to_ixdtf_string(ToStringRoundingOptions::default(), DisplayCalendar::Auto)?;
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 5.3.36 `Temporal.PlainDateTime.prototype.toJSON ( )`
     fn to_json(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
@@ -992,6 +1062,7 @@ impl PlainDateTime {
         Ok(JsString::from(ixdtf).into())
     }
 
+    /// 5.3.37 `Temporal.PlainDateTime.prototype.valueOf ( )`
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")

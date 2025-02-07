@@ -84,6 +84,7 @@ impl IntrinsicObject for PlainMonthDay {
             )
             .static_method(Self::from, js_string!("from"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
@@ -231,7 +232,24 @@ impl PlainMonthDay {
         Ok(JsString::from(ixdtf).into())
     }
 
-    /// 10.3.10 Temporal.PlainMonthDay.prototype.toJSON ( )
+    /// 10.3.9 `Temporal.PlainMonthDay.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    pub(crate) fn to_locale_string(
+        this: &JsValue,
+        _: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+
+        Ok(JsString::from(month_day.inner.to_string()).into())
+    }
+
+    /// 10.3.10 `Temporal.PlainMonthDay.prototype.toJSON ( )`
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let month_day = this
             .as_object()
@@ -243,7 +261,7 @@ impl PlainMonthDay {
         Ok(JsString::from(month_day.inner.to_string()).into())
     }
 
-    /// 9.3.11 Temporal.PlainMonthDay.prototype.valueOf ( )
+    /// 9.3.11 `Temporal.PlainMonthDay.prototype.valueOf ( )`
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
