@@ -342,7 +342,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.year()?.into())
+        Ok(date.inner.era_year()?.into_or_undefined())
     }
 
     /// 3.3.6 get `Temporal.PlainDate.prototype.year`
