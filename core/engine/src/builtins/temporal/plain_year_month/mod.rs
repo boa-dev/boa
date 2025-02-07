@@ -21,6 +21,7 @@ use boa_profiler::Profiler;
 
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
+    partial::PartialDate,
     Calendar, Duration, PlainYearMonth as InnerYearMonth,
 };
 
@@ -494,20 +495,10 @@ fn to_temporal_year_month(
                 let finite = v.to_finitef64(context)?;
                 Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
             })
-            .transpose()?
-            .unwrap_or_default();
+            .transpose()?;
 
         let month = obj
             .get(js_string!("month"), context)?
-            .map(|v| {
-                let finite = v.to_finitef64(context)?;
-                Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
-            })
-            .transpose()?
-            .unwrap_or_default();
-
-        let ref_day = obj
-            .get(js_string!("day"), context)?
             .map(|v| {
                 let finite = v.to_finitef64(context)?;
                 Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
@@ -516,14 +507,15 @@ fn to_temporal_year_month(
 
         // a. Let calendar be ? ToTemporalCalendar(item).
         let calendar = get_temporal_calendar_slot_value_with_default(obj, context)?;
-        // TODO: implement from_partial on `temporal_rs::PlainYearMonth`
-        return Ok(InnerYearMonth::new_with_overflow(
+
+        let partial = PartialDate {
             year,
             month,
-            ref_day.map(Into::into),
-            calendar,
-            overflow,
-        )?);
+            ..Default::default()
+        };
+
+        // TODO: implement from_partial on `temporal_rs::PlainYearMonth`
+        return Ok(calendar.year_month_from_partial(&partial, overflow)?);
     }
 
     // 3. If item is not a String, throw a TypeError exception.

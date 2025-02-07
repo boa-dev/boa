@@ -83,6 +83,7 @@ impl IntrinsicObject for PlainMonthDay {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 1)
+            .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
@@ -165,7 +166,8 @@ impl PlainMonthDay {
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let options = get_options_object(args.get_or_undefined(1))?;
         let item = args.get_or_undefined(0);
-        to_temporal_month_day(item, &options, context)
+        let inner = to_temporal_month_day(item, Some(options), context)?;
+        create_temporal_month_day(inner, None, context)
     }
 }
 
@@ -209,6 +211,19 @@ impl PlainMonthDay {
 // ==== `Temporal.PlainMonthDay` Methods ====
 
 impl PlainMonthDay {
+    fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+
+        let other = to_temporal_month_day(args.get_or_undefined(0), None, context)?;
+
+        Ok((month_day.inner == other).into())
+    }
+
     /// 10.3.8 `Temporal.PlainMonthDay.prototype.toString ( [ options ] )`
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let monthDay be the this value.
@@ -311,26 +326,23 @@ pub(crate) fn create_temporal_month_day(
 
 fn to_temporal_month_day(
     item: &JsValue,
-    options: &JsObject,
+    options: Option<JsObject>,
     context: &mut Context,
-) -> JsResult<JsValue> {
-    let overflow = get_option::<ArithmeticOverflow>(options, js_string!("overflow"), context)?
+) -> JsResult<InnerMonthDay> {
+    let options = options.unwrap_or(JsObject::with_null_proto());
+    let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
         .unwrap_or(ArithmeticOverflow::Constrain);
 
     // get the calendar property (string) from the item object
     let calender_id = item.get_v(js_string!("calendar"), context)?;
     let calendar = to_temporal_calendar_slot_value(&calender_id)?;
 
-    let inner = if let Some(item_obj) = item
-        .as_object()
-        .and_then(JsObject::downcast_ref::<PlainMonthDay>)
-    {
-        item_obj.inner.clone()
-    } else if let Some(item_string) = item.as_string() {
-        InnerMonthDay::from_str(item_string.to_std_string_escaped().as_str())?
-    } else if item.is_object() {
-        let day = item
-            .get_v(js_string!("day"), context)?
+    if let Some(obj) = item.as_object() {
+        if let Some(md) = obj.downcast_ref::<PlainMonthDay>() {
+            return Ok(md.inner.clone());
+        }
+        let day = obj
+            .get(js_string!("day"), context)?
             .map(|v| {
                 let finite = v.to_finitef64(context)?;
                 finite
@@ -339,8 +351,8 @@ fn to_temporal_month_day(
             })
             .transpose()?;
 
-        let month = item
-            .get_v(js_string!("month"), context)?
+        let month = obj
+            .get(js_string!("month"), context)?
             .map(|v| {
                 let finite = v.to_finitef64(context)?;
                 finite
@@ -349,8 +361,8 @@ fn to_temporal_month_day(
             })
             .transpose()?;
 
-        let month_code = item
-            .get_v(js_string!("monthCode"), context)?
+        let month_code = obj
+            .get(js_string!("monthCode"), context)?
             .map(|v| {
                 let primitive = v.to_primitive(context, crate::value::PreferredType::String)?;
                 let Some(month_code) = primitive.as_string() else {
@@ -363,12 +375,12 @@ fn to_temporal_month_day(
             })
             .transpose()?;
 
-        let year =
-            item.get_v(js_string!("year"), context)?
-                .map_or(Ok::<i32, JsError>(1972), |v| {
-                    let finite = v.to_finitef64(context)?;
-                    Ok(finite.as_integer_with_truncation::<i32>())
-                })?;
+        let year = obj
+            .get(js_string!("year"), context)?
+            .map_or(Ok::<i32, JsError>(1972), |v| {
+                let finite = v.to_finitef64(context)?;
+                Ok(finite.as_integer_with_truncation::<i32>())
+            })?;
 
         let partial_date = &PartialDate {
             month,
@@ -378,12 +390,16 @@ fn to_temporal_month_day(
             ..Default::default()
         };
 
-        calendar.month_day_from_partial(partial_date, overflow)?
-    } else {
+        return Ok(calendar.month_day_from_partial(partial_date, overflow)?);
+    }
+
+    let Some(md_string) = item.as_string() else {
         return Err(JsNativeError::typ()
             .with_message("item must be an object or a string")
             .into());
     };
 
-    create_temporal_month_day(inner, None, context)
+    Ok(InnerMonthDay::from_str(
+        md_string.to_std_string_escaped().as_str(),
+    )?)
 }
