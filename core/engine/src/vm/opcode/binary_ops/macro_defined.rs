@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult,
 };
 
@@ -12,17 +12,47 @@ macro_rules! implement_bin_ops {
         #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
+        impl $name {
+            #[allow(clippy::needless_pass_by_value)]
+            fn operation(
+                dst: u32,
+                lhs: u32,
+                rhs: u32,
+                registers: &mut Registers,
+                context: &mut Context,
+            ) -> JsResult<CompletionType> {
+                let lhs = registers.get(lhs);
+                let rhs = registers.get(rhs);
+                let value = lhs.$op(&rhs, context)?;
+                registers.set(dst, value.into());
+                Ok(CompletionType::Normal)
+            }
+        }
+
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 2;
 
-            fn execute(context: &mut Context) -> JsResult<CompletionType> {
-                let rhs = context.vm.pop();
-                let lhs = context.vm.pop();
-                let value = lhs.$op(&rhs, context)?;
-                context.vm.push(value);
-                Ok(CompletionType::Normal)
+            fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+                let dst = context.vm.read::<u8>().into();
+                let lhs = context.vm.read::<u8>().into();
+                let rhs = context.vm.read::<u8>().into();
+                Self::operation(dst, lhs, rhs, registers, context)
+            }
+
+            fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+                let dst = context.vm.read::<u16>().into();
+                let lhs = context.vm.read::<u16>().into();
+                let rhs = context.vm.read::<u16>().into();
+                Self::operation(dst, lhs, rhs, registers, context)
+            }
+
+            fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+                let dst = context.vm.read::<u32>();
+                let lhs = context.vm.read::<u32>();
+                let rhs = context.vm.read::<u32>();
+                Self::operation(dst, lhs, rhs, registers, context)
             }
         }
     };
@@ -45,3 +75,4 @@ implement_bin_ops!(GreaterThan, gt, "Binary `>` operator.");
 implement_bin_ops!(GreaterThanOrEq, ge, "Binary `>=` operator.");
 implement_bin_ops!(LessThan, lt, "Binary `<` operator.");
 implement_bin_ops!(LessThanOrEq, le, "Binary `<=` operator.");
+implement_bin_ops!(InstanceOf, instance_of, "Binary `instanceof` operator.");

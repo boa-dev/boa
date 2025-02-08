@@ -1,10 +1,11 @@
-use crate::{bytecompiler::ByteCompiler, vm::Opcode};
+use crate::bytecompiler::ByteCompiler;
 use boa_ast::statement::Switch;
 
 impl ByteCompiler<'_> {
     /// Compile a [`Switch`] `boa_ast` node
     pub(crate) fn compile_switch(&mut self, switch: &Switch, use_expr: bool) {
-        self.compile_expr(switch.val(), true);
+        let value = self.register_allocator.alloc();
+        self.compile_expr(switch.val(), &value);
         let outer_scope = self.push_declarative_scope(switch.scope());
 
         self.block_declaration_instantiation(switch);
@@ -13,12 +14,14 @@ impl ByteCompiler<'_> {
         self.push_switch_control_info(None, start_address, use_expr);
 
         let mut labels = Vec::with_capacity(switch.cases().len());
+
+        let condition = self.register_allocator.alloc();
+
         for case in switch.cases() {
             // If it does not have a condition it is the default case.
-            let label = if let Some(condition) = case.condition() {
-                self.compile_expr(condition, true);
-
-                self.emit_opcode_with_operand(Opcode::Case)
+            let label = if let Some(cond) = case.condition() {
+                self.compile_expr(cond, &condition);
+                self.case(&value, &condition)
             } else {
                 Self::DUMMY_LABEL
             };
@@ -26,7 +29,10 @@ impl ByteCompiler<'_> {
             labels.push(label);
         }
 
-        let default_label = self.emit_opcode_with_operand(Opcode::Default);
+        self.register_allocator.dealloc(condition);
+        self.register_allocator.dealloc(value);
+
+        let default_label = self.jump();
         let mut default_label_set = false;
 
         for (label, case) in labels.into_iter().zip(switch.cases()) {

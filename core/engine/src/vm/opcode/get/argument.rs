@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult,
 };
 
@@ -12,14 +12,19 @@ pub(crate) struct GetArgument;
 
 impl GetArgument {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    fn operation(
+        index: usize,
+        dst: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         let value = context
             .vm
             .frame()
             .argument(index, &context.vm)
             .cloned()
             .unwrap_or_default();
-        context.vm.push(value);
+        registers.set(dst, value);
         Ok(CompletionType::Normal)
     }
 }
@@ -29,18 +34,21 @@ impl Operation for GetArgument {
     const INSTRUCTION: &'static str = "INST - GetArgument";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
+        let dst = context.vm.read::<u8>().into();
+        Self::operation(index, dst, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
+        let dst = context.vm.read::<u16>().into();
+        Self::operation(index, dst, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
+        let dst = context.vm.read::<u32>();
+        Self::operation(index, dst, registers, context)
     }
 }

@@ -2,7 +2,7 @@ use std::unreachable;
 
 use crate::{
     module::ModuleKind,
-    vm::{opcode::Operation, ActiveRunnable, CompletionType},
+    vm::{opcode::Operation, ActiveRunnable, CompletionType, Registers},
     Context, JsObject, JsResult, JsValue,
 };
 
@@ -13,12 +13,13 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct NewTarget;
 
-impl Operation for NewTarget {
-    const NAME: &'static str = "NewTarget";
-    const INSTRUCTION: &'static str = "INST - NewTarget";
-    const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl NewTarget {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        dst: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         let new_target = if let Some(new_target) = context
             .vm
             .environments
@@ -30,8 +31,29 @@ impl Operation for NewTarget {
         } else {
             JsValue::undefined()
         };
-        context.vm.push(new_target);
+        registers.set(dst, new_target);
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for NewTarget {
+    const NAME: &'static str = "NewTarget";
+    const INSTRUCTION: &'static str = "INST - NewTarget";
+    const COST: u8 = 2;
+
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u8>().into();
+        Self::operation(dst, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u16>().into();
+        Self::operation(dst, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u32>();
+        Self::operation(dst, registers, context)
     }
 }
 
@@ -42,12 +64,13 @@ impl Operation for NewTarget {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ImportMeta;
 
-impl Operation for ImportMeta {
-    const NAME: &'static str = "ImportMeta";
-    const INSTRUCTION: &'static str = "INST - ImportMeta";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl ImportMeta {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        dst: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         // Meta Properties
         //
         // ImportMeta : import . meta
@@ -90,8 +113,29 @@ impl Operation for ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        context.vm.push(import_meta);
+        registers.set(dst, import_meta.into());
 
         Ok(CompletionType::Normal)
+    }
+}
+
+impl Operation for ImportMeta {
+    const NAME: &'static str = "ImportMeta";
+    const INSTRUCTION: &'static str = "INST - ImportMeta";
+    const COST: u8 = 6;
+
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u8>().into();
+        Self::operation(dst, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u16>().into();
+        Self::operation(dst, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let dst = context.vm.read::<u32>();
+        Self::operation(dst, registers, context)
     }
 }

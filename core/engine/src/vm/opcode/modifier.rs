@@ -1,6 +1,6 @@
 use crate::{vm::CompletionType, Context, JsResult};
 
-use super::{Opcode, Operation};
+use super::{Opcode, Operation, Registers};
 
 /// `U16Operands` implements the Opcode Operation for `Opcode::U16Operands`
 ///
@@ -14,20 +14,21 @@ impl Operation for U16Operands {
     const INSTRUCTION: &'static str = "INST - U16Operands";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
-        Opcode::EXECUTE_FNS[Opcode::MAX + opcode](context)
+        Opcode::EXECUTE_FNS[Opcode::MAX + opcode](registers, context)
     }
 
     fn spend_budget_and_execute(
+        registers: &mut Registers,
         context: &mut Context,
         budget: &mut u32,
     ) -> JsResult<CompletionType> {
         let opcode: Opcode = context.vm.read::<u8>().into();
 
         *budget = budget.saturating_sub(u32::from(opcode.cost()) + u32::from(Self::COST));
-        Opcode::EXECUTE_FNS[Opcode::MAX + opcode as usize](context)
+        Opcode::EXECUTE_FNS[Opcode::MAX + opcode as usize](registers, context)
     }
 }
 
@@ -43,19 +44,20 @@ impl Operation for U32Operands {
     const INSTRUCTION: &'static str = "INST - U32Operands";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let opcode = context.vm.read::<u8>() as usize;
 
-        Opcode::EXECUTE_FNS[Opcode::MAX * 2 + opcode](context)
+        Opcode::EXECUTE_FNS[Opcode::MAX * 2 + opcode](registers, context)
     }
 
     fn spend_budget_and_execute(
+        registers: &mut Registers,
         context: &mut Context,
         budget: &mut u32,
     ) -> JsResult<CompletionType> {
         let opcode: Opcode = context.vm.read::<u8>().into();
 
         *budget = budget.saturating_sub(u32::from(opcode.cost()) + u32::from(Self::COST));
-        Opcode::EXECUTE_FNS[Opcode::MAX * 2 + opcode as usize](context)
+        Opcode::EXECUTE_FNS[Opcode::MAX * 2 + opcode as usize](registers, context)
     }
 }

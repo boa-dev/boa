@@ -1,14 +1,19 @@
-use crate::{bytecompiler::ByteCompiler, vm::Opcode};
+use crate::{
+    bytecompiler::{ByteCompiler, Operand},
+    vm::Opcode,
+};
 use boa_ast::statement::With;
 
 impl ByteCompiler<'_> {
     /// Compile a [`With`] `boa_ast` node
     pub(crate) fn compile_with(&mut self, with: &With, use_expr: bool) {
-        self.compile_expr(with.expression(), true);
+        let object = self.register_allocator.alloc();
+        self.compile_expr(with.expression(), &object);
 
         let outer_scope = self.lexical_scope.clone();
         let _ = self.push_scope(with.scope());
-        self.emit_opcode(Opcode::PushObjectEnvironment);
+        self.emit(Opcode::PushObjectEnvironment, &[Operand::Register(&object)]);
+        self.register_allocator.dealloc(object);
 
         let in_with = self.in_with;
         self.in_with = true;

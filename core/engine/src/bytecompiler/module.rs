@@ -42,22 +42,34 @@ impl ByteCompiler<'_> {
                     }
                     ExportDeclaration::VarStatement(var) => self.compile_var_decl(var),
                     ExportDeclaration::Declaration(decl) => self.compile_decl(decl, false),
-                    ExportDeclaration::DefaultClassDeclaration(cl) => self.class(cl.into(), false),
+                    ExportDeclaration::DefaultClassDeclaration(cl) => {
+                        self.compile_class(cl.into(), None);
+                    }
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
-                        let name = Sym::DEFAULT_EXPORT.to_js_string(self.interner());
-                        self.compile_expr(expr, true);
+                        let function = self.register_allocator.alloc();
+                        self.compile_expr(expr, &function);
 
                         if expr.is_anonymous_function_definition() {
                             let default = self
                                 .interner()
                                 .resolve_expect(Sym::DEFAULT)
                                 .into_common(false);
-                            self.emit_push_literal(Literal::String(default));
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit(Opcode::SetFunctionName, &[Operand::U8(0)]);
+                            let key = self.register_allocator.alloc();
+                            self.emit_push_literal(Literal::String(default), &key);
+                            self.emit(
+                                Opcode::SetFunctionName,
+                                &[
+                                    Operand::Register(&function),
+                                    Operand::Register(&key),
+                                    Operand::U8(0),
+                                ],
+                            );
+                            self.register_allocator.dealloc(key);
                         }
 
-                        self.emit_binding(BindingOpcode::InitLexical, name);
+                        let name = Sym::DEFAULT_EXPORT.to_js_string(self.interner());
+                        self.emit_binding(BindingOpcode::InitLexical, name, &function);
+                        self.register_allocator.dealloc(function);
                     }
                 }
             }

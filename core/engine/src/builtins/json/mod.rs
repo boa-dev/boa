@@ -31,7 +31,7 @@ use crate::{
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{CallFrame, CallFrameFlags},
+    vm::{CallFrame, CallFrameFlags, Registers},
     Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_gc::Gc;
@@ -147,7 +147,8 @@ impl Json {
         );
 
         context.realm().resize_global_env();
-        let record = context.run();
+        let register_count = context.vm.frame().code_block().register_count;
+        let record = context.run(&mut Registers::new(register_count as usize));
         context.vm.pop_frame();
 
         let unfiltered = record.consume()?;
