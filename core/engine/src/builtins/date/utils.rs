@@ -807,6 +807,27 @@ struct DateParser<'a> {
     offset: i64,
 }
 
+// Copied from https://github.com/RoDmitry/atoi_simd/blob/master/src/fallback.rs,
+// which is based on https://rust-malaysia.github.io/code/2020/07/11/faster-integer-parsing.html.
+#[doc(hidden)]
+#[allow(clippy::inline_always)]
+pub(in crate::builtins::date) mod fast_atoi {
+    #[inline(always)]
+    pub(in crate::builtins::date) const fn process_8(mut val: u64, len: usize) -> u64 {
+        val <<= 64_usize.saturating_sub(len << 3); // << 3 - same as mult by 8
+        val = (val & 0x0F0F_0F0F_0F0F_0F0F).wrapping_mul(0xA01) >> 8;
+        val = (val & 0x00FF_00FF_00FF_00FF).wrapping_mul(0x64_0001) >> 16;
+        (val & 0x0000_FFFF_0000_FFFF).wrapping_mul(0x2710_0000_0001) >> 32
+    }
+
+    #[inline(always)]
+    pub(in crate::builtins::date) const fn process_4(mut val: u32, len: usize) -> u32 {
+        val <<= 32_usize.saturating_sub(len << 3); // << 3 - same as mult by 8
+        val = (val & 0x0F0F_0F0F).wrapping_mul(0xA01) >> 8;
+        (val & 0x00FF_00FF).wrapping_mul(0x64_0001) >> 16
+    }
+}
+
 impl<'a> DateParser<'a> {
     fn new(s: &'a str, hooks: &'a dyn HostHooks) -> Self {
         Self {
@@ -843,31 +864,35 @@ impl<'a> DateParser<'a> {
         Some(digits)
     }
 
-    #[allow(clippy::items_after_statements)]
-    #[allow(clippy::inline_always)]
     fn parse_n_ascii_digits<const N: usize>(&mut self) -> Option<u64> {
         assert!(N <= 8, "parse_n_ascii_digits parses no more than 8 digits");
-
-        let digits = self.next_n_ascii_digits::<N>()?;
-        if N <= 4 {
-            let mut res = 0;
-            for digit in digits {
-                res = res * 10 + u64::from(digit & 0xF);
+        if N == 0 {
+            return None;
+        }
+        let ascii_digits = self.next_n_ascii_digits::<N>()?;
+        match N {
+            1..4 => {
+                // When N is small, process digits naively.
+                let mut res = 0;
+                for digit in ascii_digits {
+                    res = res * 10 + u64::from(digit & 0xF);
+                }
+                Some(res)
             }
-            Some(res)
-        } else {
-            // Copied from https://github.com/RoDmitry/atoi_simd/blob/master/src/fallback.rs
-            #[inline(always)]
-            fn process_8(mut val: u64, len: usize) -> u64 {
-                val <<= 64_usize.saturating_sub(len << 3); // << 3 - same as mult by 8
-                val = (val & 0x0F0F_0F0F_0F0F_0F0F).wrapping_mul(0xA01) >> 8;
-                val = (val & 0x00FF_00FF_00FF_00FF).wrapping_mul(0x64_0001) >> 16;
-                (val & 0x0000_FFFF_0000_FFFF).wrapping_mul(0x2710_0000_0001) >> 32
+            4 => {
+                // Process digits as an u32 block.
+                let mut src = [0; 4];
+                src[..N].copy_from_slice(&ascii_digits);
+                let val = u32::from_le_bytes(src);
+                Some(u64::from(fast_atoi::process_4(val, N)))
             }
-            let mut src = [0; 8];
-            src[..N].copy_from_slice(&digits);
-            let val = u64::from_le_bytes(src);
-            Some(process_8(val, N))
+            _ => {
+                // Process digits as an u64 block.
+                let mut src = [0; 8];
+                src[..N].copy_from_slice(&ascii_digits);
+                let val = u64::from_le_bytes(src);
+                Some(fast_atoi::process_8(val, N))
+            }
         }
     }
 
