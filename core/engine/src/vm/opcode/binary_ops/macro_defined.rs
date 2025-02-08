@@ -75,4 +75,4 @@ implement_bin_ops!(GreaterThan, gt, "Binary `>` operator.");
 implement_bin_ops!(GreaterThanOrEq, ge, "Binary `>=` operator.");
 implement_bin_ops!(LessThan, lt, "Binary `<` operator.");
 implement_bin_ops!(LessThanOrEq, le, "Binary `<=` operator.");
-implement_bin_ops!(InstanceOf, instance_of, "Binary `<=` operator.");
+implement_bin_ops!(InstanceOf, instance_of, "Binary `instanceof` operator.");
