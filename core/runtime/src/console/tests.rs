@@ -107,6 +107,7 @@ fn console_log_cyclic() {
                 let a = [1];
                 a[1] = a;
                 console.log(a);
+                console.table(['a','b','c']);
             "#})],
         &mut context,
     );
