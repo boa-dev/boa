@@ -756,9 +756,13 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
     let owned_js_str = date.as_str();
     let owned_string: String;
     let date = match owned_js_str.variant() {
-        JsStrVariant::Latin1(s) =>
-        // SAFETY: Since all characters are ASCII we can safely convert this into str.
-        unsafe { str::from_utf8_unchecked(s) },
+        JsStrVariant::Latin1(s) => {
+            if !s.is_ascii() {
+                return None;
+            }
+            // SAFETY: Since all characters are ASCII we can safely convert this into str.
+            unsafe { str::from_utf8_unchecked(s) }
+        }
         JsStrVariant::Utf16(s) => {
             owned_string = String::from_utf16(s).ok()?;
             if !owned_string.is_ascii() {
