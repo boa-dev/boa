@@ -351,6 +351,7 @@ impl IntrinsicObject for ZonedDateTime {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .method(Self::start_of_day, js_string!("startOfDay"), 0)
@@ -1053,6 +1054,28 @@ impl ZonedDateTime {
         Ok(JsString::from(ixdtf).into())
     }
 
+    /// 6.3.42 `Temporal.ZonedDateTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+            DisplayOffset::Auto,
+            DisplayTimeZone::Auto,
+            DisplayCalendar::Auto,
+            ToStringRoundingOptions::default(),
+            context.tz_provider(),
+        )?;
+
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 6.3.43 `Temporal.ZonedDateTime.prototype.toJSON ( )`
     fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
             .as_object()

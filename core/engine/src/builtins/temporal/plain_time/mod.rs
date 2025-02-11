@@ -119,6 +119,7 @@ impl IntrinsicObject for PlainTime {
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
@@ -556,6 +557,22 @@ impl PlainTime {
 
         let ixdtf = time.inner.to_ixdtf_string(options)?;
 
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 4.3.17 `Temporal.PlainTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let time = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let ixdtf = time
+            .inner
+            .to_ixdtf_string(ToStringRoundingOptions::default())?;
         Ok(JsString::from(ixdtf).into())
     }
 
