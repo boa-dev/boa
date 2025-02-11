@@ -337,3 +337,41 @@ fn console_namespace_object_class_string() {
         &mut context,
     );
 }
+
+#[test]
+fn trace_with_stack_trace() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(&mut context, logger.clone()).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(TEST_HARNESS),
+            TestAction::run(indoc! {r#"
+            console.trace("one");
+            a();
+
+            function a() {
+                b();
+            }
+            function b() {
+                console.trace("two");
+            }
+        "#}),
+        ],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(
+        logs,
+        indoc! { r#"
+            one
+            <main>
+            two
+            b
+            a
+            <main>
+        "# }
+    );
+}
