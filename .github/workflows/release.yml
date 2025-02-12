@@ -90,11 +90,17 @@ jobs:
           target: x86_64-unknown-linux-gnu
           asset_name: boa-linux-amd64
           binary_name: boa
-        - build: macos
+        - build: macos-amd64
           os: macos-latest
           rust: stable
           target: x86_64-apple-darwin
           asset_name: boa-macos-amd64
+          binary_name: boa
+        - build: macos-arm64
+          os: macos-14
+          rust: stable
+          target: aarch64-apple-darwin
+          asset_name: boa-macos-arm64
           binary_name: boa
         - build: win-msvc
           os: windows-2019
