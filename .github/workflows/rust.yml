@@ -66,6 +66,7 @@ jobs:
       # TODO: Make a small Rust tool that does this
       CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_RUSTFLAGS: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && '-D warnings' || '' }}
       CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && '-D warnings' || '' }}
+      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && '-D warnings' || '' }}
     strategy:
       matrix:
         os:
