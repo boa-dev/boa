@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, macos, win-msvc]
+        build: [linux, macos-amd64, macos-arm64, win-msvc]
         include:
         - build: linux
           os: ubuntu-20.04

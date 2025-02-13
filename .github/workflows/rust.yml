@@ -69,7 +69,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          - macos-13
+          - macos-14
           - windows-latest
     steps:
       - name: Checkout repository
