@@ -176,7 +176,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_callable(&self) -> bool {
-        self.as_object().map_or(false, JsObject::is_callable)
+        self.as_object().is_some_and(JsObject::is_callable)
     }
 
     /// Returns the callable value if the value is callable, otherwise `None`.
@@ -200,7 +200,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_constructor(&self) -> bool {
-        self.as_object().map_or(false, JsObject::is_constructor)
+        self.as_object().is_some_and(JsObject::is_constructor)
     }
 
     /// Returns the constructor if the value is a constructor, otherwise `None`.
@@ -214,7 +214,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_promise(&self) -> bool {
-        self.as_object().map_or(false, |obj| obj.is::<Promise>())
+        self.as_object().is_some_and(|obj| obj.is::<Promise>())
     }
 
     /// Returns the value as an object if the value is a promise, otherwise `None`.
@@ -237,7 +237,7 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_regexp(&self) -> bool {
-        self.as_object().map_or(false, |obj| obj.is::<RegExp>())
+        self.as_object().is_some_and(|obj| obj.is::<RegExp>())
     }
 
     /// Returns the value as a regular expression if the value is a regexp, otherwise `None`.
