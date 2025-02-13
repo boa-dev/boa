@@ -5,9 +5,8 @@ use crate::{
     join_nodes,
     operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration,
+    Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
@@ -31,13 +30,19 @@ pub struct GeneratorDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl GeneratorDeclaration {
     /// Creates a new generator declaration.
     #[inline]
     #[must_use]
-    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+    pub fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
@@ -46,6 +51,7 @@ impl GeneratorDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -77,6 +83,13 @@ impl GeneratorDeclaration {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the generator declaration contains a direct call to `eval`.
     #[inline]
     #[must_use]
@@ -101,8 +114,8 @@ impl VisitWith for GeneratorDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_identifier(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -110,8 +123,8 @@ impl VisitWith for GeneratorDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_identifier_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }
@@ -146,6 +159,7 @@ pub struct GeneratorExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl GeneratorExpression {
@@ -156,6 +170,7 @@ impl GeneratorExpression {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
         has_binding_identifier: bool,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -168,6 +183,7 @@ impl GeneratorExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -213,6 +229,13 @@ impl GeneratorExpression {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the generator expression contains a direct call to `eval`.
     #[inline]
     #[must_use]
@@ -252,9 +275,9 @@ impl VisitWith for GeneratorExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -263,9 +286,9 @@ impl VisitWith for GeneratorExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

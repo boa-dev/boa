@@ -2,7 +2,7 @@
 
 use super::{
     get_relative_to_option,
-    options::{get_temporal_unit, TemporalUnitGroup},
+    options::{get_digits_option, get_temporal_unit, TemporalUnitGroup},
     DateTimeValues,
 };
 use crate::value::JsVariant;
@@ -23,7 +23,10 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit},
+    options::{
+        RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit,
+        ToStringRoundingOptions,
+    },
     partial::PartialDuration,
     Duration as InnerDuration,
 };
@@ -190,7 +193,7 @@ impl IntrinsicObject for Duration {
             .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::total, js_string!("total"), 1)
-            .method(Self::to_string, js_string!("toString"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
@@ -811,17 +814,48 @@ impl Duration {
     }
 
     /// 7.3.22 `Temporal.Duration.prototype.toString ( [ options ] )`
-    pub(crate) fn to_string(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    pub(crate) fn to_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Duration object.")
+            })?;
+
+        let options = get_options_object(args.get_or_undefined(0))?;
+        let precision = get_digits_option(&options, context)?;
+        let rounding_mode =
+            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit =
+            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+
+        let result = duration.inner.as_temporal_string(ToStringRoundingOptions {
+            precision,
+            smallest_unit,
+            rounding_mode,
+        })?;
+
+        Ok(JsString::from(result).into())
     }
 
     /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
-    pub(crate) fn to_json(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let duration = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a Duration object.")
+            })?;
+
+        let result = duration
+            .inner
+            .as_temporal_string(ToStringRoundingOptions::default())?;
+
+        Ok(JsString::from(result).into())
     }
 
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -990,7 +1024,7 @@ pub(crate) fn to_temporal_partial_duration(
         .map(|v| {
             let finite = v.to_finitef64(context)?;
             let integral_int = finite
-                .as_integer_if_integral::<i64>()
+                .as_integer_if_integral::<i128>()
                 .map_err(JsError::from)?;
             integral_int.try_into().map_err(JsError::from)
         })
@@ -1042,7 +1076,7 @@ pub(crate) fn to_temporal_partial_duration(
         .map(|v| {
             let finite = v.to_finitef64(context)?;
             let integral_int = finite
-                .as_integer_if_integral::<i64>()
+                .as_integer_if_integral::<i128>()
                 .map_err(JsError::from)?;
             integral_int.try_into().map_err(JsError::from)
         })

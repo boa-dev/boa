@@ -27,13 +27,15 @@ use crate::{
     realm::Realm,
     vm::{
         create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
-        CompletionRecord, Opcode,
+        CompletionRecord, Opcode, Registers,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
+    SpannedSourceText,
 };
 
 use super::{
     BindingName, GraphLoadingState, Module, Referrer, ResolveExportError, ResolvedBinding,
+    SourceText,
 };
 
 /// Information for the [**Depth-first search**] algorithm used in the
@@ -232,6 +234,7 @@ struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
     source: boa_ast::Module,
+    source_text: SourceText,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
@@ -244,7 +247,7 @@ impl SourceTextModule {
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: boa_ast::Module, interner: &Interner) -> Self {
+    pub(super) fn new(code: boa_ast::Module, interner: &Interner, source_text: SourceText) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = code
             .items()
@@ -335,6 +338,7 @@ impl SourceTextModule {
             import_meta: GcRefCell::default(),
             code: ModuleCode {
                 source: code,
+                source_text,
                 requested_modules,
                 has_tla,
                 import_entries,
@@ -1424,6 +1428,7 @@ impl SourceTextModule {
         let global_env = realm.environment().clone();
         let env = self.code.source.scope().clone();
 
+        let spanned_source_text = SpannedSourceText::new_source_only(self.code.source_text.clone());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1434,6 +1439,7 @@ impl SourceTextModule {
             false,
             context.interner_mut(),
             false,
+            spanned_source_text,
         );
 
         compiler.async_handler = Some(compiler.push_handler());
@@ -1522,8 +1528,10 @@ impl SourceTextModule {
                             .get_binding_reference(&name)
                             .expect("binding must exist");
                         let index = compiler.get_or_insert_binding(binding);
-                        compiler.emit_opcode(Opcode::PushUndefined);
-                        compiler.emit_binding_access(Opcode::DefInitVar, &index);
+                        let value = compiler.register_allocator.alloc();
+                        compiler.push_undefined(&value);
+                        compiler.emit_binding_access(Opcode::DefInitVar, &index, &value);
+                        compiler.register_allocator.dealloc(value);
 
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
@@ -1740,10 +1748,13 @@ impl SourceTextModule {
             .vm
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
+        let register_count = context.vm.frame().code_block().register_count;
+        let registers = &mut Registers::new(register_count as usize);
+
         context
             .vm
             .frame
-            .set_promise_capability(&mut context.vm.stack, capability);
+            .set_promise_capability(registers, capability);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -1754,7 +1765,7 @@ impl SourceTextModule {
         // 10. Else,
         //    a. Assert: capability is a PromiseCapability Record.
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
-        let result = context.run();
+        let result = context.run(registers);
 
         context.vm.pop_frame();
 

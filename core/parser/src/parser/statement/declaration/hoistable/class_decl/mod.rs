@@ -416,7 +416,7 @@ where
                     }
                 }
                 function::ClassElement::PrivateFieldDefinition(field) => {
-                    if let Some(node) = field.field() {
+                    if let Some(node) = field.initializer() {
                         if contains(node, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
@@ -434,8 +434,8 @@ where
                         ));
                     }
                 }
-                function::ClassElement::PrivateStaticFieldDefinition(name, init) => {
-                    if let Some(node) = init {
+                function::ClassElement::PrivateStaticFieldDefinition(field) => {
+                    if let Some(node) = field.initializer() {
                         if contains(node, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
@@ -444,7 +444,7 @@ where
                         }
                     }
                     if private_elements_names
-                        .insert(name.description(), PrivateElement::StaticValue)
+                        .insert(field.name().description(), PrivateElement::StaticValue)
                         .is_some()
                     {
                         return Err(Error::general(
@@ -455,7 +455,7 @@ where
                 }
                 function::ClassElement::FieldDefinition(field)
                 | function::ClassElement::StaticFieldDefinition(field) => {
-                    if let Some(field) = field.field() {
+                    if let Some(field) = field.initializer() {
                         if contains(field, ContainsSymbol::SuperCall) {
                             return Err(Error::lex(LexError::Syntax(
                                 "invalid super usage".into(),
@@ -568,6 +568,9 @@ where
         );
 
         let token = cursor.peek(0, interner).or_abrupt()?;
+        let start_linear_span = token.linear_span();
+        let start_linear_pos = start_linear_span.start();
+
         let position = token.span().start();
         let element = match token.kind() {
             TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -590,8 +593,12 @@ where
                 )?;
                 cursor.set_strict(strict);
 
+                let span = Some(start_linear_span.union(body.linear_pos_end()));
+
                 return Ok((
-                    Some(FunctionExpression::new(self.name, parameters, body, false)),
+                    Some(FunctionExpression::new(
+                        self.name, parameters, body, span, false,
+                    )),
                     None,
                 ));
             }
@@ -724,6 +731,7 @@ where
                     body,
                     MethodDefinitionKind::Generator,
                     r#static,
+                    start_linear_pos,
                 ))
             }
             TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
@@ -783,6 +791,7 @@ where
                             body,
                             MethodDefinitionKind::AsyncGenerator,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -826,6 +835,7 @@ where
                             body,
                             MethodDefinitionKind::Async,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                 }
@@ -883,6 +893,7 @@ where
                             body,
                             MethodDefinitionKind::Get,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -936,6 +947,7 @@ where
                             body,
                             MethodDefinitionKind::Get,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {
@@ -997,6 +1009,7 @@ where
                             body,
                             MethodDefinitionKind::Set,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     TokenKind::IdentifierName((Sym::CONSTRUCTOR, _)) if !r#static => {
@@ -1052,6 +1065,7 @@ where
                             body,
                             MethodDefinitionKind::Set,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {
@@ -1094,15 +1108,11 @@ where
                                 .as_slice(),
                         );
                         rhs.set_anonymous_function_definition_name(&Identifier::new(function_name));
+                        let field = PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs));
                         if r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(
-                                PrivateName::new(name),
-                                Some(rhs),
-                            )
+                            function::ClassElement::PrivateStaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::PrivateFieldDefinition(
-                                PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs)),
-                            )
+                            function::ClassElement::PrivateFieldDefinition(field)
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1137,19 +1147,16 @@ where
                             body,
                             MethodDefinitionKind::Ordinary,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
+                        let field = PrivateFieldDefinition::new(PrivateName::new(name), None);
                         if r#static {
-                            function::ClassElement::PrivateStaticFieldDefinition(
-                                PrivateName::new(name),
-                                None,
-                            )
+                            function::ClassElement::PrivateStaticFieldDefinition(field)
                         } else {
-                            function::ClassElement::PrivateFieldDefinition(
-                                PrivateFieldDefinition::new(PrivateName::new(name), None),
-                            )
+                            function::ClassElement::PrivateFieldDefinition(field)
                         }
                     }
                 }
@@ -1238,6 +1245,7 @@ where
                             body,
                             MethodDefinitionKind::Ordinary,
                             r#static,
+                            start_linear_pos,
                         ))
                     }
                     _ => {
@@ -1274,7 +1282,7 @@ where
             // It is a Syntax Error if Initializer is present and ContainsArguments of Initializer is true.
             function::ClassElement::FieldDefinition(field)
             | function::ClassElement::StaticFieldDefinition(field) => {
-                if let Some(field) = field.field() {
+                if let Some(field) = field.initializer() {
                     if contains_arguments(field) {
                         return Err(Error::general(
                             "'arguments' not allowed in class field definition",
@@ -1283,22 +1291,15 @@ where
                     }
                 }
             }
-            function::ClassElement::PrivateFieldDefinition(field) => {
-                if let Some(node) = field.field() {
+            function::ClassElement::PrivateFieldDefinition(field)
+            | function::ClassElement::PrivateStaticFieldDefinition(field) => {
+                if let Some(node) = field.initializer() {
                     if contains_arguments(node) {
                         return Err(Error::general(
                             "'arguments' not allowed in class field definition",
                             position,
                         ));
                     }
-                }
-            }
-            function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
-                if contains_arguments(node) {
-                    return Err(Error::general(
-                        "'arguments' not allowed in class field definition",
-                        position,
-                    ));
                 }
             }
 

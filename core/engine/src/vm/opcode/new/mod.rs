@@ -1,6 +1,6 @@
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult,
 };
 
@@ -12,7 +12,11 @@ use crate::{
 pub(crate) struct New;
 
 impl New {
-    fn operation(context: &mut Context, argument_count: usize) -> JsResult<CompletionType> {
+    fn operation(
+        registers: &mut Registers,
+        context: &mut Context,
+        argument_count: usize,
+    ) -> JsResult<CompletionType> {
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
@@ -23,7 +27,9 @@ impl New {
 
         context.vm.push(cons.clone()); // Push new.target
 
-        cons.__construct__(argument_count).resolve(context)?;
+        if let Some(register_count) = cons.__construct__(argument_count).resolve(context)? {
+            registers.push_function(register_count);
+        }
         Ok(CompletionType::Normal)
     }
 }
@@ -33,19 +39,19 @@ impl Operation for New {
     const INSTRUCTION: &'static str = "INST - New";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u8>() as usize;
-        Self::operation(context, argument_count)
+        Self::operation(registers, context, argument_count)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u16>() as usize;
-        Self::operation(context, argument_count)
+        Self::operation(registers, context, argument_count)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let argument_count = context.vm.read::<u32>() as usize;
-        Self::operation(context, argument_count)
+        Self::operation(registers, context, argument_count)
     }
 }
 
@@ -61,7 +67,7 @@ impl Operation for NewSpread {
     const INSTRUCTION: &'static str = "INST - NewSpread";
     const COST: u8 = 3;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -85,7 +91,9 @@ impl Operation for NewSpread {
         context.vm.push_values(&arguments);
         context.vm.push(cons.clone()); // Push new.target
 
-        cons.__construct__(argument_count).resolve(context)?;
+        if let Some(register_count) = cons.__construct__(argument_count).resolve(context)? {
+            registers.push_function(register_count);
+        }
         Ok(CompletionType::Normal)
     }
 }

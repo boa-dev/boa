@@ -26,7 +26,6 @@ use crate::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         Block, Catch, ForInLoop, ForLoop, ForOfLoop, Switch, With,
     },
-    try_break,
     visitor::{NodeRef, NodeRefMut, VisitorMut},
     Declaration, Module, Script, StatementListItem, ToJsString,
 };
@@ -102,7 +101,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             std::mem::swap(&mut self.scope, scope);
         }
 
-        try_break!(self.visit_statement_list_mut(&mut node.statements));
+        self.visit_statement_list_mut(&mut node.statements)?;
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
             scope.reorder_binding_indices();
@@ -112,7 +111,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
     }
 
     fn visit_switch_mut(&mut self, node: &'ast mut Switch) -> ControlFlow<Self::BreakTy> {
-        try_break!(self.visit_expression_mut(&mut node.val));
+        self.visit_expression_mut(&mut node.val)?;
         let direct_eval_old = self.direct_eval;
         self.direct_eval = node.contains_direct_eval || self.direct_eval;
         if let Some(scope) = &mut node.scope {
@@ -122,7 +121,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             std::mem::swap(&mut self.scope, scope);
         }
         for case in &mut node.cases {
-            try_break!(self.visit_case_mut(case));
+            self.visit_case_mut(case)?;
         }
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
@@ -138,9 +137,9 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         if self.direct_eval {
             node.scope.escape_all_bindings();
         }
-        try_break!(self.visit_expression_mut(&mut node.expression));
+        self.visit_expression_mut(&mut node.expression)?;
         std::mem::swap(&mut self.scope, &mut node.scope);
-        try_break!(self.visit_statement_mut(&mut node.statement));
+        self.visit_statement_mut(&mut node.statement)?;
         std::mem::swap(&mut self.scope, &mut node.scope);
         node.scope.reorder_binding_indices();
         self.with = with;
@@ -155,9 +154,9 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         }
         std::mem::swap(&mut self.scope, &mut node.scope);
         if let Some(binding) = &mut node.parameter {
-            try_break!(self.visit_binding_mut(binding));
+            self.visit_binding_mut(binding)?;
         }
-        try_break!(self.visit_block_mut(&mut node.block));
+        self.visit_block_mut(&mut node.block)?;
         std::mem::swap(&mut self.scope, &mut node.scope);
         node.scope.reorder_binding_indices();
         self.direct_eval = direct_eval_old;
@@ -174,15 +173,15 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             std::mem::swap(&mut self.scope, &mut decl.scope);
         }
         if let Some(init) = &mut node.inner.init {
-            try_break!(self.visit_for_loop_initializer_mut(init));
+            self.visit_for_loop_initializer_mut(init)?;
         }
         if let Some(condition) = &mut node.inner.condition {
-            try_break!(self.visit_expression_mut(condition));
+            self.visit_expression_mut(condition)?;
         }
         if let Some(final_expr) = &mut node.inner.final_expr {
-            try_break!(self.visit_expression_mut(final_expr));
+            self.visit_expression_mut(final_expr)?;
         }
-        try_break!(self.visit_statement_mut(&mut node.inner.body));
+        self.visit_statement_mut(&mut node.inner.body)?;
         if let Some(ForLoopInitializer::Lexical(decl)) = &mut node.inner.init {
             std::mem::swap(&mut self.scope, &mut decl.scope);
             decl.scope.reorder_binding_indices();
@@ -200,7 +199,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             }
             std::mem::swap(&mut self.scope, scope);
         }
-        try_break!(self.visit_expression_mut(&mut node.target));
+        self.visit_expression_mut(&mut node.target)?;
         if let Some(scope) = &mut node.target_scope {
             self.direct_eval = direct_eval_old;
             std::mem::swap(&mut self.scope, scope);
@@ -213,8 +212,8 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             }
             std::mem::swap(&mut self.scope, scope);
         }
-        try_break!(self.visit_iterable_loop_initializer_mut(&mut node.initializer));
-        try_break!(self.visit_statement_mut(&mut node.body));
+        self.visit_iterable_loop_initializer_mut(&mut node.initializer)?;
+        self.visit_statement_mut(&mut node.body)?;
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
             scope.reorder_binding_indices();
@@ -232,7 +231,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             }
             std::mem::swap(&mut self.scope, scope);
         }
-        try_break!(self.visit_expression_mut(&mut node.iterable));
+        self.visit_expression_mut(&mut node.iterable)?;
         if let Some(scope) = &mut node.iterable_scope {
             self.direct_eval = direct_eval_old;
             std::mem::swap(&mut self.scope, scope);
@@ -245,8 +244,8 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             }
             std::mem::swap(&mut self.scope, scope);
         }
-        try_break!(self.visit_iterable_loop_initializer_mut(&mut node.init));
-        try_break!(self.visit_statement_mut(&mut node.body));
+        self.visit_iterable_loop_initializer_mut(&mut node.init)?;
+        self.visit_statement_mut(&mut node.body)?;
         if let Some(scope) = &mut node.scope {
             std::mem::swap(&mut self.scope, scope);
             scope.reorder_binding_indices();
@@ -382,13 +381,13 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         node.name_scope.escape_all_bindings();
         std::mem::swap(&mut self.scope, &mut node.name_scope);
         if let Some(super_ref) = &mut node.super_ref {
-            try_break!(self.visit_expression_mut(super_ref));
+            self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            try_break!(self.visit_function_expression_mut(constructor));
+            self.visit_function_expression_mut(constructor)?;
         }
         for element in &mut *node.elements {
-            try_break!(self.visit_class_element_mut(element));
+            self.visit_class_element_mut(element)?;
         }
         std::mem::swap(&mut self.scope, &mut node.name_scope);
         node.name_scope.reorder_binding_indices();
@@ -407,13 +406,13 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             std::mem::swap(&mut self.scope, name_scope);
         }
         if let Some(super_ref) = &mut node.super_ref {
-            try_break!(self.visit_expression_mut(super_ref));
+            self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            try_break!(self.visit_function_expression_mut(constructor));
+            self.visit_function_expression_mut(constructor)?;
         }
         for element in &mut *node.elements {
-            try_break!(self.visit_class_element_mut(element));
+            self.visit_class_element_mut(element)?;
         }
         if let Some(name_scope) = &mut node.name_scope {
             std::mem::swap(&mut self.scope, name_scope);
@@ -434,21 +433,16 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
                 node.contains_direct_eval,
             ),
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
-                try_break!(self.visit_property_name_mut(&mut field.name));
-                if let Some(e) = &mut field.field {
-                    try_break!(self.visit_expression_mut(e));
+                self.visit_property_name_mut(&mut field.name)?;
+                if let Some(e) = &mut field.initializer {
+                    self.visit_expression_mut(e)?;
                 }
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
-                if let Some(e) = &mut field.field {
-                    try_break!(self.visit_expression_mut(e));
-                }
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
-                    try_break!(self.visit_expression_mut(e));
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
+                if let Some(e) = &mut field.initializer {
+                    self.visit_expression_mut(e)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -468,7 +462,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         &mut self,
         node: &'ast mut ObjectMethodDefinition,
     ) -> ControlFlow<Self::BreakTy> {
-        try_break!(self.visit_property_name_mut(&mut node.name));
+        self.visit_property_name_mut(&mut node.name)?;
         self.visit_function_like(
             &mut node.parameters,
             &mut node.body,
@@ -483,12 +477,12 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             ExportDeclaration::ReExport { specifier, kind } => {
-                try_break!(self.visit_module_specifier_mut(specifier));
+                self.visit_module_specifier_mut(specifier)?;
                 self.visit_re_export_kind_mut(kind)
             }
             ExportDeclaration::List(list) => {
                 for item in &mut **list {
-                    try_break!(self.visit_export_specifier_mut(item));
+                    self.visit_export_specifier_mut(item)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -520,7 +514,7 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
         let mut scope = node.scope.clone();
         scope.escape_all_bindings();
         std::mem::swap(&mut self.scope, &mut scope);
-        try_break!(self.visit_module_item_list_mut(&mut node.items));
+        self.visit_module_item_list_mut(&mut node.items)?;
         std::mem::swap(&mut self.scope, &mut scope);
         scope.reorder_binding_indices();
         ControlFlow::Continue(())
@@ -542,11 +536,11 @@ impl BindingEscapeAnalyzer<'_> {
         }
         let mut scope = scopes.parameter_scope();
         std::mem::swap(&mut self.scope, &mut scope);
-        try_break!(self.visit_formal_parameter_list_mut(parameters));
+        self.visit_formal_parameter_list_mut(parameters)?;
         std::mem::swap(&mut self.scope, &mut scope);
         scope = scopes.body_scope();
         std::mem::swap(&mut self.scope, &mut scope);
-        try_break!(self.visit_function_body_mut(body));
+        self.visit_function_body_mut(body)?;
         std::mem::swap(&mut self.scope, &mut scope);
         scopes.reorder_binding_indices();
         self.direct_eval = direct_eval_old;
@@ -753,13 +747,13 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         name_scope.create_immutable_binding(name, true);
         std::mem::swap(&mut self.scope, &mut name_scope);
         if let Some(super_ref) = &mut node.super_ref {
-            try_break!(self.visit_expression_mut(super_ref));
+            self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            try_break!(self.visit_function_expression_mut(constructor));
+            self.visit_function_expression_mut(constructor)?;
         }
         for element in &mut *node.elements {
-            try_break!(self.visit_class_element_mut(element));
+            self.visit_class_element_mut(element)?;
         }
         std::mem::swap(&mut self.scope, &mut name_scope);
         node.name_scope = name_scope;
@@ -782,13 +776,13 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
             }
         }
         if let Some(super_ref) = &mut node.super_ref {
-            try_break!(self.visit_expression_mut(super_ref));
+            self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            try_break!(self.visit_function_expression_mut(constructor));
+            self.visit_function_expression_mut(constructor)?;
         }
         for element in &mut *node.elements {
-            try_break!(self.visit_class_element_mut(element));
+            self.visit_class_element_mut(element)?;
         }
         if let Some(mut scope) = name_scope {
             std::mem::swap(&mut self.scope, &mut scope);
@@ -814,30 +808,25 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
                 )
             }
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
-                try_break!(self.visit_property_name_mut(&mut field.name));
+                self.visit_property_name_mut(&mut field.name)?;
                 let mut scope = Scope::new(self.scope.clone(), true);
                 std::mem::swap(&mut self.scope, &mut scope);
-                if let Some(e) = &mut field.field {
-                    try_break!(self.visit_expression_mut(e));
+                if let Some(e) = &mut field.initializer {
+                    self.visit_expression_mut(e)?;
                 }
                 std::mem::swap(&mut self.scope, &mut scope);
                 field.scope = scope;
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
                 let mut scope = Scope::new(self.scope.clone(), true);
                 std::mem::swap(&mut self.scope, &mut scope);
-                if let Some(e) = &mut field.field {
-                    try_break!(self.visit_expression_mut(e));
+                if let Some(e) = &mut field.initializer {
+                    self.visit_expression_mut(e)?;
                 }
                 std::mem::swap(&mut self.scope, &mut scope);
                 field.scope = scope;
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
-                    try_break!(self.visit_expression_mut(e));
-                }
                 ControlFlow::Continue(())
             }
             ClassElement::StaticBlock(node) => {
@@ -862,7 +851,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         match &mut node.name {
             PropertyName::Literal(_) => {}
             PropertyName::Computed(name) => {
-                try_break!(self.visit_expression_mut(name));
+                self.visit_expression_mut(name)?;
             }
         }
         let strict = node.body.strict();
@@ -882,7 +871,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         if let Some(scope) = &mut scope {
             std::mem::swap(&mut self.scope, scope);
         }
-        try_break!(self.visit_statement_list_mut(&mut node.statements));
+        self.visit_statement_list_mut(&mut node.statements)?;
         if let Some(scope) = &mut scope {
             std::mem::swap(&mut self.scope, scope);
         }
@@ -891,13 +880,13 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     }
 
     fn visit_switch_mut(&mut self, node: &'ast mut Switch) -> ControlFlow<Self::BreakTy> {
-        try_break!(self.visit_expression_mut(&mut node.val));
+        self.visit_expression_mut(&mut node.val)?;
         let mut scope = block_declaration_instantiation(node, self.scope.clone(), self.interner);
         if let Some(scope) = &mut scope {
             std::mem::swap(&mut self.scope, scope);
         }
         for case in &mut *node.cases {
-            try_break!(self.visit_case_mut(case));
+            self.visit_case_mut(case)?;
         }
         if let Some(scope) = &mut scope {
             std::mem::swap(&mut self.scope, scope);
@@ -907,10 +896,10 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     }
 
     fn visit_with_mut(&mut self, node: &'ast mut With) -> ControlFlow<Self::BreakTy> {
-        try_break!(self.visit_expression_mut(&mut node.expression));
+        self.visit_expression_mut(&mut node.expression)?;
         let mut scope = Scope::new(self.scope.clone(), false);
         std::mem::swap(&mut self.scope, &mut scope);
-        try_break!(self.visit_statement_mut(&mut node.statement));
+        self.visit_statement_mut(&mut node.statement)?;
         std::mem::swap(&mut self.scope, &mut scope);
         node.scope = scope;
         ControlFlow::Continue(())
@@ -934,9 +923,9 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         }
         std::mem::swap(&mut self.scope, &mut scope);
         if let Some(binding) = &mut node.parameter {
-            try_break!(self.visit_binding_mut(binding));
+            self.visit_binding_mut(binding)?;
         }
-        try_break!(self.visit_block_mut(&mut node.block));
+        self.visit_block_mut(&mut node.block)?;
         std::mem::swap(&mut self.scope, &mut scope);
         node.scope = scope;
         ControlFlow::Continue(())
@@ -965,13 +954,13 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
             _ => None,
         };
         if let Some(fli) = &mut node.inner.init {
-            try_break!(self.visit_for_loop_initializer_mut(fli));
+            self.visit_for_loop_initializer_mut(fli)?;
         }
         if let Some(expr) = &mut node.inner.condition {
-            try_break!(self.visit_expression_mut(expr));
+            self.visit_expression_mut(expr)?;
         }
         if let Some(expr) = &mut node.inner.final_expr {
-            try_break!(self.visit_expression_mut(expr));
+            self.visit_expression_mut(expr)?;
         }
         self.visit_statement_mut(&mut node.inner.body);
         if let Some(mut scope) = scope {
@@ -987,7 +976,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
             _ => Vec::new(),
         };
         if initializer_bound_names.is_empty() {
-            try_break!(self.visit_expression_mut(&mut node.target));
+            self.visit_expression_mut(&mut node.target)?;
         } else {
             let mut scope = Scope::new(self.scope.clone(), false);
             for name in &initializer_bound_names {
@@ -995,7 +984,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
                 drop(scope.create_mutable_binding(name, false));
             }
             std::mem::swap(&mut self.scope, &mut scope);
-            try_break!(self.visit_expression_mut(&mut node.target));
+            self.visit_expression_mut(&mut node.target)?;
             std::mem::swap(&mut self.scope, &mut scope);
             node.target_scope = Some(scope);
         }
@@ -1036,13 +1025,13 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         };
         if let Some(mut scope) = scope {
             std::mem::swap(&mut self.scope, &mut scope);
-            try_break!(self.visit_iterable_loop_initializer_mut(&mut node.initializer));
-            try_break!(self.visit_statement_mut(&mut node.body));
+            self.visit_iterable_loop_initializer_mut(&mut node.initializer)?;
+            self.visit_statement_mut(&mut node.body)?;
             std::mem::swap(&mut self.scope, &mut scope);
             node.scope = Some(scope);
         } else {
-            try_break!(self.visit_iterable_loop_initializer_mut(&mut node.initializer));
-            try_break!(self.visit_statement_mut(&mut node.body));
+            self.visit_iterable_loop_initializer_mut(&mut node.initializer)?;
+            self.visit_statement_mut(&mut node.body)?;
         }
         ControlFlow::Continue(())
     }
@@ -1054,7 +1043,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
             _ => Vec::new(),
         };
         if initializer_bound_names.is_empty() {
-            try_break!(self.visit_expression_mut(&mut node.iterable));
+            self.visit_expression_mut(&mut node.iterable)?;
         } else {
             let mut scope = Scope::new(self.scope.clone(), false);
             for name in &initializer_bound_names {
@@ -1062,7 +1051,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
                 drop(scope.create_mutable_binding(name, false));
             }
             std::mem::swap(&mut self.scope, &mut scope);
-            try_break!(self.visit_expression_mut(&mut node.iterable));
+            self.visit_expression_mut(&mut node.iterable)?;
             std::mem::swap(&mut self.scope, &mut scope);
             node.iterable_scope = Some(scope);
         }
@@ -1103,13 +1092,13 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         };
         if let Some(mut scope) = scope {
             std::mem::swap(&mut self.scope, &mut scope);
-            try_break!(self.visit_iterable_loop_initializer_mut(&mut node.init));
-            try_break!(self.visit_statement_mut(&mut node.body));
+            self.visit_iterable_loop_initializer_mut(&mut node.init)?;
+            self.visit_statement_mut(&mut node.body)?;
             std::mem::swap(&mut self.scope, &mut scope);
             node.scope = Some(scope);
         } else {
-            try_break!(self.visit_iterable_loop_initializer_mut(&mut node.init));
-            try_break!(self.visit_statement_mut(&mut node.body));
+            self.visit_iterable_loop_initializer_mut(&mut node.init)?;
+            self.visit_statement_mut(&mut node.body)?;
         }
         ControlFlow::Continue(())
     }
@@ -1118,7 +1107,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         let mut scope = Scope::new(self.scope.clone(), true);
         module_instantiation(node, &scope, self.interner);
         std::mem::swap(&mut self.scope, &mut scope);
-        try_break!(self.visit_module_item_list_mut(&mut node.items));
+        self.visit_module_item_list_mut(&mut node.items)?;
         std::mem::swap(&mut self.scope, &mut scope);
         node.scope = scope;
         ControlFlow::Continue(())
@@ -1126,11 +1115,11 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
 
     fn visit_script_mut(&mut self, node: &'ast mut Script) -> ControlFlow<Self::BreakTy> {
         if self.eval {
-            try_break!(self.visit_statement_list_mut(node.statements_mut()));
+            self.visit_statement_list_mut(node.statements_mut())?;
         } else {
             match global_declaration_instantiation(node, &self.scope, self.interner) {
                 Ok(()) => {
-                    try_break!(self.visit_statement_list_mut(node.statements_mut()));
+                    self.visit_statement_list_mut(node.statements_mut())?;
                 }
                 Err(e) => return ControlFlow::Break(e),
             }
@@ -1176,11 +1165,11 @@ impl BindingCollectorVisitor<'_> {
         let mut body_scope = function_scopes.body_scope();
 
         std::mem::swap(&mut self.scope, &mut params_scope);
-        try_break!(self.visit_formal_parameter_list_mut(parameters));
+        self.visit_formal_parameter_list_mut(parameters)?;
         std::mem::swap(&mut self.scope, &mut params_scope);
 
         std::mem::swap(&mut self.scope, &mut body_scope);
-        try_break!(self.visit_function_body_mut(body));
+        self.visit_function_body_mut(body)?;
         std::mem::swap(&mut self.scope, &mut body_scope);
 
         *scopes = function_scopes;
@@ -1367,13 +1356,13 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         }
         node.name_scope.set_index(self.index);
         if let Some(super_ref) = &mut node.super_ref {
-            try_break!(self.visit_expression_mut(super_ref));
+            self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            try_break!(self.visit_function_expression_mut(constructor));
+            self.visit_function_expression_mut(constructor)?;
         }
         for element in &mut *node.elements {
-            try_break!(self.visit_class_element_mut(element));
+            self.visit_class_element_mut(element)?;
         }
         self.index = index;
         ControlFlow::Continue(())
@@ -1391,13 +1380,13 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             scope.set_index(self.index);
         }
         if let Some(super_ref) = &mut node.super_ref {
-            try_break!(self.visit_expression_mut(super_ref));
+            self.visit_expression_mut(super_ref)?;
         }
         if let Some(constructor) = &mut node.constructor {
-            try_break!(self.visit_function_expression_mut(constructor));
+            self.visit_function_expression_mut(constructor)?;
         }
         for element in &mut *node.elements {
-            try_break!(self.visit_class_element_mut(element));
+            self.visit_class_element_mut(element)?;
         }
         self.index = index;
         ControlFlow::Continue(())
@@ -1420,30 +1409,25 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 )
             }
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
-                try_break!(self.visit_property_name_mut(&mut field.name));
+                self.visit_property_name_mut(&mut field.name)?;
                 let index = self.index;
                 self.index += 1;
                 field.scope.set_index(self.index);
-                if let Some(e) = &mut field.field {
-                    try_break!(self.visit_expression_mut(e));
+                if let Some(e) = &mut field.initializer {
+                    self.visit_expression_mut(e)?;
                 }
                 self.index = index;
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
                 let index = self.index;
                 self.index += 1;
                 field.scope.set_index(self.index);
-                if let Some(e) = &mut field.field {
-                    try_break!(self.visit_expression_mut(e));
+                if let Some(e) = &mut field.initializer {
+                    self.visit_expression_mut(e)?;
                 }
                 self.index = index;
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
-                    try_break!(self.visit_expression_mut(e));
-                }
                 ControlFlow::Continue(())
             }
             ClassElement::StaticBlock(node) => {
@@ -1467,7 +1451,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         match &mut node.name {
             PropertyName::Literal(_) => {}
             PropertyName::Computed(name) => {
-                try_break!(self.visit_expression_mut(name));
+                self.visit_expression_mut(name)?;
             }
         }
         let contains_direct_eval = node.contains_direct_eval();
@@ -1489,14 +1473,14 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        try_break!(self.visit_statement_list_mut(&mut node.statements));
+        self.visit_statement_list_mut(&mut node.statements)?;
         self.index = index;
         ControlFlow::Continue(())
     }
 
     fn visit_switch_mut(&mut self, node: &'ast mut Switch) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
-        try_break!(self.visit_expression_mut(&mut node.val));
+        self.visit_expression_mut(&mut node.val)?;
         if let Some(scope) = &node.scope {
             if !scope.all_bindings_local() {
                 self.index += 1;
@@ -1504,7 +1488,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             scope.set_index(self.index);
         }
         for case in &mut *node.cases {
-            try_break!(self.visit_case_mut(case));
+            self.visit_case_mut(case)?;
         }
         self.index = index;
         ControlFlow::Continue(())
@@ -1512,10 +1496,10 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
 
     fn visit_with_mut(&mut self, node: &'ast mut With) -> ControlFlow<Self::BreakTy> {
         let index = self.index;
-        try_break!(self.visit_expression_mut(&mut node.expression));
+        self.visit_expression_mut(&mut node.expression)?;
         self.index += 1;
         node.scope.set_index(self.index);
-        try_break!(self.visit_statement_mut(&mut node.statement));
+        self.visit_statement_mut(&mut node.statement)?;
         self.index = index;
         ControlFlow::Continue(())
     }
@@ -1527,9 +1511,9 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         }
         node.scope.set_index(self.index);
         if let Some(binding) = &mut node.parameter {
-            try_break!(self.visit_binding_mut(binding));
+            self.visit_binding_mut(binding)?;
         }
-        try_break!(self.visit_block_mut(&mut node.block));
+        self.visit_block_mut(&mut node.block)?;
         self.index = index;
         ControlFlow::Continue(())
     }
@@ -1543,13 +1527,13 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             decl.scope.set_index(self.index);
         }
         if let Some(fli) = &mut node.inner.init {
-            try_break!(self.visit_for_loop_initializer_mut(fli));
+            self.visit_for_loop_initializer_mut(fli)?;
         }
         if let Some(expr) = &mut node.inner.condition {
-            try_break!(self.visit_expression_mut(expr));
+            self.visit_expression_mut(expr)?;
         }
         if let Some(expr) = &mut node.inner.final_expr {
-            try_break!(self.visit_expression_mut(expr));
+            self.visit_expression_mut(expr)?;
         }
         self.visit_statement_mut(&mut node.inner.body);
         self.index = index;
@@ -1565,7 +1549,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 }
                 scope.set_index(self.index);
             }
-            try_break!(self.visit_expression_mut(&mut node.target));
+            self.visit_expression_mut(&mut node.target)?;
             self.index = index;
         }
         let index = self.index;
@@ -1575,8 +1559,8 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        try_break!(self.visit_iterable_loop_initializer_mut(&mut node.initializer));
-        try_break!(self.visit_statement_mut(&mut node.body));
+        self.visit_iterable_loop_initializer_mut(&mut node.initializer)?;
+        self.visit_statement_mut(&mut node.body)?;
         self.index = index;
         ControlFlow::Continue(())
     }
@@ -1590,7 +1574,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 }
                 scope.set_index(self.index);
             }
-            try_break!(self.visit_expression_mut(&mut node.iterable));
+            self.visit_expression_mut(&mut node.iterable)?;
             self.index = index;
         }
         let index = self.index;
@@ -1600,8 +1584,8 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        try_break!(self.visit_iterable_loop_initializer_mut(&mut node.init));
-        try_break!(self.visit_statement_mut(&mut node.body));
+        self.visit_iterable_loop_initializer_mut(&mut node.init)?;
+        self.visit_statement_mut(&mut node.body)?;
         self.index = index;
         ControlFlow::Continue(())
     }
@@ -1634,7 +1618,7 @@ impl ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        try_break!(self.visit_formal_parameter_list_mut(parameters));
+        self.visit_formal_parameter_list_mut(parameters)?;
         if let Some(scope) = &scopes.parameters_scope {
             if !scope.all_bindings_local() {
                 self.index += 1;
@@ -1647,7 +1631,7 @@ impl ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        try_break!(self.visit_function_body_mut(body));
+        self.visit_function_body_mut(body)?;
         self.index = index;
         ControlFlow::Continue(())
     }

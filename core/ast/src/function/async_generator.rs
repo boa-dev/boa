@@ -1,13 +1,13 @@
 //! Async Generator Expression
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::{FunctionScopes, Scope};
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     block_to_string,
     expression::{Expression, Identifier},
     join_nodes, Declaration,
 };
+use crate::{LinearSpan, LinearSpanIgnoreEq};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -32,13 +32,19 @@ pub struct AsyncGeneratorDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl AsyncGeneratorDeclaration {
     /// Creates a new async generator declaration.
     #[inline]
     #[must_use]
-    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+    pub fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
@@ -47,6 +53,7 @@ impl AsyncGeneratorDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -78,6 +85,13 @@ impl AsyncGeneratorDeclaration {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the async generator declaration contains a direct call to `eval`.
     #[inline]
     #[must_use]
@@ -102,8 +116,8 @@ impl VisitWith for AsyncGeneratorDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_identifier(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -111,8 +125,8 @@ impl VisitWith for AsyncGeneratorDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_identifier_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }
@@ -147,6 +161,7 @@ pub struct AsyncGeneratorExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl AsyncGeneratorExpression {
@@ -157,6 +172,7 @@ impl AsyncGeneratorExpression {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
         has_binding_identifier: bool,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -169,6 +185,7 @@ impl AsyncGeneratorExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -214,6 +231,13 @@ impl AsyncGeneratorExpression {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the async generator expression contains a direct call to `eval`.
     #[inline]
     #[must_use]
@@ -253,9 +277,9 @@ impl VisitWith for AsyncGeneratorExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -264,9 +288,9 @@ impl VisitWith for AsyncGeneratorExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

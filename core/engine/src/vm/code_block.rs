@@ -8,7 +8,7 @@ use crate::{
         OrdinaryObject,
     },
     object::JsObject,
-    Context, JsBigInt, JsString, JsValue,
+    Context, JsBigInt, JsString, JsValue, SpannedSourceText,
 };
 use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
@@ -91,8 +91,6 @@ unsafe impl Trace for CodeBlockFlags {
 pub(crate) struct Handler {
     pub(crate) start: u32,
     pub(crate) end: u32,
-
-    pub(crate) stack_count: u32,
     pub(crate) environment_count: u32,
 }
 
@@ -166,6 +164,9 @@ pub struct CodeBlock {
 
     /// inline caching
     pub(crate) ic: Box<[InlineCache]>,
+
+    /// source text of the code block
+    pub(crate) source_text_spanned: SpannedSourceText,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -189,6 +190,7 @@ impl CodeBlock {
             parameter_length: 0,
             handlers: ThinVec::default(),
             ic: Box::default(),
+            source_text_spanned: SpannedSourceText::new_empty(),
         }
     }
 
@@ -378,157 +380,594 @@ impl CodeBlock {
     /// Returns an empty `String` if no operands are present.
     pub(crate) fn instruction_operands(&self, instruction: &Instruction) -> String {
         match instruction {
-            Instruction::SetFunctionName { prefix } => match prefix {
-                0 => "prefix: none",
-                1 => "prefix: get",
-                2 => "prefix: set",
-                _ => unreachable!(),
+            Instruction::SetRegisterFromAccumulator { dst }
+            | Instruction::PopIntoRegister { dst }
+            | Instruction::PushZero { dst }
+            | Instruction::PushOne { dst }
+            | Instruction::PushNaN { dst }
+            | Instruction::PushPositiveInfinity { dst }
+            | Instruction::PushNegativeInfinity { dst }
+            | Instruction::PushNull { dst }
+            | Instruction::PushTrue { dst }
+            | Instruction::PushFalse { dst }
+            | Instruction::PushUndefined { dst }
+            | Instruction::Exception { dst }
+            | Instruction::This { dst }
+            | Instruction::Super { dst }
+            | Instruction::SuperCallPrepare { dst }
+            | Instruction::NewTarget { dst }
+            | Instruction::ImportMeta { dst }
+            | Instruction::CreateMappedArgumentsObject { dst }
+            | Instruction::CreateUnmappedArgumentsObject { dst }
+            | Instruction::RestParameterInit { dst }
+            | Instruction::PushNewArray { dst } => format!("dst:{}", dst.value()),
+            Instruction::Add { lhs, rhs, dst }
+            | Instruction::Sub { lhs, rhs, dst }
+            | Instruction::Div { lhs, rhs, dst }
+            | Instruction::Mul { lhs, rhs, dst }
+            | Instruction::Mod { lhs, rhs, dst }
+            | Instruction::Pow { lhs, rhs, dst }
+            | Instruction::ShiftRight { lhs, rhs, dst }
+            | Instruction::ShiftLeft { lhs, rhs, dst }
+            | Instruction::UnsignedShiftRight { lhs, rhs, dst }
+            | Instruction::BitOr { lhs, rhs, dst }
+            | Instruction::BitAnd { lhs, rhs, dst }
+            | Instruction::BitXor { lhs, rhs, dst }
+            | Instruction::BitNot { lhs, rhs, dst }
+            | Instruction::In { lhs, rhs, dst }
+            | Instruction::Eq { lhs, rhs, dst }
+            | Instruction::StrictEq { lhs, rhs, dst }
+            | Instruction::NotEq { lhs, rhs, dst }
+            | Instruction::StrictNotEq { lhs, rhs, dst }
+            | Instruction::GreaterThan { lhs, rhs, dst }
+            | Instruction::GreaterThanOrEq { lhs, rhs, dst }
+            | Instruction::LessThan { lhs, rhs, dst }
+            | Instruction::LessThanOrEq { lhs, rhs, dst }
+            | Instruction::InstanceOf { lhs, rhs, dst } => {
+                format!(
+                    "lhs:{}, rhs:{}, dst:{}",
+                    lhs.value(),
+                    rhs.value(),
+                    dst.value()
+                )
             }
-            .to_owned(),
-            Instruction::RotateLeft { n } | Instruction::RotateRight { n } => n.to_string(),
+            Instruction::InPrivate { dst, index, rhs } => {
+                format!(
+                    "rhs:{}, index:{}, dst:{}",
+                    rhs.value(),
+                    index.value(),
+                    dst.value()
+                )
+            }
+            Instruction::Inc { src, dst }
+            | Instruction::Dec { src, dst }
+            | Instruction::Move { src, dst }
+            | Instruction::ToPropertyKey { src, dst }
+            | Instruction::PopIntoLocal { src, dst }
+            | Instruction::PushFromLocal { src, dst } => {
+                format!("src:{}, dst:{}", src.value(), dst.value())
+            }
+            Instruction::SetFunctionName {
+                function,
+                name,
+                prefix,
+            } => {
+                format!(
+                    "function:{}, name:{}, prefix:{}",
+                    function.value(),
+                    name.value(),
+                    match prefix {
+                        0 => "prefix:",
+                        1 => "prefix: get",
+                        2 => "prefix: set",
+                        _ => unreachable!(),
+                    }
+                )
+            }
             Instruction::Generator { r#async } => {
                 format!("async: {async}")
             }
-            Instruction::PushInt8 { value } => value.to_string(),
-            Instruction::PushInt16 { value } => value.to_string(),
-            Instruction::PushInt32 { value } => value.to_string(),
-            Instruction::PushFloat { value } => ryu_js::Buffer::new().format(*value).to_string(),
-            Instruction::PushDouble { value } => ryu_js::Buffer::new().format(*value).to_string(),
-            Instruction::PushLiteral { index }
-            | Instruction::ThrowNewTypeError { message: index }
-            | Instruction::ThrowNewSyntaxError { message: index }
-            | Instruction::HasRestrictedGlobalProperty { index }
-            | Instruction::CanDeclareGlobalFunction { index }
-            | Instruction::CanDeclareGlobalVar { index } => index.value().to_string(),
-            Instruction::PushRegExp {
-                pattern_index: source_index,
-                flags_index: flag_index,
-            } => {
-                let pattern = self
-                    .constant_string(source_index.value() as usize)
-                    .to_std_string_escaped();
-                let flags = self
-                    .constant_string(flag_index.value() as usize)
-                    .to_std_string_escaped();
-                format!("/{pattern}/{flags}")
+            Instruction::PushInt8 { value, dst } => {
+                format!("value:{}, dst:{}", value, dst.value())
             }
-            Instruction::Jump { address: value }
-            | Instruction::JumpIfTrue { address: value }
-            | Instruction::JumpIfFalse { address: value }
-            | Instruction::JumpIfNotUndefined { address: value }
-            | Instruction::JumpIfNullOrUndefined { address: value }
-            | Instruction::Case { address: value }
-            | Instruction::Default { address: value }
-            | Instruction::LogicalAnd { exit: value }
-            | Instruction::LogicalOr { exit: value }
-            | Instruction::Coalesce { exit: value } => value.to_string(),
+            Instruction::PushInt16 { value, dst } => {
+                format!("value:{}, dst:{}", value, dst.value())
+            }
+            Instruction::PushInt32 { value, dst } => {
+                format!("value:{}, dst:{}", value, dst.value())
+            }
+            Instruction::PushFloat { value, dst } => {
+                format!("value:{}, dst:{}", value, dst.value())
+            }
+            Instruction::PushDouble { value, dst } => {
+                format!("value:{}, dst:{}", value, dst.value())
+            }
+            Instruction::PushLiteral { index, dst }
+            | Instruction::ThisForObjectEnvironmentName { index, dst }
+            | Instruction::GetFunction { index, dst }
+            | Instruction::HasRestrictedGlobalProperty { index, dst }
+            | Instruction::CanDeclareGlobalFunction { index, dst }
+            | Instruction::CanDeclareGlobalVar { index, dst }
+            | Instruction::GetArgument { index, dst } => {
+                format!("index:{}, dst:{}", index.value(), dst.value())
+            }
+            Instruction::ThrowNewTypeError { message: index }
+            | Instruction::ThrowNewSyntaxError { message: index } => index.value().to_string(),
+            Instruction::PushRegExp {
+                pattern_index,
+                flags_index,
+                dst,
+            } => {
+                format!(
+                    "pattern:{}, flags:{}, dst:{}",
+                    pattern_index.value(),
+                    flags_index.value(),
+                    dst.value()
+                )
+            }
+            Instruction::Jump { address } => address.to_string(),
+            Instruction::JumpIfTrue { address, value }
+            | Instruction::JumpIfFalse { address, value }
+            | Instruction::JumpIfNotUndefined { address, value }
+            | Instruction::JumpIfNullOrUndefined { address, value }
+            | Instruction::LogicalAnd { address, value }
+            | Instruction::LogicalOr { address, value }
+            | Instruction::Coalesce { address, value } => {
+                format!("value:{}, address:{}", value.value(), address)
+            }
+            Instruction::Case {
+                address,
+                value,
+                condition,
+            } => {
+                format!(
+                    "value:{}, condition:{}, address:{}",
+                    value.value(),
+                    condition.value(),
+                    address
+                )
+            }
             Instruction::CallEval {
-                argument_count: value,
+                argument_count,
                 scope_index,
             } => {
-                format!("{}, {}", value.value(), scope_index.value())
+                format!(
+                    "argument_count:{}, scope_index:{}",
+                    argument_count.value(),
+                    scope_index.value()
+                )
             }
-            Instruction::Call {
-                argument_count: value,
+            Instruction::CallEvalSpread { scope_index }
+            | Instruction::PushScope { scope_index } => {
+                format!("scope_index:{}", scope_index.value())
             }
-            | Instruction::New {
-                argument_count: value,
+            Instruction::Call { argument_count }
+            | Instruction::New { argument_count }
+            | Instruction::SuperCall { argument_count } => {
+                format!("argument_count:{}", argument_count.value())
             }
-            | Instruction::SuperCall {
-                argument_count: value,
+            Instruction::DefVar { binding_index } | Instruction::GetLocator { binding_index } => {
+                format!("binding_index:{}", binding_index.value())
             }
-            | Instruction::ConcatToString { value_count: value }
-            | Instruction::GetArgument { index: value } => value.value().to_string(),
-            Instruction::PushScope { index } | Instruction::CallEvalSpread { index } => {
-                index.value().to_string()
+            Instruction::DefInitVar { src, binding_index }
+            | Instruction::PutLexicalValue { src, binding_index }
+            | Instruction::SetName { src, binding_index } => {
+                format!(
+                    "src:{}, binding_index:{}",
+                    src.value(),
+                    binding_index.value()
+                )
             }
-            Instruction::CopyDataProperties {
-                excluded_key_count: value1,
-                excluded_key_count_computed: value2,
-            } => format!("{}, {}", value1.value(), value2.value()),
-            Instruction::GeneratorDelegateNext {
-                return_method_undefined: value1,
-                throw_method_undefined: value2,
+            Instruction::GetName { dst, binding_index }
+            | Instruction::GetNameAndLocator { dst, binding_index }
+            | Instruction::GetNameOrUndefined { dst, binding_index }
+            | Instruction::DeleteName { dst, binding_index } => {
+                format!(
+                    "dst:{}, binding_index:{}",
+                    dst.value(),
+                    binding_index.value()
+                )
             }
-            | Instruction::GeneratorDelegateResume {
-                exit: value1,
-                r#return: value2,
+            Instruction::GetNameGlobal {
+                dst,
+                binding_index,
+                ic_index,
             } => {
-                format!("{value1}, {value2}")
-            }
-            Instruction::TemplateLookup { exit: value, site } => format!("{value}, {site}"),
-            Instruction::TemplateCreate { count, site } => {
-                format!("{}, {site}", count.value())
-            }
-            Instruction::GetFunction { index } => {
-                let index = index.value() as usize;
                 format!(
-                    "{index:04}: '{}' (length: {})",
-                    self.constant_function(index).name().to_std_string_escaped(),
-                    self.constant_function(index).length
+                    "dst:{}, binding_index:{}, ic_index:{}",
+                    dst.value(),
+                    binding_index.value(),
+                    ic_index.value()
                 )
             }
-            Instruction::DefVar { index }
-            | Instruction::DefInitVar { index }
-            | Instruction::PutLexicalValue { index }
-            | Instruction::GetName { index }
-            | Instruction::GetNameGlobal { index, .. }
-            | Instruction::GetLocator { index }
-            | Instruction::GetNameAndLocator { index }
-            | Instruction::GetNameOrUndefined { index }
-            | Instruction::SetName { index }
-            | Instruction::DeleteName { index } => {
+            Instruction::GeneratorDelegateNext {
+                return_method_undefined,
+                throw_method_undefined,
+                value,
+                resume_kind,
+                is_return,
+            } => {
                 format!(
-                    "{:04}: '{}'",
-                    index.value(),
-                    self.bindings[index.value() as usize]
-                        .name()
-                        .to_std_string_escaped()
+                    "return_method_undefined:{}, throw_method_undefined:{}, value:{}, resume_kind:{}, is_return:{}",
+                    return_method_undefined, throw_method_undefined, value.value(), resume_kind.value(), is_return.value()
                 )
             }
-            Instruction::DefineOwnPropertyByName { index }
-            | Instruction::DefineClassStaticMethodByName { index }
-            | Instruction::DefineClassMethodByName { index }
-            | Instruction::SetPropertyGetterByName { index }
-            | Instruction::DefineClassStaticGetterByName { index }
-            | Instruction::DefineClassGetterByName { index }
-            | Instruction::SetPropertySetterByName { index }
-            | Instruction::DefineClassStaticSetterByName { index }
-            | Instruction::DefineClassSetterByName { index }
-            | Instruction::InPrivate { index }
-            | Instruction::ThrowMutateImmutable { index }
-            | Instruction::DeletePropertyByName { index }
-            | Instruction::SetPrivateField { index }
-            | Instruction::DefinePrivateField { index }
-            | Instruction::SetPrivateMethod { index }
-            | Instruction::SetPrivateSetter { index }
-            | Instruction::SetPrivateGetter { index }
-            | Instruction::GetPrivateField { index }
-            | Instruction::PushClassFieldPrivate { index }
-            | Instruction::PushClassPrivateGetter { index }
-            | Instruction::PushClassPrivateSetter { index }
-            | Instruction::PushClassPrivateMethod { index } => {
+            Instruction::GeneratorDelegateResume {
+                r#return,
+                exit,
+                value,
+                resume_kind,
+                is_return,
+            } => {
                 format!(
-                    "{:04}: '{}'",
-                    index.value(),
-                    self.constant_string(index.value() as usize)
-                        .to_std_string_escaped(),
+                    "return:{}, exit:{}, value:{}, resume_kind:{}, is_return:{}",
+                    r#return,
+                    exit,
+                    value.value(),
+                    resume_kind.value(),
+                    is_return.value()
                 )
             }
-            Instruction::GetPropertyByName { index } | Instruction::SetPropertyByName { index } => {
-                let ic = &self.ic[index.value() as usize];
-                let slot = ic.slot();
+            Instruction::DefineOwnPropertyByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::SetPropertyGetterByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::SetPropertySetterByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::DefinePrivateField {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::SetPrivateMethod {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::SetPrivateSetter {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::SetPrivateGetter {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::PushClassPrivateGetter {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::PushClassPrivateSetter {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::DefineClassStaticMethodByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::DefineClassMethodByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::DefineClassStaticGetterByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::DefineClassGetterByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::DefineClassStaticSetterByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::DefineClassSetterByName {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::SetPrivateField {
+                object,
+                value,
+                name_index,
+            }
+            | Instruction::PushClassFieldPrivate {
+                object,
+                value,
+                name_index,
+            } => {
                 format!(
-                    "{:04}: '{}', Shape: 0x{:x}, Slot: index: {}, attributes {:?}",
-                    index.value(),
-                    ic.name.to_std_string_escaped(),
+                    "object:{}, value:{}, name_index:{}",
+                    object.value(),
+                    value.value(),
+                    name_index.value()
+                )
+            }
+            Instruction::GetPrivateField {
+                dst,
+                object,
+                name_index,
+            } => {
+                format!(
+                    "dst:{}, object:{}, name_index:{}",
+                    dst.value(),
+                    object.value(),
+                    name_index.value()
+                )
+            }
+            Instruction::PushClassPrivateMethod {
+                object,
+                proto,
+                value,
+                name_index,
+            } => {
+                format!(
+                    "object:{}, proto:{}, value:{}, name_index:{}",
+                    object.value(),
+                    proto.value(),
+                    value.value(),
+                    name_index.value()
+                )
+            }
+            Instruction::ThrowMutateImmutable { index } => {
+                format!("index:{}", index.value())
+            }
+
+            Instruction::DeletePropertyByName { object, name_index } => {
+                format!(
+                    "object:{}, name_index:{}",
+                    object.value(),
+                    name_index.value()
+                )
+            }
+            Instruction::GetPropertyByName {
+                dst,
+                receiver,
+                value,
+                ic_index,
+            } => {
+                let ic = &self.ic[ic_index.value() as usize];
+                format!(
+                    "dst:{}, receiver:{}, value:{}, ic:shape:0x{:x}",
+                    dst.value(),
+                    receiver.value(),
+                    value.value(),
                     ic.shape.borrow().to_addr_usize(),
-                    slot.index,
-                    slot.attributes,
                 )
             }
-            Instruction::PushPrivateEnvironment { name_indices } => {
-                format!("{name_indices:?}")
+            Instruction::SetPropertyByName {
+                value,
+                receiver,
+                object,
+                ic_index,
+            } => {
+                let ic = &self.ic[ic_index.value() as usize];
+                format!(
+                    "object:{}, receiver:{}, value:{}, ic:shape:0x{:x}",
+                    object.value(),
+                    receiver.value(),
+                    value.value(),
+                    ic.shape.borrow().to_addr_usize(),
+                )
+            }
+            Instruction::GetPropertyByValue {
+                dst,
+                key,
+                receiver,
+                object,
+            }
+            | Instruction::GetPropertyByValuePush {
+                dst,
+                key,
+                receiver,
+                object,
+            } => {
+                format!(
+                    "dst:{}, object:{}, receiver:{}, key:{}",
+                    dst.value(),
+                    object.value(),
+                    receiver.value(),
+                    key.value(),
+                )
+            }
+            Instruction::SetPropertyByValue {
+                value,
+                key,
+                receiver,
+                object,
+            } => {
+                format!(
+                    "object:{}, receiver:{}, key:{}, value:{}",
+                    object.value(),
+                    receiver.value(),
+                    key.value(),
+                    value.value(),
+                )
+            }
+            Instruction::DefineOwnPropertyByValue { value, key, object }
+            | Instruction::DefineClassStaticMethodByValue { value, key, object }
+            | Instruction::DefineClassMethodByValue { value, key, object }
+            | Instruction::SetPropertyGetterByValue { value, key, object }
+            | Instruction::DefineClassStaticGetterByValue { value, key, object }
+            | Instruction::DefineClassGetterByValue { value, key, object }
+            | Instruction::SetPropertySetterByValue { value, key, object }
+            | Instruction::DefineClassStaticSetterByValue { value, key, object }
+            | Instruction::DefineClassSetterByValue { value, key, object } => {
+                format!(
+                    "object:{}, key:{}, value:{}",
+                    object.value(),
+                    key.value(),
+                    value.value()
+                )
+            }
+            Instruction::DeletePropertyByValue { key, object } => {
+                format!("object:{}, key:{}", object.value(), key.value())
+            }
+            Instruction::CreateIteratorResult { value, done } => {
+                format!("value:{}, done:{}", value.value(), done)
+            }
+            Instruction::PushClassPrototype {
+                dst,
+                class,
+                superclass,
+            } => {
+                format!(
+                    "dst:{}, class:{}, superclass:{}",
+                    dst.value(),
+                    class.value(),
+                    superclass.value(),
+                )
+            }
+            Instruction::SetClassPrototype {
+                dst,
+                prototype,
+                class,
+            } => {
+                format!(
+                    "dst:{}, prototype:{}, class:{}",
+                    dst.value(),
+                    prototype.value(),
+                    class.value()
+                )
+            }
+            Instruction::SetHomeObject { function, home } => {
+                format!("function:{}, home:{}", function.value(), home.value())
+            }
+            Instruction::SetPrototype { object, prototype } => {
+                format!("object:{}, prototype:{}", object.value(), prototype.value())
+            }
+            Instruction::PushValueToArray { value, array } => {
+                format!("value:{}, array:{}", value.value(), array.value())
+            }
+            Instruction::PushElisionToArray { array }
+            | Instruction::PushIteratorToArray { array } => {
+                format!("array:{}", array.value())
+            }
+            Instruction::TypeOf { value }
+            | Instruction::LogicalNot { value }
+            | Instruction::Pos { value }
+            | Instruction::Neg { value }
+            | Instruction::IsObject { value }
+            | Instruction::ImportCall { value }
+            | Instruction::BindThisValue { value } => {
+                format!("value:{}", value.value())
+            }
+            Instruction::PushClassField {
+                object,
+                name_index,
+                value,
+                is_anonymous_function,
+            } => {
+                format!(
+                    "object:{}, value:{}, name_index:{}, is_anonymous_function:{}",
+                    object.value(),
+                    value.value(),
+                    name_index.value(),
+                    is_anonymous_function
+                )
+            }
+            Instruction::MaybeException {
+                has_exception,
+                exception,
+            } => {
+                format!(
+                    "has_exception:{}, exception:{}",
+                    has_exception.value(),
+                    exception.value()
+                )
+            }
+            Instruction::SetAccumulator { src }
+            | Instruction::PushFromRegister { src }
+            | Instruction::Throw { src }
+            | Instruction::SetNameByLocator { src }
+            | Instruction::PushObjectEnvironment { src }
+            | Instruction::CreateForInIterator { src }
+            | Instruction::GetIterator { src }
+            | Instruction::GetAsyncIterator { src }
+            | Instruction::ValueNotNullOrUndefined { src }
+            | Instruction::GeneratorYield { src }
+            | Instruction::AsyncGeneratorYield { src }
+            | Instruction::Await { src } => {
+                format!("src:{}", src.value())
+            }
+            Instruction::IteratorDone { dst }
+            | Instruction::IteratorValue { dst }
+            | Instruction::IteratorResult { dst }
+            | Instruction::IteratorToArray { dst }
+            | Instruction::IteratorStackEmpty { dst }
+            | Instruction::PushEmptyObject { dst } => {
+                format!("dst:{}", dst.value())
+            }
+            Instruction::IteratorFinishAsyncNext { resume_kind, value }
+            | Instruction::GeneratorNext { resume_kind, value } => {
+                format!(
+                    "resume_kind:{}, value:{}",
+                    resume_kind.value(),
+                    value.value()
+                )
+            }
+            Instruction::IteratorReturn { value, called } => {
+                format!("value:{}, called:{}", value.value(), called.value())
+            }
+            Instruction::JumpIfNotResumeKind {
+                address,
+                resume_kind,
+                src,
+            } => {
+                format!(
+                    "address:{}, resume_kind:{}, src:{}",
+                    address,
+                    *resume_kind as u8,
+                    src.value()
+                )
+            }
+            Instruction::CreateGlobalFunctionBinding {
+                src,
+                configurable,
+                name_index,
+            } => {
+                format!(
+                    "src:{}, configurable:{}, name_index:{}",
+                    src.value(),
+                    configurable,
+                    name_index.value()
+                )
+            }
+            Instruction::CreateGlobalVarBinding {
+                configurable,
+                name_index,
+            } => {
+                format!(
+                    "configurable:{}, name_index:{}",
+                    configurable,
+                    name_index.value()
+                )
+            }
+            Instruction::PushPrivateEnvironment {
+                class,
+                name_indices,
+            } => {
+                format!("class:{}, names:{name_indices:?}", class.value())
+            }
+            Instruction::TemplateLookup { address, site, dst } => {
+                format!("address:{}, site:{}, dst:{}", address, site, dst.value())
             }
             Instruction::JumpTable { default, addresses } => {
                 let mut operands = format!("#{}: Default: {default:4}", addresses.len());
@@ -537,107 +976,26 @@ impl CodeBlock {
                 }
                 operands
             }
-            Instruction::JumpIfNotResumeKind { exit, resume_kind } => {
-                format!("ResumeKind: {resume_kind:?}, exit: {exit}")
+            Instruction::ConcatToString { dst, values } => {
+                format!("dst:{}, values:{values:?}", dst.value())
             }
-            Instruction::CreateIteratorResult { done } => {
-                format!("done: {done}")
-            }
-            Instruction::CreateGlobalFunctionBinding {
-                index,
-                configurable,
-            }
-            | Instruction::CreateGlobalVarBinding {
-                index,
-                configurable,
+            Instruction::CopyDataProperties {
+                object,
+                source,
+                excluded_keys,
             } => {
-                let name = self
-                    .constant_string(index.value() as usize)
-                    .to_std_string_escaped();
-                format!("name: {name}, configurable: {configurable}")
+                format!(
+                    "object:{}, source:{}, excluded_keys:{excluded_keys:?}",
+                    object.value(),
+                    source.value()
+                )
             }
-            Instruction::PushClassField {
-                is_anonymous_function,
-            } => {
-                format!("is_anonymous_function: {is_anonymous_function}")
-            }
-            Instruction::PopIntoRegister { dst } | Instruction::PopIntoLocal { dst } => {
-                format!("dst:reg{}", dst.value())
-            }
-            Instruction::PushFromRegister { src } | Instruction::PushFromLocal { src } => {
-                format!("src:reg{}", src.value())
+            Instruction::TemplateCreate { site, dst, values } => {
+                format!("site:{}, dst:{}, values:{values:?}", site, dst.value())
             }
             Instruction::Pop
-            | Instruction::Dup
-            | Instruction::Swap
-            | Instruction::PushZero
-            | Instruction::PushOne
-            | Instruction::PushNaN
-            | Instruction::PushPositiveInfinity
-            | Instruction::PushNegativeInfinity
-            | Instruction::PushNull
-            | Instruction::PushTrue
-            | Instruction::PushFalse
-            | Instruction::PushUndefined
-            | Instruction::PushEmptyObject
-            | Instruction::PushClassPrototype
-            | Instruction::SetClassPrototype
-            | Instruction::SetHomeObject
-            | Instruction::Add
-            | Instruction::Sub
-            | Instruction::Div
-            | Instruction::Mul
-            | Instruction::Mod
-            | Instruction::Pow
-            | Instruction::ShiftRight
-            | Instruction::ShiftLeft
-            | Instruction::UnsignedShiftRight
-            | Instruction::BitOr
-            | Instruction::BitAnd
-            | Instruction::BitXor
-            | Instruction::BitNot
-            | Instruction::In
-            | Instruction::Eq
-            | Instruction::StrictEq
-            | Instruction::NotEq
-            | Instruction::StrictNotEq
-            | Instruction::GreaterThan
-            | Instruction::GreaterThanOrEq
-            | Instruction::LessThan
-            | Instruction::LessThanOrEq
-            | Instruction::InstanceOf
-            | Instruction::TypeOf
-            | Instruction::Void
-            | Instruction::LogicalNot
-            | Instruction::Pos
-            | Instruction::Neg
-            | Instruction::Inc
-            | Instruction::IncPost
-            | Instruction::Dec
-            | Instruction::DecPost
-            | Instruction::GetPropertyByValue
-            | Instruction::GetPropertyByValuePush
-            | Instruction::SetPropertyByValue
-            | Instruction::DefineOwnPropertyByValue
-            | Instruction::DefineClassStaticMethodByValue
-            | Instruction::DefineClassMethodByValue
-            | Instruction::SetPropertyGetterByValue
-            | Instruction::DefineClassStaticGetterByValue
-            | Instruction::DefineClassGetterByValue
-            | Instruction::SetPropertySetterByValue
-            | Instruction::DefineClassStaticSetterByValue
-            | Instruction::DefineClassSetterByValue
-            | Instruction::DeletePropertyByValue
             | Instruction::DeleteSuperThrow
-            | Instruction::ToPropertyKey
-            | Instruction::ToBoolean
-            | Instruction::Throw
             | Instruction::ReThrow
-            | Instruction::Exception
-            | Instruction::MaybeException
-            | Instruction::This
-            | Instruction::ThisForObjectEnvironmentName { .. }
-            | Instruction::Super
             | Instruction::CheckReturn
             | Instruction::Return
             | Instruction::AsyncGeneratorClose
@@ -645,50 +1003,12 @@ impl CodeBlock {
             | Instruction::CompletePromiseCapability
             | Instruction::PopEnvironment
             | Instruction::IncrementLoopIteration
-            | Instruction::CreateForInIterator
-            | Instruction::GetIterator
-            | Instruction::GetAsyncIterator
             | Instruction::IteratorNext
-            | Instruction::IteratorNextWithoutPop
-            | Instruction::IteratorFinishAsyncNext
-            | Instruction::IteratorValue
-            | Instruction::IteratorValueWithoutPop
-            | Instruction::IteratorResult
-            | Instruction::IteratorDone
-            | Instruction::IteratorToArray
-            | Instruction::IteratorReturn
-            | Instruction::IteratorStackEmpty
-            | Instruction::RequireObjectCoercible
-            | Instruction::ValueNotNullOrUndefined
-            | Instruction::RestParameterInit
-            | Instruction::PushValueToArray
-            | Instruction::PushElisionToArray
-            | Instruction::PushIteratorToArray
-            | Instruction::PushNewArray
-            | Instruction::GeneratorYield
-            | Instruction::AsyncGeneratorYield
-            | Instruction::GeneratorNext
             | Instruction::SuperCallDerived
-            | Instruction::Await
-            | Instruction::NewTarget
-            | Instruction::ImportMeta
-            | Instruction::SuperCallPrepare
             | Instruction::CallSpread
             | Instruction::NewSpread
             | Instruction::SuperCallSpread
-            | Instruction::SetPrototype
-            | Instruction::PushObjectEnvironment
-            | Instruction::IsObject
-            | Instruction::SetNameByLocator
-            | Instruction::PopPrivateEnvironment
-            | Instruction::ImportCall
-            | Instruction::GetReturnValue
-            | Instruction::SetReturnValue
-            | Instruction::BindThisValue
-            | Instruction::CreateMappedArgumentsObject
-            | Instruction::CreateUnmappedArgumentsObject
-            | Instruction::Nop => String::new(),
-
+            | Instruction::PopPrivateEnvironment => String::new(),
             Instruction::U16Operands
             | Instruction::U32Operands
             | Instruction::Reserved1
@@ -738,7 +1058,19 @@ impl CodeBlock {
             | Instruction::Reserved45
             | Instruction::Reserved46
             | Instruction::Reserved47
-            | Instruction::Reserved48 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved48
+            | Instruction::Reserved49
+            | Instruction::Reserved50
+            | Instruction::Reserved51
+            | Instruction::Reserved52
+            | Instruction::Reserved53
+            | Instruction::Reserved54
+            | Instruction::Reserved55
+            | Instruction::Reserved56
+            | Instruction::Reserved57
+            | Instruction::Reserved58
+            | Instruction::Reserved59
+            | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
@@ -842,12 +1174,12 @@ impl Display for CodeBlock {
             f.write_str("    <empty>\n")?;
         } else {
             for (i, handler) in self.handlers.iter().enumerate() {
-                writeln!(f,
-                    "    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Stack: {:02}, Environment: {:02}",
+                writeln!(
+                    f,
+                    "    {i:04}: Range: [{:04}, {:04}): Handler: {:04}, Environment: {:02}",
                     handler.start,
                     handler.end,
                     handler.handler(),
-                    handler.stack_count,
                     handler.environment_count,
                 )?;
             }

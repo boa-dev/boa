@@ -9,7 +9,7 @@ use crate::{
     js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
-    Context, JsNativeError, JsResult, JsString, JsValue, Module,
+    Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
 use super::{BindingName, ResolveExportError, ResolvedBinding};
@@ -58,7 +58,8 @@ pub struct SyntheticModuleInitializer {
 
 impl std::fmt::Debug for SyntheticModuleInitializer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ModuleInitializer").finish_non_exhaustive()
+        f.debug_struct("SyntheticModuleInitializer")
+            .finish_non_exhaustive()
     }
 }
 
@@ -295,6 +296,8 @@ impl SyntheticModule {
             false,
             context.interner_mut(),
             false,
+            // A synthetic module does not contain `SourceText`
+            SpannedSourceText::new_empty(),
         );
 
         // 4. For each String exportName in module.[[ExportNames]], do

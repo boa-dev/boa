@@ -12,8 +12,8 @@ use crate::{
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinitionKind, PropertyName},
     scope::FunctionScopes,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
+    LinearPosition, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -266,7 +266,7 @@ impl VisitWith for ObjectLiteral {
         V: Visitor<'a>,
     {
         for pd in &*self.properties {
-            try_break!(visitor.visit_property_definition(pd));
+            visitor.visit_property_definition(pd)?;
         }
         ControlFlow::Continue(())
     }
@@ -276,7 +276,7 @@ impl VisitWith for ObjectLiteral {
         V: VisitorMut<'a>,
     {
         for pd in &mut *self.properties {
-            try_break!(visitor.visit_property_definition_mut(pd));
+            visitor.visit_property_definition_mut(pd)?;
         }
         ControlFlow::Continue(())
     }
@@ -359,13 +359,13 @@ impl VisitWith for PropertyDefinition {
         match self {
             Self::IdentifierReference(id) => visitor.visit_identifier(id),
             Self::Property(pn, expr) => {
-                try_break!(visitor.visit_property_name(pn));
+                visitor.visit_property_name(pn)?;
                 visitor.visit_expression(expr)
             }
             Self::MethodDefinition(m) => visitor.visit_object_method_definition(m),
             Self::SpreadObject(expr) => visitor.visit_expression(expr),
             Self::CoverInitializedName(id, expr) => {
-                try_break!(visitor.visit_identifier(id));
+                visitor.visit_identifier(id)?;
                 visitor.visit_expression(expr)
             }
         }
@@ -378,13 +378,13 @@ impl VisitWith for PropertyDefinition {
         match self {
             Self::IdentifierReference(id) => visitor.visit_identifier_mut(id),
             Self::Property(pn, expr) => {
-                try_break!(visitor.visit_property_name_mut(pn));
+                visitor.visit_property_name_mut(pn)?;
                 visitor.visit_expression_mut(expr)
             }
             Self::MethodDefinition(m) => visitor.visit_object_method_definition_mut(m),
             Self::SpreadObject(expr) => visitor.visit_expression_mut(expr),
             Self::CoverInitializedName(id, expr) => {
-                try_break!(visitor.visit_identifier_mut(id));
+                visitor.visit_identifier_mut(id)?;
                 visitor.visit_expression_mut(expr)
             }
         }
@@ -411,6 +411,7 @@ pub struct ObjectMethodDefinition {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl ObjectMethodDefinition {
@@ -422,9 +423,12 @@ impl ObjectMethodDefinition {
         parameters: FormalParameterList,
         body: FunctionBody,
         kind: MethodDefinitionKind,
+        start_linear_pos: LinearPosition,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
+        let linear_span = LinearSpan::new(start_linear_pos, body.linear_pos_end()).into();
+
         Self {
             name,
             parameters,
@@ -432,6 +436,7 @@ impl ObjectMethodDefinition {
             contains_direct_eval,
             kind,
             scopes: FunctionScopes::default(),
+            linear_span,
         }
     }
 
@@ -470,6 +475,13 @@ impl ObjectMethodDefinition {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the object method definition contains a direct call to `eval`.
     #[inline]
     #[must_use]
@@ -501,8 +513,8 @@ impl VisitWith for ObjectMethodDefinition {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_property_name(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_property_name(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -510,8 +522,8 @@ impl VisitWith for ObjectMethodDefinition {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_property_name_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_property_name_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

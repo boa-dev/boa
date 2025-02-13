@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsResult,
 };
 
@@ -15,7 +15,7 @@ impl Operation for Jump {
     const INSTRUCTION: &'static str = "INST - Jump";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
         context.vm.frame_mut().pc = address;
         Ok(CompletionType::Normal)
@@ -29,17 +29,43 @@ impl Operation for Jump {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfTrue;
 
+impl JumpIfTrue {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        value: u32,
+        address: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let value = registers.get(value);
+        if value.to_boolean() {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for JumpIfTrue {
     const NAME: &'static str = "JumpIfTrue";
     const INSTRUCTION: &'static str = "INST - JumpIfTrue";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
-        if context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address;
-        }
-        Ok(CompletionType::Normal)
+        let value = context.vm.read::<u8>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u16>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u32>();
+        Self::operation(value, address, registers, context)
     }
 }
 
@@ -50,17 +76,43 @@ impl Operation for JumpIfTrue {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfFalse;
 
+impl JumpIfFalse {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        value: u32,
+        address: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let value = registers.get(value);
+        if !value.to_boolean() {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for JumpIfFalse {
     const NAME: &'static str = "JumpIfFalse";
     const INSTRUCTION: &'static str = "INST - JumpIfFalse";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
-        if !context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address;
-        }
-        Ok(CompletionType::Normal)
+        let value = context.vm.read::<u8>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u16>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u32>();
+        Self::operation(value, address, registers, context)
     }
 }
 
@@ -71,19 +123,43 @@ impl Operation for JumpIfFalse {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfNotUndefined;
 
+impl JumpIfNotUndefined {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        value: u32,
+        address: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let value = registers.get(value);
+        if !value.is_undefined() {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for JumpIfNotUndefined {
     const NAME: &'static str = "JumpIfNotUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNotUndefined";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        if !value.is_undefined() {
-            context.vm.frame_mut().pc = address;
-            context.vm.push(value);
-        }
-        Ok(CompletionType::Normal)
+        let value = context.vm.read::<u8>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u16>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u32>();
+        Self::operation(value, address, registers, context)
     }
 }
 
@@ -94,20 +170,43 @@ impl Operation for JumpIfNotUndefined {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfNullOrUndefined;
 
+impl JumpIfNullOrUndefined {
+    #[allow(clippy::unnecessary_wraps)]
+    fn operation(
+        value: u32,
+        address: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let value = registers.get(value);
+        if value.is_null_or_undefined() {
+            context.vm.frame_mut().pc = address;
+        }
+        Ok(CompletionType::Normal)
+    }
+}
+
 impl Operation for JumpIfNullOrUndefined {
     const NAME: &'static str = "JumpIfNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
     const COST: u8 = 1;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let address = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        if value.is_null_or_undefined() {
-            context.vm.frame_mut().pc = address;
-        } else {
-            context.vm.push(value);
-        }
-        Ok(CompletionType::Normal)
+        let value = context.vm.read::<u8>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u16>().into();
+        Self::operation(value, address, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.read::<u32>();
+        Self::operation(value, address, registers, context)
     }
 }
 
@@ -123,7 +222,7 @@ impl Operation for JumpTable {
     const INSTRUCTION: &'static str = "INST - JumpTable";
     const COST: u8 = 5;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         let default = context.vm.read::<u32>();
         let count = context.vm.read::<u32>();
 

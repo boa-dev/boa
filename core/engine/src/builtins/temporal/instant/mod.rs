@@ -1,6 +1,7 @@
 //! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
 
-use super::options::get_difference_settings;
+use super::options::{get_difference_settings, get_digits_option};
+use super::to_temporal_timezone_identifier;
 use crate::value::JsVariant;
 use crate::{
     builtins::{
@@ -25,6 +26,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
+use temporal_rs::options::{TemporalUnit, ToStringRoundingOptions};
 use temporal_rs::{
     options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode},
     Instant as InnerInstant,
@@ -91,6 +93,8 @@ impl IntrinsicObject for Instant {
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .method(
                 Self::to_zoned_date_time_iso,
@@ -164,7 +168,7 @@ impl Instant {
         // 4. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
         // 5. Return ! CreateTemporalInstant(epochNanoseconds).
         create_temporal_instant(
-            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i128().unwrap_or(i128::MAX))?,
+            InnerInstant::from_epoch_milliseconds(epoch_millis.to_i64().unwrap_or(i64::MAX))?,
             None,
             context,
         )
@@ -221,9 +225,9 @@ impl Instant {
                 JsNativeError::typ().with_message("the this object must be an instant object.")
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
-        // 4. Let ms be floor(ℝ(ns) / 106).
+        // 4. Let ms be floor(ℝ(ns) / 10^6).
         // 5. Return 𝔽(ms).
-        Ok(JsBigInt::from(instant.inner.epoch_milliseconds()).into())
+        Ok(instant.inner.epoch_milliseconds().into())
     }
 
     /// 8.3.6 get Temporal.Instant.prototype.epochNanoseconds
@@ -477,6 +481,60 @@ impl Instant {
             .into())
     }
 
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("the this object must be a Temporal.Instant object.")
+            })?;
+
+        let options = get_options_object(args.get_or_undefined(0))?;
+
+        let precision = get_digits_option(&options, context)?;
+        let rounding_mode =
+            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit =
+            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+        // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
+        let timezone = options
+            .get(js_string!("timeZone"), context)?
+            .map(|v| to_temporal_timezone_identifier(v, context))
+            .transpose()?;
+
+        let options = ToStringRoundingOptions {
+            precision,
+            smallest_unit,
+            rounding_mode,
+        };
+
+        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
+            timezone.as_ref(),
+            options,
+            context.tz_provider(),
+        )?;
+
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("the this object must be a Temporal.Instant object.")
+            })?;
+
+        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
+            None,
+            ToStringRoundingOptions::default(),
+            context.tz_provider(),
+        )?;
+        Ok(JsString::from(ixdtf).into())
+    }
+
     pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
@@ -531,10 +589,8 @@ fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerI
         // d. Set item to ? ToPrimitive(item, string).
         if let Some(instant) = obj.downcast_ref::<Instant>() {
             return Ok(instant.inner);
-        } else if let Some(_zdt) = obj.downcast_ref::<ZonedDateTime>() {
-            return Err(JsNativeError::error()
-                .with_message("Not yet implemented.")
-                .into());
+        } else if let Some(zdt) = obj.downcast_ref::<ZonedDateTime>() {
+            return Ok(zdt.inner.to_instant());
         }
         item.to_primitive(context, PreferredType::String)?
     } else {

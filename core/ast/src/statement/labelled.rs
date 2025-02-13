@@ -1,6 +1,5 @@
 use crate::{
     function::FunctionDeclaration,
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
     Statement,
 };
@@ -141,7 +140,7 @@ impl VisitWith for Labelled {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_labelled_item(&self.item));
+        visitor.visit_labelled_item(&self.item)?;
         visitor.visit_sym(&self.label)
     }
 
@@ -149,7 +148,7 @@ impl VisitWith for Labelled {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_labelled_item_mut(&mut self.item));
+        visitor.visit_labelled_item_mut(&mut self.item)?;
         visitor.visit_sym_mut(&mut self.label)
     }
 }

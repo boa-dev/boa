@@ -20,8 +20,9 @@ use crate::{
     bytecompiler::{global_declaration_instantiation_context, ByteCompiler},
     js_string,
     realm::Realm,
-    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, HostDefined, JsResult, JsString, JsValue, Module,
+    spanned_source_text::SourceText,
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock, Registers},
+    Context, HostDefined, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
 /// ECMAScript's [**Script Record**][spec].
@@ -47,6 +48,7 @@ struct Inner {
     realm: Realm,
     #[unsafe_ignore_trace]
     source: boa_ast::Script,
+    source_text: SourceText,
     codeblock: GcRefCell<Option<Gc<CodeBlock>>>,
     loaded_modules: GcRefCell<FxHashMap<JsString, Module>>,
     host_defined: HostDefined,
@@ -91,15 +93,18 @@ impl Script {
             parser.set_strict();
         }
         let scope = context.realm().scope().clone();
-        let mut code = parser.parse_script(&scope, context.interner_mut())?;
+        let (mut code, source) = parser.parse_script_with_source(&scope, context.interner_mut())?;
         if !context.optimizer_options().is_empty() {
             context.optimize_statement_list(code.statements_mut());
         }
+
+        let source_text = SourceText::new(source);
 
         Ok(Self {
             inner: Gc::new(Inner {
                 realm: realm.unwrap_or_else(|| context.realm().clone()),
                 source: code,
+                source_text,
                 codeblock: GcRefCell::default(),
                 loaded_modules: GcRefCell::default(),
                 host_defined: HostDefined::default(),
@@ -129,6 +134,7 @@ impl Script {
             context,
         )?;
 
+        let spanned_source_text = SpannedSourceText::new_source_only(self.get_source());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             self.inner.source.strict(),
@@ -139,6 +145,7 @@ impl Script {
             false,
             context.interner_mut(),
             false,
+            spanned_source_text,
         );
 
         #[cfg(feature = "annex-b")]
@@ -160,14 +167,15 @@ impl Script {
     /// Evaluates this script and returns its result.
     ///
     /// Note that this won't run any scheduled promise jobs; you need to call [`Context::run_jobs`]
-    /// on the context or [`JobQueue::run_jobs`] on the provided queue to run them.
+    /// on the context or [`JobExecutor::run_jobs`] on the provided queue to run them.
     ///
-    /// [`JobQueue::run_jobs`]: crate::job::JobQueue::run_jobs
+    /// [`JobExecutor::run_jobs`]: crate::job::JobExecutor::run_jobs
     pub fn evaluate(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
         self.prepare_run(context)?;
-        let record = context.run();
+        let register_count = self.codeblock(context)?.register_count;
+        let record = context.run(&mut Registers::new(register_count as usize));
 
         context.vm.pop_frame();
         context.clear_kept_objects();
@@ -203,7 +211,10 @@ impl Script {
 
         self.prepare_run(context)?;
 
-        let record = context.run_async_with_budget(budget).await;
+        let register_count = self.codeblock(context)?.register_count;
+        let record = context
+            .run_async_with_budget(budget, &mut Registers::new(register_count as usize))
+            .await;
 
         context.vm.pop_frame();
         context.clear_kept_objects();
@@ -237,5 +248,9 @@ impl Script {
 
     pub(super) fn path(&self) -> Option<&Path> {
         self.inner.path.as_deref()
+    }
+
+    pub(super) fn get_source(&self) -> SourceText {
+        self.inner.source_text.clone()
     }
 }

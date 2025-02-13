@@ -31,8 +31,8 @@ use crate::{
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{CallFrame, CallFrameFlags},
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
+    vm::{CallFrame, CallFrameFlags, Registers},
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
@@ -112,9 +112,13 @@ impl Json {
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
+        // In json we don't need the source: there no way to pass an object that needs a source text
+        // But if it's incorrect, just call `parser.parse_script_with_source` here
         let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
             let in_with = context.vm.environments.has_object_environment();
+            // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
+            let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
                 js_string!("<main>"),
                 script.strict(),
@@ -125,6 +129,7 @@ impl Json {
                 false,
                 context.interner_mut(),
                 in_with,
+                spanned_source_text,
             );
             compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())
@@ -142,7 +147,8 @@ impl Json {
         );
 
         context.realm().resize_global_env();
-        let record = context.run();
+        let register_count = context.vm.frame().code_block().register_count;
+        let record = context.run(&mut Registers::new(register_count as usize));
         context.vm.pop_frame();
 
         let unfiltered = record.consume()?;

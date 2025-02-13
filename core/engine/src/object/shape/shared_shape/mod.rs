@@ -166,10 +166,7 @@ impl SharedShape {
     /// Check if the shape has the given prototype.
     #[must_use]
     pub fn has_prototype(&self, prototype: &JsObject) -> bool {
-        self.inner
-            .prototype
-            .as_ref()
-            .map_or(false, |this| this == prototype)
+        self.inner.prototype.as_ref() == Some(prototype)
     }
 
     /// Create a new [`SharedShape`].

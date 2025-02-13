@@ -42,11 +42,9 @@ impl JsDate {
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         let prototype = context.intrinsics().constructors().date().prototype();
-        let inner = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            Date::utc_now(context.host_hooks()),
-        );
+        let now = Date::utc_now(context);
+        let inner =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, now);
 
         Self { inner }
     }

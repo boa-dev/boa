@@ -10,7 +10,7 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType, GeneratorResumeKind},
+    vm::{opcode::Operation, CompletionType, GeneratorResumeKind, Registers},
     Context, JsArgs, JsResult, JsValue,
 };
 
@@ -21,32 +21,32 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Await;
 
-impl Operation for Await {
-    const NAME: &'static str = "Await";
-    const INSTRUCTION: &'static str = "INST - Await";
-    const COST: u8 = 5;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
+impl Await {
+    fn operation(
+        value: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let value = registers.get(value);
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
         let promise = Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
-            value,
+            value.clone(),
             context,
         )?;
 
         let return_value = context
             .vm
             .frame()
-            .promise_capability(&context.vm.stack)
+            .promise_capability(registers)
             .as_ref()
             .map(PromiseCapability::promise)
             .cloned()
             .map(JsValue::from)
             .unwrap_or_default();
 
-        let gen = GeneratorContext::from_current(context);
+        let gen = GeneratorContext::from_current(context, registers.clone_current_frame(), None);
 
         let captures = Gc::new(Cell::new(Some(gen)));
 
@@ -142,6 +142,27 @@ impl Operation for Await {
     }
 }
 
+impl Operation for Await {
+    const NAME: &'static str = "Await";
+    const INSTRUCTION: &'static str = "INST - Await";
+    const COST: u8 = 5;
+
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u8>().into();
+        Self::operation(value, registers, context)
+    }
+
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u16>().into();
+        Self::operation(value, registers, context)
+    }
+
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let value = context.vm.read::<u32>();
+        Self::operation(value, registers, context)
+    }
+}
+
 /// `CreatePromiseCapability` implements the Opcode Operation for `Opcode::CreatePromiseCapability`
 ///
 /// Operation:
@@ -154,13 +175,8 @@ impl Operation for CreatePromiseCapability {
     const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        if context
-            .vm
-            .frame()
-            .promise_capability(&context.vm.stack)
-            .is_some()
-        {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        if context.vm.frame().promise_capability(registers).is_some() {
             return Ok(CompletionType::Normal);
         }
 
@@ -173,7 +189,7 @@ impl Operation for CreatePromiseCapability {
         context
             .vm
             .frame
-            .set_promise_capability(&mut context.vm.stack, Some(&promise_capability));
+            .set_promise_capability(registers, Some(&promise_capability));
         Ok(CompletionType::Normal)
     }
 }
@@ -190,11 +206,10 @@ impl Operation for CompletePromiseCapability {
     const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
     const COST: u8 = 8;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) = context.vm.frame().promise_capability(&context.vm.stack)
-        else {
+        let Some(promise_capability) = context.vm.frame().promise_capability(registers) else {
             return if context.vm.pending_exception.is_some() {
                 Ok(CompletionType::Throw)
             } else {

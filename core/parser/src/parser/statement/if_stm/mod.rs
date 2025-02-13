@@ -83,12 +83,15 @@ where
                 // Source text matched by this production is processed as if each matching
                 // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
                 // StatementListItem of a BlockStatement occupying that position in the source text.
-                Block::from(vec![StatementListItem::Declaration(
-                    Declaration::FunctionDeclaration(
-                        FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                            .parse(cursor, interner)?,
-                    ),
-                )])
+                Block::from((
+                    vec![StatementListItem::Declaration(
+                        Declaration::FunctionDeclaration(
+                            FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                                .parse(cursor, interner)?,
+                        ),
+                    )],
+                    cursor.linear_pos(),
+                ))
                 .into()
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -127,16 +130,19 @@ where
                             // Source text matched by this production is processed as if each matching
                             // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
                             // StatementListItem of a BlockStatement occupying that position in the source text.
-                            Block::from(vec![StatementListItem::Declaration(
-                                Declaration::FunctionDeclaration(
-                                    FunctionDeclaration::new(
-                                        self.allow_yield,
-                                        self.allow_await,
-                                        false,
-                                    )
-                                    .parse(cursor, interner)?,
-                                ),
-                            )])
+                            Block::from((
+                                vec![StatementListItem::Declaration(
+                                    Declaration::FunctionDeclaration(
+                                        FunctionDeclaration::new(
+                                            self.allow_yield,
+                                            self.allow_await,
+                                            false,
+                                        )
+                                        .parse(cursor, interner)?,
+                                    ),
+                                )],
+                                cursor.linear_pos(),
+                            ))
                             .into()
                         }
                         _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)

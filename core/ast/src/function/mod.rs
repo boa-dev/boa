@@ -48,9 +48,8 @@ pub use ordinary_function::{FunctionDeclaration, FunctionExpression};
 pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
 use crate::{
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    StatementList, StatementListItem,
+    LinearPosition, StatementList, StatementListItem,
 };
 
 /// A Function body.
@@ -72,12 +71,12 @@ pub struct FunctionBody {
 impl FunctionBody {
     /// Creates a new `FunctionBody` AST node.
     #[must_use]
-    pub fn new<S>(statements: S, strict: bool) -> Self
+    pub fn new<S>(statements: S, linear_pos_end: LinearPosition, strict: bool) -> Self
     where
         S: Into<Box<[StatementListItem]>>,
     {
         Self {
-            statements: StatementList::new(statements.into(), strict),
+            statements: StatementList::new(statements.into(), linear_pos_end, strict),
         }
     }
 
@@ -101,6 +100,13 @@ impl FunctionBody {
     pub const fn strict(&self) -> bool {
         self.statements.strict()
     }
+
+    /// Get end of linear position in source code.
+    #[inline]
+    #[must_use]
+    pub const fn linear_pos_end(&self) -> LinearPosition {
+        self.statements.linear_pos_end()
+    }
 }
 
 impl From<StatementList> for FunctionBody {
@@ -121,7 +127,7 @@ impl VisitWith for FunctionBody {
         V: Visitor<'a>,
     {
         for statement in &*self.statements {
-            try_break!(visitor.visit_statement_list_item(statement));
+            visitor.visit_statement_list_item(statement)?;
         }
         ControlFlow::Continue(())
     }
@@ -131,7 +137,7 @@ impl VisitWith for FunctionBody {
         V: VisitorMut<'a>,
     {
         for statement in &mut *self.statements.statements {
-            try_break!(visitor.visit_statement_list_item_mut(statement));
+            visitor.visit_statement_list_item_mut(statement)?;
         }
         ControlFlow::Continue(())
     }

@@ -34,7 +34,7 @@ use crate::{
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, JsArgs, JsResult, JsStr, JsString, JsValue,
+    Context, JsArgs, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -637,8 +637,10 @@ impl BuiltInFunctionObject {
             body
         };
 
+        // TODO: create SourceText : "anonymous(" parameters \n ") {" body_parse "}"
+
         let mut function =
-            boa_ast::function::FunctionExpression::new(None, parameters, body, false);
+            boa_ast::function::FunctionExpression::new(None, parameters, body, None, false);
         if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
             return Err(JsNativeError::syntax()
                 .with_message("failed to analyze function scope")
@@ -646,7 +648,9 @@ impl BuiltInFunctionObject {
         }
 
         let in_with = context.vm.environments.has_object_environment();
-        let code = FunctionCompiler::new()
+        let spanned_source_text = SpannedSourceText::new_empty();
+
+        let code = FunctionCompiler::new(spanned_source_text)
             .name(js_string!("anonymous"))
             .generator(generator)
             .r#async(r#async)
@@ -869,6 +873,9 @@ impl BuiltInFunctionObject {
             .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
 
         let code = function.codeblock();
+        if let Some(code_points) = code.source_text_spanned.to_code_points() {
+            return Ok(JsString::from(code_points).into());
+        }
 
         Ok(js_string!(
             js_str!("function "),
@@ -988,6 +995,7 @@ pub(crate) fn function_call(
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
+    let register_count = code.register_count as usize;
 
     drop(function);
 
@@ -1036,7 +1044,7 @@ pub(crate) fn function_call(
         );
     }
 
-    Ok(CallValue::Ready)
+    Ok(CallValue::Ready { register_count })
 }
 
 /// Construct an instance of this object with the specified arguments.
@@ -1065,6 +1073,7 @@ fn function_construct(
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
+    let register_count = code.register_count as usize;
     drop(function);
 
     let env_fp = environments.len() as u32;
@@ -1143,5 +1152,5 @@ fn function_construct(
         this.map(JsValue::new).unwrap_or_default(),
     );
 
-    Ok(CallValue::Ready)
+    Ok(CallValue::Ready { register_count })
 }

@@ -421,7 +421,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let assertion = args.first().map_or(false, JsValue::to_boolean);
+        let assertion = args.first().is_some_and(JsValue::to_boolean);
 
         if !assertion {
             let mut args: Vec<JsValue> = args.iter().skip(1).cloned().collect();

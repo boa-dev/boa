@@ -16,7 +16,6 @@
 
 use crate::expression::Expression;
 use crate::function::PrivateName;
-use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
@@ -188,7 +187,7 @@ impl VisitWith for SimplePropertyAccess {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.target));
+        visitor.visit_expression(&self.target)?;
         visitor.visit_property_access_field(&self.field)
     }
 
@@ -196,7 +195,7 @@ impl VisitWith for SimplePropertyAccess {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.target));
+        visitor.visit_expression_mut(&mut self.target)?;
         visitor.visit_property_access_field_mut(&mut self.field)
     }
 }
@@ -268,7 +267,7 @@ impl VisitWith for PrivatePropertyAccess {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&self.target));
+        visitor.visit_expression(&self.target)?;
         visitor.visit_private_name(&self.field)
     }
 
@@ -276,7 +275,7 @@ impl VisitWith for PrivatePropertyAccess {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut self.target));
+        visitor.visit_expression_mut(&mut self.target)?;
         visitor.visit_private_name_mut(&mut self.field)
     }
 }

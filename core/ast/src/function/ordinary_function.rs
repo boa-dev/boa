@@ -6,9 +6,8 @@ use crate::{
     operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
     scope_analyzer::{analyze_binding_escapes, collect_bindings},
-    try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration,
+    Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
@@ -32,13 +31,19 @@ pub struct FunctionDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl FunctionDeclaration {
     /// Creates a new function declaration.
     #[inline]
     #[must_use]
-    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+    pub fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
@@ -47,6 +52,7 @@ impl FunctionDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -78,6 +84,13 @@ impl FunctionDeclaration {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the function declaration contains a direct call to `eval`.
     #[inline]
     #[must_use]
@@ -102,8 +115,8 @@ impl VisitWith for FunctionDeclaration {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_identifier(&self.name));
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_identifier(&self.name)?;
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -111,8 +124,8 @@ impl VisitWith for FunctionDeclaration {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_identifier_mut(&mut self.name));
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_identifier_mut(&mut self.name)?;
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }
@@ -134,7 +147,7 @@ impl From<FunctionDeclaration> for Declaration {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct FunctionExpression {
     pub(crate) name: Option<Identifier>,
     pub(crate) parameters: FormalParameterList,
@@ -147,6 +160,20 @@ pub struct FunctionExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: Option<LinearSpan>,
+}
+
+impl PartialEq for FunctionExpression {
+    fn eq(&self, other: &Self) -> bool {
+        // all fields except for `linear_span`
+        self.name == other.name
+            && self.parameters == other.parameters
+            && self.body == other.body
+            && self.has_binding_identifier == other.has_binding_identifier
+            && self.contains_direct_eval == other.contains_direct_eval
+            && self.name_scope == other.name_scope
+            && self.scopes == other.scopes
+    }
 }
 
 impl FunctionExpression {
@@ -157,6 +184,7 @@ impl FunctionExpression {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: Option<LinearSpan>,
         has_binding_identifier: bool,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
@@ -169,6 +197,8 @@ impl FunctionExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            #[allow(clippy::redundant_closure_for_method_calls)]
+            linear_span,
         }
     }
 
@@ -212,6 +242,13 @@ impl FunctionExpression {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> Option<LinearSpan> {
+        self.linear_span
     }
 
     /// Returns `true` if the function expression contains a direct call to `eval`.
@@ -261,9 +298,9 @@ impl VisitWith for FunctionExpression {
         V: Visitor<'a>,
     {
         if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+            visitor.visit_identifier(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_formal_parameter_list(&self.parameters)?;
         visitor.visit_function_body(&self.body)
     }
 
@@ -272,9 +309,9 @@ impl VisitWith for FunctionExpression {
         V: VisitorMut<'a>,
     {
         if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+            visitor.visit_identifier_mut(ident)?;
         }
-        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_formal_parameter_list_mut(&mut self.parameters)?;
         visitor.visit_function_body_mut(&mut self.body)
     }
 }

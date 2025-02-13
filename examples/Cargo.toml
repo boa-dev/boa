@@ -18,8 +18,10 @@ boa_parser.workspace = true
 boa_runtime.workspace = true
 time.workspace = true
 smol.workspace = true
-futures-util.workspace = true
+futures-concurrency.workspace = true
+futures-lite.workspace = true
 isahc.workspace = true
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "macros"] }
 
 # use explicit lints for examples, since we don't need to lint for docs
 [lints.rust]

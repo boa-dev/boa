@@ -18,6 +18,8 @@ use boa_ast::{
 use boa_interner::Interner;
 use boa_macros::utf16;
 
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
+
 /// Checks do-while statement parsing.
 #[test]
 fn check_do_while() {
@@ -28,14 +30,17 @@ fn check_do_while() {
         } while (true)"#,
         vec![Statement::DoWhileLoop(DoWhileLoop::new(
             Statement::Block(
-                vec![StatementListItem::Statement(Statement::Expression(
-                    Expression::from(Assign::new(
-                        AssignOp::Add,
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                        Literal::from(1).into(),
-                    )),
-                ))]
-                .into(),
+                (
+                    vec![StatementListItem::Statement(Statement::Expression(
+                        Expression::from(Assign::new(
+                            AssignOp::Add,
+                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                            Literal::from(1).into(),
+                        )),
+                    ))],
+                    PSEUDO_LINEAR_POS,
+                )
+                    .into(),
             ),
             Literal::from(true).into(),
         ))
@@ -63,26 +68,30 @@ fn check_do_while_semicolon_insertion() {
             .into(),
             Statement::DoWhileLoop(DoWhileLoop::new(
                 Statement::Block(
-                    vec![StatementListItem::Statement(Statement::Expression(
-                        Expression::from(Call::new(
-                            Expression::PropertyAccess(
-                                SimplePropertyAccess::new(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("console", utf16!("console")),
+                    (
+                        vec![StatementListItem::Statement(Statement::Expression(
+                            Expression::from(Call::new(
+                                Expression::PropertyAccess(
+                                    SimplePropertyAccess::new(
+                                        Identifier::new(
+                                            interner
+                                                .get_or_intern_static("console", utf16!("console")),
+                                        )
+                                        .into(),
+                                        interner.get_or_intern_static("log", utf16!("log")),
                                     )
                                     .into(),
-                                    interner.get_or_intern_static("log", utf16!("log")),
+                                ),
+                                vec![Literal::from(
+                                    interner.get_or_intern_static("hello", utf16!("hello")),
                                 )
+                                .into()]
                                 .into(),
-                            ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("hello", utf16!("hello")),
-                            )
-                            .into()]
-                            .into(),
-                        )),
-                    ))]
-                    .into(),
+                            )),
+                        ))],
+                        PSEUDO_LINEAR_POS,
+                    )
+                        .into(),
                 ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
@@ -138,26 +147,30 @@ fn check_do_while_semicolon_insertion_no_space() {
             .into(),
             Statement::DoWhileLoop(DoWhileLoop::new(
                 Statement::Block(
-                    vec![StatementListItem::Statement(Statement::Expression(
-                        Expression::from(Call::new(
-                            Expression::PropertyAccess(
-                                SimplePropertyAccess::new(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("console", utf16!("console")),
+                    (
+                        vec![StatementListItem::Statement(Statement::Expression(
+                            Expression::from(Call::new(
+                                Expression::PropertyAccess(
+                                    SimplePropertyAccess::new(
+                                        Identifier::new(
+                                            interner
+                                                .get_or_intern_static("console", utf16!("console")),
+                                        )
+                                        .into(),
+                                        interner.get_or_intern_static("log", utf16!("log")),
                                     )
                                     .into(),
-                                    interner.get_or_intern_static("log", utf16!("log")),
+                                ),
+                                vec![Literal::from(
+                                    interner.get_or_intern_static("hello", utf16!("hello")),
                                 )
+                                .into()]
                                 .into(),
-                            ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("hello", utf16!("hello")),
-                            )
-                            .into()]
-                            .into(),
-                        )),
-                    ))]
-                    .into(),
+                            )),
+                        ))],
+                        PSEUDO_LINEAR_POS,
+                    )
+                        .into(),
                 ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
@@ -237,9 +250,12 @@ fn do_while_spaces() {
 
         "#,
         vec![Statement::DoWhileLoop(DoWhileLoop::new(
-            Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(None),
-            ))])
+            Block::from((
+                vec![StatementListItem::Statement(Statement::Break(Break::new(
+                    None,
+                )))],
+                PSEUDO_LINEAR_POS,
+            ))
             .into(),
             Literal::Bool(true).into(),
         ))

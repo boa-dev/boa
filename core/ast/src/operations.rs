@@ -28,9 +28,9 @@ use crate::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         LabelledItem, With,
     },
-    try_break,
     visitor::{NodeRef, VisitWith, Visitor},
-    Declaration, Expression, ModuleItem, Script, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearSpan, ModuleItem, Script, Statement, StatementList,
+    StatementListItem,
 };
 
 /// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
@@ -83,7 +83,7 @@ where
         type BreakTy = ();
 
         fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
-            try_break!(node.expression().visit_with(self));
+            node.expression().visit_with(self)?;
             node.statement().visit_with(self)
         }
 
@@ -95,9 +95,9 @@ where
                     }
                 }
             }
-            try_break!(node.function().visit_with(self));
+            node.function().visit_with(self)?;
             for arg in node.args() {
-                try_break!(arg.visit_with(self));
+                arg.visit_with(self)?;
             }
             ControlFlow::Continue(())
         }
@@ -577,8 +577,8 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
         node: &'ast ExportDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
-            ExportDeclaration::VarStatement(var) => try_break!(self.visit_var_declaration(var)),
-            ExportDeclaration::Declaration(decl) => try_break!(self.visit_declaration(decl)),
+            ExportDeclaration::VarStatement(var) => self.visit_var_declaration(var)?,
+            ExportDeclaration::Declaration(decl) => self.visit_declaration(decl)?,
             ExportDeclaration::DefaultFunctionDeclaration(f) => {
                 self.0.add(f.name().sym(), true);
             }
@@ -1169,7 +1169,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
         node: &'ast ClassExpression,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.super_ref() {
-            try_break!(self.visit(node));
+            self.visit(node)?;
         }
 
         let mut names = self.0.clone();
@@ -1181,7 +1181,9 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     }
                 }
                 ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
-                | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    name, ..
+                }) => {
                     names.push(name.description());
                 }
                 _ => {}
@@ -1191,33 +1193,39 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
         let mut visitor = Self(names);
 
         if let Some(node) = node.constructor() {
-            try_break!(visitor.visit(node));
+            visitor.visit(node)?;
         }
 
         for element in node.elements() {
             match element {
                 ClassElement::MethodDefinition(m) => {
                     if let ClassElementName::PropertyName(name) = m.name() {
-                        try_break!(visitor.visit(name));
+                        visitor.visit(name)?;
                     }
-                    try_break!(visitor.visit(m.parameters()));
-                    try_break!(visitor.visit(m.body()));
+                    visitor.visit(m.parameters())?;
+                    visitor.visit(m.body())?;
                 }
                 ClassElement::FieldDefinition(field)
                 | ClassElement::StaticFieldDefinition(field) => {
-                    try_break!(visitor.visit(&field.name));
-                    if let Some(expression) = &field.field {
-                        try_break!(visitor.visit(expression));
+                    visitor.visit(&field.name)?;
+                    if let Some(expression) = &field.initializer {
+                        visitor.visit(expression)?;
                     }
                 }
-                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { field, .. })
-                | ClassElement::PrivateStaticFieldDefinition(_, field) => {
-                    if let Some(expression) = field {
-                        try_break!(visitor.visit(expression));
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                })
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                }) => {
+                    if let Some(expression) = initializer {
+                        visitor.visit(expression)?;
                     }
                 }
                 ClassElement::StaticBlock(block) => {
-                    try_break!(visitor.visit(&block.body));
+                    visitor.visit(&block.body)?;
                 }
             }
         }
@@ -1230,7 +1238,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
         node: &'ast ClassDeclaration,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.super_ref() {
-            try_break!(self.visit(node));
+            self.visit(node)?;
         }
 
         let mut names = self.0.clone();
@@ -1242,7 +1250,9 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
                     }
                 }
                 ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { name, .. })
-                | ClassElement::PrivateStaticFieldDefinition(name, _) => {
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    name, ..
+                }) => {
                     names.push(name.description());
                 }
                 _ => {}
@@ -1252,33 +1262,39 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
         let mut visitor = Self(names);
 
         if let Some(node) = node.constructor() {
-            try_break!(visitor.visit(node));
+            visitor.visit(node)?;
         }
 
         for element in node.elements() {
             match element {
                 ClassElement::MethodDefinition(m) => {
                     if let ClassElementName::PropertyName(name) = m.name() {
-                        try_break!(visitor.visit(name));
+                        visitor.visit(name)?;
                     }
-                    try_break!(visitor.visit(m.parameters()));
-                    try_break!(visitor.visit(m.body()));
+                    visitor.visit(m.parameters())?;
+                    visitor.visit(m.body())?;
                 }
                 ClassElement::FieldDefinition(field)
                 | ClassElement::StaticFieldDefinition(field) => {
-                    try_break!(visitor.visit(&field.name));
-                    if let Some(expression) = &field.field {
-                        try_break!(visitor.visit(expression));
+                    visitor.visit(&field.name)?;
+                    if let Some(expression) = &field.initializer {
+                        visitor.visit(expression)?;
                     }
                 }
-                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition { field, .. })
-                | ClassElement::PrivateStaticFieldDefinition(_, field) => {
-                    if let Some(expression) = field {
-                        try_break!(visitor.visit(expression));
+                ClassElement::PrivateFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                })
+                | ClassElement::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                    initializer,
+                    ..
+                }) => {
+                    if let Some(expression) = initializer {
+                        visitor.visit(expression)?;
                     }
                 }
                 ClassElement::StaticBlock(block) => {
-                    try_break!(visitor.visit(&block.body));
+                    visitor.visit(&block.body)?;
                 }
             }
         }
@@ -1325,7 +1341,7 @@ impl<'ast> Visitor<'ast> for AllPrivateIdentifiersValidVisitor {
             }
             OptionalOperationKind::Call { args } => {
                 for arg in args {
-                    try_break!(self.visit_expression(arg));
+                    self.visit_expression(arg)?;
                 }
                 ControlFlow::Continue(())
             }
@@ -1438,7 +1454,7 @@ where
             node: &'ast crate::statement::Block,
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
-            try_break!(self.visit_statement_list(node.statement_list()));
+            self.visit_statement_list(node.statement_list())?;
             self.continue_labels = continue_labels;
             ControlFlow::Continue(())
         }
@@ -1484,7 +1500,7 @@ where
             }
             let iteration = self.iteration;
             self.iteration = true;
-            try_break!(self.visit_statement(node.body()));
+            self.visit_statement(node.body())?;
             self.continue_iteration_labels = continue_iteration_labels;
             self.continue_labels = continue_labels;
             self.iteration = iteration;
@@ -1502,7 +1518,7 @@ where
             }
             let iteration = self.iteration;
             self.iteration = true;
-            try_break!(self.visit_statement(node.body()));
+            self.visit_statement(node.body())?;
             self.continue_iteration_labels = continue_iteration_labels;
             self.continue_labels = continue_labels;
             self.iteration = iteration;
@@ -1520,7 +1536,7 @@ where
             }
             let iteration = self.iteration;
             self.iteration = true;
-            try_break!(self.visit_statement(node.body()));
+            self.visit_statement(node.body())?;
             self.continue_iteration_labels = continue_iteration_labels;
             self.continue_labels = continue_labels;
             self.iteration = iteration;
@@ -1538,7 +1554,7 @@ where
             }
             let iteration = self.iteration;
             self.iteration = true;
-            try_break!(self.visit_statement(node.body()));
+            self.visit_statement(node.body())?;
             self.continue_iteration_labels = continue_iteration_labels;
             self.continue_labels = continue_labels;
             self.iteration = iteration;
@@ -1556,7 +1572,7 @@ where
             }
             let iteration = self.iteration;
             self.iteration = true;
-            try_break!(self.visit_statement(node.body()));
+            self.visit_statement(node.body())?;
             self.continue_iteration_labels = continue_iteration_labels;
             self.continue_labels = continue_labels;
             self.iteration = iteration;
@@ -1569,7 +1585,7 @@ where
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             if let StatementListItem::Statement(stmt) = node {
-                try_break!(self.visit_statement(stmt));
+                self.visit_statement(stmt)?;
             }
             self.continue_labels = continue_labels;
             ControlFlow::Continue(())
@@ -1577,9 +1593,9 @@ where
 
         fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
-            try_break!(self.visit_statement(node.body()));
+            self.visit_statement(node.body())?;
             if let Some(stmt) = node.else_node() {
-                try_break!(self.visit_statement(stmt));
+                self.visit_statement(stmt)?;
             }
             self.continue_labels = continue_labels;
             ControlFlow::Continue(())
@@ -1593,10 +1609,10 @@ where
             let switch = self.switch;
             self.switch = true;
             for case in node.cases() {
-                try_break!(self.visit_statement_list(case.body()));
+                self.visit_statement_list(case.body())?;
             }
             if let Some(default) = node.default() {
-                try_break!(self.visit_statement_list(default));
+                self.visit_statement_list(default)?;
             }
             self.continue_labels = continue_labels;
             self.switch = switch;
@@ -1619,7 +1635,7 @@ where
             if !self.labels.insert(node.label()) {
                 return ControlFlow::Break(CheckLabelsError::DuplicateLabel(node.label()));
             }
-            try_break!(self.visit_labelled_item(node.item()));
+            self.visit_labelled_item(node.item())?;
             self.labels.remove(&node.label());
             self.continue_labels = continue_labels;
             ControlFlow::Continue(())
@@ -1634,12 +1650,12 @@ where
 
         fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
-            try_break!(self.visit_block(node.block()));
+            self.visit_block(node.block())?;
             if let Some(catch) = node.catch() {
-                try_break!(self.visit_block(catch.block()));
+                self.visit_block(catch.block())?;
             }
             if let Some(finally) = node.finally() {
-                try_break!(self.visit_block(finally.block()));
+                self.visit_block(finally.block())?;
             }
             self.continue_labels = continue_labels;
             ControlFlow::Continue(())
@@ -1651,7 +1667,7 @@ where
         ) -> ControlFlow<Self::BreakTy> {
             let continue_labels = self.continue_labels.take();
             for item in node.items() {
-                try_break!(self.visit_module_item(item));
+                self.visit_module_item(item)?;
             }
             self.continue_labels = continue_labels;
             ControlFlow::Continue(())
@@ -1702,7 +1718,7 @@ where
                 if let PropertyDefinition::CoverInitializedName(..) = pd {
                     return ControlFlow::Break(());
                 }
-                try_break!(self.visit_property_definition(pd));
+                self.visit_property_definition(pd)?;
             }
             ControlFlow::Continue(())
         }
@@ -1990,6 +2006,18 @@ impl VarScopedDeclaration {
             Self::GeneratorDeclaration(g) => bound_names(g),
             Self::AsyncFunctionDeclaration(f) => bound_names(f),
             Self::AsyncGeneratorDeclaration(g) => bound_names(g),
+        }
+    }
+
+    /// Return [`LinearSpan`] of this declaration (if there is).
+    #[must_use]
+    pub fn linear_span(&self) -> Option<LinearSpan> {
+        match self {
+            VarScopedDeclaration::FunctionDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::GeneratorDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::AsyncFunctionDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::AsyncGeneratorDeclaration(f) => Some(f.linear_span()),
+            VarScopedDeclaration::VariableDeclaration(_) => None,
         }
     }
 }
@@ -2473,7 +2501,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         for statement in node.statement_list().statements() {
             match statement {
                 StatementListItem::Declaration(_) => {}
-                StatementListItem::Statement(node) => try_break!(self.visit(node)),
+                StatementListItem::Statement(node) => self.visit(node)?,
             }
         }
         ControlFlow::Continue(())
@@ -2482,8 +2510,8 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
     fn visit_statement(&mut self, node: &'ast Statement) -> ControlFlow<Self::BreakTy> {
         match node {
             Statement::Empty | Statement::Var(_) => {}
-            Statement::Block(node) => try_break!(self.visit(node)),
-            Statement::Labelled(node) => try_break!(self.visit(node)),
+            Statement::Block(node) => self.visit(node)?,
+            Statement::Labelled(node) => self.visit(node)?,
             _ => return ControlFlow::Break(()),
         }
         ControlFlow::Continue(())
@@ -2493,7 +2521,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         for statement in node.body().statements() {
             match statement {
                 StatementListItem::Declaration(_) => {}
-                StatementListItem::Statement(node) => try_break!(self.visit(node)),
+                StatementListItem::Statement(node) => self.visit(node)?,
             }
         }
         ControlFlow::Continue(())
@@ -2504,7 +2532,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         node: &'ast crate::statement::Labelled,
     ) -> ControlFlow<Self::BreakTy> {
         match node.item() {
-            LabelledItem::Statement(node) => try_break!(self.visit(node)),
+            LabelledItem::Statement(node) => self.visit(node)?,
             LabelledItem::FunctionDeclaration(_) => {}
         }
         ControlFlow::Continue(())

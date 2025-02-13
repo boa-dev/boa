@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
+    vm::{opcode::Operation, CompletionType, Registers},
     Context, JsNativeError, JsResult,
 };
 
@@ -13,12 +13,14 @@ pub(crate) struct PopIntoLocal;
 impl PopIntoLocal {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
-    fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
-        context.vm.frame_mut().local_binings_initialized[dst as usize] = true;
-        let value = context.vm.pop();
-
-        let rp = context.vm.frame().rp;
-        context.vm.stack[(rp + dst) as usize] = value;
+    fn operation(
+        src: u32,
+        dst: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        context.vm.frame_mut().local_bindings_initialized[dst as usize] = true;
+        registers.set(dst, registers.get(src).clone());
         Ok(CompletionType::Normal)
     }
 }
@@ -28,19 +30,22 @@ impl Operation for PopIntoLocal {
     const INSTRUCTION: &'static str = "INST - PopIntoLocal";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        Self::operation(dst, context)
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let src = context.vm.read::<u8>().into();
+        let dst = context.vm.read::<u8>().into();
+        Self::operation(src, dst, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        Self::operation(dst, context)
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let src = context.vm.read::<u16>().into();
+        let dst = context.vm.read::<u16>().into();
+        Self::operation(src, dst, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let src = context.vm.read::<u32>();
         let dst = context.vm.read::<u32>();
-        Self::operation(dst, context)
+        Self::operation(src, dst, registers, context)
     }
 }
 
@@ -54,15 +59,18 @@ pub(crate) struct PushFromLocal;
 impl PushFromLocal {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
-    fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
-        if !context.vm.frame().local_binings_initialized[dst as usize] {
+    fn operation(
+        src: u32,
+        dst: u32,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        if !context.vm.frame().local_bindings_initialized[src as usize] {
             return Err(JsNativeError::reference()
                 .with_message("access to uninitialized binding")
                 .into());
         }
-        let rp = context.vm.frame().rp;
-        let value = context.vm.stack[(rp + dst) as usize].clone();
-        context.vm.push(value);
+        registers.set(dst, registers.get(src).clone());
         Ok(CompletionType::Normal)
     }
 }
@@ -72,18 +80,21 @@ impl Operation for PushFromLocal {
     const INSTRUCTION: &'static str = "INST - PushFromLocal";
     const COST: u8 = 2;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        Self::operation(dst, context)
+    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let src = context.vm.read::<u8>().into();
+        let dst = context.vm.read::<u8>().into();
+        Self::operation(src, dst, registers, context)
     }
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        Self::operation(dst, context)
+    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let src = context.vm.read::<u16>().into();
+        let dst = context.vm.read::<u16>().into();
+        Self::operation(src, dst, registers, context)
     }
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
+    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+        let src = context.vm.read::<u32>();
         let dst = context.vm.read::<u32>();
-        Self::operation(dst, context)
+        Self::operation(src, dst, registers, context)
     }
 }

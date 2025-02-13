@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 use crate::{builtins::temporal::to_zero_padded_decimal_string, Context};
-
+use cow_utils::CowUtils;
 // -- TimeZone Abstract Operations --
 
 /// Abstract operation `DefaultTimeZone ( )`
@@ -96,7 +96,7 @@ fn canonicalize_time_zone_name(time_zone: &str) -> String {
     // do not include local political rules for any time zones performs the following steps when
     // called:
     // 1. Assert: timeZone is an ASCII-case-insensitive match for "UTC".
-    assert!(time_zone.to_ascii_uppercase() == "UTC");
+    assert_eq!(time_zone.cow_to_ascii_uppercase(), "UTC");
     // 2. Return "UTC".
     "UTC".to_owned()
 }
