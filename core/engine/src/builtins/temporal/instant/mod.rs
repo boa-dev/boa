@@ -92,8 +92,8 @@ impl IntrinsicObject for Instant {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
-            .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .method(
@@ -457,30 +457,7 @@ impl Instant {
         Ok(true.into())
     }
 
-    /// 8.3.17 `Temporal.Instant.prototype.toZonedDateTime ( item )`
-    pub(crate) fn to_zoned_date_time(
-        _: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
-        // TODO: Complete
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
-    }
-
-    /// 8.3.18 `Temporal.Instant.prototype.toZonedDateTimeISO ( timeZone )`
-    pub(crate) fn to_zoned_date_time_iso(
-        _: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
-    ) -> JsResult<JsValue> {
-        // TODO Complete
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
-    }
-
+    /// 8.3.11 `Temporal.Instant.prototype.toString ( [ options ] )`
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let instant = this
             .as_object()
@@ -518,6 +495,26 @@ impl Instant {
         Ok(JsString::from(ixdtf).into())
     }
 
+    /// 8.3.12 `Temporal.Instant.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("the this object must be a Temporal.Instant object.")
+            })?;
+
+        let ixdtf = instant.inner.to_ixdtf_string_with_provider(
+            None,
+            ToStringRoundingOptions::default(),
+            context.tz_provider(),
+        )?;
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 8.3.13 `Temporal.Instant.prototype.toJSON ( )`
     fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let instant = this
             .as_object()
@@ -535,9 +532,22 @@ impl Instant {
         Ok(JsString::from(ixdtf).into())
     }
 
-    pub(crate) fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    /// 8.3.14 `Temporal.Instant.prototype.valueOf ( )`
+    fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
+            .into())
+    }
+
+    /// 8.3.15 `Temporal.Instant.prototype.toZonedDateTimeISO ( timeZone )`
+    pub(crate) fn to_zoned_date_time_iso(
+        _: &JsValue,
+        _: &[JsValue],
+        _: &mut Context,
+    ) -> JsResult<JsValue> {
+        // TODO Complete
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
             .into())
     }
 }

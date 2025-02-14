@@ -37,24 +37,13 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
 use temporal_rs::options::RelativeTo;
 use temporal_rs::{
     primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
-    NS_PER_DAY,
 };
-
-// TODO: Remove in favor of `temporal_rs`
-pub(crate) fn ns_max_instant() -> JsBigInt {
-    JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
-}
-
-// TODO: Remove in favor of `temporal_rs`
-pub(crate) fn ns_min_instant() -> JsBigInt {
-    JsBigInt::from(i128::from(NS_PER_DAY) * -100_000_000_i128)
-}
 
 // An enum representing common fields across `Temporal` objects.
 pub(crate) enum DateTimeValues {
