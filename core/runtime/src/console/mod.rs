@@ -28,6 +28,27 @@ use std::{cell::RefCell, collections::hash_map::Entry, io::Write, rc::Rc, time::
 
 /// A trait that can be used to forward console logs to an implementation.
 pub trait Logger: Trace + Sized {
+    /// Log a trace message (`console.trace`). By default, passes the message and the
+    /// code block names of each stack trace frame to `log`.
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn trace(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)?;
+
+        let stack_trace_dump = context
+            .stack_trace()
+            .map(|frame| frame.code_block().name())
+            .map(JsString::to_std_string_escaped)
+            .collect::<Vec<_>>();
+
+        for frame in stack_trace_dump {
+            self.log(frame, state, context)?;
+        }
+
+        Ok(())
+    }
+
     /// Log a debug message (`console.debug`). By default, passes the message to `log`.
     ///
     /// # Errors
@@ -565,20 +586,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if !args.is_empty() {
-            logger.log(formatter(args, context)?, &console.state, context)?;
-        }
-
-        let stack_trace_dump = context
-            .stack_trace()
-            .map(|frame| frame.code_block().name())
-            .collect::<Vec<_>>()
-            .into_iter()
-            .map(JsString::to_std_string_escaped)
-            .collect::<Vec<_>>()
-            .join("\n");
-        logger.log(stack_trace_dump, &console.state, context)?;
-
+        Logger::trace(logger, formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
