@@ -1,4 +1,7 @@
-use crate::{js_string, run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{
+    builtins::date::utils::fast_atoi::{process_4, process_8},
+    js_string, run_test_actions, JsNativeErrorKind, TestAction,
+};
 use boa_macros::js_str;
 use indoc::indoc;
 use time::{macros::format_description, OffsetDateTime};
@@ -70,6 +73,28 @@ fn timestamp_from_utc(
         .unwrap()
         .assume_utc();
     t.unix_timestamp() * 1000 + i64::from(t.millisecond())
+}
+
+#[test]
+fn parse_ascii_digits() {
+    let parse_8_ascii_digits = |val: &[u8; 8], len: usize| -> u64 {
+        let val = u64::from_le_bytes(*val);
+        process_8(val, len)
+    };
+    assert_eq!(12_345_678, parse_8_ascii_digits(b"12345678", 8));
+    assert_eq!(123_456, parse_8_ascii_digits(b"123456xx", 6));
+    assert_eq!(123, parse_8_ascii_digits(b"123xxxxx", 3));
+    assert_eq!(123, parse_8_ascii_digits(b"000123xx", 6));
+    assert_eq!(0, parse_8_ascii_digits(b"00000000", 8));
+    let parse_4_ascii_digits = |val: &[u8; 4], len: usize| -> u64 {
+        let val = u32::from_le_bytes(*val);
+        u64::from(process_4(val, len))
+    };
+    assert_eq!(1234, parse_4_ascii_digits(b"1234", 4));
+    assert_eq!(12, parse_4_ascii_digits(b"12xx", 2));
+    assert_eq!(3, parse_4_ascii_digits(b"003x", 3));
+    assert_eq!(23, parse_4_ascii_digits(b"023x", 3));
+    assert_eq!(0, parse_4_ascii_digits(b"0000", 8));
 }
 
 #[test]
