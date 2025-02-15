@@ -8,7 +8,8 @@ use boa_ast::{
     function::{FormalParameter, FormalParameterList, FunctionBody, FunctionDeclaration},
     scope::Scope,
     statement::Block,
-    Declaration, Expression, Script, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearPosition, LinearSpan, Script, Statement, StatementList,
+    StatementListItem,
 };
 use boa_interner::Interner;
 use boa_string::JsString;
@@ -34,6 +35,7 @@ fn script_global_let() {
                 .unwrap(),
         ))
         .into()],
+        LinearPosition::default(),
         false,
     ));
     let ok = script.analyze_scope(&scope, &interner);
@@ -57,6 +59,7 @@ fn script_global_const() {
                 .unwrap(),
         ))
         .into()],
+        LinearPosition::default(),
         false,
     ));
     let ok = script.analyze_scope(&scope, &interner);
@@ -74,15 +77,17 @@ fn script_block_let() {
     let mut interner = Interner::new();
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
-        [Statement::Block(Block::from(vec![Declaration::Lexical(
-            LexicalDeclaration::Let(
+        [Statement::Block(Block::from((
+            vec![Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(a.into(), None)]
                     .try_into()
                     .unwrap(),
-            ),
-        )
-        .into()]))
+            ))
+            .into()],
+            LinearPosition::default(),
+        )))
         .into()],
+        LinearPosition::default(),
         false,
     ));
     let ok = script.analyze_scope(&scope, &interner);
@@ -121,10 +126,13 @@ fn script_function_mapped_arguments_not_accessed() {
                         .unwrap(),
                 ))
                 .into()],
+                LinearPosition::default(),
                 false,
             ),
+            LinearSpan::default(),
         ))
         .into()],
+        LinearPosition::default(),
         false,
     ));
     let ok = script.analyze_scope(&scope, &interner);
@@ -192,10 +200,13 @@ fn script_function_mapped_arguments_accessed() {
                     Statement::Expression(Expression::Identifier(Identifier::new(arguments)))
                         .into(),
                 ],
+                LinearPosition::default(),
                 false,
             ),
+            LinearSpan::default(),
         ))
         .into()],
+        LinearPosition::default(),
         false,
     ));
     let ok = script.analyze_scope(&scope, &interner);

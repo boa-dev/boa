@@ -176,7 +176,7 @@ impl fmt::Display for Span {
 /// Note that linear spans are of the form [start, end) i.e. that the
 /// start position is inclusive and the end position is exclusive.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct LinearSpan {
     start: LinearPosition,
     end: LinearPosition,
