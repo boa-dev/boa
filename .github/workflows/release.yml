@@ -91,7 +91,7 @@ jobs:
           asset_name: boa-linux-amd64
           binary_name: boa
         - build: macos-amd64
-          os: macos-latest
+          os: macos-13
           rust: stable
           target: x86_64-apple-darwin
           asset_name: boa-macos-amd64
