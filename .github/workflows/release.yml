@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: [linux, macos, win-msvc]
+        build: [linux, macos-amd64, macos-arm64, win-msvc]
         include:
         - build: linux
           os: ubuntu-20.04
@@ -90,11 +90,17 @@ jobs:
           target: x86_64-unknown-linux-gnu
           asset_name: boa-linux-amd64
           binary_name: boa
-        - build: macos
-          os: macos-latest
+        - build: macos-amd64
+          os: macos-13
           rust: stable
           target: x86_64-apple-darwin
           asset_name: boa-macos-amd64
+          binary_name: boa
+        - build: macos-arm64
+          os: macos-14
+          rust: stable
+          target: aarch64-apple-darwin
+          asset_name: boa-macos-arm64
           binary_name: boa
         - build: win-msvc
           os: windows-2019

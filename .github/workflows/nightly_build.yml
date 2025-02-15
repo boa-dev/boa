@@ -5,8 +5,8 @@ permissions:
 # Schedule this workflow to run at midnight every day
 on:
   schedule:
-    - cron: "0 0 * * *"  
-  workflow_dispatch: 
+    - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,7 +16,9 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
           - target: x86_64-apple-darwin
-            os: macos-latest
+            os: macos-13
+          - target: aarch64-apple-darwin
+            os: macos-14
           - target: x86_64-pc-windows-msvc
             os: windows-latest
     runs-on: ${{ matrix.os }}
