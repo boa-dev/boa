@@ -371,6 +371,7 @@ dependencies = [
  "float-cmp",
  "futures-lite 2.6.0",
  "hashbrown 0.15.2",
+ "iana-time-zone",
  "icu_calendar 1.5.2",
  "icu_casemap",
  "icu_collator",
@@ -3567,7 +3568,7 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 [[package]]
 name = "temporal_rs"
 version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=50003f04706406654e695c68e54d12c471851421#50003f04706406654e695c68e54d12c471851421"
+source = "git+https://github.com/boa-dev/temporal.git?rev=6a3c74fbf20a870bacccdcd6b11d8c0d4dd459d8#6a3c74fbf20a870bacccdcd6b11d8c0d4dd459d8"
 dependencies = [
  "combine",
  "iana-time-zone",
@@ -3577,7 +3578,6 @@ dependencies = [
  "num-traits",
  "tinystr 0.8.0",
  "tzif",
- "web-time",
  "writeable 0.6.0",
 ]
 
