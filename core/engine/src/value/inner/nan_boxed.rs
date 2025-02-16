@@ -1,6 +1,6 @@
 //! A NaN-boxed inner value for JavaScript values.
 //!
-//! This `[JsValue]` is a float using NaN values to represent inner
+//! This `[JsValue]` is a float using `NaN` values to represent inner
 //! JavaScript value.
 //!
 //! # Assumptions
@@ -16,7 +16,7 @@
 //! architectures. The only exception is RISC-V and Intel processors that
 //! enable 5-level paging extensions.
 //!
-//! This is clarified here: https://en.m.wikipedia.org/wiki/64-bit_computing:
+//! This is clarified here: <https://en.m.wikipedia.org/wiki/64-bit_computing>:
 //!
 //! > not all 64-bit instruction sets support full 64-bit virtual memory
 //! > addresses; x86-64 and AArch64 for example, support only 48 bits of
@@ -31,10 +31,10 @@
 //! WASM with MEMORY64 (which is very rare) follows the pointer structure
 //! of its host architecture.
 //! For more info, see
-//! https://spidermonkey.dev/blog/2025/01/15/is-memory64-actually-worth-using.html
+//! <https://spidermonkey.dev/blog/2025/01/15/is-memory64-actually-worth-using.html>
 //!
 //! This leaves RISC-V and processes that enable 5-level paging extensions
-//! on Intel (https://en.m.wikipedia.org/wiki/Intel_5-level_paging).
+//! on Intel (<https://en.m.wikipedia.org/wiki/Intel_5-level_paging>).
 //!
 //! We could feature gate on RISC-V, but it's not worth it. The only
 //! RISC-V processors that support 64-bit are the ones that support 64-bit
