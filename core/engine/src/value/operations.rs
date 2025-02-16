@@ -1,4 +1,3 @@
-use crate::value::InnerValue;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -7,37 +6,33 @@ use crate::{
     error::JsNativeError,
     js_string,
     value::{JsSymbol, Numeric, PreferredType},
-    Context, JsBigInt, JsResult, JsValue,
+    Context, JsBigInt, JsResult, JsValue, JsVariant,
 };
 
 impl JsValue {
     /// Perform the binary `+` operator on the value and return the result.
     pub fn add(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
             // Numeric add
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => x
-                .checked_add(*y)
-                .map_or_else(|| Self::new(f64::from(*x) + f64::from(*y)), Self::new),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => Self::new(x + y),
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Self::new(f64::from(*x) + y),
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(x + f64::from(*y)),
-            (InnerValue::BigInt(ref x), InnerValue::BigInt(ref y)) => {
-                Self::new(JsBigInt::add(x, y))
-            }
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => x
+                .checked_add(y)
+                .map_or_else(|| Self::new(f64::from(x) + f64::from(y)), Self::new),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => Self::new(x + y),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) + y),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x + f64::from(y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(x, y)),
 
             // String concat
-            (InnerValue::String(ref x), InnerValue::String(ref y)) => Self::from(js_string!(x, y)),
+            (JsVariant::String(x), JsVariant::String(y)) => Self::from(js_string!(x, y)),
 
             // Slow path:
             (_, _) => {
                 let x = self.to_primitive(context, PreferredType::Default)?;
                 let y = other.to_primitive(context, PreferredType::Default)?;
-                match (&x.inner, &y.inner) {
-                    (InnerValue::String(ref x), _) => {
-                        Self::from(js_string!(x, &y.to_string(context)?))
-                    }
-                    (_, InnerValue::String(y)) => Self::from(js_string!(&x.to_string(context)?, y)),
+                match (x.variant(), y.variant()) {
+                    (JsVariant::String(x), _) => Self::from(js_string!(x, &y.to_string(context)?)),
+                    (_, JsVariant::String(y)) => Self::from(js_string!(&x.to_string(context)?, y)),
                     (_, _) => {
                         match (x.to_numeric(context)?, y.to_numeric(context)?) {
                             (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
@@ -58,18 +53,16 @@ impl JsValue {
 
     /// Perform the binary `-` operator on the value and return the result.
     pub fn sub(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => x
-                .checked_sub(*y)
-                .map_or_else(|| Self::new(f64::from(*x) - f64::from(*y)), Self::new),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => Self::new(x - y),
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Self::new(f64::from(*x) - y),
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(x - f64::from(*y)),
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => x
+                .checked_sub(y)
+                .map_or_else(|| Self::new(f64::from(x) - f64::from(y)), Self::new),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => Self::new(x - y),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) - y),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x - f64::from(y)),
 
-            (InnerValue::BigInt(ref x), InnerValue::BigInt(ref y)) => {
-                Self::new(JsBigInt::sub(x, y))
-            }
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::sub(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -86,18 +79,16 @@ impl JsValue {
 
     /// Perform the binary `*` operator on the value and return the result.
     pub fn mul(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => x
-                .checked_mul(*y)
-                .map_or_else(|| Self::new(f64::from(*x) * f64::from(*y)), Self::new),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => Self::new(x * y),
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Self::new(f64::from(*x) * y),
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(x * f64::from(*y)),
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => x
+                .checked_mul(y)
+                .map_or_else(|| Self::new(f64::from(x) * f64::from(y)), Self::new),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => Self::new(x * y),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) * y),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x * f64::from(y)),
 
-            (InnerValue::BigInt(ref x), InnerValue::BigInt(ref y)) => {
-                Self::new(JsBigInt::mul(x, y))
-            }
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::mul(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -114,17 +105,17 @@ impl JsValue {
 
     /// Perform the binary `/` operator on the value and return the result.
     pub fn div(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => x
-                .checked_div(*y)
-                .filter(|div| *y * div == *x)
-                .map_or_else(|| Self::new(f64::from(*x) / f64::from(*y)), Self::new),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => Self::new(x / y),
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Self::new(f64::from(*x) / y),
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(x / f64::from(*y)),
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => x
+                .checked_div(y)
+                .filter(|div| y * div == x)
+                .map_or_else(|| Self::new(f64::from(x) / f64::from(y)), Self::new),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => Self::new(x / y),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) / y),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x / f64::from(y)),
 
-            (InnerValue::BigInt(ref x), InnerValue::BigInt(ref y)) => {
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
                 if y.is_zero() {
                     return Err(JsNativeError::range()
                         .with_message("BigInt division by zero")
@@ -155,29 +146,29 @@ impl JsValue {
 
     /// Perform the binary `%` operator on the value and return the result.
     pub fn rem(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => {
-                if *y == 0 {
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => {
+                if y == 0 {
                     Self::nan()
                 } else {
-                    match x % *y {
-                        rem if rem == 0 && *x < 0 => Self::new(-0.0),
+                    match x % y {
+                        rem if rem == 0 && x < 0 => Self::new(-0.0),
                         rem => Self::new(rem),
                     }
                 }
             }
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => Self::new((x % y).copysign(*x)),
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
-                let x = f64::from(*x);
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => Self::new((x % y).copysign(x)),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => {
+                let x = f64::from(x);
                 Self::new((x % y).copysign(x))
             }
 
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => {
-                Self::new((x % f64::from(*y)).copysign(*x))
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => {
+                Self::new((x % f64::from(y)).copysign(x))
             }
 
-            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => {
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
                 if y.is_zero() {
                     return Err(JsNativeError::range()
                         .with_message("BigInt division by zero")
@@ -210,30 +201,28 @@ impl JsValue {
     // NOTE: There are some cases in the spec where we have to compare floats
     #[allow(clippy::float_cmp)]
     pub fn pow(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => u32::try_from(*y)
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => u32::try_from(y)
                 .ok()
                 .and_then(|y| x.checked_pow(y))
-                .map_or_else(|| Self::new(f64::from(*x).powi(*y)), Self::new),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => {
+                .map_or_else(|| Self::new(f64::from(x).powi(y)), Self::new),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => {
                 if x.abs() == 1.0 && y.is_infinite() {
                     Self::nan()
                 } else {
-                    Self::new(x.powf(*y))
+                    Self::new(x.powf(y))
                 }
             }
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => {
                 if x.wrapping_abs() == 1 && y.is_infinite() {
                     Self::nan()
                 } else {
-                    Self::new(f64::from(*x).powf(*y))
+                    Self::new(f64::from(x).powf(y))
                 }
             }
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(x.powi(*y)),
-            (InnerValue::BigInt(ref a), InnerValue::BigInt(ref b)) => {
-                Self::new(JsBigInt::pow(a, b)?)
-            }
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x.powi(y)),
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => Self::new(JsBigInt::pow(a, b)?),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -256,16 +245,16 @@ impl JsValue {
 
     /// Perform the binary `&` operator on the value and return the result.
     pub fn bitand(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => Self::new(x & y),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => {
-                Self::new(f64_to_int32(*x) & f64_to_int32(*y))
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => Self::new(x & y),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => {
+                Self::new(f64_to_int32(x) & f64_to_int32(y))
             }
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Self::new(x & f64_to_int32(*y)),
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(f64_to_int32(*x) & y),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(x & f64_to_int32(y)),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(f64_to_int32(x) & y),
 
-            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => Self::new(JsBigInt::bitand(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitand(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -286,16 +275,16 @@ impl JsValue {
 
     /// Perform the binary `|` operator on the value and return the result.
     pub fn bitor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => Self::new(x | y),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => {
-                Self::new(f64_to_int32(*x) | f64_to_int32(*y))
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => Self::new(x | y),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => {
+                Self::new(f64_to_int32(x) | f64_to_int32(y))
             }
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Self::new(x | f64_to_int32(*y)),
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(f64_to_int32(*x) | y),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(x | f64_to_int32(y)),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(f64_to_int32(x) | y),
 
-            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => Self::new(JsBigInt::bitor(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitor(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -316,16 +305,16 @@ impl JsValue {
 
     /// Perform the binary `^` operator on the value and return the result.
     pub fn bitxor(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => Self::new(x ^ y),
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => {
-                Self::new(f64_to_int32(*x) ^ f64_to_int32(*y))
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => Self::new(x ^ y),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => {
+                Self::new(f64_to_int32(x) ^ f64_to_int32(y))
             }
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => Self::new(x ^ f64_to_int32(*y)),
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => Self::new(f64_to_int32(*x) ^ y),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(x ^ f64_to_int32(y)),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(f64_to_int32(x) ^ y),
 
-            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => Self::new(JsBigInt::bitxor(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitxor(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -346,24 +335,22 @@ impl JsValue {
 
     /// Perform the binary `<<` operator on the value and return the result.
     pub fn shl(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => {
-                Self::new(x.wrapping_shl(*y as u32))
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => {
+                Self::new(x.wrapping_shl(y as u32))
             }
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shl(f64_to_uint32(*y)))
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
             }
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
-                Self::new(x.wrapping_shl(f64_to_uint32(*y)))
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => {
+                Self::new(x.wrapping_shl(f64_to_uint32(y)))
             }
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shl(*y as u32))
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shl(y as u32))
             }
 
-            (InnerValue::BigInt(a), InnerValue::BigInt(b)) => {
-                Self::new(JsBigInt::shift_left(a, b)?)
-            }
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => Self::new(JsBigInt::shift_left(a, b)?),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -384,24 +371,22 @@ impl JsValue {
 
     /// Perform the binary `>>` operator on the value and return the result.
     pub fn shr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => {
-                Self::new(x.wrapping_shr(*y as u32))
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => {
+                Self::new(x.wrapping_shr(y as u32))
             }
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shr(f64_to_uint32(*y)))
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
             }
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
-                Self::new(x.wrapping_shr(f64_to_uint32(*y)))
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => {
+                Self::new(x.wrapping_shr(f64_to_uint32(y)))
             }
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => {
-                Self::new(f64_to_int32(*x).wrapping_shr(*y as u32))
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => {
+                Self::new(f64_to_int32(x).wrapping_shr(y as u32))
             }
 
-            (InnerValue::BigInt(a), InnerValue::BigInt(b)) => {
-                Self::new(JsBigInt::shift_right(a, b)?)
-            }
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => Self::new(JsBigInt::shift_right(a, b)?),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -422,19 +407,19 @@ impl JsValue {
 
     /// Perform the binary `>>>` operator on the value and return the result.
     pub fn ushr(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path:
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => {
-                Self::new((*x as u32).wrapping_shr(*y as u32))
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => {
+                Self::new((x as u32).wrapping_shr(y as u32))
             }
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => {
-                Self::new(f64_to_uint32(*x).wrapping_shr(f64_to_uint32(*y)))
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => {
+                Self::new(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
             }
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
-                Self::new((*x as u32).wrapping_shr(f64_to_uint32(*y)))
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => {
+                Self::new((x as u32).wrapping_shr(f64_to_uint32(y)))
             }
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => {
-                Self::new(f64_to_uint32(*x).wrapping_shr(*y as u32))
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => {
+                Self::new(f64_to_uint32(x).wrapping_shr(y as u32))
             }
 
             // Slow path:
@@ -497,20 +482,20 @@ impl JsValue {
 
     /// Returns the negated value.
     pub fn neg(&self, context: &mut Context) -> JsResult<Self> {
-        Ok(match self.inner {
-            InnerValue::Symbol(_) | InnerValue::Undefined => Self::new(f64::NAN),
-            InnerValue::Object(_) => Self::new(
+        Ok(match self.variant() {
+            JsVariant::Symbol(_) | JsVariant::Undefined => Self::new(f64::NAN),
+            JsVariant::Object(_) => Self::new(
                 self.to_numeric_number(context)
                     .map_or(f64::NAN, std::ops::Neg::neg),
             ),
-            InnerValue::String(ref str) => Self::new(-str.to_number()),
-            InnerValue::Float64(num) => Self::new(-num),
-            InnerValue::Integer32(0) | InnerValue::Boolean(false) | InnerValue::Null => {
-                Self::new(-f64::from(0))
+            JsVariant::String(str) => Self::new(-str.to_number()),
+            JsVariant::Float64(num) => Self::new(-num),
+            JsVariant::Integer32(0) | JsVariant::Boolean(false) | JsVariant::Null => {
+                Self::new(-0.0)
             }
-            InnerValue::Integer32(num) => Self::new(-num),
-            InnerValue::Boolean(true) => Self::new(-f64::from(1)),
-            InnerValue::BigInt(ref x) => Self::new(JsBigInt::neg(x)),
+            JsVariant::Integer32(num) => Self::new(-num),
+            JsVariant::Boolean(true) => Self::new(-1),
+            JsVariant::BigInt(x) => Self::new(JsBigInt::neg(x)),
         })
     }
 
@@ -543,17 +528,13 @@ impl JsValue {
         left_first: bool,
         context: &mut Context,
     ) -> JsResult<AbstractRelation> {
-        Ok(match (&self.inner, &other.inner) {
+        Ok(match (self.variant(), other.variant()) {
             // Fast path (for some common operations):
-            (InnerValue::Integer32(x), InnerValue::Integer32(y)) => (x < y).into(),
-            (InnerValue::Integer32(x), InnerValue::Float64(y)) => {
-                Number::less_than(f64::from(*x), *y)
-            }
-            (InnerValue::Float64(x), InnerValue::Integer32(y)) => {
-                Number::less_than(*x, f64::from(*y))
-            }
-            (InnerValue::Float64(x), InnerValue::Float64(y)) => Number::less_than(*x, *y),
-            (InnerValue::BigInt(x), InnerValue::BigInt(y)) => (x < y).into(),
+            (JsVariant::Integer32(x), JsVariant::Integer32(y)) => (x < y).into(),
+            (JsVariant::Integer32(x), JsVariant::Float64(y)) => Number::less_than(f64::from(x), y),
+            (JsVariant::Float64(x), JsVariant::Integer32(y)) => Number::less_than(x, f64::from(y)),
+            (JsVariant::Float64(x), JsVariant::Float64(y)) => Number::less_than(x, y),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => (x < y).into(),
 
             // Slow path:
             (_, _) => {
@@ -568,16 +549,12 @@ impl JsValue {
                     (px, py)
                 };
 
-                match (&px.inner, &py.inner) {
-                    (InnerValue::String(x), InnerValue::String(ref y)) => (x < y).into(),
-                    (InnerValue::BigInt(x), InnerValue::String(ref y)) => {
-                        JsBigInt::from_js_string(y)
-                            .map_or(AbstractRelation::Undefined, |y| (*x < y).into())
-                    }
-                    (InnerValue::String(ref x), InnerValue::BigInt(ref y)) => {
-                        JsBigInt::from_js_string(x)
-                            .map_or(AbstractRelation::Undefined, |x| (x < *y).into())
-                    }
+                match (px.variant(), py.variant()) {
+                    (JsVariant::String(x), JsVariant::String(y)) => (x < y).into(),
+                    (JsVariant::BigInt(x), JsVariant::String(y)) => JsBigInt::from_js_string(y)
+                        .map_or(AbstractRelation::Undefined, |ref y| (x < y).into()),
+                    (JsVariant::String(x), JsVariant::BigInt(y)) => JsBigInt::from_js_string(x)
+                        .map_or(AbstractRelation::Undefined, |ref x| (x < y).into()),
                     (_, _) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
                         (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),
                         (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => (x < y).into(),
@@ -590,7 +567,7 @@ impl JsValue {
                             }
 
                             if let Ok(y) = JsBigInt::try_from(y) {
-                                return Ok((*x < y).into());
+                                return Ok((x < &y).into());
                             }
 
                             (x.to_f64() < y).into()
@@ -604,7 +581,7 @@ impl JsValue {
                             }
 
                             if let Ok(x) = JsBigInt::try_from(x) {
-                                return Ok((x < *y).into());
+                                return Ok((&x < y).into());
                             }
 
                             (x < y.to_f64()).into()

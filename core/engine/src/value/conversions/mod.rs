@@ -1,8 +1,8 @@
 //! Conversions from JavaScript values into Rust values, and the other way around.
 
+use super::{JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
+use crate::value::inner::InnerValue;
 use crate::{js_string, string::JsStr};
-
-use super::{InnerValue, JsBigInt, JsObject, JsString, JsSymbol, JsValue, Profiler};
 
 mod either;
 mod serde_json;
@@ -15,7 +15,7 @@ impl From<JsStr<'_>> for JsValue {
     fn from(value: JsStr<'_>) -> Self {
         let _timer = Profiler::global().start_event("From<JsStr<'_>>", "value");
 
-        Self::from_inner(InnerValue::String(value.into()))
+        Self::from_inner(InnerValue::string(value.into()))
     }
 }
 
@@ -23,7 +23,7 @@ impl From<JsString> for JsValue {
     fn from(value: JsString) -> Self {
         let _timer = Profiler::global().start_event("From<JsString>", "value");
 
-        Self::from_inner(InnerValue::String(value))
+        Self::from_inner(InnerValue::string(value))
     }
 }
 
@@ -45,7 +45,7 @@ impl From<JsSymbol> for JsValue {
     fn from(value: JsSymbol) -> Self {
         let _timer = Profiler::global().start_event("From<JsSymbol>", "value");
 
-        Self::from_inner(InnerValue::Symbol(value))
+        Self::from_inner(InnerValue::symbol(value))
     }
 }
 
@@ -54,7 +54,7 @@ impl From<f32> for JsValue {
     fn from(value: f32) -> Self {
         let _timer = Profiler::global().start_event("From<f32>", "value");
 
-        JsValue::from(f64::from(value))
+        Self::rational(f64::from(value))
     }
 }
 
@@ -63,7 +63,7 @@ impl From<f64> for JsValue {
     fn from(value: f64) -> Self {
         let _timer = Profiler::global().start_event("From<f64>", "value");
 
-        Self::from_inner(InnerValue::Float64(value))
+        Self::rational(value)
     }
 }
 
@@ -78,8 +78,8 @@ macro_rules! impl_from_integer {
 
                     i32::try_from(value)
                         .map_or_else(
-                            |_| Self::from(value as f64),
-                            |value| Self::from_inner(InnerValue::Integer32(value)),
+                            |_| Self::rational(value as f64),
+                            |value| Self::from_inner(InnerValue::integer32(value)),
                         )
                 }
             }
@@ -94,7 +94,7 @@ impl From<JsBigInt> for JsValue {
     fn from(value: JsBigInt) -> Self {
         let _timer = Profiler::global().start_event("From<JsBigInt>", "value");
 
-        Self::from_inner(InnerValue::BigInt(value))
+        Self::from_inner(InnerValue::bigint(value))
     }
 }
 
@@ -103,7 +103,7 @@ impl From<bool> for JsValue {
     fn from(value: bool) -> Self {
         let _timer = Profiler::global().start_event("From<bool>", "value");
 
-        Self::from_inner(InnerValue::Boolean(value))
+        Self::from_inner(InnerValue::boolean(value))
     }
 }
 
@@ -112,7 +112,7 @@ impl From<JsObject> for JsValue {
     fn from(object: JsObject) -> Self {
         let _timer = Profiler::global().start_event("From<JsObject>", "value");
 
-        Self::from_inner(InnerValue::Object(object))
+        Self::from_inner(InnerValue::object(object))
     }
 }
 
