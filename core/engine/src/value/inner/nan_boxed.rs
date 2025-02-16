@@ -1,3 +1,53 @@
+//! A NaN-boxed inner value for JavaScript values.
+//!
+//! This `[JsValue]` is a float using NaN values to represent inner
+//! JavaScript value.
+//!
+//! # Assumptions
+//!
+//! This implementation makes exactly two architecture assumptions. Everything
+//! else is independent of the arch where it's run.
+//!
+//! The first assumption is easy to verify: JavaScript numbers must be 64 bits
+//! IEEE-754, which is guaranteed by Rust and JavaScript implementations.
+//!
+//! The second assumption is that pointers are 48 bits maximum. This is a bit
+//! more complex to verify, but it is a safe assumption for all current
+//! architectures. The only exception is RISC-V and Intel processors that
+//! enable 5-level paging extensions.
+//!
+//! This is clarified here: https://en.m.wikipedia.org/wiki/64-bit_computing:
+//!
+//! > not all 64-bit instruction sets support full 64-bit virtual memory
+//! > addresses; x86-64 and AArch64 for example, support only 48 bits of
+//! > virtual address, with the remaining 16 bits of the virtual address
+//! > required to be all zeros (000...) or all ones (111...), and several
+//! > 64-bit instruction sets support fewer than 64 bits of physical
+//! > memory address.
+//!
+//! ALL 32 bits architectures are compatible, of course, as their pointers
+//! are 32 bits.
+//!
+//! WASM with MEMORY64 (which is very rare) follows the pointer structure
+//! of its host architecture.
+//! For more info, see
+//! https://spidermonkey.dev/blog/2025/01/15/is-memory64-actually-worth-using.html
+//!
+//! This leaves RISC-V and processes that enable 5-level paging extensions
+//! on Intel (https://en.m.wikipedia.org/wiki/Intel_5-level_paging).
+//!
+//! We could feature gate on RISC-V, but it's not worth it. The only
+//! RISC-V processors that support 64-bit are the ones that support 64-bit
+//! virtual memory addresses. So it's a safe assumption.
+//!
+//! There is no way to feature gate on 5-level paging as it's a software
+//! trigger.
+//!
+//! There is a software assertion in the code that will panic if the pointer
+//! uses more than 48 bits.
+//!
+//! # Design
+//!
 //! This `[JsValue]` inner type is a NaN-boxed value, which is a 64-bits value
 //! that can represent any JavaScript value. If the integer is a non-NaN value,
 //! it will be stored as a 64-bits float. If it is a `f64::NAN` value, it will
