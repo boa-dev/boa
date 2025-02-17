@@ -48,7 +48,7 @@ boa_string = { version = "~0.20.0", path = "core/string" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.8.0"
-clap = "4.5.28"
+clap = "4.5.29"
 colored = "3.0.0"
 cow-utils = "0.1.3"
 fast-float2 = "0.2.3"
@@ -94,13 +94,13 @@ quote = "1.0.38"
 syn = { version = "2.0.98", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
-measureme = "12.0.0"
+measureme = "12.0.1"
 # TODO: when moving past 1.84, remove dependency to sptr and use `.addr()` directly.
 sptr = "0.3.2"
 paste = "1.0"
 rand = "0.9.0"
 num-integer = "0.1.46"
-ryu-js = "1.0.1"
+ryu-js = "1.0.2"
 tap = "1.0.1"
 thiserror = { version = "2.0.11", default-features = false }
 dashmap = "6.1.0"
