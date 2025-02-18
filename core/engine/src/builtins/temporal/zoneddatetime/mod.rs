@@ -407,6 +407,15 @@ impl BuiltInConstructor for ZonedDateTime {
         //  7. Else,
         // a. Set timeZone to FormatOffsetTimeZoneIdentifier(timeZoneParse.[[OffsetMinutes]]).
         let timezone = TimeZone::try_from_identifier_str(&timezone_str.to_std_string_escaped())?;
+        if matches!(timezone, TimeZone::IanaIdentifier(_))
+            && !context
+                .tz_provider()
+                .check_identifier(&timezone.identifier()?)
+        {
+            return Err(JsNativeError::range()
+                .with_message("TimeZone string is not a supported by IANA identifier.")
+                .into());
+        }
 
         //  8. If calendar is undefined, set calendar to "iso8601".
         //  9. If calendar is not a String, throw a TypeError exception.
