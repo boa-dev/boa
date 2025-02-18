@@ -1350,7 +1350,7 @@ pub(crate) fn to_temporal_timezone_identifier(
             .check_identifier(&timezone.identifier()?)
     {
         return Err(JsNativeError::range()
-            .with_message("TimeZone string is not a supported by IANA identifier.")
+            .with_message("TimeZone string is not a supported IANA identifier.")
             .into());
     }
     Ok(timezone)
