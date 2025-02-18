@@ -1,5 +1,3 @@
-#![allow(unstable_name_collisions)]
-
 use std::{ptr, slice::SliceIndex, sync::atomic::Ordering};
 
 use portable_atomic::AtomicU8;
@@ -55,8 +53,8 @@ impl SliceRef<'_> {
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
         match self {
-            Self::Slice(buf) => sptr::Strict::addr(buf.as_ptr()),
-            Self::AtomicSlice(buf) => sptr::Strict::addr(buf.as_ptr()),
+            Self::Slice(buf) => buf.as_ptr().addr(),
+            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
         }
     }
 
@@ -242,8 +240,8 @@ impl SliceRefMut<'_> {
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
         match self {
-            Self::Slice(buf) => sptr::Strict::addr(buf.as_ptr()),
-            Self::AtomicSlice(buf) => sptr::Strict::addr(buf.as_ptr()),
+            Self::Slice(buf) => buf.as_ptr().addr(),
+            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
         }
     }
 

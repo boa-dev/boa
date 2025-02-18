@@ -1,9 +1,4 @@
-// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.
-// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses
-// the same names from the unstable functions of the `std::ptr` module.
-#![allow(unstable_name_collisions)]
-
-use std::ptr::NonNull;
+use std::ptr::{self, NonNull};
 
 /// A pointer that can be tagged with an `usize`.
 ///
@@ -49,7 +44,7 @@ impl<T> Tagged<T> {
         debug_assert!(align_of::<T>() >= 2);
         let addr = (tag << 1) | 1;
         // SAFETY: `addr` is never zero, since we always set its LSB to 1
-        unsafe { Self(NonNull::new_unchecked(sptr::invalid_mut(addr))) }
+        unsafe { Self(NonNull::new_unchecked(ptr::without_provenance_mut(addr))) }
     }
 
     /// Creates a new `Tagged` pointer from a raw pointer.
@@ -72,6 +67,7 @@ impl<T> Tagged<T> {
     /// # Requirements
     ///
     /// - `T` must have an alignment of at least 2.
+    #[allow(unused)]
     pub(crate) const fn from_non_null(ptr: NonNull<T>) -> Self {
         debug_assert!(align_of::<T>() >= 2);
         Self(ptr)
@@ -79,7 +75,7 @@ impl<T> Tagged<T> {
 
     /// Unwraps the `Tagged` pointer.
     pub(crate) fn unwrap(self) -> UnwrappedTagged<T> {
-        let addr = sptr::Strict::addr(self.0.as_ptr());
+        let addr = self.0.as_ptr().addr();
         if addr & 1 == 0 {
             UnwrappedTagged::Ptr(self.0)
         } else {
@@ -90,13 +86,13 @@ impl<T> Tagged<T> {
     /// Gets the address of the inner pointer.
     #[allow(unused)]
     pub(crate) fn addr(self) -> usize {
-        sptr::Strict::addr(self.0.as_ptr())
+        self.0.as_ptr().addr()
     }
 
     /// Returns `true` if `self ` is a tagged pointer.
     #[allow(unused)]
     pub(crate) fn is_tagged(self) -> bool {
-        sptr::Strict::addr(self.0.as_ptr()) & 1 > 0
+        self.0.as_ptr().addr() & 1 > 0
     }
 }
 

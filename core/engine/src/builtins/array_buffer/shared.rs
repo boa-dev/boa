@@ -1,5 +1,3 @@
-#![allow(unstable_name_collisions)]
-
 use std::{
     alloc,
     sync::{atomic::Ordering, Arc},
@@ -610,7 +608,7 @@ pub(crate) fn create_shared_byte_data_block(
     // This could be replaced with a custom `Box` implementation, but most architectures
     // already align pointers to 8 bytes, so it's a lot of work for such a small
     // compatibility improvement.
-    assert_eq!(sptr::Strict::addr(buffer.as_ptr()) % align_of::<u64>(), 0);
+    assert_eq!(buffer.as_ptr().addr() % align_of::<u64>(), 0);
 
     // 3. Return db.
     Ok(buffer)

@@ -10,10 +10,6 @@
     clippy::undocumented_unsafe_blocks,
     clippy::missing_safety_doc
 )]
-// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.
-// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses
-// the same names from the unstable functions of the `std::ptr` module.
-#![allow(unstable_name_collisions)]
 #![allow(clippy::module_name_repetitions)]
 
 mod builder;

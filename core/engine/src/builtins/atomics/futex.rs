@@ -137,7 +137,6 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![allow(clippy::expl_impl_clone_on_copy)]
-#![allow(unstable_name_collisions)]
 
 use std::{cell::UnsafeCell, sync::atomic::Ordering};
 
@@ -326,7 +325,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
     // SAFETY: waiter is valid and we call `remove_node` below.
     unsafe {
-        waiters.add_waiter(waiter_ptr, sptr::Strict::addr(buffer.as_ptr()));
+        waiters.add_waiter(waiter_ptr, buffer.as_ptr().addr());
     }
 
     // 18. Let notified be SuspendAgent(WL, W, t).
@@ -395,7 +394,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
 /// Notifies at most `count` agents waiting on the memory address pointed to by `buffer[offset..]`.
 pub(super) fn notify(buffer: &SharedArrayBuffer, offset: usize, count: u64) -> JsResult<u64> {
-    let addr = sptr::Strict::addr(buffer.as_ptr()) + offset;
+    let addr = buffer.as_ptr().addr() + offset;
 
     // 7. Let WL be GetWaiterList(block, indexedPosition).
     // 8. Perform EnterCriticalSection(WL).
