@@ -477,7 +477,7 @@ impl Instant {
         // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
         let timezone = options
             .get(js_string!("timeZone"), context)?
-            .map(|v| to_temporal_timezone_identifier(v, context))
+            .map(to_temporal_timezone_identifier)
             .transpose()?;
 
         let options = ToStringRoundingOptions {

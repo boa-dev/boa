@@ -114,13 +114,9 @@ fn resolve_system_values(
     timezone: &JsValue,
     context: &mut Context,
 ) -> JsResult<(EpochNanoseconds, TimeZone)> {
-    let user_timezone = timezone
-        .map(|v| to_temporal_timezone_identifier(v, context))
-        .transpose()?;
-    let timezone = user_timezone.unwrap_or(TimeZone::try_from_str_with_provider(
-        &system_time_zone()?,
-        context.tz_provider(),
-    )?);
+    let user_timezone = timezone.map(to_temporal_timezone_identifier).transpose()?;
+    let timezone =
+        user_timezone.unwrap_or(TimeZone::try_from_identifier_str(&system_time_zone()?)?);
     let epoch_nanos = EpochNanoseconds::try_from(context.clock().now().nanos_since_epoch())?;
     Ok((epoch_nanos, timezone))
 }
