@@ -907,7 +907,6 @@ impl PlainDateTime {
         create_temporal_duration(dt.inner.since(&other, settings)?, None, context).map(Into::into)
     }
 
-    // TODO(nekevss): finish after temporal_rs impl
     /// 5.3.32 Temporal.PlainDateTime.prototype.round ( roundTo )
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let dt = this
@@ -966,10 +965,7 @@ impl PlainDateTime {
             context,
         )?;
 
-        // TODO: implement in temporal_rs
-        Err(JsNativeError::range()
-            .with_message("not yet implemented.")
-            .into())
+        create_temporal_datetime(dt.inner().round(options)?, None, context).map(Into::into)
     }
 
     /// 5.3.33 Temporal.PlainDateTime.prototype.equals ( other )
