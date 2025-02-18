@@ -1339,9 +1339,7 @@ pub(crate) fn to_temporal_timezone_identifier(value: &JsValue) -> JsResult<TimeZ
     // 7. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(name).
     // 8. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
     // 9. Return timeZoneIdentifierRecord.[[Identifier]].
-    Ok(TimeZone::try_from_identifier_str(
-        &tz_string.to_std_string_escaped(),
-    )?)
+    Ok(TimeZone::try_from_str(&tz_string.to_std_string_escaped())?)
 }
 
 fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
