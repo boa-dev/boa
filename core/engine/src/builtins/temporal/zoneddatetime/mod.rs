@@ -1344,15 +1344,15 @@ pub(crate) fn to_temporal_timezone_identifier(
     // 8. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
     // 9. Return timeZoneIdentifierRecord.[[Identifier]].
     let timezone = TimeZone::try_from_str(&tz_string.to_std_string_escaped())?;
-    if !context
-        .tz_provider()
-        .check_identifier(&timezone.identifier()?)
+    if matches!(timezone, TimeZone::IanaIdentifier(_))
+        && !context
+            .tz_provider()
+            .check_identifier(&timezone.identifier()?)
     {
         return Err(JsNativeError::range()
             .with_message("TimeZone string is not a supported by IANA identifier.")
             .into());
     }
-
     Ok(timezone)
 }
 
