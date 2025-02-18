@@ -115,30 +115,6 @@ use boa_string::JsString;
 use core::fmt;
 use static_assertions::const_assert;
 
-/// Transform an `u64` into `f64`, by its bytes. This is necessary for
-/// keeping the MSRV at 1.82, as `f64::from_bits` is not const until
-/// 1.83.
-#[inline(always)]
-const fn f64_from_bits(bits: u64) -> f64 {
-    unsafe { std::mem::transmute(bits) }
-}
-
-/// Transform a `f64` into `u64`, by its bytes. This is necessary for
-/// keeping the MSRV at 1.82, as `f64::to_bits` is not const until
-/// 1.83.
-#[inline(always)]
-const fn f64_to_bits(bits: f64) -> u64 {
-    unsafe { std::mem::transmute(bits) }
-}
-
-/// Check that a float is a `NaN`. This is necessary for keeping the MSRV
-/// at 1.82, as `f64::is_nan` is not const until 1.53.
-#[inline(always)]
-#[allow(clippy::eq_op, clippy::float_cmp)]
-const fn f64_is_nan(f: f64) -> bool {
-    f != f
-}
-
 // We cannot NaN-box pointers larger than 64 bits.
 const_assert!(size_of::<usize>() <= size_of::<u64>());
 
@@ -149,7 +125,6 @@ const_assert!(align_of::<*mut ()>() >= 4);
 ///
 /// All bit magic is done here.
 mod bits {
-    use super::{f64_from_bits, f64_is_nan, f64_to_bits};
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
     use boa_string::JsString;
     use std::ptr::NonNull;
@@ -222,8 +197,8 @@ mod bits {
     /// Checks that a value is a valid float, not a tagged nan boxed value.
     #[inline(always)]
     pub(super) const fn is_float(value: u64) -> bool {
-        let as_float = f64_from_bits(value);
-        !f64_is_nan(as_float) || value == NAN
+        let as_float = f64::from_bits(value);
+        !as_float.is_nan() || value == NAN
     }
 
     /// Checks that a value is a valid undefined.
@@ -281,11 +256,11 @@ mod bits {
     /// Returns a tagged u64 of a 64-bits float.
     #[inline(always)]
     pub(super) const fn tag_f64(value: f64) -> u64 {
-        if f64_is_nan(value) {
+        if value.is_nan() {
             // Reduce any NAN to a canonical NAN representation.
-            f64_to_bits(f64::NAN)
+            f64::NAN.to_bits()
         } else {
-            f64_to_bits(value)
+            value.to_bits()
         }
     }
 
@@ -427,19 +402,19 @@ mod bits {
 // Verify that all representations of NanBitTag ARE NAN, but don't match static NAN.
 // The only exception to this rule is BigInt, which assumes that the pointer is
 // non-null. The static f64::NAN is equal to BigInt.
-const_assert!(f64_is_nan(f64_from_bits(bits::UNDEFINED)));
-const_assert!(f64_is_nan(f64_from_bits(bits::NULL)));
-const_assert!(f64_is_nan(f64_from_bits(bits::FALSE)));
-const_assert!(f64_is_nan(f64_from_bits(bits::TRUE)));
-const_assert!(f64_is_nan(f64_from_bits(bits::INTEGER32_ZERO)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_BIGINT_START)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_BIGINT_END)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_OBJECT_START)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_OBJECT_END)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_SYMBOL_START)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_SYMBOL_END)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_STRING_START)));
-const_assert!(f64_is_nan(f64_from_bits(bits::POINTER_STRING_END)));
+const_assert!(f64::from_bits(bits::UNDEFINED).is_nan());
+const_assert!(f64::from_bits(bits::NULL).is_nan());
+const_assert!(f64::from_bits(bits::FALSE).is_nan());
+const_assert!(f64::from_bits(bits::TRUE).is_nan());
+const_assert!(f64::from_bits(bits::INTEGER32_ZERO).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_BIGINT_START).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_BIGINT_END).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_OBJECT_START).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_OBJECT_END).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_SYMBOL_START).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_SYMBOL_END).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_STRING_START).is_nan());
+const_assert!(f64::from_bits(bits::POINTER_STRING_END).is_nan());
 
 /// A NaN-boxed `[JsValue]`'s inner.
 pub(crate) struct NanBoxedValue(pub u64);
@@ -635,7 +610,7 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) const fn as_float64(&self) -> Option<f64> {
         if self.is_float64() {
-            Some(f64_from_bits(self.0))
+            Some(f64::from_bits(self.0))
         } else {
             None
         }
@@ -732,7 +707,7 @@ impl NanBoxedValue {
             bits::POINTER_STRING_START..=bits::POINTER_STRING_END => {
                 JsVariant::String(unsafe { bits::untag_pointer(self.0) })
             }
-            _ => JsVariant::Float64(f64_from_bits(self.0)),
+            _ => JsVariant::Float64(f64::from_bits(self.0)),
         }
     }
 }

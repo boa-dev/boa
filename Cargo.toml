@@ -24,7 +24,7 @@ exclude = [
 [workspace.package]
 edition = "2021"
 version = "0.20.0"
-rust-version = "1.82.0"
+rust-version = "1.84.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense OR MIT"
@@ -95,8 +95,6 @@ syn = { version = "2.0.98", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.1"
-# TODO: when moving past 1.84, remove dependency to sptr and use `.addr()` directly.
-sptr = "0.3.2"
 paste = "1.0"
 rand = "0.9.0"
 num-integer = "0.1.46"
