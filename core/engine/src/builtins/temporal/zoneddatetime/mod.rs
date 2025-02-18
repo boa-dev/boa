@@ -23,6 +23,7 @@ use temporal_rs::{
         OffsetDisambiguation, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
     partial::PartialZonedDateTime,
+    provider::TimeZoneProvider,
     Calendar, TimeZone, ZonedDateTime as ZonedDateTimeInner,
 };
 
@@ -898,7 +899,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0))?;
+        let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
 
         let inner = zdt.inner.with_timezone(timezone)?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
@@ -1315,7 +1316,10 @@ pub(crate) fn to_temporal_zoneddatetime(
     // 9. Return ! CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar).
 }
 
-pub(crate) fn to_temporal_timezone_identifier(value: &JsValue) -> JsResult<TimeZone> {
+pub(crate) fn to_temporal_timezone_identifier(
+    value: &JsValue,
+    context: &mut Context,
+) -> JsResult<TimeZone> {
     // 1. If temporalTimeZoneLike is an Object, then
     if let Some(obj) = value.as_object() {
         // a. If temporalTimeZoneLike has an [[InitializedTemporalZonedDateTime]] internal slot, then
@@ -1339,7 +1343,17 @@ pub(crate) fn to_temporal_timezone_identifier(value: &JsValue) -> JsResult<TimeZ
     // 7. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(name).
     // 8. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
     // 9. Return timeZoneIdentifierRecord.[[Identifier]].
-    Ok(TimeZone::try_from_str(&tz_string.to_std_string_escaped())?)
+    let timezone = TimeZone::try_from_str(&tz_string.to_std_string_escaped())?;
+    if !context
+        .tz_provider()
+        .check_identifier(&timezone.identifier()?)
+    {
+        return Err(JsNativeError::range()
+            .with_message("TimeZone string is not a supported by IANA identifier.")
+            .into());
+    }
+
+    Ok(timezone)
 }
 
 fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
@@ -1369,7 +1383,7 @@ pub(crate) fn to_partial_zoneddatetime(
     // d. Let timeZone be fields.[[TimeZone]].
     let timezone = object
         .get(js_string!("timeZone"), context)?
-        .map(to_temporal_timezone_identifier)
+        .map(|v| to_temporal_timezone_identifier(v, context))
         .transpose()?;
     // e. Let offsetString be fields.[[OffsetString]].
     let offset = object
