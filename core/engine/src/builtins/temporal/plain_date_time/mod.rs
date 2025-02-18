@@ -961,7 +961,7 @@ impl PlainDateTime {
             &round_to,
             js_string!("smallestUnit"),
             TemporalUnitGroup::Time,
-            None,
+            Some(vec![TemporalUnit::Day]),
             context,
         )?;
 
