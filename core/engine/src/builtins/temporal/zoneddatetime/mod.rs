@@ -478,7 +478,7 @@ impl ZonedDateTime {
 
         let era = zdt.inner.era_with_provider(context.tz_provider())?;
         Ok(era
-            .map(|tinystr| JsString::from(tinystr.cow_to_lowercase().to_string()))
+            .map(|tinystr| JsString::from(tinystr.cow_to_lowercase()))
             .into_or_undefined())
     }
 

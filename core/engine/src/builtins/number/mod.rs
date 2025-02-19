@@ -916,10 +916,11 @@ impl Number {
 
 /// Helper function that formats a float as a ES6-style exponential number string.
 fn f64_to_exponential(n: f64) -> JsString {
-    js_string!(match n.abs() {
-        x if x >= 1.0 || x == 0.0 => format!("{n:e}").cow_replace('e', "e+").to_string(),
-        _ => format!("{n:e}"),
-    })
+    let s = format!("{n:e}");
+    match n.abs() {
+        x if x >= 1.0 || x == 0.0 => js_string!(s.cow_replace('e', "e+")),
+        _ => js_string!(s),
+    }
 }
 
 /// Helper function that formats a float as a ES6-style exponential number string with a given precision.

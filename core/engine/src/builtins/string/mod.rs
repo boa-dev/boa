@@ -27,7 +27,10 @@ use boa_macros::utf16;
 use boa_profiler::Profiler;
 use cow_utils::CowUtils;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
-use std::cmp::{max, min};
+use std::{
+    borrow::Cow,
+    cmp::{max, min},
+};
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -1727,16 +1730,20 @@ impl String {
         // 4. Let upperText be the result of toUppercase(sText), according to
         // the Unicode Default Case Conversion algorithm.
         let text = string.map_valid_segments(|s| {
-            if UPPER {
-                s.cow_to_uppercase().to_string()
+            let cow_str = if UPPER {
+                s.cow_to_uppercase()
             } else {
-                s.cow_to_lowercase().to_string()
+                s.cow_to_lowercase()
+            };
+            match cow_str {
+                Cow::Borrowed(_) => s,
+                Cow::Owned(replaced_str) => replaced_str,
             }
         });
 
         // 5. Let L be ! CodePointsToString(upperText).
         // 6. Return L.
-        Ok(js_string!(text).into())
+        Ok(text.into())
     }
 
     /// [`String.prototype.toLocaleLowerCase ( [ locales ] )`][lower] and
