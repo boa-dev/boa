@@ -23,6 +23,7 @@ use temporal_rs::{
         OffsetDisambiguation, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
     partial::PartialZonedDateTime,
+    provider::TimeZoneProvider,
     Calendar, TimeZone, ZonedDateTime as ZonedDateTimeInner,
 };
 
@@ -405,10 +406,16 @@ impl BuiltInConstructor for ZonedDateTime {
         // c. Set timeZone to identifierRecord.[[Identifier]].
         //  7. Else,
         // a. Set timeZone to FormatOffsetTimeZoneIdentifier(timeZoneParse.[[OffsetMinutes]]).
-        let timezone = TimeZone::try_from_str_with_provider(
-            &timezone_str.to_std_string_escaped(),
-            context.tz_provider(),
-        )?;
+        let timezone = TimeZone::try_from_identifier_str(&timezone_str.to_std_string_escaped())?;
+        if matches!(timezone, TimeZone::IanaIdentifier(_))
+            && !context
+                .tz_provider()
+                .check_identifier(&timezone.identifier()?)
+        {
+            return Err(JsNativeError::range()
+                .with_message("TimeZone string is not a supported by IANA identifier.")
+                .into());
+        }
 
         //  8. If calendar is undefined, set calendar to "iso8601".
         //  9. If calendar is not a String, throw a TypeError exception.
@@ -1345,10 +1352,17 @@ pub(crate) fn to_temporal_timezone_identifier(
     // 7. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(name).
     // 8. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
     // 9. Return timeZoneIdentifierRecord.[[Identifier]].
-    Ok(TimeZone::try_from_str_with_provider(
-        &tz_string.to_std_string_escaped(),
-        context.tz_provider(),
-    )?)
+    let timezone = TimeZone::try_from_str(&tz_string.to_std_string_escaped())?;
+    if matches!(timezone, TimeZone::IanaIdentifier(_))
+        && !context
+            .tz_provider()
+            .check_identifier(&timezone.identifier()?)
+    {
+        return Err(JsNativeError::range()
+            .with_message("TimeZone string is not a supported IANA identifier.")
+            .into());
+    }
+    Ok(timezone)
 }
 
 fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
@@ -1362,7 +1376,7 @@ fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> 
     };
     // 3. Perform ? ParseDateTimeUTCOffset(offset).
     let result = offset_string.to_std_string_escaped();
-    let _u = TimeZone::try_from_str_with_provider(&result, context.tz_provider())?;
+    let _u = TimeZone::try_from_identifier_str(&result)?;
     // 4. Return offset.
     Ok(result)
 }

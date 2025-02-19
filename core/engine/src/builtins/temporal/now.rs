@@ -117,10 +117,8 @@ fn resolve_system_values(
     let user_timezone = timezone
         .map(|v| to_temporal_timezone_identifier(v, context))
         .transpose()?;
-    let timezone = user_timezone.unwrap_or(TimeZone::try_from_str_with_provider(
-        &system_time_zone()?,
-        context.tz_provider(),
-    )?);
+    let timezone =
+        user_timezone.unwrap_or(TimeZone::try_from_identifier_str(&system_time_zone()?)?);
     let epoch_nanos = EpochNanoseconds::try_from(context.clock().now().nanos_since_epoch())?;
     Ok((epoch_nanos, timezone))
 }
