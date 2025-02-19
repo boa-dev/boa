@@ -94,7 +94,7 @@ fn parse_ascii_digits() {
     assert_eq!(12, parse_4_ascii_digits(b"12xx", 2));
     assert_eq!(3, parse_4_ascii_digits(b"003x", 3));
     assert_eq!(23, parse_4_ascii_digits(b"023x", 3));
-    assert_eq!(0, parse_4_ascii_digits(b"0000", 8));
+    assert_eq!(0, parse_4_ascii_digits(b"0000", 4));
 }
 
 #[test]

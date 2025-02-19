@@ -1,9 +1,9 @@
 use crate::{context::HostHooks, js_string, value::IntegerOrInfinity, JsStr, JsString};
 use boa_macros::js_str;
 use boa_string::JsStrVariant;
-use std::iter::Peekable;
 use std::slice::Iter;
 use std::str;
+use std::{borrow::Cow, iter::Peekable};
 use time::{macros::format_description, OffsetDateTime, PrimitiveDateTime};
 
 // Time-related Constants
@@ -754,36 +754,35 @@ pub(super) fn pad_six(t: u32, output: &mut [u8; 6]) -> JsStr<'_> {
 pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> {
     // All characters must be ASCII so we can return early if we find a non-ASCII character.
     let owned_js_str = date.as_str();
-    let owned_string: String;
     let date = match owned_js_str.variant() {
         JsStrVariant::Latin1(s) => {
             if !s.is_ascii() {
                 return None;
             }
             // SAFETY: Since all characters are ASCII we can safely convert this into str.
-            unsafe { str::from_utf8_unchecked(s) }
+            Cow::Borrowed(unsafe { str::from_utf8_unchecked(s) })
         }
         JsStrVariant::Utf16(s) => {
-            owned_string = String::from_utf16(s).ok()?;
-            if !owned_string.is_ascii() {
+            let date = String::from_utf16(s).ok()?;
+            if !date.is_ascii() {
                 return None;
             }
-            owned_string.as_str()
+            Cow::Owned(date)
         }
     };
 
     // Date Time String Format: 'YYYY-MM-DDTHH:mm:ss.sssZ'
-    if let Some(dt) = DateParser::new(date, hooks).parse() {
+    if let Some(dt) = DateParser::new(&date, hooks).parse() {
         return Some(dt);
     }
 
     // `toString` format: `Thu Jan 01 1970 00:00:00 GMT+0000`
-    if let Ok(t) = OffsetDateTime::parse(date, &format_description!("[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]")) {
+    if let Ok(t) = OffsetDateTime::parse(&date, &format_description!("[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]")) {
         return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
 
     // `toUTCString` format: `Thu, 01 Jan 1970 00:00:00 GMT`
-    if let Ok(t) = PrimitiveDateTime::parse(date, &format_description!("[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT[end]")) {
+    if let Ok(t) = PrimitiveDateTime::parse(&date, &format_description!("[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT[end]")) {
         let t = t.assume_utc();
         return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
