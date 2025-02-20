@@ -28,8 +28,8 @@ use temporal_rs::{
         ArithmeticOverflow, DisplayCalendar, RoundingIncrement, RoundingOptions,
         TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
-    partial::PartialDateTime,
-    Calendar, PlainDateTime as InnerDateTime, PlainTime,
+    partial::{PartialDate, PartialDateTime, PartialTime},
+    Calendar, PlainDateTime as InnerDateTime, TinyAsciiStr,
 };
 
 use super::{
@@ -1160,53 +1160,15 @@ pub(crate) fn to_temporal_datetime(
         }
 
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
-        let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
-
         // e. Let calendarRec be ? CreateCalendarMethodsRecord(calendar, « date-from-fields, fields »).
         // f. Let fields be ? PrepareCalendarFields(calendarRec, item, « "day", "month",
         // "monthCode", "year" », « "hour", "microsecond", "millisecond", "minute",
         // "nanosecond", "second" », «»)
-        // TODO: Fix order of ops with `to_partial_date_time_record`
-        let partial_date = to_partial_date_record(object, context)?;
-        let partial_time = to_partial_time_record(object, context)?;
         // TODO: Move validation to `temporal_rs`.
-        if !(partial_date.day.is_some()
-            && (partial_date.month.is_some() || partial_date.month_code.is_some())
-            && (partial_date.year.is_some()
-                || (partial_date.era.is_some() && partial_date.era_year.is_some())))
-        {
-            return Err(JsNativeError::typ()
-                .with_message("A partial date must have at least one defined field.")
-                .into());
-        }
+        let partial_dt = to_partial_datetime(object, context)?;
         // g. Let result be ? InterpretTemporalDateTimeFields(calendarRec, fields, resolvedOptions).
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
-        let date = calendar.date_from_partial(
-            &partial_date,
-            overflow.unwrap_or(ArithmeticOverflow::Constrain),
-        )?;
-        let time = PlainTime::new(
-            partial_time.hour.unwrap_or(0),
-            partial_time.minute.unwrap_or(0),
-            partial_time.second.unwrap_or(0),
-            partial_time.millisecond.unwrap_or(0),
-            partial_time.microsecond.unwrap_or(0),
-            partial_time.nanosecond.unwrap_or(0),
-        )?;
-
-        return InnerDateTime::new(
-            date.iso_year(),
-            date.iso_month(),
-            date.iso_day(),
-            time.hour(),
-            time.minute(),
-            time.second(),
-            time.millisecond(),
-            time.microsecond(),
-            time.nanosecond(),
-            calendar,
-        )
-        .map_err(Into::into);
+        return InnerDateTime::from_partial(partial_dt, overflow).map_err(Into::into);
     }
     // 4. Else,
     //     a. If item is not a String, throw a TypeError exception.
@@ -1230,4 +1192,153 @@ pub(crate) fn to_temporal_datetime(
     // result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]],
     // result.[[Microsecond]], result.[[Nanosecond]], calendar).
     Ok(date)
+}
+
+fn to_partial_datetime(
+    partial_object: &JsObject,
+    context: &mut Context,
+) -> JsResult<PartialDateTime> {
+    let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    let day = partial_object
+        .get(js_string!("day"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
+        .transpose()?;
+    let hour = partial_object
+        .get(js_string!("hour"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?
+        .map(Into::into);
+    // TODO: `temporal_rs` needs a `has_era` method
+    let (era, era_year) = if calendar == Calendar::default() {
+        (None, None)
+    } else {
+        let era = partial_object
+            .get(js_string!("era"), context)?
+            .map(|v| {
+                let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+                let Some(era) = v.as_string() else {
+                    return Err(JsError::from(
+                        JsNativeError::typ()
+                            .with_message("The monthCode field value must be a string."),
+                    ));
+                };
+                // TODO: double check if an invalid monthCode is a range or type error.
+                TinyAsciiStr::<19>::try_from_str(&era.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
+            })
+            .transpose()?;
+        let era_year = partial_object
+            .get(js_string!("eraYear"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+        (era, era_year)
+    };
+    let microsecond = partial_object
+        .get(js_string!("microsecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?
+        .map(Into::into);
+
+    let millisecond = partial_object
+        .get(js_string!("millisecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?
+        .map(Into::into);
+
+    let minute = partial_object
+        .get(js_string!("minute"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?
+        .map(Into::into);
+
+    let month = partial_object
+        .get(js_string!("month"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
+        .transpose()?;
+
+    let month_code = partial_object
+        .get(js_string!("monthCode"), context)?
+        .map(|v| {
+            let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+            let Some(month_code) = v.as_string() else {
+                return Err(JsNativeError::typ()
+                    .with_message("The monthCode field value must be a string.")
+                    .into());
+            };
+            TinyAsciiStr::<4>::try_from_str(&month_code.to_std_string_escaped())
+                .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
+        })
+        .transpose()?;
+
+    let nanosecond = partial_object
+        .get(js_string!("nanosecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?
+        .map(Into::into);
+
+    let second = partial_object
+        .get(js_string!("second"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?
+        .map(Into::into);
+
+    let year = partial_object
+        .get(js_string!("year"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+        })
+        .transpose()?;
+
+    let date = PartialDate {
+        year,
+        month,
+        month_code,
+        day,
+        era,
+        era_year,
+        calendar,
+    };
+
+    let time = PartialTime {
+        hour,
+        minute,
+        second,
+        millisecond,
+        microsecond,
+        nanosecond,
+    };
+
+    Ok(PartialDateTime { date, time })
 }
