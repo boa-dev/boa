@@ -964,6 +964,34 @@ pub(crate) fn to_partial_date_record(
                 .map_err(JsError::from)
         })
         .transpose()?;
+    // TODO: `temporal_rs` needs a `has_era` method
+    let (era, era_year) = if calendar == Calendar::default() {
+        (None, None)
+    } else {
+        let era = partial_object
+            .get(js_string!("era"), context)?
+            .map(|v| {
+                let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+                let Some(era) = v.as_string() else {
+                    return Err(JsError::from(
+                        JsNativeError::typ()
+                            .with_message("The monthCode field value must be a string."),
+                    ));
+                };
+                // TODO: double check if an invalid monthCode is a range or type error.
+                TinyAsciiStr::<19>::try_from_str(&era.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
+            })
+            .transpose()?;
+        let era_year = partial_object
+            .get(js_string!("eraYear"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+        (era, era_year)
+    };
     let month = partial_object
         .get(js_string!("month"), context)?
         .map(|v| {
@@ -993,29 +1021,6 @@ pub(crate) fn to_partial_date_record(
             Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
         })
         .transpose()?;
-    let era_year = partial_object
-        .get(js_string!("eraYear"), context)?
-        .map(|v| {
-            let finite = v.to_finitef64(context)?;
-            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
-        })
-        .transpose()?;
-    let era = partial_object
-        .get(js_string!("era"), context)?
-        .map(|v| {
-            let v = v.to_primitive(context, crate::value::PreferredType::String)?;
-            let Some(era) = v.as_string() else {
-                return Err(JsError::from(
-                    JsNativeError::typ()
-                        .with_message("The monthCode field value must be a string."),
-                ));
-            };
-            // TODO: double check if an invalid monthCode is a range or type error.
-            TinyAsciiStr::<19>::try_from_str(&era.to_std_string_escaped())
-                .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
-        })
-        .transpose()?;
-
     Ok(PartialDate {
         year,
         month,
