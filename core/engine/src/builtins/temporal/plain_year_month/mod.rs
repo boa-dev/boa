@@ -22,7 +22,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    Calendar, Duration, PlainYearMonth as InnerYearMonth,
+    Calendar, Duration, PlainYearMonth as InnerYearMonth, TinyAsciiStr,
 };
 
 use super::{
@@ -489,19 +489,32 @@ fn to_temporal_year_month(
 
         // f. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
         // g. Return ! CreateTemporalYearMonth(isoDate, calendar).
-        let year = obj
-            .get(js_string!("year"), context)?
-            .map(|v| {
-                let finite = v.to_finitef64(context)?;
-                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
-            })
-            .transpose()?;
-
         let month = obj
             .get(js_string!("month"), context)?
             .map(|v| {
                 let finite = v.to_finitef64(context)?;
                 Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+            })
+            .transpose()?;
+        let month_code = obj
+            .get(js_string!("monthCode"), context)?
+            .map(|v| {
+                let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+                let Some(month_code) = v.as_string() else {
+                    return Err(JsNativeError::typ()
+                        .with_message("The monthCode field value must be a string.")
+                        .into());
+                };
+                TinyAsciiStr::<4>::try_from_str(&month_code.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
+            })
+            .transpose()?;
+
+        let year = obj
+            .get(js_string!("year"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
             })
             .transpose()?;
 
@@ -511,6 +524,7 @@ fn to_temporal_year_month(
         let partial = PartialDate {
             year,
             month,
+            month_code,
             ..Default::default()
         };
 

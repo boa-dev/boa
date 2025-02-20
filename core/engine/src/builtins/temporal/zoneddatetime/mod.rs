@@ -1303,6 +1303,8 @@ pub(crate) fn to_temporal_zoneddatetime(
                 get_option::<OffsetDisambiguation>(&options, js_string!("offset"), context)?
                     .unwrap_or(OffsetDisambiguation::Reject);
             // p. Perform ? GetTemporalOverflowOption(resolvedOptions).
+            let _overflow =
+                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // q. Let isoDate be CreateISODateRecord(result.[[Year]], result.[[Month]], result.[[Day]]).
             // r. Let time be result.[[Time]].
             // 6. Let offsetNanoseconds be 0.

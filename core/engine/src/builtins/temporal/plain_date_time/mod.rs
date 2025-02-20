@@ -1166,6 +1166,7 @@ pub(crate) fn to_temporal_datetime(
         // f. Let fields be ? PrepareCalendarFields(calendarRec, item, « "day", "month",
         // "monthCode", "year" », « "hour", "microsecond", "millisecond", "minute",
         // "nanosecond", "second" », «»)
+        // TODO: Fix order of ops with `to_partial_date_time_record`
         let partial_date = to_partial_date_record(object, context)?;
         let partial_time = to_partial_time_record(object, context)?;
         // TODO: Move validation to `temporal_rs`.
