@@ -41,7 +41,7 @@ use std::{
     hash::{Hash, Hasher},
     mem::ManuallyDrop,
     process::abort,
-    ptr::{self, addr_of, addr_of_mut, NonNull},
+    ptr::{self, NonNull},
     str::FromStr,
 };
 
@@ -532,6 +532,7 @@ impl JsString {
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
     #[inline]
     #[must_use]
+    #[allow(clippy::cast_ptr_alignment)]
     pub fn as_str(&self) -> JsStr<'_> {
         match self.ptr.unwrap() {
             UnwrappedTagged::Ptr(h) => {
@@ -552,26 +553,20 @@ impl JsString {
                 //   which means it is safe to read the `refcount` as `read_only` here.
                 unsafe {
                     let h = h.as_ptr();
-                    if (*h).refcount.read_only == 0 {
+                    let tagged_len = (*h).tagged_len;
+                    let len = tagged_len.len();
+                    let is_latin1 = tagged_len.is_latin1();
+                    let ptr = if (*h).refcount.read_only == 0 {
                         let h = h.cast::<StaticJsString>();
-                        return if (*h).tagged_len.is_latin1() {
-                            JsStr::latin1(std::slice::from_raw_parts(
-                                (*h).ptr,
-                                (*h).tagged_len.len(),
-                            ))
-                        } else {
-                            JsStr::utf16(std::slice::from_raw_parts(
-                                (*h).ptr.cast(),
-                                (*h).tagged_len.len(),
-                            ))
-                        };
-                    }
-
-                    let len = (*h).len();
-                    if (*h).is_latin1() {
-                        JsStr::latin1(std::slice::from_raw_parts(addr_of!((*h).data).cast(), len))
+                        (*h).ptr
                     } else {
-                        JsStr::utf16(std::slice::from_raw_parts(addr_of!((*h).data).cast(), len))
+                        (&raw const (*h).data).cast::<u8>()
+                    };
+
+                    if is_latin1 {
+                        JsStr::latin1(std::slice::from_raw_parts(ptr, len))
+                    } else {
+                        JsStr::utf16(std::slice::from_raw_parts(ptr.cast::<u16>(), len))
                     }
                 }
             }
@@ -611,7 +606,7 @@ impl JsString {
 
         let string = {
             // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-            let mut data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast::<u8>() };
+            let mut data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
             for &string in strings {
                 // SAFETY:
                 // The sum of all `count` for each `string` equals `full_count`, and since we're
@@ -746,7 +741,7 @@ impl JsString {
         let ptr = Self::allocate_inner(count, string.is_latin1());
 
         // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        let data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast::<u8>() };
+        let data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
 
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
