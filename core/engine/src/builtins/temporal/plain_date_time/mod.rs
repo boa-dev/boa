@@ -1218,8 +1218,7 @@ fn to_partial_datetime(
             let finite = v.to_finitef64(context)?;
             Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
     // TODO: `temporal_rs` needs a `has_era` method
     let (era, era_year) = if calendar == Calendar::default() {
         (None, None)
@@ -1254,8 +1253,7 @@ fn to_partial_datetime(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let millisecond = partial_object
         .get(js_string!("millisecond"), context)?
@@ -1263,8 +1261,7 @@ fn to_partial_datetime(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let minute = partial_object
         .get(js_string!("minute"), context)?
@@ -1272,8 +1269,7 @@ fn to_partial_datetime(
             let finite = v.to_finitef64(context)?;
             Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let month = partial_object
         .get(js_string!("month"), context)?
@@ -1305,8 +1301,7 @@ fn to_partial_datetime(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let second = partial_object
         .get(js_string!("second"), context)?
@@ -1314,8 +1309,7 @@ fn to_partial_datetime(
             let finite = v.to_finitef64(context)?;
             Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let year = partial_object
         .get(js_string!("year"), context)?

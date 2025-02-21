@@ -22,13 +22,7 @@ impl ConcatToString {
             let val = registers.get(*value);
             strings.push(val.to_string(context)?);
         }
-        let s = JsString::concat_array(
-            &strings
-                .iter()
-                .map(JsString::as_str)
-                .map(Into::into)
-                .collect::<Vec<_>>(),
-        );
+        let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>());
         registers.set(string, s.into());
         Ok(CompletionType::Normal)
     }

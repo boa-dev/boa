@@ -619,7 +619,7 @@ impl JsError {
     /// Is the [`JsError`] catchable in JavaScript.
     #[inline]
     pub(crate) fn is_catchable(&self) -> bool {
-        self.as_native().map_or(true, JsNativeError::is_catchable)
+        self.as_native().is_none_or(JsNativeError::is_catchable)
     }
 }
 

@@ -125,9 +125,9 @@ where
 
         if let Some(position) = duplicate_proto_position {
             if !cursor.json_parse()
-                && cursor.peek(0, interner)?.map_or(true, |token| {
-                    token.kind() != &TokenKind::Punctuator(Punctuator::Assign)
-                })
+                && cursor
+                    .peek(0, interner)?
+                    .is_none_or(|token| token.kind() != &TokenKind::Punctuator(Punctuator::Assign))
             {
                 return Err(Error::general(
                     "Duplicate __proto__ fields are not allowed in object literals.",

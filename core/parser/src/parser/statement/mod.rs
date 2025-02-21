@@ -151,7 +151,6 @@ where
             TokenKind::Keyword((Keyword::For, _)) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Return, _)) => {
                 if self.allow_return.0 {

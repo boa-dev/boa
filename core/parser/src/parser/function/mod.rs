@@ -104,9 +104,10 @@ where
 
             params.push(next_param);
 
-            if cursor.peek(0, interner)?.map_or(true, |tok| {
-                tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
-            }) {
+            if cursor
+                .peek(0, interner)?
+                .is_none_or(|tok| tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen))
+            {
                 break;
             }
 
@@ -120,9 +121,10 @@ where
             }
 
             cursor.expect(Punctuator::Comma, "parameter list", interner)?;
-            if cursor.peek(0, interner)?.map_or(true, |tok| {
-                tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen)
-            }) {
+            if cursor
+                .peek(0, interner)?
+                .is_none_or(|tok| tok.kind() == &TokenKind::Punctuator(Punctuator::CloseParen))
+            {
                 break;
             }
         }

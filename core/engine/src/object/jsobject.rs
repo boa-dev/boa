@@ -1,6 +1,10 @@
 //! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
+#![allow(
+    unknown_lints,
+    reason = "unpredictable_function_pointer_comparisons doesn't exist on 1.84"
+)]
 
 use super::{
     internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
@@ -408,7 +412,7 @@ impl JsObject {
         let get = if let Some(getter) = self.try_get(js_string!("get"), context)? {
             // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
-            if !getter.is_undefined() && getter.as_object().map_or(true, |o| !o.is_callable()) {
+            if !getter.is_undefined() && getter.as_object().is_none_or(|o| !o.is_callable()) {
                 return Err(JsNativeError::typ()
                     .with_message("Property descriptor getter must be callable")
                     .into());
@@ -425,7 +429,7 @@ impl JsObject {
         let set = if let Some(setter) = self.try_get(js_string!("set"), context)? {
             // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
-            if !setter.is_undefined() && setter.as_object().map_or(true, |o| !o.is_callable()) {
+            if !setter.is_undefined() && setter.as_object().is_none_or(|o| !o.is_callable()) {
                 return Err(JsNativeError::typ()
                     .with_message("Property descriptor setter must be callable")
                     .into());
@@ -748,6 +752,10 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     #[must_use]
+    #[expect(
+        unpredictable_function_pointer_comparisons,
+        reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
+    )]
     pub fn is_callable(&self) -> bool {
         self.inner.vtable.__call__ != ORDINARY_INTERNAL_METHODS.__call__
     }
@@ -760,6 +768,10 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
     #[must_use]
+    #[expect(
+        unpredictable_function_pointer_comparisons,
+        reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
+    )]
     pub fn is_constructor(&self) -> bool {
         self.inner.vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
     }

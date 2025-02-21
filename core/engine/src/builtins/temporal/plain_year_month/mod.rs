@@ -214,13 +214,8 @@ impl BuiltInConstructor for PlainYearMonth {
             .transpose()?;
 
         // 7. Return ? CreateTemporalYearMonth(y, m, calendar, ref, NewTarget).
-        let inner = InnerYearMonth::new_with_overflow(
-            y,
-            m,
-            ref_day.map(Into::into),
-            calendar,
-            ArithmeticOverflow::Reject,
-        )?;
+        let inner =
+            InnerYearMonth::new_with_overflow(y, m, ref_day, calendar, ArithmeticOverflow::Reject)?;
 
         create_temporal_year_month(inner, Some(new_target), context)
     }

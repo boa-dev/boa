@@ -213,7 +213,7 @@ fn module_namespace_exotic_define_own_property(
 
     // 8. If Desc has a [[Value]] field, return SameValue(Desc.[[Value]], current.[[Value]]).
     // 9. Return true.
-    Ok(desc.value().map_or(true, |v| v == current.expect_value()))
+    Ok(desc.value().is_none_or(|v| v == current.expect_value()))
 }
 
 /// [`[[HasProperty]] ( P )`][spec]
