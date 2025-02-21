@@ -1,6 +1,9 @@
 use crate::{context::HostHooks, js_string, value::IntegerOrInfinity, JsStr, JsString};
 use boa_macros::js_str;
-use std::{iter::Peekable, str::Chars};
+use boa_string::JsStrVariant;
+use std::slice::Iter;
+use std::str;
+use std::{borrow::Cow, iter::Peekable};
 use time::{macros::format_description, OffsetDateTime, PrimitiveDateTime};
 
 // Time-related Constants
@@ -750,8 +753,22 @@ pub(super) fn pad_six(t: u32, output: &mut [u8; 6]) -> JsStr<'_> {
 /// [spec-format]: https://tc39.es/ecma262/#sec-date-time-string-format
 pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> {
     // All characters must be ASCII so we can return early if we find a non-ASCII character.
-    let Ok(date) = date.to_std_string() else {
-        return None;
+    let owned_js_str = date.as_str();
+    let date = match owned_js_str.variant() {
+        JsStrVariant::Latin1(s) => {
+            if !s.is_ascii() {
+                return None;
+            }
+            // SAFETY: Since all characters are ASCII we can safely convert this into str.
+            Cow::Borrowed(unsafe { str::from_utf8_unchecked(s) })
+        }
+        JsStrVariant::Utf16(s) => {
+            let date = String::from_utf16(s).ok()?;
+            if !date.is_ascii() {
+                return None;
+            }
+            Cow::Owned(date)
+        }
     };
 
     // Date Time String Format: 'YYYY-MM-DDTHH:mm:ss.sssZ'
@@ -778,7 +795,7 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
 /// [spec]: https://tc39.es/ecma262/#sec-date-time-string-format
 struct DateParser<'a> {
     hooks: &'a dyn HostHooks,
-    input: Peekable<Chars<'a>>,
+    input: Peekable<Iter<'a, u8>>,
     year: i32,
     month: u32,
     day: u32,
@@ -789,11 +806,32 @@ struct DateParser<'a> {
     offset: i64,
 }
 
+// Copied from https://github.com/RoDmitry/atoi_simd/blob/master/src/fallback.rs,
+// which is based on https://rust-malaysia.github.io/code/2020/07/11/faster-integer-parsing.html.
+#[doc(hidden)]
+#[allow(clippy::inline_always)]
+pub(in crate::builtins::date) mod fast_atoi {
+    #[inline(always)]
+    pub(in crate::builtins::date) const fn process_8(mut val: u64, len: usize) -> u64 {
+        val <<= 64_usize.saturating_sub(len << 3); // << 3 - same as mult by 8
+        val = (val & 0x0F0F_0F0F_0F0F_0F0F).wrapping_mul(0xA01) >> 8;
+        val = (val & 0x00FF_00FF_00FF_00FF).wrapping_mul(0x64_0001) >> 16;
+        (val & 0x0000_FFFF_0000_FFFF).wrapping_mul(0x2710_0000_0001) >> 32
+    }
+
+    #[inline(always)]
+    pub(in crate::builtins::date) const fn process_4(mut val: u32, len: usize) -> u32 {
+        val <<= 32_usize.saturating_sub(len << 3); // << 3 - same as mult by 8
+        val = (val & 0x0F0F_0F0F).wrapping_mul(0xA01) >> 8;
+        (val & 0x00FF_00FF).wrapping_mul(0x64_0001) >> 16
+    }
+}
+
 impl<'a> DateParser<'a> {
     fn new(s: &'a str, hooks: &'a dyn HostHooks) -> Self {
         Self {
             hooks,
-            input: s.chars().peekable(),
+            input: s.as_bytes().iter().peekable(),
             year: 0,
             month: 1,
             day: 1,
@@ -805,20 +843,56 @@ impl<'a> DateParser<'a> {
         }
     }
 
-    fn next_expect(&mut self, expect: char) -> Option<()> {
+    fn next_expect(&mut self, expect: u8) -> Option<()> {
         self.input
             .next()
-            .and_then(|c| if c == expect { Some(()) } else { None })
+            .and_then(|c| if *c == expect { Some(()) } else { None })
     }
 
-    fn next_digit(&mut self) -> Option<u8> {
-        self.input.next().and_then(|c| {
-            if c.is_ascii_digit() {
-                Some((u32::from(c) - u32::from('0')) as u8)
-            } else {
-                None
+    fn next_ascii_digit(&mut self) -> Option<u8> {
+        self.input
+            .next()
+            .and_then(|c| if c.is_ascii_digit() { Some(*c) } else { None })
+    }
+
+    fn next_n_ascii_digits<const N: usize>(&mut self) -> Option<[u8; N]> {
+        let mut digits = [0; N];
+        for digit in &mut digits {
+            *digit = self.next_ascii_digit()?;
+        }
+        Some(digits)
+    }
+
+    fn parse_n_ascii_digits<const N: usize>(&mut self) -> Option<u64> {
+        assert!(N <= 8, "parse_n_ascii_digits parses no more than 8 digits");
+        if N == 0 {
+            return None;
+        }
+        let ascii_digits = self.next_n_ascii_digits::<N>()?;
+        match N {
+            1..4 => {
+                // When N is small, process digits naively.
+                let mut res = 0;
+                for digit in ascii_digits {
+                    res = res * 10 + u64::from(digit & 0xF);
+                }
+                Some(res)
             }
-        })
+            4 => {
+                // Process digits as an u32 block.
+                let mut src = [0; 4];
+                src[..N].copy_from_slice(&ascii_digits);
+                let val = u32::from_le_bytes(src);
+                Some(u64::from(fast_atoi::process_4(val, N)))
+            }
+            _ => {
+                // Process digits as an u64 block.
+                let mut src = [0; 8];
+                src[..N].copy_from_slice(&ascii_digits);
+                let val = u64::from_le_bytes(src);
+                Some(fast_atoi::process_8(val, N))
+            }
+        }
     }
 
     fn finish(&mut self) -> Option<i64> {
@@ -869,105 +943,85 @@ impl<'a> DateParser<'a> {
         }
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse(&mut self) -> Option<i64> {
         self.parse_year()?;
         match self.input.peek() {
-            Some('T') => return self.parse_time(),
+            Some(b'T') => return self.parse_time(),
             None => return self.finish(),
             _ => {}
         }
-        self.next_expect('-')?;
-        self.month = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b'-')?;
+        self.month = self.parse_n_ascii_digits::<2>()? as u32;
         if self.month < 1 || self.month > 12 {
             return None;
         }
         match self.input.peek() {
-            Some('T') => return self.parse_time(),
+            Some(b'T') => return self.parse_time(),
             None => return self.finish(),
             _ => {}
         }
-        self.next_expect('-')?;
-        self.day = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b'-')?;
+        self.day = self.parse_n_ascii_digits::<2>()? as u32;
         if self.day < 1 || self.day > 31 {
             return None;
         }
         match self.input.peek() {
-            Some('T') => self.parse_time(),
+            Some(b'T') => self.parse_time(),
             _ => self.finish(),
         }
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse_year(&mut self) -> Option<()> {
-        match self.input.next()? {
-            '+' => {
-                self.year = i32::from(self.next_digit()?) * 100_000
-                    + i32::from(self.next_digit()?) * 10000
-                    + i32::from(self.next_digit()?) * 1000
-                    + i32::from(self.next_digit()?) * 100
-                    + i32::from(self.next_digit()?) * 10
-                    + i32::from(self.next_digit()?);
-                Some(())
+        if let &&sign @ (b'+' | b'-') = self.input.peek()? {
+            // Consume the sign.
+            self.input.next();
+            let year = self.parse_n_ascii_digits::<6>()? as i32;
+            let neg = sign == b'-';
+            if neg && year == 0 {
+                return None;
             }
-            '-' => {
-                let year = i32::from(self.next_digit()?) * 100_000
-                    + i32::from(self.next_digit()?) * 10000
-                    + i32::from(self.next_digit()?) * 1000
-                    + i32::from(self.next_digit()?) * 100
-                    + i32::from(self.next_digit()?) * 10
-                    + i32::from(self.next_digit()?);
-                if year == 0 {
-                    return None;
-                }
-                self.year = -year;
-                Some(())
-            }
-            c if c.is_ascii_digit() => {
-                self.year = i32::from((u32::from(c) - u32::from('0')) as u8) * 1000
-                    + i32::from(self.next_digit()?) * 100
-                    + i32::from(self.next_digit()?) * 10
-                    + i32::from(self.next_digit()?);
-                Some(())
-            }
-            _ => None,
+            self.year = if neg { -year } else { year };
+        } else {
+            self.year = self.parse_n_ascii_digits::<4>()? as i32;
         }
+        Some(())
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse_time(&mut self) -> Option<i64> {
-        self.next_expect('T')?;
-        self.hour = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b'T')?;
+        self.hour = self.parse_n_ascii_digits::<2>()? as u32;
         if self.hour > 24 {
             return None;
         }
-        self.next_expect(':')?;
-        self.minute = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        self.next_expect(b':')?;
+        self.minute = self.parse_n_ascii_digits::<2>()? as u32;
         if self.minute > 59 {
             return None;
         }
         match self.input.peek() {
-            Some(':') => {}
+            Some(b':') => self.input.next(),
             None => return self.finish_local(),
             _ => {
                 self.parse_timezone()?;
                 return self.finish();
             }
-        }
-        self.next_expect(':')?;
-        self.second = u32::from(self.next_digit()?) * 10 + u32::from(self.next_digit()?);
+        };
+        self.second = self.parse_n_ascii_digits::<2>()? as u32;
         if self.second > 59 {
             return None;
         }
         match self.input.peek() {
-            Some('.') => {}
+            Some(b'.') => self.input.next(),
             None => return self.finish_local(),
             _ => {
                 self.parse_timezone()?;
                 return self.finish();
             }
-        }
-        self.next_expect('.')?;
-        self.millisecond = u32::from(self.next_digit()?) * 100
-            + u32::from(self.next_digit()?) * 10
-            + u32::from(self.next_digit()?);
+        };
+        self.millisecond = self.parse_n_ascii_digits::<3>()? as u32;
         if self.input.peek().is_some() {
             self.parse_timezone()?;
             self.finish()
@@ -976,44 +1030,26 @@ impl<'a> DateParser<'a> {
         }
     }
 
+    #[allow(clippy::as_conversions)]
     fn parse_timezone(&mut self) -> Option<()> {
         match self.input.next() {
-            Some('Z') => return Some(()),
-            Some('+') => {
-                let offset_hour =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
+            Some(b'Z') => return Some(()),
+            Some(sign @ (b'+' | b'-')) => {
+                let neg = *sign == b'-';
+                let offset_hour = self.parse_n_ascii_digits::<2>()? as i64;
                 if offset_hour > 23 {
                     return None;
                 }
-                self.offset = -offset_hour * 60;
+                self.offset = if neg { offset_hour } else { -offset_hour } * 60;
                 if self.input.peek().is_none() {
                     return Some(());
                 }
-                self.next_expect(':')?;
-                let offset_minute =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
+                self.next_expect(b':')?;
+                let offset_minute = self.parse_n_ascii_digits::<2>()? as i64;
                 if offset_minute > 59 {
                     return None;
                 }
-                self.offset += -offset_minute;
-            }
-            Some('-') => {
-                let offset_hour =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
-                if offset_hour > 23 {
-                    return None;
-                }
-                self.offset = offset_hour * 60;
-                if self.input.peek().is_none() {
-                    return Some(());
-                }
-                self.next_expect(':')?;
-                let offset_minute =
-                    i64::from(self.next_digit()?) * 10 + i64::from(self.next_digit()?);
-                if offset_minute > 59 {
-                    return None;
-                }
-                self.offset += offset_minute;
+                self.offset += if neg { offset_minute } else { -offset_minute };
             }
             _ => return None,
         }
