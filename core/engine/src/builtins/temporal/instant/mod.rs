@@ -153,7 +153,6 @@ impl Instant {
             None,
             context,
         )
-        .map(Into::into)
     }
 
     pub(crate) fn from_epoch_milliseconds(
@@ -172,7 +171,6 @@ impl Instant {
             None,
             context,
         )
-        .map(Into::into)
     }
 
     pub(crate) fn from_epoch_nanoseconds(
@@ -190,7 +188,6 @@ impl Instant {
             None,
             context,
         )
-        .map(Into::into)
     }
 
     pub(crate) fn compare(

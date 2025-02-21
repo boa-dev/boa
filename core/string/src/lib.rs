@@ -970,13 +970,7 @@ impl From<JsStr<'_>> for JsString {
 impl From<&[JsString]> for JsString {
     #[inline]
     fn from(value: &[JsString]) -> Self {
-        Self::concat_array(
-            &value
-                .iter()
-                .map(Self::as_str)
-                .map(Into::into)
-                .collect::<Vec<_>>()[..],
-        )
+        Self::concat_array(&value.iter().map(Self::as_str).collect::<Vec<_>>()[..])
     }
 }
 

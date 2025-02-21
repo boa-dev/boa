@@ -1133,7 +1133,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        create_temporal_instant(zdt.inner.to_instant(), None, context).map(Into::into)
+        create_temporal_instant(zdt.inner.to_instant(), None, context)
     }
 
     /// 6.3.48 `Temporal.ZonedDateTime.prototype.toPlainDate ( )`

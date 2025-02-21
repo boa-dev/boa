@@ -70,7 +70,7 @@ impl Now {
     /// 2.2.2 `Temporal.Now.instant()`
     fn instant(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let epoch_nanos = system_nanoseconds(context)?;
-        create_temporal_instant(Instant::from(epoch_nanos), None, context).map(Into::into)
+        create_temporal_instant(Instant::from(epoch_nanos), None, context)
     }
 
     /// 2.2.3 `Temporal.Now.plainDateTimeISO ( [ temporalTimeZoneLike ] )`

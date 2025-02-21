@@ -61,5 +61,5 @@ fn is_low_surrogate(b: u16) -> bool {
 }
 
 fn code_point_from_surrogates(high: u16, low: u16) -> u32 {
-    ((u32::from(high & 0x3ff)) << 10 | u32::from(low & 0x3ff)) + 0x1_0000
+    (((u32::from(high & 0x3ff)) << 10) | u32::from(low & 0x3ff)) + 0x1_0000
 }

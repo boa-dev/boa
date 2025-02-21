@@ -722,8 +722,7 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let microsecond = partial_object
         .get(js_string!("microsecond"), context)?
@@ -731,8 +730,7 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let millisecond = partial_object
         .get(js_string!("millisecond"), context)?
@@ -740,8 +738,7 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let minute = partial_object
         .get(js_string!("minute"), context)?
@@ -749,8 +746,7 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let nanosecond = partial_object
         .get(js_string!("nanosecond"), context)?
@@ -758,8 +754,7 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let second = partial_object
         .get(js_string!("second"), context)?
@@ -767,8 +762,7 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     Ok(PartialTime {
         hour,
