@@ -25,18 +25,22 @@ mod tests;
 
 use temporal_rs::{
     options::{
-        ArithmeticOverflow, DisplayCalendar, RoundingIncrement, RoundingOptions,
+        ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingOptions,
         TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
     partial::{PartialDate, PartialDateTime, PartialTime},
     Calendar, PlainDateTime as InnerDateTime, TinyAsciiStr,
 };
 
+// TODO: Remove once implementations are complete.
+#[allow(unused_imports)]
 use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
-    create_temporal_duration,
+    create_temporal_date, create_temporal_duration, create_temporal_time,
+    create_temporal_zoneddatetime,
     options::{get_difference_settings, get_digits_option, get_temporal_unit, TemporalUnitGroup},
-    to_temporal_duration_record, to_temporal_time, PlainDate, ZonedDateTime,
+    to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier, PlainDate,
+    ZonedDateTime,
 };
 use crate::value::JsVariant;
 
@@ -306,6 +310,9 @@ impl IntrinsicObject for PlainDateTime {
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
+            .method(Self::to_plain_date, js_string!("toPlainDate"), 0)
+            .method(Self::to_plain_time, js_string!("toPlainTime"), 0)
             .build();
     }
 
@@ -1063,6 +1070,64 @@ impl PlainDateTime {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
+    }
+
+    fn to_zoned_date_time(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let dateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(dateTime, [[InitializedTemporalDateTime]]).
+        let _dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+        // 3. Let timeZone be ? ToTemporalTimeZoneIdentifier(temporalTimeZoneLike).
+        let _timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
+        // 4. Let resolvedOptions be ? GetOptionsObject(options).
+        let options = get_options_object(args.get_or_undefined(1))?;
+        // 5. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
+        let _disambiguation =
+            get_option::<Disambiguation>(&options, js_string!("disambiguation"), context)?
+                .unwrap_or_default();
+        // 6. Let epochNs be ? GetEpochNanosecondsFor(timeZone, dateTime.[[ISODateTime]], disambiguation).
+        // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, dateTime.[[Calendar]]).
+
+        // let result = dt.inner.to_zoned_date_time_with_provider(timezone, disambiguation, context.tz_provider())?;
+        // create_temporal_zoneddatetime(result, None, context)
+        Err(JsNativeError::error()
+            .with_message("Not yet implemented")
+            .into())
+    }
+
+    fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        // let result = dt.inner.to_plain_date();
+        // create_temporal_date(result, None, context)
+        Err(JsNativeError::error()
+            .with_message("Not yet implemented")
+            .into())
+    }
+
+    fn to_plain_time(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let dt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
+            })?;
+
+        let result = dt.inner.to_plain_time()?;
+        create_temporal_time(result, None, context).map(Into::into)
     }
 }
 

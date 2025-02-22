@@ -24,7 +24,10 @@ use temporal_rs::{
     Calendar, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
 };
 
-use super::{calendar::to_temporal_calendar_slot_value, DateTimeValues};
+use super::{
+    calendar::to_temporal_calendar_slot_value, create_temporal_date, is_partial_temporal_object,
+    to_partial_date_record, DateTimeValues,
+};
 
 /// The `Temporal.PlainMonthDay` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -83,11 +86,13 @@ impl IntrinsicObject for PlainMonthDay {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 1)
+            .method(Self::with, js_string!("with"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
+            .method(Self::to_plain_date, js_string!("toPlainDate"), 1)
             .build();
     }
 
@@ -211,6 +216,38 @@ impl PlainMonthDay {
 // ==== `Temporal.PlainMonthDay` Methods ====
 
 impl PlainMonthDay {
+    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let monthDay be the this value.
+        // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+
+        // 3. If ? IsPartialTemporalObject(temporalMonthDayLike) is false, throw a TypeError exception.
+        let Some(object) = is_partial_temporal_object(args.get_or_undefined(0), context)? else {
+            return Err(JsNativeError::typ()
+                .with_message("temporalMonthDayLike was not a partial object")
+                .into());
+        };
+        // 4. Let calendar be monthDay.[[Calendar]].
+        // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
+        // 6. Let partialMonthDay be ? PrepareCalendarFields(calendar, temporalMonthDayLike, « year, month, month-code, day », « », partial).
+        let partial = to_partial_date_record(object, context)?;
+        // 7. Set fields to CalendarMergeFields(calendar, fields, partialMonthDay).
+        // 8. Let resolvedOptions be ? GetOptionsObject(options).
+        let resolved_options = get_options_object(args.get_or_undefined(1))?;
+        // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
+        let overflow =
+            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
+                .unwrap_or_default();
+        // 10. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
+        // 11. Return ! CreateTemporalMonthDay(isoDate, calendar).
+        create_temporal_month_day(month_day.inner.with(partial, overflow)?, None, context)
+    }
+
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let month_day = this
             .as_object()
@@ -281,6 +318,35 @@ impl PlainMonthDay {
         Err(JsNativeError::typ()
             .with_message("`valueOf` not supported by Temporal built-ins. See 'compare', 'equals', or `toString`")
             .into())
+    }
+
+    fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let monthDay be the this value.
+        // 2. Perform ? RequireInternalSlot(monthDay, [[InitializedTemporalMonthDay]]).
+        let month_day = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainMonthDay object.")
+            })?;
+
+        // 3. If item is not an Object, then
+        let Some(_item) = args.get_or_undefined(0).as_object() else {
+            // a. Throw a TypeError exception.
+            return Err(JsNativeError::typ()
+                .with_message("toPlainDate item must be an object")
+                .into());
+        };
+
+        // TODO: Handle and implement the below
+        // 4. Let calendar be monthDay.[[Calendar]].
+        // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
+        // 6. Let inputFields be ? PrepareCalendarFields(calendar, item, « year », « », « »).
+        // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
+        // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
+        // 9. Return ! CreateTemporalDate(isoDate, calendar).
+        let result = month_day.inner.to_plain_date()?;
+        create_temporal_date(result, None, context).map(Into::into)
     }
 }
 

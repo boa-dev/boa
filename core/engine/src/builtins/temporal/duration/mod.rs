@@ -754,7 +754,7 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let _duration = this
+        let duration = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
@@ -794,11 +794,10 @@ impl Duration {
         // 7. Let relativeToRecord be ? ToRelativeTemporalObject(totalOf).
         // 8. Let zonedRelativeTo be relativeToRecord.[[ZonedRelativeTo]].
         // 9. Let plainRelativeTo be relativeToRecord.[[PlainRelativeTo]].
-        let (_plain_relative_to, _zoned_relative_to) =
-            super::to_relative_temporal_object(&total_of, context)?;
+        let relative_to = get_relative_to_option(&total_of, context)?;
 
         // 10. Let unit be ? GetTemporalUnit(totalOf, "unit", datetime, required).
-        let _unit = get_temporal_unit(
+        let unit = get_temporal_unit(
             &total_of,
             js_string!("unit"),
             TemporalUnitGroup::DateTime,
@@ -807,10 +806,9 @@ impl Duration {
         )?
         .ok_or_else(|| JsNativeError::range().with_message("unit cannot be undefined."))?;
 
-        // TODO: Implement the rest of the new `Temporal.Duration.prototype.total`
-
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
+        Ok(duration
+            .inner
+            .total_with_provider(unit, relative_to, context.tz_provider())?
             .into())
     }
 

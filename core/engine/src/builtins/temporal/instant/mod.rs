@@ -1,7 +1,7 @@
 //! Boa's implementation of ECMAScript's `Temporal.Instant` builtin object.
 
 use super::options::{get_difference_settings, get_digits_option};
-use super::to_temporal_timezone_identifier;
+use super::{create_temporal_zoneddatetime, to_temporal_timezone_identifier};
 use crate::value::JsVariant;
 use crate::{
     builtins::{
@@ -538,14 +538,26 @@ impl Instant {
 
     /// 8.3.15 `Temporal.Instant.prototype.toZonedDateTimeISO ( timeZone )`
     pub(crate) fn to_zoned_date_time_iso(
-        _: &JsValue,
-        _: &[JsValue],
-        _: &mut Context,
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
     ) -> JsResult<JsValue> {
-        // TODO Complete
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+        // 1. Let instant be the this value.
+        // 2. Perform ? RequireInternalSlot(instant, [[InitializedTemporalInstant]]).
+        let instant = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("the this object must be a Temporal.Instant object.")
+            })?;
+
+        // 3. Set timeZone to ? ToTemporalTimeZoneIdentifier(timeZone).
+        let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
+
+        // 4. Return ! CreateTemporalZonedDateTime(instant.[[EpochNanoseconds]], timeZone, "iso8601").
+        let zdt = instant.inner.to_zoned_date_time_iso(timezone)?;
+        create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 }
 
