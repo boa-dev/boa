@@ -25,11 +25,14 @@ use temporal_rs::{
     Calendar, PlainDate as InnerDate, TinyAsciiStr,
 };
 
+// TODO: Remove once `temporal_rs` funcctionality implemented
+#[allow(unused_imports)]
 use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
-    create_temporal_datetime, create_temporal_duration,
+    create_temporal_datetime, create_temporal_duration, create_temporal_zoneddatetime,
     options::get_difference_settings,
-    to_temporal_duration_record, to_temporal_time, PlainDateTime, ZonedDateTime,
+    to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier, PlainDateTime,
+    ZonedDateTime,
 };
 
 #[cfg(feature = "temporal")]
@@ -235,6 +238,7 @@ impl IntrinsicObject for PlainDate {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_plain_datetime, js_string!("toPlainDateTime"), 0)
+            .method(Self::to_zoned_date_time, js_string!("toZonedDateTime"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::to_json, js_string!("toJSON"), 0)
@@ -756,6 +760,63 @@ impl PlainDate {
             .transpose()?;
         // 4. Return ? CreateTemporalDateTime(temporalDate.[[ISOYear]], temporalDate.[[ISOMonth]], temporalDate.[[ISODay]], temporalTime.[[ISOHour]], temporalTime.[[ISOMinute]], temporalTime.[[ISOSecond]], temporalTime.[[ISOMillisecond]], temporalTime.[[ISOMicrosecond]], temporalTime.[[ISONanosecond]], temporalDate.[[Calendar]]).
         create_temporal_datetime(date.inner.to_date_time(time)?, None, context).map(Into::into)
+    }
+
+    /// `3.3.29 Temporal.PlainDate.prototype.toZonedDateTime ( item )`
+    fn to_zoned_date_time(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let temporalDate be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
+        let _date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        let item = args.get_or_undefined(0);
+        // 3. If item is an Object, then
+        let (_timezone, _time) = if let Some(obj) = item.as_object() {
+            // a. Let timeZoneLike be ? Get(item, "timeZone").
+            let time_zone_like = obj.get(js_string!("timeZone"), context)?;
+            // b. If timeZoneLike is undefined, then
+            if time_zone_like.is_undefined() {
+                // i. Let timeZone be ? ToTemporalTimeZoneIdentifier(item).
+                // ii. Let temporalTime be undefined.
+                (
+                    to_temporal_timezone_identifier(&time_zone_like, context)?,
+                    None,
+                )
+            // c. Else,
+            } else {
+                // i. Let timeZone be ? ToTemporalTimeZoneIdentifier(timeZoneLike).
+                let tz = to_temporal_timezone_identifier(&time_zone_like, context)?;
+                // ii. Let temporalTime be ? Get(item, "plainTime").
+                let plain_time = obj
+                    .get(js_string!("plainTime"), context)?
+                    .map(|v| to_temporal_time(v, None, context))
+                    .transpose()?;
+
+                (tz, plain_time)
+            }
+        // 4. Else,
+        } else {
+            // a. Let timeZone be ? ToTemporalTimeZoneIdentifier(item).
+            // b. Let temporalTime be undefined.
+            (to_temporal_timezone_identifier(item, context)?, None)
+        };
+
+        // TODO: uncomment once merged in `temporal_rs`
+        // let result = date.inner.to_zoned_date_time_with_provider(timezone, time, context.tz_provider())
+
+        // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, temporalDate.[[Calendar]]).
+        // create_temporal_zoneddatetime(result, None, context)
+        Err(JsNativeError::error()
+            .with_message("not yet implemented.")
+            .into())
     }
 
     /// 3.3.30 `Temporal.PlainDate.prototype.toString ( [ options ] )`
