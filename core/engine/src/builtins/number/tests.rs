@@ -357,6 +357,97 @@ fn num_to_string_exponential() {
     ]);
 }
 
+// https://github.com/tc39/test262/blob/main/test/built-ins/Number/prototype/toExponential/return-values.js
+#[test]
+fn test262_number_prototype_toexponential_return_values() {
+    run_test_actions([
+        TestAction::assert_eq("(123.456).toExponential(0)", js_str!("1e+2")),
+        TestAction::assert_eq("(123.456).toExponential(1)", js_str!("1.2e+2")),
+        TestAction::assert_eq("(123.456).toExponential(2)", js_str!("1.23e+2")),
+        TestAction::assert_eq("(123.456).toExponential(3)", js_str!("1.235e+2")),
+        TestAction::assert_eq("(123.456).toExponential(4)", js_str!("1.2346e+2")),
+        TestAction::assert_eq("(123.456).toExponential(5)", js_str!("1.23456e+2")),
+        TestAction::assert_eq("(123.456).toExponential(6)", js_str!("1.234560e+2")),
+        TestAction::assert_eq("(123.456).toExponential(7)", js_str!("1.2345600e+2")),
+        TestAction::assert_eq(
+            "(123.456).toExponential(17)",
+            js_str!("1.23456000000000003e+2"),
+        ),
+        TestAction::assert_eq(
+            "(123.456).toExponential(20)",
+            js_str!("1.23456000000000003070e+2"),
+        ),
+        TestAction::assert_eq("(-123.456).toExponential(0)", js_str!("-1e+2")),
+        TestAction::assert_eq("(-123.456).toExponential(1)", js_str!("-1.2e+2")),
+        TestAction::assert_eq("(-123.456).toExponential(2)", js_str!("-1.23e+2")),
+        TestAction::assert_eq("(-123.456).toExponential(3)", js_str!("-1.235e+2")),
+        TestAction::assert_eq("(-123.456).toExponential(4)", js_str!("-1.2346e+2")),
+        TestAction::assert_eq("(-123.456).toExponential(5)", js_str!("-1.23456e+2")),
+        TestAction::assert_eq("(-123.456).toExponential(6)", js_str!("-1.234560e+2")),
+        TestAction::assert_eq("(-123.456).toExponential(7)", js_str!("-1.2345600e+2")),
+        TestAction::assert_eq(
+            "(-123.456).toExponential(17)",
+            js_str!("-1.23456000000000003e+2"),
+        ),
+        TestAction::assert_eq(
+            "(-123.456).toExponential(20)",
+            js_str!("-1.23456000000000003070e+2"),
+        ),
+        TestAction::assert_eq("(0.0001).toExponential(0)", js_str!("1e-4")),
+        TestAction::assert_eq("(0.0001).toExponential(1)", js_str!("1.0e-4")),
+        TestAction::assert_eq("(0.0001).toExponential(2)", js_str!("1.00e-4")),
+        TestAction::assert_eq("(0.0001).toExponential(3)", js_str!("1.000e-4")),
+        TestAction::assert_eq("(0.0001).toExponential(4)", js_str!("1.0000e-4")),
+        TestAction::assert_eq(
+            "(0.0001).toExponential(16)",
+            js_str!("1.0000000000000000e-4"),
+        ),
+        TestAction::assert_eq(
+            "(0.0001).toExponential(17)",
+            js_str!("1.00000000000000005e-4"),
+        ),
+        TestAction::assert_eq(
+            "(0.0001).toExponential(18)",
+            js_str!("1.000000000000000048e-4"),
+        ),
+        TestAction::assert_eq(
+            "(0.0001).toExponential(19)",
+            js_str!("1.0000000000000000479e-4"),
+        ),
+        TestAction::assert_eq(
+            "(0.0001).toExponential(20)",
+            js_str!("1.00000000000000004792e-4"),
+        ),
+        TestAction::assert_eq("(0.9999).toExponential(0)", js_str!("1e+0")),
+        TestAction::assert_eq("(0.9999).toExponential(1)", js_str!("1.0e+0")),
+        TestAction::assert_eq("(0.9999).toExponential(2)", js_str!("1.00e+0")),
+        TestAction::assert_eq("(0.9999).toExponential(3)", js_str!("9.999e-1")),
+        TestAction::assert_eq("(0.9999).toExponential(4)", js_str!("9.9990e-1")),
+        TestAction::assert_eq(
+            "(0.9999).toExponential(16)",
+            js_str!("9.9990000000000001e-1"),
+        ),
+        TestAction::assert_eq(
+            "(0.9999).toExponential(17)",
+            js_str!("9.99900000000000011e-1"),
+        ),
+        TestAction::assert_eq(
+            "(0.9999).toExponential(18)",
+            js_str!("9.999000000000000110e-1"),
+        ),
+        TestAction::assert_eq(
+            "(0.9999).toExponential(19)",
+            js_str!("9.9990000000000001101e-1"),
+        ),
+        TestAction::assert_eq(
+            "(0.9999).toExponential(20)",
+            js_str!("9.99900000000000011013e-1"),
+        ),
+        TestAction::assert_eq("(25).toExponential(0)", js_str!("3e+1")),
+        TestAction::assert_eq("(12345).toExponential(3)", js_str!("1.235e+4")),
+    ]);
+}
+
 #[test]
 fn value_of() {
     // TODO: In addition to parsing numbers from strings, parse them bare As of October 2019

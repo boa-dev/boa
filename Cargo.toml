@@ -18,7 +18,7 @@ members = [
 
 exclude = [
     "tests/fuzz", # Does weird things on Windows tests
-    "tests/src", # Just a hack to have fuzz inside tests
+    "tests/src",  # Just a hack to have fuzz inside tests
 ]
 
 [workspace.package]
@@ -70,7 +70,14 @@ serde = "1.0.217"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
-time = { version = "0.3.37", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
+time = { version = "0.3.37", default-features = false, features = [
+    "local-offset",
+    "large-dates",
+    "wasm-bindgen",
+    "parsing",
+    "formatting",
+    "macros",
+] }
 tinystr = "0.7.5"
 log = "0.4.25"
 simple_logger = "5.0.0"
@@ -98,7 +105,7 @@ measureme = "12.0.1"
 paste = "1.0"
 rand = "0.9.0"
 num-integer = "0.1.46"
-ryu-js = "1.0.2"
+ryu-js = { git = "https://github.com/boa-dev/ryu-js.git", rev = "14cfde2f061ddd6e0eeb76d9324812de1b8c7789" }
 tap = "1.0.1"
 thiserror = { version = "2.0.11", default-features = false }
 dashmap = "6.1.0"
@@ -111,7 +118,9 @@ intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
 either = "1.13.0"
 sys-locale = "0.3.2"
-temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "7484b2584efc7430f5ca34cf3a91e858286a3a29", default-features = false, features = ["tzdb"] }
+temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "7484b2584efc7430f5ca34cf3a91e858286a3a29", default-features = false, features = [
+    "tzdb",
+] }
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.10.0"
