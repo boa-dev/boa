@@ -241,7 +241,9 @@ impl Number {
             Some(IntegerOrInfinity::Integer(precision)) if (0..=100).contains(&precision) =>
             // 5. If f < 0 or f > 100, throw a RangeError exception.
             {
-                f64_to_exponential_with_precision(this_num, precision as usize)
+                ryu_js::Buffer::new()
+                    .format_to_exponential(this_num, precision as u8)
+                    .into()
             }
             _ => {
                 return Err(JsNativeError::range()
@@ -921,17 +923,4 @@ fn f64_to_exponential(n: f64) -> JsString {
         x if x >= 1.0 || x == 0.0 => js_string!(s.cow_replace('e', "e+")),
         _ => js_string!(s),
     }
-}
-
-/// Helper function that formats a float as a ES6-style exponential number string with a given precision.
-// We can't use the same approach as in `f64_to_exponential`
-// because in cases like (0.999).toExponential(0) the result will be 1e0.
-// Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
-fn f64_to_exponential_with_precision(n: f64, prec: usize) -> JsString {
-    let mut res = format!("{n:.prec$e}");
-    let idx = res.find('e').expect("'e' not found in exponential string");
-    if res.as_bytes()[idx + 1] != b'-' {
-        res.insert(idx + 1, '+');
-    }
-    js_string!(res)
 }
