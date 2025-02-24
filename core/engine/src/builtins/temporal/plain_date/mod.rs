@@ -2,6 +2,8 @@
 
 // TODO (nekevss): DOCS DOCS AND MORE DOCS
 
+use std::str::FromStr;
+
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -22,7 +24,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    Calendar, PlainDate as InnerDate, TinyAsciiStr,
+    Calendar, MonthCode, PlainDate as InnerDate, TinyAsciiStr,
 };
 
 // TODO: Remove once `temporal_rs` funcctionality implemented
@@ -1071,8 +1073,7 @@ pub(crate) fn to_partial_date_record(
                     .with_message("The monthCode field value must be a string.")
                     .into());
             };
-            TinyAsciiStr::<4>::try_from_str(&month_code.to_std_string_escaped())
-                .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
+            MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(JsError::from)
         })
         .transpose()?;
     let year = partial_object

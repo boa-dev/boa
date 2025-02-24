@@ -22,7 +22,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    Calendar, Duration, PlainYearMonth as InnerYearMonth, TinyAsciiStr,
+    Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth,
 };
 
 use super::{
@@ -543,44 +543,6 @@ impl PlainYearMonth {
 // 9.5.2 `RegulateISOYearMonth ( year, month, overflow )`
 // Implemented on `TemporalFields`.
 
-fn to_partial_year_month(obj: &JsObject, context: &mut Context) -> JsResult<PartialDate> {
-    let month = obj
-        .get(js_string!("month"), context)?
-        .map(|v| {
-            let finite = v.to_finitef64(context)?;
-            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
-        })
-        .transpose()?;
-    let month_code = obj
-        .get(js_string!("monthCode"), context)?
-        .map(|v| {
-            let v = v.to_primitive(context, crate::value::PreferredType::String)?;
-            let Some(month_code) = v.as_string() else {
-                return Err(JsNativeError::typ()
-                    .with_message("The monthCode field value must be a string.")
-                    .into());
-            };
-            TinyAsciiStr::<4>::try_from_str(&month_code.to_std_string_escaped())
-                .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
-        })
-        .transpose()?;
-
-    let year = obj
-        .get(js_string!("year"), context)?
-        .map(|v| {
-            let finite = v.to_finitef64(context)?;
-            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
-        })
-        .transpose()?;
-
-    Ok(PartialDate {
-        year,
-        month,
-        month_code,
-        ..Default::default()
-    })
-}
-
 fn to_temporal_year_month(
     value: &JsValue,
     options: Option<JsValue>,
@@ -605,7 +567,6 @@ fn to_temporal_year_month(
             return Ok(ym.inner.clone());
         }
         // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
-        let calendar = get_temporal_calendar_slot_value_with_default(obj, context)?;
         // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code », «», «»).
         let partial = to_partial_year_month(obj, context)?;
         // d. Let resolvedOptions be ? GetOptionsObject(options).
@@ -616,9 +577,7 @@ fn to_temporal_year_month(
                 .unwrap_or(ArithmeticOverflow::Constrain);
         // f. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
         // g. Return ! CreateTemporalYearMonth(isoDate, calendar).
-
-        // TODO: implement from_partial on `temporal_rs::PlainYearMonth`
-        return Ok(calendar.year_month_from_partial(&partial, overflow)?);
+        return Ok(InnerYearMonth::from_partial(partial, overflow)?);
     }
 
     // 3. If item is not a String, throw a TypeError exception.
@@ -725,4 +684,50 @@ fn add_or_subtract_duration(
     };
 
     create_temporal_year_month(year_month_result, None, context)
+}
+
+fn to_partial_year_month(
+    partial_object: &JsObject,
+    context: &mut Context,
+) -> JsResult<PartialDate> {
+    // a. Let calendar be ? ToTemporalCalendar(item).
+    let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+
+    let month = partial_object
+        .get(js_string!("month"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation::<u8>()
+                .map_err(JsError::from)
+        })
+        .transpose()?;
+    let month_code = partial_object
+        .get(js_string!("monthCode"), context)?
+        .map(|v| {
+            let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+            let Some(month_code) = v.as_string() else {
+                return Err(JsNativeError::typ()
+                    .with_message("The monthCode field value must be a string.")
+                    .into());
+            };
+            MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(JsError::from)
+        })
+        .transpose()?;
+
+    let year = partial_object
+        .get(js_string!("year"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+        })
+        .transpose()?;
+
+    Ok(PartialDate {
+        year,
+        month,
+        month_code,
+        calendar,
+        ..Default::default()
+    })
 }

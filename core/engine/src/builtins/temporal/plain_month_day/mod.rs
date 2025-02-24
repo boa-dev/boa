@@ -21,7 +21,7 @@ use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    Calendar, PlainMonthDay as InnerMonthDay, TinyAsciiStr,
+    Calendar, MonthCode, PlainMonthDay as InnerMonthDay,
 };
 
 use super::{
@@ -189,7 +189,7 @@ impl PlainMonthDay {
         let inner = &month_day.inner;
         match field {
             DateTimeValues::Day => Ok(inner.iso_day().into()),
-            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code()?.to_string()).into()),
+            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code()?.as_str()).into()),
             _ => unreachable!(),
         }
     }
@@ -436,8 +436,7 @@ fn to_temporal_month_day(
                         .with_message("The monthCode field value must be a string.")
                         .into());
                 };
-                TinyAsciiStr::<4>::from_str(&month_code.to_std_string_escaped())
-                    .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
+                MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(JsError::from)
             })
             .transpose()?;
 

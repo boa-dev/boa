@@ -1,6 +1,8 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
 #![allow(dead_code, unused_variables)]
 
+use std::str::FromStr;
+
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -29,7 +31,7 @@ use temporal_rs::{
         TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
     partial::{PartialDate, PartialDateTime, PartialTime},
-    Calendar, PlainDateTime as InnerDateTime, TinyAsciiStr,
+    Calendar, MonthCode, PlainDateTime as InnerDateTime, TinyAsciiStr,
 };
 
 // TODO: Remove once implementations are complete.
@@ -1355,8 +1357,7 @@ fn to_partial_datetime(
                     .with_message("The monthCode field value must be a string.")
                     .into());
             };
-            TinyAsciiStr::<4>::try_from_str(&month_code.to_std_string_escaped())
-                .map_err(|e| JsError::from(JsNativeError::typ().with_message(e.to_string())))
+            MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(JsError::from)
         })
         .transpose()?;
 
