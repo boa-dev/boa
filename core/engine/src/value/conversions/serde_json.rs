@@ -7,7 +7,7 @@ use crate::{
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsVariant,
+    Context, JsResult, JsVariant, NativeObject,
 };
 use serde_json::{Map, Value};
 
@@ -113,6 +113,15 @@ impl JsValue {
     ///
     /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
+        let mut stack = vec![];
+        self.to_json_inner(context, &mut stack)
+    }
+
+    fn to_json_inner(
+        &self,
+        context: &mut Context,
+        stack: &mut Vec<JsObject<dyn NativeObject>>,
+    ) -> JsResult<Value> {
         match self.variant() {
             JsVariant::Null => Ok(Value::Null),
             JsVariant::Undefined => todo!("undefined to JSON"),
@@ -124,11 +133,17 @@ impl JsValue {
                 .with_message("cannot convert bigint to JSON")
                 .into()),
             JsVariant::Object(obj) => {
-                let value_by_prop_key = |property_key, context: &mut Context| {
+                if stack.contains(obj) {
+                    return Err(JsNativeError::typ()
+                        .with_message("cyclic object value")
+                        .into());
+                }
+                stack.push(obj.clone());
+                let mut value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
                         .properties()
                         .get(&property_key)
-                        .and_then(|x| x.value().map(|val| val.to_json(context)))
+                        .and_then(|x| x.value().map(|val| val.to_json_inner(context, stack)))
                         .unwrap_or(Ok(Value::Null))
                 };
 
@@ -140,7 +155,7 @@ impl JsValue {
                         let val = value_by_prop_key(k.into(), context)?;
                         arr.push(val);
                     }
-
+                    stack.pop();
                     Ok(Value::Array(arr))
                 } else {
                     let mut map = Map::new();
@@ -164,7 +179,7 @@ impl JsValue {
                         let value = value_by_prop_key(property_key, context)?;
                         map.insert(key, value);
                     }
-
+                    stack.pop();
                     Ok(Value::Object(map))
                 }
             }
@@ -181,9 +196,9 @@ mod tests {
     use indoc::indoc;
     use serde_json::json;
 
-    use crate::object::JsArray;
-    use crate::{js_string, JsValue};
-    use crate::{run_test_actions, TestAction};
+    use crate::{
+        js_string, object::JsArray, run_test_actions, Context, JsObject, JsValue, TestAction,
+    };
 
     #[test]
     fn json_conversions() {
@@ -271,5 +286,20 @@ mod tests {
                 v.to_json(ctx).unwrap() == json!(60_466_176)
             }),
         ]);
+    }
+
+    #[test]
+    fn to_json_cyclic() {
+        let mut context = Context::default();
+        let obj = JsObject::with_null_proto();
+        obj.create_data_property(js_string!("a"), obj.clone(), &mut context)
+            .expect("should create data property");
+        assert_eq!(
+            JsValue::from(obj)
+                .to_json(&mut context)
+                .unwrap_err()
+                .to_string(),
+            "TypeError: cyclic object value"
+        );
     }
 }
