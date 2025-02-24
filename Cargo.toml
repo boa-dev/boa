@@ -65,14 +65,14 @@ pollster = "0.4.0"
 regex = "1.11.1"
 regress = { version = "0.10.3", features = ["utf16"] }
 rustc-hash = { version = "2.1.1", default-features = false }
-serde_json = "1.0.138"
-serde = "1.0.217"
+serde_json = "1.0.139"
+serde = "1.0.218"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
 time = { version = "0.3.37", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
 tinystr = "0.7.5"
-log = "0.4.25"
+log = "0.4.26"
 simple_logger = "5.0.0"
 cargo_metadata = "0.19.1"
 trybuild = "1.0.103"
@@ -109,7 +109,7 @@ bytemuck = { version = "1.21.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
-either = "1.13.0"
+either = "1.14.0"
 sys-locale = "0.3.2"
 temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "7484b2584efc7430f5ca34cf3a91e858286a3a29", default-features = false, features = ["tzdb"] }
 web-time = "1.1.0"
