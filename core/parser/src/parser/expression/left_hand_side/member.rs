@@ -147,7 +147,7 @@ where
                         }
                     }
                 } else {
-                    let lhs_inner = self.parse(cursor, interner)?;
+                    let lhs_inner = self.parse_boxed(cursor, interner)?;
                     let args = match cursor.peek(0, interner)? {
                         Some(next)
                             if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
@@ -157,7 +157,7 @@ where
                         }
                         _ => Box::new([]),
                     };
-                    let call_node = Call::new(lhs_inner, args);
+                    let call_node = Call::new_boxed(lhs_inner, args);
 
                     ast::Expression::boxed(|| ast::Expression::from(New::from(call_node)))
                 };
@@ -201,7 +201,7 @@ where
                     }
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let expr = Expression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                            .parse_boxed(cursor, interner)?;
                         cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
                         ast::Expression::boxed(|| {
                             ast::Expression::PropertyAccess(
@@ -269,21 +269,21 @@ where
                         .next(interner)?
                         .expect("open bracket punctuator token disappeared"); // We move the parser forward.
                     let idx = Expression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                        .parse_boxed(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression", interner)?;
                     lhs = ast::Expression::boxed(|| {
                         ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into())
                     });
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
-                    let tagged_literal = TaggedTemplateLiteral::new(
+                    lhs = TaggedTemplateLiteral::new(
                         self.allow_yield,
                         self.allow_await,
                         tok.start_group(),
                         lhs,
                     )
-                    .parse(cursor, interner)?;
-                    lhs = ast::Expression::boxed(|| tagged_literal.into());
+                    .parse_boxed(cursor, interner)?
+                    .into();
                 }
                 _ => break,
             }

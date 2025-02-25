@@ -47,6 +47,13 @@ impl From<Expression> for PropertyAccessField {
     }
 }
 
+impl From<Box<Expression>> for PropertyAccessField {
+    #[inline]
+    fn from(expr: Box<Expression>) -> Self {
+        Self::Expr(expr)
+    }
+}
+
 impl VisitWith for PropertyAccessField {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where

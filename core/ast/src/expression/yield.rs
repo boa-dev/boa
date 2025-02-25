@@ -44,6 +44,16 @@ impl Yield {
             delegate,
         }
     }
+
+    /// Creates a `Yield` AST Expression from boxed expression.
+    #[inline]
+    #[must_use]
+    pub fn new_boxed(expr: Option<Box<Expression>>, delegate: bool) -> Self {
+        Self {
+            target: expr,
+            delegate,
+        }
+    }
 }
 
 impl From<Yield> for Expression {

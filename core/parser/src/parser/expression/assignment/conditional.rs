@@ -61,21 +61,29 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("ConditionalExpression", "Parsing");
         let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+            .parse_boxed(cursor, interner)?;
 
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
                 cursor.advance(interner);
                 let then_clause =
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                        .parse_boxed(cursor, interner)?;
                 cursor.expect(Punctuator::Colon, "conditional expression", interner)?;
 
                 let else_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                        .parse_boxed(cursor, interner)?;
                 return Ok(Conditional::new(lhs, then_clause, else_clause).into());
             }
         }

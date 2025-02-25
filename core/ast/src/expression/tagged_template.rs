@@ -105,6 +105,12 @@ impl From<TaggedTemplate> for Expression {
     }
 }
 
+impl From<Box<TaggedTemplate>> for Box<Expression> {
+    fn from(boxed_template: Box<TaggedTemplate>) -> Self {
+        Box::new(Expression::TaggedTemplate(*boxed_template))
+    }
+}
+
 impl VisitWith for TaggedTemplate {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
