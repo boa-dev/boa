@@ -37,9 +37,98 @@ impl From<LexError> for Error {
     }
 }
 
+impl From<LexError> for ErrorInner {
+    #[inline]
+    fn from(e: LexError) -> Self {
+        Self::lex(e)
+    }
+}
+
+/// A struct which represents errors encountered during parsing an expression.
+/// Contains boxed `ErrorInner` to reduce memory allocation on the stack.
+#[derive(Debug)]
+pub struct Error {
+    inner: Box<ErrorInner>,
+}
+
+impl Error {
+    /// Changes the context of the error, if any.
+    fn set_context(self, new_context: &'static str) -> Self {
+        Self {
+            inner: Box::new((*self.inner).set_context(new_context)),
+        }
+    }
+
+    /// Gets the context of the error, if any.
+    fn context(&self) -> Option<&'static str> {
+        self.inner.context()
+    }
+
+    /// Creates an `Expected` parsing error.
+    pub(crate) fn expected<E, F>(expected: E, found: F, span: Span, context: &'static str) -> Self
+    where
+        E: Into<Box<[String]>>,
+        F: Into<Box<str>>,
+    {
+        ErrorInner::expected(expected, found, span, context).into()
+    }
+
+    /// Creates an `Unexpected` parsing error.
+    pub(crate) fn unexpected<F, C>(found: F, span: Span, message: C) -> Self
+    where
+        F: Into<Box<str>>,
+        C: Into<Box<str>>,
+    {
+        ErrorInner::unexpected(found, span, message).into()
+    }
+
+    /// Creates a "general" parsing error.
+    pub(crate) fn general<S, P>(message: S, position: P) -> Self
+    where
+        S: Into<Box<str>>,
+        P: Into<Position>,
+    {
+        ErrorInner::general(message, position).into()
+    }
+
+    /// Creates a "general" parsing error with the specific error message for a misplaced function declaration.
+    pub(crate) fn misplaced_function_declaration(position: Position, strict: bool) -> Self {
+        ErrorInner::misplaced_function_declaration(position, strict).into()
+    }
+
+    /// Creates a "general" parsing error with the specific error message for a wrong function declaration with label.
+    pub(crate) fn wrong_labelled_function_declaration(position: Position) -> Self {
+        ErrorInner::wrong_labelled_function_declaration(position).into()
+    }
+
+    /// Creates a parsing error from a lexing error.
+    pub(crate) fn lex(e: LexError) -> Self {
+        ErrorInner::lex(e).into()
+    }
+
+    /// Creates a parsing error from a lexing error.
+    pub(crate) fn abrupt_end() -> Self {
+        ErrorInner::AbruptEnd.into()
+    }
+}
+
+impl From<ErrorInner> for Error {
+    fn from(value: ErrorInner) -> Self {
+        Self {
+            inner: Box::new(value),
+        }
+    }
+}
+
+impl From<Error> for ErrorInner {
+    fn from(value: Error) -> Self {
+        *value.inner
+    }
+}
+
 /// An enum which represents errors encountered during parsing an expression
 #[derive(Debug)]
-pub enum Error {
+pub enum ErrorInner {
     /// When it expected a certain kind of token, but got another as part of something
     Expected {
         /// The token(s) that were expected.
@@ -86,7 +175,7 @@ pub enum Error {
     },
 }
 
-impl Error {
+impl ErrorInner {
     /// Changes the context of the error, if any.
     fn set_context(self, new_context: &'static str) -> Self {
         match self {
@@ -178,7 +267,7 @@ impl Error {
     }
 }
 
-impl fmt::Display for Error {
+impl fmt::Display for ErrorInner {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Expected {
@@ -233,4 +322,11 @@ impl fmt::Display for Error {
     }
 }
 
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.inner.fmt(f)
+    }
+}
+
+impl std::error::Error for ErrorInner {}
 impl std::error::Error for Error {}
