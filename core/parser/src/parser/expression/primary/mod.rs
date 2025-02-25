@@ -313,6 +313,21 @@ impl CoverParenthesizedExpressionAndArrowParameterList {
     }
 }
 
+#[derive(Debug)]
+enum InnerExpression {
+    Expression(Box<ast::Expression>),
+    SpreadObject(Vec<ObjectPatternElement>),
+    SpreadArray(Vec<ArrayPatternElement>),
+    SpreadBinding(Identifier),
+}
+impl InnerExpression {
+    fn parenthesized(expression: &ast::Expression) -> ParseResult<ast::Expression> {
+        Ok(ast::Expression::Parenthesized(Parenthesized::new(
+            expression.clone(),
+        )))
+    }
+}
+
 impl<R> TokenParser<R> for CoverParenthesizedExpressionAndArrowParameterList
 where
     R: ReadChar,
@@ -320,14 +335,6 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        #[derive(Debug)]
-        enum InnerExpression {
-            Expression(ast::Expression),
-            SpreadObject(Vec<ObjectPatternElement>),
-            SpreadArray(Vec<ArrayPatternElement>),
-            SpreadBinding(Identifier),
-        }
-
         let _timer = Profiler::global().start_event(
             "CoverParenthesizedExpressionAndArrowParameterList",
             "Parsing",
@@ -377,7 +384,7 @@ where
             }
             _ => {
                 let expression = Expression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                    .parse_boxed(cursor, interner)?;
                 expressions.push(InnerExpression::Expression(expression));
 
                 let next = cursor.peek(0, interner).or_abrupt()?;
@@ -489,9 +496,7 @@ where
                 ));
             }
             if let InnerExpression::Expression(expression) = &expressions[0] {
-                return Ok(ast::Expression::Parenthesized(Parenthesized::new(
-                    expression.clone(),
-                )));
+                return InnerExpression::parenthesized(expression);
             }
             return Err(Error::unexpected(
                 Punctuator::CloseParen,
@@ -502,57 +507,65 @@ where
 
         // We know that we must parse an arrow function.
         // We parse the expressions in to a parameter list.
+        formal_parameter_list_ctor(expressions, start_span, tailing_comma, cursor.strict())
+    }
+}
 
-        let mut parameters = Vec::new();
+fn formal_parameter_list_ctor(
+    expressions: Vec<InnerExpression>,
+    start_span: Span,
+    tailing_comma: Option<Span>,
+    strict: bool
+) -> ParseResult<ast::Expression> {
+    let mut parameters = Vec::new();
 
-        for expression in expressions {
-            match expression {
-                InnerExpression::Expression(node) => {
-                    expression_to_formal_parameters(
-                        &node,
-                        &mut parameters,
-                        cursor.strict(),
-                        start_span,
-                    )?;
-                }
-                InnerExpression::SpreadObject(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
-                    let parameter = FormalParameter::new(declaration, true);
-                    parameters.push(parameter);
-                }
-                InnerExpression::SpreadArray(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
-                    let parameter = FormalParameter::new(declaration, true);
-                    parameters.push(parameter);
-                }
-                InnerExpression::SpreadBinding(ident) => {
-                    let declaration = Variable::from_identifier(ident, None);
-                    let parameter = FormalParameter::new(declaration, true);
-                    parameters.push(parameter);
-                }
+    for expression in expressions {
+        match expression {
+            InnerExpression::Expression(node) => {
+                expression_to_formal_parameters(
+                    &node,
+                    &mut parameters,
+                    strict,
+                    start_span,
+                )?;
+            }
+            InnerExpression::SpreadObject(bindings) => {
+                let declaration = Variable::from_pattern(bindings.into(), None);
+                let parameter = FormalParameter::new(declaration, true);
+                parameters.push(parameter);
+            }
+            InnerExpression::SpreadArray(bindings) => {
+                let declaration = Variable::from_pattern(bindings.into(), None);
+                let parameter = FormalParameter::new(declaration, true);
+                parameters.push(parameter);
+            }
+            InnerExpression::SpreadBinding(ident) => {
+                let declaration = Variable::from_identifier(ident, None);
+                let parameter = FormalParameter::new(declaration, true);
+                parameters.push(parameter);
             }
         }
+    }
 
-        let parameters = FormalParameterList::from(parameters);
+    let parameters = FormalParameterList::from(parameters);
 
-        if let Some(span) = tailing_comma {
-            if parameters.has_rest_parameter() {
-                return Err(Error::general(
-                    "rest parameter must be last formal parameter",
-                    span.start(),
-                ));
-            }
-        }
-
-        if contains(&parameters, ContainsSymbol::YieldExpression) {
+    if let Some(span) = tailing_comma {
+        if parameters.has_rest_parameter() {
             return Err(Error::general(
-                "yield expression is not allowed in formal parameter list of arrow function",
-                start_span.start(),
+                "rest parameter must be last formal parameter",
+                span.start(),
             ));
         }
-
-        Ok(ast::Expression::FormalParameterList(parameters))
     }
+
+    if contains(&parameters, ContainsSymbol::YieldExpression) {
+        return Err(Error::general(
+            "yield expression is not allowed in formal parameter list of arrow function",
+            start_span.start(),
+        ));
+    }
+
+    Ok(ast::Expression::FormalParameterList(parameters))
 }
 
 /// Convert an expression to a formal parameter and append it to the given parameter list.
