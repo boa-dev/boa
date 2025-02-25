@@ -57,6 +57,17 @@ impl Binary {
         Self { op, lhs, rhs }
     }
 
+    /// Creates an `Box<Expression::Binary>` from boxed values.
+    // Non-inline to reduce stack alloc size: most likely, it will be inlined in release anyway.
+    #[must_use]
+    pub fn new_boxed_expr(
+        op: BinaryOp,
+        lhs: Box<Expression>,
+        rhs: Box<Expression>,
+    ) -> Box<Expression> {
+        Box::new(Self::new_boxed(op, lhs, rhs).into())
+    }
+
     /// Gets the binary operation of the Expression.
     #[inline]
     #[must_use]

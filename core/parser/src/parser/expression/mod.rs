@@ -70,7 +70,7 @@ pub(in crate::parser) use {
 ///
 /// The fifth parameter is an `Option<InputElement>` which sets the goal symbol to set before parsing (or None to leave it as is).
 macro_rules! expression {
-    ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
+    ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $($goal:expr)? ) => {
         impl<R> TokenParser<R> for $name
         where
             R: ReadChar
@@ -84,20 +84,18 @@ macro_rules! expression {
             fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Box<ast::Expression>> {
                 let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
 
-                if $goal.is_some() {
-                    cursor.set_goal($goal.unwrap());
-                }
+                $(cursor.set_goal($goal);)?
 
                 let mut lhs = $lower::new($( self.$low_param ),*).parse_boxed(cursor, interner)?;
                 while let Some(tok) = cursor.peek(0, interner)? {
                     match *tok.kind() {
                         TokenKind::Punctuator(op) if $( op == $op )||* => {
                             cursor.advance(interner);
-                            lhs = Box::new(Binary::new_boxed(
+                            lhs = Binary::new_boxed_expr(
                                 op.as_binary_op().expect("Could not get binary operation."),
                                 lhs,
                                 $lower::new($( self.$low_param ),*).parse_boxed(cursor, interner)?
-                            ).into());
+                            );
                         }
                         _ => break
                     }
@@ -380,7 +378,6 @@ expression!(
     BitwiseXORExpression,
     [Punctuator::Or],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
 );
 
 /// Parses a bitwise `XOR` expression.
@@ -419,7 +416,6 @@ expression!(
     BitwiseANDExpression,
     [Punctuator::Xor],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
 );
 
 /// Parses a bitwise `AND` expression.
@@ -458,7 +454,6 @@ expression!(
     EqualityExpression,
     [Punctuator::And],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
 );
 
 /// Parses an equality expression.
@@ -502,7 +497,6 @@ expression!(
         Punctuator::StrictNotEq
     ],
     [allow_in, allow_yield, allow_await],
-    None::<InputElement>
 );
 
 /// Parses a relational expression.
@@ -655,7 +649,6 @@ expression!(
         Punctuator::URightSh
     ],
     [allow_yield, allow_await],
-    None::<InputElement>
 );
 
 /// Parses an additive expression.
@@ -693,7 +686,6 @@ expression!(
     MultiplicativeExpression,
     [Punctuator::Add, Punctuator::Sub],
     [allow_yield, allow_await],
-    None::<InputElement>
 );
 
 /// Parses a multiplicative expression.
@@ -731,7 +723,7 @@ expression!(
     ExponentiationExpression,
     [Punctuator::Mul, Punctuator::Div, Punctuator::Mod],
     [allow_yield, allow_await],
-    Some(InputElement::Div)
+    InputElement::Div
 );
 
 /// Returns an error if `arguments` or `eval` are used as identifier in strict mode.

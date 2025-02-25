@@ -88,13 +88,10 @@ where
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Exp) {
                 cursor.advance(interner);
-                return Ok(Box::new(
-                    Binary::new_boxed(
-                        ArithmeticOp::Exp.into(),
-                        lhs,
-                        self.parse_boxed(cursor, interner)?,
-                    )
-                    .into(),
+                return Ok(Binary::new_boxed_expr(
+                    ArithmeticOp::Exp.into(),
+                    lhs,
+                    self.parse_boxed(cursor, interner)?,
                 ));
             }
         }
