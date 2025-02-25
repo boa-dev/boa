@@ -577,6 +577,13 @@ impl NanBoxedValue {
         bits::is_integer32(self.0)
     }
 
+    /// Returns true if a value is a pointer type.
+    #[must_use]
+    #[inline(always)]
+    pub(crate) const fn is_pointer(&self) -> bool {
+        bits::is_pointer(self.0)
+    }
+
     /// Returns true if a value is a `[JsBigInt]`. A `NaN` will not match here.
     #[must_use]
     #[inline(always)]
@@ -717,14 +724,16 @@ impl Drop for NanBoxedValue {
         let maybe_ptr = self.0 & bits::POINTER_MASK;
 
         // Drop the pointer if it is a pointer.
-        if self.is_object() {
-            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsObject) });
-        } else if self.is_bigint() {
-            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsBigInt) });
-        } else if self.is_symbol() {
-            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsSymbol) });
-        } else if self.is_string() {
-            drop(unsafe { Box::from_raw(maybe_ptr as *mut JsString) });
+        if self.is_pointer() {
+            if self.is_string() {
+                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsString) });
+            } else if self.is_object() {
+                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsObject) });
+            } else if self.is_bigint() {
+                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsBigInt) });
+            } else if self.is_symbol() {
+                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsSymbol) });
+            }
         }
     }
 }
