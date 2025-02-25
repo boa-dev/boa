@@ -28,7 +28,7 @@ fn check_async_generator_expr() {
             vec![Variable::from_identifier(
                 add.into(),
                 Some(
-                    AsyncGeneratorExpression::new(
+                    AsyncGeneratorExpression::new_boxed(
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -68,7 +68,7 @@ fn check_nested_async_generator_expr() {
             vec![Variable::from_identifier(
                 a.into(),
                 Some(
-                    AsyncGeneratorExpression::new(
+                    AsyncGeneratorExpression::new_boxed(
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -76,7 +76,7 @@ fn check_nested_async_generator_expr() {
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
-                                        AsyncGeneratorExpression::new(
+                                        AsyncGeneratorExpression::new_boxed(
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(

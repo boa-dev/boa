@@ -118,11 +118,11 @@ where
                 let next_token = cursor.peek(1, interner).or_abrupt()?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new()
-                        .parse(cursor, interner)
+                        .parse_boxed(cursor, interner)
                         .map(Into::into)
                 } else {
                     FunctionExpression::new()
-                        .parse(cursor, interner)
+                        .parse_boxed(cursor, interner)
                         .map(Into::into)
                 }
             }
@@ -154,11 +154,11 @@ where
                         match cursor.peek(2, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
                                 AsyncGeneratorExpression::new()
-                                    .parse(cursor, interner)
+                                    .parse_boxed(cursor, interner)
                                     .map(Into::into)
                             }
                             _ => AsyncFunctionExpression::new()
-                                .parse(cursor, interner)
+                                .parse_boxed(cursor, interner)
                                 .map(Into::into),
                         }
                     }
@@ -515,19 +515,14 @@ fn formal_parameter_list_ctor(
     expressions: Vec<InnerExpression>,
     start_span: Span,
     tailing_comma: Option<Span>,
-    strict: bool
+    strict: bool,
 ) -> ParseResult<ast::Expression> {
     let mut parameters = Vec::new();
 
     for expression in expressions {
         match expression {
             InnerExpression::Expression(node) => {
-                expression_to_formal_parameters(
-                    &node,
-                    &mut parameters,
-                    strict,
-                    start_span,
-                )?;
+                expression_to_formal_parameters(&node, &mut parameters, strict, start_span)?;
             }
             InnerExpression::SpreadObject(bindings) => {
                 let declaration = Variable::from_pattern(bindings.into(), None);

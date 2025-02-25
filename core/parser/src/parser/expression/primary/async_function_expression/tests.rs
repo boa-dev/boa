@@ -27,7 +27,7 @@ fn check_async_expression() {
             vec![Variable::from_identifier(
                 add.into(),
                 Some(
-                    AsyncFunctionExpression::new(
+                    AsyncFunctionExpression::new_boxed(
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -67,7 +67,7 @@ fn check_nested_async_expression() {
             vec![Variable::from_identifier(
                 a.into(),
                 Some(
-                    AsyncFunctionExpression::new(
+                    AsyncFunctionExpression::new_boxed(
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -75,7 +75,7 @@ fn check_nested_async_expression() {
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
-                                        AsyncFunctionExpression::new(
+                                        AsyncFunctionExpression::new_boxed(
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(

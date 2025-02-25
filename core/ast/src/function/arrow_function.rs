@@ -55,6 +55,16 @@ impl ArrowFunction {
             linear_span: linear_span.into(),
         }
     }
+    /// Creates a new `ArrowFunctionDecl` AST Expression.
+    #[must_use]
+    pub fn new_boxed(
+        name: Option<Identifier>,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Box<Self> {
+        Box::new(Self::new(name, parameters, body, linear_span))
+    }
 
     /// Gets the name of the arrow function.
     #[inline]
@@ -121,8 +131,8 @@ impl ToIndentedString for ArrowFunction {
     }
 }
 
-impl From<ArrowFunction> for Expression {
-    fn from(decl: ArrowFunction) -> Self {
+impl From<Box<ArrowFunction>> for Expression {
+    fn from(decl: Box<ArrowFunction>) -> Self {
         Self::ArrowFunction(decl)
     }
 }

@@ -143,12 +143,19 @@ where
     R: ReadChar,
 {
     type Output = ast::Expression;
-
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("Expression", "Parsing");
 
         let mut lhs = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+            .parse_boxed(cursor, interner)?;
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
                 TokenKind::Punctuator(Punctuator::Comma) => {
@@ -166,7 +173,7 @@ where
 
                     cursor.advance(interner);
 
-                    lhs = Binary::new(
+                    lhs = Binary::new_boxed_expr(
                         Punctuator::Comma
                             .as_binary_op()
                             .expect("Could not get binary operation."),
@@ -176,9 +183,8 @@ where
                             self.allow_yield,
                             self.allow_await,
                         )
-                        .parse(cursor, interner)?,
-                    )
-                    .into();
+                        .parse_boxed(cursor, interner)?,
+                    );
                 }
                 _ => break,
             }

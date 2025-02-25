@@ -123,7 +123,7 @@ where
                             self.allow_await,
                         )
                         .parse_boxed(cursor, interner)
-                        .map(|arrow| Box::new(Expression::ArrowFunction(*arrow)));
+                        .map(|arrow| Box::new(Expression::ArrowFunction(arrow)));
                     }
                 }
             }
@@ -154,7 +154,7 @@ where
                 {
                     return AsyncArrowFunction::new(self.allow_in, self.allow_yield)
                         .parse_boxed(cursor, interner)
-                        .map(|arrow| Box::new(Expression::AsyncArrowFunction(*arrow)));
+                        .map(|arrow| Box::new(Expression::AsyncArrowFunction(arrow)));
                 }
             }
             _ => {}
@@ -230,7 +230,7 @@ where
             let span = start_linear_span.union(linear_pos_end);
 
             return Ok(Expression::boxed(|| {
-                boa_ast::function::ArrowFunction::new(None, parameters, body, span).into()
+                boa_ast::function::ArrowFunction::new_boxed(None, parameters, body, span).into()
             }));
         }
 

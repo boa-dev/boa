@@ -67,6 +67,14 @@ where
     type Output = ast::function::AsyncArrowFunction;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("AsyncArrowFunction", "Parsing");
 
         let async_token =
@@ -149,7 +157,7 @@ where
         let linear_pos_end = body.linear_pos_end();
         let span = start_linear_span.union(linear_pos_end);
 
-        Ok(ast::function::AsyncArrowFunction::new(
+        Ok(ast::function::AsyncArrowFunction::new_boxed(
             None, params, body, span,
         ))
     }
