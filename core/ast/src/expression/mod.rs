@@ -277,6 +277,12 @@ impl Expression {
         }
         expression
     }
+
+    /// Create boxed expression.
+    #[must_use]
+    pub fn boxed(f: impl FnOnce() -> Self) -> Box<Self> {
+        Box::new(f())
+    }
 }
 
 impl From<Expression> for Statement {

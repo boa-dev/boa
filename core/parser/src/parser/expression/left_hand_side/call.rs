@@ -39,7 +39,7 @@ use boa_profiler::Profiler;
 pub(super) struct CallExpression {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    first_member_expr: ast::Expression,
+    first_member_expr: Box<ast::Expression>,
 }
 
 impl CallExpression {
@@ -47,7 +47,7 @@ impl CallExpression {
     pub(super) fn new<Y, A>(
         allow_yield: Y,
         allow_await: A,
-        first_member_expr: ast::Expression,
+        first_member_expr: Box<ast::Expression>,
     ) -> Self
     where
         Y: Into<AllowYield>,
@@ -75,7 +75,7 @@ where
         let lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
             let args =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            Call::new(self.first_member_expr, args).into()
+            Call::new_boxed(self.first_member_expr, args).into()
         } else {
             let next_token = cursor.next(interner)?.expect("token vanished");
             return Err(Error::expected(
@@ -95,12 +95,12 @@ where
 pub(super) struct CallExpressionTail {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    call: ast::Expression,
+    call: Box<ast::Expression>,
 }
 
 impl CallExpressionTail {
     /// Creates a new `CallExpressionTail` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, call: ast::Expression) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, call: Box<ast::Expression>) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -120,6 +120,14 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let mut lhs = self.call;
 
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -128,7 +136,7 @@ where
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    lhs = ast::Expression::from(Call::new(lhs, args));
+                    lhs = Call::new_boxed(lhs, args).into();
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     cursor.advance(interner);
@@ -162,25 +170,26 @@ where
                         }
                     };
 
-                    lhs = ast::Expression::PropertyAccess(access);
+                    lhs = ast::Expression::boxed(|| ast::Expression::PropertyAccess(access));
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     cursor.advance(interner);
                     let idx = Expression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression", interner)?;
-                    lhs =
-                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into());
+                    lhs = ast::Expression::boxed(|| {
+                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into())
+                    });
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
-                    lhs = TaggedTemplateLiteral::new(
+                    let tagged_literal = TaggedTemplateLiteral::new(
                         self.allow_yield,
                         self.allow_await,
                         tok.start_group(),
                         lhs,
                     )
-                    .parse(cursor, interner)?
-                    .into();
+                    .parse(cursor, interner)?;
+                    lhs = ast::Expression::boxed(|| tagged_literal.into());
                 }
                 _ => break,
             }

@@ -96,6 +96,24 @@ where
     ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("UpdateExpression", "Parsing");
 
+        fn update_expr_ctor(
+            expr: &Box<Expression>,
+            pos: Position,
+            err_pos: Position,
+            op: UpdateOp,
+            strict: bool,
+        ) -> ParseResult<Box<Expression>> {
+            as_simple(expr, pos, strict)?.map_or_else(
+                || {
+                    Err(Error::lex(LexError::Syntax(
+                        "Invalid left-hand side in assignment".into(),
+                        err_pos,
+                    )))
+                },
+                |target| Ok(Box::new(Update::new(op, target).into())),
+            )
+        }
+
         let tok = cursor.peek(0, interner).or_abrupt()?;
         let position = tok.span().start();
         match tok.kind() {
@@ -108,14 +126,12 @@ where
                     .parse_boxed(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                return (as_simple(&target, position, cursor.strict())?).map_or_else(
-                    || {
-                        Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            position,
-                        )))
-                    },
-                    |target| Ok(Box::new(Update::new(UpdateOp::IncrementPre, target).into())),
+                return update_expr_ctor(
+                    &target,
+                    position,
+                    position,
+                    UpdateOp::IncrementPre,
+                    cursor.strict(),
                 );
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
@@ -127,14 +143,12 @@ where
                     .parse_boxed(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                return (as_simple(&target, position, cursor.strict())?).map_or_else(
-                    || {
-                        Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            position,
-                        )))
-                    },
-                    |target| Ok(Box::new(Update::new(UpdateOp::DecrementPre, target).into())),
+                return update_expr_ctor(
+                    &target,
+                    position,
+                    position,
+                    UpdateOp::DecrementPre,
+                    cursor.strict(),
                 );
             }
             _ => {}
@@ -156,18 +170,12 @@ where
                         .expect("Punctuator::Inc token disappeared");
 
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    return (as_simple(&lhs, position, cursor.strict())?).map_or_else(
-                        || {
-                            Err(Error::lex(LexError::Syntax(
-                                "Invalid left-hand side in assignment".into(),
-                                token_start,
-                            )))
-                        },
-                        |target| {
-                            Ok(Box::new(
-                                Update::new(UpdateOp::IncrementPost, target).into(),
-                            ))
-                        },
+                    return update_expr_ctor(
+                        &lhs,
+                        position,
+                        token_start,
+                        UpdateOp::IncrementPost,
+                        cursor.strict(),
                     );
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
@@ -176,18 +184,12 @@ where
                         .expect("Punctuator::Dec token disappeared");
 
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    return (as_simple(&lhs, position, cursor.strict())?).map_or_else(
-                        || {
-                            Err(Error::lex(LexError::Syntax(
-                                "Invalid left-hand side in assignment".into(),
-                                token_start,
-                            )))
-                        },
-                        |target| {
-                            Ok(Box::new(
-                                Update::new(UpdateOp::DecrementPost, target).into(),
-                            ))
-                        },
+                    return update_expr_ctor(
+                        &lhs,
+                        position,
+                        token_start,
+                        UpdateOp::DecrementPost,
+                        cursor.strict(),
                     );
                 }
                 _ => {}

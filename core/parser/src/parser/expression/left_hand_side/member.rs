@@ -64,6 +64,14 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("MemberExpression", "Parsing");
 
         cursor.set_goal(InputElement::RegExp);
@@ -114,7 +122,7 @@ where
                     ));
                 }
 
-                ast::Expression::ImportMeta
+                ast::Expression::boxed(|| ast::Expression::ImportMeta)
             }
             TokenKind::Keyword((Keyword::New, false)) => {
                 cursor.advance(interner);
@@ -129,7 +137,7 @@ where
                             ));
                         }
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(false))) => {
-                            ast::Expression::NewTarget
+                            ast::Expression::boxed(|| ast::Expression::NewTarget)
                         }
                         _ => {
                             return Err(Error::general(
@@ -151,7 +159,7 @@ where
                     };
                     let call_node = Call::new(lhs_inner, args);
 
-                    ast::Expression::from(New::from(call_node))
+                    ast::Expression::boxed(|| ast::Expression::from(New::from(call_node)))
                 };
                 lhs_new_target
             }
@@ -189,15 +197,17 @@ where
                                 ));
                             }
                         };
-                        ast::Expression::PropertyAccess(field.into())
+                        ast::Expression::boxed(|| ast::Expression::PropertyAccess(field.into()))
                     }
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let expr = Expression::new(true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
                         cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
-                        ast::Expression::PropertyAccess(
-                            SuperPropertyAccess::new(expr.into()).into(),
-                        )
+                        ast::Expression::boxed(|| {
+                            ast::Expression::PropertyAccess(
+                                SuperPropertyAccess::new(expr.into()).into(),
+                            )
+                        })
                     }
                     _ => {
                         return Err(Error::unexpected(
@@ -209,7 +219,7 @@ where
                 }
             }
             _ => PrimaryExpression::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?,
+                .parse_boxed(cursor, interner)?,
         };
 
         cursor.set_goal(InputElement::TemplateTail);
@@ -252,7 +262,7 @@ where
                         }
                     };
 
-                    lhs = ast::Expression::PropertyAccess(access);
+                    lhs = ast::Expression::boxed(|| ast::Expression::PropertyAccess(access));
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     cursor
@@ -261,18 +271,19 @@ where
                     let idx = Expression::new(true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression", interner)?;
-                    lhs =
-                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into());
+                    lhs = ast::Expression::boxed(|| {
+                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into())
+                    });
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
-                    lhs = TaggedTemplateLiteral::new(
+                    let tagged_literal = TaggedTemplateLiteral::new(
                         self.allow_yield,
                         self.allow_await,
                         tok.start_group(),
                         lhs,
                     )
-                    .parse(cursor, interner)?
-                    .into();
+                    .parse(cursor, interner)?;
+                    lhs = ast::Expression::boxed(|| tagged_literal.into());
                 }
                 _ => break,
             }

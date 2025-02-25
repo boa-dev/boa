@@ -22,7 +22,7 @@ pub(super) struct TaggedTemplateLiteral {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     start: PositionGroup,
-    tag: ast::Expression,
+    tag: Box<ast::Expression>,
 }
 
 impl TaggedTemplateLiteral {
@@ -31,7 +31,7 @@ impl TaggedTemplateLiteral {
         allow_yield: Y,
         allow_await: A,
         start: PositionGroup,
-        tag: ast::Expression,
+        tag: Box<ast::Expression>,
     ) -> Self
     where
         Y: Into<AllowYield>,

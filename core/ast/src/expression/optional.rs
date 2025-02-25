@@ -208,11 +208,8 @@ impl Optional {
     /// Creates a new `Optional` expression.
     #[inline]
     #[must_use]
-    pub fn new(target: Expression, chain: Box<[OptionalOperation]>) -> Self {
-        Self {
-            target: Box::new(target),
-            chain,
-        }
+    pub fn new(target: Box<Expression>, chain: Box<[OptionalOperation]>) -> Self {
+        Self { target, chain }
     }
 
     /// Gets the target of this `Optional` expression.
@@ -233,6 +230,12 @@ impl Optional {
 impl From<Optional> for Expression {
     fn from(opt: Optional) -> Self {
         Self::Optional(opt)
+    }
+}
+
+impl From<Optional> for Box<Expression> {
+    fn from(opt: Optional) -> Self {
+        Box::new(Expression::Optional(opt))
     }
 }
 

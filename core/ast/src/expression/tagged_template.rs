@@ -29,14 +29,14 @@ impl TaggedTemplate {
     #[inline]
     #[must_use]
     pub fn new(
-        tag: Expression,
+        tag: Box<Expression>,
         raws: Box<[Sym]>,
         cookeds: Box<[Option<Sym>]>,
         exprs: Box<[Expression]>,
         identifier: u64,
     ) -> Self {
         Self {
-            tag: tag.into(),
+            tag,
             raws,
             cookeds,
             exprs,

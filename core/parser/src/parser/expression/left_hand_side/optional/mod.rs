@@ -31,7 +31,7 @@ use boa_profiler::Profiler;
 pub(in crate::parser) struct OptionalExpression {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    target: ast::Expression,
+    target: Box<ast::Expression>,
 }
 
 impl OptionalExpression {
@@ -39,7 +39,7 @@ impl OptionalExpression {
     pub(in crate::parser) fn new<Y, A>(
         allow_yield: Y,
         allow_await: A,
-        target: ast::Expression,
+        target: Box<ast::Expression>,
     ) -> Self
     where
         Y: Into<AllowYield>,

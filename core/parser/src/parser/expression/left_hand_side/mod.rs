@@ -75,6 +75,14 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         /// Checks if we need to parse a keyword call expression `keyword()`.
         ///
         /// It first checks if the next token is `keyword`, and if it is, it checks if the second next
@@ -128,7 +136,7 @@ where
             cursor.advance(interner);
 
             let arg = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
+                .parse_boxed(cursor, interner)?;
 
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
@@ -141,14 +149,14 @@ where
                 self.allow_await,
                 ImportCall::new(arg).into(),
             )
-            .parse(cursor, interner)?
+            .parse_boxed(cursor, interner)?
         } else {
             let mut member = MemberExpression::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
+                .parse_boxed(cursor, interner)?;
             if let Some(tok) = cursor.peek(0, interner)? {
                 if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
                     member = CallExpression::new(self.allow_yield, self.allow_await, member)
-                        .parse(cursor, interner)?;
+                        .parse_boxed(cursor, interner)?;
                 }
             }
             member

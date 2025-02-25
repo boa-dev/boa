@@ -285,9 +285,10 @@ where
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                             .parse_boxed(cursor, interner)?;
 
-                    current_node = Box::new(
-                        Binary::new_boxed(BinaryOp::Logical(LogicalOp::And), current_node, rhs)
-                            .into(),
+                    current_node = Binary::new_boxed_expr(
+                        BinaryOp::Logical(LogicalOp::And),
+                        current_node,
+                        rhs,
                     );
                 }
                 TokenKind::Punctuator(Punctuator::BoolOr) => {
@@ -307,10 +308,8 @@ where
                         PreviousExpr::Logical,
                     )
                     .parse_boxed(cursor, interner)?;
-                    current_node = Box::new(
-                        Binary::new_boxed(BinaryOp::Logical(LogicalOp::Or), current_node, rhs)
-                            .into(),
-                    );
+                    current_node =
+                        Binary::new_boxed_expr(BinaryOp::Logical(LogicalOp::Or), current_node, rhs);
                 }
                 TokenKind::Punctuator(Punctuator::Coalesce) => {
                     if previous == PreviousExpr::Logical {
@@ -326,13 +325,10 @@ where
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                             .parse_boxed(cursor, interner)?;
-                    current_node = Box::new(
-                        Binary::new_boxed(
-                            BinaryOp::Logical(LogicalOp::Coalesce),
-                            current_node,
-                            rhs,
-                        )
-                        .into(),
+                    current_node = Binary::new_boxed_expr(
+                        BinaryOp::Logical(LogicalOp::Coalesce),
+                        current_node,
+                        rhs,
                     );
                 }
                 _ => break,
