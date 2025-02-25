@@ -86,6 +86,14 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("UpdateExpression", "Parsing");
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -97,7 +105,7 @@ where
                     .expect("Punctuator::Inc token disappeared");
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                    .parse_boxed(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                 return (as_simple(&target, position, cursor.strict())?).map_or_else(
@@ -107,7 +115,7 @@ where
                             position,
                         )))
                     },
-                    |target| Ok(Update::new(UpdateOp::IncrementPre, target).into()),
+                    |target| Ok(Box::new(Update::new(UpdateOp::IncrementPre, target).into())),
                 );
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
@@ -116,7 +124,7 @@ where
                     .expect("Punctuator::Dec token disappeared");
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
+                    .parse_boxed(cursor, interner)?;
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                 return (as_simple(&target, position, cursor.strict())?).map_or_else(
@@ -126,14 +134,14 @@ where
                             position,
                         )))
                     },
-                    |target| Ok(Update::new(UpdateOp::DecrementPre, target).into()),
+                    |target| Ok(Box::new(Update::new(UpdateOp::DecrementPre, target).into())),
                 );
             }
             _ => {}
         }
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+            .parse_boxed(cursor, interner)?;
 
         if cursor.peek_is_line_terminator(0, interner)?.unwrap_or(true) {
             return Ok(lhs);
@@ -155,7 +163,11 @@ where
                                 token_start,
                             )))
                         },
-                        |target| Ok(Update::new(UpdateOp::IncrementPost, target).into()),
+                        |target| {
+                            Ok(Box::new(
+                                Update::new(UpdateOp::IncrementPost, target).into(),
+                            ))
+                        },
                     );
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
@@ -171,7 +183,11 @@ where
                                 token_start,
                             )))
                         },
-                        |target| Ok(Update::new(UpdateOp::DecrementPost, target).into()),
+                        |target| {
+                            Ok(Box::new(
+                                Update::new(UpdateOp::DecrementPost, target).into(),
+                            ))
+                        },
                     );
                 }
                 _ => {}

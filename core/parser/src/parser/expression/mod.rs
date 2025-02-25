@@ -78,22 +78,26 @@ macro_rules! expression {
             type Output = ast::Expression;
 
             fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
+                self.parse_boxed(cursor, interner).map(|ok|*ok)
+            }
+
+            fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Box<ast::Expression>> {
                 let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
 
                 if $goal.is_some() {
                     cursor.set_goal($goal.unwrap());
                 }
 
-                let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?;
+                let mut lhs = $lower::new($( self.$low_param ),*).parse_boxed(cursor, interner)?;
                 while let Some(tok) = cursor.peek(0, interner)? {
                     match *tok.kind() {
                         TokenKind::Punctuator(op) if $( op == $op )||* => {
                             cursor.advance(interner);
-                            lhs = Binary::new(
+                            lhs = Box::new(Binary::new_boxed(
                                 op.as_binary_op().expect("Could not get binary operation."),
                                 lhs,
-                                $lower::new($( self.$low_param ),*).parse(cursor, interner)?
-                            ).into();
+                                $lower::new($( self.$low_param ),*).parse_boxed(cursor, interner)?
+                            ).into());
                         }
                         _ => break
                     }
@@ -252,11 +256,19 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("ShortCircuitExpression", "Parsing");
 
         let mut current_node =
             BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
+                .parse_boxed(cursor, interner)?;
         let mut previous = self.previous;
 
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -273,10 +285,12 @@ where
                     previous = PreviousExpr::Logical;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                            .parse_boxed(cursor, interner)?;
 
-                    current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::And), current_node, rhs).into();
+                    current_node = Box::new(
+                        Binary::new_boxed(BinaryOp::Logical(LogicalOp::And), current_node, rhs)
+                            .into(),
+                    );
                 }
                 TokenKind::Punctuator(Punctuator::BoolOr) => {
                     if previous == PreviousExpr::Coalesce {
@@ -294,9 +308,11 @@ where
                         self.allow_await,
                         PreviousExpr::Logical,
                     )
-                    .parse(cursor, interner)?;
-                    current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node, rhs).into();
+                    .parse_boxed(cursor, interner)?;
+                    current_node = Box::new(
+                        Binary::new_boxed(BinaryOp::Logical(LogicalOp::Or), current_node, rhs)
+                            .into(),
+                    );
                 }
                 TokenKind::Punctuator(Punctuator::Coalesce) => {
                     if previous == PreviousExpr::Logical {
@@ -311,10 +327,15 @@ where
                     previous = PreviousExpr::Coalesce;
                     let rhs =
                         BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
-                    current_node =
-                        Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node, rhs)
-                            .into();
+                            .parse_boxed(cursor, interner)?;
+                    current_node = Box::new(
+                        Binary::new_boxed(
+                            BinaryOp::Logical(LogicalOp::Coalesce),
+                            current_node,
+                            rhs,
+                        )
+                        .into(),
+                    );
                 }
                 _ => break,
             }

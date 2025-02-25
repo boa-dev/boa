@@ -56,6 +56,19 @@ where
     ///
     /// It will fail if the cursor is not placed at the beginning of the expected non-terminal.
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output>;
+
+    /// Parses the token stream into boxed result using the current parser.
+    ///
+    /// # Errors
+    ///
+    /// It will fail if the cursor is not placed at the beginning of the expected non-terminal.
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
+        self.parse(cursor, interner).map(|result| Box::new(result))
+    }
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.

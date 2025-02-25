@@ -50,6 +50,13 @@ impl Binary {
         }
     }
 
+    /// Creates a `BinOp` AST Expression with boxed values.
+    #[inline]
+    #[must_use]
+    pub fn new_boxed(op: BinaryOp, lhs: Box<Expression>, rhs: Box<Expression>) -> Self {
+        Self { op, lhs, rhs }
+    }
+
     /// Gets the binary operation of the Expression.
     #[inline]
     #[must_use]

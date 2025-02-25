@@ -57,6 +57,14 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
 
         let next = cursor.peek(0, interner).or_abrupt()?;
@@ -66,26 +74,28 @@ where
                 Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg,
             ) => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner);
+                    .parse_boxed(cursor, interner);
             }
             TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                 return UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner);
+                    .parse_boxed(cursor, interner);
             }
             _ => {}
         }
 
-        let lhs =
-            UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let lhs = UpdateExpression::new(self.allow_yield, self.allow_await)
+            .parse_boxed(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Exp) {
                 cursor.advance(interner);
-                return Ok(Binary::new(
-                    ArithmeticOp::Exp.into(),
-                    lhs,
-                    self.parse(cursor, interner)?,
-                )
-                .into());
+                return Ok(Box::new(
+                    Binary::new_boxed(
+                        ArithmeticOp::Exp.into(),
+                        lhs,
+                        self.parse_boxed(cursor, interner)?,
+                    )
+                    .into(),
+                ));
             }
         }
         Ok(lhs)
