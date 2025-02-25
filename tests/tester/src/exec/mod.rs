@@ -35,7 +35,7 @@ impl TestSuite {
         max_edition: SpecEdition,
         optimizer_options: OptimizerOptions,
         console: bool,
-    ) -> SuiteResult {
+    ) -> Box<SuiteResult> {
         if verbose != 0 {
             println!("Suite {}:", self.path.display());
         }
@@ -44,7 +44,7 @@ impl TestSuite {
             self.suites
                 .par_iter()
                 .map(|suite| {
-                    suite.run(
+                    *suite.run(
                         harness,
                         verbose,
                         parallel,
@@ -58,7 +58,7 @@ impl TestSuite {
             self.suites
                 .iter()
                 .map(|suite| {
-                    suite.run(
+                    *suite.run(
                         harness,
                         verbose,
                         parallel,
@@ -150,14 +150,14 @@ impl TestSuite {
                 (es_next.passed as f64 / es_next.total as f64) * 100.0
             );
         }
-        SuiteResult {
-            name: self.name.clone(),
-            stats: es_next,
+        SuiteResult::new_boxed(
+            self.name.clone(),
+            es_next,
             versioned_stats,
             suites,
             tests,
             features,
-        }
+        )
     }
 }
 
@@ -521,18 +521,25 @@ impl Test {
         harness: &Harness,
         optimizer_options: OptimizerOptions,
         console: bool,
-    ) -> Result<(Context, AsyncResult, WorkerHandles), String> {
+    ) -> Result<(Box<Context>, AsyncResult, WorkerHandles), String> {
         let async_result = AsyncResult::default();
         let handles = WorkerHandles::new();
         let loader = Rc::new(
             SimpleModuleLoader::new(self.path.parent().expect("test should have a parent dir"))
                 .expect("test path should be canonicalizable"),
         );
-        let mut context = Context::builder()
-            .module_loader(loader.clone())
-            .can_block(!self.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
-            .build()
-            .expect("cannot fail with default global object");
+
+        fn create_boxed_ctx(test: &Test, loader: Rc<SimpleModuleLoader>) -> Box<Context> {
+            Box::new(
+                Context::builder()
+                    .module_loader(loader.clone())
+                    .can_block(!test.flags.contains(TestFlags::CAN_BLOCK_IS_FALSE))
+                    .build()
+                    .expect("cannot fail with default global object"),
+            )
+        }
+
+        let mut context = create_boxed_ctx(self, loader);
 
         context.set_optimizer_options(optimizer_options);
 
