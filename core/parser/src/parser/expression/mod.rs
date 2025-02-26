@@ -82,29 +82,57 @@ macro_rules! expression {
             }
 
             fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Box<ast::Expression>> {
-                let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
-
-                $(cursor.set_goal($goal);)?
-
-                let mut lhs = $lower::new($( self.$low_param ),*).parse_boxed(cursor, interner)?;
-                while let Some(tok) = cursor.peek(0, interner)? {
-                    match *tok.kind() {
-                        TokenKind::Punctuator(op) if $( op == $op )||* => {
-                            cursor.advance(interner);
-                            lhs = Binary::new_boxed_expr(
-                                op.as_binary_op().expect("Could not get binary operation."),
-                                lhs,
-                                $lower::new($( self.$low_param ),*).parse_boxed(cursor, interner)?
-                            );
-                        }
-                        _ => break
-                    }
-                }
-
-                Ok(lhs)
+                let mut lhs;
+                expression!([PREFIX][cursor] $name $(, $goal)?);
+                expression!([SUBCALL][self; cursor; interner; lhs] $lower, [$($low_param),*]);
+                expression!([POSTFIX][self; cursor; interner; lhs] $lower, [$($op),*], [$($low_param),*])
             }
         }
     };
+    ([PREFIX][$cursor:ident] $name:ident $(, $goal:expr)? ) => {{
+        let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
+        $($cursor.set_goal($goal);)?
+    }};
+    ([LOWER_CTOR][$self:ident] $lower:ident, [$( $low_param:ident ),*] ) => {
+        $lower::new($( $self.$low_param ),*)
+    };
+    ([SUBCALL][$self:ident; $cursor:ident; $interner:ident; $lhs:ident] $lower:ident, [$( $low_param:ident ),*] ) => {{
+        $lhs = expression!([LOWER_CTOR][$self] $lower, [$($low_param),*]).parse_boxed($cursor, $interner)?;
+    }};
+    ([POSTFIX][$self:ident; $cursor:ident; $interner:ident; $lhs:ident] $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*]) => {{
+        while let Some(tok) = $cursor.peek(0, $interner)? {
+            match *tok.kind() {
+                TokenKind::Punctuator(op) if $( op == $op )||* => {
+                    $cursor.advance($interner);
+                    $lhs = Binary::new_boxed_expr(
+                        op.as_binary_op().expect("Could not get binary operation."),
+                        $lhs,
+                        $lower::new($( $self.$low_param ),*).parse_boxed($cursor, $interner)?
+                    );
+                }
+                _ => break
+            }
+        }
+
+        Ok($lhs)
+    }};
+    ([POSTFIX][$self:ident; $cursor:ident; $interner:ident; $lhs:ident] $lower:ident, [$( $op:path ),*]) => {{
+        while let Some(tok) = $cursor.peek(0, $interner)? {
+            match *tok.kind() {
+                TokenKind::Punctuator(op) if $( op == $op )||* => {
+                    $cursor.advance($interner);
+                    $lhs = Binary::new_boxed_expr(
+                        op.as_binary_op().expect("Could not get binary operation."),
+                        $lhs,
+                        $lower.parse_boxed($cursor, $interner)?
+                    );
+                }
+                _ => break
+            }
+        }
+
+        $lhs
+    }};
 }
 
 /// Expression parsing.
@@ -375,12 +403,59 @@ impl BitwiseORExpression {
     }
 }
 
-expression!(
-    BitwiseORExpression,
-    BitwiseXORExpression,
-    [Punctuator::Or],
-    [allow_in, allow_yield, allow_await],
-);
+
+impl<R> TokenParser<R> for BitwiseORExpression
+where R: ReadChar
+{
+    type Output = ast::Expression;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
+        self.parse_boxed(cursor, interner).map(|ok|*ok)
+    }
+
+    fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Box<ast::Expression>> {
+        // TODO: recursive `expression!`
+        //
+        // unwrapping of
+        // ```
+        // expression!(
+        //     BitwiseORExpression,
+        //     BitwiseXORExpression,
+        //     [Punctuator::Or],
+        //     [allow_in, allow_yield, allow_await],
+        // );
+        // ```
+        // with subcall inlining to reduce stack allocation (from X * 4 to X)
+        let mut lhs: Box<boa_ast::Expression>;
+        expression!([PREFIX][cursor] BitwiseORExpression);
+        let lower = expression!([LOWER_CTOR][self] BitwiseXORExpression, [allow_in, allow_yield, allow_await]);
+        lhs = {
+            expression!([PREFIX][cursor] BitwiseXORExpression);
+            let lower = expression!([LOWER_CTOR][self] BitwiseANDExpression, [allow_in, allow_yield, allow_await]);
+            lhs = {
+                expression!([PREFIX][cursor] BitwiseANDExpression);
+                let lower = expression!([LOWER_CTOR][self] EqualityExpression, [allow_in, allow_yield, allow_await]);
+                lhs = {
+                    expression!([PREFIX][cursor] EqualityExpression);
+                    let lower = expression!([LOWER_CTOR][self] RelationalExpression, [allow_in, allow_yield, allow_await]);
+                    lhs = {
+                        lower.parse_boxed(cursor, interner)?
+                    };
+                    expression!(
+                        [POSTFIX]
+                        [self; cursor; interner; lhs]
+                        lower,
+                        [Punctuator::Eq, Punctuator::NotEq, Punctuator::StrictEq, Punctuator::StrictNotEq]
+                    )
+                };
+                expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::And])
+            };
+            expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Xor])
+        };
+        lhs = expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Or]);
+        Ok(lhs)
+    }
+}
 
 /// Parses a bitwise `XOR` expression.
 ///
@@ -538,7 +613,11 @@ where
 {
     type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
+        self.parse_boxed(cursor, interner).map(|ok|*ok)
+    }
+
+    fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("Relation Expression", "Parsing");
 
         if self.allow_in.0 {
@@ -558,9 +637,9 @@ where
                         cursor.advance(interner);
 
                         let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                            .parse_boxed(cursor, interner)?;
 
-                        return Ok(BinaryInPrivate::new(PrivateName::new(identifier), rhs).into());
+                        return Ok(BinaryInPrivate::new_boxed(PrivateName::new(identifier), rhs).into());
                     }
                     _ => {}
                 }
@@ -568,7 +647,7 @@ where
         }
 
         let mut lhs =
-            ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+            ShiftExpression::new(self.allow_yield, self.allow_await).parse_boxed(cursor, interner)?;
 
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
@@ -579,11 +658,11 @@ where
                         || op == Punctuator::GreaterThanOrEq =>
                 {
                     cursor.advance(interner);
-                    lhs = Binary::new(
+                    lhs = Binary::new_boxed(
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                            .parse_boxed(cursor, interner)?,
                     )
                     .into();
                 }
@@ -598,11 +677,11 @@ where
                         || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
                 {
                     cursor.advance(interner);
-                    lhs = Binary::new(
+                    lhs = Binary::new_boxed(
                         op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                            .parse_boxed(cursor, interner)?,
                     )
                     .into();
                 }
@@ -642,16 +721,52 @@ impl ShiftExpression {
     }
 }
 
-expression!(
-    ShiftExpression,
-    AdditiveExpression,
-    [
-        Punctuator::LeftSh,
-        Punctuator::RightSh,
-        Punctuator::URightSh
-    ],
-    [allow_yield, allow_await],
-);
+impl<R> TokenParser<R> for ShiftExpression
+where R: ReadChar
+{
+    type Output = ast::Expression;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
+        self.parse_boxed(cursor, interner).map(|ok|*ok)
+    }
+
+    fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Box<ast::Expression>> {
+        // TODO: recursive `expression!`
+        //
+        // unwrapping of
+        // ```
+        // expression!(
+        //     ShiftExpression,
+        //     AdditiveExpression,
+        //     [
+        //         Punctuator::LeftSh,
+        //         Punctuator::RightSh,
+        //         Punctuator::URightSh
+        //     ],
+        //     [allow_yield, allow_await],
+        // );
+        // ```
+        // with subcall inlining to reduce stack allocation (from X * 3 to X)
+        let mut lhs: Box<boa_ast::Expression>;
+        expression!([PREFIX][cursor] ShiftExpression);
+        let lower = expression!([LOWER_CTOR][self] AdditiveExpression, [allow_yield, allow_await]);
+        lhs = {
+            expression!([PREFIX][cursor] AdditiveExpression);
+            let lower = expression!([LOWER_CTOR][self] MultiplicativeExpression, [allow_yield, allow_await]);
+            lhs = {
+                expression!([PREFIX][cursor] MultiplicativeExpression, InputElement::Div);
+                let lower = expression!([LOWER_CTOR][self] ExponentiationExpression, [allow_yield, allow_await]);
+                lhs = {
+                    lower.parse_boxed(cursor, interner)?
+                };
+                expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Mul, Punctuator::Div, Punctuator::Mod])
+            };
+            expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Add, Punctuator::Sub])
+        };
+        lhs = expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::LeftSh, Punctuator::RightSh, Punctuator::URightSh]);
+        Ok(lhs)
+    }
+}
 
 /// Parses an additive expression.
 ///
