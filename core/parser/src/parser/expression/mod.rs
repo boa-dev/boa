@@ -403,17 +403,25 @@ impl BitwiseORExpression {
     }
 }
 
-
 impl<R> TokenParser<R> for BitwiseORExpression
-where R: ReadChar
+where
+    R: ReadChar,
 {
     type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
-        self.parse_boxed(cursor, interner).map(|ok|*ok)
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<ast::Expression> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
     }
 
-    fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Box<ast::Expression>> {
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<ast::Expression>> {
         // TODO: recursive `expression!`
         //
         // unwrapping of
@@ -438,9 +446,7 @@ where R: ReadChar
                 lhs = {
                     expression!([PREFIX][cursor] EqualityExpression);
                     let lower = expression!([LOWER_CTOR][self] RelationalExpression, [allow_in, allow_yield, allow_await]);
-                    lhs = {
-                        lower.parse_boxed(cursor, interner)?
-                    };
+                    lhs = { lower.parse_boxed(cursor, interner)? };
                     expression!(
                         [POSTFIX]
                         [self; cursor; interner; lhs]
@@ -613,11 +619,19 @@ where
 {
     type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
-        self.parse_boxed(cursor, interner).map(|ok|*ok)
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<ast::Expression> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
     }
 
-    fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Box<Self::Output>> {
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("Relation Expression", "Parsing");
 
         if self.allow_in.0 {
@@ -639,15 +653,17 @@ where
                         let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
                             .parse_boxed(cursor, interner)?;
 
-                        return Ok(BinaryInPrivate::new_boxed(PrivateName::new(identifier), rhs).into());
+                        return Ok(
+                            BinaryInPrivate::new_boxed(PrivateName::new(identifier), rhs).into(),
+                        );
                     }
                     _ => {}
                 }
             }
         }
 
-        let mut lhs =
-            ShiftExpression::new(self.allow_yield, self.allow_await).parse_boxed(cursor, interner)?;
+        let mut lhs = ShiftExpression::new(self.allow_yield, self.allow_await)
+            .parse_boxed(cursor, interner)?;
 
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
@@ -722,15 +738,24 @@ impl ShiftExpression {
 }
 
 impl<R> TokenParser<R> for ShiftExpression
-where R: ReadChar
+where
+    R: ReadChar,
 {
     type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
-        self.parse_boxed(cursor, interner).map(|ok|*ok)
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<ast::Expression> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
     }
 
-    fn parse_boxed(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<Box<ast::Expression>> {
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<ast::Expression>> {
         // TODO: recursive `expression!`
         //
         // unwrapping of
@@ -756,9 +781,7 @@ where R: ReadChar
             lhs = {
                 expression!([PREFIX][cursor] MultiplicativeExpression, InputElement::Div);
                 let lower = expression!([LOWER_CTOR][self] ExponentiationExpression, [allow_yield, allow_await]);
-                lhs = {
-                    lower.parse_boxed(cursor, interner)?
-                };
+                lhs = { lower.parse_boxed(cursor, interner)? };
                 expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Mul, Punctuator::Div, Punctuator::Mod])
             };
             expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Add, Punctuator::Sub])

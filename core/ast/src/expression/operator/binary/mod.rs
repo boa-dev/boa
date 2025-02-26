@@ -176,10 +176,7 @@ impl BinaryInPrivate {
     #[inline]
     #[must_use]
     pub fn new_boxed(lhs: PrivateName, rhs: Box<Expression>) -> Self {
-        Self {
-            lhs,
-            rhs,
-        }
+        Self { lhs, rhs }
     }
 
     /// Gets the left hand side of the binary operation.
