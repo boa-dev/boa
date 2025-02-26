@@ -1628,7 +1628,8 @@ pub(crate) fn to_partial_zoneddatetime(
         .with_month_code(month_code)
         .with_day(day)
         .with_era(era)
-        .with_era_year(era_year);
+        .with_era_year(era_year)
+        .with_calendar(calendar);
 
     let time = PartialTime::new()
         .with_hour(hour)
