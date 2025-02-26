@@ -23,7 +23,7 @@ use temporal_rs::{
         OffsetDisambiguation, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
     partial::PartialZonedDateTime,
-    provider::TimeZoneProvider,
+    provider::{TimeZoneProvider, TransitionDirection},
     Calendar, TimeZone, ZonedDateTime as ZonedDateTimeInner,
 };
 
@@ -1191,7 +1191,7 @@ impl ZonedDateTime {
                 .into());
         }
         // 5. If directionParam is a String, then
-        let _options_obj = if let Some(param_str) = direction_param.as_string() {
+        let options_obj = if let Some(param_str) = direction_param.as_string() {
             // a. Let paramString be directionParam.
             // b. Set directionParam to OrdinaryObjectCreate(null).
             let obj = JsObject::with_null_proto();
@@ -1210,12 +1210,21 @@ impl ZonedDateTime {
 
         // TODO: step 7
         // 7. Let direction be ? GetDirectionOption(directionParam).
+        let direction =
+            get_option::<TransitionDirection>(&options_obj, js_string!("direction"), context)?
+                .ok_or_else(|| {
+                    JsNativeError::range().with_message("direction option is required.")
+                })?;
 
         // Step 8-12
         let result = zdt
             .inner
-            .get_time_zone_transition_with_provider(true, context.tz_provider())?;
-        create_temporal_zoneddatetime(result, None, context).map(Into::into)
+            .get_time_zone_transition_with_provider(direction, context.tz_provider())?;
+
+        match result {
+            Some(zdt) => create_temporal_zoneddatetime(zdt, None, context).map(Into::into),
+            None => Ok(JsValue::null()),
+        }
     }
 
     /// 6.3.47 `Temporal.ZonedDateTime.prototype.toInstant ( )`

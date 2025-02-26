@@ -19,6 +19,7 @@ use temporal_rs::{
         TemporalRoundingMode, TemporalUnit,
     },
     parsers::Precision,
+    provider::TransitionDirection,
 };
 
 // TODO: Expand docs on the below options.
@@ -160,6 +161,7 @@ impl ParsableOptionType for TemporalRoundingMode {}
 impl ParsableOptionType for DisplayCalendar {}
 impl ParsableOptionType for DisplayOffset {}
 impl ParsableOptionType for DisplayTimeZone {}
+impl ParsableOptionType for TransitionDirection {}
 
 impl OptionType for RoundingIncrement {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
