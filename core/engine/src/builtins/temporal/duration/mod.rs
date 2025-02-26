@@ -186,7 +186,7 @@ impl IntrinsicObject for Duration {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 1)
-            .static_method(Self::compare, js_string!("compare"), 1)
+            .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::with, js_string!("with"), 1)
             .method(Self::negated, js_string!("negated"), 0)
             .method(Self::abs, js_string!("abs"), 0)
