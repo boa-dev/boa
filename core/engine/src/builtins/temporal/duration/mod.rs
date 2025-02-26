@@ -186,6 +186,7 @@ impl IntrinsicObject for Duration {
                 Attribute::CONFIGURABLE,
             )
             .static_method(Self::from, js_string!("from"), 1)
+            .static_method(Self::compare, js_string!("compare"), 1)
             .method(Self::with, js_string!("with"), 1)
             .method(Self::negated, js_string!("negated"), 0)
             .method(Self::abs, js_string!("abs"), 0)
@@ -458,6 +459,19 @@ impl Duration {
         // 2. Return ? ToTemporalDuration(item).
         create_temporal_duration(to_temporal_duration_record(item, context)?, None, context)
             .map(Into::into)
+    }
+
+    fn compare(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Set one to ? ToTemporalDuration(one).
+        let one = to_temporal_duration(args.get_or_undefined(0), context)?;
+        // 2. Set two to ? ToTemporalDuration(two).
+        let two = to_temporal_duration(args.get_or_undefined(1), context)?;
+        // 3. Let resolvedOptions be ? GetOptionsObject(options).
+        let options = get_options_object(args.get_or_undefined(2))?;
+        // 4. Let relativeToRecord be ? GetTemporalRelativeToOption(resolvedOptions).
+        let relative_to = get_relative_to_option(&options, context)?;
+
+        Ok((one.compare_with_provider(&two, relative_to, context.tz_provider())? as i8).into())
     }
 }
 
