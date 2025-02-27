@@ -1,7 +1,7 @@
 use crate::{
-    alloc_overflow, tagged::Tagged, JsStr, JsStrVariant, JsString, RawJsString, RefCount,
-    TaggedLen, DATA_OFFSET,
+    alloc_overflow, JsStr, JsStrVariant, JsString, RawJsString, RefCount, TaggedLen, DATA_OFFSET,
 };
+use tag_ptr::Tagged;
 
 use std::{
     alloc::{alloc, dealloc, realloc, Layout},
