@@ -102,8 +102,6 @@ pub mod symbol;
 pub mod value;
 pub mod vm;
 
-pub(crate) mod tagged;
-
 mod host_defined;
 mod small_map;
 mod sys;
