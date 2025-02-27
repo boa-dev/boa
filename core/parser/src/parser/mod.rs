@@ -595,7 +595,7 @@ fn name_in_lexically_declared_names(
 
 /// Trait to reduce boilerplate in the parser.
 trait OrAbrupt<T> {
-    /// Will convert an `Ok(None)` to an [`Error::AbruptEnd`] or return the inner type if not.
+    /// Will convert an `Ok(None)` to an [`crate::error::ErrorInner::AbruptEnd`] or return the inner type if not.
     fn or_abrupt(self) -> ParseResult<T>;
 }
 
