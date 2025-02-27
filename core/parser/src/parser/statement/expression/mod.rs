@@ -45,6 +45,27 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExpressionStatement", "Parsing");
 
+        self.parse_prefix_keywords(cursor, interner)?;
+
+        let expr = Expression::new(true, self.allow_yield, self.allow_await)
+            .parse_boxed(cursor, interner)?;
+
+        cursor.expect_semicolon("expression statement", interner)?;
+
+        Ok((*expr).into())
+    }
+}
+
+impl ExpressionStatement {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_prefix_keywords<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<()> {
         let next_token = cursor.peek(0, interner).or_abrupt()?;
         match next_token.kind() {
             TokenKind::Keyword((Keyword::Function | Keyword::Class, true)) => {
@@ -99,12 +120,6 @@ where
             }
             _ => {}
         }
-
-        let expr =
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
-
-        cursor.expect_semicolon("expression statement", interner)?;
-
-        Ok(expr.into())
+        Ok(())
     }
 }

@@ -28,7 +28,7 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Try {
     block: Block,
-    handler: ErrorHandler,
+    handler: Box<ErrorHandler>,
 }
 
 /// The type of error handler in a [`Try`] statement.
@@ -48,8 +48,11 @@ impl Try {
     /// Creates a new `Try` AST node.
     #[inline]
     #[must_use]
-    pub const fn new(block: Block, handler: ErrorHandler) -> Self {
-        Self { block, handler }
+    pub fn new(block: Block, handler: ErrorHandler) -> Self {
+        Self {
+            block,
+            handler: Box::new(handler),
+        }
     }
 
     /// Gets the `try` block.
@@ -63,7 +66,7 @@ impl Try {
     #[inline]
     #[must_use]
     pub const fn catch(&self) -> Option<&Catch> {
-        match &self.handler {
+        match &*self.handler {
             ErrorHandler::Catch(c) | ErrorHandler::Full(c, _) => Some(c),
             ErrorHandler::Finally(_) => None,
         }
@@ -73,7 +76,7 @@ impl Try {
     #[inline]
     #[must_use]
     pub const fn finally(&self) -> Option<&Finally> {
-        match &self.handler {
+        match &*self.handler {
             ErrorHandler::Finally(f) | ErrorHandler::Full(_, f) => Some(f),
             ErrorHandler::Catch(_) => None,
         }
@@ -126,7 +129,7 @@ impl VisitWith for Try {
         V: VisitorMut<'a>,
     {
         visitor.visit_block_mut(&mut self.block)?;
-        match &mut self.handler {
+        match &mut *self.handler {
             ErrorHandler::Catch(c) => visitor.visit_catch_mut(c)?,
             ErrorHandler::Finally(f) => visitor.visit_finally_mut(f)?,
             ErrorHandler::Full(c, f) => {

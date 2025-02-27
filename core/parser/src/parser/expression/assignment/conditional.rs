@@ -73,6 +73,21 @@ where
         let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse_boxed(cursor, interner)?;
 
+        self.parse_boxed_tail(cursor, interner, lhs)
+    }
+}
+
+impl ConditionalExpression {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        lhs: Box<Expression>,
+    ) -> ParseResult<Box<Expression>> {
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
                 cursor.advance(interner);

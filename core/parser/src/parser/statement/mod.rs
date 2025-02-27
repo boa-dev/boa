@@ -119,6 +119,30 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Statement", "Parsing");
+
+        match self.parse_non_default_cases(cursor, interner)? {
+            Some(ok) => Ok(ok),
+            None => {
+                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)
+            }
+        }
+    }
+}
+impl Statement {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse`,
+    /// and an often called function in recursion stays outside of this function.
+    ///
+    /// # Return
+    /// * `Err(_)` if error occurs;
+    /// * `Ok(None)` if next expression is a `ExpressionStatement`;
+    /// * `Ok(Some(Expr))` otherwise;
+    fn parse_non_default_cases<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Option<ast::Statement>> {
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
@@ -214,17 +238,16 @@ where
                             self.allow_return,
                         )
                         .parse(cursor, interner)
-                        .map(ast::Statement::from);
+                        .map(|x| Some(ast::Statement::from(x)));
                     }
                 }
 
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)
             }
 
-            _ => {
-                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)
-            }
+            _ => return Ok(None),
         }
+        .map(|x| Some(x))
     }
 }
 

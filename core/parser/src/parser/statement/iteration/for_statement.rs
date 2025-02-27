@@ -204,10 +204,10 @@ where
                 cursor.advance(interner);
                 let expr = if in_loop {
                     Expression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?
+                        .parse_boxed(cursor, interner)?
                 } else {
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?
+                        .parse_boxed(cursor, interner)?
                 };
 
                 cursor.expect(Punctuator::CloseParen, "for in/of statement", interner)?;

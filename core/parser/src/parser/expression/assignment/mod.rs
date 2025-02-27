@@ -30,8 +30,9 @@ use crate::{
 };
 use boa_ast::{
     expression::operator::assign::{Assign, AssignOp, AssignTarget},
+    function::FormalParameterList,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Expression, Keyword, Punctuator,
+    Expression, Keyword, LinearSpan, Position, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -95,6 +96,44 @@ where
         interner: &mut Interner,
     ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
+
+        if let Some(ok) = self.parse_boxed_prefix_special_expr(cursor, interner)? {
+            return Ok(ok);
+        }
+
+        cursor.set_goal(InputElement::Div);
+
+        let peek_token = cursor.peek(0, interner).or_abrupt()?;
+        let position = peek_token.span().start();
+        let start_linear_span = peek_token.linear_span();
+        let lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+            .parse_boxed(cursor, interner)?;
+
+        // If the left hand side is a parameter list, we must parse an arrow function.
+        if let Expression::FormalParameterList(parameters) = *lhs {
+            return self.parse_boxed_formal_parameter_list(
+                cursor,
+                interner,
+                position,
+                start_linear_span,
+                parameters,
+            );
+        }
+
+        self.parse_boxed_tail(cursor, interner, lhs)
+    }
+}
+
+impl AssignmentExpression {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_prefix_special_expr<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Option<Box<Expression>>> {
         cursor.set_goal(InputElement::RegExp);
 
         match cursor.peek(0, interner).or_abrupt()?.kind() {
@@ -102,6 +141,7 @@ where
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 return YieldExpression::new(self.allow_in, self.allow_await)
                     .parse_boxed(cursor, interner)
+                    .map(|x| Some(x))
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::IdentifierName(_)
@@ -123,7 +163,7 @@ where
                             self.allow_await,
                         )
                         .parse_boxed(cursor, interner)
-                        .map(|arrow| Box::new(Expression::ArrowFunction(arrow)));
+                        .map(|arrow| Some(Box::new(Expression::ArrowFunction(arrow))));
                     }
                 }
             }
@@ -154,86 +194,104 @@ where
                 {
                     return AsyncArrowFunction::new(self.allow_in, self.allow_yield)
                         .parse_boxed(cursor, interner)
-                        .map(|arrow| Box::new(Expression::AsyncArrowFunction(arrow)));
+                        .map(|arrow| Some(Box::new(Expression::AsyncArrowFunction(arrow))));
                 }
             }
             _ => {}
         }
+        Ok(None)
+    }
 
-        cursor.set_goal(InputElement::Div);
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    ///
+    /// # Return
+    /// * `Err(_)` if error occurs;
+    /// * `Ok(Some(Box<Expr>))` if the next expression is `FormalParameterList`;
+    /// * `Ok(None)` otherwise;
+    fn parse_boxed_formal_parameter_list<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        position: Position,
+        start_linear_span: LinearSpan,
+        parameters: FormalParameterList,
+    ) -> ParseResult<Box<Expression>> {
+        cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
 
-        let peek_token = cursor.peek(0, interner).or_abrupt()?;
-        let position = peek_token.span().start();
-        let start_linear_span = peek_token.linear_span();
-        let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse_boxed(cursor, interner)?;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::Arrow),
+            "arrow function",
+            interner,
+        )?;
+        let arrow = cursor.arrow();
+        cursor.set_arrow(true);
+        let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
+        cursor.set_arrow(arrow);
 
-        // If the left hand side is a parameter list, we must parse an arrow function.
-        if let Expression::FormalParameterList(parameters) = *lhs {
-            cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
-
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::Arrow),
-                "arrow function",
-                interner,
-            )?;
-            let arrow = cursor.arrow();
-            cursor.set_arrow(true);
-            let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
-            cursor.set_arrow(arrow);
-
-            // Early Error: ArrowFormalParameters are UniqueFormalParameters.
-            if parameters.has_duplicates() {
-                return Err(Error::lex(LexError::Syntax(
-                    "Duplicate parameter name not allowed in this context".into(),
-                    position,
-                )));
-            }
-
-            // Early Error: It is a Syntax Error if ArrowParameters Contains YieldExpression is true.
-            if contains(&parameters, ContainsSymbol::YieldExpression) {
-                return Err(Error::lex(LexError::Syntax(
-                    "Yield expression not allowed in this context".into(),
-                    position,
-                )));
-            }
-
-            // Early Error: It is a Syntax Error if ArrowParameters Contains AwaitExpression is true.
-            if contains(&parameters, ContainsSymbol::AwaitExpression) {
-                return Err(Error::lex(LexError::Syntax(
-                    "Await expression not allowed in this context".into(),
-                    position,
-                )));
-            }
-
-            // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
-            // and IsSimpleParameterList of ArrowParameters is false.
-            if body.strict() && !parameters.is_simple() {
-                return Err(Error::lex(LexError::Syntax(
-                    "Illegal 'use strict' directive in function with non-simple parameter list"
-                        .into(),
-                    position,
-                )));
-            }
-
-            // It is a Syntax Error if any element of the BoundNames of ArrowParameters
-            // also occurs in the LexicallyDeclaredNames of ConciseBody.
-            // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
-            name_in_lexically_declared_names(
-                &bound_names(&parameters),
-                &lexically_declared_names(&body),
+        // Early Error: ArrowFormalParameters are UniqueFormalParameters.
+        if parameters.has_duplicates() {
+            return Err(Error::lex(LexError::Syntax(
+                "Duplicate parameter name not allowed in this context".into(),
                 position,
-                interner,
-            )?;
-
-            let linear_pos_end = body.linear_pos_end();
-            let span = start_linear_span.union(linear_pos_end);
-
-            return Ok(Expression::boxed(|| {
-                boa_ast::function::ArrowFunction::new_boxed(None, parameters, body, span).into()
-            }));
+            )));
         }
 
+        // Early Error: It is a Syntax Error if ArrowParameters Contains YieldExpression is true.
+        if contains(&parameters, ContainsSymbol::YieldExpression) {
+            return Err(Error::lex(LexError::Syntax(
+                "Yield expression not allowed in this context".into(),
+                position,
+            )));
+        }
+
+        // Early Error: It is a Syntax Error if ArrowParameters Contains AwaitExpression is true.
+        if contains(&parameters, ContainsSymbol::AwaitExpression) {
+            return Err(Error::lex(LexError::Syntax(
+                "Await expression not allowed in this context".into(),
+                position,
+            )));
+        }
+
+        // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
+        // and IsSimpleParameterList of ArrowParameters is false.
+        if body.strict() && !parameters.is_simple() {
+            return Err(Error::lex(LexError::Syntax(
+                "Illegal 'use strict' directive in function with non-simple parameter list".into(),
+                position,
+            )));
+        }
+
+        // It is a Syntax Error if any element of the BoundNames of ArrowParameters
+        // also occurs in the LexicallyDeclaredNames of ConciseBody.
+        // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
+        name_in_lexically_declared_names(
+            &bound_names(&parameters),
+            &lexically_declared_names(&body),
+            position,
+            interner,
+        )?;
+
+        let linear_pos_end = body.linear_pos_end();
+        let span = start_linear_span.union(linear_pos_end);
+
+        return Ok(Expression::boxed(|| {
+            boa_ast::function::ArrowFunction::new_boxed(None, parameters, body, span).into()
+        }));
+    }
+
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        mut lhs: Box<Expression>,
+    ) -> ParseResult<Box<Expression>> {
         // Review if we are trying to assign to an invalid left hand side expression.
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {
             match tok.kind() {

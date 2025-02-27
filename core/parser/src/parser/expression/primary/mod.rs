@@ -345,122 +345,19 @@ where
         let mut expressions = Vec::new();
         let mut tailing_comma = None;
 
-        let next = cursor.peek(0, interner).or_abrupt()?;
-        let span = match next.kind() {
-            TokenKind::Punctuator(Punctuator::CloseParen) => {
-                let span = next.span();
-                cursor.advance(interner);
-                span
-            }
-            TokenKind::Punctuator(Punctuator::Spread) => {
-                cursor.advance(interner);
-                let next = cursor.peek(0, interner).or_abrupt()?;
-                match next.kind() {
-                    TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                        let bindings =
-                            ObjectBindingPattern::new(self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?;
-                        expressions.push(InnerExpression::SpreadObject(bindings));
-                    }
-                    TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                        let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
-                        expressions.push(InnerExpression::SpreadArray(bindings));
-                    }
-                    _ => {
-                        let binding = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
-                        expressions.push(InnerExpression::SpreadBinding(binding));
-                    }
-                }
-
-                cursor
-                    .expect(
-                        Punctuator::CloseParen,
-                        "CoverParenthesizedExpressionAndArrowParameterList",
-                        interner,
-                    )?
-                    .span()
-            }
-            _ => {
+        let span = match self.parse_special_initial_expr(cursor, interner, &mut expressions)? {
+            Some(span) => span,
+            None => {
                 let expression = Expression::new(true, self.allow_yield, self.allow_await)
                     .parse_boxed(cursor, interner)?;
                 expressions.push(InnerExpression::Expression(expression));
 
-                let next = cursor.peek(0, interner).or_abrupt()?;
-                match next.kind() {
-                    TokenKind::Punctuator(Punctuator::CloseParen) => {
-                        let span = next.span();
-                        cursor.advance(interner);
-                        span
-                    }
-                    TokenKind::Punctuator(Punctuator::Comma) => {
-                        cursor.advance(interner);
-                        let next = cursor.peek(0, interner).or_abrupt()?;
-                        match next.kind() {
-                            TokenKind::Punctuator(Punctuator::CloseParen) => {
-                                let span = next.span();
-                                tailing_comma = Some(next.span());
-                                cursor.advance(interner);
-                                span
-                            }
-                            TokenKind::Punctuator(Punctuator::Spread) => {
-                                cursor.advance(interner);
-                                let next = cursor.peek(0, interner).or_abrupt()?;
-                                match next.kind() {
-                                    TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                                        let bindings = ObjectBindingPattern::new(
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor, interner)?;
-                                        expressions.push(InnerExpression::SpreadObject(bindings));
-                                    }
-                                    TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                                        let bindings = ArrayBindingPattern::new(
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor, interner)?;
-                                        expressions.push(InnerExpression::SpreadArray(bindings));
-                                    }
-                                    _ => {
-                                        let binding = BindingIdentifier::new(
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor, interner)?;
-                                        expressions.push(InnerExpression::SpreadBinding(binding));
-                                    }
-                                }
-
-                                cursor
-                                    .expect(
-                                        Punctuator::CloseParen,
-                                        "CoverParenthesizedExpressionAndArrowParameterList",
-                                        interner,
-                                    )?
-                                    .span()
-                            }
-                            _ => {
-                                return Err(Error::expected(
-                                    vec![")".to_owned(), "...".to_owned()],
-                                    next.kind().to_string(interner),
-                                    next.span(),
-                                    "CoverParenthesizedExpressionAndArrowParameterList",
-                                ))
-                            }
-                        }
-                    }
-                    _ => {
-                        return Err(Error::expected(
-                            vec![")".to_owned(), ",".to_owned()],
-                            next.kind().to_string(interner),
-                            next.span(),
-                            "CoverParenthesizedExpressionAndArrowParameterList",
-                        ))
-                    }
-                }
+                self.parse_non_special_expr_tail(
+                    cursor,
+                    interner,
+                    &mut expressions,
+                    &mut tailing_comma,
+                )?
             }
         };
 
@@ -508,6 +405,145 @@ where
         // We know that we must parse an arrow function.
         // We parse the expressions in to a parameter list.
         formal_parameter_list_ctor(expressions, start_span, tailing_comma, cursor.strict())
+    }
+}
+
+impl CoverParenthesizedExpressionAndArrowParameterList {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse`,
+    /// and an often called function in recursion stays outside of this function.
+    ///
+    /// # Return
+    /// * `Err(_)` if error occurs;
+    /// * `Ok(Some(_))` if next expr is `TokenKind::Punctuator(CloseParen) || TokenKind::Punctuator(Spread)`;
+    /// * `Ok(None)` otherwise;
+    fn parse_special_initial_expr<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        expressions: &mut Vec<InnerExpression>,
+    ) -> ParseResult<Option<Span>> {
+        let next = cursor.peek(0, interner).or_abrupt()?;
+        Ok(Some(match next.kind() {
+            TokenKind::Punctuator(Punctuator::CloseParen) => {
+                let span = next.span();
+                cursor.advance(interner);
+                span
+            }
+            TokenKind::Punctuator(Punctuator::Spread) => {
+                cursor.advance(interner);
+                let next = cursor.peek(0, interner).or_abrupt()?;
+                match next.kind() {
+                    TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                        let bindings =
+                            ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?;
+                        expressions.push(InnerExpression::SpreadObject(bindings));
+                    }
+                    TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                        let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        expressions.push(InnerExpression::SpreadArray(bindings));
+                    }
+                    _ => {
+                        let binding = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        expressions.push(InnerExpression::SpreadBinding(binding));
+                    }
+                }
+
+                cursor
+                    .expect(
+                        Punctuator::CloseParen,
+                        "CoverParenthesizedExpressionAndArrowParameterList",
+                        interner,
+                    )?
+                    .span()
+            }
+            _ => return Ok(None),
+        }))
+    }
+
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_non_special_expr_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        expressions: &mut Vec<InnerExpression>,
+        tailing_comma: &mut Option<Span>,
+    ) -> ParseResult<Span> {
+        let next = cursor.peek(0, interner).or_abrupt()?;
+        Ok(match next.kind() {
+            TokenKind::Punctuator(Punctuator::CloseParen) => {
+                let span = next.span();
+                cursor.advance(interner);
+                span
+            }
+            TokenKind::Punctuator(Punctuator::Comma) => {
+                cursor.advance(interner);
+                let next = cursor.peek(0, interner).or_abrupt()?;
+                match next.kind() {
+                    TokenKind::Punctuator(Punctuator::CloseParen) => {
+                        let span = next.span();
+                        *tailing_comma = Some(next.span());
+                        cursor.advance(interner);
+                        span
+                    }
+                    TokenKind::Punctuator(Punctuator::Spread) => {
+                        cursor.advance(interner);
+                        let next = cursor.peek(0, interner).or_abrupt()?;
+                        match next.kind() {
+                            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                                let bindings =
+                                    ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                                        .parse(cursor, interner)?;
+                                expressions.push(InnerExpression::SpreadObject(bindings));
+                            }
+                            TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                                let bindings =
+                                    ArrayBindingPattern::new(self.allow_yield, self.allow_await)
+                                        .parse(cursor, interner)?;
+                                expressions.push(InnerExpression::SpreadArray(bindings));
+                            }
+                            _ => {
+                                let binding =
+                                    BindingIdentifier::new(self.allow_yield, self.allow_await)
+                                        .parse(cursor, interner)?;
+                                expressions.push(InnerExpression::SpreadBinding(binding));
+                            }
+                        }
+
+                        cursor
+                            .expect(
+                                Punctuator::CloseParen,
+                                "CoverParenthesizedExpressionAndArrowParameterList",
+                                interner,
+                            )?
+                            .span()
+                    }
+                    _ => {
+                        return Err(Error::expected(
+                            vec![")".to_owned(), "...".to_owned()],
+                            next.kind().to_string(interner),
+                            next.span(),
+                            "CoverParenthesizedExpressionAndArrowParameterList",
+                        ))
+                    }
+                }
+            }
+            _ => {
+                return Err(Error::expected(
+                    vec![")".to_owned(), ",".to_owned()],
+                    next.kind().to_string(interner),
+                    next.span(),
+                    "CoverParenthesizedExpressionAndArrowParameterList",
+                ))
+            }
+        })
     }
 }
 

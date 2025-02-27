@@ -74,11 +74,36 @@ where
     ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("MemberExpression", "Parsing");
 
+        let lhs = match self.parse_boxed_1st_token_except_prim(cursor, interner)? {
+            Some(expr) => expr,
+            None => PrimaryExpression::new(self.allow_yield, self.allow_await)
+                .parse_boxed(cursor, interner)?,
+        };
+
+        self.parse_boxed_tail(cursor, interner, lhs)
+    }
+}
+
+impl MemberExpression {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    ///
+    /// # Return
+    /// * `Err(_)` if error occurs;
+    /// * `Ok(None)` if next expression is `PrimaryExpression`;
+    /// * `Ok(Some(Box<Expr>))` otherwise;
+    fn parse_boxed_1st_token_except_prim<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Option<Box<ast::Expression>>> {
         cursor.set_goal(InputElement::RegExp);
 
         let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
-        let mut lhs = match token.kind() {
+        let lhs = match token.kind() {
             TokenKind::Keyword((Keyword::New | Keyword::Super | Keyword::Import, true)) => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
@@ -218,10 +243,22 @@ where
                     }
                 }
             }
-            _ => PrimaryExpression::new(self.allow_yield, self.allow_await)
-                .parse_boxed(cursor, interner)?,
+            _ => return Ok(None),
         };
 
+        Ok(Some(lhs))
+    }
+
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        mut lhs: Box<ast::Expression>,
+    ) -> ParseResult<Box<ast::Expression>> {
         cursor.set_goal(InputElement::TemplateTail);
 
         while let Some(tok) = cursor.peek(0, interner)? {

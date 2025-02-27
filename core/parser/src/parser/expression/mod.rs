@@ -182,8 +182,23 @@ where
     ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("Expression", "Parsing");
 
-        let mut lhs = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+        let lhs = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse_boxed(cursor, interner)?;
+
+        self.parse_boxed_tail(cursor, interner, lhs)
+    }
+}
+impl Expression {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        mut lhs: Box<ast::Expression>,
+    ) -> ParseResult<Box<ast::Expression>> {
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
                 TokenKind::Punctuator(Punctuator::Comma) => {
@@ -298,9 +313,24 @@ where
     ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("ShortCircuitExpression", "Parsing");
 
-        let mut current_node =
+        let current_node =
             BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                 .parse_boxed(cursor, interner)?;
+
+        self.parse_boxed_tail(cursor, interner, current_node)
+    }
+}
+impl ShortCircuitExpression {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        mut current_node: Box<ast::Expression>,
+    ) -> ParseResult<Box<ast::Expression>> {
         let mut previous = self.previous;
 
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -446,7 +476,7 @@ where
                 lhs = {
                     expression!([PREFIX][cursor] EqualityExpression);
                     let lower = expression!([LOWER_CTOR][self] RelationalExpression, [allow_in, allow_yield, allow_await]);
-                    lhs = { lower.parse_boxed(cursor, interner)? };
+                    lhs = lower.parse_boxed(cursor, interner)?;
                     expression!(
                         [POSTFIX]
                         [self; cursor; interner; lhs]
@@ -634,6 +664,32 @@ where
     ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("Relation Expression", "Parsing");
 
+        if let Some(ok) = self.parse_boxed_private_name(cursor, interner)? {
+            return Ok(ok);
+        }
+
+        let lhs = ShiftExpression::new(self.allow_yield, self.allow_await)
+            .parse_boxed(cursor, interner)?;
+
+        self.parse_boxed_tail(cursor, interner, lhs)
+    }
+}
+
+impl RelationalExpression {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    ///
+    /// # Return
+    /// * `Err(_)` if error occurs;
+    /// * `Ok(Some(Box<Expr>))` if the next expression is `BinaryInPrivate`;
+    /// * `Ok(None)` otherwise;
+    fn parse_boxed_private_name<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Option<Box<ast::Expression>>> {
         if self.allow_in.0 {
             let token = cursor.peek(0, interner).or_abrupt()?;
             if let TokenKind::PrivateIdentifier(identifier) = token.kind() {
@@ -653,18 +709,27 @@ where
                         let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
                             .parse_boxed(cursor, interner)?;
 
-                        return Ok(
+                        return Ok(Some(
                             BinaryInPrivate::new_boxed(PrivateName::new(identifier), rhs).into(),
-                        );
+                        ));
                     }
                     _ => {}
                 }
             }
         }
+        Ok(None)
+    }
 
-        let mut lhs = ShiftExpression::new(self.allow_yield, self.allow_await)
-            .parse_boxed(cursor, interner)?;
-
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        mut lhs: Box<ast::Expression>,
+    ) -> ParseResult<Box<ast::Expression>> {
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
                 TokenKind::Punctuator(op)
@@ -781,7 +846,7 @@ where
             lhs = {
                 expression!([PREFIX][cursor] MultiplicativeExpression, InputElement::Div);
                 let lower = expression!([LOWER_CTOR][self] ExponentiationExpression, [allow_yield, allow_await]);
-                lhs = { lower.parse_boxed(cursor, interner)? };
+                lhs = lower.parse_boxed(cursor, interner)?;
                 expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Mul, Punctuator::Div, Punctuator::Mod])
             };
             expression!([POSTFIX][self; cursor; interner; lhs] lower, [Punctuator::Add, Punctuator::Sub])
