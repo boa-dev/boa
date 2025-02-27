@@ -17,14 +17,12 @@ mod common;
 mod display;
 mod iter;
 mod str;
-mod tagged;
 
 #[cfg(test)]
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
 use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy};
-use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -44,6 +42,7 @@ use std::{
     ptr::{self, NonNull},
     str::FromStr,
 };
+use tag_ptr::{Tagged, UnwrappedTagged};
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")

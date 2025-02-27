@@ -1,3 +1,5 @@
+//! Utility library that enables a pointer to be associated with a tag of type `usize`
+
 use std::ptr::{self, NonNull};
 
 /// A pointer that can be tagged with an `usize`.
@@ -23,7 +25,7 @@ use std::ptr::{self, NonNull};
 ///
 /// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
 #[derive(Debug)]
-pub(crate) struct Tagged<T>(NonNull<T>);
+pub struct Tagged<T>(NonNull<T>);
 
 impl<T> Clone for Tagged<T> {
     fn clone(&self) -> Self {
@@ -34,14 +36,20 @@ impl<T> Clone for Tagged<T> {
 impl<T> Copy for Tagged<T> {}
 
 impl<T> Tagged<T> {
+    const ALIGNMENT_CHECK: () = assert!(align_of::<T>() >= 2);
+
     /// Creates a new, tagged `Tagged` pointer from an integer.
     ///
     /// # Requirements
     ///
-    /// - `T` must have an alignment of at least 2.
     /// - `tag` must fit inside `usize::BITS - 1` bits
-    pub(crate) const fn from_tag(tag: usize) -> Self {
-        debug_assert!(align_of::<T>() >= 2);
+    #[inline]
+    #[must_use]
+    pub const fn from_tag(tag: usize) -> Self {
+        #[allow(clippy::let_unit_value)]
+        #[allow(clippy::ignored_unit_patterns)]
+        let _ = Self::ALIGNMENT_CHECK;
+
         let addr = (tag << 1) | 1;
         // SAFETY: `addr` is never zero, since we always set its LSB to 1
         unsafe { Self(NonNull::new_unchecked(ptr::without_provenance_mut(addr))) }
@@ -56,7 +64,8 @@ impl<T> Tagged<T> {
     /// # Safety
     ///
     /// - `T` must be non null.
-    pub(crate) const unsafe fn from_ptr(ptr: *mut T) -> Self {
+    #[inline]
+    pub const unsafe fn from_ptr(ptr: *mut T) -> Self {
         debug_assert!(align_of::<T>() >= 2);
         // SAFETY: the caller must ensure the invariants hold.
         unsafe { Self(NonNull::new_unchecked(ptr)) }
@@ -67,14 +76,17 @@ impl<T> Tagged<T> {
     /// # Requirements
     ///
     /// - `T` must have an alignment of at least 2.
-    #[allow(unused)]
-    pub(crate) const fn from_non_null(ptr: NonNull<T>) -> Self {
+    #[inline]
+    #[must_use]
+    pub const fn from_non_null(ptr: NonNull<T>) -> Self {
         debug_assert!(align_of::<T>() >= 2);
         Self(ptr)
     }
 
     /// Unwraps the `Tagged` pointer.
-    pub(crate) fn unwrap(self) -> UnwrappedTagged<T> {
+    #[inline]
+    #[must_use]
+    pub fn unwrap(self) -> UnwrappedTagged<T> {
         let addr = self.0.as_ptr().addr();
         if addr & 1 == 0 {
             UnwrappedTagged::Ptr(self.0)
@@ -84,21 +96,25 @@ impl<T> Tagged<T> {
     }
 
     /// Gets the address of the inner pointer.
-    #[allow(unused)]
-    pub(crate) fn addr(self) -> usize {
+    #[inline]
+    #[must_use]
+    pub fn addr(self) -> usize {
         self.0.as_ptr().addr()
     }
 
     /// Returns `true` if `self ` is a tagged pointer.
-    #[allow(unused)]
-    pub(crate) fn is_tagged(self) -> bool {
+    #[inline]
+    #[must_use]
+    pub fn is_tagged(self) -> bool {
         self.0.as_ptr().addr() & 1 > 0
     }
 }
 
 /// The unwrapped value of a [`Tagged`] pointer.
 #[derive(Debug, Clone, Copy)]
-pub(crate) enum UnwrappedTagged<T> {
+pub enum UnwrappedTagged<T> {
+    /// Pointer variant.
     Ptr(NonNull<T>),
+    /// Tag variant.
     Tag(usize),
 }

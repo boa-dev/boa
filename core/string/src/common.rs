@@ -1,11 +1,11 @@
 //! List of commonly used strings in Javascript code.
 
-use crate::{tagged::Tagged, JsStr};
-
 use super::JsString;
+use crate::JsStr;
 use paste::paste;
 use rustc_hash::{FxBuildHasher, FxHashMap};
 use std::{collections::HashMap, sync::LazyLock};
+use tag_ptr::Tagged;
 
 macro_rules! well_known_statics {
     ( $( $(#[$attr:meta])* ($name:ident, $string:literal) ),+$(,)? ) => {

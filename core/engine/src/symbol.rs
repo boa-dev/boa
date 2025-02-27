@@ -24,9 +24,9 @@
 use crate::{
     js_string,
     string::{JsString, StaticJsStrings},
-    tagged::{Tagged, UnwrappedTagged},
 };
 use boa_gc::{Finalize, Trace};
+use tag_ptr::{Tagged, UnwrappedTagged};
 
 use boa_macros::{js_str, JsData};
 use num_enum::{IntoPrimitive, TryFromPrimitive};

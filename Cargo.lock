@@ -403,6 +403,7 @@ dependencies = [
  "serde_json",
  "static_assertions",
  "sys-locale",
+ "tag_ptr",
  "tap",
  "temporal_rs",
  "test-case",
@@ -561,6 +562,7 @@ dependencies = [
  "rustc-hash 2.1.1",
  "ryu-js",
  "static_assertions",
+ "tag_ptr",
 ]
 
 [[package]]
@@ -3553,6 +3555,10 @@ checksum = "8eab9a99a024a169fe8a903cf9d4a3b3601109bcc13bd9e3c6fff259138626c4"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "tag_ptr"
+version = "0.1.0"
 
 [[package]]
 name = "tap"
