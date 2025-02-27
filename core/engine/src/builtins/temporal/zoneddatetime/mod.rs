@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
@@ -11,8 +13,8 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::{IntoOrUndefined, PreferredType},
-    Context, JsArgs, JsBigInt, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue, JsVariant,
+    Context, JsArgs, JsBigInt, JsData, JsError, JsNativeError, JsObject, JsResult, JsString,
+    JsSymbol, JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -22,16 +24,17 @@ use temporal_rs::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
         OffsetDisambiguation, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
     },
-    partial::PartialZonedDateTime,
+    partial::{PartialDate, PartialTime, PartialZonedDateTime},
     provider::{TimeZoneProvider, TransitionDirection},
-    Calendar, TimeZone, ZonedDateTime as ZonedDateTimeInner,
+    Calendar, MonthCode, TimeZone, TinyAsciiStr, ZonedDateTime as ZonedDateTimeInner,
 };
 
 use super::{
-    calendar::to_temporal_calendar_slot_value, create_temporal_date, create_temporal_datetime,
-    create_temporal_duration, create_temporal_instant, create_temporal_time,
-    is_partial_temporal_object, options::get_difference_settings, to_partial_date_record,
-    to_partial_time_record, to_temporal_duration, to_temporal_time,
+    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
+    create_temporal_date, create_temporal_datetime, create_temporal_duration,
+    create_temporal_instant, create_temporal_time, is_partial_temporal_object,
+    options::get_difference_settings,
+    to_temporal_duration, to_temporal_time,
 };
 
 /// The `Temporal.ZonedDateTime` object.
@@ -1487,23 +1490,155 @@ fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> 
 }
 
 pub(crate) fn to_partial_zoneddatetime(
-    object: &JsObject,
+    partial_object: &JsObject,
     context: &mut Context,
 ) -> JsResult<PartialZonedDateTime> {
+    // NOTE (nekevss): Why do we have to list out all of the get operations? Well, order of operations Watson!
     // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
     // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », « time-zone »).
-    let date = to_partial_date_record(object, context)?;
-    let time = to_partial_time_record(object, context)?;
-    // d. Let timeZone be fields.[[TimeZone]].
-    let timezone = object
-        .get(js_string!("timeZone"), context)?
-        .map(|v| to_temporal_timezone_identifier(v, context))
+    let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    let day = partial_object
+        .get(js_string!("day"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
         .transpose()?;
-    // e. Let offsetString be fields.[[OffsetString]].
-    let offset = object
+    let hour = partial_object
+        .get(js_string!("hour"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
+    // TODO: `temporal_rs` needs a `has_era` method
+    let (era, era_year) = if calendar == Calendar::default() {
+        (None, None)
+    } else {
+        let era = partial_object
+            .get(js_string!("era"), context)?
+            .map(|v| {
+                let v = v.to_primitive(context, PreferredType::String)?;
+                let Some(era) = v.as_string() else {
+                    return Err(JsError::from(
+                        JsNativeError::typ()
+                            .with_message("The monthCode field value must be a string."),
+                    ));
+                };
+                // TODO: double check if an invalid monthCode is a range or type error.
+                TinyAsciiStr::<19>::try_from_str(&era.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
+            })
+            .transpose()?;
+        let era_year = partial_object
+            .get(js_string!("eraYear"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+        (era, era_year)
+    };
+    let microsecond = partial_object
+        .get(js_string!("microsecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?;
+
+    let millisecond = partial_object
+        .get(js_string!("millisecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?;
+
+    let minute = partial_object
+        .get(js_string!("minute"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
+
+    let month = partial_object
+        .get(js_string!("month"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
+        .transpose()?;
+
+    let month_code = partial_object
+        .get(js_string!("monthCode"), context)?
+        .map(|v| {
+            let v = v.to_primitive(context, PreferredType::String)?;
+            let Some(month_code) = v.as_string() else {
+                return Err(JsNativeError::typ()
+                    .with_message("The monthCode field value must be a string.")
+                    .into());
+            };
+            MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(JsError::from)
+        })
+        .transpose()?;
+
+    let nanosecond = partial_object
+        .get(js_string!("nanosecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?;
+
+    let offset = partial_object
         .get(js_string!("offset"), context)?
         .map(|v| to_offset_string(v, context))
         .transpose()?;
+
+    let second = partial_object
+        .get(js_string!("second"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
+
+    let timezone = partial_object
+        .get(js_string!("timeZone"), context)?
+        .map(|v| to_temporal_timezone_identifier(v, context))
+        .transpose()?;
+
+    let year = partial_object
+        .get(js_string!("year"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+        })
+        .transpose()?;
+
+    let date = PartialDate::new()
+        .with_year(year)
+        .with_month(month)
+        .with_month_code(month_code)
+        .with_day(day)
+        .with_era(era)
+        .with_era_year(era_year)
+        .with_calendar(calendar);
+
+    let time = PartialTime::new()
+        .with_hour(hour)
+        .with_minute(minute)
+        .with_second(second)
+        .with_millisecond(millisecond)
+        .with_microsecond(microsecond)
+        .with_nanosecond(nanosecond);
+
     Ok(PartialZonedDateTime {
         date,
         time,

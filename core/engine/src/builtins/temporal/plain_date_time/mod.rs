@@ -1,5 +1,4 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainDateTime` builtin object.
-#![allow(dead_code, unused_variables)]
 
 use std::str::FromStr;
 
@@ -434,7 +433,7 @@ impl BuiltInConstructor for PlainDateTime {
 
 impl PlainDateTime {
     /// 5.3.3 get `Temporal.PlainDatedt.prototype.calendarId`
-    fn get_calendar_id(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -446,7 +445,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.4 get `Temporal.PlainDatedt.prototype.year`
-    fn get_era(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -462,7 +461,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.5 get `Temporal.PlainDatedt.prototype.eraYear`
-    fn get_era_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -474,7 +473,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.6 get `Temporal.PlainDatedt.prototype.year`
-    fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -486,7 +485,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.7 get `Temporal.PlainDatedt.prototype.month`
-    fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -498,7 +497,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.8 get Temporal.PlainDatedt.prototype.monthCode
-    fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_month_code(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -510,7 +509,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.9 get `Temporal.PlainDatedt.prototype.day`
-    fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_day(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -612,7 +611,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.16 get `Temporal.PlainDatedt.prototype.dayOfWeek`
-    fn get_day_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_day_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -624,7 +623,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.17 get `Temporal.PlainDatedt.prototype.dayOfYear`
-    fn get_day_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_day_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -636,7 +635,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.18 get `Temporal.PlainDatedt.prototype.weekOfYear`
-    fn get_week_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_week_of_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -648,7 +647,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.19 get `Temporal.PlainDatedt.prototype.yearOfWeek`
-    fn get_year_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_year_of_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -660,7 +659,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.20 get `Temporal.PlainDatedt.prototype.daysInWeek`
-    fn get_days_in_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_week(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -672,11 +671,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.21 get `Temporal.PlainDatedt.prototype.daysInMonth`
-    fn get_days_in_month(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -688,7 +683,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.22 get `Temporal.PlainDatedt.prototype.daysInYear`
-    fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -700,11 +695,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.23 get `Temporal.PlainDatedt.prototype.monthsInYear`
-    fn get_months_in_year(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -716,7 +707,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.24 get `Temporal.PlainDatedt.prototype.inLeapYear`
-    fn get_in_leap_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -953,9 +944,6 @@ impl PlainDateTime {
             }
         };
 
-        let (plain_relative_to, zoned_relative_to) =
-            super::to_relative_temporal_object(&round_to, context)?;
-
         let mut options = RoundingOptions::default();
 
         options.increment =
@@ -1033,11 +1021,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.35 `Temporal.PlainDateTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
-    fn to_locale_string(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn to_locale_string(this: &JsValue, _args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
         let dt = this
             .as_object()
@@ -1053,7 +1037,7 @@ impl PlainDateTime {
     }
 
     /// 5.3.36 `Temporal.PlainDateTime.prototype.toJSON ( )`
-    fn to_json(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
@@ -1105,8 +1089,8 @@ impl PlainDateTime {
             .into())
     }
 
-    fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let dt = this
+    fn to_plain_date(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let _dt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {

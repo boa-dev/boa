@@ -29,7 +29,6 @@ pub use self::{
     plain_time::*, plain_year_month::*, zoneddatetime::*,
 };
 
-use crate::value::JsVariant;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
@@ -224,30 +223,6 @@ pub(crate) fn get_relative_to_option(
         &relative_to_str.to_std_string_escaped(),
         context.tz_provider(),
     )?))
-}
-
-type RelativeTemporalObjectResult = JsResult<(Option<TemporalDate>, Option<TemporalZonedDateTime>)>;
-
-/// 13.21 `ToRelativeTemporalObject ( options )`
-pub(crate) fn to_relative_temporal_object(
-    options: &JsObject,
-    context: &mut Context,
-) -> RelativeTemporalObjectResult {
-    let relative_to = options.get(js_string!("relativeTo"), context)?;
-    let plain_date = match relative_to.variant() {
-        JsVariant::String(relative_to_str) => JsValue::from(relative_to_str.clone()),
-        JsVariant::Object(relative_to_obj) => JsValue::from(relative_to_obj.clone()),
-        JsVariant::Undefined => return Ok((None, None)),
-        _ => {
-            return Err(JsNativeError::typ()
-                .with_message("Invalid type for converting to relativeTo object")
-                .into())
-        }
-    };
-    let plain_date = to_temporal_date(&plain_date, None, context)?;
-
-    // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
-    Ok((Some(plain_date), None))
 }
 
 // 13.26 IsPartialTemporalObject ( object )
