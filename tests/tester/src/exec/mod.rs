@@ -522,14 +522,7 @@ impl Test {
         optimizer_options: OptimizerOptions,
         console: bool,
     ) -> Result<(Box<Context>, AsyncResult, WorkerHandles), String> {
-        let async_result = AsyncResult::default();
-        let handles = WorkerHandles::new();
-        let loader = Rc::new(
-            SimpleModuleLoader::new(self.path.parent().expect("test should have a parent dir"))
-                .expect("test path should be canonicalizable"),
-        );
-
-        fn create_boxed_ctx(test: &Test, loader: Rc<SimpleModuleLoader>) -> Box<Context> {
+        fn create_boxed_ctx(test: &Test, loader: &Rc<SimpleModuleLoader>) -> Box<Context> {
             Box::new(
                 Context::builder()
                     .module_loader(loader.clone())
@@ -539,7 +532,14 @@ impl Test {
             )
         }
 
-        let mut context = create_boxed_ctx(self, loader);
+        let async_result = AsyncResult::default();
+        let handles = WorkerHandles::new();
+        let loader = Rc::new(
+            SimpleModuleLoader::new(self.path.parent().expect("test should have a parent dir"))
+                .expect("test path should be canonicalizable"),
+        );
+
+        let mut context = create_boxed_ctx(self, &loader);
 
         context.set_optimizer_options(optimizer_options);
 

@@ -141,7 +141,7 @@ impl AssignmentExpression {
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 return YieldExpression::new(self.allow_in, self.allow_await)
                     .parse_boxed(cursor, interner)
-                    .map(|x| Some(x))
+                    .map(Some)
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::IdentifierName(_)
@@ -277,9 +277,9 @@ impl AssignmentExpression {
         let linear_pos_end = body.linear_pos_end();
         let span = start_linear_span.union(linear_pos_end);
 
-        return Ok(Expression::boxed(|| {
+        Ok(Expression::boxed(|| {
             boa_ast::function::ArrowFunction::new_boxed(None, parameters, body, span).into()
-        }));
+        }))
     }
 
     /// This function was added to optimize the stack size.

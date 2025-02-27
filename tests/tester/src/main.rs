@@ -779,6 +779,7 @@ struct SuiteResult {
 }
 
 impl SuiteResult {
+    #[allow(clippy::large_types_passed_by_value)]
     fn new_boxed(
         name: Box<str>,
         stats: Statistics,

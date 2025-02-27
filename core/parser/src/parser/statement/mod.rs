@@ -247,7 +247,7 @@ impl Statement {
 
             _ => return Ok(None),
         }
-        .map(|x| Some(x))
+        .map(Some)
     }
 }
 

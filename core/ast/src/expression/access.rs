@@ -163,7 +163,7 @@ impl SimplePropertyAccess {
         F: Into<PropertyAccessField>,
     {
         Self {
-            target: target,
+            target,
             field: field.into(),
         }
     }

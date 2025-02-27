@@ -321,6 +321,7 @@ enum InnerExpression {
     SpreadBinding(Identifier),
 }
 impl InnerExpression {
+    #[allow(clippy::unnecessary_wraps)]
     fn parenthesized(expression: &ast::Expression) -> ParseResult<ast::Expression> {
         Ok(ast::Expression::Parenthesized(Parenthesized::new(
             expression.clone(),
@@ -345,20 +346,21 @@ where
         let mut expressions = Vec::new();
         let mut tailing_comma = None;
 
-        let span = match self.parse_special_initial_expr(cursor, interner, &mut expressions)? {
-            Some(span) => span,
-            None => {
-                let expression = Expression::new(true, self.allow_yield, self.allow_await)
-                    .parse_boxed(cursor, interner)?;
-                expressions.push(InnerExpression::Expression(expression));
+        let span = if let Some(span) =
+            self.parse_special_initial_expr(cursor, interner, &mut expressions)?
+        {
+            span
+        } else {
+            let expression = Expression::new(true, self.allow_yield, self.allow_await)
+                .parse_boxed(cursor, interner)?;
+            expressions.push(InnerExpression::Expression(expression));
 
-                self.parse_non_special_expr_tail(
-                    cursor,
-                    interner,
-                    &mut expressions,
-                    &mut tailing_comma,
-                )?
-            }
+            self.parse_non_special_expr_tail(
+                cursor,
+                interner,
+                &mut expressions,
+                &mut tailing_comma,
+            )?
         };
 
         let is_arrow = if cursor.peek(0, interner)?.map(Token::kind)

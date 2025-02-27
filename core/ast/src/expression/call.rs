@@ -200,6 +200,7 @@ pub struct ImportCall {
 
 impl ImportCall {
     /// Creates a new `ImportCall` AST node.
+    #[must_use]
     pub fn new(arg: Box<Expression>) -> Self {
         Self { arg }
     }

@@ -67,7 +67,7 @@ where
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> ParseResult<Box<Self::Output>> {
-        self.parse(cursor, interner).map(|result| Box::new(result))
+        self.parse(cursor, interner).map(Box::new)
     }
 }
 

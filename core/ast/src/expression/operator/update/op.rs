@@ -77,6 +77,7 @@ impl UpdateOp {
     }
 
     /// Return true if self is Inc op
+    #[must_use]
     pub const fn is_inc(self) -> bool {
         match self {
             Self::IncrementPost | Self::IncrementPre => true,

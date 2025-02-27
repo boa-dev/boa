@@ -87,19 +87,18 @@ where
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        let lhs = match self.parse_boxed_special_kws(cursor, interner)? {
-            Some(lhs) => lhs,
-            None => {
-                let mut member = MemberExpression::new(self.allow_yield, self.allow_await)
-                    .parse_boxed(cursor, interner)?;
-                if let Some(tok) = cursor.peek(0, interner)? {
-                    if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                        member = CallExpression::new(self.allow_yield, self.allow_await, member)
-                            .parse_boxed(cursor, interner)?;
-                    }
+        let lhs = if let Some(lhs) = self.parse_boxed_special_kws(cursor, interner)? {
+            lhs
+        } else {
+            let mut member = MemberExpression::new(self.allow_yield, self.allow_await)
+                .parse_boxed(cursor, interner)?;
+            if let Some(tok) = cursor.peek(0, interner)? {
+                if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                    member = CallExpression::new(self.allow_yield, self.allow_await, member)
+                        .parse_boxed(cursor, interner)?;
                 }
-                member
             }
+            member
         };
 
         self.parse_boxed_tail(cursor, interner, lhs)

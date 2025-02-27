@@ -121,13 +121,14 @@ where
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
             .parse_boxed(cursor, interner)?;
 
-        self.parse_tail(cursor, interner, position, lhs)
+        Self::parse_tail(cursor, interner, position, lhs)
     }
 }
 
+#[allow(clippy::expect_fun_call)]
 impl UpdateExpression {
     fn update_expr_ctor(
-        expr: &Box<Expression>,
+        expr: &Expression,
         pos: Position,
         err_pos: Position,
         op: UpdateOp,
@@ -161,7 +162,7 @@ impl UpdateExpression {
             .parse_boxed(cursor, interner)?;
 
         // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-        return Self::update_expr_ctor(&target, position, position, op, cursor.strict());
+        Self::update_expr_ctor(&target, position, position, op, cursor.strict())
     }
 
     /// This function was added to optimize the stack size.
@@ -169,7 +170,6 @@ impl UpdateExpression {
     /// It allow to reduce stack size allocation in `parse_boxed`,
     /// and an often called function in recursion stays outside of this function.
     fn parse_tail<R: ReadChar>(
-        self,
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
         position: Position,

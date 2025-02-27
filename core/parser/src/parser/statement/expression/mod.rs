@@ -45,7 +45,7 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExpressionStatement", "Parsing");
 
-        self.parse_prefix_keywords(cursor, interner)?;
+        Self::parse_prefix_keywords(cursor, interner)?;
 
         let expr = Expression::new(true, self.allow_yield, self.allow_await)
             .parse_boxed(cursor, interner)?;
@@ -62,7 +62,6 @@ impl ExpressionStatement {
     /// It allow to reduce stack size allocation in `parse`,
     /// and an often called function in recursion stays outside of this function.
     fn parse_prefix_keywords<R: ReadChar>(
-        self,
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> ParseResult<()> {
