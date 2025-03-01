@@ -7,8 +7,9 @@ use crate::{
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsVariant, NativeObject,
+    Context, JsResult, JsVariant,
 };
+use indexmap::IndexSet;
 use serde_json::{Map, Value};
 
 impl JsValue {
@@ -113,14 +114,14 @@ impl JsValue {
     ///
     /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
-        let mut stack = vec![];
+        let mut stack = IndexSet::new();
         self.to_json_inner(context, &mut stack)
     }
 
     fn to_json_inner(
         &self,
         context: &mut Context,
-        stack: &mut Vec<JsObject<dyn NativeObject>>,
+        stack: &mut IndexSet<JsObject>,
     ) -> JsResult<Value> {
         match self.variant() {
             JsVariant::Null => Ok(Value::Null),
@@ -138,7 +139,7 @@ impl JsValue {
                         .with_message("cyclic object value")
                         .into());
                 }
-                stack.push(obj.clone());
+                stack.insert(obj.clone());
                 let mut value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
                         .properties()
