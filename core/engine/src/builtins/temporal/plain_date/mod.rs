@@ -960,28 +960,15 @@ pub(crate) fn to_temporal_date(
 
         let options_obj = get_options_object(&options)?;
         // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
-        let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
         let overflow =
-            get_option::<ArithmeticOverflow>(&options_obj, js_string!("overflow"), context)?
-                .unwrap_or(ArithmeticOverflow::Constrain);
+            get_option::<ArithmeticOverflow>(&options_obj, js_string!("overflow"), context)?;
 
         // e. Let fieldNames be ? CalendarFields(calendar, « "day", "month", "monthCode", "year" »).
         // f. Let fields be ? PrepareTemporalFields(item, fieldNames, «»).
         let partial = to_partial_date_record(object, context)?;
         // TODO: Move validation to `temporal_rs`.
-        if !(partial.day.is_some()
-            && (partial.month.is_some() || partial.month_code.is_some())
-            && (partial.year.is_some() || (partial.era.is_some() && partial.era_year.is_some())))
-        {
-            return Err(JsNativeError::typ()
-                .with_message("A partial date must have at least one defined field.")
-                .into());
-        }
-
         // g. Return ? CalendarDateFromFields(calendar, fields, options).
-        return calendar
-            .date_from_partial(&partial, overflow)
-            .map_err(Into::into);
+        return Ok(InnerDate::from_partial(partial, overflow)?);
     }
 
     // 5. If item is not a String, throw a TypeError exception.
@@ -1012,6 +999,7 @@ pub(crate) fn to_temporal_date(
     Ok(result)
 }
 
+// TODO: For order of operations, `to_partial_date_record` may need to take a `Option<Calendar>` arg.
 pub(crate) fn to_partial_date_record(
     partial_object: &JsObject,
     context: &mut Context,

@@ -85,7 +85,7 @@ impl IntrinsicObject for Instant {
                 js_string!("fromEpochNanoseconds"),
                 1,
             )
-            .static_method(Self::compare, js_string!("compare"), 1)
+            .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::until, js_string!("until"), 1)
@@ -243,7 +243,7 @@ impl Instant {
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Return ns.
-        Ok(JsBigInt::from(instant.inner.epoch_nanoseconds()).into())
+        Ok(JsBigInt::from(instant.inner.epoch_nanoseconds().as_i128()).into())
     }
 
     /// 8.3.7 `Temporal.Instant.prototype.add ( temporalDurationLike )`

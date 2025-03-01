@@ -26,7 +26,7 @@ use temporal_rs::{
     },
     partial::{PartialDate, PartialTime, PartialZonedDateTime},
     provider::{TimeZoneProvider, TransitionDirection},
-    Calendar, MonthCode, TimeZone, TinyAsciiStr, ZonedDateTime as ZonedDateTimeInner,
+    Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner,
 };
 
 use super::{
@@ -354,6 +354,7 @@ impl IntrinsicObject for ZonedDateTime {
             .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::until, js_string!("until"), 1)
             .method(Self::since, js_string!("since"), 1)
+            .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
@@ -667,7 +668,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(JsBigInt::from(zdt.inner.epoch_nanoseconds()).into())
+        Ok(JsBigInt::from(zdt.inner.epoch_nanoseconds().as_i128()).into())
     }
 
     /// 6.3.19 get `Temporal.ZonedDateTime.prototype.dayOfWeek`
@@ -1051,6 +1052,13 @@ impl ZonedDateTime {
             .inner
             .until_with_provider(&other, settings, context.tz_provider())?;
         create_temporal_duration(result, None, context).map(Into::into)
+    }
+
+    /// 6.3.39 `Temporal.ZonedDateTime.prototype.round ( roundTo )`
+    fn round(_this: &JsValue, _args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::error()
+            .with_message("Not yet implemented.")
+            .into())
     }
 
     /// 6.3.40 `Temporal.ZonedDateTime.prototype.equals ( other )`
@@ -1473,7 +1481,7 @@ pub(crate) fn to_temporal_timezone_identifier(
     Ok(timezone)
 }
 
-fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
+fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<UtcOffset> {
     // 1. Let offset be ? ToPrimitive(argument, string).
     let offset = value.to_primitive(context, PreferredType::String)?;
     // 2. If offset is not a String, throw a TypeError exception.
@@ -1483,8 +1491,7 @@ fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> 
             .into());
     };
     // 3. Perform ? ParseDateTimeUTCOffset(offset).
-    let result = offset_string.to_std_string_escaped();
-    let _u = TimeZone::try_from_identifier_str(&result)?;
+    let result = UtcOffset::from_str(&offset_string.to_std_string_escaped())?;
     // 4. Return offset.
     Ok(result)
 }
