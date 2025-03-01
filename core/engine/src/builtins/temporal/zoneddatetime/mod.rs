@@ -23,7 +23,10 @@ use temporal_rs::{
     options::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
         OffsetDisambiguation, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
-    }, partial::{PartialDate, PartialTime, PartialZonedDateTime}, provider::{TimeZoneProvider, TransitionDirection}, Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner
+    },
+    partial::{PartialDate, PartialTime, PartialZonedDateTime},
+    provider::{TimeZoneProvider, TransitionDirection},
+    Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner,
 };
 
 use super::{
@@ -1053,7 +1056,9 @@ impl ZonedDateTime {
 
     /// 6.3.39 `Temporal.ZonedDateTime.prototype.round ( roundTo )`
     fn round(_this: &JsValue, _args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error().with_message("Not yet implemented.").into())
+        Err(JsNativeError::error()
+            .with_message("Not yet implemented.")
+            .into())
     }
 
     /// 6.3.40 `Temporal.ZonedDateTime.prototype.equals ( other )`

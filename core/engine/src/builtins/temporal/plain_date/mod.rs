@@ -968,7 +968,7 @@ pub(crate) fn to_temporal_date(
         let partial = to_partial_date_record(object, context)?;
         // TODO: Move validation to `temporal_rs`.
         // g. Return ? CalendarDateFromFields(calendar, fields, options).
-        return Ok(InnerDate::from_partial(partial, overflow)?)
+        return Ok(InnerDate::from_partial(partial, overflow)?);
     }
 
     // 5. If item is not a String, throw a TypeError exception.
