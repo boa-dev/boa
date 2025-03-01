@@ -85,7 +85,7 @@ impl IntrinsicObject for Instant {
                 js_string!("fromEpochNanoseconds"),
                 1,
             )
-            .static_method(Self::compare, js_string!("compare"), 1)
+            .static_method(Self::compare, js_string!("compare"),2)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
             .method(Self::until, js_string!("until"), 1)

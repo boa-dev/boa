@@ -999,6 +999,7 @@ pub(crate) fn to_temporal_date(
     Ok(result)
 }
 
+// TODO: For order of operations, `to_partial_date_record` may need to take a `Option<Calendar>` arg.
 pub(crate) fn to_partial_date_record(
     partial_object: &JsObject,
     context: &mut Context,
