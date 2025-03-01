@@ -243,7 +243,7 @@ impl Instant {
             })?;
         // 3. Let ns be instant.[[Nanoseconds]].
         // 4. Return ns.
-        Ok(JsBigInt::from(instant.inner.epoch_nanoseconds()).into())
+        Ok(JsBigInt::from(instant.inner.epoch_nanoseconds().as_i128()).into())
     }
 
     /// 8.3.7 `Temporal.Instant.prototype.add ( temporalDurationLike )`

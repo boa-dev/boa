@@ -71,7 +71,6 @@ static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
 time = { version = "0.3.37", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
-tinystr = "0.7.5"
 log = "0.4.26"
 simple_logger = "5.0.0"
 cargo_metadata = "0.19.1"
@@ -111,7 +110,7 @@ intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
 either = "1.14.0"
 sys-locale = "0.3.2"
-temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "bca995742818fb8367a6df6aef0f32b45fa4841a", default-features = false, features = ["tzdb"] }
+temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev  = "a1f5503868dd4f3b36828f929fd3bf502894e763", default-features = false, features = ["tzdb"] }
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.10.0"
@@ -141,6 +140,7 @@ icu_properties = { version = "~1.5.0", default-features = true }
 icu_normalizer = { version = "~1.5.0", default-features = false }
 icu_decimal = { version = "~1.5.0", default-features = false }
 writeable = "~0.5.5"
+tinystr = "~0.8.1"
 yoke = "~0.7.5"
 zerofrom = "~0.1.5"
 fixed_decimal = "~0.5.6"

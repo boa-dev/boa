@@ -224,7 +224,7 @@ impl std::str::FromStr for Currency {
             return Err(ParseCurrencyError);
         }
 
-        let curr = TinyAsciiStr::from_bytes(bytes).map_err(|_| ParseCurrencyError)?;
+        let curr = TinyAsciiStr::try_from_utf8(bytes).map_err(|_| ParseCurrencyError)?;
 
         // 2. Let normalized be the ASCII-uppercase of currency.
         // 3. If normalized contains any code unit outside of 0x0041 through 0x005A (corresponding
