@@ -161,7 +161,7 @@ impl JsValue {
                     }
                     // Passing the object rather than its clone that was inserted to the set should be fine
                     // as they hash to the same value and therefore HashSet can still remove the clone
-                    seen_objects.remove(&obj);
+                    seen_objects.remove(obj);
                     Ok(Value::Array(arr))
                 } else {
                     let mut map = Map::new();
@@ -185,7 +185,7 @@ impl JsValue {
                         let value = value_by_prop_key(property_key, context)?;
                         map.insert(key, value);
                     }
-                    seen_objects.remove(&obj);
+                    seen_objects.remove(obj);
                     Ok(Value::Object(map))
                 }
             }
