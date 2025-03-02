@@ -9,8 +9,8 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult, JsVariant,
 };
-use indexmap::IndexSet;
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 
 impl JsValue {
     /// Converts a [`serde_json::Value`] to a `JsValue`.
@@ -114,14 +114,14 @@ impl JsValue {
     ///
     /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
-        let mut stack = IndexSet::new();
-        self.to_json_inner(context, &mut stack)
+        let mut seen_objects = HashSet::new();
+        self.to_json_inner(context, &mut seen_objects)
     }
 
     fn to_json_inner(
         &self,
         context: &mut Context,
-        stack: &mut IndexSet<JsObject>,
+        seen_objects: &mut HashSet<JsObject>,
     ) -> JsResult<Value> {
         match self.variant() {
             JsVariant::Null => Ok(Value::Null),
@@ -134,17 +134,20 @@ impl JsValue {
                 .with_message("cannot convert bigint to JSON")
                 .into()),
             JsVariant::Object(obj) => {
-                if stack.contains(obj) {
+                if seen_objects.contains(obj) {
                     return Err(JsNativeError::typ()
                         .with_message("cyclic object value")
                         .into());
                 }
-                stack.insert(obj.clone());
+                seen_objects.insert(obj.clone());
                 let mut value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
                         .properties()
                         .get(&property_key)
-                        .and_then(|x| x.value().map(|val| val.to_json_inner(context, stack)))
+                        .and_then(|x| {
+                            x.value()
+                                .map(|val| val.to_json_inner(context, seen_objects))
+                        })
                         .unwrap_or(Ok(Value::Null))
                 };
 
@@ -156,7 +159,9 @@ impl JsValue {
                         let val = value_by_prop_key(k.into(), context)?;
                         arr.push(val);
                     }
-                    stack.pop();
+                    // Passing the object rather than its clone that was inserted to the set should be fine
+                    // as they hash to the same value and therefore HashSet can still remove the clone
+                    seen_objects.remove(&obj);
                     Ok(Value::Array(arr))
                 } else {
                     let mut map = Map::new();
@@ -180,7 +185,7 @@ impl JsValue {
                         let value = value_by_prop_key(property_key, context)?;
                         map.insert(key, value);
                     }
-                    stack.pop();
+                    seen_objects.remove(&obj);
                     Ok(Value::Object(map))
                 }
             }
