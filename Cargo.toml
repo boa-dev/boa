@@ -47,8 +47,8 @@ boa_string = { version = "~0.20.0", path = "core/string" }
 
 # Shared deps
 arbitrary = "1"
-bitflags = "2.8.0"
-clap = "4.5.29"
+bitflags = "2.9.0"
+clap = "4.5.31"
 colored = "3.0.0"
 cow-utils = "0.1.3"
 fast-float2 = "0.2.3"
@@ -73,7 +73,7 @@ thin-vec = "0.2.13"
 time = { version = "0.3.37", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
 log = "0.4.26"
 simple_logger = "5.0.0"
-cargo_metadata = "0.19.1"
+cargo_metadata = "0.19.2"
 trybuild = "1.0.103"
 rayon = "1.10.0"
 toml = "0.8.20"
@@ -89,8 +89,8 @@ smol = "2.0.2"
 isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
-quote = "1.0.38"
-syn = { version = "2.0.98", default-features = false }
+quote = "1.0.39"
+syn = { version = "2.0.99", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.1"
@@ -99,12 +99,12 @@ rand = "0.9.0"
 num-integer = "0.1.46"
 ryu-js = "1.0.2"
 tap = "1.0.1"
-thiserror = { version = "2.0.11", default-features = false }
+thiserror = { version = "2.0.12", default-features = false }
 dashmap = "6.1.0"
 num_enum = "0.7.3"
 itertools = { version = "0.14.0", default-features = false }
-portable-atomic = "1.10.0"
-bytemuck = { version = "1.21.0", default-features = false }
+portable-atomic = "1.11.0"
+bytemuck = { version = "1.22.0", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
@@ -141,8 +141,8 @@ icu_normalizer = { version = "~1.5.0", default-features = false }
 icu_decimal = { version = "~1.5.0", default-features = false }
 writeable = "~0.5.5"
 tinystr = "~0.8.1"
-yoke = "~0.7.5"
-zerofrom = "~0.1.5"
+yoke = "~0.8.0"
+zerofrom = "~0.1.6"
 fixed_decimal = "~0.5.6"
 
 [workspace.metadata.workspaces]
