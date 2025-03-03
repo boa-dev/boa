@@ -10,6 +10,7 @@ use crate::{
     Context, JsResult, JsVariant,
 };
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 
 impl JsValue {
     /// Converts a [`serde_json::Value`] to a `JsValue`.
@@ -113,6 +114,15 @@ impl JsValue {
     ///
     /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
+        let mut seen_objects = HashSet::new();
+        self.to_json_inner(context, &mut seen_objects)
+    }
+
+    fn to_json_inner(
+        &self,
+        context: &mut Context,
+        seen_objects: &mut HashSet<JsObject>,
+    ) -> JsResult<Value> {
         match self.variant() {
             JsVariant::Null => Ok(Value::Null),
             JsVariant::Undefined => todo!("undefined to JSON"),
@@ -124,11 +134,20 @@ impl JsValue {
                 .with_message("cannot convert bigint to JSON")
                 .into()),
             JsVariant::Object(obj) => {
-                let value_by_prop_key = |property_key, context: &mut Context| {
+                if seen_objects.contains(obj) {
+                    return Err(JsNativeError::typ()
+                        .with_message("cyclic object value")
+                        .into());
+                }
+                seen_objects.insert(obj.clone());
+                let mut value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
                         .properties()
                         .get(&property_key)
-                        .and_then(|x| x.value().map(|val| val.to_json(context)))
+                        .and_then(|x| {
+                            x.value()
+                                .map(|val| val.to_json_inner(context, seen_objects))
+                        })
                         .unwrap_or(Ok(Value::Null))
                 };
 
@@ -140,7 +159,9 @@ impl JsValue {
                         let val = value_by_prop_key(k.into(), context)?;
                         arr.push(val);
                     }
-
+                    // Passing the object rather than its clone that was inserted to the set should be fine
+                    // as they hash to the same value and therefore HashSet can still remove the clone
+                    seen_objects.remove(obj);
                     Ok(Value::Array(arr))
                 } else {
                     let mut map = Map::new();
@@ -164,7 +185,7 @@ impl JsValue {
                         let value = value_by_prop_key(property_key, context)?;
                         map.insert(key, value);
                     }
-
+                    seen_objects.remove(obj);
                     Ok(Value::Object(map))
                 }
             }
@@ -181,9 +202,9 @@ mod tests {
     use indoc::indoc;
     use serde_json::json;
 
-    use crate::object::JsArray;
-    use crate::{js_string, JsValue};
-    use crate::{run_test_actions, TestAction};
+    use crate::{
+        js_string, object::JsArray, run_test_actions, Context, JsObject, JsValue, TestAction,
+    };
 
     #[test]
     fn json_conversions() {
@@ -271,5 +292,20 @@ mod tests {
                 v.to_json(ctx).unwrap() == json!(60_466_176)
             }),
         ]);
+    }
+
+    #[test]
+    fn to_json_cyclic() {
+        let mut context = Context::default();
+        let obj = JsObject::with_null_proto();
+        obj.create_data_property(js_string!("a"), obj.clone(), &mut context)
+            .expect("should create data property");
+        assert_eq!(
+            JsValue::from(obj)
+                .to_json(&mut context)
+                .unwrap_err()
+                .to_string(),
+            "TypeError: cyclic object value"
+        );
     }
 }
