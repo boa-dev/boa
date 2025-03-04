@@ -64,13 +64,46 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("MemberExpression", "Parsing");
 
+        let lhs = match self.parse_boxed_1st_token_except_prim(cursor, interner)? {
+            Some(expr) => expr,
+            None => PrimaryExpression::new(self.allow_yield, self.allow_await)
+                .parse_boxed(cursor, interner)?,
+        };
+
+        self.parse_boxed_tail(cursor, interner, lhs)
+    }
+}
+
+impl MemberExpression {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    ///
+    /// # Return
+    /// * `Err(_)` if error occurs;
+    /// * `Ok(None)` if next expression is `PrimaryExpression`;
+    /// * `Ok(Some(Box<Expr>))` otherwise;
+    fn parse_boxed_1st_token_except_prim<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Option<Box<ast::Expression>>> {
         cursor.set_goal(InputElement::RegExp);
 
         let token = cursor.peek(0, interner).or_abrupt()?;
         let position = token.span().start();
-        let mut lhs = match token.kind() {
+        let lhs = match token.kind() {
             TokenKind::Keyword((Keyword::New | Keyword::Super | Keyword::Import, true)) => {
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
@@ -114,7 +147,7 @@ where
                     ));
                 }
 
-                ast::Expression::ImportMeta
+                ast::Expression::boxed(|| ast::Expression::ImportMeta)
             }
             TokenKind::Keyword((Keyword::New, false)) => {
                 cursor.advance(interner);
@@ -129,7 +162,7 @@ where
                             ));
                         }
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(false))) => {
-                            ast::Expression::NewTarget
+                            ast::Expression::boxed(|| ast::Expression::NewTarget)
                         }
                         _ => {
                             return Err(Error::general(
@@ -139,7 +172,7 @@ where
                         }
                     }
                 } else {
-                    let lhs_inner = self.parse(cursor, interner)?;
+                    let lhs_inner = self.parse_boxed(cursor, interner)?;
                     let args = match cursor.peek(0, interner)? {
                         Some(next)
                             if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
@@ -149,9 +182,9 @@ where
                         }
                         _ => Box::new([]),
                     };
-                    let call_node = Call::new(lhs_inner, args);
+                    let call_node = Call::new_boxed(lhs_inner, args);
 
-                    ast::Expression::from(New::from(call_node))
+                    ast::Expression::boxed(|| ast::Expression::from(New::from(call_node)))
                 };
                 lhs_new_target
             }
@@ -189,15 +222,17 @@ where
                                 ));
                             }
                         };
-                        ast::Expression::PropertyAccess(field.into())
+                        ast::Expression::boxed(|| ast::Expression::PropertyAccess(field.into()))
                     }
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let expr = Expression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                            .parse_boxed(cursor, interner)?;
                         cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
-                        ast::Expression::PropertyAccess(
-                            SuperPropertyAccess::new(expr.into()).into(),
-                        )
+                        ast::Expression::boxed(|| {
+                            ast::Expression::PropertyAccess(
+                                SuperPropertyAccess::new(expr.into()).into(),
+                            )
+                        })
                     }
                     _ => {
                         return Err(Error::unexpected(
@@ -208,10 +243,22 @@ where
                     }
                 }
             }
-            _ => PrimaryExpression::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?,
+            _ => return Ok(None),
         };
 
+        Ok(Some(lhs))
+    }
+
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_boxed_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        mut lhs: Box<ast::Expression>,
+    ) -> ParseResult<Box<ast::Expression>> {
         cursor.set_goal(InputElement::TemplateTail);
 
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -252,17 +299,18 @@ where
                         }
                     };
 
-                    lhs = ast::Expression::PropertyAccess(access);
+                    lhs = ast::Expression::boxed(|| ast::Expression::PropertyAccess(access));
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     cursor
                         .next(interner)?
                         .expect("open bracket punctuator token disappeared"); // We move the parser forward.
                     let idx = Expression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                        .parse_boxed(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression", interner)?;
-                    lhs =
-                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into());
+                    lhs = ast::Expression::boxed(|| {
+                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into())
+                    });
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
                     lhs = TaggedTemplateLiteral::new(
@@ -271,7 +319,7 @@ where
                         tok.start_group(),
                         lhs,
                     )
-                    .parse(cursor, interner)?
+                    .parse_boxed(cursor, interner)?
                     .into();
                 }
                 _ => break,

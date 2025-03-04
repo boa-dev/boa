@@ -82,7 +82,7 @@ const FEATURES_FILE_NAME: &str = "features.json";
 ///
 /// It will append the results to the ones already present, in an array.
 pub(crate) fn write_json(
-    results: SuiteResult,
+    results: Box<SuiteResult>,
     output_dir: &Path,
     verbose: u8,
     test262_path: &Path,
@@ -111,7 +111,7 @@ pub(crate) fn write_json(
     let new_results = ResultInfo {
         commit: env::var("GITHUB_SHA").unwrap_or_default().into_boxed_str(),
         test262_commit: get_test262_commit(test262_path)?,
-        results,
+        results: *results,
     };
 
     let latest = BufWriter::new(fs::File::create(latest)?);

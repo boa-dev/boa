@@ -531,17 +531,19 @@ fn spread_in_arrow_function() {
     assert_eq!(params.length(), 0);
     check_script_parser(
         s,
-        vec![Statement::Expression(Expression::from(ArrowFunction::new(
-            None,
-            params,
-            FunctionBody::new(
-                [Statement::Expression(Expression::from(Identifier::from(b))).into()],
-                PSEUDO_LINEAR_POS,
-                false,
-            ),
-            EMPTY_LINEAR_SPAN,
-        )))
-        .into()],
+        vec![
+            Statement::Expression(Expression::from(ArrowFunction::new_boxed(
+                None,
+                params,
+                FunctionBody::new(
+                    [Statement::Expression(Expression::from(Identifier::from(b))).into()],
+                    PSEUDO_LINEAR_POS,
+                    false,
+                ),
+                EMPTY_LINEAR_SPAN,
+            )))
+            .into(),
+        ],
         interner,
     );
 }

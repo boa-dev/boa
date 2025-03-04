@@ -104,7 +104,7 @@ fn check_new_target_with_property_access() {
 
     let new_target = Expression::PropertyAccess(
         SimplePropertyAccess::new(
-            Expression::NewTarget,
+            Box::new(Expression::NewTarget),
             interner.get_or_intern_static("name", utf16!("name")),
         )
         .into(),
