@@ -2,37 +2,28 @@ use std::{cell::OnceCell, fmt::Debug};
 
 use boa_profiler::Profiler;
 use icu_casemap::CaseMapper;
-use icu_locid_transform::{LocaleCanonicalizer, LocaleExpander, LocaleTransformError};
-use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer, NormalizerError};
-use icu_provider::{
-    AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
-    DataError, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
-};
+use icu_locale::{LocaleCanonicalizer, LocaleExpander};
+use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
+use icu_provider::{any::MaybeSendSync, prelude::*};
 use serde::Deserialize;
 use thiserror::Error;
-use yoke::{trait_hack::YokeTraitHack, Yokeable};
+use yoke::Yokeable;
 use zerofrom::ZeroFrom;
 
 use crate::{builtins::string::StringNormalizers, JsError, JsNativeError};
 
 /// A [`DataProvider`] that can be either a [`BufferProvider`] or an [`AnyProvider`].
 pub(crate) enum ErasedProvider {
-    Any(Box<dyn AnyProvider>),
-    Buffer(Box<dyn BufferProvider>),
+    Any(Box<dyn DynamicDryDataProvider<AnyMarker>>),
+    Buffer(Box<dyn DynamicDryDataProvider<BufferMarker>>),
 }
 
-/// Error thrown when the engine cannot initialize the ICU tools from a data provider.
+/// Error thrown when the engine cannot initialize the ICU4X utilities from a data provider.
 #[derive(Debug, Error)]
 pub enum IcuError {
-    /// Failed to create the locale transform tools.
-    #[error("could not construct the locale transform tools")]
-    LocaleTransform(#[from] LocaleTransformError),
-    /// Failed to create the string normalization tools.
-    #[error("could not construct the string normalization tools")]
-    Normalizer(#[from] NormalizerError),
-    /// Failed to create the case mapping tools.
-    #[error("could not construct the case mapping tools")]
-    CaseMap(#[from] DataError),
+    /// Failed to create the internationalization utilities.
+    #[error("could not construct the internationalization utilities")]
+    DataError(#[from] DataError),
 }
 
 impl From<IcuError> for JsNativeError {
@@ -58,14 +49,28 @@ pub(crate) struct IntlProvider {
 
 impl<M> DataProvider<M> for IntlProvider
 where
-    M: KeyedDataMarker + 'static,
-    for<'de> YokeTraitHack<<M::Yokeable as Yokeable<'de>>::Output>: Deserialize<'de> + Clone,
-    M::Yokeable: ZeroFrom<'static, M::Yokeable> + MaybeSendSync,
+    M: DataMarker + 'static,
+    for<'de> YokeTraitHack<<M::DataStruct as Yokeable<'de>>::Output>: Deserialize<'de> + Clone,
+    M::DataStruct: ZeroFrom<'static, M::DataStruct> + MaybeSendSync,
 {
     fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
         match &self.inner_provider {
-            ErasedProvider::Any(any) => any.as_downcasting().load(req),
-            ErasedProvider::Buffer(buffer) => buffer.as_deserializing().load(req),
+            ErasedProvider::Any(any) => any.as_any_provider().as_downcasting().load_data(M::INFO, req),
+            ErasedProvider::Buffer(buf) => buf.as_deserializing().load_data(M::INFO, req),
+        }
+    }
+}
+
+impl<M> DryDataProvider<M> for IntlProvider
+where
+    M: DataMarker + 'static,
+    for<'de> YokeTraitHack<<M::DataStruct as Yokeable<'de>>::Output>: Deserialize<'de> + Clone,
+    M::DataStruct: ZeroFrom<'static, M::DataStruct> + MaybeSendSync,
+{
+    fn dry_load(&self, req: DataRequest<'_>) -> Result<DataResponseMetadata, DataError> {
+        match &self.inner_provider {
+            ErasedProvider::Any(any) => any.dry_load_data(M::INFO, req),
+            ErasedProvider::Buffer(buf) => buf.dry_load_data(M::INFO, req),
         }
     }
 }
@@ -82,13 +87,13 @@ impl Debug for IntlProvider {
 }
 
 impl IntlProvider {
-    /// Creates a new [`IntlProvider`] from a [`BufferProvider`].
+    /// Creates a new [`IntlProvider`] from a [`DynamicDryDataProvider<BufferMarker>`].
     ///
     /// # Errors
     ///
     /// Returns an error if any of the tools required cannot be constructed.
-    pub(crate) fn try_new_with_buffer_provider(
-        provider: (impl BufferProvider + 'static),
+    pub(crate) fn try_new_buffer(
+        provider: (impl DynamicDryDataProvider<BufferMarker> + 'static),
     ) -> IntlProvider {
         let _timer = Profiler::global().start_event("ICU::try_new_with_buffer_provider", "ICU");
         Self {
@@ -100,13 +105,13 @@ impl IntlProvider {
         }
     }
 
-    /// Creates a new [`IntlProvider`] from an [`AnyProvider`].
+    /// Creates a new [`IntlProvider`] from a [`DynamicDryDataProvider<AnyMarker>`].
     ///
     /// # Errors
     ///
     /// Returns an error if any of the tools required cannot be constructed.
-    pub(crate) fn try_new_with_any_provider(
-        provider: (impl AnyProvider + 'static),
+    pub(crate) fn try_new_any(
+        provider: (impl DynamicDryDataProvider<AnyMarker> + 'static),
     ) -> IntlProvider {
         let _timer = Profiler::global().start_event("ICU::try_new_with_any_provider", "ICU");
         Self {
@@ -123,9 +128,10 @@ impl IntlProvider {
         if let Some(lc) = self.locale_canonicalizer.get() {
             return Ok(lc);
         }
+        let expander = self.locale_expander()?.clone();
         let lc = match &self.inner_provider {
-            ErasedProvider::Any(a) => LocaleCanonicalizer::try_new_with_any_provider(a)?,
-            ErasedProvider::Buffer(b) => LocaleCanonicalizer::try_new_with_buffer_provider(b)?,
+            ErasedProvider::Any(a) => LocaleCanonicalizer::try_new_with_expander_unstable(&a.as_any_provider().as_downcasting(), expander)?,
+            ErasedProvider::Buffer(b) => LocaleCanonicalizer::try_new_with_expander_with_buffer_provider(b, expander)?,
         };
         Ok(self.locale_canonicalizer.get_or_init(|| lc))
     }
@@ -136,8 +142,8 @@ impl IntlProvider {
             return Ok(le);
         }
         let le = match &self.inner_provider {
-            ErasedProvider::Any(a) => LocaleExpander::try_new_with_any_provider(a)?,
-            ErasedProvider::Buffer(b) => LocaleExpander::try_new_with_buffer_provider(b)?,
+            ErasedProvider::Any(a) => LocaleExpander::try_new_extended_unstable(&a.as_any_provider().as_downcasting())?,
+            ErasedProvider::Buffer(b) => LocaleExpander::try_new_extended_with_buffer_provider(b)?,
         };
         Ok(self.locale_expander.get_or_init(|| le))
     }
@@ -149,10 +155,10 @@ impl IntlProvider {
         }
         let sn = match &self.inner_provider {
             ErasedProvider::Any(a) => StringNormalizers {
-                nfc: ComposingNormalizer::try_new_nfc_with_any_provider(a)?,
-                nfkc: ComposingNormalizer::try_new_nfkc_with_any_provider(a)?,
-                nfd: DecomposingNormalizer::try_new_nfd_with_any_provider(a)?,
-                nfkd: DecomposingNormalizer::try_new_nfkd_with_any_provider(a)?,
+                nfc: ComposingNormalizer::try_new_nfc_unstable(&a.as_any_provider().as_downcasting())?,
+                nfkc: ComposingNormalizer::try_new_nfkc_unstable(&a.as_any_provider().as_downcasting())?,
+                nfd: DecomposingNormalizer::try_new_nfd_unstable(&a.as_any_provider().as_downcasting())?,
+                nfkd: DecomposingNormalizer::try_new_nfkd_unstable(&a.as_any_provider().as_downcasting())?,
             },
             ErasedProvider::Buffer(b) => StringNormalizers {
                 nfc: ComposingNormalizer::try_new_nfc_with_buffer_provider(b)?,
@@ -170,7 +176,7 @@ impl IntlProvider {
             return Ok(cm);
         }
         let cm = match &self.inner_provider {
-            ErasedProvider::Any(a) => CaseMapper::try_new_with_any_provider(a)?,
+            ErasedProvider::Any(a) => CaseMapper::try_new_unstable(&a.as_any_provider().as_downcasting())?,
             ErasedProvider::Buffer(b) => CaseMapper::try_new_with_buffer_provider(b)?,
         };
         Ok(self.case_mapper.get_or_init(|| cm))

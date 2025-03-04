@@ -994,22 +994,25 @@ impl ContextBuilder {
     /// # Errors
     ///
     /// This returns `Err` if the provided provider doesn't have the required locale information
-    /// to construct both a [`LocaleCanonicalizer`] and a [`LocaleExpander`]. Note that this doesn't
+    /// to construct common tools used through `Intl`. Note that this doesn't
     /// mean that the provider will successfully construct all `Intl` services; that check is made
     /// until the creation of an instance of a service.
     ///
     /// [`Maximal`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.Maximal
     /// [`RetainBaseLanguages`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.RetainBaseLanguages
     /// [`ResolveLocale`]: https://tc39.es/ecma402/#sec-resolvelocale
-    /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
-    /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
+    /// [`LocaleCanonicalizer`]: icu_locale_transform::LocaleCanonicalizer
+    /// [`LocaleExpander`]: icu_locale_transform::LocaleExpander
     /// [`BufferProvider`]: icu_provider::BufferProvider
     #[cfg(feature = "intl")]
-    pub fn icu_buffer_provider<T: icu_provider::BufferProvider + 'static>(
+    pub fn icu_buffer_provider<
+        T: icu_provider::prelude::DynamicDryDataProvider<icu_provider::prelude::BufferMarker>
+            + 'static,
+    >(
         mut self,
         provider: T,
     ) -> Result<Self, IcuError> {
-        self.icu = Some(icu::IntlProvider::try_new_with_buffer_provider(provider));
+        self.icu = Some(icu::IntlProvider::try_new_buffer(provider));
         Ok(self)
     }
 
@@ -1028,22 +1031,24 @@ impl ContextBuilder {
     /// # Errors
     ///
     /// This returns `Err` if the provided provider doesn't have the required locale information
-    /// to construct both a [`LocaleCanonicalizer`] and a [`LocaleExpander`]. Note that this doesn't
+    /// to construct common tools used through `Intl`. Note that this doesn't
     /// mean that the provider will successfully construct all `Intl` services; that check is made
     /// until the creation of an instance of a service.
     ///
     /// [`Maximal`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.Maximal
     /// [`RetainBaseLanguages`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.RetainBaseLanguages
     /// [`ResolveLocale`]: https://tc39.es/ecma402/#sec-resolvelocale
-    /// [`LocaleCanonicalizer`]: icu_locid_transform::LocaleCanonicalizer
-    /// [`LocaleExpander`]: icu_locid_transform::LocaleExpander
+    /// [`LocaleCanonicalizer`]: icu_locale_transform::LocaleCanonicalizer
+    /// [`LocaleExpander`]: icu_locale_transform::LocaleExpander
     /// [`AnyProvider`]: icu_provider::AnyProvider
     #[cfg(feature = "intl")]
-    pub fn icu_any_provider<T: icu_provider::AnyProvider + 'static>(
+    pub fn icu_any_provider<
+        T: icu_provider::prelude::DynamicDryDataProvider<icu_provider::prelude::AnyMarker> + 'static,
+    >(
         mut self,
         provider: T,
     ) -> Result<Self, IcuError> {
-        self.icu = Some(icu::IntlProvider::try_new_with_any_provider(provider));
+        self.icu = Some(icu::IntlProvider::try_new_any(provider));
         Ok(self)
     }
 
@@ -1154,7 +1159,7 @@ impl ContextBuilder {
             } else {
                 cfg_if::cfg_if! {
                     if #[cfg(feature = "intl_bundled")] {
-                        icu::IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer())
+                        icu::IntlProvider::try_new_buffer(boa_icu_provider::buffer())
                     } else {
                         return Err(JsNativeError::typ()
                             .with_message("missing Intl provider for context")

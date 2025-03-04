@@ -282,7 +282,7 @@ impl Realm {
             intl::ListFormat::init(self);
             intl::Locale::init(self);
             intl::DateTimeFormat::init(self);
-            intl::Segmenter::init(self);
+            intl::SegmenterConstructor::init(self);
             intl::segmenter::Segments::init(self);
             intl::segmenter::SegmentIterator::init(self);
             intl::PluralRules::init(self);

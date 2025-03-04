@@ -27,9 +27,7 @@ intl_bundled = ["intl", "dep:boa_icu_provider"]
 intl = [
     "boa_gc/icu",
     "icu_normalizer/serde",
-    "icu_normalizer/std",
-    "dep:icu_locid_transform",
-    "dep:icu_locid",
+    "dep:icu_locale",
     "dep:icu_datetime",
     "dep:icu_plurals",
     "dep:icu_provider",
@@ -112,8 +110,7 @@ static_assertions.workspace = true
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }
 sys-locale = { workspace = true, optional = true }
 icu_provider = { workspace = true, optional = true }
-icu_locid = { workspace = true, features = ["serde"], optional = true }
-icu_locid_transform = { workspace = true, default-features = false, features = ["std", "serde"], optional = true }
+icu_locale = { workspace = true, default-features = false, features = ["serde"], optional = true }
 icu_datetime = { workspace = true, default-features = false, features = ["serde", "experimental"], optional = true }
 icu_calendar = { workspace = true, default-features = false, optional = true }
 icu_collator = { workspace = true, default-features = false, features = ["serde"], optional = true }

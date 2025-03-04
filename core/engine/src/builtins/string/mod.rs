@@ -1456,7 +1456,7 @@ impl String {
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
 
-                collator.compare_utf16(&s, &that_value) as i8
+                collator.as_borrowed().compare_utf16(&s, &that_value) as i8
             }
 
             // Default to common comparison if the user doesn't have `Intl` enabled.
@@ -1763,7 +1763,7 @@ impl String {
             };
             // TODO: Small hack to make lookups behave.
             // We would really like to be able to use `icu_casemap::provider::CaseMapV1Marker`
-            use icu_locid::Locale;
+            use icu_locale::Locale;
             use icu_plurals::provider::OrdinalV1Marker;
 
             // 1. Let O be ? RequireObjectCoercible(this value).
@@ -1803,7 +1803,7 @@ impl String {
                 [requested_locale],
                 context.intl_provider(),
             )
-            .unwrap_or(Locale::UND);
+            .unwrap_or(Locale::default());
 
             let casemapper = context.intl_provider().case_mapper()?;
 
@@ -2196,10 +2196,10 @@ impl String {
         let s = s.iter().collect::<Vec<_>>();
 
         let result = match normalization {
-            Normalization::Nfc => normalizers.nfc.normalize_utf16(&s),
-            Normalization::Nfd => normalizers.nfd.normalize_utf16(&s),
-            Normalization::Nfkc => normalizers.nfkc.normalize_utf16(&s),
-            Normalization::Nfkd => normalizers.nfkd.normalize_utf16(&s),
+            Normalization::Nfc => normalizers.nfc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfd => normalizers.nfd.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkc => normalizers.nfkc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkd => normalizers.nfkd.as_borrowed().normalize_utf16(&s),
         };
 
         // 7. Return ns.

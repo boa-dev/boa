@@ -10,7 +10,7 @@ use icu_decimal::{
 };
 
 mod options;
-use icu_locid::{
+use icu_locale::{
     extensions::unicode::{key, Value},
     Locale,
 };

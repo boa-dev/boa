@@ -3,7 +3,8 @@ use std::ops::Range;
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_collator::provider::CollationDiacriticsV1Marker;
-use icu_locid::Locale;
+use icu_locale::Locale;
+use icu_provider::{buf::BufferMarker, DataError, DynamicDryDataProvider};
 use icu_segmenter::{GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter};
 
 use crate::{
@@ -36,12 +37,15 @@ use super::{
     Service,
 };
 
+trait SegmenterType {
+    fn from_buffer_provider(locale: &Locale, provider: &dyn DynamicDryDataProvider<BufferMarker>) -> Result<Self, DataError>;
+    fn from_any_provider(locale: &Locale, provider: &dyn DynamicDryDataProvider<AnyMarker>) 
+}
+
 #[derive(Debug, Trace, Finalize, JsData)]
-// SAFETY: `Segmenter` doesn't contain any traceable data.
-#[boa_gc(unsafe_empty_trace)]
-pub(crate) struct Segmenter {
+pub(crate) struct Segmenter<T> {
     locale: Locale,
-    native: NativeSegmenter,
+    native: T,
 }
 
 #[derive(Debug)]
@@ -52,6 +56,35 @@ pub(crate) enum NativeSegmenter {
 }
 
 impl NativeSegmenter {
+    fn new(granularity: Granularity, locale: &Locale, provider: &ErasedProvider) {
+        match (granularity, provider) {
+            (Granularity::Grapheme, ErasedProvider::Any(a)) => {
+                GraphemeClusterSegmenter::try_new_with_any_provider(a)
+                    .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
+            }
+            (Granularity::Word, ErasedProvider::Any(a)) => {
+                WordSegmenter::try_new_auto_with_any_provider(a)
+                    .map(|s| NativeSegmenter::Word(Box::new(s)))
+            }
+            (Granularity::Sentence, ErasedProvider::Any(a)) => {
+                SentenceSegmenter::try_new_with_any_provider(a)
+                    .map(|s| NativeSegmenter::Sentence(Box::new(s)))
+            }
+            (Granularity::Grapheme, ErasedProvider::Buffer(b)) => {
+                GraphemeClusterSegmenter::try_new_with_buffer_provider(b)
+                    .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
+            }
+            (Granularity::Word, ErasedProvider::Buffer(b)) => {
+                WordSegmenter::try_new_auto_with_buffer_provider(b)
+                    .map(|s| NativeSegmenter::Word(Box::new(s)))
+            }
+            (Granularity::Sentence, ErasedProvider::Buffer(b)) => {
+                SentenceSegmenter::try_new_with_buffer_provider(b)
+                    .map(|s| NativeSegmenter::Sentence(Box::new(s)))
+            }
+        }
+    }
+
     /// Gets the granularity level of this `NativeSegmenter`.
     pub(crate) const fn granularity(&self) -> Granularity {
         match self {
@@ -79,7 +112,7 @@ impl NativeSegmenter {
     }
 }
 
-impl Service for Segmenter {
+impl Service for SegmenterConstructor {
     // TODO: Track https://github.com/unicode-org/icu4x/issues/3284
     // and replace when segmenters are locale-aware.
     type LangMarker = CollationDiacriticsV1Marker;
@@ -87,7 +120,7 @@ impl Service for Segmenter {
     type LocaleOptions = ();
 }
 
-impl IntrinsicObject for Segmenter {
+impl IntrinsicObject for SegmenterConstructor {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
@@ -112,11 +145,11 @@ impl IntrinsicObject for Segmenter {
     }
 }
 
-impl BuiltInObject for Segmenter {
+impl BuiltInObject for SegmenterConstructor {
     const NAME: JsString = StaticJsStrings::SEGMENTER;
 }
 
-impl BuiltInConstructor for Segmenter {
+impl BuiltInConstructor for SegmenterConstructor {
     const LENGTH: usize = 0;
     const P: usize = 3;
     const SP: usize = 1;
@@ -211,7 +244,7 @@ impl BuiltInConstructor for Segmenter {
     }
 }
 
-impl Segmenter {
+impl SegmenterConstructor {
     /// [`Intl.Segmenter.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in segmenting

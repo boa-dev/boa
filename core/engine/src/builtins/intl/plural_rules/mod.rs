@@ -3,12 +3,12 @@ mod options;
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use fixed_decimal::FixedDecimal;
-use icu_locid::Locale;
+use icu_locale::Locale;
 use icu_plurals::{
     provider::CardinalV1Marker, PluralCategory, PluralRuleType, PluralRules as NativePluralRules,
-    PluralRulesWithRanges,
+    PluralRulesOptions, PluralRulesPreferences, PluralRulesWithRanges,
 };
-use icu_provider::DataLocale;
+use icu_provider::any::{AsDowncastingAnyProvider, AsDynamicDataProviderAnyMarkerWrap};
 
 use crate::{
     builtins::{
@@ -149,14 +149,17 @@ impl BuiltInConstructor for PluralRules {
             context.intl_provider(),
         )?;
 
-        let data_locale = &DataLocale::from(&locale);
+        let prefs = PluralRulesPreferences::from(&locale);
+        let opts = PluralRulesOptions::from(rule_type);
 
         let native = match context.intl_provider().erased_provider() {
-            ErasedProvider::Any(a) => {
-                PluralRulesWithRanges::try_new_with_any_provider(a, data_locale, rule_type)
-            }
+            ErasedProvider::Any(a) => PluralRulesWithRanges::try_new_unstable(
+                &a.as_any_provider().as_downcasting(),
+                prefs,
+                opts,
+            ),
             ErasedProvider::Buffer(b) => {
-                PluralRulesWithRanges::try_new_with_buffer_provider(b, data_locale, rule_type)
+                PluralRulesWithRanges::try_new_with_buffer_provider(b, prefs, opts)
             }
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;

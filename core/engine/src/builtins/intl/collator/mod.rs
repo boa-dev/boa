@@ -4,7 +4,7 @@ use icu_collator::{
     provider::CollationMetadataV1Marker, AlternateHandling, CaseFirst, MaxVariable, Numeric,
 };
 
-use icu_locid::{
+use icu_locale::{
     extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
     Locale,
 };
@@ -465,7 +465,7 @@ impl Collator {
 
                         // 7. Return CompareStrings(collator, X, Y).
 
-                        let result = collator.collator.compare_utf16(&x, &y) as i32;
+                        let result = collator.collator.as_borrowed().compare_utf16(&x, &y) as i32;
 
                         Ok(result.into())
                     },

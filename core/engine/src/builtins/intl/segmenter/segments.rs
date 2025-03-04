@@ -10,7 +10,7 @@ use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{create_segment_data_object, SegmentIterator, Segmenter};
+use super::{create_segment_data_object, SegmentIterator, SegmenterConstructor};
 
 #[derive(Debug, Trace, Finalize, JsData)]
 pub(crate) struct Segments {
@@ -67,7 +67,7 @@ impl Segments {
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
         let segmenter = segments.segmenter.borrow();
         let segmenter = segmenter
-            .downcast_ref::<Segmenter>()
+            .downcast_ref::<SegmenterConstructor>()
             .expect("segments object should contain a segmenter");
 
         // 4. Let string be segments.[[SegmentsString]].
