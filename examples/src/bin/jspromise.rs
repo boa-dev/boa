@@ -13,9 +13,7 @@ async fn simulate_api_call(success: bool, delay_ms: u64) -> JsResult<JsValue> {
         Ok(js_string!("API call successful!").into())
     } else {
         Err(JsError::from_native(
-            JsNativeError::error()
-                .with_message("API call failed!")
-                .into(),
+            JsNativeError::error().with_message("API call failed!"),
         ))
     }
 }
