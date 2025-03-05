@@ -2,7 +2,6 @@ use boa_engine::{
     builtins::promise::PromiseState, js_string, object::builtins::JsPromise, Context, JsArgs,
     JsError, JsNativeError, JsResult, JsValue, NativeFunction,
 };
-use tokio;
 
 // Simulate an API call that returns a Promise
 async fn simulate_api_call(success: bool, delay_ms: u64) -> JsResult<JsValue> {
