@@ -12,13 +12,13 @@ members = [
     # OTHERS
     "examples",
     "cli",
-    # TOOLS
-    "tools/*",
+    # UTILS
+    "utils/*",
 ]
 
 exclude = [
     "tests/fuzz", # Does weird things on Windows tests
-    "tests/src", # Just a hack to have fuzz inside tests
+    "tests/src",  # Just a hack to have fuzz inside tests
 ]
 
 [workspace.package]
@@ -45,6 +45,9 @@ boa_profiler = { version = "~0.20.0", path = "core/profiler" }
 boa_runtime = { version = "~0.20.0", path = "core/runtime" }
 boa_string = { version = "~0.20.0", path = "core/string" }
 
+# Utility Repo Crates
+tag_ptr = { path = "utils/tag_ptr" }
+
 # Shared deps
 arbitrary = "1"
 bitflags = "2.8.0"
@@ -70,7 +73,14 @@ serde = "1.0.218"
 static_assertions = "1.1.0"
 textwrap = "0.16.0"
 thin-vec = "0.2.13"
-time = { version = "0.3.37", default-features = false, features = ["local-offset", "large-dates", "wasm-bindgen", "parsing", "formatting", "macros"] }
+time = { version = "0.3.37", default-features = false, features = [
+    "local-offset",
+    "large-dates",
+    "wasm-bindgen",
+    "parsing",
+    "formatting",
+    "macros",
+] }
 log = "0.4.26"
 simple_logger = "5.0.0"
 cargo_metadata = "0.19.1"
@@ -110,7 +120,9 @@ intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
 either = "1.14.0"
 sys-locale = "0.3.2"
-temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "f27e2ffa3324e4cfb2bdf0b654b0d5bb2f15ed61", default-features = false, features = ["tzdb"] }
+temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "f27e2ffa3324e4cfb2bdf0b654b0d5bb2f15ed61", default-features = false, features = [
+    "tzdb",
+] }
 web-time = "1.1.0"
 criterion = "0.5.1"
 float-cmp = "0.10.0"
