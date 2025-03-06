@@ -6,6 +6,8 @@ use std::ptr::{self, NonNull};
 ///
 /// Only pointers with a minimum alignment of 2-bytes are valid, and the tag must have its most
 /// significant bit (MSB) unset. In other words, the tag must fit inside `usize::BITS - 1` bits.
+/// Using pointers that are not 2-byte aligned won't cause Undefined Behaviour, but it could cause
+/// logical errors where the pointer is interpreted as an `usize` instead.
 ///
 /// # Representation
 ///
@@ -36,8 +38,6 @@ impl<T> Clone for Tagged<T> {
 impl<T> Copy for Tagged<T> {}
 
 impl<T> Tagged<T> {
-    const ALIGNMENT_CHECK: () = assert!(align_of::<T>() >= 2);
-
     /// Creates a new, tagged `Tagged` pointer from an integer.
     ///
     /// # Requirements
@@ -46,10 +46,6 @@ impl<T> Tagged<T> {
     #[inline]
     #[must_use]
     pub const fn from_tag(tag: usize) -> Self {
-        #[allow(clippy::let_unit_value)]
-        #[allow(clippy::ignored_unit_patterns)]
-        let _ = Self::ALIGNMENT_CHECK;
-
         let addr = (tag << 1) | 1;
         // SAFETY: `addr` is never zero, since we always set its LSB to 1
         unsafe { Self(NonNull::new_unchecked(ptr::without_provenance_mut(addr))) }
@@ -59,14 +55,13 @@ impl<T> Tagged<T> {
     ///
     /// # Requirements
     ///
-    /// - `T` must have an alignment of at least 2.
+    /// - `ptr` must have an alignment of at least 2.
     ///
     /// # Safety
     ///
-    /// - `T` must be non null.
+    /// - `ptr` must be non null.
     #[inline]
     pub const unsafe fn from_ptr(ptr: *mut T) -> Self {
-        debug_assert!(align_of::<T>() >= 2);
         // SAFETY: the caller must ensure the invariants hold.
         unsafe { Self(NonNull::new_unchecked(ptr)) }
     }
@@ -75,11 +70,10 @@ impl<T> Tagged<T> {
     ///
     /// # Requirements
     ///
-    /// - `T` must have an alignment of at least 2.
+    /// - `ptr` must have an alignment of at least 2.
     #[inline]
     #[must_use]
     pub const fn from_non_null(ptr: NonNull<T>) -> Self {
-        debug_assert!(align_of::<T>() >= 2);
         Self(ptr)
     }
 
