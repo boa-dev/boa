@@ -202,6 +202,24 @@ impl FunctionExpression {
         }
     }
 
+    /// Creates a new boxed function expression.
+    #[must_use]
+    pub fn new_boxed(
+        name: Option<Identifier>,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: Option<LinearSpan>,
+        has_binding_identifier: bool,
+    ) -> Box<Self> {
+        Box::new(Self::new(
+            name,
+            parameters,
+            body,
+            linear_span,
+            has_binding_identifier,
+        ))
+    }
+
     /// Gets the name of the function expression.
     #[inline]
     #[must_use]
@@ -285,9 +303,9 @@ impl ToIndentedString for FunctionExpression {
     }
 }
 
-impl From<FunctionExpression> for Expression {
+impl From<Box<FunctionExpression>> for Expression {
     #[inline]
-    fn from(expr: FunctionExpression) -> Self {
+    fn from(expr: Box<FunctionExpression>) -> Self {
         Self::FunctionExpression(expr)
     }
 }

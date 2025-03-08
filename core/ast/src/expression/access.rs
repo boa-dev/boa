@@ -47,6 +47,13 @@ impl From<Expression> for PropertyAccessField {
     }
 }
 
+impl From<Box<Expression>> for PropertyAccessField {
+    #[inline]
+    fn from(expr: Box<Expression>) -> Self {
+        Self::Expr(expr)
+    }
+}
+
 impl VisitWith for PropertyAccessField {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
@@ -151,12 +158,12 @@ impl SimplePropertyAccess {
     }
 
     /// Creates a `PropertyAccess` AST Expression.
-    pub fn new<F>(target: Expression, field: F) -> Self
+    pub fn new<F>(target: Box<Expression>, field: F) -> Self
     where
         F: Into<PropertyAccessField>,
     {
         Self {
-            target: target.into(),
+            target,
             field: field.into(),
         }
     }
@@ -222,9 +229,9 @@ impl PrivatePropertyAccess {
     /// Creates a `GetPrivateField` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(value: Expression, field: PrivateName) -> Self {
+    pub fn new(value: Box<Expression>, field: PrivateName) -> Self {
         Self {
-            target: value.into(),
+            target: value,
             field,
         }
     }

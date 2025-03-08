@@ -467,64 +467,7 @@ fn run_test_suite(
             console,
         );
 
-        if versioned {
-            let mut table = comfy_table::Table::new();
-            table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
-            table.set_header(vec![
-                "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
-            ]);
-            for column in table.column_iter_mut().skip(1) {
-                column.set_cell_alignment(comfy_table::CellAlignment::Right);
-            }
-            for (v, stats) in SpecEdition::all_editions()
-                .filter(|v| *v <= edition)
-                .map(|v| {
-                    let stats = results.versioned_stats.get(v).unwrap_or(results.stats);
-                    (v, stats)
-                })
-            {
-                let Statistics {
-                    total,
-                    passed,
-                    ignored,
-                    panic,
-                } = stats;
-                let failed = total - passed - ignored;
-                let conformance = (passed as f64 / total as f64) * 100.0;
-                let conformance = format!("{conformance:.2}");
-                table.add_row(vec![
-                    v.to_string(),
-                    total.to_string(),
-                    passed.to_string(),
-                    ignored.to_string(),
-                    failed.to_string(),
-                    panic.to_string(),
-                    conformance,
-                ]);
-            }
-            println!("\n\nResults\n");
-            println!("{table}");
-        } else {
-            let Statistics {
-                total,
-                passed,
-                ignored,
-                panic,
-            } = results.stats;
-            println!("\n\nResults ({edition}):");
-            println!("Total tests: {total}");
-            println!("Passed tests: {}", passed.to_string().green());
-            println!("Ignored tests: {}", ignored.to_string().yellow());
-            println!(
-                "Failed tests: {} ({})",
-                (total - passed - ignored).to_string().red(),
-                format!("{panic} panics").red()
-            );
-            println!(
-                "Conformance: {:.2}%",
-                (passed as f64 / total as f64) * 100.0
-            );
-        }
+        print_statistic(&results, versioned, edition);
 
         if let Some(output) = output {
             write_json(results, output, verbose, test262_path)
@@ -533,6 +476,67 @@ fn run_test_suite(
     }
 
     Ok(())
+}
+
+fn print_statistic(results: &SuiteResult, versioned: bool, edition: SpecEdition) {
+    if versioned {
+        let mut table = comfy_table::Table::new();
+        table.load_preset(comfy_table::presets::UTF8_HORIZONTAL_ONLY);
+        table.set_header(vec![
+            "Edition", "Total", "Passed", "Ignored", "Failed", "Panics", "%",
+        ]);
+        for column in table.column_iter_mut().skip(1) {
+            column.set_cell_alignment(comfy_table::CellAlignment::Right);
+        }
+        for (v, stats) in SpecEdition::all_editions()
+            .filter(|v| *v <= edition)
+            .map(|v| {
+                let stats = results.versioned_stats.get(v).unwrap_or(results.stats);
+                (v, stats)
+            })
+        {
+            let Statistics {
+                total,
+                passed,
+                ignored,
+                panic,
+            } = stats;
+            let failed = total - passed - ignored;
+            let conformance = (passed as f64 / total as f64) * 100.0;
+            let conformance = format!("{conformance:.2}");
+            table.add_row(vec![
+                v.to_string(),
+                total.to_string(),
+                passed.to_string(),
+                ignored.to_string(),
+                failed.to_string(),
+                panic.to_string(),
+                conformance,
+            ]);
+        }
+        println!("\n\nResults\n");
+        println!("{table}");
+    } else {
+        let Statistics {
+            total,
+            passed,
+            ignored,
+            panic,
+        } = results.stats;
+        println!("\n\nResults ({edition}):");
+        println!("Total tests: {total}");
+        println!("Passed tests: {}", passed.to_string().green());
+        println!("Ignored tests: {}", ignored.to_string().yellow());
+        println!(
+            "Failed tests: {} ({})",
+            (total - passed - ignored).to_string().red(),
+            format!("{panic} panics").red()
+        );
+        println!(
+            "Conformance: {:.2}%",
+            (passed as f64 / total as f64) * 100.0
+        );
+    }
 }
 
 /// All the harness include files.
@@ -774,6 +778,27 @@ struct SuiteResult {
     features: FxHashSet<String>,
 }
 
+impl SuiteResult {
+    #[allow(clippy::large_types_passed_by_value)]
+    fn new_boxed(
+        name: Box<str>,
+        stats: Statistics,
+        versioned_stats: VersionedStats,
+        suites: Vec<SuiteResult>,
+        tests: Vec<TestResult>,
+        features: FxHashSet<String>,
+    ) -> Box<Self> {
+        Box::new(Self {
+            name,
+            stats,
+            versioned_stats,
+            suites,
+            tests,
+            features,
+        })
+    }
+}
+
 /// Outcome of a test.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(dead_code)]
@@ -820,7 +845,7 @@ struct Test {
 
 impl Test {
     /// Creates a new test.
-    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Result<Self>
+    fn new<N, C>(name: N, path: C, metadata: MetaData) -> Result<Box<Self>>
     where
         N: Into<Box<str>>,
         C: Into<Box<Path>>,
@@ -828,7 +853,7 @@ impl Test {
         let edition = SpecEdition::from_test_metadata(&metadata)
             .map_err(|feats| eyre!("test metadata contained unknown features: {feats:?}"))?;
 
-        Ok(Self {
+        Ok(Box::new(Self {
             edition,
             name: name.into(),
             description: metadata.description,
@@ -841,7 +866,7 @@ impl Test {
             locale: metadata.locale,
             path: path.into(),
             ignored: false,
-        })
+        }))
     }
 
     /// Sets the test as ignored.
