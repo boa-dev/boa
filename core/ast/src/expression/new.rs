@@ -70,6 +70,12 @@ impl From<New> for Expression {
     }
 }
 
+impl From<New> for Box<Expression> {
+    fn from(new: New) -> Self {
+        Box::new(Expression::New(new))
+    }
+}
+
 impl VisitWith for New {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where

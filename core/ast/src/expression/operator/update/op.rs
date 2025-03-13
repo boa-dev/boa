@@ -75,6 +75,15 @@ impl UpdateOp {
             Self::DecrementPost | Self::DecrementPre => "--",
         }
     }
+
+    /// Return true if self is Inc op
+    #[must_use]
+    pub const fn is_inc(self) -> bool {
+        match self {
+            Self::IncrementPost | Self::IncrementPre => true,
+            Self::DecrementPost | Self::DecrementPre => false,
+        }
+    }
 }
 
 impl std::fmt::Display for UpdateOp {

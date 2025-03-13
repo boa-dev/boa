@@ -49,6 +49,13 @@ impl Assign {
         }
     }
 
+    /// Creates an `Assign` AST Expression with boxed values.
+    #[inline]
+    #[must_use]
+    pub fn new_boxed(op: AssignOp, lhs: Box<AssignTarget>, rhs: Box<Expression>) -> Self {
+        Self { op, lhs, rhs }
+    }
+
     /// Gets the operator of the assignment operation.
     #[inline]
     #[must_use]

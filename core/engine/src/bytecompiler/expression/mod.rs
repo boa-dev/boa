@@ -129,22 +129,22 @@ impl ByteCompiler<'_> {
             Expression::This => self.access_get(Access::This, dst),
             Expression::Spread(spread) => self.compile_expr(spread.target(), dst),
             Expression::FunctionExpression(function) => {
-                self.function_with_binding(function.into(), NodeKind::Expression, dst);
+                self.function_with_binding(function.as_ref().into(), NodeKind::Expression, dst);
             }
             Expression::ArrowFunction(function) => {
-                self.function_with_binding(function.into(), NodeKind::Expression, dst);
+                self.function_with_binding(function.as_ref().into(), NodeKind::Expression, dst);
             }
             Expression::AsyncArrowFunction(function) => {
-                self.function_with_binding(function.into(), NodeKind::Expression, dst);
+                self.function_with_binding(function.as_ref().into(), NodeKind::Expression, dst);
             }
             Expression::GeneratorExpression(function) => {
-                self.function_with_binding(function.into(), NodeKind::Expression, dst);
+                self.function_with_binding(function.as_ref().into(), NodeKind::Expression, dst);
             }
             Expression::AsyncFunctionExpression(function) => {
-                self.function_with_binding(function.into(), NodeKind::Expression, dst);
+                self.function_with_binding(function.as_ref().into(), NodeKind::Expression, dst);
             }
             Expression::AsyncGeneratorExpression(function) => {
-                self.function_with_binding(function.into(), NodeKind::Expression, dst);
+                self.function_with_binding(function.as_ref().into(), NodeKind::Expression, dst);
             }
             Expression::Call(call) => self.call(Callable::Call(call), dst),
             Expression::New(new) => self.call(Callable::New(new), dst),

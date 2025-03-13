@@ -25,7 +25,7 @@ fn check_generator_function_expression() {
             vec![Variable::from_identifier(
                 gen.into(),
                 Some(
-                    GeneratorExpression::new(
+                    GeneratorExpression::new_boxed(
                         Some(gen.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -62,7 +62,7 @@ fn check_generator_function_delegate_yield_expression() {
             vec![Variable::from_identifier(
                 gen.into(),
                 Some(
-                    GeneratorExpression::new(
+                    GeneratorExpression::new_boxed(
                         Some(gen.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
