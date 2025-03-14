@@ -593,7 +593,7 @@ impl PlainDate {
             })?;
 
         let year_month = date.inner.to_plain_year_month()?;
-        create_temporal_year_month(year_month, None, context).map(Into::into)
+        create_temporal_year_month(year_month, None, context)
     }
 
     fn to_plain_month_day(
@@ -611,7 +611,7 @@ impl PlainDate {
             })?;
 
         let month_day = date.inner.to_plain_month_day()?;
-        create_temporal_month_day(month_day, None, context).map(Into::into)
+        create_temporal_month_day(month_day, None, context)
     }
 
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
