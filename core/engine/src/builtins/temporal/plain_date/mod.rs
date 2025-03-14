@@ -27,6 +27,7 @@ use temporal_rs::{
     Calendar, MonthCode, PlainDate as InnerDate, TinyAsciiStr,
 };
 
+use super::{create_temporal_month_day, create_temporal_year_month};
 // TODO: Remove once `temporal_rs` funcctionality implemented
 #[allow(unused_imports)]
 use super::{
@@ -577,16 +578,40 @@ impl PlainDate {
 // ==== `PlainDate.prototype` method implementation ====
 
 impl PlainDate {
-    fn to_plain_year_month(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn to_plain_year_month(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let temporalDate be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        let year_month = date.inner.to_plain_year_month()?;
+        create_temporal_year_month(year_month, None, context).map(Into::into)
     }
 
-    fn to_plain_month_day(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+    fn to_plain_month_day(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let temporalDate be the this value.
+        // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
+        let date = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainDate object.")
+            })?;
+
+        let month_day = date.inner.to_plain_month_day()?;
+        create_temporal_month_day(month_day, None, context).map(Into::into)
     }
 
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
