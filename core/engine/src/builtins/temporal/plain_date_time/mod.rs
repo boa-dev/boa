@@ -455,7 +455,7 @@ impl PlainDateTime {
 
         Ok(dt
             .inner
-            .era()?
+            .era()
             .map(|s| JsString::from(s.as_str()))
             .into_or_undefined())
     }
@@ -469,7 +469,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.era_year()?.into_or_undefined())
+        Ok(dt.inner.era_year().into_or_undefined())
     }
 
     /// 5.3.6 get `Temporal.PlainDatedt.prototype.year`
@@ -481,7 +481,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.year()?.into())
+        Ok(dt.inner.year().into())
     }
 
     /// 5.3.7 get `Temporal.PlainDatedt.prototype.month`
@@ -493,7 +493,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.month()?.into())
+        Ok(dt.inner.month().into())
     }
 
     /// 5.3.8 get Temporal.PlainDatedt.prototype.monthCode
@@ -505,7 +505,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(JsString::from(dt.inner.month_code()?.as_str()).into())
+        Ok(JsString::from(dt.inner.month_code().as_str()).into())
     }
 
     /// 5.3.9 get `Temporal.PlainDatedt.prototype.day`
@@ -517,7 +517,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.day()?.into())
+        Ok(dt.inner.day().into())
     }
 
     /// 5.3.10 get `Temporal.PlainDatedt.prototype.hour`
@@ -619,7 +619,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.day_of_week()?.into())
+        Ok(dt.inner.day_of_week().into())
     }
 
     /// 5.3.17 get `Temporal.PlainDatedt.prototype.dayOfYear`
@@ -631,7 +631,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.day_of_year()?.into())
+        Ok(dt.inner.day_of_year().into())
     }
 
     /// 5.3.18 get `Temporal.PlainDatedt.prototype.weekOfYear`
@@ -679,7 +679,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.days_in_month()?.into())
+        Ok(dt.inner.days_in_month().into())
     }
 
     /// 5.3.22 get `Temporal.PlainDatedt.prototype.daysInYear`
@@ -691,7 +691,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.days_in_year()?.into())
+        Ok(dt.inner.days_in_year().into())
     }
 
     /// 5.3.23 get `Temporal.PlainDatedt.prototype.monthsInYear`
@@ -703,7 +703,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.months_in_year()?.into())
+        Ok(dt.inner.months_in_year().into())
     }
 
     /// 5.3.24 get `Temporal.PlainDatedt.prototype.inLeapYear`
@@ -715,7 +715,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.in_leap_year()?.into())
+        Ok(dt.inner.in_leap_year().into())
     }
 }
 

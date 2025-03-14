@@ -331,7 +331,7 @@ impl PlainDate {
 
         Ok(date
             .inner
-            .era()?
+            .era()
             .map(|s| JsString::from(s.as_str()))
             .into_or_undefined())
     }
@@ -348,7 +348,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.era_year()?.into_or_undefined())
+        Ok(date.inner.era_year().into_or_undefined())
     }
 
     /// 3.3.6 get `Temporal.PlainDate.prototype.year`
@@ -363,7 +363,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.year()?.into())
+        Ok(date.inner.year().into())
     }
 
     /// 3.3.7 get `Temporal.PlainDate.prototype.month`
@@ -378,7 +378,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.month()?.into())
+        Ok(date.inner.month().into())
     }
 
     /// 3.3.8 get Temporal.PlainDate.prototype.monthCode
@@ -393,7 +393,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(JsString::from(date.inner.month_code()?.as_str()).into())
+        Ok(JsString::from(date.inner.month_code().as_str()).into())
     }
 
     /// 3.3.9 get `Temporal.PlainDate.prototype.day`
@@ -408,7 +408,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.day()?.into())
+        Ok(date.inner.day().into())
     }
 
     /// 3.3.10 get `Temporal.PlainDate.prototype.dayOfWeek`
@@ -423,7 +423,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.day_of_week()?.into())
+        Ok(date.inner.day_of_week().into())
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.dayOfYear`
@@ -438,7 +438,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.day_of_year()?.into())
+        Ok(date.inner.day_of_year().into())
     }
 
     /// 3.3.12 get `Temporal.PlainDate.prototype.weekOfYear`
@@ -498,7 +498,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.days_in_month()?.into())
+        Ok(date.inner.days_in_month().into())
     }
 
     /// 3.3.16 get `Temporal.PlainDate.prototype.daysInYear`
@@ -513,7 +513,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.days_in_year()?.into())
+        Ok(date.inner.days_in_year().into())
     }
 
     /// 3.3.17 get `Temporal.PlainDate.prototype.monthsInYear`
@@ -528,7 +528,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.months_in_year()?.into())
+        Ok(date.inner.months_in_year().into())
     }
 
     /// 3.3.18 get `Temporal.PlainDate.prototype.inLeapYear`
@@ -543,7 +543,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.in_leap_year()?.into())
+        Ok(date.inner.in_leap_year().into())
     }
 }
 
@@ -761,7 +761,8 @@ impl PlainDate {
             .map(|v| to_temporal_time(v, None, context))
             .transpose()?;
         // 4. Return ? CreateTemporalDateTime(temporalDate.[[ISOYear]], temporalDate.[[ISOMonth]], temporalDate.[[ISODay]], temporalTime.[[ISOHour]], temporalTime.[[ISOMinute]], temporalTime.[[ISOSecond]], temporalTime.[[ISOMillisecond]], temporalTime.[[ISOMicrosecond]], temporalTime.[[ISONanosecond]], temporalDate.[[Calendar]]).
-        create_temporal_datetime(date.inner.to_date_time(time)?, None, context).map(Into::into)
+        create_temporal_datetime(date.inner.to_plain_date_time(time)?, None, context)
+            .map(Into::into)
     }
 
     /// `3.3.29 Temporal.PlainDate.prototype.toZonedDateTime ( item )`
