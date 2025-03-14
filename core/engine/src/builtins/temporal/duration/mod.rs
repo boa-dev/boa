@@ -823,6 +823,7 @@ impl Duration {
         Ok(duration
             .inner
             .total_with_provider(unit, relative_to, context.tz_provider())?
+            .as_inner()
             .into())
     }
 

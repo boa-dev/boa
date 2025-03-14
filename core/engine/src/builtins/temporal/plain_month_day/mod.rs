@@ -189,7 +189,7 @@ impl PlainMonthDay {
         let inner = &month_day.inner;
         match field {
             DateTimeValues::Day => Ok(inner.iso_day().into()),
-            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code()?.as_str()).into()),
+            DateTimeValues::MonthCode => Ok(js_string!(inner.month_code().as_str()).into()),
             _ => unreachable!(),
         }
     }

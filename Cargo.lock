@@ -1639,7 +1639,7 @@ dependencies = [
  "icu_locale_core",
  "icu_provider 2.0.0-beta2",
  "tinystr 0.8.1",
- "writeable 0.6.0",
+ "writeable 0.6.1",
  "zerovec 0.11.1",
 ]
 
@@ -1892,7 +1892,7 @@ dependencies = [
  "displaydoc",
  "litemap",
  "tinystr 0.8.1",
- "writeable 0.6.0",
+ "writeable 0.6.1",
  "zerovec 0.11.1",
 ]
 
@@ -2052,7 +2052,7 @@ dependencies = [
  "icu_locale_core",
  "stable_deref_trait",
  "tinystr 0.8.1",
- "writeable 0.6.0",
+ "writeable 0.6.1",
  "yoke 0.8.0",
  "zerofrom",
  "zerovec 0.11.1",
@@ -2079,7 +2079,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2794f00ee1999495f4f1a1e35aee8f54fe7cfcbcf909ec05b60522377200aecb"
 dependencies = [
  "icu_provider 2.0.0-beta2",
- "writeable 0.6.0",
+ "writeable 0.6.1",
  "zerotrie 0.2.0",
  "zerovec 0.11.1",
 ]
@@ -2310,9 +2310,9 @@ dependencies = [
 
 [[package]]
 name = "jiff-tzdb"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf2cec2f5d266af45a071ece48b1fb89f3b00b2421ac3a5fe10285a6caaa60d3"
+checksum = "962e1dfe9b2d75a84536cf5bf5eaaa4319aa7906c7160134a22883ac316d5f31"
 
 [[package]]
 name = "js-sys"
@@ -3574,8 +3574,8 @@ checksum = "42a4d50cdb458045afc8131fd91b64904da29548bcb63c7236e0844936c13078"
 
 [[package]]
 name = "temporal_rs"
-version = "0.0.4"
-source = "git+https://github.com/boa-dev/temporal.git?rev=f27e2ffa3324e4cfb2bdf0b654b0d5bb2f15ed61#f27e2ffa3324e4cfb2bdf0b654b0d5bb2f15ed61"
+version = "0.0.5"
+source = "git+https://github.com/boa-dev/temporal.git?rev=5e864d826a264ef6205b61784e56dc7a3ba43ade#5e864d826a264ef6205b61784e56dc7a3ba43ade"
 dependencies = [
  "combine",
  "iana-time-zone",
@@ -3585,7 +3585,7 @@ dependencies = [
  "num-traits",
  "tinystr 0.8.1",
  "tzif",
- "writeable 0.6.0",
+ "writeable 0.6.1",
 ]
 
 [[package]]
@@ -4451,9 +4451,9 @@ dependencies = [
 
 [[package]]
 name = "writeable"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74b3b5b7c6114bf7253093603034e102d479ecc8501deca33b6c1c816418b6d2"
+checksum = "ea2f10b9bb0928dfb1b42b65e1f9e36f7f54dbdf08457afefb38afcdec4fa2bb"
 
 [[package]]
 name = "yoke"
