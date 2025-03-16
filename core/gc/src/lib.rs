@@ -5,8 +5,8 @@
 //! for garbage collected values.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
