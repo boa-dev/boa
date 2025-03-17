@@ -692,7 +692,7 @@ fn parse_async_arrow_function_named_of() {
     check_script_parser(
         "async of => {}",
         vec![
-            Statement::Expression(Expression::from(AsyncArrowFunction::new(
+            Statement::Expression(Expression::from(AsyncArrowFunction::new_boxed(
                 None,
                 FormalParameterList::from_parameters(vec![FormalParameter::new(
                     Variable::from_identifier(

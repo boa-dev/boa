@@ -92,22 +92,22 @@ pub enum Expression {
     Spread(Spread),
 
     /// See [`FunctionExpression`].
-    FunctionExpression(FunctionExpression),
+    FunctionExpression(Box<FunctionExpression>),
 
     /// See [`ArrowFunction`].
-    ArrowFunction(ArrowFunction),
+    ArrowFunction(Box<ArrowFunction>),
 
     /// See [`AsyncArrowFunction`].
-    AsyncArrowFunction(AsyncArrowFunction),
+    AsyncArrowFunction(Box<AsyncArrowFunction>),
 
     /// See [`GeneratorExpression`].
-    GeneratorExpression(GeneratorExpression),
+    GeneratorExpression(Box<GeneratorExpression>),
 
     /// See [`AsyncFunctionExpression`].
-    AsyncFunctionExpression(AsyncFunctionExpression),
+    AsyncFunctionExpression(Box<AsyncFunctionExpression>),
 
     /// See [`AsyncGeneratorExpression`].
-    AsyncGeneratorExpression(AsyncGeneratorExpression),
+    AsyncGeneratorExpression(Box<AsyncGeneratorExpression>),
 
     /// See [`ClassExpression`].
     ClassExpression(Box<ClassExpression>),
@@ -276,6 +276,12 @@ impl Expression {
             expression = p.expression();
         }
         expression
+    }
+
+    /// Create boxed expression.
+    #[must_use]
+    pub fn boxed(f: impl FnOnce() -> Self) -> Box<Self> {
+        Box::new(f())
     }
 }
 
