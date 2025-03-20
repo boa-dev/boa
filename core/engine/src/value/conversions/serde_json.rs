@@ -112,10 +112,6 @@ impl JsValue {
     /// #
     /// # assert_eq!(Some(json), back_to_json);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the `JsValue` is `Undefined`.
     pub fn to_json(&self, context: &mut Context) -> JsResult<Option<Value>> {
         let mut seen_objects = HashSet::new();
         self.to_json_inner(context, &mut seen_objects)
