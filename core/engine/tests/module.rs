@@ -59,7 +59,7 @@ fn test_json_module_from_str() {
         .unwrap();
 
     assert_eq!(
-        JsString::from(json.to_json(&mut context).unwrap().to_string()),
+        JsString::from(json.to_json(&mut context).unwrap().unwrap().to_string()),
         json_string
     );
 }
