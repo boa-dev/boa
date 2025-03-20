@@ -85,6 +85,9 @@ impl JsValue {
 
     /// Converts the `JsValue` to a [`serde_json::Value`].
     ///
+    /// If the `JsValue` is `Undefined`, this method will return `None`.
+    /// Otherwise it will return the corresponding `serde_json::Value`.
+    ///
     /// # Example
     ///
     /// ```
