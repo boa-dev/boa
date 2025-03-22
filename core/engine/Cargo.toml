@@ -92,6 +92,7 @@ ryu-js.workspace = true
 fast-float2.workspace = true
 once_cell = { workspace = true, features = ["std"] }
 tap.workspace = true
+small_map.workspace = true
 
 thiserror.workspace = true
 dashmap.workspace = true

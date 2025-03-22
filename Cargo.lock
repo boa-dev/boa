@@ -401,6 +401,7 @@ dependencies = [
  "ryu-js",
  "serde",
  "serde_json",
+ "small_map",
  "static_assertions",
  "sys-locale",
  "tag_ptr",
@@ -3451,6 +3452,13 @@ dependencies = [
  "async-channel 1.9.0",
  "futures-core",
  "futures-io",
+]
+
+[[package]]
+name = "small_map"
+version = "0.1.0"
+dependencies = [
+ "arrayvec",
 ]
 
 [[package]]
