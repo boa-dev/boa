@@ -103,7 +103,6 @@ pub mod value;
 pub mod vm;
 
 mod host_defined;
-mod small_map;
 mod sys;
 
 mod spanned_source_text;

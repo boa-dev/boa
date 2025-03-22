@@ -154,8 +154,9 @@ mod sync {
 
     use intrusive_collections::{intrusive_adapter, LinkedList, LinkedListLink, UnsafeRef};
 
+    use small_map::{Entry, SmallMap};
+
     use crate::{
-        small_map::{Entry, SmallMap},
         JsNativeError, JsResult,
     };
 
