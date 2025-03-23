@@ -156,9 +156,9 @@ impl JobExecutor for Queue {
 fn delay(
     _this: &JsValue,
     args: &[JsValue],
-    context: &mut Context,
+    context: &RefCell<&mut Context>,
 ) -> impl Future<Output = JsResult<JsValue>> {
-    let millis = args.get_or_undefined(0).to_u32(context);
+    let millis = args.get_or_undefined(0).to_u32(&mut context.borrow_mut());
 
     async move {
         let millis = millis?;

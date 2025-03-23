@@ -3,8 +3,11 @@
 //! [`NativeFunction`] is the main type of this module, providing APIs to create native callables
 //! from native Rust functions and closures.
 
+use std::cell::RefCell;
+
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 
+use crate::job::NativeAsyncJob;
 use crate::value::JsVariant;
 use crate::{
     builtins::{function::ConstructorKind, OrdinaryObject},
@@ -162,27 +165,30 @@ impl NativeFunction {
     /// If you only need to convert a [`Future`]-like into a [`JsPromise`], see
     /// [`JsPromise::from_future`].
     ///
+    ///
     /// # Caveats
     ///
-    /// Certain async functions need to be desugared for them to be `'static'`. For example, the
+    /// Certain async functions need to be desugared for them to be compatible. For example, the
     /// following won't compile:
     ///
     /// ```compile_fail
+    /// # use std::cell::RefCell;
     /// # use boa_engine::{
     /// #   JsValue,
     /// #   Context,
     /// #   JsResult,
     /// #   NativeFunction
+    /// #   JsArgs,
     /// # };
     /// async fn test(
     ///     _this: &JsValue,
     ///     args: &[JsValue],
-    ///     _context: &mut Context,
+    ///     context: &RefCell<&mut Context>,
     /// ) -> JsResult<JsValue> {
-    ///     let arg = args.get(0).cloned();
+    ///     let arg = args.get_or_undefined(0).clone();
     ///     std::future::ready(()).await;
-    ///     drop(arg);
-    ///     Ok(JsValue::null())
+    ///     let value = arg.to_u32(&mut context.borrow_mut())?;
+    ///     Ok(JsValue::from(value * 2))
     /// }
     /// NativeFunction::from_async_fn(test);
     /// ```
@@ -191,60 +197,114 @@ impl NativeFunction {
     /// fully lazy, which makes `test` equivalent to something like:
     ///
     /// ```
+    /// # use std::cell::RefCell;
     /// # use std::future::Future;
-    /// # use boa_engine::{JsValue, Context, JsResult};
-    /// fn test<'a>(
-    ///     _this: &JsValue,
-    ///     args: &'a [JsValue],
-    ///     _context: &mut Context,
-    /// ) -> impl Future<Output = JsResult<JsValue>> + 'a {
+    /// # use boa_engine::{JsValue, Context, JsResult, JsArgs};
+    /// fn test<'a, 'b, 'c, 'd>(
+    ///     _this: &'a JsValue,
+    ///     args: &'b [JsValue],
+    ///     context: &'c RefCell<&'d mut Context>,
+    /// ) -> impl Future<Output = JsResult<JsValue>> + use<'a, 'b, 'c, 'd> {
     ///     async move {
-    ///         let arg = args.get(0).cloned();
-    ///         std::future::ready(()).await;
-    ///         drop(arg);
-    ///         Ok(JsValue::null())
+    ///         let arg = args.get_or_undefined(0).clone();
+    ///         let value = arg.to_u32(&mut context.borrow_mut())?;
+    ///         Ok(JsValue::from(value * 2))
     ///     }
     /// }
     /// ```
     ///
-    /// Note that `args` is used inside the `async move`, making the whole future not `'static`.
+    /// Note that all the arguments are captured by the async function, making the returned future not compatible with
+    /// the signature of `from_async_fn`.
     ///
     /// In those cases, you can manually restrict the lifetime of the arguments:
     ///
     /// ```
+    /// # use std::cell::RefCell;
     /// # use std::future::Future;
     /// # use boa_engine::{
     /// #   JsValue,
     /// #   Context,
     /// #   JsResult,
-    /// #   NativeFunction
+    /// #   NativeFunction,
+    /// #   JsArgs,
     /// # };
-    /// fn test(
+    /// fn test<'a, 'b>(
     ///     _this: &JsValue,
     ///     args: &[JsValue],
-    ///     _context: &mut Context,
-    /// ) -> impl Future<Output = JsResult<JsValue>> {
-    ///     let arg = args.get(0).cloned();
+    ///     context: &'a RefCell<&'b mut Context>,
+    /// ) -> impl Future<Output = JsResult<JsValue>> + use<'a, 'b> {
+    ///     let arg = args.get_or_undefined(0).clone();
     ///     async move {
     ///         std::future::ready(()).await;
-    ///         drop(arg);
-    ///         Ok(JsValue::null())
+    ///         let value = arg.to_u32(&mut context.borrow_mut())?;
+    ///         Ok(JsValue::from(value * 2))
     ///     }
     /// }
     /// NativeFunction::from_async_fn(test);
     /// ```
     ///
-    /// And this should always return a `'static` future.
+    /// And this should always return a valid future.
+    ///
+    /// Keen readers will notice that this caveat doesn't apply to the `context` argument, since
+    /// we captured its lifetime on the previous snippet. This is indeed useful, because it allows
+    /// using the `context` between await points without having to enqueue a separate future job.
+    ///
+    /// ```
+    /// # use std::cell::RefCell;
+    /// # use std::future::Future;
+    /// # use boa_engine::{
+    /// #   JsValue,
+    /// #   Context,
+    /// #   JsResult,
+    /// #   NativeFunction,
+    /// #   JsArgs,
+    /// # };
+    /// fn test<'a, 'b>(
+    ///     _this: &JsValue,
+    ///     args: &[JsValue],
+    ///     context: &'a RefCell<&'b mut Context>,
+    /// ) -> impl Future<Output = JsResult<JsValue>> + use<'a, 'b> {
+    ///     let arg = args.get_or_undefined(0).clone();
+    ///     async move {
+    ///         std::future::ready(()).await;
+    ///         let value = arg.to_u32(&mut context.borrow_mut())?;
+    ///         Ok(JsValue::from(value * 2))
+    ///     }
+    /// }
+    /// NativeFunction::from_async_fn(test);
+    /// ```
     ///
     /// [`Future`]: std::future::Future
-    pub fn from_async_fn<Fut>(f: fn(&JsValue, &[JsValue], &mut Context) -> Fut) -> Self
+    pub fn from_async_fn<F>(f: F) -> Self
     where
-        Fut: std::future::IntoFuture<Output = JsResult<JsValue>> + 'static,
+        F: for<'a> AsyncFn(&JsValue, &[JsValue], &'a RefCell<&mut Context>) -> JsResult<JsValue>
+            + 'static,
+        F: Copy,
     {
         Self::from_copy_closure(move |this, args, context| {
-            let future = f(this, args, context);
+            let (promise, resolvers) = JsPromise::new_pending(context);
+            let this = this.clone();
+            let args = args.to_vec();
 
-            Ok(JsPromise::from_future(future, context).into())
+            context.enqueue_job(
+                NativeAsyncJob::new(move |context| {
+                    Box::pin(async move {
+                        let result = f(&this, &args, context).await;
+
+                        let context = &mut context.borrow_mut();
+                        match result {
+                            Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
+                            Err(e) => {
+                                let e = e.to_opaque(context);
+                                resolvers.reject.call(&JsValue::undefined(), &[e], context)
+                            }
+                        }
+                    })
+                })
+                .into(),
+            );
+
+            Ok(promise.into())
         })
     }
 
