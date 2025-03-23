@@ -1,3 +1,9 @@
+//! A crate that provides a `SmallMap` collection, which is initially backed by an inline vec
+//! but changes its backing to a heap map if its number of elements exceeds `ARRAY_SIZE`.
+//!
+//! This provides performance benefits for maps that are expected to be small most of the time,
+//! by avoiding heap allocations for the common case while still supporting larger collections when needed.
+
 #![allow(unreachable_pub)]
 #![allow(unused)]
 
