@@ -97,36 +97,6 @@ pub(crate) use value::*;
 use super::{code_block::Readable, GeneratorResumeKind};
 use thin_vec::ThinVec;
 
-/// Read type T from code.
-///
-/// # Safety
-///
-/// Does not check if read happens out-of-bounds.
-pub(crate) const unsafe fn read_unchecked<T>(bytes: &[u8], offset: usize) -> T
-where
-    T: Readable,
-{
-    // Safety:
-    // The function caller must ensure that the read is in bounds.
-    //
-    // This has to be an unaligned read because we can't guarantee that
-    // the types are aligned.
-    unsafe { bytes.as_ptr().add(offset).cast::<T>().read_unaligned() }
-}
-
-/// Read type T from code.
-#[track_caller]
-pub(crate) fn read<T>(bytes: &[u8], offset: usize) -> T
-where
-    T: Readable,
-{
-    assert!(offset + size_of::<T>() - 1 < bytes.len());
-
-    // Safety: We checked that it is not an out-of-bounds read,
-    // so this is safe.
-    unsafe { read_unchecked(bytes, offset) }
-}
-
 /// Represents a varying operand kind.
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
@@ -135,309 +105,6 @@ pub(crate) enum VaryingOperandKind {
     U8,
     U16,
     U32,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct VaryingOperand {
-    kind: VaryingOperandKind,
-    value: u32,
-}
-
-impl PartialEq for VaryingOperand {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
-
-impl VaryingOperand {
-    fn new(value: u32) -> Self {
-        if u8::try_from(value).is_ok() {
-            Self::u8(value as u8)
-        } else if u16::try_from(value).is_ok() {
-            Self::u16(value as u16)
-        } else {
-            Self::u32(value)
-        }
-    }
-
-    #[must_use]
-    pub(crate) fn u8(value: u8) -> Self {
-        Self {
-            kind: VaryingOperandKind::U8,
-            value: u32::from(value),
-        }
-    }
-    #[must_use]
-    pub(crate) fn u16(value: u16) -> Self {
-        Self {
-            kind: VaryingOperandKind::U16,
-            value: u32::from(value),
-        }
-    }
-    #[must_use]
-    pub(crate) const fn u32(value: u32) -> Self {
-        Self {
-            kind: VaryingOperandKind::U32,
-            value,
-        }
-    }
-    #[must_use]
-    pub(crate) const fn value(self) -> u32 {
-        self.value
-    }
-    #[must_use]
-    pub(crate) const fn kind(self) -> VaryingOperandKind {
-        self.kind
-    }
-}
-
-trait BytecodeConversion: Sized {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>);
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self;
-}
-
-impl BytecodeConversion for VaryingOperand {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        match self.kind() {
-            VaryingOperandKind::U8 => u8::to_bytecode(&(self.value() as u8), bytes),
-            VaryingOperandKind::U16 => u16::to_bytecode(&(self.value() as u16), bytes),
-            VaryingOperandKind::U32 => u32::to_bytecode(&self.value(), bytes),
-        }
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self {
-        match varying_kind {
-            VaryingOperandKind::U8 => Self::u8(u8::from_bytecode(bytes, pc, varying_kind)),
-            VaryingOperandKind::U16 => Self::u16(u16::from_bytecode(bytes, pc, varying_kind)),
-            VaryingOperandKind::U32 => Self::u32(u32::from_bytecode(bytes, pc, varying_kind)),
-        }
-    }
-}
-
-impl BytecodeConversion for GeneratorResumeKind {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(*self as u8);
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<u8>(bytes, *pc);
-        *pc += size_of::<Self>();
-        JsValue::from(value).to_generator_resume_kind()
-    }
-}
-
-impl BytecodeConversion for bool {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(u8::from(*self));
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<u8>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value != 0
-    }
-}
-
-impl BytecodeConversion for i8 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(*self as u8);
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for u8 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(*self);
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for i16 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for u16 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for i32 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for u32 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for i64 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for u64 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for f32 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for f64 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for ThinVec<u32> {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&(self.len() as u32).to_ne_bytes());
-        for item in self {
-            bytes.extend_from_slice(&item.to_ne_bytes());
-        }
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let count = read::<u32>(bytes, *pc);
-        *pc += size_of::<u32>();
-        let mut result = Self::with_capacity(count as usize);
-        for _ in 0..count {
-            let item = read::<u32>(bytes, *pc);
-            *pc += size_of::<u32>();
-            result.push(item);
-        }
-        result
-    }
-}
-
-impl BytecodeConversion for ThinVec<(u32, u32)> {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        let len = VaryingOperand::new(self.len() as u32);
-        match len.kind() {
-            VaryingOperandKind::U8 => u8::to_bytecode(&(self.len() as u8), bytes),
-            VaryingOperandKind::U16 => u16::to_bytecode(&(self.len() as u16), bytes),
-            VaryingOperandKind::U32 => u32::to_bytecode(&(self.len() as u32), bytes),
-        }
-        for item in self {
-            bytes.extend_from_slice(&item.0.to_ne_bytes());
-            bytes.extend_from_slice(&item.1.to_ne_bytes());
-        }
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self {
-        let count = match varying_kind {
-            VaryingOperandKind::U8 => u8::from_bytecode(bytes, pc, varying_kind).into(),
-            VaryingOperandKind::U16 => u16::from_bytecode(bytes, pc, varying_kind).into(),
-            VaryingOperandKind::U32 => u32::from_bytecode(bytes, pc, varying_kind),
-        };
-        let mut result = Self::with_capacity(count as usize);
-        for _ in 0..count {
-            let one = read::<u32>(bytes, *pc);
-            *pc += size_of::<u32>();
-            let two = read::<u32>(bytes, *pc);
-            *pc += size_of::<u32>();
-            result.push((one, two));
-        }
-        result
-    }
-}
-
-impl BytecodeConversion for ThinVec<VaryingOperand> {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        if let Some(first) = self.first() {
-            match first.kind() {
-                VaryingOperandKind::U8 => u8::to_bytecode(&(self.len() as u8), bytes),
-                VaryingOperandKind::U16 => u16::to_bytecode(&(self.len() as u16), bytes),
-                VaryingOperandKind::U32 => u32::to_bytecode(&(self.len() as u32), bytes),
-            }
-        } else {
-            u8::to_bytecode(&0, bytes);
-        }
-        for item in self {
-            match item.kind() {
-                VaryingOperandKind::U8 => u8::to_bytecode(&(item.value() as u8), bytes),
-                VaryingOperandKind::U16 => u16::to_bytecode(&(item.value() as u16), bytes),
-                VaryingOperandKind::U32 => u32::to_bytecode(&item.value(), bytes),
-            }
-        }
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self {
-        let count = match varying_kind {
-            VaryingOperandKind::U8 => u8::from_bytecode(bytes, pc, varying_kind).into(),
-            VaryingOperandKind::U16 => u16::from_bytecode(bytes, pc, varying_kind).into(),
-            VaryingOperandKind::U32 => u32::from_bytecode(bytes, pc, varying_kind),
-        };
-        let mut result = Self::with_capacity(count as usize);
-        for _ in 0..count {
-            let item = match varying_kind {
-                VaryingOperandKind::U8 => {
-                    VaryingOperand::u8(u8::from_bytecode(bytes, pc, varying_kind))
-                }
-                VaryingOperandKind::U16 => {
-                    VaryingOperand::u16(u16::from_bytecode(bytes, pc, varying_kind))
-                }
-                VaryingOperandKind::U32 => {
-                    VaryingOperand::u32(u32::from_bytecode(bytes, pc, varying_kind))
-                }
-            };
-            result.push(item);
-        }
-        result
-    }
 }
 
 /// Generate [`Opcode`]s and [`Instruction`]s enums.
@@ -546,89 +213,6 @@ macro_rules! generate_opcodes {
 
             pub(super) fn execute(self, registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
                 Self::EXECUTE_FNS[self as usize](registers, context)
-            }
-        }
-
-        /// This represents a VM instruction, it contains both opcode and operands.
-        ///
-        // TODO: An instruction should be a representation of a valid executable instruction (opcode + operands),
-        //       so variants like `ReservedN`, or operand width prefix modifiers, idealy shouldn't
-        //       be a part of `Instruction`.
-        #[derive(Debug, Clone, PartialEq)]
-        #[repr(u8)]
-        pub(crate) enum Instruction {
-            $(
-                $(#[$inner $($args)*])*
-                $Variant $({
-                    $(
-                        $(#[$fieldinner $($fieldargs)*])*
-                        $FieldName : $FieldType
-                    ),*
-                })?
-            ),*
-        }
-
-        impl Instruction {
-            /// Convert [`Instruction`] to compact bytecode.
-            #[inline]
-            #[allow(dead_code)]
-            pub(crate) fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-                match self {
-                    $(
-                        Self::$Variant $({
-                            $( $FieldName ),*
-                        })? => {
-                            bytes.push(Opcode::$Variant as u8);
-                            $({
-                                $( BytecodeConversion::to_bytecode($FieldName, bytes); )*
-                            })?
-                        }
-                    ),*
-                }
-            }
-
-            /// Convert compact bytecode to [`Instruction`].
-            ///
-            /// # Panics
-            ///
-            /// If the provided bytecode is not valid.
-            #[inline]
-            #[must_use]
-            pub(crate) fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self {
-                let opcode = bytes[*pc].into();
-                *pc += 1;
-                match opcode {
-                    $(
-                        Opcode::$Variant => {
-                            generate_opcodes!(
-                                if {
-                                    $({
-                                        Self::$Variant {
-                                            $(
-                                                $FieldName: BytecodeConversion::from_bytecode(bytes, pc, varying_kind)
-                                            ),*
-                                        }
-                                    })?
-                                } else {
-                                    Self::$Variant
-                                }
-                            )
-                        }
-                    ),*
-                }
-            }
-
-            /// Get the [`Opcode`] of the [`Instruction`].
-            #[inline]
-            #[must_use]
-            // TODO: see if this can be exposed on all features.
-            #[allow(unused)]
-            pub(crate) const fn opcode(&self) -> Opcode {
-                match self {
-                    $(
-                        Self::$Variant $({ $( $FieldName: _ ),* })? => Opcode::$Variant
-                    ),*
-                }
             }
         }
     };
@@ -2397,66 +1981,67 @@ pub(crate) enum BindingOpcode {
     SetName,
 }
 
-/// Iterator over the instructions in the compact bytecode.
-#[derive(Debug, Clone)]
-pub(crate) struct InstructionIterator<'bytecode> {
-    bytes: &'bytecode [u8],
-    pc: usize,
-}
-
-// TODO: see if this can be exposed on all features.
-#[allow(unused)]
-impl<'bytecode> InstructionIterator<'bytecode> {
-    /// Create a new [`InstructionIterator`] from bytecode array.
-    #[inline]
-    #[must_use]
-    pub(crate) const fn new(bytes: &'bytecode [u8]) -> Self {
-        Self { bytes, pc: 0 }
-    }
-
-    /// Create a new [`InstructionIterator`] from bytecode array at pc.
-    #[inline]
-    #[must_use]
-    pub(crate) const fn with_pc(bytes: &'bytecode [u8], pc: usize) -> Self {
-        Self { bytes, pc }
-    }
-
-    /// Return the current program counter.
-    #[must_use]
-    pub(crate) const fn pc(&self) -> usize {
-        self.pc
-    }
-}
-
-impl Iterator for InstructionIterator<'_> {
-    type Item = (usize, VaryingOperandKind, Instruction);
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        let start_pc = self.pc;
-        if self.pc >= self.bytes.len() {
-            return None;
-        }
-
-        let instruction =
-            Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U8);
-
-        if instruction == Instruction::U16Operands {
-            return Some((
-                start_pc,
-                VaryingOperandKind::U16,
-                Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U16),
-            ));
-        } else if instruction == Instruction::U32Operands {
-            return Some((
-                start_pc,
-                VaryingOperandKind::U32,
-                Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U32),
-            ));
-        }
-
-        Some((start_pc, VaryingOperandKind::U8, instruction))
-    }
-}
-
-impl FusedIterator for InstructionIterator<'_> {}
+// /// Iterator over the instructions in the compact bytecode.
+// #[derive(Debug, Clone)]
+// pub(crate) struct InstructionIterator<'bytecode> {
+//     bytes: &'bytecode [u8],
+//     pc: usize,
+// }
+// 
+// // TODO: see if this can be exposed on all features.
+// #[allow(unused)]
+// impl<'bytecode> InstructionIterator<'bytecode> {
+//     /// Create a new [`InstructionIterator`] from bytecode array.
+//     #[inline]
+//     #[must_use]
+//     pub(crate) const fn new(bytes: &'bytecode [u8]) -> Self {
+//         Self { bytes, pc: 0 }
+//     }
+// 
+//     /// Create a new [`InstructionIterator`] from bytecode array at pc.
+//     #[inline]
+//     #[must_use]
+//     pub(crate) const fn with_pc(bytes: &'bytecode [u8], pc: usize) -> Self {
+//         Self { bytes, pc }
+//     }
+// 
+//     /// Return the current program counter.
+//     #[must_use]
+//     pub(crate) const fn pc(&self) -> usize {
+//         self.pc
+//     }
+// }
+// 
+// impl Iterator for InstructionIterator<'_> {
+//     type Item = (usize, VaryingOperandKind, Instruction);
+// 
+//     #[inline]
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let start_pc = self.pc;
+//         if self.pc >= self.bytes.len() {
+//             return None;
+//         }
+// 
+//         let instruction =
+//             Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U8);
+// 
+//         if instruction == Instruction::U16Operands {
+//             return Some((
+//                 start_pc,
+//                 VaryingOperandKind::U16,
+//                 Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U16),
+//             ));
+//         } else if instruction == Instruction::U32Operands {
+//             return Some((
+//                 start_pc,
+//                 VaryingOperandKind::U32,
+//                 Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U32),
+//             ));
+//         }
+// 
+//         Some((start_pc, VaryingOperandKind::U8, instruction))
+//     }
+// }
+// 
+// impl FusedIterator for InstructionIterator<'_> {}
+// 

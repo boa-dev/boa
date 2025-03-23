@@ -13,8 +13,8 @@ use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
-#[cfg(feature = "trace")]
-use crate::sys::time::Instant;
+// #[cfg(feature = "trace")]
+// use crate::sys::time::Instant;
 
 mod call_frame;
 mod code_block;
@@ -23,14 +23,13 @@ mod inline_cache;
 mod opcode;
 mod runtime_limits;
 
-#[cfg(feature = "flowgraph")]
-pub mod flowgraph;
+// #[cfg(feature = "flowgraph")]
+// pub mod flowgraph;
 
 pub(crate) use inline_cache::InlineCache;
 
 // TODO: see if this can be exposed on all features.
-#[allow(unused_imports)]
-pub(crate) use opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
+pub(crate) use opcode::{Opcode, VaryingOperandKind};
 pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
@@ -272,126 +271,126 @@ pub(crate) enum CompletionType {
     Yield,
 }
 
-#[allow(clippy::print_stdout)]
-#[cfg(feature = "trace")]
-impl Context {
-    const COLUMN_WIDTH: usize = 26;
-    const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
-    const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-    const NUMBER_OF_COLUMNS: usize = 4;
-
-    pub(crate) fn trace_call_frame(&self) {
-        let frame = self.vm.frame();
-        let msg = if self.vm.frames.is_empty() {
-            " VM Start ".to_string()
-        } else {
-            format!(
-                " Call Frame -- {} ",
-                frame.code_block().name().to_std_string_escaped()
-            )
-        };
-
-        println!("{}", frame.code_block);
-        println!(
-            "{msg:-^width$}",
-            width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
-        );
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-            "Time",
-            "Opcode",
-            "Operands",
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
-    }
-
-    fn trace_execute_instruction<F>(
-        &mut self,
-        f: F,
-        registers: &mut Registers,
-    ) -> JsResult<CompletionType>
-    where
-        F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
-    {
-        let frame = self.vm.frame();
-        let bytecodes = &frame.code_block.bytecode;
-        let pc = frame.pc as usize;
-        let (_, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
-            .next()
-            .expect("There should be an instruction left");
-        let operands = frame.code_block.instruction_operands(&instruction);
-
-        let opcode = instruction.opcode();
-        match opcode {
-            Opcode::Call
-            | Opcode::CallSpread
-            | Opcode::CallEval
-            | Opcode::CallEvalSpread
-            | Opcode::New
-            | Opcode::NewSpread
-            | Opcode::Return
-            | Opcode::SuperCall
-            | Opcode::SuperCallSpread
-            | Opcode::SuperCallDerived => {
-                println!();
-            }
-            _ => {}
-        }
-
-        let instant = Instant::now();
-        let result = self.execute_instruction(f, registers);
-        let duration = instant.elapsed();
-
-        let fp = if self.vm.frames.is_empty() {
-            None
-        } else {
-            Some(self.vm.frame.fp() as usize)
-        };
-
-        let stack = {
-            let mut stack = String::from("[ ");
-            for (i, (j, value)) in self.vm.stack.iter().enumerate().rev().enumerate() {
-                match value {
-                    value if value.is_callable() => stack.push_str("[function]"),
-                    value if value.is_object() => stack.push_str("[object]"),
-                    value => stack.push_str(&value.display().to_string()),
-                }
-
-                if fp == Some(j) {
-                    let frame_index = self.vm.frames.len() - 1;
-                    stack.push_str(&format!(" |{frame_index}|"));
-                } else if i + 1 != self.vm.stack.len() {
-                    stack.push(',');
-                }
-
-                stack.push(' ');
-            }
-
-            stack.push(']');
-            stack
-        };
-
-        let varying_operand_kind = match varying_operand_kind {
-            VaryingOperandKind::U8 => "",
-            VaryingOperandKind::U16 => ".U16",
-            VaryingOperandKind::U32 => ".U32",
-        };
-
-        println!(
-            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
-            format!("{}μs", duration.as_micros()),
-            format!("{}{varying_operand_kind}", opcode.as_str()),
-            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-        );
-
-        result
-    }
-}
+// #[allow(clippy::print_stdout)]
+// #[cfg(feature = "trace")]
+// impl Context {
+//     const COLUMN_WIDTH: usize = 26;
+//     const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
+//     const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
+//     const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
+//     const NUMBER_OF_COLUMNS: usize = 4;
+// 
+//     pub(crate) fn trace_call_frame(&self) {
+//         let frame = self.vm.frame();
+//         let msg = if self.vm.frames.is_empty() {
+//             " VM Start ".to_string()
+//         } else {
+//             format!(
+//                 " Call Frame -- {} ",
+//                 frame.code_block().name().to_std_string_escaped()
+//             )
+//         };
+// 
+//         println!("{}", frame.code_block);
+//         println!(
+//             "{msg:-^width$}",
+//             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
+//         );
+//         println!(
+//             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
+//             "Time",
+//             "Opcode",
+//             "Operands",
+//             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
+//             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
+//             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+//         );
+//     }
+// 
+//     fn trace_execute_instruction<F>(
+//         &mut self,
+//         f: F,
+//         registers: &mut Registers,
+//     ) -> JsResult<CompletionType>
+//     where
+//         F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
+//     {
+//         let frame = self.vm.frame();
+//         let bytecodes = &frame.code_block.bytecode;
+//         let pc = frame.pc as usize;
+//         let (_, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
+//             .next()
+//             .expect("There should be an instruction left");
+//         let operands = frame.code_block.instruction_operands(&instruction);
+// 
+//         let opcode = instruction.opcode();
+//         match opcode {
+//             Opcode::Call
+//             | Opcode::CallSpread
+//             | Opcode::CallEval
+//             | Opcode::CallEvalSpread
+//             | Opcode::New
+//             | Opcode::NewSpread
+//             | Opcode::Return
+//             | Opcode::SuperCall
+//             | Opcode::SuperCallSpread
+//             | Opcode::SuperCallDerived => {
+//                 println!();
+//             }
+//             _ => {}
+//         }
+// 
+//         let instant = Instant::now();
+//         let result = self.execute_instruction(f, registers);
+//         let duration = instant.elapsed();
+// 
+//         let fp = if self.vm.frames.is_empty() {
+//             None
+//         } else {
+//             Some(self.vm.frame.fp() as usize)
+//         };
+// 
+//         let stack = {
+//             let mut stack = String::from("[ ");
+//             for (i, (j, value)) in self.vm.stack.iter().enumerate().rev().enumerate() {
+//                 match value {
+//                     value if value.is_callable() => stack.push_str("[function]"),
+//                     value if value.is_object() => stack.push_str("[object]"),
+//                     value => stack.push_str(&value.display().to_string()),
+//                 }
+// 
+//                 if fp == Some(j) {
+//                     let frame_index = self.vm.frames.len() - 1;
+//                     stack.push_str(&format!(" |{frame_index}|"));
+//                 } else if i + 1 != self.vm.stack.len() {
+//                     stack.push(',');
+//                 }
+// 
+//                 stack.push(' ');
+//             }
+// 
+//             stack.push(']');
+//             stack
+//         };
+// 
+//         let varying_operand_kind = match varying_operand_kind {
+//             VaryingOperandKind::U8 => "",
+//             VaryingOperandKind::U16 => ".U16",
+//             VaryingOperandKind::U32 => ".U32",
+//         };
+// 
+//         println!(
+//             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
+//             format!("{}μs", duration.as_micros()),
+//             format!("{}{varying_operand_kind}", opcode.as_str()),
+//             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
+//             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
+//             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+//         );
+// 
+//         result
+//     }
+// }
 
 impl Context {
     fn execute_instruction<F>(
@@ -432,14 +431,14 @@ impl Context {
             self.instructions_remaining -= 1;
         }
 
-        #[cfg(feature = "trace")]
-        let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
-            self.trace_execute_instruction(f, registers)
-        } else {
-            self.execute_instruction(f, registers)
-        };
+        // #[cfg(feature = "trace")]
+        // let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
+        //     self.trace_execute_instruction(f, registers)
+        // } else {
+        //     self.execute_instruction(f, registers)
+        // };
 
-        #[cfg(not(feature = "trace"))]
+        // #[cfg(not(feature = "trace"))]
         let result = self.execute_instruction(f, registers);
 
         let result = match result {
@@ -575,10 +574,10 @@ impl Context {
     ) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run_async_with_budget", "vm");
 
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
+        // #[cfg(feature = "trace")]
+        // if self.vm.trace {
+        //     self.trace_call_frame();
+        // }
 
         let mut runtime_budget: u32 = budget;
 
@@ -603,10 +602,10 @@ impl Context {
     pub(crate) fn run(&mut self, registers: &mut Registers) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run", "vm");
 
-        #[cfg(feature = "trace")]
-        if self.vm.trace {
-            self.trace_call_frame();
-        }
+        // #[cfg(feature = "trace")]
+        // if self.vm.trace {
+        //     self.trace_call_frame();
+        // }
 
         loop {
             match self.execute_one(Opcode::execute, registers) {
