@@ -121,7 +121,7 @@ enum InnerIntoIter<K, V, const ARRAY_SIZE: usize> {
 }
 
 impl<K: fmt::Debug, V: fmt::Debug, const ARRAY_SIZE: usize> fmt::Debug
-for IntoIter<K, V, ARRAY_SIZE>
+    for IntoIter<K, V, ARRAY_SIZE>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
@@ -142,6 +142,7 @@ impl<K, V, const ARRAY_SIZE: usize> Default for IntoIter<K, V, ARRAY_SIZE> {
 
 impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     /// Makes a new, empty `SmallMap`.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             inner: Inner::Inline(ArrayVec::new_const()),
@@ -539,7 +540,7 @@ impl<K: Eq + Ord, V, const ARRAY_SIZE: usize> Extend<(K, V)> for SmallMap<K, V, 
 }
 
 impl<'a, K: Eq + Ord + Copy, V: Copy, const ARRAY_SIZE: usize> Extend<(&'a K, &'a V)>
-for SmallMap<K, V, ARRAY_SIZE>
+    for SmallMap<K, V, ARRAY_SIZE>
 {
     fn extend<I: IntoIterator<Item = (&'a K, &'a V)>>(&mut self, iter: I) {
         self.extend(iter.into_iter().map(|(&key, &value)| (key, value)));
@@ -565,7 +566,7 @@ impl<K, V, const ARRAY_SIZE: usize> Default for SmallMap<K, V, ARRAY_SIZE> {
 }
 
 impl<K: PartialEq + Ord, V: PartialEq, const LHS_SIZE: usize, const RHS_SIZE: usize>
-PartialEq<SmallMap<K, V, RHS_SIZE>> for SmallMap<K, V, LHS_SIZE>
+    PartialEq<SmallMap<K, V, RHS_SIZE>> for SmallMap<K, V, LHS_SIZE>
 {
     fn eq(&self, other: &SmallMap<K, V, RHS_SIZE>) -> bool {
         if let (Inner::Heap(lhs), Inner::Heap(rhs)) = (&self.inner, &other.inner) {
@@ -584,7 +585,7 @@ PartialEq<SmallMap<K, V, RHS_SIZE>> for SmallMap<K, V, LHS_SIZE>
 impl<K: Eq + Ord, V: Eq, const ARRAY_SIZE: usize> Eq for SmallMap<K, V, ARRAY_SIZE> {}
 
 impl<K: fmt::Debug, V: fmt::Debug, const ARRAY_SIZE: usize> fmt::Debug
-for SmallMap<K, V, ARRAY_SIZE>
+    for SmallMap<K, V, ARRAY_SIZE>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()

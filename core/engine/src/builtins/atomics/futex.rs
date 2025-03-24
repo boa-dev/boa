@@ -156,9 +156,7 @@ mod sync {
 
     use small_map::{Entry, SmallMap};
 
-    use crate::{
-        JsNativeError, JsResult,
-    };
+    use crate::{JsNativeError, JsResult};
 
     /// A waiter of a memory address.
     #[derive(Debug, Default)]
