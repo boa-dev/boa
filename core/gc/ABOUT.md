@@ -22,7 +22,7 @@ Try out the most recent release with Boa's live demo
 - [**`boa_runtime`**][runtime] - Boa's WebAPI features.
 - [**`boa_string`**][string] - Boa's ECMAScript string implementation.
 - [**`tag_ptr`**][tag_ptr] - Utility library that enables a pointer to be associated with a tag of type `usize`.
-- [**`small_map`**][small_map] - Utility library that add SmallMap data structure.
+- [**`small_map`**][small_map] - Utility library that adds the `SmallMap` data structure.
 
 [boa-conformance]: https://boajs.dev/conformance
 [boa-web]: https://boajs.dev/
