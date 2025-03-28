@@ -114,6 +114,7 @@ use boa_gc::{custom_trace, Finalize, Trace};
 use boa_string::JsString;
 use core::fmt;
 use static_assertions::const_assert;
+use std::rc::Rc;
 
 // We cannot NaN-box pointers larger than 64 bits.
 const_assert!(size_of::<usize>() <= size_of::<u64>());
@@ -128,6 +129,7 @@ mod bits {
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
     use boa_string::JsString;
     use std::ptr::NonNull;
+    use std::rc::Rc;
 
     /// Undefined value in `u64`.
     pub(super) const UNDEFINED: u64 = 0x7FF4_0000_0000_0000;
@@ -296,8 +298,8 @@ mod bits {
     /// by calling `[Self::drop_pointer]`.
     #[inline(always)]
     #[allow(clippy::identity_op)]
-    pub(super) unsafe fn tag_bigint(value: Box<JsBigInt>) -> u64 {
-        let value = Box::into_raw(value) as u64;
+    pub(super) unsafe fn tag_bigint(value: Rc<JsBigInt>) -> u64 {
+        let value = Rc::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
@@ -321,8 +323,8 @@ mod bits {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline(always)]
-    pub(super) unsafe fn tag_object(value: Box<JsObject>) -> u64 {
-        let value = Box::into_raw(value) as u64;
+    pub(super) unsafe fn tag_object(value: Rc<JsObject>) -> u64 {
+        let value = Rc::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
@@ -346,8 +348,8 @@ mod bits {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline(always)]
-    pub(super) unsafe fn tag_symbol(value: Box<JsSymbol>) -> u64 {
-        let value = Box::into_raw(value) as u64;
+    pub(super) unsafe fn tag_symbol(value: Rc<JsSymbol>) -> u64 {
+        let value = Rc::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
@@ -371,8 +373,8 @@ mod bits {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline(always)]
-    pub(super) unsafe fn tag_string(value: Box<JsString>) -> u64 {
-        let value = Box::into_raw(value) as u64;
+    pub(super) unsafe fn tag_string(value: Rc<JsString>) -> u64 {
+        let value = Rc::into_raw(value) as u64;
         let value_masked: u64 = value & POINTER_MASK;
 
         // Assert alignment and location of the pointer.
@@ -455,17 +457,17 @@ unsafe impl Trace for NanBoxedValue {
 impl Clone for NanBoxedValue {
     #[inline(always)]
     fn clone(&self) -> Self {
-        if let Some(o) = self.as_object() {
-            Self::object(o.clone())
-        } else if let Some(b) = self.as_bigint() {
-            Self::bigint(b.clone())
-        } else if let Some(s) = self.as_symbol() {
-            Self::symbol(s.clone())
-        } else if let Some(s) = self.as_string() {
-            Self::string(s.clone())
-        } else {
-            Self(self.0)
+        let maybe_ptr = self.0 & bits::POINTER_MASK;
+        if self.is_object() {
+            unsafe { Rc::increment_strong_count(maybe_ptr as *const JsObject) };
+        } else if self.is_bigint() {
+            unsafe { Rc::increment_strong_count(maybe_ptr as *const JsBigInt) };
+        } else if self.is_symbol() {
+            unsafe { Rc::increment_strong_count(maybe_ptr as *const JsSymbol) };
+        } else if self.is_string() {
+            unsafe { Rc::increment_strong_count(maybe_ptr as *const JsString) };
         }
+        Self(self.0)
     }
 }
 
@@ -518,28 +520,28 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn bigint(value: JsBigInt) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_bigint(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_bigint(Rc::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsObject]`.
     #[must_use]
     #[inline(always)]
     pub(crate) fn object(value: JsObject) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_object(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_object(Rc::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsSymbol]`.
     #[must_use]
     #[inline(always)]
     pub(crate) fn symbol(value: JsSymbol) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_symbol(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_symbol(Rc::new(value)) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsString]`.
     #[must_use]
     #[inline(always)]
     pub(crate) fn string(value: JsString) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_string(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_string(Rc::new(value)) })
     }
 
     /// Returns true if a value is undefined.
@@ -725,14 +727,14 @@ impl Drop for NanBoxedValue {
 
         // Drop the pointer if it is a pointer.
         if self.is_pointer() {
-            if self.is_string() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsString) });
-            } else if self.is_object() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsObject) });
+            if self.is_object() {
+                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsObject) };
             } else if self.is_bigint() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsBigInt) });
+                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsBigInt) };
             } else if self.is_symbol() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsSymbol) });
+                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsSymbol) };
+            } else if self.is_string() {
+                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsString) };
             }
         }
     }
