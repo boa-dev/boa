@@ -1,10 +1,10 @@
-use std::unreachable;
-
+use super::VaryingOperand;
 use crate::{
     module::ModuleKind,
     vm::{opcode::Operation, ActiveRunnable, CompletionType, Registers},
     Context, JsObject, JsResult, JsValue,
 };
+use std::unreachable;
 
 /// `NewTarget` implements the Opcode Operation for `Opcode::NewTarget`
 ///
@@ -15,8 +15,8 @@ pub(crate) struct NewTarget;
 
 impl NewTarget {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        dst: u32,
+    pub(super) fn operation(
+        dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -31,7 +31,7 @@ impl NewTarget {
         } else {
             JsValue::undefined()
         };
-        registers.set(dst, new_target);
+        registers.set(dst.into(), new_target);
         Ok(CompletionType::Normal)
     }
 }
@@ -40,21 +40,6 @@ impl Operation for NewTarget {
     const NAME: &'static str = "NewTarget";
     const INSTRUCTION: &'static str = "INST - NewTarget";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }
 
 /// `ImportMeta` implements the Opcode Operation for `Opcode::ImportMeta`
@@ -66,8 +51,8 @@ pub(crate) struct ImportMeta;
 
 impl ImportMeta {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        dst: u32,
+    pub(super) fn operation(
+        dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -113,7 +98,7 @@ impl ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        registers.set(dst, import_meta.into());
+        registers.set(dst.into(), import_meta.into());
 
         Ok(CompletionType::Normal)
     }
@@ -123,19 +108,4 @@ impl Operation for ImportMeta {
     const NAME: &'static str = "ImportMeta";
     const INSTRUCTION: &'static str = "INST - ImportMeta";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }

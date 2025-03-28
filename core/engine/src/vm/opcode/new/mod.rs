@@ -1,3 +1,4 @@
+use super::VaryingOperand;
 use crate::{
     error::JsNativeError,
     vm::{opcode::Operation, CompletionType, Registers},
@@ -12,11 +13,12 @@ use crate::{
 pub(crate) struct New;
 
 impl New {
-    fn operation(
+    pub(super) fn operation(
+        argument_count: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-        argument_count: usize,
     ) -> JsResult<CompletionType> {
+        let argument_count = usize::from(argument_count);
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
@@ -38,21 +40,6 @@ impl Operation for New {
     const NAME: &'static str = "New";
     const INSTRUCTION: &'static str = "INST - New";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u8>() as usize;
-        Self::operation(registers, context, argument_count)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u16>() as usize;
-        Self::operation(registers, context, argument_count)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u32>() as usize;
-        Self::operation(registers, context, argument_count)
-    }
 }
 
 /// `NewSpread` implements the Opcode Operation for `Opcode::NewSpread`
@@ -62,12 +49,12 @@ impl Operation for New {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct NewSpread;
 
-impl Operation for NewSpread {
-    const NAME: &'static str = "NewSpread";
-    const INSTRUCTION: &'static str = "INST - NewSpread";
-    const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl NewSpread {
+    pub(super) fn operation(
+        _: (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -96,4 +83,10 @@ impl Operation for NewSpread {
         }
         Ok(CompletionType::Normal)
     }
+}
+
+impl Operation for NewSpread {
+    const NAME: &'static str = "NewSpread";
+    const INSTRUCTION: &'static str = "INST - NewSpread";
+    const COST: u8 = 3;
 }

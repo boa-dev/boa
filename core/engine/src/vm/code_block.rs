@@ -14,32 +14,10 @@ use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{cell::Cell, fmt::Display, mem::size_of};
+use std::cell::Cell;
 use thin_vec::ThinVec;
 
-use super::InlineCache;
-
-/// This represents whether a value can be read from [`CodeBlock`] code.
-///
-/// # Safety
-///
-/// This trait is safe to implement as long as the type doesn't implement `Drop`.
-/// At some point, if [negative impls][negative_impls] are stabilized, we might be able to remove
-/// the unsafe bound.
-///
-/// [negative_impls]: https://doc.rust-lang.org/beta/unstable-book/language-features/negative-impls.html
-pub(crate) unsafe trait Readable {}
-
-unsafe impl Readable for u8 {}
-unsafe impl Readable for i8 {}
-unsafe impl Readable for u16 {}
-unsafe impl Readable for i16 {}
-unsafe impl Readable for u32 {}
-unsafe impl Readable for i32 {}
-unsafe impl Readable for u64 {}
-unsafe impl Readable for i64 {}
-unsafe impl Readable for f32 {}
-unsafe impl Readable for f64 {}
+use super::{opcode::ByteCode, InlineCache};
 
 bitflags! {
     /// Flags for [`CodeBlock`].
@@ -148,7 +126,7 @@ pub struct CodeBlock {
 
     /// Bytecode
     #[unsafe_ignore_trace]
-    pub(crate) bytecode: Box<[u8]>,
+    pub(crate) bytecode: ByteCode,
 
     pub(crate) constants: ThinVec<Constant>,
 
@@ -177,7 +155,7 @@ impl CodeBlock {
         let mut flags = CodeBlockFlags::empty();
         flags.set(CodeBlockFlags::STRICT, strict);
         Self {
-            bytecode: Box::default(),
+            bytecode: ByteCode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
             local_bindings_initialized: Box::default(),
@@ -338,42 +316,6 @@ impl CodeBlock {
 
 /// ---- `CodeBlock` private API ----
 impl CodeBlock {
-    /// Read type T from code.
-    ///
-    /// # Safety
-    ///
-    /// Does not check if read happens out-of-bounds.
-    pub(crate) const unsafe fn read_unchecked<T>(&self, offset: usize) -> T
-    where
-        T: Readable,
-    {
-        // Safety:
-        // The function caller must ensure that the read is in bounds.
-        //
-        // This has to be an unaligned read because we can't guarantee that
-        // the types are aligned.
-        unsafe {
-            self.bytecode
-                .as_ptr()
-                .add(offset)
-                .cast::<T>()
-                .read_unaligned()
-        }
-    }
-
-    /// Read type T from code.
-    #[track_caller]
-    pub(crate) fn read<T>(&self, offset: usize) -> T
-    where
-        T: Readable,
-    {
-        assert!(offset + size_of::<T>() - 1 < self.bytecode.len());
-
-        // Safety: We checked that it is not an out-of-bounds read,
-        // so this is safe.
-        unsafe { self.read_unchecked(offset) }
-    }
-
     // /// Get the operands after the `Opcode` pointed to by `pc` as a `String`.
     // /// Modifies the `pc` to point to the next instruction.
     // ///
@@ -1077,22 +1019,22 @@ impl CodeBlock {
 // impl Display for CodeBlock {
 //     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 //         let name = self.name();
-// 
+//
 //         writeln!(
 //             f,
 //             "{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n",
 //             format!("Compiled Output: '{}'", name.to_std_string_escaped()),
 //         )?;
-// 
+//
 //         let mut iterator = InstructionIterator::new(&self.bytecode);
-// 
+//
 //         let mut count = 0;
 //         while let Some((instruction_start_pc, varying_operand_kind, instruction)) = iterator.next()
 //         {
 //             let opcode = instruction.opcode().as_str();
 //             let operands = self.instruction_operands(&instruction);
 //             let pc = iterator.pc();
-// 
+//
 //             let handler = if let Some((i, handler)) = self.find_handler(instruction_start_pc as u32)
 //             {
 //                 let border_char = if instruction_start_pc as u32 == handler.start {
@@ -1106,22 +1048,22 @@ impl CodeBlock {
 //             } else {
 //                 "   none  ".to_string()
 //             };
-// 
+//
 //             let varying_operand_kind = match varying_operand_kind {
 //                 super::VaryingOperandKind::U8 => "",
 //                 super::VaryingOperandKind::U16 => ".U16",
 //                 super::VaryingOperandKind::U32 => ".U32",
 //             };
-// 
+//
 //             writeln!(
 //                 f,
 //                     "{instruction_start_pc:06}    {count:04}   {handler}    {opcode}{varying_operand_kind:<27}{operands}",
 //                 )?;
 //             count += 1;
 //         }
-// 
+//
 //         f.write_str("\nConstants:")?;
-// 
+//
 //         if self.constants.is_empty() {
 //             f.write_str(" <empty>\n")?;
 //         } else {
@@ -1154,7 +1096,7 @@ impl CodeBlock {
 //                 }
 //             }
 //         }
-// 
+//
 //         f.write_str("\nBindings:\n")?;
 //         if self.bindings.is_empty() {
 //             f.write_str("    <empty>\n")?;
@@ -1167,7 +1109,7 @@ impl CodeBlock {
 //                 )?;
 //             }
 //         }
-// 
+//
 //         f.write_str("\nHandlers:\n")?;
 //         if self.handlers.is_empty() {
 //             f.write_str("    <empty>\n")?;

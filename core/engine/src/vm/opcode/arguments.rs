@@ -1,10 +1,9 @@
+use super::{Operation, Registers, VaryingOperand};
 use crate::{
     builtins::function::arguments::{MappedArguments, UnmappedArguments},
     vm::CompletionType,
     Context, JsResult,
 };
-
-use super::{Operation, Registers};
 
 /// `CreateMappedArgumentsObject` implements the Opcode Operation for `Opcode::CreateMappedArgumentsObject`
 ///
@@ -15,8 +14,8 @@ pub(crate) struct CreateMappedArgumentsObject;
 
 impl CreateMappedArgumentsObject {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        value: u32,
+    pub(super) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -39,7 +38,7 @@ impl CreateMappedArgumentsObject {
             env,
             context,
         );
-        registers.set(value, arguments.into());
+        registers.set(value.into(), arguments.into());
         Ok(CompletionType::Normal)
     }
 }
@@ -48,21 +47,6 @@ impl Operation for CreateMappedArgumentsObject {
     const NAME: &'static str = "CreateMappedArgumentsObject";
     const INSTRUCTION: &'static str = "INST - CreateMappedArgumentsObject";
     const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }
 
 /// `CreateUnmappedArgumentsObject` implements the Opcode Operation for `Opcode::CreateUnmappedArgumentsObject`
@@ -74,14 +58,14 @@ pub(crate) struct CreateUnmappedArgumentsObject;
 
 impl CreateUnmappedArgumentsObject {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        dst: u32,
+    pub(super) fn operation(
+        dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
         let args = context.vm.frame().arguments(&context.vm).to_vec();
         let arguments = UnmappedArguments::new(&args, context);
-        registers.set(dst, arguments.into());
+        registers.set(dst.into(), arguments.into());
         Ok(CompletionType::Normal)
     }
 }
@@ -90,19 +74,4 @@ impl Operation for CreateUnmappedArgumentsObject {
     const NAME: &'static str = "CreateUnmappedArgumentsObject";
     const INSTRUCTION: &'static str = "INST - CreateUnmappedArgumentsObject";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }

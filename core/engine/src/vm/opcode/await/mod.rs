@@ -1,7 +1,4 @@
-use std::cell::Cell;
-
-use boa_gc::Gc;
-
+use super::VaryingOperand;
 use crate::{
     builtins::{
         async_generator::AsyncGenerator, generator::GeneratorContext, promise::PromiseCapability,
@@ -13,6 +10,8 @@ use crate::{
     vm::{opcode::Operation, CompletionType, GeneratorResumeKind, Registers},
     Context, JsArgs, JsResult, JsValue,
 };
+use boa_gc::Gc;
+use std::cell::Cell;
 
 /// `Await` implements the Opcode Operation for `Opcode::Await`
 ///
@@ -22,12 +21,12 @@ use crate::{
 pub(crate) struct Await;
 
 impl Await {
-    fn operation(
-        value: u32,
+    pub(super) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
+        let value = registers.get(value.into());
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
         let promise = Promise::promise_resolve(
@@ -146,21 +145,6 @@ impl Operation for Await {
     const NAME: &'static str = "Await";
     const INSTRUCTION: &'static str = "INST - Await";
     const COST: u8 = 5;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }
 
 /// `CreatePromiseCapability` implements the Opcode Operation for `Opcode::CreatePromiseCapability`
@@ -170,12 +154,12 @@ impl Operation for Await {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CreatePromiseCapability;
 
-impl Operation for CreatePromiseCapability {
-    const NAME: &'static str = "CreatePromiseCapability";
-    const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
-    const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl CreatePromiseCapability {
+    pub(super) fn operation(
+        _: (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         if context.vm.frame().promise_capability(registers).is_some() {
             return Ok(CompletionType::Normal);
         }
@@ -194,6 +178,12 @@ impl Operation for CreatePromiseCapability {
     }
 }
 
+impl Operation for CreatePromiseCapability {
+    const NAME: &'static str = "CreatePromiseCapability";
+    const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
+    const COST: u8 = 8;
+}
+
 /// `CompletePromiseCapability` implements the Opcode Operation for `Opcode::CompletePromiseCapability`
 ///
 /// Operation:
@@ -201,12 +191,12 @@ impl Operation for CreatePromiseCapability {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CompletePromiseCapability;
 
-impl Operation for CompletePromiseCapability {
-    const NAME: &'static str = "CompletePromiseCapability";
-    const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
-    const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl CompletePromiseCapability {
+    pub(super) fn operation(
+        _: (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let Some(promise_capability) = context.vm.frame().promise_capability(registers) else {
@@ -236,4 +226,10 @@ impl Operation for CompletePromiseCapability {
 
         Ok(CompletionType::Normal)
     }
+}
+
+impl Operation for CompletePromiseCapability {
+    const NAME: &'static str = "CompletePromiseCapability";
+    const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
+    const COST: u8 = 8;
 }

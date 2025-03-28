@@ -1,5 +1,8 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        CompletionType, Registers,
+    },
     Context, JsError, JsNativeError, JsResult,
 };
 
@@ -12,12 +15,12 @@ pub(crate) struct Throw;
 
 impl Throw {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        value: u32,
+    pub(crate) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
+        let value = registers.get(value.into());
         let error = JsError::from_opaque(value.clone());
         context.vm.pending_exception = Some(error);
 
@@ -35,21 +38,6 @@ impl Operation for Throw {
     const NAME: &'static str = "Throw";
     const INSTRUCTION: &'static str = "INST - Throw";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }
 
 /// `ReThrow` implements the Opcode Operation for `Opcode::ReThrow`
@@ -59,12 +47,12 @@ impl Operation for Throw {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ReThrow;
 
-impl Operation for ReThrow {
-    const NAME: &'static str = "ReThrow";
-    const INSTRUCTION: &'static str = "INST - ReThrow";
-    const COST: u8 = 2;
-
-    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl ReThrow {
+    pub(crate) fn operation(
+        _: (),
+        _: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc.saturating_sub(1);
         if context.vm.handle_exception_at(pc) {
@@ -84,6 +72,12 @@ impl Operation for ReThrow {
     }
 }
 
+impl Operation for ReThrow {
+    const NAME: &'static str = "ReThrow";
+    const INSTRUCTION: &'static str = "INST - ReThrow";
+    const COST: u8 = 2;
+}
+
 /// `Exception` implements the Opcode Operation for `Opcode::Exception`
 ///
 /// Operation:
@@ -92,14 +86,14 @@ impl Operation for ReThrow {
 pub(crate) struct Exception;
 
 impl Exception {
-    fn operation(
-        dst: u32,
+    pub(crate) fn operation(
+        dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
-            registers.set(dst, error);
+            registers.set(dst.into(), error);
             return Ok(CompletionType::Normal);
         }
 
@@ -108,7 +102,7 @@ impl Exception {
         // This is done to run the finally code.
         //
         // This should be unreachable for regular functions.
-        ReThrow::execute(registers, context)
+        ReThrow::operation((), registers, context)
     }
 }
 
@@ -116,21 +110,6 @@ impl Operation for Exception {
     const NAME: &'static str = "Exception";
     const INSTRUCTION: &'static str = "INST - Exception";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }
 
 /// `MaybeException` implements the Opcode Operation for `Opcode::MaybeException`
@@ -142,18 +121,17 @@ pub(crate) struct MaybeException;
 
 impl MaybeException {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        has_exception: u32,
-        exception: u32,
+    pub(crate) fn operation(
+        (has_exception, exception): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
-            registers.set(exception, error);
-            registers.set(has_exception, true.into());
+            registers.set(exception.into(), error);
+            registers.set(has_exception.into(), true.into());
         } else {
-            registers.set(has_exception, false.into());
+            registers.set(has_exception.into(), false.into());
         }
         Ok(CompletionType::Normal)
     }
@@ -163,24 +141,6 @@ impl Operation for MaybeException {
     const NAME: &'static str = "MaybeException";
     const INSTRUCTION: &'static str = "INST - MaybeException";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let has_exception = context.vm.read::<u8>().into();
-        let exception = context.vm.read::<u8>().into();
-        Self::operation(has_exception, exception, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let has_exception = context.vm.read::<u16>().into();
-        let exception = context.vm.read::<u16>().into();
-        Self::operation(has_exception, exception, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let has_exception = context.vm.read::<u32>();
-        let exception = context.vm.read::<u32>();
-        Self::operation(has_exception, exception, registers, context)
-    }
 }
 
 /// `ThrowNewTypeError` implements the Opcode Operation for `Opcode::ThrowNewTypeError`
@@ -191,8 +151,16 @@ impl Operation for MaybeException {
 pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let msg = context.vm.frame().code_block().constant_string(index);
+    pub(crate) fn operation(
+        index: VaryingOperand,
+        _: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let msg = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -204,21 +172,6 @@ impl Operation for ThrowNewTypeError {
     const NAME: &'static str = "ThrowNewTypeError";
     const INSTRUCTION: &'static str = "INST - ThrowNewTypeError";
     const COST: u8 = 2;
-
-    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_u16(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_u32(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `ThrowNewSyntaxError` implements the Opcode Operation for `Opcode::ThrowNewSyntaxError`
@@ -229,8 +182,16 @@ impl Operation for ThrowNewTypeError {
 pub(crate) struct ThrowNewSyntaxError;
 
 impl ThrowNewSyntaxError {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let msg = context.vm.frame().code_block().constant_string(index);
+    pub(crate) fn operation(
+        index: VaryingOperand,
+        _: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let msg = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
@@ -242,19 +203,4 @@ impl Operation for ThrowNewSyntaxError {
     const NAME: &'static str = "ThrowNewSyntaxError";
     const INSTRUCTION: &'static str = "INST - ThrowNewSyntaxError";
     const COST: u8 = 2;
-
-    fn execute(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_u16(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_u32(_: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }

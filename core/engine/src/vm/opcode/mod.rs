@@ -1,10 +1,12 @@
-use std::iter::FusedIterator;
-
 /// The opcodes of the vm.
 use crate::{
     vm::{CompletionType, Registers},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
+
+mod args;
+
+use args::{ArgumentsFormat, DecodeAndDispatch};
 
 // Operation modules
 mod arguments;
@@ -23,7 +25,6 @@ mod global;
 mod iteration;
 mod locals;
 mod meta;
-mod modifier;
 mod new;
 mod nop;
 mod pop;
@@ -68,8 +69,6 @@ pub(crate) use locals::*;
 #[doc(inline)]
 pub(crate) use meta::*;
 #[doc(inline)]
-pub(crate) use modifier::*;
-#[doc(inline)]
 pub(crate) use new::*;
 #[doc(inline)]
 pub(crate) use nop::*;
@@ -94,37 +93,231 @@ pub(crate) use unary_ops::*;
 #[doc(inline)]
 pub(crate) use value::*;
 
-use super::{code_block::Readable, GeneratorResumeKind};
-use thin_vec::ThinVec;
-
-/// Represents a varying operand kind.
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(u8)]
-pub(crate) enum VaryingOperandKind {
-    #[default]
-    U8,
-    U16,
-    U32,
+/// Specific opcodes for bindings.
+///
+/// This separate enum exists to make matching exhaustive where needed.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum BindingOpcode {
+    Var,
+    InitVar,
+    InitLexical,
+    SetName,
 }
 
-/// Generate [`Opcode`]s and [`Instruction`]s enums.
+/// The `Operation` trait implements the execution code along with the
+/// identifying Name and Instruction value for an Boa Opcode.
+///
+/// This trait should be implemented for a struct that corresponds with
+/// any arm of the `OpCode` enum.
+pub(crate) trait Operation {
+    const NAME: &'static str;
+    const INSTRUCTION: &'static str;
+    const COST: u8;
+
+    // /// Execute opcode with [`VaryingOperandKind::U8`] sized [`VaryingOperand`]s.
+    // fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType>;
+    // /// Execute opcode with [`VaryingOperandKind::U16`] sized [`VaryingOperand`]s.
+    // ///
+    // /// By default if not implemented will call [`Reserved::execute_u16()`] which panics.
+    // fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+    //     Reserved::execute_u16(registers, context)
+    // }
+    // /// Execute opcode with [`VaryingOperandKind::U32`] sized [`VaryingOperand`]s.
+    // ///
+    // /// By default if not implemented will call [`Reserved::execute_u32()`] which panics.
+    // fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+    //     Reserved::execute_u32(registers, context)
+    // }
+    // /// Spends the cost of this operation into `budget` and runs `execute`.
+    // fn spend_budget_and_execute(
+    //     registers: &mut Registers,
+    //     context: &mut Context,
+    //     budget: &mut u32,
+    // ) -> JsResult<CompletionType> {
+    //     *budget = budget.saturating_sub(u32::from(Self::COST));
+    //     Self::execute(registers, context)
+    // }
+}
+
+#[derive(Debug)]
+struct Label {
+    address: u32,
+    opcode: Opcode,
+}
+
+#[derive(Debug)]
+pub(crate) struct ByteCodeEmitter {
+    bytecode: Vec<u64>,
+    extended: Vec<u32>,
+}
+
+impl ByteCodeEmitter {
+    pub(crate) fn new() -> Self {
+        Self {
+            bytecode: Vec::new(),
+            extended: Vec::new(),
+        }
+    }
+
+    pub(crate) fn into_bytecode(self) -> ByteCode {
+        ByteCode {
+            bytecode: self.bytecode.into_boxed_slice(),
+            extended: self.extended.into_boxed_slice(),
+        }
+    }
+
+    pub(crate) fn next_opcode_location(&self) -> u32 {
+        self.bytecode.len() as u32
+    }
+
+    // fn patch(&mut self, label: Label)
+
+    pub(crate) fn patch_jump(&mut self, label: u32, patch: u32) {
+        let address = label as usize;
+        let instruction = self.bytecode[address];
+        let opcode = Opcode::decode(instruction);
+        let format = ArgumentsFormat::decode(instruction);
+        assert_eq!(format, ArgumentsFormat::OneArgU32);
+        let new_instruction = encode_instruction(opcode, patch, &mut self.extended);
+        self.bytecode[address] = new_instruction;
+    }
+
+    pub(crate) fn patch_jump_one_address(&mut self, label: u32, patch: u32) {
+        let address = label as usize;
+        let instruction = self.bytecode[address];
+        let format = ArgumentsFormat::decode(instruction);
+        assert!([
+            ArgumentsFormat::TwoArgU32,
+            ArgumentsFormat::ThreeArgU32,
+            ArgumentsFormat::VariableArgsU32
+        ]
+        .contains(&format));
+        let index = (instruction >> 16) as u32 as usize;
+        self.extended[index] = patch;
+    }
+
+    pub(crate) fn patch_jump_two_addresses(&mut self, label: u32, patch: (u32, u32)) {
+        let address = label as usize;
+        let instruction = self.bytecode[address];
+        let format = ArgumentsFormat::decode(instruction);
+        assert_eq!(ArgumentsFormat::VariableArgsU32, format);
+        let index = (instruction >> 16) as u32 as usize;
+        self.extended[index] = patch.0;
+        self.extended[index + 1] = patch.1;
+    }
+
+    pub(crate) fn patch_jump_table(&mut self, label: u32, patch: (u32, Vec<u32>)) {
+        let address = label as usize;
+        let instruction = self.bytecode[address];
+        let format = ArgumentsFormat::decode(instruction);
+        assert_eq!(ArgumentsFormat::VariableArgsU32, format);
+        let index = (instruction >> 16) as u32 as usize;
+        self.extended[index] = patch.0;
+        for (i, value) in patch.1.iter().enumerate() {
+            self.extended[index + i + 1] = *value;
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub(crate) struct ByteCode {
+    bytecode: Box<[u64]>,
+    extended: Box<[u32]>,
+}
+
+enum VaryingOperandValue {
+    U8(u8),
+    U16(u16),
+    U32(u32),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct VaryingOperand {
+    value: u32,
+}
+
+impl VaryingOperand {
+    pub(crate) fn new(value: u32) -> Self {
+        Self { value }
+    }
+}
+
+impl VaryingOperand {
+    fn value(&self) -> VaryingOperandValue {
+        if let Ok(value) = u8::try_from(self.value) {
+            VaryingOperandValue::U8(value)
+        } else if let Ok(value) = u16::try_from(self.value) {
+            VaryingOperandValue::U16(value)
+        } else {
+            VaryingOperandValue::U32(self.value)
+        }
+    }
+}
+
+impl From<VaryingOperand> for u32 {
+    fn from(value: VaryingOperand) -> Self {
+        value.value
+    }
+}
+
+impl From<VaryingOperand> for usize {
+    fn from(value: VaryingOperand) -> Self {
+        value.value as usize
+    }
+}
+
+impl From<bool> for VaryingOperand {
+    fn from(value: bool) -> Self {
+        Self::new(value.into())
+    }
+}
+
+impl From<u8> for VaryingOperand {
+    fn from(value: u8) -> Self {
+        Self::new(value.into())
+    }
+}
+
+impl From<u16> for VaryingOperand {
+    fn from(value: u16) -> Self {
+        Self::new(value.into())
+    }
+}
+
+impl From<u32> for VaryingOperand {
+    fn from(value: u32) -> Self {
+        Self::new(value)
+    }
+}
+
+impl Opcode {
+    fn encode(self) -> u64 {
+        (self as u64) << 56
+    }
+
+    fn decode(instruction: u64) -> Self {
+        Self::from((instruction >> 56) as u8)
+    }
+}
+
+fn encode_instruction<A: DecodeAndDispatch>(
+    opcode: Opcode,
+    format: A,
+    extended: &mut Vec<u32>,
+) -> u64 {
+    opcode.encode() | format.encode(extended)
+}
+
 macro_rules! generate_opcodes {
-    ( name $name:ident ) => { $name };
-    ( name $name:ident => $mapping:ident ) => { $mapping };
-
-    // If if-block is empty use else-block, use if-block otherwise.
-    { if { $($if:tt)+ } else { $($else:tt)* } } => { $($if)+ };
-    { if { } else { $($else:tt)* } } => { $($else)* };
-
     (
         $(
-            $(#[$inner:ident $($args:tt)*])*
-            $Variant:ident $({
+            $(#[$comment:ident $($args:tt)*])*
+            $Variant:ident $($EmitFn:ident $({
                 $(
                     $(#[$fieldinner:ident $($fieldargs:tt)*])*
                     $FieldName:ident : $FieldType:ty
                 ),*
-            })? $(=> $mapping:ident)?
+            })? )? $(=> $mapping:ident)?
         ),*
         $(,)?
     ) => {
@@ -133,7 +326,7 @@ macro_rules! generate_opcodes {
         #[repr(u8)]
         pub(crate) enum Opcode {
             $(
-                $(#[$inner $($args)*])*
+                $(#[$comment $($args)*])*
                 $Variant
             ),*
         }
@@ -151,108 +344,52 @@ macro_rules! generate_opcodes {
             }
         }
 
-        impl Opcode {
-            const MAX: usize = 2usize.pow(8);
+        impl ByteCodeEmitter {
+            $(
+                $(
+                    pub(crate) fn $EmitFn(&mut self $( $(, $FieldName: $FieldType)* )? ) {
+                        self.bytecode.push(encode_instruction(
+                            Opcode::$Variant,
+                            ($($($FieldName),*)?),
+                            &mut self.extended,
+                        ))
+                    }
+                )?
+            )*
+        }
 
-            // TODO: see if this can be exposed on all features.
-            #[allow(unused)]
-            const NAMES: [&'static str; Self::MAX * 3] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*
-            ];
-
-            /// Name of this opcode.
-            #[must_use]
-            // TODO: see if this can be exposed on all features.
-            #[allow(unused)]
-            pub(crate) const fn as_str(self) -> &'static str {
-                Self::NAMES[self as usize]
-            }
-
-            const INSTRUCTIONS: [&'static str; Self::MAX * 3] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*
-            ];
-
-            /// Name of the profiler event for this opcode.
-            #[must_use]
-            pub(crate) const fn as_instruction_str(self) -> &'static str {
-                Self::INSTRUCTIONS[self as usize]
-            }
-
-            const SPEND_FNS: [fn(&mut Registers, &mut Context, &mut u32) -> JsResult<CompletionType>; Self::MAX] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute),*,
-            ];
-
-            /// Spends the cost of this opcode into the provided budget and executes it.
-            pub(super) fn spend_budget_and_execute(
-                self,
-                registers: &mut Registers,
-                context: &mut Context,
-                budget: &mut u32
-            ) -> JsResult<CompletionType> {
-                Self::SPEND_FNS[self as usize](registers, context, budget)
-            }
-
-            const COSTS: [u8; Self::MAX] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::COST),*,
-            ];
-
-            /// Return the cost of this opcode.
-            pub(super) const fn cost(self) -> u8 {
-                Self::COSTS[self as usize]
-            }
-
-            const EXECUTE_FNS: [fn(&mut Registers, &mut Context) -> JsResult<CompletionType>; Self::MAX * 3] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_u16),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_u32),*
-            ];
-
-            pub(super) fn execute(self, registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                Self::EXECUTE_FNS[self as usize](registers, context)
+        impl Context {
+            pub(crate) fn execute_bytecode_instruction(&mut self, registers: &mut Registers) -> JsResult<CompletionType> {
+                let frame = self.vm.frame_mut();
+                let pc = frame.pc;
+                frame.pc += 1;
+                let instruction = self.vm.frame.code_block.bytecode.bytecode[pc as usize];
+                let opcode = Opcode::decode(instruction);
+                let format = ArgumentsFormat::decode(instruction);
+                match opcode {
+                    $(
+                        Opcode::$Variant => {
+                            let args = DecodeAndDispatch::decode_and_dispatch(instruction, format, &self.vm.frame.code_block.bytecode.extended);
+                            $Variant::operation(args, registers, self)
+                        },
+                    )*
+                }
             }
         }
-    };
-}
 
-/// The `Operation` trait implements the execution code along with the
-/// identifying Name and Instruction value for an Boa Opcode.
-///
-/// This trait should be implemented for a struct that corresponds with
-/// any arm of the `OpCode` enum.
-pub(crate) trait Operation {
-    const NAME: &'static str;
-    const INSTRUCTION: &'static str;
-    const COST: u8;
-
-    /// Execute opcode with [`VaryingOperandKind::U8`] sized [`VaryingOperand`]s.
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType>;
-
-    /// Execute opcode with [`VaryingOperandKind::U16`] sized [`VaryingOperand`]s.
-    ///
-    /// By default if not implemented will call [`Reserved::execute_u16()`] which panics.
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        Reserved::execute_u16(registers, context)
-    }
-
-    /// Execute opcode with [`VaryingOperandKind::U32`] sized [`VaryingOperand`]s.
-    ///
-    /// By default if not implemented will call [`Reserved::execute_u32()`] which panics.
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        Reserved::execute_u32(registers, context)
-    }
-
-    /// Spends the cost of this operation into `budget` and runs `execute`.
-    fn spend_budget_and_execute(
-        registers: &mut Registers,
-        context: &mut Context,
-        budget: &mut u32,
-    ) -> JsResult<CompletionType> {
-        *budget = budget.saturating_sub(u32::from(Self::COST));
-        Self::execute(registers, context)
+        // TODO: TEMPORARY
+        $(
+            $(
+                struct $Variant {}
+                impl $Variant {
+                    #[allow(unused_parens)]
+                    #[allow(unused_variables)]
+                    fn operation(args: (), registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+                        $mapping::operation(args, registers, context)
+                    }
+                }
+            )?
+        )*
     }
 }
 
@@ -260,19 +397,19 @@ generate_opcodes! {
     /// Pop the top value from the stack.
     ///
     /// - Stack: value **=>**
-    Pop,
+    Pop emit_pop,
 
     /// Push integer `0` on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushZero { dst: VaryingOperand },
+    PushZero emit_push_zero { dst: VaryingOperand },
 
     /// Push integer `1` on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushOne { dst: VaryingOperand },
+    PushOne emit_push_one { dst: VaryingOperand },
 
     /// Push `i8` value on the stack.
     ///
@@ -280,7 +417,7 @@ generate_opcodes! {
     ///   - value: `i8`
     /// - Registers:
     ///   - Output: dst
-    PushInt8 { dst: VaryingOperand, value: i8 },
+    PushInt8 emit_push_int8 { dst: VaryingOperand, value: i8 },
 
     /// Push i16 value on the stack.
     ///
@@ -288,7 +425,7 @@ generate_opcodes! {
     ///   - value: `i16`
     /// - Registers:
     ///   - Output: dst
-    PushInt16 { dst: VaryingOperand, value: i16 },
+    PushInt16 emit_push_int16 { dst: VaryingOperand, value: i16 },
 
     /// Push i32 value on the stack.
     ///
@@ -296,7 +433,7 @@ generate_opcodes! {
     ///   - value: `i32`
     /// - Registers:
     ///   - Output: dst
-    PushInt32 { dst: VaryingOperand, value: i32 },
+    PushInt32 emit_push_int32 { dst: VaryingOperand, value: i32 },
 
     /// Push `f32` value on the stack.
     ///
@@ -304,7 +441,7 @@ generate_opcodes! {
     ///   - value: `f32`
     /// - Registers:
     ///   - Output: dst
-    PushFloat { dst: VaryingOperand, value: f32 },
+    PushFloat emit_push_float { dst: VaryingOperand, value: f32 },
 
     /// Push `f64` value on the stack.
     ///
@@ -312,49 +449,49 @@ generate_opcodes! {
     ///   - value: `f64`
     /// - Registers:
     ///   - Output: dst
-    PushDouble { dst: VaryingOperand, value: f64 },
+    PushDouble emit_push_double { dst: VaryingOperand, value: f64 },
 
     /// Push `NaN` integer on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNaN { dst: VaryingOperand },
+    PushNaN emit_push_nan { dst: VaryingOperand },
 
     /// Push `Infinity` value on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushPositiveInfinity { dst: VaryingOperand },
+    PushPositiveInfinity emit_push_positive_infinity { dst: VaryingOperand },
 
     /// Push `-Infinity` value on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNegativeInfinity { dst: VaryingOperand },
+    PushNegativeInfinity emit_push_negative_infinity { dst: VaryingOperand },
 
     /// Push `null` value on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNull { dst: VaryingOperand },
+    PushNull emit_push_null { dst: VaryingOperand },
 
     /// Push `true` value on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushTrue { dst: VaryingOperand },
+    PushTrue emit_push_true { dst: VaryingOperand },
 
     /// Push `false` value on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushFalse { dst: VaryingOperand },
+    PushFalse emit_push_false { dst: VaryingOperand },
 
     /// Push `undefined` value on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushUndefined { dst: VaryingOperand },
+    PushUndefined emit_push_undefined { dst: VaryingOperand },
 
     /// Push literal value on the stack.
     ///
@@ -365,7 +502,7 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    PushLiteral { dst: VaryingOperand, index: VaryingOperand },
+    PushLiteral emit_push_literal { dst: VaryingOperand, index: VaryingOperand },
 
     /// Push regexp value on the stack.
     ///
@@ -374,13 +511,13 @@ generate_opcodes! {
     ///   - flags: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    PushRegExp { dst: VaryingOperand, pattern_index: VaryingOperand, flags_index: VaryingOperand },
+    PushRegExp emit_push_regexp { dst: VaryingOperand, pattern_index: VaryingOperand, flags_index: VaryingOperand },
 
     /// Push empty object `{}` value on the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    PushEmptyObject { dst: VaryingOperand },
+    PushEmptyObject emit_push_empty_object { dst: VaryingOperand },
 
     /// Get the prototype of a superclass and push it on the stack.
     ///
@@ -389,7 +526,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: class, superclass
     ///   - Output: dst
-    PushClassPrototype {
+    PushClassPrototype emit_push_class_prototype {
         dst: VaryingOperand,
         class: VaryingOperand,
         superclass: VaryingOperand
@@ -400,7 +537,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: class, prototype
     ///   - Output: dst
-    SetClassPrototype {
+    SetClassPrototype emit_set_class_prototype {
         dst: VaryingOperand,
         prototype: VaryingOperand,
         class: VaryingOperand
@@ -410,7 +547,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: function, home
-    SetHomeObject {
+    SetHomeObject emit_set_home_object {
         function: VaryingOperand,
         home: VaryingOperand
     },
@@ -419,7 +556,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, prototype
-    SetPrototype {
+    SetPrototype emit_set_prototype {
         object: VaryingOperand,
         prototype: VaryingOperand
     },
@@ -428,123 +565,123 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Output: dst
-    PushNewArray { dst: VaryingOperand },
+    PushNewArray emit_push_new_array { dst: VaryingOperand },
 
     /// Push a value to an array.
     ///
     /// - Registers:
     ///   - Input: array, value
-    PushValueToArray { value: VaryingOperand, array: VaryingOperand },
+    PushValueToArray emit_push_value_to_array { value: VaryingOperand, array: VaryingOperand },
 
     /// Push an empty element/hole to an array.
     ///
     /// - Registers:
     ///   - Input: array
-    PushElisionToArray { array: VaryingOperand },
+    PushElisionToArray emit_push_elision_to_array { array: VaryingOperand },
 
     /// Push all iterator values to an array.
     ///
     /// - Registers:
     ///   - Input: array
-    PushIteratorToArray { array: VaryingOperand },
+    PushIteratorToArray emit_push_iterator_to_array { array: VaryingOperand },
 
     /// Binary `+` operator.
     ///
     /// - Registers
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    Add { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Add emit_add { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `-` operator.
     ///
     /// - Registers
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    Sub { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Sub emit_sub { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `/` operator.
     ///
     /// - Registers
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    Div { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Div emit_div { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `*` operator.
     ///
     /// - Registers
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    Mul { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Mul emit_mul { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `%` operator.
     ///
     /// - Registers
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    Mod { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Mod emit_mod { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `**` operator.
     ///
     /// - Registers
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    Pow { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Pow emit_pow { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>` operator.
     ///
     /// - Registers
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    ShiftRight { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    ShiftRight emit_shift_right { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<<` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    ShiftLeft { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    ShiftLeft emit_shift_left { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>>` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    UnsignedShiftRight { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    UnsignedShiftRight emit_unsigned_shift_right { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `|` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    BitOr { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitOr emit_bit_or { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `&` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    BitAnd { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitAnd emit_bit_and { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `^` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    BitXor { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitXor emit_bit_xor { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Unary bitwise `~` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    BitNot { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    BitNot emit_bit_not { value: VaryingOperand },
 
     /// Binary `in` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    In { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    In emit_in { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `in` operator for private names.
     ///
@@ -552,70 +689,70 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: rhs
     ///   - Output: dst
-    InPrivate { dst: VaryingOperand, index: VaryingOperand, rhs: VaryingOperand },
+    InPrivate emit_in_private { dst: VaryingOperand, index: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `==` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    Eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    Eq emit_eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `===` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    StrictEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    StrictEq emit_strict_eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!=` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    NotEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    NotEq emit_not_eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!==` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    StrictNotEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    StrictNotEq emit_strict_not_eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    GreaterThan { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    GreaterThan emit_greater_than { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>=` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    GreaterThanOrEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    GreaterThanOrEq emit_greater_than_or_eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    LessThan { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    LessThan emit_less_than { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<=` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    LessThanOrEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    LessThanOrEq emit_less_than_or_eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `instanceof` operator.
     ///
     /// - Registers:
     ///   - Input: lhs, rhs
     ///   - Output: dst
-    InstanceOf { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
+    InstanceOf emit_instance_of { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary logical `&&` operator.
     ///
@@ -626,7 +763,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    LogicalAnd { address: u32, value: VaryingOperand },
+    LogicalAnd emit_logical_and { address: u32, value: VaryingOperand },
 
     /// Binary logical `||` operator.
     ///
@@ -637,7 +774,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    LogicalOr { address: u32, value: VaryingOperand },
+    LogicalOr emit_logical_or { address: u32, value: VaryingOperand },
 
     /// Binary `??` operator.
     ///
@@ -649,55 +786,55 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    Coalesce { address: u32, value: VaryingOperand },
+    Coalesce emit_coalesce { address: u32, value: VaryingOperand },
 
     /// Unary `typeof` operator.
     ///
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    TypeOf { value: VaryingOperand },
+    TypeOf emit_type_of { value: VaryingOperand },
 
     /// Unary logical `!` operator.
     ///
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    LogicalNot { value: VaryingOperand },
+    LogicalNot emit_logical_not { value: VaryingOperand },
 
     /// Unary `+` operator.
     ///
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    Pos { value: VaryingOperand },
+    Pos emit_pos { value: VaryingOperand },
 
     /// Unary `-` operator.
     ///
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    Neg { value: VaryingOperand },
+    Neg emit_neg { value: VaryingOperand },
 
     /// Unary `++` operator.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: dst
-    Inc { dst: VaryingOperand, src: VaryingOperand },
+    Inc emit_inc { dst: VaryingOperand, src: VaryingOperand },
 
     /// Unary `--` operator.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: dst
-    Dec { dst: VaryingOperand, src: VaryingOperand },
+    Dec emit_dec { dst: VaryingOperand, src: VaryingOperand },
 
     /// Declare `var` type variable.
     ///
     /// - Operands:
     ///   - binding_index: `VaryingOperand`
-    DefVar { binding_index: VaryingOperand },
+    DefVar emit_def_var { binding_index: VaryingOperand },
 
     /// Declare and initialize `var` type variable.
     ///
@@ -705,7 +842,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: src
-    DefInitVar { src: VaryingOperand, binding_index: VaryingOperand },
+    DefInitVar emit_def_init_var { src: VaryingOperand, binding_index: VaryingOperand },
 
     /// Initialize a lexical binding.
     ///
@@ -713,13 +850,13 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: src
-    PutLexicalValue { src: VaryingOperand, binding_index: VaryingOperand },
+    PutLexicalValue emit_put_lexical_value { src: VaryingOperand, binding_index: VaryingOperand },
 
     /// Throws an error because the binding access is illegal.
     ///
     /// - Operands:
     ///   -index: `VaryingOperand`
-    ThrowMutateImmutable { index: VaryingOperand },
+    ThrowMutateImmutable emit_throw_mutate_immutable { index: VaryingOperand },
 
     /// Get i-th argument of the current frame.
     ///
@@ -729,7 +866,7 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetArgument { index: VaryingOperand, dst: VaryingOperand },
+    GetArgument emit_get_argument { index: VaryingOperand, dst: VaryingOperand },
 
     /// Find a binding on the environment chain and push its value.
     ///
@@ -737,7 +874,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetName { dst: VaryingOperand, binding_index: VaryingOperand },
+    GetName emit_get_name { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Find a binding in the global object and push its value.
     ///
@@ -746,13 +883,13 @@ generate_opcodes! {
     ///   - ic_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetNameGlobal { dst: VaryingOperand, binding_index: VaryingOperand, ic_index: VaryingOperand },
+    GetNameGlobal emit_get_name_global { dst: VaryingOperand, binding_index: VaryingOperand, ic_index: VaryingOperand },
 
     /// Find a binding on the environment and set the `current_binding` of the current frame.
     ///
     /// - Operands:
     ///   - binding_index: `VaryingOperand`
-    GetLocator { binding_index: VaryingOperand },
+    GetLocator emit_get_locator { binding_index: VaryingOperand },
 
     /// Find a binding on the environment chain and push its value to the stack and its
     /// `BindingLocator` to the `bindings_stack`.
@@ -761,7 +898,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetNameAndLocator { dst: VaryingOperand, binding_index: VaryingOperand },
+    GetNameAndLocator emit_get_name_and_locator { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
     ///
@@ -769,7 +906,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetNameOrUndefined { dst: VaryingOperand, binding_index: VaryingOperand },
+    GetNameOrUndefined emit_get_name_or_undefined { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Find a binding on the environment chain and assign its value.
     ///
@@ -777,13 +914,13 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: src
-    SetName { src: VaryingOperand, binding_index: VaryingOperand },
+    SetName emit_set_name { src: VaryingOperand, binding_index: VaryingOperand },
 
     /// Assigns a value to the binding pointed by the top of the `bindings_stack`.
     ///
     /// - Registers:
     ///   - Input: src
-    SetNameByLocator { src: VaryingOperand },
+    SetNameByLocator emit_set_name_by_locator { src: VaryingOperand },
 
     /// Deletes a property of the global object.
     ///
@@ -791,7 +928,7 @@ generate_opcodes! {
     ///   - binding_index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    DeleteName { dst: VaryingOperand, binding_index: VaryingOperand },
+    DeleteName emit_delete_name { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Get a property by name from an object an push it on the stack.
     ///
@@ -802,7 +939,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: receiver, value
     ///   - Output: dst
-    GetPropertyByName {
+    GetPropertyByName emit_get_property_by_name {
         dst: VaryingOperand,
         receiver: VaryingOperand,
         value: VaryingOperand,
@@ -816,7 +953,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: object, receiver, key
     ///   - Output: dst
-    GetPropertyByValue {
+    GetPropertyByValue emit_get_property_by_value {
         dst: VaryingOperand,
         key: VaryingOperand,
         receiver: VaryingOperand,
@@ -830,7 +967,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: object, receiver, key
     ///   - Output: dst
-    GetPropertyByValuePush {
+    GetPropertyByValuePush emit_get_property_by_value_push {
         dst: VaryingOperand,
         key: VaryingOperand,
         receiver: VaryingOperand,
@@ -845,7 +982,7 @@ generate_opcodes! {
     ///   - ic_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object,receiver, value
-    SetPropertyByName {
+    SetPropertyByName emit_set_property_by_name {
         value: VaryingOperand,
         receiver: VaryingOperand,
         object: VaryingOperand,
@@ -865,7 +1002,7 @@ generate_opcodes! {
     ///     - 2: "set "
     /// - Registers:
     ///   - Input: function, name
-    SetFunctionName { function: VaryingOperand, name: VaryingOperand, prefix: u8 },
+    SetFunctionName emit_set_function_name { function: VaryingOperand, name: VaryingOperand, prefix: VaryingOperand },
 
     /// Defines a own property of an object by name.
     ///
@@ -873,7 +1010,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineOwnPropertyByName { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    DefineOwnPropertyByName emit_define_own_property_by_name { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Defines a static class method by name.
     ///
@@ -881,7 +1018,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineClassStaticMethodByName {
+    DefineClassStaticMethodByName emit_define_class_static_method_by_name {
         value: VaryingOperand,
         object: VaryingOperand,
         name_index: VaryingOperand
@@ -893,7 +1030,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineClassMethodByName {
+    DefineClassMethodByName emit_define_class_method_by_name {
         value: VaryingOperand,
         object: VaryingOperand,
         name_index: VaryingOperand
@@ -905,7 +1042,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: value, key, receiver, object
-    SetPropertyByValue {
+    SetPropertyByValue emit_set_property_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         receiver: VaryingOperand,
@@ -916,7 +1053,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    DefineOwnPropertyByValue {
+    DefineOwnPropertyByValue emit_define_own_property_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -926,7 +1063,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    DefineClassStaticMethodByValue {
+    DefineClassStaticMethodByValue emit_define_class_static_method_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -936,7 +1073,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    DefineClassMethodByValue {
+    DefineClassMethodByValue emit_define_class_method_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -950,7 +1087,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPropertyGetterByName { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    SetPropertyGetterByName emit_set_property_getter_by_name { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Defines a static getter class method by name.
     ///
@@ -960,7 +1097,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineClassStaticGetterByName {
+    DefineClassStaticGetterByName emit_define_class_static_getter_by_name {
         value: VaryingOperand,
         object: VaryingOperand,
         name_index: VaryingOperand
@@ -974,7 +1111,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineClassGetterByName {
+    DefineClassGetterByName emit_define_class_getter_by_name {
         value: VaryingOperand,
         object: VaryingOperand,
         name_index: VaryingOperand
@@ -986,7 +1123,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    SetPropertyGetterByValue {
+    SetPropertyGetterByValue emit_set_property_getter_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -998,7 +1135,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    DefineClassStaticGetterByValue {
+    DefineClassStaticGetterByValue emit_define_class_static_getter_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -1010,7 +1147,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    DefineClassGetterByValue {
+    DefineClassGetterByValue emit_define_class_getter_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -1024,7 +1161,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPropertySetterByName { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    SetPropertySetterByName emit_set_property_setter_by_name { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Defines a static setter class method by name.
     ///
@@ -1034,7 +1171,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineClassStaticSetterByName {
+    DefineClassStaticSetterByName emit_define_class_static_setter_by_name {
         value: VaryingOperand,
         object: VaryingOperand,
         name_index: VaryingOperand
@@ -1048,7 +1185,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefineClassSetterByName {
+    DefineClassSetterByName emit_define_class_setter_by_name {
         value: VaryingOperand,
         object: VaryingOperand,
         name_index: VaryingOperand
@@ -1060,7 +1197,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    SetPropertySetterByValue {
+    SetPropertySetterByValue emit_set_property_setter_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -1072,7 +1209,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    DefineClassStaticSetterByValue {
+    DefineClassStaticSetterByValue emit_define_class_static_setter_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -1084,7 +1221,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key, value
-    DefineClassSetterByValue {
+    DefineClassSetterByValue emit_define_class_setter_by_value {
         value: VaryingOperand,
         key: VaryingOperand,
         object: VaryingOperand
@@ -1098,7 +1235,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateField { value: VaryingOperand, object: VaryingOperand, name_index: VaryingOperand },
+    SetPrivateField emit_set_private_field { value: VaryingOperand, object: VaryingOperand, name_index: VaryingOperand },
 
     /// Define a private property of a class constructor by it's name.
     ///
@@ -1108,7 +1245,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    DefinePrivateField { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    DefinePrivateField emit_define_private_field { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Set a private method of a class constructor by it's name.
     ///
@@ -1118,7 +1255,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateMethod { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    SetPrivateMethod emit_set_private_method { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Set a private setter property of a class constructor by it's name.
     ///
@@ -1128,7 +1265,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateSetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    SetPrivateSetter emit_set_private_setter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Set a private getter property of a class constructor by it's name.
     ///
@@ -1138,7 +1275,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    SetPrivateGetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    SetPrivateGetter emit_set_private_getter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Get a private property by name from an object an push it on the stack.
     ///
@@ -1149,7 +1286,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: object
     ///   - Output: dst
-    GetPrivateField { dst: VaryingOperand, object: VaryingOperand, name_index: VaryingOperand },
+    GetPrivateField emit_get_private_field { dst: VaryingOperand, object: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a field to a class.
     ///
@@ -1158,7 +1295,7 @@ generate_opcodes! {
     ///   - is_anonymous_function: `bool`
     /// - Registers:
     ///   - Input: object, value
-    PushClassField { object: VaryingOperand, name_index: VaryingOperand, value: VaryingOperand, is_anonymous_function: bool },
+    PushClassField emit_push_class_field { object: VaryingOperand, name_index: VaryingOperand, value: VaryingOperand, is_anonymous_function: VaryingOperand },
 
     /// Push a private field to the class.
     ///
@@ -1166,7 +1303,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    PushClassFieldPrivate { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    PushClassFieldPrivate emit_push_class_field_private { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a private getter to the class.
     ///
@@ -1174,7 +1311,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    PushClassPrivateGetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    PushClassPrivateGetter emit_push_class_private_getter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a private setter to the class.
     ///
@@ -1182,7 +1319,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, value
-    PushClassPrivateSetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    PushClassPrivateSetter emit_push_class_private_setter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a private method to the class.
     ///
@@ -1190,7 +1327,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object, proto, value
-    PushClassPrivateMethod { object: VaryingOperand, proto: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
+    PushClassPrivateMethod emit_push_class_private_method { object: VaryingOperand, proto: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Deletes a property by name of an object.
     ///
@@ -1200,7 +1337,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     /// - Registers:
     ///   - Input: object
-    DeletePropertyByName { object: VaryingOperand, name_index: VaryingOperand },
+    DeletePropertyByName emit_delete_property_by_name { object: VaryingOperand, name_index: VaryingOperand },
 
     /// Deletes a property by value of an object.
     ///
@@ -1208,29 +1345,29 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, key
-    DeletePropertyByValue { object: VaryingOperand, key: VaryingOperand },
+    DeletePropertyByValue emit_delete_property_by_value { object: VaryingOperand, key: VaryingOperand },
 
     /// Throws an error when trying to delete a property of `super`
-    DeleteSuperThrow,
+    DeleteSuperThrow emit_delete_super_throw,
 
     /// Copy all properties of one object to another object.
     ///
     /// - Registers:
     ///   - Input: object, source, excluded_keys
-    CopyDataProperties { object: VaryingOperand, source: VaryingOperand, excluded_keys: ThinVec<VaryingOperand> },
+    CopyDataProperties emit_copy_data_properties { object: VaryingOperand, source: VaryingOperand, excluded_keys: Vec<VaryingOperand> },
 
     /// Call ToPropertyKey on the value on the stack.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: dst
-    ToPropertyKey { src: VaryingOperand, dst: VaryingOperand },
+    ToPropertyKey emit_to_property_key{ src: VaryingOperand, dst: VaryingOperand },
 
     /// Unconditional jump to address.
     ///
     /// - Operands:
     ///   - address: `u32`
-    Jump { address: u32 },
+    Jump emit_jump { address: u32 },
 
     /// Conditional jump to address.
     ///
@@ -1242,7 +1379,7 @@ generate_opcodes! {
     ///   - Output: value
     ///
     /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
-    JumpIfTrue { address: u32, value: VaryingOperand },
+    JumpIfTrue emit_jump_if_true { address: u32, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
@@ -1254,7 +1391,7 @@ generate_opcodes! {
     ///   - Output: value
     ///
     /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
-    JumpIfFalse { address: u32, value: VaryingOperand },
+    JumpIfFalse emit_jump_if_false { address: u32, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
@@ -1264,7 +1401,7 @@ generate_opcodes! {
     ///   - address: `u32`
     /// - Registers:
     ///   - Output: value
-    JumpIfNotUndefined { address: u32, value: VaryingOperand },
+    JumpIfNotUndefined emit_jump_if_not_undefined { address: u32, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
@@ -1274,7 +1411,7 @@ generate_opcodes! {
     ///   - address: `u32`
     /// - Registers:
     ///   - Output: value
-    JumpIfNullOrUndefined { address: u32, value: VaryingOperand },
+    JumpIfNullOrUndefined emit_jump_if_null_or_undefined { address: u32, value: VaryingOperand },
 
     /// Jump table that jumps depending on top value of the stack.
     ///
@@ -1284,7 +1421,7 @@ generate_opcodes! {
     /// Operands: default: `u32`, count: `u32`, address: `u32` * count
     ///
     /// Stack: value: [`i32`] **=>**
-    JumpTable { default: u32, addresses: ThinVec<u32> },
+    JumpTable emit_jump_table { default: u32, addresses: Vec<u32> },
 
     /// Throw exception.
     ///
@@ -1292,14 +1429,14 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: src
-    Throw { src: VaryingOperand },
+    Throw emit_throw { src: VaryingOperand },
 
     /// Rethrow thrown exception.
     ///
     /// This is also used to handle generator `return()` call, we throw an empty exception, by setting pending exception to [`None`],
     /// propagating it and calling finally code until there is no exception handler left, in that case we consume the empty exception and return
     /// from the generator.
-    ReThrow,
+    ReThrow emit_re_throw,
 
     /// Get the thrown pending exception (if it's set) and push on the stack.
     ///
@@ -1308,31 +1445,31 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Output: dst
-    Exception { dst: VaryingOperand },
+    Exception emit_exception { dst: VaryingOperand },
 
     /// Get the thrown pending exception if it's set and push `true`, otherwise push only `false`.
     ///
     /// - Registers:
     ///   - Output: exception, has_exception
-    MaybeException { has_exception: VaryingOperand, exception: VaryingOperand },
+    MaybeException emit_maybe_exception { has_exception: VaryingOperand, exception: VaryingOperand },
 
     /// Throw a new `TypeError` exception
     ///
     /// - Operands:
     ///   - message: `VaryingOperand`
-    ThrowNewTypeError { message: VaryingOperand },
+    ThrowNewTypeError emit_throw_new_type_error { message: VaryingOperand },
 
     /// Throw a new `SyntaxError` exception
     ///
     /// - Operands:
     ///   - message: `VaryingOperand`
-    ThrowNewSyntaxError { message: VaryingOperand },
+    ThrowNewSyntaxError emit_throw_new_syntax_error { message: VaryingOperand },
 
     /// Pushes `this` value
     ///
     /// - Registers:
     ///   - Output: dst
-    This { dst: VaryingOperand },
+    This emit_this { dst: VaryingOperand },
 
     /// Pushes `this` value that is related to the object environment of the given binding
     ///
@@ -1340,40 +1477,40 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    ThisForObjectEnvironmentName { dst: VaryingOperand, index: VaryingOperand },
+    ThisForObjectEnvironmentName emit_this_for_object_environment_name { dst: VaryingOperand, index: VaryingOperand },
 
     /// Pushes the current `super` value to the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    Super { dst: VaryingOperand },
+    Super emit_super { dst: VaryingOperand },
 
     /// Get the super constructor and the new target of the current environment.
     ///
     /// - Registers:
     ///   - Output: dst
-    SuperCallPrepare { dst: VaryingOperand },
+    SuperCallPrepare emit_super_call_prepare { dst: VaryingOperand },
 
     /// Execute the `super()` method.
     ///
     /// - Operands:
     ///   - argument_count: `VaryingOperand`
     /// - Stack: super_constructor, argument_1, ... argument_n **=>**
-    SuperCall { argument_count: VaryingOperand },
+    SuperCall emit_super_call { argument_count: VaryingOperand },
 
     /// Execute the `super()` method where the arguments contain spreads.
     ///
     /// Operands:
     ///
     /// Stack: super_constructor, arguments_array **=>**
-    SuperCallSpread,
+    SuperCallSpread emit_super_call_spread,
 
     /// Execute the `super()` method when no constructor of the class is defined.
     ///
     /// Operands:
     ///
     /// Stack: argument_n, ... argument_1 **=>**
-    SuperCallDerived,
+    SuperCallDerived emit_super_call_derived,
 
     /// Binds `this` value and initializes the instance elements.
     ///
@@ -1384,14 +1521,14 @@ generate_opcodes! {
     ///   - Output: value
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation
-    BindThisValue { value: VaryingOperand },
+    BindThisValue emit_bind_this_value { value: VaryingOperand },
 
     /// Dynamically import a module.
     ///
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    ImportCall { value: VaryingOperand },
+    ImportCall emit_import_call { value: VaryingOperand },
 
     /// Pop the two values of the stack, strict equal compares the two values,
     /// if true jumps to address, otherwise push the second pop'ed value.
@@ -1403,7 +1540,7 @@ generate_opcodes! {
     ///   - address: `u32`
     /// - Registers:
     ///   - Input: value, condition
-    Case { address: u32, value: VaryingOperand, condition: VaryingOperand },
+    Case emit_case { address: u32, value: VaryingOperand, condition: VaryingOperand },
 
     /// Get function from the pre-compiled inner functions.
     ///
@@ -1411,7 +1548,7 @@ generate_opcodes! {
     ///   - index: `VaryingOperand`
     /// - Registers:
     ///   - Output: dst
-    GetFunction { dst: VaryingOperand, index: VaryingOperand },
+    GetFunction emit_get_function { dst: VaryingOperand, index: VaryingOperand },
 
     /// Call a function named "eval".
     ///
@@ -1419,155 +1556,155 @@ generate_opcodes! {
     ///   - argument_count: `VaryingOperand`
     ///   - scope_index: `VaryingOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
-    CallEval { argument_count: VaryingOperand, scope_index: VaryingOperand },
+    CallEval emit_call_eval { argument_count: VaryingOperand, scope_index: VaryingOperand },
 
     /// Call a function named "eval" where the arguments contain spreads.
     ///
     /// - Operands:
     ///   - scope_index: `VaryingOperand`
     /// - Stack: Stack: this, func, arguments_array **=>** result
-    CallEvalSpread { scope_index: VaryingOperand },
+    CallEvalSpread emit_call_eval_spread { scope_index: VaryingOperand },
 
     /// Call a function.
     ///
     /// - Operands:
     ///   - argument_count: `VaryingOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
-    Call { argument_count: VaryingOperand },
+    Call emit_call { argument_count: VaryingOperand },
 
     /// Call a function where the arguments contain spreads.
     ///
     /// Operands:
     ///
     /// Stack: this, func, arguments_array **=>** result
-    CallSpread,
+    CallSpread emit_call_spread,
 
     /// Call construct on a function.
     ///
     /// - Operands:
     ///   - argument_count: `VaryingOperand`
     /// - Stack: this, func, argument_1, ... argument_n **=>** result
-    New { argument_count: VaryingOperand },
+    New emit_new { argument_count: VaryingOperand },
 
     /// Call construct on a function where the arguments contain spreads.
     ///
     /// Operands:
     ///
     /// Stack: arguments_array, func **=>** result
-    NewSpread,
+    NewSpread emit_new_spread,
 
     /// Check return from a function.
-    CheckReturn,
+    CheckReturn emit_check_return,
 
     /// Return from a function.
-    Return,
+    Return emit_return,
 
     /// Close an async generator function.
-    AsyncGeneratorClose,
+    AsyncGeneratorClose emit_async_generator_close,
 
     /// Creates the generator object and yields.
     ///
     /// - Operands:
     ///   - async: `bool`
     /// - Stack: **=>** resume_kind
-    Generator { r#async: bool },
+    Generator emit_generator { r#async: VaryingOperand },
 
     /// Set return value of a function.
     ///
     /// - Registers:
     ///   - Input: src
-    SetAccumulator { src: VaryingOperand },
+    SetAccumulator emit_set_accumulator { src: VaryingOperand },
 
     // Set return value of a function.
     ///
     /// - Registers:
     ///   - Output: dst
-    SetRegisterFromAccumulator { dst: VaryingOperand },
+    SetRegisterFromAccumulator emit_set_register_from_accumulator { dst: VaryingOperand },
 
     /// Move value of operand `src` to register `dst`.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: dst
-    Move { dst: VaryingOperand, src: VaryingOperand },
+    Move emit_move { dst: VaryingOperand, src: VaryingOperand },
 
     /// Pop value from the stack and push to register `dst`
     ///
     /// - Registers:
     ///   - Output: dst
-    PopIntoRegister { dst: VaryingOperand },
+    PopIntoRegister emit_pop_into_register { dst: VaryingOperand },
 
     /// Copy value at register `src` and push it on the stack.
     ///
     /// - Registers:
     ///   - Input: src
-    PushFromRegister { src: VaryingOperand },
+    PushFromRegister emit_push_from_register { src: VaryingOperand },
 
     /// Pop value from the stack and push to a local binding register `dst`.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: dst
-    PopIntoLocal { src: VaryingOperand, dst: VaryingOperand },
+    PopIntoLocal emit_pop_into_local { src: VaryingOperand, dst: VaryingOperand },
 
     /// Copy value at local binding register `src` and push it into the stack.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: dst
-    PushFromLocal { src: VaryingOperand, dst: VaryingOperand },
+    PushFromLocal emit_push_from_local { src: VaryingOperand, dst: VaryingOperand },
 
     /// Push a declarative environment.
     ///
     /// - Operands:
     ///   - scope_index: `VaryingOperand`
-    PushScope { scope_index: VaryingOperand },
+    PushScope emit_push_scope { scope_index: VaryingOperand },
 
     /// Push an object environment.
     ///
     /// - Registers:
     ///   - Input: src
-    PushObjectEnvironment { src: VaryingOperand },
+    PushObjectEnvironment emit_push_object_environment { src: VaryingOperand },
 
     /// Pop the current environment.
-    PopEnvironment,
+    PopEnvironment emit_pop_environment,
 
     /// Increment loop iteration count.
     ///
     /// Used for limiting the loop iteration.
-    IncrementLoopIteration,
+    IncrementLoopIteration emit_increment_loop_iteration,
 
     /// Creates the ForInIterator of an object.
     ///
     /// - Registers:
     ///   - Input: src
-    CreateForInIterator { src: VaryingOperand },
+    CreateForInIterator emit_create_for_in_iterator { src: VaryingOperand },
 
     /// Gets the iterator of an object.
     ///
     /// - Registers:
     ///   - Input: src
     /// - Iterator Stack: **=>** `iterator`
-    GetIterator { src: VaryingOperand },
+    GetIterator emit_get_iterator { src: VaryingOperand },
 
     /// Gets the async iterator of an object.
     ///
     /// - Registers:
     ///   - Input: src
     /// - Iterator Stack: **=>** `iterator`
-    GetAsyncIterator { src: VaryingOperand },
+    GetAsyncIterator emit_get_async_iterator { src: VaryingOperand },
 
     /// Calls the `next` method of `iterator`, updating its record with the next value.
     ///
     /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorNext,
+    IteratorNext emit_iterator_next,
 
     /// Returns `true` if the current iterator is done, or `false` otherwise
     ///
     /// - Registers:
     ///   - Output: dst
     /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorDone { dst: VaryingOperand },
+    IteratorDone emit_iterator_done { dst: VaryingOperand },
 
     /// Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
     /// result of the current iterator.
@@ -1575,35 +1712,35 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: resume_kind, value
     /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorFinishAsyncNext { resume_kind: VaryingOperand, value: VaryingOperand },
+    IteratorFinishAsyncNext emit_iterator_finish_async_next { resume_kind: VaryingOperand, value: VaryingOperand },
 
     /// Gets the `value` property of the current iterator record.
     ///
     /// - Registers:
     ///   - Output: dst
     /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorValue { dst: VaryingOperand },
+    IteratorValue emit_iterator_value { dst: VaryingOperand },
 
     /// Gets the last iteration result of the current iterator record.
     ///
     /// - Registers:
     ///   - Output: dst
     /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorResult { dst: VaryingOperand },
+    IteratorResult emit_iterator_result { dst: VaryingOperand },
 
     /// Consume the iterator and construct and array with all the values.
     ///
     /// - Registers:
     ///   - Output: dst
     /// - Iterator Stack: `iterator` **=>** `iterator`
-    IteratorToArray { dst: VaryingOperand },
+    IteratorToArray emit_iterator_to_array { dst: VaryingOperand },
 
     /// Pushes `true` to the stack if the iterator stack is empty.
     ///
     /// - Registers:
     ///   - Output: dst
     /// - Iterator Stack: **=>**
-    IteratorStackEmpty { dst: VaryingOperand },
+    IteratorStackEmpty emit_iterator_stack_empty { dst: VaryingOperand },
 
     /// Creates a new iterator result object.
     ///
@@ -1612,41 +1749,41 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    CreateIteratorResult { value: VaryingOperand, done: bool },
+    CreateIteratorResult emit_create_iterator_result { value: VaryingOperand, done: VaryingOperand },
 
     /// Calls `return` on the current iterator and returns the result.
     ///
     /// - Registers:
     ///   - Output: value, called
     /// - Iterator Stack: `iterator` **=>**
-    IteratorReturn { value: VaryingOperand, called: VaryingOperand },
+    IteratorReturn emit_iterator_return { value: VaryingOperand, called: VaryingOperand },
 
     /// Concat multiple stack objects into a string.
     ///
     /// - Registers:
     ///   - Input: values
     ///   - Output: dst
-    ConcatToString { dst: VaryingOperand, values: ThinVec<VaryingOperand> },
+    ConcatToString emit_concat_to_string { dst: VaryingOperand, values: Vec<VaryingOperand> },
 
     /// Require the stack value to be neither null nor undefined.
     ///
     /// - Registers:
     ///   - Input: src
-    ValueNotNullOrUndefined { src: VaryingOperand },
+    ValueNotNullOrUndefined emit_value_not_null_or_undefined { src: VaryingOperand },
 
     /// Initialize the rest parameter value of a function from the remaining arguments.
     ///
     /// - Stack: `argument_1` .. `argument_n` **=>**
     /// - Registers:
     ///   - Output: dst
-    RestParameterInit { dst: VaryingOperand },
+    RestParameterInit emit_rest_parameter_init { dst: VaryingOperand },
 
     /// Yields from the current generator execution.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: resume_kind, received
-    GeneratorYield { src: VaryingOperand },
+    GeneratorYield emit_generator_yield { src: VaryingOperand },
 
     /// Resumes the current generator function.
     ///
@@ -1655,22 +1792,22 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: resume_kind, value
-    GeneratorNext { resume_kind: VaryingOperand, value: VaryingOperand },
+    GeneratorNext emit_generator_next { resume_kind: VaryingOperand, value: VaryingOperand },
 
     /// Yields from the current async generator execution.
     ///
     /// - Registers:
     ///   - Input: src
     ///   - Output: resume_kind, received
-    AsyncGeneratorYield { src: VaryingOperand },
+    AsyncGeneratorYield emit_async_generator_yield { src: VaryingOperand },
 
     /// Create a promise capacity for an async function, if not already set.
-    CreatePromiseCapability,
+    CreatePromiseCapability emit_create_promise_capability,
 
     /// Resolves or rejects the promise capability of an async function.
     ///
     /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
-    CompletePromiseCapability,
+    CompletePromiseCapability emit_complete_promise_capability,
 
     /// Jumps to the specified address if the resume kind is not equal.
     ///
@@ -1679,7 +1816,7 @@ generate_opcodes! {
     ///   - resume_kind: `GeneratorResumeKind`
     /// - Registers:
     ///   - Input: src
-    JumpIfNotResumeKind { address: u32, resume_kind: GeneratorResumeKind, src: VaryingOperand },
+    JumpIfNotResumeKind emit_jump_if_not_resume_kind { address: u32, resume_kind: VaryingOperand, src: VaryingOperand },
 
     /// Delegates the current async generator function to another iterator.
     ///
@@ -1689,7 +1826,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value, resume_kind
     ///   - Output: value, is_return
-    GeneratorDelegateNext {
+    GeneratorDelegateNext emit_generator_delegate_next {
         throw_method_undefined: u32,
         return_method_undefined: u32,
         value: VaryingOperand,
@@ -1705,7 +1842,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: value, resume_kind, is_return
     ///   - Output: value
-    GeneratorDelegateResume {
+    GeneratorDelegateResume emit_generator_delegate_resume {
         r#return: u32,
         exit: u32,
         value: VaryingOperand,
@@ -1718,26 +1855,26 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: src
     ///   - Output: resume_kind, received
-    Await { src: VaryingOperand },
+    Await emit_await{ src: VaryingOperand },
 
     /// Push the current new target to the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    NewTarget { dst: VaryingOperand },
+    NewTarget emit_new_target { dst: VaryingOperand },
 
     /// Push the current `import.meta` to the stack.
     ///
     /// - Registers:
     ///   - Output: dst
-    ImportMeta { dst: VaryingOperand },
+    ImportMeta emit_import_meta { dst: VaryingOperand },
 
     /// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
     ///
     /// - Registers:
     ///   - Input: value
     ///   - Output: value
-    IsObject { value: VaryingOperand },
+    IsObject emit_is_object { value: VaryingOperand },
 
     /// Lookup if a tagged template object is cached and skip the creation if it is.
     ///
@@ -1746,7 +1883,7 @@ generate_opcodes! {
     ///   - site: `u64`
     /// - Registers:
     ///   - Output: dst
-    TemplateLookup { address: u32, site: u64, dst: VaryingOperand },
+    TemplateLookup emit_template_lookup { address: u32, site: u64, dst: VaryingOperand },
 
     /// Create a new tagged template object and cache it.
     ///
@@ -1755,7 +1892,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Inputs: values
     ///   - Output: dst
-    TemplateCreate { site: u64, dst: VaryingOperand, values: ThinVec<(u32, u32)> },
+    TemplateCreate emit_template_create { site: u64, dst: VaryingOperand, values: Vec<u32> },
 
     /// Push a private environment.
     ///
@@ -1763,10 +1900,10 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: class, name_indices
-    PushPrivateEnvironment { class: VaryingOperand, name_indices: ThinVec<u32> },
+    PushPrivateEnvironment emit_push_private_environment { class: VaryingOperand, name_indices: Vec<u32> },
 
     /// Pop a private environment.
-    PopPrivateEnvironment,
+    PopPrivateEnvironment emit_pop_private_environment,
 
     /// Creates a mapped `arguments` object.
     ///
@@ -1776,7 +1913,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Output: dst
-    CreateMappedArgumentsObject { dst: VaryingOperand },
+    CreateMappedArgumentsObject emit_create_mapped_arguments_object { dst: VaryingOperand },
 
     /// Creates an unmapped `arguments` object.
     ///
@@ -1786,7 +1923,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Output: dst
-    CreateUnmappedArgumentsObject { dst: VaryingOperand },
+    CreateUnmappedArgumentsObject emit_create_unmapped_arguments_object { dst: VaryingOperand },
 
     /// Performs [`HasRestrictedGlobalProperty ( N )`][spec]
     ///
@@ -1796,7 +1933,7 @@ generate_opcodes! {
     ///   - Output: dst
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    HasRestrictedGlobalProperty { dst: VaryingOperand, index: VaryingOperand },
+    HasRestrictedGlobalProperty emit_has_restricted_global_property { dst: VaryingOperand, index: VaryingOperand },
 
     /// Performs [`CanDeclareGlobalFunction ( N )`][spec]
     ///
@@ -1806,7 +1943,7 @@ generate_opcodes! {
     ///   - Output: dst
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    CanDeclareGlobalFunction { dst: VaryingOperand, index: VaryingOperand },
+    CanDeclareGlobalFunction emit_can_declare_global_function { dst: VaryingOperand, index: VaryingOperand },
 
     /// Performs [`CanDeclareGlobalVar ( N )`][spec]
     ///
@@ -1816,7 +1953,7 @@ generate_opcodes! {
     ///   - Output: dst
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    CanDeclareGlobalVar { dst: VaryingOperand, index: VaryingOperand },
+    CanDeclareGlobalVar emit_can_declare_global_var { dst: VaryingOperand, index: VaryingOperand },
 
     /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
     ///
@@ -1827,7 +1964,7 @@ generate_opcodes! {
     ///   - Input: src
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-    CreateGlobalFunctionBinding { src: VaryingOperand, configurable: bool, name_index: VaryingOperand },
+    CreateGlobalFunctionBinding emit_create_global_function_binding { src: VaryingOperand, configurable: VaryingOperand, name_index: VaryingOperand },
 
     /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
     ///
@@ -1836,17 +1973,7 @@ generate_opcodes! {
     ///   - name_index: `VaryingOperand`
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
-    CreateGlobalVarBinding { configurable: bool, name_index: VaryingOperand },
-
-    /// Opcode prefix modifier, makes all [`VaryingOperand`]s of an instruction [`u16`] sized.
-    ///
-    /// Stack: The stack changes based on the opcode that is being prefixed.
-    U16Operands,
-
-    /// Opcode prefix modifier, [`Opcode`] prefix operand modifier, makes all [`VaryingOperand`]s of an instruction [`u32`] sized.
-    ///
-    /// Stack: The stack changes based on the opcode that is being prefixed.
-    U32Operands,
+    CreateGlobalVarBinding emit_create_global_var_binding { configurable: VaryingOperand, name_index: VaryingOperand },
 
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
@@ -1968,80 +2095,8 @@ generate_opcodes! {
     Reserved59 => Reserved,
     /// Reserved [`Opcode`].
     Reserved60 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved61 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved62 => Reserved,
 }
-
-/// Specific opcodes for bindings.
-///
-/// This separate enum exists to make matching exhaustive where needed.
-#[derive(Clone, Copy, Debug)]
-pub(crate) enum BindingOpcode {
-    Var,
-    InitVar,
-    InitLexical,
-    SetName,
-}
-
-// /// Iterator over the instructions in the compact bytecode.
-// #[derive(Debug, Clone)]
-// pub(crate) struct InstructionIterator<'bytecode> {
-//     bytes: &'bytecode [u8],
-//     pc: usize,
-// }
-// 
-// // TODO: see if this can be exposed on all features.
-// #[allow(unused)]
-// impl<'bytecode> InstructionIterator<'bytecode> {
-//     /// Create a new [`InstructionIterator`] from bytecode array.
-//     #[inline]
-//     #[must_use]
-//     pub(crate) const fn new(bytes: &'bytecode [u8]) -> Self {
-//         Self { bytes, pc: 0 }
-//     }
-// 
-//     /// Create a new [`InstructionIterator`] from bytecode array at pc.
-//     #[inline]
-//     #[must_use]
-//     pub(crate) const fn with_pc(bytes: &'bytecode [u8], pc: usize) -> Self {
-//         Self { bytes, pc }
-//     }
-// 
-//     /// Return the current program counter.
-//     #[must_use]
-//     pub(crate) const fn pc(&self) -> usize {
-//         self.pc
-//     }
-// }
-// 
-// impl Iterator for InstructionIterator<'_> {
-//     type Item = (usize, VaryingOperandKind, Instruction);
-// 
-//     #[inline]
-//     fn next(&mut self) -> Option<Self::Item> {
-//         let start_pc = self.pc;
-//         if self.pc >= self.bytes.len() {
-//             return None;
-//         }
-// 
-//         let instruction =
-//             Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U8);
-// 
-//         if instruction == Instruction::U16Operands {
-//             return Some((
-//                 start_pc,
-//                 VaryingOperandKind::U16,
-//                 Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U16),
-//             ));
-//         } else if instruction == Instruction::U32Operands {
-//             return Some((
-//                 start_pc,
-//                 VaryingOperandKind::U32,
-//                 Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U32),
-//             ));
-//         }
-// 
-//         Some((start_pc, VaryingOperandKind::U8, instruction))
-//     }
-// }
-// 
-// impl FusedIterator for InstructionIterator<'_> {}
-// 

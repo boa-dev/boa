@@ -9,14 +9,13 @@
 //! [try spec]: https://tc39.es/ecma262/#sec-try-statement
 //! [labelled spec]: https://tc39.es/ecma262/#sec-labelled-statements
 
+use super::Register;
 use crate::{
     bytecompiler::{ByteCompiler, Label},
-    vm::{Handler, Opcode},
+    vm::Handler,
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
-
-use super::{Operand, Register};
 
 /// An actions to be performed for the local control flow.
 #[derive(Debug, Clone, Copy)]
@@ -103,7 +102,7 @@ impl JumpRecord {
                 }
                 JumpRecordAction::PopEnvironments { count } => {
                     for _ in 0..count {
-                        compiler.emit_opcode(Opcode::PopEnvironment);
+                        compiler.bytecode.emit_pop_environment();
                     }
                 }
                 JumpRecordAction::HandleFinally {
@@ -115,7 +114,7 @@ impl JumpRecord {
                     let value = compiler.register_allocator.alloc();
                     compiler.emit_push_integer(index, &value);
                     compiler.push_from_register(&value);
-                    compiler.emit(Opcode::PushFalse, &[Operand::Varying(finally_throw)]);
+                    compiler.bytecode.emit_push_false(finally_throw.into());
                     compiler.register_allocator.dealloc(value);
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
@@ -134,7 +133,7 @@ impl JumpRecord {
                 if return_value_on_stack {
                     let value = compiler.register_allocator.alloc();
                     compiler.pop_into_register(&value);
-                    compiler.emit(Opcode::SetAccumulator, &[Operand::Register(&value)]);
+                    compiler.bytecode.emit_set_accumulator(value.variable());
                     compiler.register_allocator.dealloc(value);
                 }
 
@@ -143,22 +142,22 @@ impl JumpRecord {
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
                     //
                     // Note: If we are returning we have to close the async generator function.
-                    (true, true) => compiler.emit_opcode(Opcode::AsyncGeneratorClose),
+                    (true, true) => compiler.bytecode.emit_async_generator_close(),
 
                     // Taken from:
                     //  - 27.7.5.2 AsyncBlockStart ( promiseCapability, asyncBody, asyncContext ): <https://tc39.es/ecma262/#sec-asyncblockstart>
                     //
                     // Note: If there is promise capability resolve or reject it based on pending exception.
-                    (true, false) => compiler.emit_opcode(Opcode::CompletePromiseCapability),
+                    (true, false) => compiler.bytecode.emit_complete_promise_capability(),
                     (false, false) => {
                         // TODO: We can omit checking for return, when constructing for functions,
                         // that cannot be constructed, like arrow functions.
-                        compiler.emit_opcode(Opcode::CheckReturn);
+                        compiler.bytecode.emit_check_return();
                     }
                     (false, true) => {}
                 }
 
-                compiler.emit_opcode(Opcode::Return);
+                compiler.bytecode.emit_return();
             }
         }
     }

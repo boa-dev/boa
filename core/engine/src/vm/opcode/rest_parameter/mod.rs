@@ -1,3 +1,4 @@
+use super::VaryingOperand;
 use crate::{
     builtins::Array,
     vm::{opcode::Operation, CompletionType, Registers},
@@ -13,8 +14,8 @@ pub(crate) struct RestParameterInit;
 
 impl RestParameterInit {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        dst: u32,
+    pub(super) fn operation(
+        dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -41,7 +42,7 @@ impl RestParameterInit {
             Array::array_create(0, None, context).expect("could not create an empty array")
         };
 
-        registers.set(dst, array.into());
+        registers.set(dst.into(), array.into());
         Ok(CompletionType::Normal)
     }
 }
@@ -50,19 +51,4 @@ impl Operation for RestParameterInit {
     const NAME: &'static str = "RestParameterInit";
     const INSTRUCTION: &'static str = "INST - RestParameterInit";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }

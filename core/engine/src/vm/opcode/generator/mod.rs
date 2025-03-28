@@ -1,7 +1,6 @@
 pub(crate) mod yield_stm;
 
-use std::collections::VecDeque;
-
+use super::VaryingOperand;
 use crate::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
@@ -16,6 +15,7 @@ use crate::{
     },
     Context, JsError, JsObject, JsResult,
 };
+use std::collections::VecDeque;
 
 pub(crate) use yield_stm::*;
 
@@ -26,13 +26,13 @@ pub(crate) use yield_stm::*;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Generator;
 
-impl Operation for Generator {
-    const NAME: &'static str = "Generator";
-    const INSTRUCTION: &'static str = "INST - Generator";
-    const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let r#async = context.vm.read::<u8>() != 0;
+impl Generator {
+    pub(super) fn operation(
+        r#async: VaryingOperand,
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
+        let r#async = u32::from(r#async) != 0;
 
         let active_function = context.vm.frame().function(&context.vm);
         let this_function_object =
@@ -103,6 +103,12 @@ impl Operation for Generator {
     }
 }
 
+impl Operation for Generator {
+    const NAME: &'static str = "Generator";
+    const INSTRUCTION: &'static str = "INST - Generator";
+    const COST: u8 = 8;
+}
+
 /// `AsyncGeneratorClose` implements the Opcode Operation for `Opcode::AsyncGeneratorClose`
 ///
 /// Operation:
@@ -110,12 +116,12 @@ impl Operation for Generator {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct AsyncGeneratorClose;
 
-impl Operation for AsyncGeneratorClose {
-    const NAME: &'static str = "AsyncGeneratorClose";
-    const INSTRUCTION: &'static str = "INST - AsyncGeneratorClose";
-    const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl AsyncGeneratorClose {
+    pub(super) fn operation(
+        _: (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<CompletionType> {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
         let generator = context
             .vm
@@ -155,6 +161,12 @@ impl Operation for AsyncGeneratorClose {
     }
 }
 
+impl Operation for AsyncGeneratorClose {
+    const NAME: &'static str = "AsyncGeneratorClose";
+    const INSTRUCTION: &'static str = "INST - AsyncGeneratorClose";
+    const COST: u8 = 8;
+}
+
 /// `GeneratorNext` implements the Opcode Operation for `Opcode::GeneratorNext`
 ///
 /// Operation:
@@ -163,21 +175,22 @@ impl Operation for AsyncGeneratorClose {
 pub(crate) struct GeneratorNext;
 
 impl GeneratorNext {
-    fn operation(
-        resume_kind: u32,
-        value: u32,
+    pub(super) fn operation(
+        (resume_kind, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let resume_kind = registers.get(resume_kind).to_generator_resume_kind();
+        let resume_kind = registers.get(resume_kind.into()).to_generator_resume_kind();
         match resume_kind {
             GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
-            GeneratorResumeKind::Throw => Err(JsError::from_opaque(registers.get(value).clone())),
+            GeneratorResumeKind::Throw => {
+                Err(JsError::from_opaque(registers.get(value.into()).clone()))
+            }
             GeneratorResumeKind::Return => {
                 assert!(context.vm.pending_exception.is_none());
-                let value = registers.get(value);
+                let value = registers.get(value.into());
                 context.vm.set_return_value(value.clone());
-                ReThrow::execute(registers, context)
+                ReThrow::operation((), registers, context)
             }
         }
     }
@@ -187,24 +200,6 @@ impl Operation for GeneratorNext {
     const NAME: &'static str = "GeneratorNext";
     const INSTRUCTION: &'static str = "INST - GeneratorNext";
     const COST: u8 = 1;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let resume_kind = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        Self::operation(resume_kind, value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let resume_kind = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        Self::operation(resume_kind, value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let resume_kind = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        Self::operation(resume_kind, value, registers, context)
-    }
 }
 
 /// `JumpIfNotResumeKind` implements the Opcode Operation for `Opcode::JumpIfNotResumeKind`
@@ -216,15 +211,13 @@ pub(crate) struct JumpIfNotResumeKind;
 
 impl JumpIfNotResumeKind {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        exit: u32,
-        expected: u8,
-        value: u32,
+    pub(super) fn operation(
+        (exit, expected, value): (u32, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let resume_kind = registers.get(value).to_generator_resume_kind();
-        if resume_kind as u8 != expected {
+        let resume_kind = registers.get(value.into()).to_generator_resume_kind();
+        if resume_kind as u8 != u32::from(expected) as u8 {
             context.vm.frame_mut().pc = exit;
         }
         Ok(CompletionType::Normal)
@@ -235,27 +228,6 @@ impl Operation for JumpIfNotResumeKind {
     const NAME: &'static str = "JumpIfNotResumeKind";
     const INSTRUCTION: &'static str = "INST - JumpIfNotResumeKind";
     const COST: u8 = 1;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let exit = context.vm.read::<u32>();
-        let resume_kind = context.vm.read::<u8>();
-        let value = context.vm.read::<u8>().into();
-        Self::operation(exit, resume_kind, value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let exit = context.vm.read::<u32>();
-        let resume_kind = context.vm.read::<u8>();
-        let value = context.vm.read::<u16>().into();
-        Self::operation(exit, resume_kind, value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let exit = context.vm.read::<u32>();
-        let resume_kind = context.vm.read::<u8>();
-        let value = context.vm.read::<u32>();
-        Self::operation(exit, resume_kind, value, registers, context)
-    }
 }
 
 /// `GeneratorDelegateNext` implements the Opcode Operation for `Opcode::GeneratorDelegateNext`
@@ -266,17 +238,19 @@ impl Operation for JumpIfNotResumeKind {
 pub(crate) struct GeneratorDelegateNext;
 
 impl GeneratorDelegateNext {
-    fn operation(
-        throw_method_undefined: u32,
-        return_method_undefined: u32,
-        value: u32,
-        resume_kind: u32,
-        is_return: u32,
+    pub(super) fn operation(
+        (throw_method_undefined, return_method_undefined, value, resume_kind, is_return): (
+            u32,
+            u32,
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+        ),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let resume_kind = registers.get(resume_kind).to_generator_resume_kind();
-        let received = registers.get(value);
+        let resume_kind = registers.get(resume_kind.into()).to_generator_resume_kind();
+        let received = registers.get(value.into());
 
         // Preemptively popping removes the iterator from the iterator stack if any operation
         // throws, which avoids calling cleanup operations on the poisoned iterator.
@@ -294,8 +268,8 @@ impl GeneratorDelegateNext {
                     &[received.clone()],
                     context,
                 )?;
-                registers.set(is_return, false.into());
-                registers.set(value, result);
+                registers.set(is_return.into(), false.into());
+                registers.set(value.into(), result);
             }
             GeneratorResumeKind::Throw => {
                 let throw = iterator_record
@@ -307,8 +281,8 @@ impl GeneratorDelegateNext {
                         &[received.clone()],
                         context,
                     )?;
-                    registers.set(is_return, false.into());
-                    registers.set(value, result);
+                    registers.set(is_return.into(), false.into());
+                    registers.set(value.into(), result);
                 } else {
                     context.vm.frame_mut().pc = throw_method_undefined;
                 }
@@ -323,8 +297,8 @@ impl GeneratorDelegateNext {
                         &[received.clone()],
                         context,
                     )?;
-                    registers.set(is_return, true.into());
-                    registers.set(value, result);
+                    registers.set(is_return.into(), true.into());
+                    registers.set(value.into(), result);
                 } else {
                     context.vm.frame_mut().pc = return_method_undefined;
 
@@ -345,57 +319,6 @@ impl Operation for GeneratorDelegateNext {
     const NAME: &'static str = "GeneratorDelegateNext";
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateNext";
     const COST: u8 = 18;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let throw_method_undefined = context.vm.read::<u32>();
-        let return_method_undefined = context.vm.read::<u32>();
-        let value = context.vm.read::<u8>().into();
-        let resume_kind = context.vm.read::<u8>().into();
-        let is_return = context.vm.read::<u8>().into();
-        Self::operation(
-            throw_method_undefined,
-            return_method_undefined,
-            value,
-            resume_kind,
-            is_return,
-            registers,
-            context,
-        )
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let throw_method_undefined = context.vm.read::<u32>();
-        let return_method_undefined = context.vm.read::<u32>();
-        let value = context.vm.read::<u16>().into();
-        let resume_kind = context.vm.read::<u16>().into();
-        let is_return = context.vm.read::<u16>().into();
-        Self::operation(
-            throw_method_undefined,
-            return_method_undefined,
-            value,
-            resume_kind,
-            is_return,
-            registers,
-            context,
-        )
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let throw_method_undefined = context.vm.read::<u32>();
-        let return_method_undefined = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let resume_kind = context.vm.read::<u32>();
-        let is_return = context.vm.read::<u32>();
-        Self::operation(
-            throw_method_undefined,
-            return_method_undefined,
-            value,
-            resume_kind,
-            is_return,
-            registers,
-            context,
-        )
-    }
 }
 
 /// `GeneratorDelegateResume` implements the Opcode Operation for `Opcode::GeneratorDelegateResume`
@@ -406,18 +329,20 @@ impl Operation for GeneratorDelegateNext {
 pub(crate) struct GeneratorDelegateResume;
 
 impl GeneratorDelegateResume {
-    fn operation(
-        return_gen: u32,
-        exit: u32,
-        value: u32,
-        resume_kind: u32,
-        is_return: u32,
+    pub(super) fn operation(
+        (return_gen, exit, value, resume_kind, is_return): (
+            u32,
+            u32,
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+        ),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let resume_kind = registers.get(resume_kind).to_generator_resume_kind();
-        let result = registers.get(value);
-        let is_return = registers.get(is_return).to_boolean();
+        let resume_kind = registers.get(resume_kind.into()).to_generator_resume_kind();
+        let result = registers.get(value.into());
+        let is_return = registers.get(is_return.into()).to_boolean();
 
         let mut iterator = context
             .vm
@@ -434,7 +359,7 @@ impl GeneratorDelegateResume {
 
         if iterator.done() {
             let result = iterator.value(context)?;
-            registers.set(value, result);
+            registers.set(value.into(), result);
             context.vm.frame_mut().pc = if is_return { return_gen } else { exit };
             return Ok(CompletionType::Normal);
         }
@@ -449,55 +374,4 @@ impl Operation for GeneratorDelegateResume {
     const NAME: &'static str = "GeneratorDelegateResume";
     const INSTRUCTION: &'static str = "INST - GeneratorDelegateResume";
     const COST: u8 = 7;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let r#return = context.vm.read::<u32>();
-        let exit = context.vm.read::<u32>();
-        let value = context.vm.read::<u8>().into();
-        let resume_kind = context.vm.read::<u8>().into();
-        let is_return = context.vm.read::<u8>().into();
-        Self::operation(
-            r#return,
-            exit,
-            value,
-            resume_kind,
-            is_return,
-            registers,
-            context,
-        )
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let r#return = context.vm.read::<u32>();
-        let exit = context.vm.read::<u32>();
-        let value = context.vm.read::<u16>().into();
-        let resume_kind = context.vm.read::<u16>().into();
-        let is_return = context.vm.read::<u16>().into();
-        Self::operation(
-            r#return,
-            exit,
-            value,
-            resume_kind,
-            is_return,
-            registers,
-            context,
-        )
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let r#return = context.vm.read::<u32>();
-        let exit = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let resume_kind = context.vm.read::<u32>();
-        let is_return = context.vm.read::<u32>();
-        Self::operation(
-            r#return,
-            exit,
-            value,
-            resume_kind,
-            is_return,
-            registers,
-            context,
-        )
-    }
 }

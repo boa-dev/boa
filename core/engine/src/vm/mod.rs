@@ -5,13 +5,13 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    environments::EnvironmentStack, realm::Realm, script::Script, vm::code_block::Readable,
-    Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
+    environments::EnvironmentStack, realm::Realm, script::Script, Context, JsError, JsNativeError,
+    JsObject, JsResult, JsString, JsValue, Module,
 };
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
+use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
 // #[cfg(feature = "trace")]
 // use crate::sys::time::Instant;
@@ -29,7 +29,7 @@ mod runtime_limits;
 pub(crate) use inline_cache::InlineCache;
 
 // TODO: see if this can be exposed on all features.
-pub(crate) use opcode::{Opcode, VaryingOperandKind};
+pub(crate) use opcode::{Opcode, ByteCodeEmitter, VaryingOperand};
 pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
@@ -145,14 +145,6 @@ impl Vm {
     #[track_caller]
     pub(crate) fn pop(&mut self) -> JsValue {
         self.stack.pop().expect("stack was empty")
-    }
-
-    #[track_caller]
-    pub(crate) fn read<T: Readable>(&mut self) -> T {
-        let frame = self.frame_mut();
-        let value = frame.code_block.read::<T>(frame.pc as usize);
-        frame.pc += size_of::<T>() as u32;
-        value
     }
 
     /// Retrieves the VM frame.
@@ -279,7 +271,7 @@ pub(crate) enum CompletionType {
 //     const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
 //     const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
 //     const NUMBER_OF_COLUMNS: usize = 4;
-// 
+//
 //     pub(crate) fn trace_call_frame(&self) {
 //         let frame = self.vm.frame();
 //         let msg = if self.vm.frames.is_empty() {
@@ -290,7 +282,7 @@ pub(crate) enum CompletionType {
 //                 frame.code_block().name().to_std_string_escaped()
 //             )
 //         };
-// 
+//
 //         println!("{}", frame.code_block);
 //         println!(
 //             "{msg:-^width$}",
@@ -306,7 +298,7 @@ pub(crate) enum CompletionType {
 //             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
 //         );
 //     }
-// 
+//
 //     fn trace_execute_instruction<F>(
 //         &mut self,
 //         f: F,
@@ -322,7 +314,7 @@ pub(crate) enum CompletionType {
 //             .next()
 //             .expect("There should be an instruction left");
 //         let operands = frame.code_block.instruction_operands(&instruction);
-// 
+//
 //         let opcode = instruction.opcode();
 //         match opcode {
 //             Opcode::Call
@@ -339,17 +331,17 @@ pub(crate) enum CompletionType {
 //             }
 //             _ => {}
 //         }
-// 
+//
 //         let instant = Instant::now();
 //         let result = self.execute_instruction(f, registers);
 //         let duration = instant.elapsed();
-// 
+//
 //         let fp = if self.vm.frames.is_empty() {
 //             None
 //         } else {
 //             Some(self.vm.frame.fp() as usize)
 //         };
-// 
+//
 //         let stack = {
 //             let mut stack = String::from("[ ");
 //             for (i, (j, value)) in self.vm.stack.iter().enumerate().rev().enumerate() {
@@ -358,27 +350,27 @@ pub(crate) enum CompletionType {
 //                     value if value.is_object() => stack.push_str("[object]"),
 //                     value => stack.push_str(&value.display().to_string()),
 //                 }
-// 
+//
 //                 if fp == Some(j) {
 //                     let frame_index = self.vm.frames.len() - 1;
 //                     stack.push_str(&format!(" |{frame_index}|"));
 //                 } else if i + 1 != self.vm.stack.len() {
 //                     stack.push(',');
 //                 }
-// 
+//
 //                 stack.push(' ');
 //             }
-// 
+//
 //             stack.push(']');
 //             stack
 //         };
-// 
+//
 //         let varying_operand_kind = match varying_operand_kind {
 //             VaryingOperandKind::U8 => "",
 //             VaryingOperandKind::U16 => ".U16",
 //             VaryingOperandKind::U32 => ".U32",
 //         };
-// 
+//
 //         println!(
 //             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
 //             format!("{}μs", duration.as_micros()),
@@ -387,7 +379,7 @@ pub(crate) enum CompletionType {
 //             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
 //             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
 //         );
-// 
+//
 //         result
 //     }
 // }
@@ -399,27 +391,26 @@ impl Context {
         registers: &mut Registers,
     ) -> JsResult<CompletionType>
     where
-        F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
+        F: FnOnce(&mut Context, &mut Registers) -> JsResult<CompletionType>,
     {
-        let opcode: Opcode = {
-            let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
+        // let opcode: Opcode = {
+        //     let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
+        //     let frame = self.vm.frame_mut();
+        //     let pc = frame.pc;
+        //     let opcode = frame.code_block.bytecode[pc as usize].into();
+        //     frame.pc += 1;
+        //     opcode
+        // };
 
-            let frame = self.vm.frame_mut();
+        // let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
 
-            let pc = frame.pc;
-            let opcode = frame.code_block.bytecode[pc as usize].into();
-            frame.pc += 1;
-            opcode
-        };
-
-        let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
-
-        f(opcode, registers, self)
+        // f(opcode, registers, self)
+        f(self, registers)
     }
 
     fn execute_one<F>(&mut self, f: F, registers: &mut Registers) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
+        F: FnOnce(&mut Context, &mut Registers) -> JsResult<CompletionType>,
     {
         #[cfg(feature = "fuzz")]
         {
@@ -583,9 +574,10 @@ impl Context {
 
         loop {
             match self.execute_one(
-                |opcode, registers, context| {
-                    opcode.spend_budget_and_execute(registers, context, &mut runtime_budget)
-                },
+                // |opcode, registers, context| {
+                //     opcode.spend_budget_and_execute(registers, context, &mut runtime_budget)
+                // },
+                Self::execute_bytecode_instruction,
                 registers,
             ) {
                 ControlFlow::Continue(()) => {}
@@ -608,7 +600,7 @@ impl Context {
         // }
 
         loop {
-            match self.execute_one(Opcode::execute, registers) {
+            match self.execute_one(Self::execute_bytecode_instruction, registers) {
                 ControlFlow::Continue(()) => {}
                 ControlFlow::Break(value) => return value,
             }

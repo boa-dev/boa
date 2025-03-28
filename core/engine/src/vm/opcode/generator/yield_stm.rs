@@ -1,6 +1,9 @@
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{opcode::Operation, CompletionRecord, CompletionType, GeneratorResumeKind, Registers},
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        CompletionRecord, CompletionType, GeneratorResumeKind, Registers,
+    },
     Context, JsResult, JsValue,
 };
 
@@ -13,12 +16,12 @@ pub(crate) struct GeneratorYield;
 
 impl GeneratorYield {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        value: u32,
+    pub(crate) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
+        let value = registers.get(value.into());
         context.vm.set_return_value(value.clone());
         Ok(CompletionType::Yield)
     }
@@ -28,21 +31,6 @@ impl Operation for GeneratorYield {
     const NAME: &'static str = "GeneratorYield";
     const INSTRUCTION: &'static str = "INST - GeneratorYield";
     const COST: u8 = 1;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }
 
 /// `AsyncGeneratorYield` implements the Opcode Operation for `Opcode::AsyncGeneratorYield`
@@ -54,8 +42,8 @@ pub(crate) struct AsyncGeneratorYield;
 
 impl AsyncGeneratorYield {
     #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        value: u32,
+    pub(crate) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -76,7 +64,7 @@ impl AsyncGeneratorYield {
             .expect("must be async generator object");
 
         // 5. Let completion be NormalCompletion(value).
-        let value = registers.get(value);
+        let value = registers.get(value.into());
         let completion = Ok(value.clone());
 
         // TODO: 6. Assert: The execution context stack has at least two elements.
@@ -134,19 +122,4 @@ impl Operation for AsyncGeneratorYield {
     const NAME: &'static str = "AsyncGeneratorYield";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorYield";
     const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }

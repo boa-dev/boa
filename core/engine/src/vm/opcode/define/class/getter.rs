@@ -4,7 +4,10 @@ use crate::{
     builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        CompletionType, Registers,
+    },
     Context, JsResult,
 };
 
@@ -16,21 +19,19 @@ use crate::{
 pub(crate) struct DefineClassStaticGetterByName;
 
 impl DefineClassStaticGetterByName {
-    fn operation(
-        class: u32,
-        function: u32,
-        index: usize,
+    pub(crate) fn operation(
+        (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let class = registers.get(class);
+        let function = registers.get(function.into());
+        let class = registers.get(class.into());
         let class = class.as_object().expect("class must be object");
         let key = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
         {
             let function_object = function
@@ -65,27 +66,6 @@ impl Operation for DefineClassStaticGetterByName {
     const NAME: &'static str = "DefineClassStaticGetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticGetterByName";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let class = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(class, function, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let class = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(class, function, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let class = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(class, function, index, registers, context)
-    }
 }
 
 /// `DefineClassGetterByName` implements the Opcode Operation for `Opcode::DefineClassGetterByName`
@@ -96,21 +76,19 @@ impl Operation for DefineClassStaticGetterByName {
 pub(crate) struct DefineClassGetterByName;
 
 impl DefineClassGetterByName {
-    fn operation(
-        class_proto: u32,
-        function: u32,
-        index: usize,
+    pub(crate) fn operation(
+        (class_proto, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let class_proto = registers.get(class_proto);
+        let function = registers.get(function.into());
+        let class_proto = registers.get(class_proto.into());
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
         {
             let function_object = function
@@ -145,27 +123,6 @@ impl Operation for DefineClassGetterByName {
     const NAME: &'static str = "DefineClassGetterByName";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByName";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let class_proto = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(class_proto, function, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let class_proto = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(class_proto, function, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let class_proto = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(class_proto, function, index, registers, context)
-    }
 }
 
 /// `DefineClassStaticGetterByValue` implements the Opcode Operation for `Opcode::DefineClassStaticGetterByValue`
@@ -176,16 +133,14 @@ impl Operation for DefineClassGetterByName {
 pub(crate) struct DefineClassStaticGetterByValue;
 
 impl DefineClassStaticGetterByValue {
-    fn operation(
-        function: u32,
-        key: u32,
-        class: u32,
+    pub(crate) fn operation(
+        (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let key = registers.get(key);
-        let class = registers.get(class);
+        let function = registers.get(function.into());
+        let key = registers.get(key.into());
+        let class = registers.get(class.into());
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -224,27 +179,6 @@ impl Operation for DefineClassStaticGetterByValue {
     const NAME: &'static str = "DefineClassStaticGetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticGetterByValue";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let key = context.vm.read::<u8>().into();
-        let class = context.vm.read::<u8>().into();
-        Self::operation(function, key, class, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let key = context.vm.read::<u16>().into();
-        let class = context.vm.read::<u16>().into();
-        Self::operation(function, key, class, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let key = context.vm.read::<u32>();
-        let class = context.vm.read::<u32>();
-        Self::operation(function, key, class, registers, context)
-    }
 }
 
 /// `DefineClassGetterByValue` implements the Opcode Operation for `Opcode::DefineClassGetterByValue`
@@ -255,16 +189,14 @@ impl Operation for DefineClassStaticGetterByValue {
 pub(crate) struct DefineClassGetterByValue;
 
 impl DefineClassGetterByValue {
-    fn operation(
-        function: u32,
-        key: u32,
-        class_proto: u32,
+    pub(crate) fn operation(
+        (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let key = registers.get(key);
-        let class_proto = registers.get(class_proto);
+        let function = registers.get(function.into());
+        let key = registers.get(key.into());
+        let class_proto = registers.get(class_proto.into());
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -302,25 +234,4 @@ impl Operation for DefineClassGetterByValue {
     const NAME: &'static str = "DefineClassGetterByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassGetterByValue";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let key = context.vm.read::<u8>().into();
-        let class_proto = context.vm.read::<u8>().into();
-        Self::operation(function, key, class_proto, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let key = context.vm.read::<u16>().into();
-        let class_proto = context.vm.read::<u16>().into();
-        Self::operation(function, key, class_proto, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let key = context.vm.read::<u32>();
-        let class_proto = context.vm.read::<u32>();
-        Self::operation(function, key, class_proto, registers, context)
-    }
 }
