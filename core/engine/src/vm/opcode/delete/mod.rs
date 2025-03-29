@@ -15,6 +15,7 @@ use super::VaryingOperand;
 pub(crate) struct DeletePropertyByName;
 
 impl DeletePropertyByName {
+    #[inline(always)]
     pub(super) fn operation(
         (object_register, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -51,6 +52,7 @@ impl Operation for DeletePropertyByName {
 pub(crate) struct DeletePropertyByValue;
 
 impl DeletePropertyByValue {
+    #[inline(always)]
     pub(super) fn operation(
         (object_register, key): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -86,6 +88,7 @@ impl Operation for DeletePropertyByValue {
 pub(crate) struct DeleteName;
 
 impl DeleteName {
+    #[inline(always)]
     pub(super) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -114,6 +117,7 @@ impl Operation for DeleteName {
 pub(crate) struct DeleteSuperThrow;
 
 impl DeleteSuperThrow {
+    #[inline(always)]
     pub(super) fn operation(_: (), _: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
         Err(JsNativeError::reference()
             .with_message("cannot delete a property of `super`")

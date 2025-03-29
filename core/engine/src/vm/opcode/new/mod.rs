@@ -13,6 +13,7 @@ use crate::{
 pub(crate) struct New;
 
 impl New {
+    #[inline(always)]
     pub(super) fn operation(
         argument_count: VaryingOperand,
         registers: &mut Registers,
@@ -50,6 +51,7 @@ impl Operation for New {
 pub(crate) struct NewSpread;
 
 impl NewSpread {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         registers: &mut Registers,

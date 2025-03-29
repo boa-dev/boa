@@ -16,6 +16,7 @@ use crate::{
 pub(crate) struct CreateForInIterator;
 
 impl CreateForInIterator {
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

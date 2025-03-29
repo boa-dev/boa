@@ -16,6 +16,7 @@ use crate::{
 pub(crate) struct CallEval;
 
 impl CallEval {
+    #[inline(always)]
     pub(super) fn operation(
         (argument_count, scope_index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -93,6 +94,7 @@ impl Operation for CallEval {
 pub(crate) struct CallEvalSpread;
 
 impl CallEvalSpread {
+    #[inline(always)]
     pub(super) fn operation(
         index: VaryingOperand,
         registers: &mut Registers,
@@ -178,6 +180,7 @@ impl Operation for CallEvalSpread {
 pub(crate) struct Call;
 
 impl Call {
+    #[inline(always)]
     pub(super) fn operation(
         argument_count: VaryingOperand,
         registers: &mut Registers,
@@ -211,6 +214,7 @@ impl Operation for Call {
 pub(crate) struct CallSpread;
 
 impl CallSpread {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         registers: &mut Registers,
@@ -260,6 +264,7 @@ impl Operation for CallSpread {
 pub(crate) struct ImportCall;
 
 impl ImportCall {
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

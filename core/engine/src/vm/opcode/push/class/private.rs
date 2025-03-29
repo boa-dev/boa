@@ -19,6 +19,7 @@ pub(crate) struct PushClassPrivateMethod;
 
 impl PushClassPrivateMethod {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, prototype, value, index): (
             VaryingOperand,
@@ -90,6 +91,7 @@ pub(crate) struct PushClassPrivateGetter;
 
 impl PushClassPrivateGetter {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -136,6 +138,7 @@ pub(crate) struct PushClassPrivateSetter;
 
 impl PushClassPrivateSetter {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

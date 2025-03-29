@@ -14,6 +14,7 @@ use crate::{
 pub(crate) struct Jump;
 
 impl Jump {
+    #[inline(always)]
     pub(crate) fn operation(
         address: u32,
         _: &mut Registers,
@@ -39,6 +40,7 @@ pub(crate) struct JumpIfTrue;
 
 impl JumpIfTrue {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
@@ -67,6 +69,7 @@ pub(crate) struct JumpIfFalse;
 
 impl JumpIfFalse {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
@@ -95,6 +98,7 @@ pub(crate) struct JumpIfNotUndefined;
 
 impl JumpIfNotUndefined {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
@@ -123,6 +127,7 @@ pub(crate) struct JumpIfNullOrUndefined;
 
 impl JumpIfNullOrUndefined {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
@@ -150,6 +155,7 @@ impl Operation for JumpIfNullOrUndefined {
 pub(crate) struct JumpTable;
 
 impl JumpTable {
+    #[inline(always)]
     pub(crate) fn operation(
         (default, addresses): (u32, Vec<u32>),
         _: &mut Registers,

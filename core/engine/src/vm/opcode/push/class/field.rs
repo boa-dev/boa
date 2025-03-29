@@ -16,6 +16,7 @@ use crate::{
 pub(crate) struct PushClassField;
 
 impl PushClassField {
+    #[inline(always)]
     pub(crate) fn operation(
         (class, name, function, is_anonyms_function): (
             VaryingOperand,
@@ -73,6 +74,7 @@ pub(crate) struct PushClassFieldPrivate;
 
 impl PushClassFieldPrivate {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

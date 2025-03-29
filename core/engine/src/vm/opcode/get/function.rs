@@ -16,6 +16,7 @@ pub(crate) struct GetFunction;
 
 impl GetFunction {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

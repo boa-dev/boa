@@ -11,6 +11,7 @@ use crate::{vm::CompletionType, Context, JsResult};
 pub(crate) struct HasRestrictedGlobalProperty;
 
 impl HasRestrictedGlobalProperty {
+    #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -43,6 +44,7 @@ impl Operation for HasRestrictedGlobalProperty {
 pub(crate) struct CanDeclareGlobalFunction;
 
 impl CanDeclareGlobalFunction {
+    #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -75,6 +77,7 @@ impl Operation for CanDeclareGlobalFunction {
 pub(crate) struct CanDeclareGlobalVar;
 
 impl CanDeclareGlobalVar {
+    #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -108,6 +111,7 @@ pub(crate) struct CreateGlobalFunctionBinding;
 
 impl CreateGlobalFunctionBinding {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         (function, configurable, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -148,6 +152,7 @@ pub(crate) struct CreateGlobalVarBinding;
 
 impl CreateGlobalVarBinding {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         (configurable, index): (VaryingOperand, VaryingOperand),
         _: &mut Registers,

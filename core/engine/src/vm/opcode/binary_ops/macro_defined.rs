@@ -17,7 +17,8 @@ macro_rules! implement_bin_ops {
 
         impl $name {
             #[allow(clippy::needless_pass_by_value)]
-            pub(crate) fn operation(
+            #[inline(always)]
+    pub(crate) fn operation(
                 (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
                 registers: &mut Registers,
                 context: &mut Context,

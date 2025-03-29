@@ -17,6 +17,7 @@ use crate::{
 pub(crate) struct ThrowMutateImmutable;
 
 impl ThrowMutateImmutable {
+    #[inline(always)]
     pub(crate) fn operation(
         index: VaryingOperand,
         _: &mut Registers,
@@ -51,6 +52,7 @@ impl Operation for ThrowMutateImmutable {
 pub(crate) struct SetName;
 
 impl SetName {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -85,6 +87,7 @@ impl Operation for SetName {
 pub(crate) struct SetNameByLocator;
 
 impl SetNameByLocator {
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

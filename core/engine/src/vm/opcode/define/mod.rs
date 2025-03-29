@@ -19,6 +19,7 @@ pub(crate) struct DefVar;
 
 impl DefVar {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         index: VaryingOperand,
         _: &mut Registers,
@@ -50,6 +51,7 @@ impl Operation for DefVar {
 pub(crate) struct DefInitVar;
 
 impl DefInitVar {
+    #[inline(always)]
     pub(super) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -81,6 +83,7 @@ pub(crate) struct PutLexicalValue;
 
 impl PutLexicalValue {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

@@ -16,6 +16,7 @@ pub(crate) struct SetPrototype;
 
 impl SetPrototype {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

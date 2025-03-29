@@ -14,6 +14,7 @@ pub(crate) struct CreateMappedArgumentsObject;
 
 impl CreateMappedArgumentsObject {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -58,6 +59,7 @@ pub(crate) struct CreateUnmappedArgumentsObject;
 
 impl CreateUnmappedArgumentsObject {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,

@@ -16,6 +16,7 @@ pub(crate) struct LogicalAnd;
 impl LogicalAnd {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(crate) fn operation(
         (exit, lhs): (u32, VaryingOperand),
         registers: &mut Registers,
@@ -45,6 +46,7 @@ pub(crate) struct LogicalOr;
 impl LogicalOr {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(crate) fn operation(
         (exit, lhs): (u32, VaryingOperand),
         registers: &mut Registers,
@@ -74,6 +76,7 @@ pub(crate) struct Coalesce;
 impl Coalesce {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(crate) fn operation(
         (exit, lhs): (u32, VaryingOperand),
         registers: &mut Registers,

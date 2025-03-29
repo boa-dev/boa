@@ -17,6 +17,7 @@ pub(crate) struct PushNewArray;
 
 impl PushNewArray {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         array: VaryingOperand,
         registers: &mut Registers,
@@ -47,6 +48,7 @@ pub(crate) struct PushValueToArray;
 
 impl PushValueToArray {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (value, array): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -78,6 +80,7 @@ impl Operation for PushValueToArray {
 pub(crate) struct PushElisionToArray;
 
 impl PushElisionToArray {
+    #[inline(always)]
     pub(crate) fn operation(
         array: VaryingOperand,
         registers: &mut Registers,
@@ -107,6 +110,7 @@ impl Operation for PushElisionToArray {
 pub(crate) struct PushIteratorToArray;
 
 impl PushIteratorToArray {
+    #[inline(always)]
     pub(crate) fn operation(
         array: VaryingOperand,
         registers: &mut Registers,

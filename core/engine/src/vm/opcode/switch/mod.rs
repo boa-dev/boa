@@ -14,6 +14,7 @@ pub(crate) struct Case;
 
 impl Case {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         (address, value, condition): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

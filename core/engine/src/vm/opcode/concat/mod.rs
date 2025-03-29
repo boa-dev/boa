@@ -12,6 +12,7 @@ use crate::{
 pub(crate) struct ConcatToString;
 
 impl ConcatToString {
+    #[inline(always)]
     pub(super) fn operation(
         (string, values): (VaryingOperand, Vec<VaryingOperand>),
         registers: &mut Registers,

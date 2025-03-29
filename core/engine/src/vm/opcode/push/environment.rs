@@ -18,6 +18,7 @@ pub(crate) struct PushScope;
 
 impl PushScope {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         index: VaryingOperand,
         _: &mut Registers,
@@ -46,6 +47,7 @@ impl Operation for PushScope {
 pub(crate) struct PushObjectEnvironment;
 
 impl PushObjectEnvironment {
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -73,6 +75,7 @@ pub(crate) struct PushPrivateEnvironment;
 
 impl PushPrivateEnvironment {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (class, name_indices): (VaryingOperand, Vec<u32>),
         registers: &mut Registers,
@@ -117,6 +120,7 @@ impl Operation for PushPrivateEnvironment {
 pub(crate) struct PopPrivateEnvironment;
 
 impl PopPrivateEnvironment {
+    #[inline(always)]
     pub(crate) fn operation(
         _: (),
         _: &mut Registers,

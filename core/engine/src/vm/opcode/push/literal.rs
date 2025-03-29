@@ -16,6 +16,7 @@ pub(crate) struct PushLiteral;
 
 impl PushLiteral {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -46,6 +47,7 @@ impl Operation for PushLiteral {
 pub(crate) struct PushRegExp;
 
 impl PushRegExp {
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, pattern_index, flags_index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

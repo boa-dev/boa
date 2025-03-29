@@ -19,6 +19,7 @@ use crate::{
 pub(crate) struct DefineClassStaticSetterByName;
 
 impl DefineClassStaticSetterByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -77,6 +78,7 @@ impl Operation for DefineClassStaticSetterByName {
 pub(crate) struct DefineClassSetterByName;
 
 impl DefineClassSetterByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -136,6 +138,7 @@ impl Operation for DefineClassSetterByName {
 pub(crate) struct DefineClassStaticSetterByValue;
 
 impl DefineClassStaticSetterByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -193,6 +196,7 @@ impl Operation for DefineClassStaticSetterByValue {
 pub(crate) struct DefineClassSetterByValue;
 
 impl DefineClassSetterByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

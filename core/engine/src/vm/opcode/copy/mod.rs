@@ -12,6 +12,7 @@ use crate::{
 pub(crate) struct CopyDataProperties;
 
 impl CopyDataProperties {
+    #[inline(always)]
     pub(super) fn operation(
         (object, source, keys): (VaryingOperand, VaryingOperand, Vec<VaryingOperand>),
         registers: &mut Registers,

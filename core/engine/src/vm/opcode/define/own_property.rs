@@ -16,6 +16,7 @@ use crate::{
 pub(crate) struct DefineOwnPropertyByName;
 
 impl DefineOwnPropertyByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -57,6 +58,7 @@ impl Operation for DefineOwnPropertyByName {
 pub(crate) struct DefineOwnPropertyByValue;
 
 impl DefineOwnPropertyByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

@@ -15,6 +15,7 @@ use crate::{
 pub(crate) struct GetIterator;
 
 impl GetIterator {
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -41,6 +42,7 @@ impl Operation for GetIterator {
 pub(crate) struct GetAsyncIterator;
 
 impl GetAsyncIterator {
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

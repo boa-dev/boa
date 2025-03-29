@@ -15,6 +15,7 @@ pub(crate) struct LogicalNot;
 
 impl LogicalNot {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

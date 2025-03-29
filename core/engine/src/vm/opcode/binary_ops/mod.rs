@@ -20,6 +20,7 @@ pub(crate) struct NotEq;
 
 impl NotEq {
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -49,6 +50,7 @@ pub(crate) struct StrictEq;
 impl StrictEq {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -78,6 +80,7 @@ pub(crate) struct StrictNotEq;
 impl StrictNotEq {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -106,6 +109,7 @@ pub(crate) struct In;
 
 impl In {
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -143,6 +147,7 @@ pub(crate) struct InPrivate;
 
 impl InPrivate {
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(super) fn operation(
         (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

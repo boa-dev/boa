@@ -1,3 +1,6 @@
+#![allow(clippy::inline_always)]
+
+
 /// The opcodes of the vm.
 use crate::{
     vm::{CompletionType, Registers},
@@ -354,6 +357,28 @@ macro_rules! generate_opcodes {
             )*
         }
 
+        type OpcodeHandler = fn(&mut Context, &mut Registers, u64) -> JsResult<CompletionType>;
+
+        static OPCODE_HANDLERS: [OpcodeHandler; 256] = {
+            [
+                $(
+                    paste::paste! {
+                        [<handle_ $Variant:lower>]
+                    },
+                )*
+            ]
+        };
+
+        $(
+            paste::paste! {
+            #[inline(always)]
+                fn [<handle_ $Variant:lower>](context: &mut Context, registers: &mut Registers, instruction: u64) -> JsResult<CompletionType> {
+                    let args = DecodeAndDispatch::decode_and_dispatch(instruction, &context.vm.frame.code_block.bytecode.extended);
+                    $Variant::operation(args, registers, context)
+                }
+            }
+        )*
+
         impl Context {
             pub(crate) fn execute_bytecode_instruction(&mut self, registers: &mut Registers) -> JsResult<CompletionType> {
                 let frame = self.vm.frame_mut();
@@ -361,25 +386,17 @@ macro_rules! generate_opcodes {
                 frame.pc += 1;
                 let instruction = self.vm.frame.code_block.bytecode.bytecode[pc as usize];
                 let opcode = Opcode::decode(instruction);
-                let format = ArgumentsFormat::decode(instruction);
-                match opcode {
-                    $(
-                        Opcode::$Variant => {
-                            let args = DecodeAndDispatch::decode_and_dispatch(instruction, format, &self.vm.frame.code_block.bytecode.extended);
-                            $Variant::operation(args, registers, self)
-                        },
-                    )*
-                }
+                OPCODE_HANDLERS[opcode as usize](self, registers, instruction)
             }
         }
 
-        // TODO: TEMPORARY
         $(
             $(
                 struct $Variant {}
                 impl $Variant {
                     #[allow(unused_parens)]
                     #[allow(unused_variables)]
+                    #[inline(always)]
                     fn operation(args: (), registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
                         $mapping::operation(args, registers, context)
                     }

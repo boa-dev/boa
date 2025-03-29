@@ -11,6 +11,7 @@ use crate::{
 pub(crate) struct Reserved;
 
 impl Reserved {
+    #[inline(always)]
     pub(crate) fn operation(_: (), _: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
         unreachable!("Reserved opcodes are unreachable!")
     }

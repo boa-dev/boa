@@ -16,6 +16,7 @@ use crate::{
 pub(crate) struct IteratorNext;
 
 impl IteratorNext {
+    #[inline(always)]
     pub(crate) fn operation(
         _: (),
         _: &mut Registers,
@@ -51,6 +52,7 @@ impl Operation for IteratorNext {
 pub(crate) struct IteratorFinishAsyncNext;
 
 impl IteratorFinishAsyncNext {
+    #[inline(always)]
     pub(crate) fn operation(
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -94,6 +96,7 @@ pub(crate) struct IteratorResult;
 
 impl IteratorResult {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -127,6 +130,7 @@ impl Operation for IteratorResult {
 pub(crate) struct IteratorValue;
 
 impl IteratorValue {
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -163,6 +167,7 @@ pub(crate) struct IteratorDone;
 
 impl IteratorDone {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         done: VaryingOperand,
         registers: &mut Registers,
@@ -194,6 +199,7 @@ impl Operation for IteratorDone {
 pub(crate) struct IteratorReturn;
 
 impl IteratorReturn {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, called): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -244,6 +250,7 @@ impl Operation for IteratorReturn {
 pub(crate) struct IteratorToArray;
 
 impl IteratorToArray {
+    #[inline(always)]
     pub(crate) fn operation(
         array: VaryingOperand,
         registers: &mut Registers,
@@ -302,6 +309,7 @@ pub(crate) struct IteratorStackEmpty;
 
 impl IteratorStackEmpty {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         empty: VaryingOperand,
         registers: &mut Registers,
@@ -328,6 +336,7 @@ pub(crate) struct CreateIteratorResult;
 
 impl CreateIteratorResult {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (value, done): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

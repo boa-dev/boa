@@ -22,6 +22,7 @@ pub(crate) use private::*;
 pub(crate) struct PushClassPrototype;
 
 impl PushClassPrototype {
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, class, superclass): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

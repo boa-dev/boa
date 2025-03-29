@@ -16,6 +16,7 @@ pub(crate) struct PushEmptyObject;
 
 impl PushEmptyObject {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,

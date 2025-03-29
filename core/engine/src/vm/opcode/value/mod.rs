@@ -13,6 +13,7 @@ use crate::{
 pub(crate) struct ValueNotNullOrUndefined;
 
 impl ValueNotNullOrUndefined {
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -48,6 +49,7 @@ pub(crate) struct IsObject;
 
 impl IsObject {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

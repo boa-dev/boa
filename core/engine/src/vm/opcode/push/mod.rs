@@ -30,7 +30,8 @@ macro_rules! implement_push_generics {
         pub(crate) struct $name;
 
         impl $name {
-            pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+            #[inline(always)]
+    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
                 registers.set(dst.value, $push_value.into());
                 Ok(CompletionType::Normal)
             }

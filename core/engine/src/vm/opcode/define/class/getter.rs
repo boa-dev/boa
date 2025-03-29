@@ -19,6 +19,7 @@ use crate::{
 pub(crate) struct DefineClassStaticGetterByName;
 
 impl DefineClassStaticGetterByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -76,6 +77,7 @@ impl Operation for DefineClassStaticGetterByName {
 pub(crate) struct DefineClassGetterByName;
 
 impl DefineClassGetterByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -133,6 +135,7 @@ impl Operation for DefineClassGetterByName {
 pub(crate) struct DefineClassStaticGetterByValue;
 
 impl DefineClassStaticGetterByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -189,6 +192,7 @@ impl Operation for DefineClassStaticGetterByValue {
 pub(crate) struct DefineClassGetterByValue;
 
 impl DefineClassGetterByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

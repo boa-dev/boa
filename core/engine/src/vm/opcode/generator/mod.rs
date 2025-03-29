@@ -27,6 +27,7 @@ pub(crate) use yield_stm::*;
 pub(crate) struct Generator;
 
 impl Generator {
+    #[inline(always)]
     pub(super) fn operation(
         r#async: VaryingOperand,
         registers: &mut Registers,
@@ -117,6 +118,7 @@ impl Operation for Generator {
 pub(crate) struct AsyncGeneratorClose;
 
 impl AsyncGeneratorClose {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         registers: &mut Registers,
@@ -175,6 +177,7 @@ impl Operation for AsyncGeneratorClose {
 pub(crate) struct GeneratorNext;
 
 impl GeneratorNext {
+    #[inline(always)]
     pub(super) fn operation(
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -211,6 +214,7 @@ pub(crate) struct JumpIfNotResumeKind;
 
 impl JumpIfNotResumeKind {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         (exit, expected, value): (u32, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -238,6 +242,7 @@ impl Operation for JumpIfNotResumeKind {
 pub(crate) struct GeneratorDelegateNext;
 
 impl GeneratorDelegateNext {
+    #[inline(always)]
     pub(super) fn operation(
         (throw_method_undefined, return_method_undefined, value, resume_kind, is_return): (
             u32,
@@ -329,6 +334,7 @@ impl Operation for GeneratorDelegateNext {
 pub(crate) struct GeneratorDelegateResume;
 
 impl GeneratorDelegateResume {
+    #[inline(always)]
     pub(super) fn operation(
         (return_gen, exit, value, resume_kind, is_return): (
             u32,

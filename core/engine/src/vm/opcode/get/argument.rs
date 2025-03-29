@@ -15,6 +15,7 @@ pub(crate) struct GetArgument;
 
 impl GetArgument {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (index, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

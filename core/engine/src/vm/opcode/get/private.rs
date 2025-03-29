@@ -14,6 +14,7 @@ use crate::{
 pub(crate) struct GetPrivateField;
 
 impl GetPrivateField {
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

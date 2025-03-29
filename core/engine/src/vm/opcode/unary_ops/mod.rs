@@ -24,6 +24,7 @@ pub(crate) struct TypeOf;
 
 impl TypeOf {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -51,6 +52,7 @@ impl Operation for TypeOf {
 pub(crate) struct Pos;
 
 impl Pos {
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -78,6 +80,7 @@ impl Operation for Pos {
 pub(crate) struct Neg;
 
 impl Neg {
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -105,6 +108,7 @@ impl Operation for Neg {
 pub(crate) struct BitNot;
 
 impl BitNot {
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

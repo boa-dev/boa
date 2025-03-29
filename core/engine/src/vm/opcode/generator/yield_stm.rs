@@ -16,6 +16,7 @@ pub(crate) struct GeneratorYield;
 
 impl GeneratorYield {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -42,6 +43,7 @@ pub(crate) struct AsyncGeneratorYield;
 
 impl AsyncGeneratorYield {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

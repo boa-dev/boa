@@ -16,7 +16,8 @@ macro_rules! implement_push_numbers_with_conversion {
         pub(crate) struct $name;
 
         impl $name {
-            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+            #[inline(always)]
+    pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
                 registers.set(dst.into(), i32::from(value).into());
                 Ok(CompletionType::Normal)
             }
@@ -40,7 +41,8 @@ macro_rules! implement_push_numbers_no_conversion {
         pub(crate) struct $name;
 
         impl $name {
-            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+            #[inline(always)]
+    pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
                 registers.set(dst.into(), value.into());
                 Ok(CompletionType::Normal)
             }

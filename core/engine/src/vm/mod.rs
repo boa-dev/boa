@@ -29,7 +29,7 @@ mod runtime_limits;
 pub(crate) use inline_cache::InlineCache;
 
 // TODO: see if this can be exposed on all features.
-pub(crate) use opcode::{Opcode, ByteCodeEmitter, VaryingOperand};
+pub(crate) use opcode::{ByteCodeEmitter, Opcode, VaryingOperand};
 pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},
@@ -432,8 +432,37 @@ impl Context {
         // #[cfg(not(feature = "trace"))]
         let result = self.execute_instruction(f, registers);
 
-        let result = match result {
-            Ok(result) => result,
+        match result {
+            Ok(CompletionType::Normal) => ControlFlow::Continue(()),
+            Ok(CompletionType::Return) => {
+                let frame = self.vm.frame();
+                let fp = frame.fp() as usize;
+                let exit_early = frame.exit_early();
+                self.vm.stack.truncate(fp);
+
+                let result = self.vm.take_return_value();
+                if exit_early {
+                    return ControlFlow::Break(CompletionRecord::Normal(result));
+                }
+
+                self.vm.push(result);
+                self.vm.pop_frame().expect("frame must exist");
+                registers.pop_function(self.vm.frame().code_block().register_count as usize);
+                ControlFlow::Continue(())
+            }
+            Ok(CompletionType::Yield) => {
+                let result = self.vm.take_return_value();
+                if self.vm.frame().exit_early() {
+                    return ControlFlow::Break(CompletionRecord::Return(result));
+                }
+
+                self.vm.push(result);
+                self.vm.pop_frame().expect("frame must exist");
+                registers.pop_function(self.vm.frame().code_block().register_count as usize);
+                ControlFlow::Continue(())
+            }
+
+            Ok(CompletionType::Throw) => self.handle_thow(registers),
             Err(err) => {
                 // If we hit the execution step limit, bubble up the error to the
                 // (Rust) caller instead of trying to handle as an exception.
@@ -471,87 +500,56 @@ impl Context {
                 let err = err.inject_realm(self.realm().clone());
 
                 self.vm.pending_exception = Some(err);
-                CompletionType::Throw
-            }
-        };
-
-        match result {
-            CompletionType::Normal => {}
-            CompletionType::Return => {
-                let frame = self.vm.frame();
-                let fp = frame.fp() as usize;
-                let exit_early = frame.exit_early();
-                self.vm.stack.truncate(fp);
-
-                let result = self.vm.take_return_value();
-                if exit_early {
-                    return ControlFlow::Break(CompletionRecord::Normal(result));
-                }
-
-                self.vm.push(result);
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
-            }
-            CompletionType::Throw => {
-                let frame = self.vm.frame();
-                let mut fp = frame.fp();
-                let mut env_fp = frame.env_fp;
-                if frame.exit_early() {
-                    self.vm.environments.truncate(env_fp as usize);
-                    self.vm.stack.truncate(fp as usize);
-                    return ControlFlow::Break(CompletionRecord::Throw(
-                        self.vm
-                            .pending_exception
-                            .take()
-                            .expect("Err must exist for a CompletionType::Throw"),
-                    ));
-                }
-
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
-
-                loop {
-                    fp = self.vm.frame.fp();
-                    env_fp = self.vm.frame.env_fp;
-                    let pc = self.vm.frame.pc;
-                    let exit_early = self.vm.frame.exit_early();
-
-                    if self.vm.handle_exception_at(pc) {
-                        return ControlFlow::Continue(());
-                    }
-
-                    if exit_early {
-                        return ControlFlow::Break(CompletionRecord::Throw(
-                            self.vm
-                                .pending_exception
-                                .take()
-                                .expect("Err must exist for a CompletionType::Throw"),
-                        ));
-                    }
-
-                    if self.vm.pop_frame().is_some() {
-                        registers
-                            .pop_function(self.vm.frame().code_block().register_count as usize);
-                    } else {
-                        break;
-                    }
-                }
-                self.vm.environments.truncate(env_fp as usize);
-                self.vm.stack.truncate(fp as usize);
-            }
-            // Early return immediately.
-            CompletionType::Yield => {
-                let result = self.vm.take_return_value();
-                if self.vm.frame().exit_early() {
-                    return ControlFlow::Break(CompletionRecord::Return(result));
-                }
-
-                self.vm.push(result);
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
+                self.handle_thow(registers)
             }
         }
+    }
 
+    fn handle_thow(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame();
+        let mut fp = frame.fp();
+        let mut env_fp = frame.env_fp;
+        if frame.exit_early() {
+            self.vm.environments.truncate(env_fp as usize);
+            self.vm.stack.truncate(fp as usize);
+            return ControlFlow::Break(CompletionRecord::Throw(
+                self.vm
+                    .pending_exception
+                    .take()
+                    .expect("Err must exist for a CompletionType::Throw"),
+            ));
+        }
+
+        self.vm.pop_frame().expect("frame must exist");
+        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+
+        loop {
+            fp = self.vm.frame.fp();
+            env_fp = self.vm.frame.env_fp;
+            let pc = self.vm.frame.pc;
+            let exit_early = self.vm.frame.exit_early();
+
+            if self.vm.handle_exception_at(pc) {
+                return ControlFlow::Continue(());
+            }
+
+            if exit_early {
+                return ControlFlow::Break(CompletionRecord::Throw(
+                    self.vm
+                        .pending_exception
+                        .take()
+                        .expect("Err must exist for a CompletionType::Throw"),
+                ));
+            }
+
+            if self.vm.pop_frame().is_some() {
+                registers.pop_function(self.vm.frame().code_block().register_count as usize);
+            } else {
+                break;
+            }
+        }
+        self.vm.environments.truncate(env_fp as usize);
+        self.vm.stack.truncate(fp as usize);
         ControlFlow::Continue(())
     }
 

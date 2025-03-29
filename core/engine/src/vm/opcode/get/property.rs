@@ -16,6 +16,7 @@ use crate::{
 pub(crate) struct GetPropertyByName;
 
 impl GetPropertyByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, receiver, value, index): (
             VaryingOperand,
@@ -88,6 +89,7 @@ impl Operation for GetPropertyByName {
 pub(crate) struct GetPropertyByValue;
 
 impl GetPropertyByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, key, receiver, object): (
             VaryingOperand,
@@ -143,6 +145,7 @@ impl Operation for GetPropertyByValue {
 pub(crate) struct GetPropertyByValuePush;
 
 impl GetPropertyByValuePush {
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, key, receiver, object): (
             VaryingOperand,

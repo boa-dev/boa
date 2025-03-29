@@ -12,6 +12,7 @@ use crate::{
 pub(crate) struct ToPropertyKey;
 
 impl ToPropertyKey {
+    #[inline(always)]
     pub(super) fn operation(
         (value, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

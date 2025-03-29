@@ -17,6 +17,7 @@ use crate::{
 pub(crate) struct DefineClassStaticMethodByName;
 
 impl DefineClassStaticMethodByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -70,6 +71,7 @@ impl Operation for DefineClassStaticMethodByName {
 pub(crate) struct DefineClassMethodByName;
 
 impl DefineClassMethodByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -123,6 +125,7 @@ impl Operation for DefineClassMethodByName {
 pub(crate) struct DefineClassStaticMethodByValue;
 
 impl DefineClassStaticMethodByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -174,6 +177,7 @@ impl Operation for DefineClassStaticMethodByValue {
 pub(crate) struct DefineClassMethodByValue;
 
 impl DefineClassMethodByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

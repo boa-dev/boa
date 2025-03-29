@@ -465,10 +465,10 @@ impl JumpTwoArgU32 {
     }
 }
 
-pub(crate) trait DecodeAndDispatch: Sized+ std::fmt::Debug {
+pub(crate) trait DecodeAndDispatch: Sized + std::fmt::Debug {
     fn encode(self, extended: &mut Vec<u32>) -> u64;
 
-    fn decode_and_dispatch(instruction: u64, format: ArgumentsFormat, extended: &[u32]) -> Self;
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self;
 }
 
 impl DecodeAndDispatch for () {
@@ -476,9 +476,8 @@ impl DecodeAndDispatch for () {
         Arguments::OpcodeOnly.encode(extended)
     }
 
-    fn decode_and_dispatch(_: u64, _: ArgumentsFormat, _: &[u32]) -> Self {
-        return ();
-    }
+    #[inline(always)]
+    fn decode_and_dispatch(_: u64, _: &[u32]) -> Self {}
 }
 
 impl DecodeAndDispatch for VaryingOperand {
@@ -491,14 +490,15 @@ impl DecodeAndDispatch for VaryingOperand {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, format: ArgumentsFormat, _: &[u32]) -> Self {
-        let args = match format {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, _: &[u32]) -> Self {
+        let format = ArgumentsFormat::decode(instruction);
+        match format {
             ArgumentsFormat::OneArgU8 => OneArgU8::decode(instruction).0.into(),
             ArgumentsFormat::OneArgU16 => OneArgU16::decode(instruction).0.into(),
             ArgumentsFormat::OneArgU32 => OneArgU32::decode(instruction).0.into(),
             _ => unreachable!(),
-        };
-        return args;
+        }
     }
 }
 
@@ -516,8 +516,10 @@ impl DecodeAndDispatch for (VaryingOperand, i8) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, format: ArgumentsFormat, extended: &[u32]) -> Self {
-        let args = match format {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
+        let format = ArgumentsFormat::decode(instruction);
+        match format {
             ArgumentsFormat::TwoArgU8 => {
                 let args = TwoArgU8::decode(instruction);
                 (args.0.into(), args.1 as i8)
@@ -531,8 +533,7 @@ impl DecodeAndDispatch for (VaryingOperand, i8) {
                 (args.0.into(), args.1 as i8)
             }
             _ => unreachable!(),
-        };
-        return args;
+        }
     }
 }
 
@@ -552,8 +553,10 @@ impl DecodeAndDispatch for (VaryingOperand, i16) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, format: ArgumentsFormat, extended: &[u32]) -> Self {
-        let args = match format {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
+        let format = ArgumentsFormat::decode(instruction);
+        match format {
             ArgumentsFormat::TwoArgU16 => {
                 let args = TwoArgU16::decode(instruction);
                 (args.0.into(), args.1 as i16)
@@ -563,8 +566,7 @@ impl DecodeAndDispatch for (VaryingOperand, i16) {
                 (args.0.into(), args.1 as i16)
             }
             _ => unreachable!(),
-        };
-        return args;
+        }
     }
 }
 
@@ -574,10 +576,10 @@ impl DecodeAndDispatch for (VaryingOperand, i32) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = TwoArgU32::decode(instruction, extended);
-        let args = (args.0.into(), args.1 as i32);
-        return args;
+        (args.0.into(), args.1 as i32)
     }
 }
 
@@ -587,10 +589,10 @@ impl DecodeAndDispatch for (VaryingOperand, f32) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = TwoArgU32::decode(instruction, extended);
-        let args = (args.0.into(), f32::from_bits(args.1));
-        return args;
+        (args.0.into(), f32::from_bits(args.1))
     }
 }
 
@@ -603,13 +605,13 @@ impl DecodeAndDispatch for (VaryingOperand, f64) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = ThreeArgU32::decode(instruction, extended);
-        let low = args.1 as u64;
-        let high = args.2 as u64;
-        let float = (u64::from(high) << 32) | u64::from(low);
-        let args = (args.0.into(), f64::from_bits(float));
-        return args;
+        let low: u64 = args.1.into();
+        let high: u64 = args.2.into();
+        let float = (high << 32) | low;
+        (args.0.into(), f64::from_bits(float))
     }
 }
 
@@ -633,8 +635,10 @@ impl DecodeAndDispatch for (VaryingOperand, VaryingOperand) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, format: ArgumentsFormat, extended: &[u32]) -> Self {
-        let args = match format {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
+        let format = ArgumentsFormat::decode(instruction);
+        match format {
             ArgumentsFormat::TwoArgU8 => {
                 let args = TwoArgU8::decode(instruction);
                 (args.0.into(), args.1.into())
@@ -648,8 +652,7 @@ impl DecodeAndDispatch for (VaryingOperand, VaryingOperand) {
                 (args.0.into(), args.1.into())
             }
             _ => unreachable!(),
-        };
-        return args;
+        }
     }
 }
 
@@ -701,8 +704,10 @@ impl DecodeAndDispatch for (VaryingOperand, VaryingOperand, VaryingOperand) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, format: ArgumentsFormat, extended: &[u32]) -> Self {
-        let args = match format {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
+        let format = ArgumentsFormat::decode(instruction);
+        match format {
             ArgumentsFormat::ThreeArgU8 => {
                 let args = ThreeArgU8::decode(instruction);
                 (args.0.into(), args.1.into(), args.2.into())
@@ -716,8 +721,7 @@ impl DecodeAndDispatch for (VaryingOperand, VaryingOperand, VaryingOperand) {
                 (args.0.into(), args.1.into(), args.2.into())
             }
             _ => unreachable!(),
-        };
-        return args;
+        }
     }
 }
 
@@ -739,10 +743,10 @@ impl DecodeAndDispatch
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = FourArgU32::decode(instruction, extended);
-        let args = (args.0.into(), args.1.into(), args.2.into(), args.3.into());
-        return args;
+        (args.0.into(), args.1.into(), args.2.into(), args.3.into())
     }
 }
 
@@ -752,9 +756,9 @@ impl DecodeAndDispatch for u32 {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, _: &[u32]) -> Self {
-        let args = OneArgU32::decode(instruction).0.into();
-        return args;
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, _: &[u32]) -> Self {
+        OneArgU32::decode(instruction).0
     }
 }
 
@@ -764,10 +768,10 @@ impl DecodeAndDispatch for (u32, VaryingOperand) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = TwoArgU32::decode(instruction, extended);
-        let args = (args.0, args.1.into());
-        return args;
+        (args.0, args.1.into())
     }
 }
 
@@ -777,10 +781,10 @@ impl DecodeAndDispatch for (u32, VaryingOperand, VaryingOperand) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = ThreeArgU32::decode(instruction, extended);
-        let args = (args.0.into(), args.1.into(), args.2.into());
-        return args;
+        (args.0, args.1.into(), args.2.into())
     }
 }
 
@@ -795,12 +799,12 @@ impl DecodeAndDispatch for (VaryingOperand, Vec<VaryingOperand>) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = VariableArgsU32::decode(instruction, extended);
         let (one, rest) = args.0.split_at(1);
         let rest = rest.iter().map(|v| (*v).into()).collect();
-        let args = (one[0].into(), rest);
-        return args;
+        (one[0].into(), rest)
     }
 }
 
@@ -816,12 +820,12 @@ impl DecodeAndDispatch for (VaryingOperand, VaryingOperand, Vec<VaryingOperand>)
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = VariableArgsU32::decode(instruction, extended);
         let (one, rest) = args.0.split_at(2);
         let rest = rest.iter().map(|v| (*v).into()).collect();
-        let args = (one[0].into(), one[1].into(), rest);
-        return args;
+        (one[0].into(), one[1].into(), rest)
     }
 }
 
@@ -836,13 +840,13 @@ impl DecodeAndDispatch for (u32, u64, VaryingOperand) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = VariableArgsU32::decode(instruction, extended);
         let low = args.0[1];
         let high = args.0[2];
         let two = (u64::from(high) << 32) | u64::from(low);
-        let args = (args.0[0], two, args.0[3].into());
-        return args;
+        (args.0[0], two, args.0[3].into())
     }
 }
 
@@ -858,16 +862,16 @@ impl DecodeAndDispatch for (u32, u32, VaryingOperand, VaryingOperand, VaryingOpe
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = VariableArgsU32::decode(instruction, extended);
-        let args = (
+        (
             args.0[0],
             args.0[1],
             args.0[2].into(),
             args.0[3].into(),
             args.0[4].into(),
-        );
-        return args;
+        )
     }
 }
 
@@ -882,11 +886,10 @@ impl DecodeAndDispatch for (u32, Vec<u32>) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = VariableArgsU32::decode(instruction, extended);
         let (one, rest) = args.0.split_at(1);
-        let args = (one[0].into(), Vec::from(rest));
-        return args;
+        (one[0], Vec::from(rest))
     }
 }
 
@@ -903,14 +906,14 @@ impl DecodeAndDispatch for (u64, VaryingOperand, Vec<u32>) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = VariableArgsU32::decode(instruction, extended);
         let (one, rest) = args.0.split_at(3);
         let low = args.0[0];
         let high = args.0[1];
         let two = (u64::from(high) << 32) | u64::from(low);
-        let args = (two, one[2].into(), Vec::from(rest));
-        return args;
+        (two, one[2].into(), Vec::from(rest))
     }
 }
 
@@ -925,10 +928,10 @@ impl DecodeAndDispatch for (VaryingOperand, Vec<u32>) {
         args.encode(extended)
     }
 
-    fn decode_and_dispatch(instruction: u64, _: ArgumentsFormat, extended: &[u32]) -> Self {
+    #[inline(always)]
+    fn decode_and_dispatch(instruction: u64, extended: &[u32]) -> Self {
         let args = VariableArgsU32::decode(instruction, extended);
         let (one, rest) = args.0.split_at(1);
-        let args = (one[0].into(), Vec::from(rest));
-        return args;
+        (one[0].into(), Vec::from(rest))
     }
 }

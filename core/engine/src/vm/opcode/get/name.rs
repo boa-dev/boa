@@ -17,6 +17,7 @@ use crate::{
 pub(crate) struct GetName;
 
 impl GetName {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -48,6 +49,7 @@ impl Operation for GetName {
 pub(crate) struct GetNameGlobal;
 
 impl GetNameGlobal {
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, index, ic_index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -133,6 +135,7 @@ impl Operation for GetNameGlobal {
 pub(crate) struct GetLocator;
 
 impl GetLocator {
+    #[inline(always)]
     pub(crate) fn operation(
         index: VaryingOperand,
         _: &mut Registers,
@@ -163,6 +166,7 @@ impl Operation for GetLocator {
 pub(crate) struct GetNameAndLocator;
 
 impl GetNameAndLocator {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -196,6 +200,7 @@ impl Operation for GetNameAndLocator {
 pub(crate) struct GetNameOrUndefined;
 
 impl GetNameOrUndefined {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

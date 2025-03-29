@@ -15,6 +15,7 @@ use crate::{
 pub(crate) struct This;
 
 impl This {
+    #[inline(always)]
     pub(super) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,
@@ -54,6 +55,7 @@ impl Operation for This {
 pub(crate) struct ThisForObjectEnvironmentName;
 
 impl ThisForObjectEnvironmentName {
+    #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -82,6 +84,7 @@ impl Operation for ThisForObjectEnvironmentName {
 pub(crate) struct Super;
 
 impl Super {
+    #[inline(always)]
     pub(super) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,
@@ -133,6 +136,7 @@ pub(crate) struct SuperCallPrepare;
 
 impl SuperCallPrepare {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,
@@ -170,6 +174,7 @@ impl Operation for SuperCallPrepare {
 pub(crate) struct SuperCall;
 
 impl SuperCall {
+    #[inline(always)]
     pub(super) fn operation(
         argument_count: VaryingOperand,
         registers: &mut Registers,
@@ -223,6 +228,7 @@ impl Operation for SuperCall {
 pub(crate) struct SuperCallSpread;
 
 impl SuperCallSpread {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         registers: &mut Registers,
@@ -290,6 +296,7 @@ impl Operation for SuperCallSpread {
 pub(crate) struct SuperCallDerived;
 
 impl SuperCallDerived {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         registers: &mut Registers,
@@ -353,6 +360,7 @@ impl Operation for SuperCallDerived {
 pub(crate) struct BindThisValue;
 
 impl BindThisValue {
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,

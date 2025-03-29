@@ -15,6 +15,7 @@ pub(crate) struct Throw;
 
 impl Throw {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -48,6 +49,7 @@ impl Operation for Throw {
 pub(crate) struct ReThrow;
 
 impl ReThrow {
+    #[inline(always)]
     pub(crate) fn operation(
         _: (),
         _: &mut Registers,
@@ -86,6 +88,7 @@ impl Operation for ReThrow {
 pub(crate) struct Exception;
 
 impl Exception {
+    #[inline(always)]
     pub(crate) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,
@@ -121,6 +124,7 @@ pub(crate) struct MaybeException;
 
 impl MaybeException {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (has_exception, exception): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -151,6 +155,7 @@ impl Operation for MaybeException {
 pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
+    #[inline(always)]
     pub(crate) fn operation(
         index: VaryingOperand,
         _: &mut Registers,
@@ -182,6 +187,7 @@ impl Operation for ThrowNewTypeError {
 pub(crate) struct ThrowNewSyntaxError;
 
 impl ThrowNewSyntaxError {
+    #[inline(always)]
     pub(crate) fn operation(
         index: VaryingOperand,
         _: &mut Registers,

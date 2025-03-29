@@ -16,6 +16,7 @@ pub(crate) struct SetHomeObject;
 
 impl SetHomeObject {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (function, home): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

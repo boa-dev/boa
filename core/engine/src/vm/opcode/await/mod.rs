@@ -21,6 +21,7 @@ use std::cell::Cell;
 pub(crate) struct Await;
 
 impl Await {
+    #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
@@ -155,6 +156,7 @@ impl Operation for Await {
 pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         registers: &mut Registers,
@@ -192,6 +194,7 @@ impl Operation for CreatePromiseCapability {
 pub(crate) struct CompletePromiseCapability;
 
 impl CompletePromiseCapability {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         registers: &mut Registers,

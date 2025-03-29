@@ -11,6 +11,7 @@ use crate::{
 pub(crate) struct Pop;
 
 impl Pop {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         _: &mut Registers,
@@ -35,6 +36,7 @@ impl Operation for Pop {
 pub(crate) struct PopEnvironment;
 
 impl PopEnvironment {
+    #[inline(always)]
     pub(super) fn operation(
         _: (),
         _: &mut Registers,

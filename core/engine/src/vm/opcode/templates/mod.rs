@@ -17,6 +17,7 @@ pub(crate) struct TemplateLookup;
 
 impl TemplateLookup {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         (jump, site, dst): (u32, u64, VaryingOperand),
         registers: &mut Registers,
@@ -46,6 +47,7 @@ pub(crate) struct TemplateCreate;
 
 impl TemplateCreate {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         (site, dst, values): (u64, VaryingOperand, Vec<u32>),
         registers: &mut Registers,

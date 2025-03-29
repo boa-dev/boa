@@ -16,6 +16,7 @@ pub(crate) struct Dec;
 
 impl Dec {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, src): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,

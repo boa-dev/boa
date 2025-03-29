@@ -15,6 +15,7 @@ pub(crate) struct NewTarget;
 
 impl NewTarget {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,
@@ -51,6 +52,7 @@ pub(crate) struct ImportMeta;
 
 impl ImportMeta {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,

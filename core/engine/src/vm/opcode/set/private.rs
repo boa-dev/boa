@@ -17,6 +17,7 @@ use crate::{
 pub(crate) struct SetPrivateField;
 
 impl SetPrivateField {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -56,6 +57,7 @@ pub(crate) struct DefinePrivateField;
 
 impl DefinePrivateField {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -97,6 +99,7 @@ pub(crate) struct SetPrivateMethod;
 
 impl SetPrivateMethod {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -150,6 +153,7 @@ pub(crate) struct SetPrivateSetter;
 
 impl SetPrivateSetter {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -195,6 +199,7 @@ pub(crate) struct SetPrivateGetter;
 
 impl SetPrivateGetter {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,

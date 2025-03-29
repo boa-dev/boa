@@ -14,6 +14,7 @@ pub(crate) struct RestParameterInit;
 
 impl RestParameterInit {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(super) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,

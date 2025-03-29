@@ -14,6 +14,7 @@ use crate::{
 pub(crate) struct Return;
 
 impl Return {
+    #[inline(always)]
     pub(crate) fn operation(_: (), _: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
         Ok(CompletionType::Return)
     }
@@ -33,6 +34,7 @@ impl Operation for Return {
 pub(crate) struct CheckReturn;
 
 impl CheckReturn {
+    #[inline(always)]
     pub(crate) fn operation(
         _: (),
         _: &mut Registers,
@@ -97,6 +99,7 @@ pub(crate) struct SetAccumulator;
 
 impl SetAccumulator {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         register: VaryingOperand,
         registers: &mut Registers,
@@ -124,6 +127,7 @@ pub(crate) struct Move;
 impl Move {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(crate) fn operation(
         (dst, src): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -148,6 +152,7 @@ pub(crate) struct PopIntoRegister;
 impl PopIntoRegister {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(crate) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,
@@ -171,6 +176,7 @@ pub(crate) struct PushFromRegister;
 impl PushFromRegister {
     #[allow(clippy::unnecessary_wraps)]
     #[allow(clippy::needless_pass_by_value)]
+    #[inline(always)]
     pub(crate) fn operation(
         dst: VaryingOperand,
         registers: &mut Registers,
@@ -197,6 +203,7 @@ pub(crate) struct SetRegisterFromAccumulator;
 
 impl SetRegisterFromAccumulator {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         register: VaryingOperand,
         registers: &mut Registers,

@@ -18,6 +18,7 @@ use crate::{
 pub(crate) struct SetPropertyByName;
 
 impl SetPropertyByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, receiver, object, index): (
             VaryingOperand,
@@ -108,6 +109,7 @@ impl Operation for SetPropertyByName {
 pub(crate) struct SetPropertyByValue;
 
 impl SetPropertyByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, key, receiver, object): (
             VaryingOperand,
@@ -178,6 +180,7 @@ impl Operation for SetPropertyByValue {
 pub(crate) struct SetPropertyGetterByName;
 
 impl SetPropertyGetterByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -226,6 +229,7 @@ impl Operation for SetPropertyGetterByName {
 pub(crate) struct SetPropertyGetterByValue;
 
 impl SetPropertyGetterByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -270,6 +274,7 @@ impl Operation for SetPropertyGetterByValue {
 pub(crate) struct SetPropertySetterByName;
 
 impl SetPropertySetterByName {
+    #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -319,6 +324,7 @@ impl Operation for SetPropertySetterByName {
 pub(crate) struct SetPropertySetterByValue;
 
 impl SetPropertySetterByValue {
+    #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
@@ -365,6 +371,7 @@ pub(crate) struct SetFunctionName;
 
 impl SetFunctionName {
     #[allow(clippy::unnecessary_wraps)]
+    #[inline(always)]
     pub(crate) fn operation(
         (function, name, prefix): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
