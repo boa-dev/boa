@@ -107,6 +107,30 @@
 //!
 //! The pointers are assumed to never be NULL, and as such no clash
 //! with regular NAN should happen.
+//!
+//! # Cloning / Dropping values
+//!
+//! When creating the NaN-Boxed value, a refcounted pointer is allocated
+//! on the heap. When cloning that value, the internal RC will increment
+//! (and decrement on drop) instead of allocating a new pointer. This
+//! should make clones of `JsValue` simply increment an integer in memory.
+//!
+//! Given the following:
+//!
+//! ```rs
+//! /* 1 */ let a = JsObject::new();
+//! /* 2 */ let b = JsValue::from(a.clone());
+//! /* 3 */ let c = b.clone();
+//! /* 4 */ drop(b);
+//! /* 5 */ drop(a);
+//! /* 6 */ drop(c);
+//! ```
+//!
+//! The refcount of the `JsObject` itself will be: 1 at line 1, 2 at
+//! line 2, still 2 at line 3 as the clone of the `JsValue` itself
+//! increment the internal counter, 2 at line 4, 1 at line 5 (`a` will
+//! drop, but the `JsValue` itself will still have an inner `JsObject`),
+//! then finally 0 and dropped at line 6.
 #![allow(clippy::inline_always)]
 
 use crate::{JsBigInt, JsObject, JsSymbol, JsVariant};
@@ -128,7 +152,6 @@ const_assert!(align_of::<*mut ()>() >= 4);
 mod bits {
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
     use boa_string::JsString;
-    use std::ptr::NonNull;
     use std::rc::Rc;
 
     /// Undefined value in `u64`.
@@ -397,7 +420,7 @@ mod bits {
     #[inline(always)]
     pub(super) const unsafe fn untag_pointer<'a, T>(value: u64) -> &'a T {
         // This is safe since we already checked the pointer is not null as this point.
-        unsafe { NonNull::new_unchecked((value & POINTER_MASK) as *mut T).as_ref() }
+        unsafe { &*((value & POINTER_MASK) as *mut T) }
     }
 }
 
@@ -728,13 +751,13 @@ impl Drop for NanBoxedValue {
         // Drop the pointer if it is a pointer.
         if self.is_pointer() {
             if self.is_object() {
-                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsObject) };
+                unsafe { Rc::from_raw(maybe_ptr as *const JsObject) };
             } else if self.is_bigint() {
-                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsBigInt) };
+                unsafe { Rc::from_raw(maybe_ptr as *const JsBigInt) };
             } else if self.is_symbol() {
-                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsSymbol) };
+                unsafe { Rc::from_raw(maybe_ptr as *const JsSymbol) };
             } else if self.is_string() {
-                unsafe { Rc::decrement_strong_count(maybe_ptr as *const JsString) };
+                unsafe { Rc::from_raw(maybe_ptr as *const JsString) };
             }
         }
     }
@@ -939,4 +962,35 @@ fn symbol() {
     let sym = JsSymbol::new(None).unwrap();
     let v = NanBoxedValue::symbol(sym.clone());
     assert_type!(v is symbol(sym));
+}
+
+#[test]
+fn refcount() {
+    /// Return the ref count of a boxed value.
+    fn rc_obj(v: &NanBoxedValue) -> usize {
+        let ptr = (v.0 & bits::POINTER_MASK) as *const JsObject;
+        unsafe {
+            let rc = Rc::from_raw(ptr);
+            let count = Rc::strong_count(&rc);
+            let _ = Rc::into_raw(rc);
+            count
+        }
+    }
+
+    let a = JsObject::with_null_proto();
+    let b = NanBoxedValue::object(a.clone());
+
+    assert_eq!(rc_obj(&b), 1);
+
+    let c = b.clone();
+    assert_eq!(rc_obj(&b), 2);
+    assert_eq!(rc_obj(&c), 2);
+    drop(b);
+    assert_eq!(rc_obj(&c), 1);
+    drop(a);
+    let d = c.clone();
+    assert_eq!(rc_obj(&c), 2);
+    assert_eq!(rc_obj(&d), 2);
+    drop(c);
+    assert_eq!(rc_obj(&d), 1);
 }
