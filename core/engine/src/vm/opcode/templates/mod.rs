@@ -57,7 +57,7 @@ impl TemplateCreate {
         let raw_obj =
             Array::array_create(count as u64, None, context).expect("cannot fail per spec");
 
-        let mut index = 1;
+        let mut index = 0;
         let mut cooked = true;
         for value in values {
             if cooked {

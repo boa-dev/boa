@@ -20,7 +20,7 @@ pub(crate) struct DefineClassStaticSetterByName;
 
 impl DefineClassStaticSetterByName {
     pub(crate) fn operation(
-        (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -78,7 +78,7 @@ pub(crate) struct DefineClassSetterByName;
 
 impl DefineClassSetterByName {
     pub(crate) fn operation(
-        (class_proto, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

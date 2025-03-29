@@ -17,7 +17,7 @@ pub(crate) struct Inc;
 impl Inc {
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn operation(
-        (src, dst): (VaryingOperand, VaryingOperand),
+        (dst, src): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

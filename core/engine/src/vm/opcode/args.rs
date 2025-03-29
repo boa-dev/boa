@@ -465,7 +465,7 @@ impl JumpTwoArgU32 {
     }
 }
 
-pub(crate) trait DecodeAndDispatch: Sized {
+pub(crate) trait DecodeAndDispatch: Sized+ std::fmt::Debug {
     fn encode(self, extended: &mut Vec<u32>) -> u64;
 
     fn decode_and_dispatch(instruction: u64, format: ArgumentsFormat, extended: &[u32]) -> Self;

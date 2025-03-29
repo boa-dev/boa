@@ -557,17 +557,24 @@ impl ByteCompiler<'_> {
             self.patch_jump_with_target(*label, finally_start);
         }
 
-        let (jumps, default) = self.jump_table(info.jumps.len() as u32);
+        let jump_table_index = self.next_opcode_location();
+        self.bytecode.emit_jump_table(
+            Self::DUMMY_ADDRESS,
+            vec![Self::DUMMY_ADDRESS; info.jumps.len()],
+        );
 
+        let mut patch_jumps = Vec::with_capacity(info.jumps.len());
         // Handle breaks/continue/returns in a finally block
-        for (i, label) in jumps.iter().enumerate() {
-            self.patch_jump(*label);
+        for i in 0..info.jumps.len() {
+            patch_jumps.push(self.next_opcode_location());
 
             let jump_record = info.jumps[i].clone();
-            jump_record.perform_actions(label.index, self);
+            jump_record.perform_actions(Self::DUMMY_ADDRESS, self);
         }
 
-        self.patch_jump(default);
+        let default = self.bytecode.next_opcode_location();
+
+        self.bytecode.patch_jump_table(jump_table_index, (default, patch_jumps));
     }
 
     pub(crate) fn jump_info_open_environment_count(&self, index: usize) -> u32 {

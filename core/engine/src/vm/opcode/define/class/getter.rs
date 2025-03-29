@@ -20,7 +20,7 @@ pub(crate) struct DefineClassStaticGetterByName;
 
 impl DefineClassStaticGetterByName {
     pub(crate) fn operation(
-        (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -77,7 +77,7 @@ pub(crate) struct DefineClassGetterByName;
 
 impl DefineClassGetterByName {
     pub(crate) fn operation(
-        (class_proto, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

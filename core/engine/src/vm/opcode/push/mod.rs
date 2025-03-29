@@ -1,5 +1,8 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        CompletionType, Registers,
+    },
     Context, JsResult, JsValue,
 };
 
@@ -27,8 +30,8 @@ macro_rules! implement_push_generics {
         pub(crate) struct $name;
 
         impl $name {
-            pub(super) fn operation(dst: u32, registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
-                registers.set(dst, $push_value.into());
+            pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+                registers.set(dst.value, $push_value.into());
                 Ok(CompletionType::Normal)
             }
         }

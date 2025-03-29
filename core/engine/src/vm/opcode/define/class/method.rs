@@ -18,7 +18,7 @@ pub(crate) struct DefineClassStaticMethodByName;
 
 impl DefineClassStaticMethodByName {
     pub(crate) fn operation(
-        (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -71,7 +71,7 @@ pub(crate) struct DefineClassMethodByName;
 
 impl DefineClassMethodByName {
     pub(crate) fn operation(
-        (class_proto, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

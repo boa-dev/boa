@@ -135,7 +135,7 @@ impl ByteCompiler<'_> {
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
             compiler.bytecode.emit_super_call_derived();
             compiler.pop_into_register(&value);
-            self.bytecode.emit_bind_this_value(value.variable());
+            compiler.bytecode.emit_bind_this_value(value.variable());
         } else {
             // We push an empty, unused function scope since the compiler expects a function scope.
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;

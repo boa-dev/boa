@@ -19,7 +19,7 @@ use crate::{
     js_string,
     vm::{
         BindingOpcode, ByteCodeEmitter, CallFrame, CodeBlock, CodeBlockFlags, Constant,
-        GeneratorResumeKind, Handler, InlineCache, Opcode, VaryingOperandKind,
+        GeneratorResumeKind, Handler, InlineCache,
     },
     JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
 };
@@ -858,7 +858,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     fn emit_type_error(&mut self, message: &str) {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
-        self.bytecode.emit_throw_new_syntax_error(error_msg.into());
+        self.bytecode.emit_throw_new_type_error(error_msg.into());
     }
     fn emit_syntax_error(&mut self, message: &str) {
         let error_msg = self.get_or_insert_literal(Literal::String(js_string!(message)));
@@ -976,39 +976,9 @@ impl<'ctx> ByteCompiler<'ctx> {
         Label { index }
     }
 
-    /// Push a jump table with `count` of entries.
-    ///
-    /// Returns the jump label entries and the default label.
-    fn jump_table(&mut self, count: u32) -> (Vec<Label>, Label) {
-        let index = self.next_opcode_location();
-        self.bytecode.emit_jump_table(
-            Self::DUMMY_ADDRESS,
-            vec![Self::DUMMY_ADDRESS; count as usize],
-        );
-        let default = Label { index };
-        let mut labels = Vec::with_capacity(count as usize);
-        for i in 0..count {
-            labels.push(Label {
-                index: index + 8 + 4 * i,
-            });
-        }
-
-        // TODO WHAT
-        (labels, default)
-    }
-
     #[track_caller]
     pub(crate) fn patch_jump_with_target(&mut self, label: Label, target: u32) {
-        const U32_SIZE: usize = size_of::<u32>();
-
-        let Label { index } = label;
-
-        let index = index as usize;
-        let bytes = target.to_ne_bytes();
-
-        // This is done to avoid unneeded bounds checks.
-        assert!(self.bytecode.len() > index + U32_SIZE && usize::MAX - U32_SIZE >= index);
-        self.bytecode[index + 1..=index + U32_SIZE].clone_from_slice(bytes.as_slice());
+        self.bytecode.patch_jump(label.index, target);
     }
 
     fn patch_jump(&mut self, label: Label) {

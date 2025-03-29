@@ -177,23 +177,19 @@ impl ByteCodeEmitter {
         let instruction = self.bytecode[address];
         let opcode = Opcode::decode(instruction);
         let format = ArgumentsFormat::decode(instruction);
-        assert_eq!(format, ArgumentsFormat::OneArgU32);
-        let new_instruction = encode_instruction(opcode, patch, &mut self.extended);
-        self.bytecode[address] = new_instruction;
-    }
-
-    pub(crate) fn patch_jump_one_address(&mut self, label: u32, patch: u32) {
-        let address = label as usize;
-        let instruction = self.bytecode[address];
-        let format = ArgumentsFormat::decode(instruction);
-        assert!([
-            ArgumentsFormat::TwoArgU32,
-            ArgumentsFormat::ThreeArgU32,
-            ArgumentsFormat::VariableArgsU32
-        ]
-        .contains(&format));
-        let index = (instruction >> 16) as u32 as usize;
-        self.extended[index] = patch;
+        match format {
+            ArgumentsFormat::OneArgU32 => {
+                let new_instruction = encode_instruction(opcode, patch, &mut self.extended);
+                self.bytecode[address] = new_instruction;
+            }
+            ArgumentsFormat::TwoArgU32
+            | ArgumentsFormat::ThreeArgU32
+            | ArgumentsFormat::VariableArgsU32 => {
+                let index = (instruction >> 16) as u32 as usize;
+                self.extended[index] = patch;
+            }
+            _ => unreachable!("invalid jump format"),
+        }
     }
 
     pub(crate) fn patch_jump_two_addresses(&mut self, label: u32, patch: (u32, u32)) {
@@ -352,7 +348,7 @@ macro_rules! generate_opcodes {
                             Opcode::$Variant,
                             ($($($FieldName),*)?),
                             &mut self.extended,
-                        ))
+                        ));
                     }
                 )?
             )*

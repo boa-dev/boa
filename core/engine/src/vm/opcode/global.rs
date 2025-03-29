@@ -109,7 +109,7 @@ pub(crate) struct CreateGlobalFunctionBinding;
 impl CreateGlobalFunctionBinding {
     #[allow(clippy::unnecessary_wraps)]
     pub(super) fn operation(
-        (function, index, configurable): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (function, configurable, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -149,7 +149,7 @@ pub(crate) struct CreateGlobalVarBinding;
 impl CreateGlobalVarBinding {
     #[allow(clippy::unnecessary_wraps)]
     pub(super) fn operation(
-        (index, configurable): (VaryingOperand, VaryingOperand),
+        (configurable, index): (VaryingOperand, VaryingOperand),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
