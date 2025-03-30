@@ -61,13 +61,13 @@ impl ByteCompiler<'_> {
             BitwiseOp::Or => bytecode.emit_bit_or(dst.variable(), dst.variable(), rhs.variable()),
             BitwiseOp::Xor => bytecode.emit_bit_xor(dst.variable(), dst.variable(), rhs.variable()),
             BitwiseOp::Shl => {
-                bytecode.emit_shift_left(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_shift_left(dst.variable(), dst.variable(), rhs.variable());
             }
             BitwiseOp::Shr => {
-                bytecode.emit_shift_right(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_shift_right(dst.variable(), dst.variable(), rhs.variable());
             }
             BitwiseOp::UShr => {
-                bytecode.emit_unsigned_shift_right(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_unsigned_shift_right(dst.variable(), dst.variable(), rhs.variable());
             }
         }
         self.register_allocator.dealloc(rhs);
@@ -80,29 +80,29 @@ impl ByteCompiler<'_> {
         match op {
             RelationalOp::Equal => bytecode.emit_eq(dst.variable(), dst.variable(), rhs.variable()),
             RelationalOp::NotEqual => {
-                bytecode.emit_not_eq(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_not_eq(dst.variable(), dst.variable(), rhs.variable());
             }
             RelationalOp::StrictEqual => {
-                bytecode.emit_strict_eq(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_strict_eq(dst.variable(), dst.variable(), rhs.variable());
             }
             RelationalOp::StrictNotEqual => {
-                bytecode.emit_strict_not_eq(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_strict_not_eq(dst.variable(), dst.variable(), rhs.variable());
             }
             RelationalOp::GreaterThan => {
-                bytecode.emit_greater_than(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_greater_than(dst.variable(), dst.variable(), rhs.variable());
             }
             RelationalOp::GreaterThanOrEqual => {
-                bytecode.emit_greater_than_or_eq(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_greater_than_or_eq(dst.variable(), dst.variable(), rhs.variable());
             }
             RelationalOp::LessThan => {
-                bytecode.emit_less_than(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_less_than(dst.variable(), dst.variable(), rhs.variable());
             }
             RelationalOp::LessThanOrEqual => {
-                bytecode.emit_less_than_or_eq(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_less_than_or_eq(dst.variable(), dst.variable(), rhs.variable());
             }
             RelationalOp::In => bytecode.emit_in(dst.variable(), dst.variable(), rhs.variable()),
             RelationalOp::InstanceOf => {
-                bytecode.emit_instance_of(dst.variable(), dst.variable(), rhs.variable())
+                bytecode.emit_instance_of(dst.variable(), dst.variable(), rhs.variable());
             }
         }
         self.register_allocator.dealloc(rhs);

@@ -11,9 +11,10 @@ use crate::{
 pub(crate) struct Pop;
 
 impl Pop {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -36,9 +37,10 @@ impl Operation for Pop {
 pub(crate) struct PopEnvironment;
 
 impl PopEnvironment {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

@@ -120,9 +120,10 @@ impl Operation for PushPrivateEnvironment {
 pub(crate) struct PopPrivateEnvironment;
 
 impl PopPrivateEnvironment {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
-        _: (),
+        (): (),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

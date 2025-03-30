@@ -14,7 +14,7 @@ pub(crate) struct IncrementLoopIteration;
 impl IncrementLoopIteration {
     #[inline(always)]
     pub(crate) fn operation(
-        _: (),
+        (): (),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

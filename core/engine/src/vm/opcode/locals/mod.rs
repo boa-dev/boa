@@ -12,6 +12,7 @@ use crate::{
 pub(crate) struct PopIntoLocal;
 
 impl PopIntoLocal {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (src, dst): (VaryingOperand, VaryingOperand),

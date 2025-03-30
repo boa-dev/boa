@@ -18,7 +18,10 @@ use boa_engine::{
     optimizer::OptimizerOptions,
     script::Script,
     // vm::flowgraph::{Direction, Graph},
-    Context, JsError, JsResult, Source,
+    Context,
+    JsError,
+    JsResult,
+    Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
@@ -241,14 +244,14 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
 //     let code = script
 //         .codeblock(context)
 //         .map_err(|e| e.into_erased(context))?;
-// 
+//
 //     let direction = match direction {
 //         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
 //         Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
 //         Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
 //         Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
 //     };
-// 
+//
 //     let mut graph = Graph::new(direction);
 //     code.to_graph(graph.subgraph(String::default()));
 //     let result = match format {
@@ -275,9 +278,9 @@ fn evaluate_file(
     //        flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
     //        args.flowgraph_direction,
     //    )?;
-//
+    //
     //    println!("{flowgraph}");
-//
+    //
     //    return Ok(());
     //}
 

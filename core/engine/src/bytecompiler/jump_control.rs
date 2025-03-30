@@ -574,7 +574,8 @@ impl ByteCompiler<'_> {
 
         let default = self.bytecode.next_opcode_location();
 
-        self.bytecode.patch_jump_table(jump_table_index, (default, patch_jumps));
+        self.bytecode
+            .patch_jump_table(jump_table_index, (default, &patch_jumps));
     }
 
     pub(crate) fn jump_info_open_environment_count(&self, index: usize) -> u32 {

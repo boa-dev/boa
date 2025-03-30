@@ -230,7 +230,7 @@ pub(crate) struct SuperCallSpread;
 impl SuperCallSpread {
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -298,7 +298,7 @@ pub(crate) struct SuperCallDerived;
 impl SuperCallDerived {
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

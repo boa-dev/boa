@@ -1,3 +1,4 @@
+use super::VaryingOperand;
 use crate::{
     builtins::Number,
     value::Numeric,
@@ -5,7 +6,6 @@ use crate::{
     Context, JsBigInt, JsResult,
 };
 use std::ops::Neg as StdNeg;
-use super::VaryingOperand;
 
 pub(crate) mod decrement;
 pub(crate) mod increment;

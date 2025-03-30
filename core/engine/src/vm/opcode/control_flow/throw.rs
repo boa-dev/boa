@@ -49,9 +49,10 @@ impl Operation for Throw {
 pub(crate) struct ReThrow;
 
 impl ReThrow {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
-        _: (),
+        (): (),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

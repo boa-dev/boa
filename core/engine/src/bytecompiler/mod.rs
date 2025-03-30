@@ -391,6 +391,7 @@ impl Access<'_> {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum BindingAccessOpcode {
     PutLexicalValue,
     DefInitVar,
@@ -731,7 +732,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         match binding {
             BindingKind::Global(index) => match opcode {
                 BindingAccessOpcode::SetNameByLocator => {
-                    self.bytecode.emit_set_name_by_locator(value.variable())
+                    self.bytecode.emit_set_name_by_locator(value.variable());
                 }
                 BindingAccessOpcode::GetName => {
                     let ic_index = self.ic.len() as u32;
@@ -766,7 +767,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             },
             BindingKind::Stack(index) => match opcode {
                 BindingAccessOpcode::SetNameByLocator => {
-                    self.bytecode.emit_set_name_by_locator(value.variable())
+                    self.bytecode.emit_set_name_by_locator(value.variable());
                 }
                 BindingAccessOpcode::GetLocator => self.bytecode.emit_get_locator((*index).into()),
                 BindingAccessOpcode::DefVar => self.bytecode.emit_def_var((*index).into()),
@@ -871,7 +872,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             1 => self.bytecode.emit_push_one(dst.variable()),
             x if i32::from(x as i8) == x => self.bytecode.emit_push_int8(dst.variable(), x as i8),
             x if i32::from(x as i16) == x => {
-                self.bytecode.emit_push_int16(dst.variable(), x as i16)
+                self.bytecode.emit_push_int16(dst.variable(), x as i16);
             }
             x => self.bytecode.emit_push_int32(dst.variable(), x),
         }

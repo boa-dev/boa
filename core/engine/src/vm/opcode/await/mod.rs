@@ -156,9 +156,10 @@ impl Operation for Await {
 pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
@@ -194,9 +195,10 @@ impl Operation for CreatePromiseCapability {
 pub(crate) struct CompletePromiseCapability;
 
 impl CompletePromiseCapability {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

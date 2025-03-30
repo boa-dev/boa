@@ -91,7 +91,7 @@ impl ByteCompiler<'_> {
                                         dst.variable(),
                                         method.variable(),
                                         index.into(),
-                                    )
+                                    );
                                 }
                             }
                             self.register_allocator.dealloc(method);

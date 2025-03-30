@@ -283,9 +283,9 @@ impl ByteCompiler<'_> {
             }
 
             if let Some(early_exit) = early_exit {
-                let exit = self.jump();
+                let skip = self.jump();
                 self.patch_jump(early_exit);
-                self.patch_jump(exit);
+                self.patch_jump(skip);
             }
         }
     }

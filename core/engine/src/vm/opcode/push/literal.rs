@@ -39,14 +39,14 @@ impl Operation for PushLiteral {
     const COST: u8 = 1;
 }
 
-/// `PushRegExp` implements the Opcode Operation for `Opcode::PushRegExp`
+/// `PushRegexp` implements the Opcode Operation for `Opcode::PushRegexp`
 ///
 /// Operation:
 ///  - Push regexp value on the stack.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct PushRegExp;
+pub(crate) struct PushRegexp;
 
-impl PushRegExp {
+impl PushRegexp {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, pattern_index, flags_index): (VaryingOperand, VaryingOperand, VaryingOperand),
@@ -62,8 +62,8 @@ impl PushRegExp {
     }
 }
 
-impl Operation for PushRegExp {
-    const NAME: &'static str = "PushRegExp";
-    const INSTRUCTION: &'static str = "INST - PushRegExp";
+impl Operation for PushRegexp {
+    const NAME: &'static str = "PushRegexp";
+    const INSTRUCTION: &'static str = "INST - PushRegexp";
     const COST: u8 = 5;
 }

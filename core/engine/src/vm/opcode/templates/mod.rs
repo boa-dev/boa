@@ -63,7 +63,7 @@ impl TemplateCreate {
         let mut cooked = true;
         for value in values {
             if cooked {
-                let cooked_value = registers.get(value.into());
+                let cooked_value = registers.get(value);
                 template
                     .define_property_or_throw(
                         index,
@@ -76,7 +76,7 @@ impl TemplateCreate {
                     )
                     .expect("should not fail on new array");
             } else {
-                let raw_value = registers.get(value.into());
+                let raw_value = registers.get(value);
                 raw_obj
                     .define_property_or_throw(
                         index,

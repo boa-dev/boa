@@ -29,7 +29,7 @@ mod runtime_limits;
 pub(crate) use inline_cache::InlineCache;
 
 // TODO: see if this can be exposed on all features.
-pub(crate) use opcode::{ByteCodeEmitter, Opcode, VaryingOperand};
+pub(crate) use opcode::{ByteCodeEmitter, VaryingOperand};
 pub use runtime_limits::RuntimeLimits;
 pub use {
     call_frame::{CallFrame, GeneratorResumeKind},

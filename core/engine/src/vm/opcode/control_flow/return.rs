@@ -14,8 +14,13 @@ use crate::{
 pub(crate) struct Return;
 
 impl Return {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(crate) fn operation(_: (), _: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+    pub(crate) fn operation(
+        (): (),
+        _: &mut Registers,
+        _: &mut Context,
+    ) -> JsResult<CompletionType> {
         Ok(CompletionType::Return)
     }
 }
@@ -34,9 +39,10 @@ impl Operation for Return {
 pub(crate) struct CheckReturn;
 
 impl CheckReturn {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
-        _: (),
+        (): (),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

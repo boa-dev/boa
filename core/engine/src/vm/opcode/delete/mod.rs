@@ -118,7 +118,11 @@ pub(crate) struct DeleteSuperThrow;
 
 impl DeleteSuperThrow {
     #[inline(always)]
-    pub(super) fn operation(_: (), _: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+    pub(super) fn operation(
+        (): (),
+        _: &mut Registers,
+        _: &mut Context,
+    ) -> JsResult<CompletionType> {
         Err(JsNativeError::reference()
             .with_message("cannot delete a property of `super`")
             .into())

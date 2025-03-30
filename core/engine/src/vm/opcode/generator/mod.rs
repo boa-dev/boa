@@ -27,6 +27,7 @@ pub(crate) use yield_stm::*;
 pub(crate) struct Generator;
 
 impl Generator {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         r#async: VaryingOperand,
@@ -118,9 +119,10 @@ impl Operation for Generator {
 pub(crate) struct AsyncGeneratorClose;
 
 impl AsyncGeneratorClose {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

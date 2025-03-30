@@ -216,7 +216,7 @@ pub(crate) struct CallSpread;
 impl CallSpread {
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

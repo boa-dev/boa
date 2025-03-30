@@ -14,6 +14,7 @@ use crate::{
 pub(crate) struct Jump;
 
 impl Jump {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         address: u32,
@@ -155,6 +156,7 @@ impl Operation for JumpIfNullOrUndefined {
 pub(crate) struct JumpTable;
 
 impl JumpTable {
+    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (default, addresses): (u32, Vec<u32>),

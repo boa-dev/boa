@@ -18,7 +18,7 @@ pub(crate) struct IteratorNext;
 impl IteratorNext {
     #[inline(always)]
     pub(crate) fn operation(
-        _: (),
+        (): (),
         _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {

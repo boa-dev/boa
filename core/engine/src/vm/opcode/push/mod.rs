@@ -59,7 +59,7 @@ implement_push_generics!(PushTrue, true, "Push integer `true` on the stack.");
 implement_push_generics!(PushFalse, false, "Push integer `false` on the stack.");
 implement_push_generics!(PushZero, 0, "Push integer `0` on the stack.");
 implement_push_generics!(PushOne, 1, "Push integer `1` on the stack.");
-implement_push_generics!(PushNaN, JsValue::nan(), "Push integer `NaN` on the stack.");
+implement_push_generics!(PushNan, JsValue::nan(), "Push integer `NaN` on the stack.");
 implement_push_generics!(
     PushPositiveInfinity,
     JsValue::positive_infinity(),

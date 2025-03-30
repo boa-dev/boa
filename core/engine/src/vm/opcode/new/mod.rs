@@ -53,7 +53,7 @@ pub(crate) struct NewSpread;
 impl NewSpread {
     #[inline(always)]
     pub(super) fn operation(
-        _: (),
+        (): (),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<CompletionType> {
