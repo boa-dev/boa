@@ -153,7 +153,7 @@ icu_normalizer = { version = "~1.5.0", default-features = false }
 icu_decimal = { version = "~1.5.0", default-features = false }
 writeable = "~0.5.5"
 tinystr = "~0.8.1"
-yoke = "~0.7.5"
+yoke = "~0.8.0"
 zerofrom = "~0.1.6"
 fixed_decimal = "~0.5.6"
 
