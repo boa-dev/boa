@@ -1,6 +1,6 @@
 use crate::JsNativeError;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
 
@@ -13,11 +13,7 @@ pub(crate) struct IncrementLoopIteration;
 
 impl IncrementLoopIteration {
     #[inline(always)]
-    pub(crate) fn operation(
-        (): (),
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation((): (), _: &mut Registers, context: &mut Context) -> JsResult<()> {
         let max = context.vm.runtime_limits.loop_iteration_limit();
         let frame = context.vm.frame_mut();
         let previous_iteration_count = frame.loop_iteration_count;
@@ -29,7 +25,7 @@ impl IncrementLoopIteration {
         }
 
         frame.loop_iteration_count = previous_iteration_count.wrapping_add(1);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

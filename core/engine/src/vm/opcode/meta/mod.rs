@@ -1,8 +1,8 @@
 use super::VaryingOperand;
 use crate::{
     module::ModuleKind,
-    vm::{opcode::Operation, ActiveRunnable, CompletionType, Registers},
-    Context, JsObject, JsResult, JsValue,
+    vm::{opcode::Operation, ActiveRunnable, Registers},
+    Context, JsObject, JsValue,
 };
 use std::unreachable;
 
@@ -14,13 +14,8 @@ use std::unreachable;
 pub(crate) struct NewTarget;
 
 impl NewTarget {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         let new_target = if let Some(new_target) = context
             .vm
             .environments
@@ -33,7 +28,6 @@ impl NewTarget {
             JsValue::undefined()
         };
         registers.set(dst.into(), new_target);
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -51,13 +45,8 @@ impl Operation for NewTarget {
 pub(crate) struct ImportMeta;
 
 impl ImportMeta {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         // Meta Properties
         //
         // ImportMeta : import . meta
@@ -101,8 +90,6 @@ impl ImportMeta {
         //     b. Return importMeta.
         //     f. Return importMeta.
         registers.set(dst.into(), import_meta.into());
-
-        Ok(CompletionType::Normal)
     }
 }
 

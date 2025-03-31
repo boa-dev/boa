@@ -1,6 +1,6 @@
 use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult, JsValue,
 };
 
@@ -18,13 +18,8 @@ pub(crate) use own_property::*;
 pub(crate) struct DefVar;
 
 impl DefVar {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        index: VaryingOperand,
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(index: VaryingOperand, _: &mut Registers, context: &mut Context) {
         // TODO: spec specifies to return `empty` on empty vars, but we're trying to initialize.
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
 
@@ -33,7 +28,6 @@ impl DefVar {
             binding_locator.binding_index(),
             JsValue::undefined(),
         );
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -56,7 +50,7 @@ impl DefInitVar {
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let frame = context.vm.frame();
         let strict = frame.code_block.strict();
@@ -64,7 +58,7 @@ impl DefInitVar {
         context.find_runtime_binding(&mut binding_locator)?;
         context.set_binding(&binding_locator, value.clone(), strict)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -82,13 +76,12 @@ impl Operation for DefInitVar {
 pub(crate) struct PutLexicalValue;
 
 impl PutLexicalValue {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(value.into());
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.vm.environments.put_lexical_value(
@@ -96,8 +89,6 @@ impl PutLexicalValue {
             binding_locator.binding_index(),
             value.clone(),
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 

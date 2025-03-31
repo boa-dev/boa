@@ -1,6 +1,6 @@
 use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult, JsString,
 };
 
@@ -17,7 +17,7 @@ impl ConcatToString {
         (string, values): (VaryingOperand, Vec<VaryingOperand>),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut strings = Vec::with_capacity(values.len());
         for value in values {
             let val = registers.get(value.into());
@@ -25,7 +25,7 @@ impl ConcatToString {
         }
         let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>());
         registers.set(string.into(), s.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

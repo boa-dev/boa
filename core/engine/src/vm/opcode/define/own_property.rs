@@ -3,7 +3,7 @@ use crate::{
     property::PropertyDescriptor,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsNativeError, JsResult,
 };
@@ -21,7 +21,7 @@ impl DefineOwnPropertyByName {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -40,7 +40,7 @@ impl DefineOwnPropertyByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -63,7 +63,7 @@ impl DefineOwnPropertyByValue {
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let key = registers.get(key.into());
         let object = registers.get(object.into());
@@ -84,7 +84,7 @@ impl DefineOwnPropertyByValue {
                 .with_message("failed to defined own property")
                 .into());
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

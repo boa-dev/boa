@@ -2,7 +2,7 @@ use super::VaryingOperand;
 use crate::{
     builtins::Number,
     value::Numeric,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsBigInt, JsResult,
 };
 use std::ops::Neg as StdNeg;
@@ -23,18 +23,12 @@ pub(crate) use logical::*;
 pub(crate) struct TypeOf;
 
 impl TypeOf {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(value: VaryingOperand, registers: &mut Registers, _: &mut Context) {
         registers.set(
             value.into(),
             registers.get(value.into()).js_type_of().into(),
         );
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -57,12 +51,12 @@ impl Pos {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         registers.set(
             value.into(),
             registers.get(value.into()).to_number(context)?.into(),
         );
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -85,12 +79,12 @@ impl Neg {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         match registers.get(value.into()).to_numeric(context)? {
             Numeric::Number(number) => registers.set(value.into(), number.neg().into()),
             Numeric::BigInt(bigint) => registers.set(value.into(), JsBigInt::neg(&bigint).into()),
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -113,12 +107,12 @@ impl BitNot {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         match registers.get(value.into()).to_numeric(context)? {
             Numeric::Number(number) => registers.set(value.into(), Number::not(number).into()),
             Numeric::BigInt(bigint) => registers.set(value.into(), JsBigInt::not(&bigint).into()),
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

@@ -7,11 +7,11 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType, GeneratorResumeKind, Registers},
-    Context, JsArgs, JsResult, JsValue,
+    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind, Registers},
+    Context, JsArgs, JsValue,
 };
 use boa_gc::Gc;
-use std::cell::Cell;
+use std::{cell::Cell, ops::ControlFlow};
 
 /// `Await` implements the Opcode Operation for `Opcode::Await`
 ///
@@ -26,15 +26,18 @@ impl Await {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         let value = registers.get(value.into());
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
-        let promise = Promise::promise_resolve(
+        let promise = match Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
             value.clone(),
             context,
-        )?;
+        ) {
+            Ok(promise) => promise,
+            Err(err) => return context.handle_error(registers, err),
+        };
 
         let return_value = context
             .vm
@@ -138,7 +141,7 @@ impl Await {
         );
 
         context.vm.set_return_value(return_value);
-        Ok(CompletionType::Yield)
+        context.handle_yield(registers)
     }
 }
 
@@ -156,15 +159,10 @@ impl Operation for Await {
 pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation((): (), registers: &mut Registers, context: &mut Context) {
         if context.vm.frame().promise_capability(registers).is_some() {
-            return Ok(CompletionType::Normal);
+            return;
         }
 
         let promise_capability = PromiseCapability::new(
@@ -177,7 +175,6 @@ impl CreatePromiseCapability {
             .vm
             .frame
             .set_promise_capability(registers, Some(&promise_capability));
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -195,20 +192,19 @@ impl Operation for CreatePromiseCapability {
 pub(crate) struct CompletePromiseCapability;
 
 impl CompletePromiseCapability {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let Some(promise_capability) = context.vm.frame().promise_capability(registers) else {
             return if context.vm.pending_exception.is_some() {
-                Ok(CompletionType::Throw)
+                context.handle_thow(registers)
             } else {
-                Ok(CompletionType::Normal)
+                ControlFlow::Continue(())
             };
         };
 
@@ -229,7 +225,7 @@ impl CompletePromiseCapability {
             .vm
             .set_return_value(promise_capability.promise().clone().into());
 
-        Ok(CompletionType::Normal)
+        ControlFlow::Continue(())
     }
 }
 

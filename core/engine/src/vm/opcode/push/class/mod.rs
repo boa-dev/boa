@@ -3,7 +3,7 @@ use crate::{
     object::PROTOTYPE,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult, JsValue,
 };
@@ -27,7 +27,7 @@ impl PushClassPrototype {
         (dst, class, superclass): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let class = registers.get(class.into());
         let superclass = registers.get(superclass.into());
 
@@ -73,7 +73,7 @@ impl PushClassPrototype {
         }
 
         registers.set(dst.into(), proto_parent);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

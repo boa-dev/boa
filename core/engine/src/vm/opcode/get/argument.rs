@@ -1,9 +1,9 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `GetArgument` implements the Opcode Operation for `Opcode::GetArgument`
@@ -14,13 +14,12 @@ use crate::{
 pub(crate) struct GetArgument;
 
 impl GetArgument {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (index, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = context
             .vm
             .frame()
@@ -28,7 +27,6 @@ impl GetArgument {
             .cloned()
             .unwrap_or_default();
         registers.set(dst.into(), value);
-        Ok(CompletionType::Normal)
     }
 }
 

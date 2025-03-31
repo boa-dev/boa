@@ -5,9 +5,9 @@ use crate::{
     property::PropertyDescriptor,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`
@@ -18,7 +18,6 @@ use crate::{
 pub(crate) struct PushClassPrivateMethod;
 
 impl PushClassPrivateMethod {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, prototype, value, index): (
@@ -29,7 +28,7 @@ impl PushClassPrivateMethod {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let prototype = registers.get(prototype.into());
         let value = registers.get(value.into());
@@ -71,8 +70,6 @@ impl PushClassPrivateMethod {
                 object.private_name(name),
                 PrivateElement::Method(value.clone()),
             );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -90,13 +87,12 @@ impl Operation for PushClassPrivateMethod {
 pub(crate) struct PushClassPrivateGetter;
 
 impl PushClassPrivateGetter {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -118,8 +114,6 @@ impl PushClassPrivateGetter {
                     setter: None,
                 },
             );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -137,13 +131,12 @@ impl Operation for PushClassPrivateGetter {
 pub(crate) struct PushClassPrivateSetter;
 
 impl PushClassPrivateSetter {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -165,8 +158,6 @@ impl PushClassPrivateSetter {
                     setter: Some(value.clone()),
                 },
             );
-
-        Ok(CompletionType::Normal)
     }
 }
 

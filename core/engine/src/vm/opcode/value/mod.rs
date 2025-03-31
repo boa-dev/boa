@@ -1,7 +1,7 @@
 use super::VaryingOperand;
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
 
@@ -18,7 +18,7 @@ impl ValueNotNullOrUndefined {
         value: VaryingOperand,
         registers: &mut Registers,
         _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         if value.is_null() {
             return Err(JsNativeError::typ()
@@ -30,7 +30,7 @@ impl ValueNotNullOrUndefined {
                 .with_message("Cannot destructure 'undefined' value")
                 .into());
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -48,16 +48,10 @@ impl Operation for ValueNotNullOrUndefined {
 pub(crate) struct IsObject;
 
 impl IsObject {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(value: VaryingOperand, registers: &mut Registers, _: &mut Context) {
         let is_object = registers.get(value.into()).is_object();
         registers.set(value.into(), is_object.into());
-        Ok(CompletionType::Normal)
     }
 }
 

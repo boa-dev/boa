@@ -1,7 +1,7 @@
 use super::VaryingOperand;
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
 
@@ -18,7 +18,7 @@ impl New {
         argument_count: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let argument_count = usize::from(argument_count);
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
@@ -33,7 +33,7 @@ impl New {
         if let Some(register_count) = cons.__construct__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -56,7 +56,7 @@ impl NewSpread {
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -83,7 +83,7 @@ impl NewSpread {
         if let Some(register_count) = cons.__construct__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

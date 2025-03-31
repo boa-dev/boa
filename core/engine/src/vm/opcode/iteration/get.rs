@@ -2,7 +2,7 @@ use crate::{
     builtins::iterable::IteratorHint,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -20,11 +20,11 @@ impl GetIterator {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let iterator = value.get_iterator(IteratorHint::Sync, context)?;
         context.vm.frame_mut().iterators.push(iterator);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -47,11 +47,11 @@ impl GetAsyncIterator {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let iterator = value.get_iterator(IteratorHint::Async, context)?;
         context.vm.frame_mut().iterators.push(iterator);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

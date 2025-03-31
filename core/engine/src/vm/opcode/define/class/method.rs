@@ -4,7 +4,7 @@ use crate::{
     property::PropertyDescriptor,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -22,7 +22,7 @@ impl DefineClassStaticMethodByName {
         (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let class = registers.get(class.into());
         let class = class.as_object().expect("class must be object");
@@ -53,7 +53,7 @@ impl DefineClassStaticMethodByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -76,7 +76,7 @@ impl DefineClassMethodByName {
         (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let class_proto = registers.get(class_proto.into());
         let class_proto = class_proto.as_object().expect("class must be object");
@@ -107,7 +107,7 @@ impl DefineClassMethodByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -130,7 +130,7 @@ impl DefineClassStaticMethodByValue {
         (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let key = registers.get(key.into());
         let class = registers.get(class.into());
@@ -159,7 +159,7 @@ impl DefineClassStaticMethodByValue {
                 .build(),
             context,
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -182,7 +182,7 @@ impl DefineClassMethodByValue {
         (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let key = registers.get(key.into());
         let class_proto = registers.get(class_proto.into());
@@ -211,7 +211,7 @@ impl DefineClassMethodByValue {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

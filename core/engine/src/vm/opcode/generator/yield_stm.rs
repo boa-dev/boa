@@ -1,10 +1,12 @@
+use std::ops::ControlFlow;
+
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionRecord, CompletionType, GeneratorResumeKind, Registers,
+        CompletionRecord, GeneratorResumeKind, Registers,
     },
-    Context, JsResult, JsValue,
+    Context, JsValue,
 };
 
 /// `GeneratorYield` implements the Opcode Operation for `Opcode::GeneratorYield`
@@ -15,16 +17,15 @@ use crate::{
 pub(crate) struct GeneratorYield;
 
 impl GeneratorYield {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         let value = registers.get(value.into());
         context.vm.set_return_value(value.clone());
-        Ok(CompletionType::Yield)
+        context.handle_yield(registers)
     }
 }
 
@@ -42,13 +43,12 @@ impl Operation for GeneratorYield {
 pub(crate) struct AsyncGeneratorYield;
 
 impl AsyncGeneratorYield {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         // AsyncGeneratorYield ( value )
         // https://tc39.es/ecma262/#sec-asyncgeneratoryield
 
@@ -102,7 +102,7 @@ impl AsyncGeneratorYield {
             context.vm.push(resume_kind);
 
             // d. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
-            return Ok(CompletionType::Normal);
+            return ControlFlow::Continue(());
         }
 
         // 12. Else,
@@ -116,7 +116,7 @@ impl AsyncGeneratorYield {
         //     e. Assert: If control reaches here, then genContext is the running execution context again.
         //     f. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
         context.vm.set_return_value(JsValue::undefined());
-        Ok(CompletionType::Yield)
+        context.handle_yield(registers)
     }
 }
 

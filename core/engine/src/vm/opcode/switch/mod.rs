@@ -1,7 +1,7 @@
 use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context,
 };
 
 /// `Case` implements the Opcode Operation for `Opcode::Case`
@@ -13,19 +13,17 @@ use crate::{
 pub(crate) struct Case;
 
 impl Case {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (address, value, condition): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(value.into());
         let condition = registers.get(condition.into());
         if value.strict_equals(condition) {
             context.vm.frame_mut().pc = address.into();
         }
-        Ok(CompletionType::Normal)
     }
 }
 

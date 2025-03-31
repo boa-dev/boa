@@ -1,7 +1,7 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -16,18 +16,17 @@ macro_rules! implement_bin_ops {
         pub(crate) struct $name;
 
         impl $name {
-            #[allow(clippy::needless_pass_by_value)]
             #[inline(always)]
-    pub(crate) fn operation(
+            pub(crate) fn operation(
                 (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
                 registers: &mut Registers,
                 context: &mut Context,
-            ) -> JsResult<CompletionType> {
+            ) -> JsResult<()> {
                 let lhs = registers.get(lhs.into());
                 let rhs = registers.get(rhs.into());
                 let value = lhs.$op(&rhs, context)?;
                 registers.set(dst.into(), value.into());
-                Ok(CompletionType::Normal)
+                Ok(())
             }
         }
 

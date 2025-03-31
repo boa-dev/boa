@@ -1,9 +1,11 @@
+use std::ops::ControlFlow;
+
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        CompletionRecord, Registers,
     },
-    Context, JsNativeError, JsResult,
+    Context, JsNativeError,
 };
 
 /// `Return` implements the Opcode Operation for `Opcode::Return`
@@ -14,14 +16,13 @@ use crate::{
 pub(crate) struct Return;
 
 impl Return {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (): (),
-        _: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
-        Ok(CompletionType::Return)
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> ControlFlow<CompletionRecord> {
+        context.handle_return(registers)
     }
 }
 
@@ -39,16 +40,15 @@ impl Operation for Return {
 pub(crate) struct CheckReturn;
 
 impl CheckReturn {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (): (),
-        _: &mut Registers,
+        registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         let frame = context.vm.frame();
         if !frame.construct() {
-            return Ok(CompletionType::Normal);
+            return ControlFlow::Continue(());
         }
         let this = frame.this(&context.vm);
         let result = context.vm.take_return_value();
@@ -65,7 +65,7 @@ impl CheckReturn {
                     .with_realm(realm)
                     .into(),
             );
-            return Ok(CompletionType::Throw);
+            return context.handle_thow(registers);
         } else {
             let frame = context.vm.frame();
             if frame.has_this_value_cached() {
@@ -77,7 +77,7 @@ impl CheckReturn {
                     Err(err) => {
                         let err = err.inject_realm(realm);
                         context.vm.pending_exception = Some(err);
-                        return Ok(CompletionType::Throw);
+                        return context.handle_thow(registers);
                     }
                     Ok(Some(this)) => this,
                     Ok(None) => context.realm().global_this().clone().into(),
@@ -86,7 +86,7 @@ impl CheckReturn {
         };
 
         context.vm.set_return_value(result);
-        Ok(CompletionType::Normal)
+        ControlFlow::Continue(())
     }
 }
 
@@ -104,16 +104,14 @@ impl Operation for CheckReturn {
 pub(crate) struct SetAccumulator;
 
 impl SetAccumulator {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         register: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(register.into());
         context.vm.set_return_value(value.clone());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -131,17 +129,14 @@ impl Operation for SetAccumulator {
 pub(crate) struct Move;
 
 impl Move {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
     #[inline(always)]
     pub(crate) fn operation(
         (dst, src): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(src.into());
         registers.set(dst.into(), value.clone());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -156,16 +151,9 @@ impl Operation for Move {
 pub(crate) struct PopIntoRegister;
 
 impl PopIntoRegister {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
     #[inline(always)]
-    pub(crate) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         registers.set(dst.into(), context.vm.pop());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -180,17 +168,10 @@ impl Operation for PopIntoRegister {
 pub(crate) struct PushFromRegister;
 
 impl PushFromRegister {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
     #[inline(always)]
-    pub(crate) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         let value = registers.get(dst.into());
         context.vm.push(value.clone());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -208,15 +189,13 @@ impl Operation for PushFromRegister {
 pub(crate) struct SetRegisterFromAccumulator;
 
 impl SetRegisterFromAccumulator {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         register: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         registers.set(register.into(), context.vm.get_return_value());
-        Ok(CompletionType::Normal)
     }
 }
 

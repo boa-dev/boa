@@ -4,8 +4,8 @@ use crate::{
     builtins::{function::OrdinaryFunction, OrdinaryObject},
     object::{internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context,
 };
 
 /// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`
@@ -16,13 +16,12 @@ use crate::{
 pub(crate) struct SetClassPrototype;
 
 impl SetClassPrototype {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (dst, prototype, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let prototype = registers.get(prototype.into());
         let prototype = match prototype.variant() {
             JsVariant::Object(proto) => Some(proto.clone()),
@@ -72,7 +71,6 @@ impl SetClassPrototype {
             .expect("cannot fail per spec");
 
         registers.set(dst.into(), proto.into());
-        Ok(CompletionType::Normal)
     }
 }
 

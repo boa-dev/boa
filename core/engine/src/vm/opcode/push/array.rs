@@ -3,7 +3,7 @@ use crate::{
     string::StaticJsStrings,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult, JsValue,
 };
@@ -16,20 +16,18 @@ use crate::{
 pub(crate) struct PushNewArray;
 
 impl PushNewArray {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         array: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = context
             .intrinsics()
             .templates()
             .array()
             .create(Array, Vec::from([JsValue::new(0)]));
         registers.set(array.into(), value.into());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -47,13 +45,12 @@ impl Operation for PushNewArray {
 pub(crate) struct PushValueToArray;
 
 impl PushValueToArray {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (value, array): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(value.into());
         let array = registers.get(array.into());
         let o = array.as_object().expect("should be an object");
@@ -62,7 +59,6 @@ impl PushValueToArray {
             .expect("should have 'length' property");
         o.create_data_property_or_throw(len, value.clone(), context)
             .expect("should be able to create new data property");
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -85,14 +81,14 @@ impl PushElisionToArray {
         array: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let array = registers.get(array.into());
         let o = array.as_object().expect("should always be an object");
         let len = o
             .length_of_array_like(context)
             .expect("arrays should always have a 'length' property");
         o.set(StaticJsStrings::LENGTH, len + 1, true, context)?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -115,7 +111,7 @@ impl PushIteratorToArray {
         array: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let array = registers.get(array.into());
         let mut iterator = context
             .vm
@@ -126,7 +122,7 @@ impl PushIteratorToArray {
         while let Some(next) = iterator.step_value(context)? {
             Array::push(array, &[next], context)?;
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

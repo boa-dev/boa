@@ -2,9 +2,9 @@ use crate::{
     builtins::function::OrdinaryFunction,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`
@@ -15,13 +15,12 @@ use crate::{
 pub(crate) struct SetHomeObject;
 
 impl SetHomeObject {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (function, home): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let function = registers.get(function.into());
         let home = registers.get(home.into());
 
@@ -31,8 +30,6 @@ impl SetHomeObject {
             .downcast_mut::<OrdinaryFunction>()
             .expect("must be function object")
             .set_home_object(home.as_object().expect("must be object").clone());
-
-        Ok(CompletionType::Normal)
     }
 }
 

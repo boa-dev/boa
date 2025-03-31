@@ -1,9 +1,9 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `Jump` implements the Opcode Operation for `Opcode::Jump`
@@ -14,15 +14,9 @@ use crate::{
 pub(crate) struct Jump;
 
 impl Jump {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(crate) fn operation(
-        address: u32,
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation(address: u32, _: &mut Registers, context: &mut Context) {
         context.vm.frame_mut().pc = address;
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -40,18 +34,16 @@ impl Operation for Jump {
 pub(crate) struct JumpIfTrue;
 
 impl JumpIfTrue {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(value.into());
         if value.to_boolean() {
             context.vm.frame_mut().pc = address;
         }
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -69,18 +61,16 @@ impl Operation for JumpIfTrue {
 pub(crate) struct JumpIfFalse;
 
 impl JumpIfFalse {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(value.into());
         if !value.to_boolean() {
             context.vm.frame_mut().pc = address;
         }
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -98,18 +88,16 @@ impl Operation for JumpIfFalse {
 pub(crate) struct JumpIfNotUndefined;
 
 impl JumpIfNotUndefined {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(value.into());
         if !value.is_undefined() {
             context.vm.frame_mut().pc = address;
         }
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -127,18 +115,16 @@ impl Operation for JumpIfNotUndefined {
 pub(crate) struct JumpIfNullOrUndefined;
 
 impl JumpIfNullOrUndefined {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (address, value): (u32, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = registers.get(value.into());
         if value.is_null_or_undefined() {
             context.vm.frame_mut().pc = address;
         }
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -156,13 +142,12 @@ impl Operation for JumpIfNullOrUndefined {
 pub(crate) struct JumpTable;
 
 impl JumpTable {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (default, addresses): (u32, Vec<u32>),
         _: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = context.vm.pop();
         if let Some(value) = value.as_i32() {
             let value = value as usize;
@@ -175,7 +160,7 @@ impl JumpTable {
 
             context.vm.frame_mut().pc = target.unwrap_or(default);
 
-            return Ok(CompletionType::Normal);
+            return;
         }
 
         unreachable!("expected positive integer, got {value:?}")

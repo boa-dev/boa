@@ -3,7 +3,7 @@ use crate::{
     js_string,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult, JsValue,
 };
@@ -21,7 +21,7 @@ impl CreateForInIterator {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(value.into());
         let object = object.to_object(context)?;
         let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), context);
@@ -35,7 +35,7 @@ impl CreateForInIterator {
             .iterators
             .push(IteratorRecord::new(iterator, next_method));
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

@@ -1,8 +1,8 @@
 use crate::{
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context, JsError, JsResult,
 };
 
 use super::VaryingOperand;
@@ -20,7 +20,7 @@ impl DeletePropertyByName {
         (object_register, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(object_register.into());
         let object = object.to_object(context)?;
         let code_block = context.vm.frame().code_block();
@@ -34,7 +34,7 @@ impl DeletePropertyByName {
                 .into());
         }
         registers.set(object_register.into(), result.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -57,7 +57,7 @@ impl DeletePropertyByValue {
         (object_register, key): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(object_register.into());
         let key = registers.get(key.into());
         let object = object.to_object(context)?;
@@ -70,7 +70,7 @@ impl DeletePropertyByValue {
                 .into());
         }
         registers.set(object_register.into(), result.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -93,13 +93,13 @@ impl DeleteName {
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
         let deleted = context.delete_binding(&binding_locator)?;
         registers.set(value.into(), deleted.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -118,14 +118,10 @@ pub(crate) struct DeleteSuperThrow;
 
 impl DeleteSuperThrow {
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        _: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
-        Err(JsNativeError::reference()
+    pub(super) fn operation((): (), _: &mut Registers, _: &mut Context) -> JsError {
+        JsNativeError::reference()
             .with_message("cannot delete a property of `super`")
-            .into())
+            .into()
     }
 }
 

@@ -2,7 +2,7 @@ use crate::{
     object::JsRegExp,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Constant, Registers,
+        Constant, Registers,
     },
     Context, JsResult, JsValue,
 };
@@ -15,13 +15,12 @@ use crate::{
 pub(crate) struct PushLiteral;
 
 impl PushLiteral {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let constant = &context.vm.frame().code_block().constants[usize::from(index)];
         let value: JsValue = match constant {
             Constant::BigInt(v) => v.clone().into(),
@@ -29,7 +28,6 @@ impl PushLiteral {
             _ => unreachable!("constant should be a string or bigint"),
         };
         registers.set(dst.into(), value);
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -52,13 +50,13 @@ impl PushRegexp {
         (dst, pattern_index, flags_index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let code_block = context.vm.frame().code_block();
         let pattern = code_block.constant_string(pattern_index.into());
         let flags = code_block.constant_string(flags_index.into());
         let regexp = JsRegExp::new(pattern, flags, context)?;
         registers.set(dst.into(), regexp.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context,
 };
 
 /// `Pop` implements the Opcode Operation for `Opcode::Pop`
@@ -11,15 +11,9 @@ use crate::{
 pub(crate) struct Pop;
 
 impl Pop {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation((): (), _: &mut Registers, context: &mut Context) {
         let _val = context.vm.pop();
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -37,15 +31,9 @@ impl Operation for Pop {
 pub(crate) struct PopEnvironment;
 
 impl PopEnvironment {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation((): (), _: &mut Registers, context: &mut Context) {
         context.vm.environments.pop();
-        Ok(CompletionType::Normal)
     }
 }
 

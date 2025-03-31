@@ -3,7 +3,7 @@ use crate::{
     object::JsFunction,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -26,7 +26,7 @@ impl PushClassField {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let class = registers.get(class.into());
         let name = registers.get(name.into());
         let function = registers.get(function.into());
@@ -55,7 +55,7 @@ impl PushClassField {
                     None
                 },
             );
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -73,13 +73,12 @@ impl Operation for PushClassField {
 pub(crate) struct PushClassFieldPrivate;
 
 impl PushClassFieldPrivate {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let class = registers.get(class.into());
         let function = registers.get(function.into());
         let name = context
@@ -105,7 +104,6 @@ impl PushClassFieldPrivate {
                 class.private_name(name),
                 JsFunction::from_object_unchecked(function.clone()),
             );
-        Ok(CompletionType::Normal)
     }
 }
 

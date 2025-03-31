@@ -11,11 +11,11 @@ use crate::{
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CompletionType, Registers,
+        CompletionRecord, Registers,
     },
     Context, JsError, JsObject, JsResult,
 };
-use std::collections::VecDeque;
+use std::{collections::VecDeque, ops::ControlFlow};
 
 pub(crate) use yield_stm::*;
 
@@ -27,13 +27,12 @@ pub(crate) use yield_stm::*;
 pub(crate) struct Generator;
 
 impl Generator {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         r#async: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         let r#async = u32::from(r#async) != 0;
 
         let active_function = context.vm.frame().function(&context.vm);
@@ -101,7 +100,7 @@ impl Generator {
         }
 
         context.vm.set_return_value(generator.into());
-        Ok(CompletionType::Yield)
+        context.handle_yield(registers)
     }
 }
 
@@ -119,13 +118,8 @@ impl Operation for Generator {
 pub(crate) struct AsyncGeneratorClose;
 
 impl AsyncGeneratorClose {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation((): (), registers: &mut Registers, context: &mut Context) {
         // Step 3.e-g in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
         let generator = context
             .vm
@@ -161,7 +155,6 @@ impl AsyncGeneratorClose {
         AsyncGenerator::drain_queue(&generator, context);
 
         // l. Return undefined.
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -184,13 +177,14 @@ impl GeneratorNext {
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         let resume_kind = registers.get(resume_kind.into()).to_generator_resume_kind();
         match resume_kind {
-            GeneratorResumeKind::Normal => Ok(CompletionType::Normal),
-            GeneratorResumeKind::Throw => {
-                Err(JsError::from_opaque(registers.get(value.into()).clone()))
-            }
+            GeneratorResumeKind::Normal => ControlFlow::Continue(()),
+            GeneratorResumeKind::Throw => context.handle_error(
+                registers,
+                JsError::from_opaque(registers.get(value.into()).clone()),
+            ),
             GeneratorResumeKind::Return => {
                 assert!(context.vm.pending_exception.is_none());
                 let value = registers.get(value.into());
@@ -215,18 +209,16 @@ impl Operation for GeneratorNext {
 pub(crate) struct JumpIfNotResumeKind;
 
 impl JumpIfNotResumeKind {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (exit, expected, value): (u32, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let resume_kind = registers.get(value.into()).to_generator_resume_kind();
         if resume_kind as u8 != u32::from(expected) as u8 {
             context.vm.frame_mut().pc = exit;
         }
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -255,7 +247,7 @@ impl GeneratorDelegateNext {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let resume_kind = registers.get(resume_kind.into()).to_generator_resume_kind();
         let received = registers.get(value.into());
 
@@ -311,14 +303,14 @@ impl GeneratorDelegateNext {
 
                     // The current iterator didn't have a cleanup `return` method, so we can
                     // skip pushing it to the iterator stack for cleanup.
-                    return Ok(CompletionType::Normal);
+                    return Ok(());
                 }
             }
         }
 
         context.vm.frame_mut().iterators.push(iterator_record);
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -347,7 +339,7 @@ impl GeneratorDelegateResume {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let resume_kind = registers.get(resume_kind.into()).to_generator_resume_kind();
         let result = registers.get(value.into());
         let is_return = registers.get(is_return.into()).to_boolean();
@@ -369,12 +361,12 @@ impl GeneratorDelegateResume {
             let result = iterator.value(context)?;
             registers.set(value.into(), result);
             context.vm.frame_mut().pc = if is_return { return_gen } else { exit };
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         context.vm.frame_mut().iterators.push(iterator);
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

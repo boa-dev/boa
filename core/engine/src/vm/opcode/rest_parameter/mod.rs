@@ -1,8 +1,8 @@
 use super::VaryingOperand;
 use crate::{
     builtins::Array,
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context,
 };
 
 /// `RestParameterInit` implements the Opcode Operation for `Opcode::RestParameterInit`
@@ -13,13 +13,8 @@ use crate::{
 pub(crate) struct RestParameterInit;
 
 impl RestParameterInit {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         let frame = context.vm.frame();
         let argument_count = frame.argument_count;
         let param_count = frame.code_block().parameter_length;
@@ -44,7 +39,6 @@ impl RestParameterInit {
         };
 
         registers.set(dst.into(), array.into());
-        Ok(CompletionType::Normal)
     }
 }
 

@@ -1,7 +1,7 @@
 use super::VaryingOperand;
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
 
@@ -25,12 +25,12 @@ impl NotEq {
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let lhs = registers.get(lhs.into());
         let rhs = registers.get(rhs.into());
         let value = !lhs.equals(rhs, context)?;
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -48,19 +48,16 @@ impl Operation for NotEq {
 pub(crate) struct StrictEq;
 
 impl StrictEq {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
     #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let lhs = registers.get(lhs.into());
         let rhs = registers.get(rhs.into());
         let value = lhs.strict_equals(rhs);
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -78,19 +75,16 @@ impl Operation for StrictEq {
 pub(crate) struct StrictNotEq;
 
 impl StrictNotEq {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
     #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let lhs = registers.get(lhs.into());
         let rhs = registers.get(rhs.into());
         let value = !lhs.strict_equals(rhs);
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -108,13 +102,12 @@ impl Operation for StrictNotEq {
 pub(crate) struct In;
 
 impl In {
-    #[allow(clippy::needless_pass_by_value)]
     #[inline(always)]
     pub(super) fn operation(
         (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let rhs = registers.get(rhs.into());
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
@@ -128,7 +121,7 @@ impl In {
         let key = lhs.to_property_key(context)?;
         let value = rhs.has_property(key, context)?;
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -146,13 +139,12 @@ impl Operation for In {
 pub(crate) struct InPrivate;
 
 impl InPrivate {
-    #[allow(clippy::needless_pass_by_value)]
     #[inline(always)]
     pub(super) fn operation(
         (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let name = context
             .vm
             .frame()
@@ -178,7 +170,7 @@ impl InPrivate {
         let value = rhs.private_element_find(&name, true, true).is_some();
 
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

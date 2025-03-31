@@ -4,7 +4,7 @@ use crate::{
     property::PropertyDescriptor,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -22,7 +22,7 @@ impl SetPrivateField {
         (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let name = context
             .vm
             .frame()
@@ -38,7 +38,7 @@ impl SetPrivateField {
             .expect("private name must be in environment");
 
         base_obj.private_set(&name, value.clone(), context)?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -56,13 +56,12 @@ impl Operation for SetPrivateField {
 pub(crate) struct DefinePrivateField;
 
 impl DefinePrivateField {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -79,8 +78,6 @@ impl DefinePrivateField {
             object.private_name(name),
             PrivateElement::Field(value.clone()),
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -98,13 +95,12 @@ impl Operation for DefinePrivateField {
 pub(crate) struct SetPrivateMethod;
 
 impl SetPrivateMethod {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -133,8 +129,6 @@ impl SetPrivateMethod {
             object.private_name(name),
             PrivateElement::Method(value.clone()),
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -152,13 +146,12 @@ impl Operation for SetPrivateMethod {
 pub(crate) struct SetPrivateSetter;
 
 impl SetPrivateSetter {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -179,8 +172,6 @@ impl SetPrivateSetter {
                 setter: Some(value.clone()),
             },
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -198,13 +189,12 @@ impl Operation for SetPrivateSetter {
 pub(crate) struct SetPrivateGetter;
 
 impl SetPrivateGetter {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -225,8 +215,6 @@ impl SetPrivateGetter {
                 setter: None,
             },
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 

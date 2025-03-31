@@ -6,7 +6,7 @@ use crate::{
     property::PropertyDescriptor,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -24,7 +24,7 @@ impl DefineClassStaticSetterByName {
         (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let class = registers.get(class.into());
         let class = class.as_object().expect("class must be object");
@@ -60,7 +60,7 @@ impl DefineClassStaticSetterByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -83,7 +83,7 @@ impl DefineClassSetterByName {
         (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let class_proto = registers.get(class_proto.into());
         let class_proto = class_proto.as_object().expect("class must be object");
@@ -120,7 +120,7 @@ impl DefineClassSetterByName {
             &mut InternalMethodContext::new(context),
         )?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -143,7 +143,7 @@ impl DefineClassStaticSetterByValue {
         (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let key = registers.get(key.into());
         let class = registers.get(class.into());
@@ -178,7 +178,7 @@ impl DefineClassStaticSetterByValue {
             context,
         )?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -201,7 +201,7 @@ impl DefineClassSetterByValue {
         (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let function = registers.get(function.into());
         let key = registers.get(key.into());
         let class_proto = registers.get(class_proto.into());
@@ -236,7 +236,7 @@ impl DefineClassSetterByValue {
             &mut InternalMethodContext::new(context),
         )?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

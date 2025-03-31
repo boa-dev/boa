@@ -3,7 +3,7 @@ use crate::{
     property::PropertyKey,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -26,7 +26,7 @@ impl GetPropertyByName {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let receiver = registers.get(receiver.into());
         let object = registers.get(value.into());
         let object = object.to_object(context)?;
@@ -51,7 +51,7 @@ impl GetPropertyByName {
                 )?;
             }
             registers.set(dst.into(), result);
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         drop(object_borrowed);
@@ -71,7 +71,7 @@ impl GetPropertyByName {
         }
 
         registers.set(dst.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -99,7 +99,7 @@ impl GetPropertyByValue {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let key = registers.get(key.into());
         let object = registers.get(object.into());
         let object = object.to_object(context)?;
@@ -112,7 +112,7 @@ impl GetPropertyByValue {
                 if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
                     registers.set(dst.into(), element);
-                    return Ok(CompletionType::Normal);
+                    return Ok(());
                 }
             }
         }
@@ -127,7 +127,7 @@ impl GetPropertyByValue {
         )?;
 
         registers.set(dst.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -155,7 +155,7 @@ impl GetPropertyByValuePush {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let key_value = registers.get(key.into());
         let object = registers.get(object.into());
         let object = object.to_object(context)?;
@@ -169,7 +169,7 @@ impl GetPropertyByValuePush {
                 {
                     registers.set(key.into(), key_value.into());
                     registers.set(dst.into(), element);
-                    return Ok(CompletionType::Normal);
+                    return Ok(());
                 }
             }
         }
@@ -185,7 +185,7 @@ impl GetPropertyByValuePush {
 
         registers.set(key.into(), key_value.into());
         registers.set(dst.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

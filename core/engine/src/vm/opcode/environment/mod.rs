@@ -3,7 +3,7 @@ use crate::{
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CallFrameFlags, CompletionType, Registers},
+    vm::{opcode::Operation, CallFrameFlags, Registers},
     Context, JsResult, JsValue,
 };
 
@@ -20,13 +20,13 @@ impl This {
         dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let frame = context.vm.frame_mut();
         let this_index = frame.fp();
         if frame.has_this_value_cached() {
             let this = context.vm.stack[this_index as usize].clone();
             registers.set(dst.into(), this);
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         let this = context
@@ -37,7 +37,7 @@ impl This {
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         context.vm.stack[this_index as usize] = this.clone();
         registers.set(dst.into(), this);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -60,13 +60,13 @@ impl ThisForObjectEnvironmentName {
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
         registers.set(dst.into(), this);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -89,7 +89,7 @@ impl Super {
         dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let home_object = {
             let env = context
                 .vm
@@ -117,7 +117,7 @@ impl Super {
             .map_or_else(JsValue::null, JsValue::from);
 
         registers.set(dst.into(), value);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -135,13 +135,8 @@ impl Operation for Super {
 pub(crate) struct SuperCallPrepare;
 
 impl SuperCallPrepare {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         let this_env = context
             .vm
             .environments
@@ -156,7 +151,6 @@ impl SuperCallPrepare {
             dst.into(),
             super_constructor.map_or_else(JsValue::null, JsValue::from),
         );
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -179,7 +173,7 @@ impl SuperCall {
         argument_count: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let argument_count = usize::from(argument_count);
         let super_constructor_index = context.vm.stack.len() - argument_count - 1;
         let super_constructor = context.vm.stack[super_constructor_index].clone();
@@ -210,7 +204,7 @@ impl SuperCall {
         {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -233,7 +227,7 @@ impl SuperCallSpread {
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -278,7 +272,7 @@ impl SuperCallSpread {
         {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -301,7 +295,7 @@ impl SuperCallDerived {
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let rp = context.vm.frame().rp;
         let argument_count = context.vm.frame().argument_count;
         let arguments_start_index = rp - argument_count;
@@ -342,7 +336,7 @@ impl SuperCallDerived {
         {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -365,7 +359,7 @@ impl BindThisValue {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
@@ -395,7 +389,7 @@ impl BindThisValue {
 
         // 12. Return result.
         registers.set(value.into(), result.clone().into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

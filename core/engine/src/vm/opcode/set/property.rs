@@ -6,7 +6,7 @@ use crate::{
     builtins::function::set_function_name,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsNativeError, JsResult,
 };
 
@@ -28,7 +28,7 @@ impl SetPropertyByName {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let receiver = registers.get(receiver.into());
         let object = registers.get(object.into());
@@ -68,7 +68,7 @@ impl SetPropertyByName {
                 let mut object_borrowed = object.borrow_mut();
                 object_borrowed.properties_mut().storage[slot_index] = value.clone();
             }
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
         drop(object_borrowed);
 
@@ -91,7 +91,7 @@ impl SetPropertyByName {
             ic.set(shape, slot);
         }
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -119,7 +119,7 @@ impl SetPropertyByValue {
         ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let key = registers.get(key.into());
         let receiver = registers.get(receiver.into());
@@ -143,7 +143,7 @@ impl SetPropertyByValue {
                         .properties_mut()
                         .set_dense_property(index.get(), value)
                     {
-                        return Ok(CompletionType::Normal);
+                        return Ok(());
                     }
                 }
             }
@@ -162,7 +162,7 @@ impl SetPropertyByValue {
                 .into());
         }
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -185,7 +185,7 @@ impl SetPropertyGetterByName {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -211,7 +211,7 @@ impl SetPropertyGetterByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -234,7 +234,7 @@ impl SetPropertyGetterByValue {
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let key = registers.get(key.into());
         let object = registers.get(object.into());
@@ -256,7 +256,7 @@ impl SetPropertyGetterByValue {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -279,7 +279,7 @@ impl SetPropertySetterByName {
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
         let name = context
@@ -306,7 +306,7 @@ impl SetPropertySetterByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -329,7 +329,7 @@ impl SetPropertySetterByValue {
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let key = registers.get(key.into());
         let object = registers.get(object.into());
@@ -352,7 +352,7 @@ impl SetPropertySetterByValue {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -370,13 +370,12 @@ impl Operation for SetPropertySetterByValue {
 pub(crate) struct SetFunctionName;
 
 impl SetFunctionName {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (function, name, prefix): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let function = registers.get(function.into());
         let name = registers.get(name.into());
         let name = match name.variant() {
@@ -397,8 +396,6 @@ impl SetFunctionName {
             prefix,
             context,
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 

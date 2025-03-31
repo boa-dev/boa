@@ -1,9 +1,9 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `LogicalNot` implements the Opcode Operation for `Opcode::LogicalNot`
@@ -14,18 +14,12 @@ use crate::{
 pub(crate) struct LogicalNot;
 
 impl LogicalNot {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(crate) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation(value: VaryingOperand, registers: &mut Registers, _: &mut Context) {
         registers.set(
             value.into(),
             (!registers.get(value.into()).to_boolean()).into(),
         );
-        Ok(CompletionType::Normal)
     }
 }
 

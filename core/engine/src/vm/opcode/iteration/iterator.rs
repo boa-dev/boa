@@ -3,7 +3,7 @@ use crate::{
     js_string,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, GeneratorResumeKind, Registers,
+        GeneratorResumeKind, Registers,
     },
     Context, JsResult,
 };
@@ -17,11 +17,7 @@ pub(crate) struct IteratorNext;
 
 impl IteratorNext {
     #[inline(always)]
-    pub(crate) fn operation(
-        (): (),
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation((): (), _: &mut Registers, context: &mut Context) -> JsResult<()> {
         let mut iterator = context
             .vm
             .frame_mut()
@@ -33,7 +29,7 @@ impl IteratorNext {
 
         context.vm.frame_mut().iterators.push(iterator);
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -57,7 +53,7 @@ impl IteratorFinishAsyncNext {
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut iterator = context
             .vm
             .frame_mut()
@@ -71,13 +67,13 @@ impl IteratorFinishAsyncNext {
             // If after awaiting the `next` call the iterator returned an error, it can be considered
             // as poisoned, meaning we can remove it from the iterator stack to avoid calling
             // cleanup operations on it.
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         let value = registers.get(value.into());
         iterator.update_result(value.clone(), context)?;
         context.vm.frame_mut().iterators.push(iterator);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -95,13 +91,12 @@ impl Operation for IteratorFinishAsyncNext {
 pub(crate) struct IteratorResult;
 
 impl IteratorResult {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let last_result = context
             .vm
             .frame()
@@ -112,7 +107,6 @@ impl IteratorResult {
             .object()
             .clone();
         registers.set(value.into(), last_result.into());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -135,7 +129,7 @@ impl IteratorValue {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut iterator = context
             .vm
             .frame_mut()
@@ -148,7 +142,7 @@ impl IteratorValue {
 
         context.vm.frame_mut().iterators.push(iterator);
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -166,13 +160,12 @@ impl Operation for IteratorValue {
 pub(crate) struct IteratorDone;
 
 impl IteratorDone {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         done: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let value = context
             .vm
             .frame()
@@ -181,7 +174,6 @@ impl IteratorDone {
             .expect("iterator on the call frame must exist")
             .done();
         registers.set(done.into(), value.into());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -204,15 +196,15 @@ impl IteratorReturn {
         (value, called): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let Some(record) = context.vm.frame_mut().iterators.pop() else {
             registers.set(called.into(), false.into());
-            return Ok(CompletionType::Normal);
+            return Ok(());
         };
 
         if record.done() {
             registers.set(called.into(), false.into());
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         let Some(ret) = record
@@ -220,7 +212,7 @@ impl IteratorReturn {
             .get_method(js_string!("return"), context)?
         else {
             registers.set(called.into(), false.into());
-            return Ok(CompletionType::Normal);
+            return Ok(());
         };
 
         let old_return_value = context.vm.get_return_value();
@@ -232,7 +224,7 @@ impl IteratorReturn {
         registers.set(value.into(), return_value);
         registers.set(called.into(), true.into());
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -255,7 +247,7 @@ impl IteratorToArray {
         array: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut iterator = context
             .vm
             .frame_mut()
@@ -290,7 +282,7 @@ impl IteratorToArray {
         context.vm.frame_mut().iterators.push(iterator);
         let result = Array::create_array_from_list(values, context);
         registers.set(array.into(), result.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -308,16 +300,14 @@ impl Operation for IteratorToArray {
 pub(crate) struct IteratorStackEmpty;
 
 impl IteratorStackEmpty {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         empty: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let is_empty = context.vm.frame().iterators.is_empty();
         registers.set(empty.into(), is_empty.into());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -335,18 +325,16 @@ impl Operation for IteratorStackEmpty {
 pub(crate) struct CreateIteratorResult;
 
 impl CreateIteratorResult {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (value, done): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let done = u32::from(done) != 0;
         let val = registers.get(value.into());
         let result = create_iter_result_object(val.clone(), done, context);
         registers.set(value.into(), result);
-        Ok(CompletionType::Normal)
     }
 }
 

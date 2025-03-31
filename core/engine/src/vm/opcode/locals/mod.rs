@@ -1,6 +1,6 @@
 use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsNativeError, JsResult,
 };
 
@@ -12,16 +12,14 @@ use crate::{
 pub(crate) struct PopIntoLocal;
 
 impl PopIntoLocal {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (src, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         context.vm.frame_mut().local_bindings_initialized[usize::from(dst)] = true;
         registers.set(dst.into(), registers.get(src.into()).clone());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -44,14 +42,14 @@ impl PushFromLocal {
         (src, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         if !context.vm.frame().local_bindings_initialized[usize::from(src)] {
             return Err(JsNativeError::reference()
                 .with_message("access to uninitialized binding")
                 .into());
         }
         registers.set(dst.into(), registers.get(src.into()).clone());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

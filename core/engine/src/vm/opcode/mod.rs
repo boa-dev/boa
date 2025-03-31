@@ -1,14 +1,13 @@
 #![allow(clippy::inline_always)]
 
-/// The opcodes of the vm.
 use crate::{
-    vm::{CompletionType, Registers},
-    Context, JsResult,
+    vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord, Registers},
+    Context,
 };
+use args::{Argument, ArgumentsFormat};
+use std::ops::ControlFlow;
 
 mod args;
-
-use args::{Argument, ArgumentsFormat};
 
 // Operation modules
 mod arguments;
@@ -259,6 +258,13 @@ impl From<u32> for VaryingOperand {
     }
 }
 
+impl std::fmt::Display for VaryingOperand {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
+}
+
 impl Opcode {
     fn encode(self) -> u64 {
         (self as u64) << 56
@@ -309,9 +315,18 @@ macro_rules! generate_opcodes {
             }
         }
 
+        impl Opcode {
+            pub(crate) fn as_str(&self) -> &'static str {
+                match self {
+                    $(Self::$Variant => $Variant::NAME),*
+                }
+            }
+        }
+
         impl ByteCodeEmitter {
             $(
                 paste::paste! {
+                    #[allow(unused)]
                     pub(crate) fn [<emit_ $Variant:snake>](&mut self $( $(, $FieldName: $FieldType)* )? ) {
                         self.bytecode.push(encode_instruction(
                             Opcode::$Variant,
@@ -323,7 +338,7 @@ macro_rules! generate_opcodes {
             )*
         }
 
-        type OpcodeHandler = fn(&mut Context, &mut Registers, u64) -> JsResult<CompletionType>;
+        type OpcodeHandler = fn(&mut Context, &mut Registers, u64) -> ControlFlow<CompletionRecord>;
 
         const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
             [
@@ -333,26 +348,38 @@ macro_rules! generate_opcodes {
             ]
         };
 
+        type OpcodeHandlerBudget = fn(&mut Context, &mut Registers, u64, &mut u32) -> ControlFlow<CompletionRecord>;
+
+        const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
+            [
+                $(
+                    paste::paste! { [<handle_ $Variant:snake _budget>] },
+                )*
+            ]
+        };
+
         $(
             paste::paste! {
-            #[inline(always)]
-                fn [<handle_ $Variant:snake>](context: &mut Context, registers: &mut Registers, instruction: u64) -> JsResult<CompletionType> {
+                #[inline(always)]
+                fn [<handle_ $Variant:snake>](context: &mut Context, registers: &mut Registers, instruction: u64) -> ControlFlow<CompletionRecord> {
                     let args = Argument::decode(instruction, &context.vm.frame.code_block.bytecode.extended);
-                    $Variant::operation(args, registers, context)
+                    let result = $Variant::operation(args, registers, context);
+                    IntoCompletionRecord::into_completion_record(result, context, registers)
                 }
             }
         )*
 
-        impl Context {
-            pub(crate) fn execute_bytecode_instruction(&mut self, registers: &mut Registers) -> JsResult<CompletionType> {
-                let frame = self.vm.frame_mut();
-                let pc = frame.pc;
-                frame.pc += 1;
-                let instruction = self.vm.frame.code_block.bytecode.bytecode[pc as usize];
-                let opcode = Opcode::decode(instruction);
-                OPCODE_HANDLERS[opcode as usize](self, registers, instruction)
+        $(
+            paste::paste! {
+                #[inline(always)]
+                fn [<handle_ $Variant:snake _budget>](context: &mut Context, registers: &mut Registers, instruction: u64, budget: &mut u32) -> ControlFlow<CompletionRecord> {
+                    *budget = budget.saturating_sub(u32::from($Variant::COST));
+                    let args = Argument::decode(instruction, &context.vm.frame.code_block.bytecode.extended);
+                    let result = $Variant::operation(args, registers, context);
+                    IntoCompletionRecord::into_completion_record(result, context, registers)
+                }
             }
-        }
+        )*
 
         $(
             $(
@@ -361,12 +388,124 @@ macro_rules! generate_opcodes {
                     #[allow(unused_parens)]
                     #[allow(unused_variables)]
                     #[inline(always)]
-                    fn operation(args: (), registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+                    fn operation(args: (), registers: &mut Registers, context: &mut Context) {
                         $mapping::operation(args, registers, context)
                     }
                 }
+
+                impl Operation for $Variant {
+                    const NAME: &'static str = "Reserved";
+                    const INSTRUCTION: &'static str = "INST - Reserved";
+                    const COST: u8 = 0;
+                }
             )?
         )*
+
+        pub(crate) enum Instruction {
+            $(
+                $Variant $({
+                    $(
+                        $(#[$fieldinner $($fieldargs)*])*
+                        $FieldName : $FieldType
+                    ),*
+                })?
+            ),*
+        }
+
+        impl ByteCode {
+            #[allow(unused_parens)]
+            pub(crate) fn next_instruction(&self, pc: usize) -> Instruction {
+                let instruction = self.bytecode[pc];
+                let opcode = Opcode::decode(instruction);
+                match opcode {
+                    $(
+                        Opcode::$Variant => {
+                            let ($($($FieldName),*)?) = <($($($FieldType),*)?)>::decode(instruction, &self.extended);
+                            Instruction::$Variant $({
+                                $(
+                                    $FieldName: $FieldName
+                                ),*
+                            })?
+                        }
+                    ),*
+                }
+            }
+
+            pub(crate) fn next_opcode(&self, pc: usize) -> Opcode {
+                let instruction = self.bytecode[pc];
+                Opcode::decode(instruction)
+            }
+        }
+    }
+}
+
+impl Context {
+    pub(crate) fn execute_bytecode_instruction(
+        &mut self,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame_mut();
+        let pc = frame.pc;
+        frame.pc += 1;
+        let instruction = self.vm.frame.code_block.bytecode.bytecode[pc as usize];
+        let opcode = Opcode::decode(instruction);
+        OPCODE_HANDLERS[opcode as usize](self, registers, instruction)
+    }
+
+    pub(crate) fn execute_bytecode_instruction_with_budget(
+        &mut self,
+        registers: &mut Registers,
+        budget: &mut u32,
+    ) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame_mut();
+        let pc = frame.pc;
+        frame.pc += 1;
+        let instruction = self.vm.frame.code_block.bytecode.bytecode[pc as usize];
+        let opcode = Opcode::decode(instruction);
+        OPCODE_HANDLERS_BUDGET[opcode as usize](self, registers, instruction, budget)
+    }
+}
+
+/// Iterator over the instructions in the compact bytecode.
+// #[derive(Debug, Clone)]
+pub(crate) struct InstructionIterator<'bytecode> {
+    bytes: &'bytecode ByteCode,
+    pc: usize,
+}
+
+// TODO: see if this can be exposed on all features.
+// #[allow(unused)]
+impl<'bytecode> InstructionIterator<'bytecode> {
+    /// Create a new [`InstructionIterator`] from bytecode array.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn new(bytes: &'bytecode ByteCode) -> Self {
+        Self { bytes, pc: 0 }
+    }
+
+    /// Get the current program counter.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn pc(&self) -> usize {
+        self.pc
+    }
+}
+
+impl Iterator for InstructionIterator<'_> {
+    type Item = (usize, Opcode, Instruction);
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let start_pc = self.pc;
+        if self.pc >= self.bytes.bytecode.len() {
+            return None;
+        }
+
+        let instruction = self.bytes.next_instruction(self.pc);
+        let opcode = Opcode::decode(self.bytes.bytecode[self.pc]);
+        self.pc += 1;
+
+        Some((start_pc, opcode, instruction))
     }
 }
 

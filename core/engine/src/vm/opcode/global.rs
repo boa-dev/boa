@@ -1,5 +1,5 @@
 use super::{Operation, Registers, VaryingOperand};
-use crate::{vm::CompletionType, Context, JsResult};
+use crate::{Context, JsResult};
 
 /// `HasRestrictedGlobalProperty` implements the Opcode Operation for `Opcode::HasRestrictedGlobalProperty`
 ///
@@ -16,7 +16,7 @@ impl HasRestrictedGlobalProperty {
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let name = &context
             .vm
             .frame()
@@ -24,7 +24,7 @@ impl HasRestrictedGlobalProperty {
             .constant_string(index.into());
         let value = context.has_restricted_global_property(name)?;
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -49,7 +49,7 @@ impl CanDeclareGlobalFunction {
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let name = &context
             .vm
             .frame()
@@ -57,7 +57,7 @@ impl CanDeclareGlobalFunction {
             .constant_string(index.into());
         let value = context.can_declare_global_function(name)?;
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -82,7 +82,7 @@ impl CanDeclareGlobalVar {
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let name = &context
             .vm
             .frame()
@@ -90,7 +90,7 @@ impl CanDeclareGlobalVar {
             .constant_string(index.into());
         let value = context.can_declare_global_var(name)?;
         registers.set(dst.into(), value.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -110,13 +110,12 @@ impl Operation for CanDeclareGlobalVar {
 pub(crate) struct CreateGlobalFunctionBinding;
 
 impl CreateGlobalFunctionBinding {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (function, configurable, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let configurable = u32::from(configurable) != 0;
         let value = registers.get(function.into());
         let name = context
@@ -131,7 +130,7 @@ impl CreateGlobalFunctionBinding {
             .clone();
         context.create_global_function_binding(name, function, configurable)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -151,13 +150,12 @@ impl Operation for CreateGlobalFunctionBinding {
 pub(crate) struct CreateGlobalVarBinding;
 
 impl CreateGlobalVarBinding {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (configurable, index): (VaryingOperand, VaryingOperand),
         _: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let configurable = u32::from(configurable) != 0;
         let name = context
             .vm
@@ -166,7 +164,7 @@ impl CreateGlobalVarBinding {
             .constant_string(index.into());
         context.create_global_var_binding(name, configurable)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

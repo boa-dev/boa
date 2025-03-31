@@ -2,9 +2,9 @@ use crate::{
     builtins::OrdinaryObject,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `PushEmptyObject` implements the Opcode Operation for `Opcode::PushEmptyObject`
@@ -15,20 +15,14 @@ use crate::{
 pub(crate) struct PushEmptyObject;
 
 impl PushEmptyObject {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(crate) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         let o = context
             .intrinsics()
             .templates()
             .ordinary_object()
             .create(OrdinaryObject, Vec::default());
         registers.set(dst.into(), o.into());
-        Ok(CompletionType::Normal)
     }
 }
 

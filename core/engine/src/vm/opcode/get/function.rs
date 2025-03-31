@@ -2,9 +2,9 @@ use crate::{
     vm::{
         code_block::create_function_object_fast,
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `GetFunction` implements the Opcode Operation for `Opcode::GetFunction`
@@ -15,13 +15,12 @@ use crate::{
 pub(crate) struct GetFunction;
 
 impl GetFunction {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let code = context
             .vm
             .frame()
@@ -29,7 +28,6 @@ impl GetFunction {
             .constant_function(index.into());
         let function = create_function_object_fast(code, context);
         registers.set(dst.into(), function.into());
-        Ok(CompletionType::Normal)
     }
 }
 

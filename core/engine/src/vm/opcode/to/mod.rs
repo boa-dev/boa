@@ -1,6 +1,6 @@
 use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
 
@@ -17,11 +17,11 @@ impl ToPropertyKey {
         (value, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let key = value.to_property_key(context)?;
         registers.set(dst.into(), key.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

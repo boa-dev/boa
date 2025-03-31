@@ -11,10 +11,11 @@ use crate::{
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
+use opcode::Opcode;
 use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
-// #[cfg(feature = "trace")]
-// use crate::sys::time::Instant;
+#[cfg(feature = "trace")]
+use crate::sys::time::Instant;
 
 mod call_frame;
 mod code_block;
@@ -23,8 +24,8 @@ mod inline_cache;
 mod opcode;
 mod runtime_limits;
 
-// #[cfg(feature = "flowgraph")]
-// pub mod flowgraph;
+#[cfg(feature = "flowgraph")]
+pub mod flowgraph;
 
 pub(crate) use inline_cache::InlineCache;
 
@@ -255,162 +256,139 @@ impl Vm {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) enum CompletionType {
-    Normal,
-    Return,
-    Throw,
-    Yield,
-}
+#[allow(clippy::print_stdout)]
+#[cfg(feature = "trace")]
+impl Context {
+    const COLUMN_WIDTH: usize = 26;
+    const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
+    const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
+    const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
+    const NUMBER_OF_COLUMNS: usize = 4;
 
-// #[allow(clippy::print_stdout)]
-// #[cfg(feature = "trace")]
-// impl Context {
-//     const COLUMN_WIDTH: usize = 26;
-//     const TIME_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH / 2;
-//     const OPCODE_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-//     const OPERAND_COLUMN_WIDTH: usize = Self::COLUMN_WIDTH;
-//     const NUMBER_OF_COLUMNS: usize = 4;
-//
-//     pub(crate) fn trace_call_frame(&self) {
-//         let frame = self.vm.frame();
-//         let msg = if self.vm.frames.is_empty() {
-//             " VM Start ".to_string()
-//         } else {
-//             format!(
-//                 " Call Frame -- {} ",
-//                 frame.code_block().name().to_std_string_escaped()
-//             )
-//         };
-//
-//         println!("{}", frame.code_block);
-//         println!(
-//             "{msg:-^width$}",
-//             width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
-//         );
-//         println!(
-//             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
-//             "Time",
-//             "Opcode",
-//             "Operands",
-//             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-//             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-//             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-//         );
-//     }
-//
-//     fn trace_execute_instruction<F>(
-//         &mut self,
-//         f: F,
-//         registers: &mut Registers,
-//     ) -> JsResult<CompletionType>
-//     where
-//         F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
-//     {
-//         let frame = self.vm.frame();
-//         let bytecodes = &frame.code_block.bytecode;
-//         let pc = frame.pc as usize;
-//         let (_, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
-//             .next()
-//             .expect("There should be an instruction left");
-//         let operands = frame.code_block.instruction_operands(&instruction);
-//
-//         let opcode = instruction.opcode();
-//         match opcode {
-//             Opcode::Call
-//             | Opcode::CallSpread
-//             | Opcode::CallEval
-//             | Opcode::CallEvalSpread
-//             | Opcode::New
-//             | Opcode::NewSpread
-//             | Opcode::Return
-//             | Opcode::SuperCall
-//             | Opcode::SuperCallSpread
-//             | Opcode::SuperCallDerived => {
-//                 println!();
-//             }
-//             _ => {}
-//         }
-//
-//         let instant = Instant::now();
-//         let result = self.execute_instruction(f, registers);
-//         let duration = instant.elapsed();
-//
-//         let fp = if self.vm.frames.is_empty() {
-//             None
-//         } else {
-//             Some(self.vm.frame.fp() as usize)
-//         };
-//
-//         let stack = {
-//             let mut stack = String::from("[ ");
-//             for (i, (j, value)) in self.vm.stack.iter().enumerate().rev().enumerate() {
-//                 match value {
-//                     value if value.is_callable() => stack.push_str("[function]"),
-//                     value if value.is_object() => stack.push_str("[object]"),
-//                     value => stack.push_str(&value.display().to_string()),
-//                 }
-//
-//                 if fp == Some(j) {
-//                     let frame_index = self.vm.frames.len() - 1;
-//                     stack.push_str(&format!(" |{frame_index}|"));
-//                 } else if i + 1 != self.vm.stack.len() {
-//                     stack.push(',');
-//                 }
-//
-//                 stack.push(' ');
-//             }
-//
-//             stack.push(']');
-//             stack
-//         };
-//
-//         let varying_operand_kind = match varying_operand_kind {
-//             VaryingOperandKind::U8 => "",
-//             VaryingOperandKind::U16 => ".U16",
-//             VaryingOperandKind::U32 => ".U32",
-//         };
-//
-//         println!(
-//             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
-//             format!("{}μs", duration.as_micros()),
-//             format!("{}{varying_operand_kind}", opcode.as_str()),
-//             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
-//             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
-//             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
-//         );
-//
-//         result
-//     }
-// }
+    pub(crate) fn trace_call_frame(&self) {
+        let frame = self.vm.frame();
+        let msg = if self.vm.frames.is_empty() {
+            " VM Start ".to_string()
+        } else {
+            format!(
+                " Call Frame -- {} ",
+                frame.code_block().name().to_std_string_escaped()
+            )
+        };
+
+        println!("{}", frame.code_block);
+        println!(
+            "{msg:-^width$}",
+            width = Self::COLUMN_WIDTH * Self::NUMBER_OF_COLUMNS - 10
+        );
+        println!(
+            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Stack\n",
+            "Time",
+            "Opcode",
+            "Operands",
+            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
+            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
+            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+        );
+    }
+
+    fn trace_execute_instruction<F>(
+        &mut self,
+        f: F,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord>
+    where
+        F: FnOnce(&mut Context, &mut Registers) -> ControlFlow<CompletionRecord>,
+    {
+        let frame = self.vm.frame();
+        let opcode = frame.code_block.bytecode.next_opcode(frame.pc as usize);
+        let instruction = frame
+            .code_block
+            .bytecode
+            .next_instruction(frame.pc as usize);
+        let operands = self
+            .vm
+            .frame()
+            .code_block()
+            .instruction_operands(&instruction);
+
+        match opcode {
+            Opcode::Call
+            | Opcode::CallSpread
+            | Opcode::CallEval
+            | Opcode::CallEvalSpread
+            | Opcode::New
+            | Opcode::NewSpread
+            | Opcode::Return
+            | Opcode::SuperCall
+            | Opcode::SuperCallSpread
+            | Opcode::SuperCallDerived => {
+                println!();
+            }
+            _ => {}
+        }
+
+        let instant = Instant::now();
+        let result = self.execute_instruction(f, registers);
+        let duration = instant.elapsed();
+
+        let fp = if self.vm.frames.is_empty() {
+            None
+        } else {
+            Some(self.vm.frame.fp() as usize)
+        };
+
+        let stack = {
+            let mut stack = String::from("[ ");
+            for (i, (j, value)) in self.vm.stack.iter().enumerate().rev().enumerate() {
+                match value {
+                    value if value.is_callable() => stack.push_str("[function]"),
+                    value if value.is_object() => stack.push_str("[object]"),
+                    value => stack.push_str(&value.display().to_string()),
+                }
+
+                if fp == Some(j) {
+                    let frame_index = self.vm.frames.len() - 1;
+                    stack.push_str(&format!(" |{frame_index}|"));
+                } else if i + 1 != self.vm.stack.len() {
+                    stack.push(',');
+                }
+
+                stack.push(' ');
+            }
+
+            stack.push(']');
+            stack
+        };
+
+        println!(
+            "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
+            format!("{}μs", duration.as_micros()),
+            format!("{}", opcode.as_str()),
+            TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
+            OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
+            OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
+        );
+
+        result
+    }
+}
 
 impl Context {
     fn execute_instruction<F>(
         &mut self,
         f: F,
         registers: &mut Registers,
-    ) -> JsResult<CompletionType>
+    ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(&mut Context, &mut Registers) -> JsResult<CompletionType>,
+        F: FnOnce(&mut Context, &mut Registers) -> ControlFlow<CompletionRecord>,
     {
-        // let opcode: Opcode = {
-        //     let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
-        //     let frame = self.vm.frame_mut();
-        //     let pc = frame.pc;
-        //     let opcode = frame.code_block.bytecode[pc as usize].into();
-        //     frame.pc += 1;
-        //     opcode
-        // };
-
-        // let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
-
-        // f(opcode, registers, self)
         f(self, registers)
     }
 
     fn execute_one<F>(&mut self, f: F, registers: &mut Registers) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(&mut Context, &mut Registers) -> JsResult<CompletionType>,
+        F: FnOnce(&mut Context, &mut Registers) -> ControlFlow<CompletionRecord>,
     {
         #[cfg(feature = "fuzz")]
         {
@@ -422,87 +400,87 @@ impl Context {
             self.instructions_remaining -= 1;
         }
 
-        // #[cfg(feature = "trace")]
-        // let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
-        //     self.trace_execute_instruction(f, registers)
-        // } else {
-        //     self.execute_instruction(f, registers)
-        // };
-
-        // #[cfg(not(feature = "trace"))]
-        let result = self.execute_instruction(f, registers);
-
-        match result {
-            Ok(CompletionType::Normal) => ControlFlow::Continue(()),
-            Ok(CompletionType::Return) => {
-                let frame = self.vm.frame();
-                let fp = frame.fp() as usize;
-                let exit_early = frame.exit_early();
-                self.vm.stack.truncate(fp);
-
-                let result = self.vm.take_return_value();
-                if exit_early {
-                    return ControlFlow::Break(CompletionRecord::Normal(result));
-                }
-
-                self.vm.push(result);
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
-                ControlFlow::Continue(())
-            }
-            Ok(CompletionType::Yield) => {
-                let result = self.vm.take_return_value();
-                if self.vm.frame().exit_early() {
-                    return ControlFlow::Break(CompletionRecord::Return(result));
-                }
-
-                self.vm.push(result);
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
-                ControlFlow::Continue(())
-            }
-
-            Ok(CompletionType::Throw) => self.handle_thow(registers),
-            Err(err) => {
-                // If we hit the execution step limit, bubble up the error to the
-                // (Rust) caller instead of trying to handle as an exception.
-                if !err.is_catchable() {
-                    let mut fp = self.vm.stack.len();
-                    let mut env_fp = self.vm.environments.len();
-                    loop {
-                        if self.vm.frame.exit_early() {
-                            break;
-                        }
-
-                        fp = self.vm.frame.fp() as usize;
-                        env_fp = self.vm.frame.env_fp as usize;
-
-                        if self.vm.pop_frame().is_some() {
-                            registers
-                                .pop_function(self.vm.frame().code_block().register_count as usize);
-                        } else {
-                            break;
-                        }
-                    }
-                    self.vm.environments.truncate(env_fp);
-                    self.vm.stack.truncate(fp);
-                    return ControlFlow::Break(CompletionRecord::Throw(err));
-                }
-
-                // Note: -1 because we increment after fetching the opcode.
-                let pc = self.vm.frame().pc.saturating_sub(1);
-                if self.vm.handle_exception_at(pc) {
-                    self.vm.pending_exception = Some(err);
-                    return ControlFlow::Continue(());
-                }
-
-                // Inject realm before crossing the function boundry
-                let err = err.inject_realm(self.realm().clone());
-
-                self.vm.pending_exception = Some(err);
-                self.handle_thow(registers)
-            }
+        #[cfg(feature = "trace")]
+        if self.vm.trace || self.vm.frame().code_block.traceable() {
+            self.trace_execute_instruction(f, registers)
+        } else {
+            self.execute_instruction(f, registers)
         }
+
+        #[cfg(not(feature = "trace"))]
+        self.execute_instruction(f, registers)
+    }
+
+    fn handle_error(
+        &mut self,
+        registers: &mut Registers,
+        err: JsError,
+    ) -> ControlFlow<CompletionRecord> {
+        // If we hit the execution step limit, bubble up the error to the
+        // (Rust) caller instead of trying to handle as an exception.
+        if !err.is_catchable() {
+            let mut fp = self.vm.stack.len();
+            let mut env_fp = self.vm.environments.len();
+            loop {
+                if self.vm.frame.exit_early() {
+                    break;
+                }
+
+                fp = self.vm.frame.fp() as usize;
+                env_fp = self.vm.frame.env_fp as usize;
+
+                if self.vm.pop_frame().is_some() {
+                    registers.pop_function(self.vm.frame().code_block().register_count as usize);
+                } else {
+                    break;
+                }
+            }
+            self.vm.environments.truncate(env_fp);
+            self.vm.stack.truncate(fp);
+            return ControlFlow::Break(CompletionRecord::Throw(err));
+        }
+
+        // Note: -1 because we increment after fetching the opcode.
+        let pc = self.vm.frame().pc.saturating_sub(1);
+        if self.vm.handle_exception_at(pc) {
+            self.vm.pending_exception = Some(err);
+            return ControlFlow::Continue(());
+        }
+
+        // Inject realm before crossing the function boundry
+        let err = err.inject_realm(self.realm().clone());
+
+        self.vm.pending_exception = Some(err);
+        self.handle_thow(registers)
+    }
+
+    fn handle_return(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame();
+        let fp = frame.fp() as usize;
+        let exit_early = frame.exit_early();
+        self.vm.stack.truncate(fp);
+
+        let result = self.vm.take_return_value();
+        if exit_early {
+            return ControlFlow::Break(CompletionRecord::Normal(result));
+        }
+
+        self.vm.push(result);
+        self.vm.pop_frame().expect("frame must exist");
+        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+        ControlFlow::Continue(())
+    }
+
+    fn handle_yield(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+        let result = self.vm.take_return_value();
+        if self.vm.frame().exit_early() {
+            return ControlFlow::Break(CompletionRecord::Return(result));
+        }
+
+        self.vm.push(result);
+        self.vm.pop_frame().expect("frame must exist");
+        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+        ControlFlow::Continue(())
     }
 
     fn handle_thow(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
@@ -563,19 +541,18 @@ impl Context {
     ) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run_async_with_budget", "vm");
 
-        // #[cfg(feature = "trace")]
-        // if self.vm.trace {
-        //     self.trace_call_frame();
-        // }
+        #[cfg(feature = "trace")]
+        if self.vm.trace {
+            self.trace_call_frame();
+        }
 
         let mut runtime_budget: u32 = budget;
 
         loop {
             match self.execute_one(
-                // |opcode, registers, context| {
-                //     opcode.spend_budget_and_execute(registers, context, &mut runtime_budget)
-                // },
-                Self::execute_bytecode_instruction,
+                |context, registers| {
+                    context.execute_bytecode_instruction_with_budget(registers, &mut runtime_budget)
+                },
                 registers,
             ) {
                 ControlFlow::Continue(()) => {}
@@ -592,10 +569,10 @@ impl Context {
     pub(crate) fn run(&mut self, registers: &mut Registers) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run", "vm");
 
-        // #[cfg(feature = "trace")]
-        // if self.vm.trace {
-        //     self.trace_call_frame();
-        // }
+        #[cfg(feature = "trace")]
+        if self.vm.trace {
+            self.trace_call_frame();
+        }
 
         loop {
             match self.execute_one(Self::execute_bytecode_instruction, registers) {

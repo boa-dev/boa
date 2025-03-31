@@ -1,6 +1,6 @@
 use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
 
@@ -17,7 +17,7 @@ impl CopyDataProperties {
         (object, source, keys): (VaryingOperand, VaryingOperand, Vec<VaryingOperand>),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(object.into());
         let source = registers.get(source.into());
         let mut excluded_keys = Vec::with_capacity(keys.len());
@@ -30,7 +30,7 @@ impl CopyDataProperties {
         }
         let object = object.as_object().expect("not an object");
         object.copy_data_properties(source, excluded_keys, context)?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

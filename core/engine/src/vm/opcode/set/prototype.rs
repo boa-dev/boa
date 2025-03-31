@@ -2,9 +2,9 @@ use crate::{
     object::internal_methods::InternalMethodContext,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 /// `SetPrototype` implements the Opcode Operation for `Opcode::SetPrototype`
@@ -15,13 +15,12 @@ use crate::{
 pub(crate) struct SetPrototype;
 
 impl SetPrototype {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (object, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let object = registers.get(object.into());
         let value = registers.get(value.into());
 
@@ -30,15 +29,13 @@ impl SetPrototype {
         } else if value.is_null() {
             None
         } else {
-            return Ok(CompletionType::Normal);
+            return;
         };
 
         let object = object.as_object().expect("object is not an object");
         object
             .__set_prototype_of__(prototype, &mut InternalMethodContext::new(context))
             .expect("cannot fail per spec");
-
-        Ok(CompletionType::Normal)
     }
 }
 

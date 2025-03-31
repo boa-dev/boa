@@ -1,8 +1,7 @@
 use super::{Operation, Registers, VaryingOperand};
 use crate::{
     builtins::function::arguments::{MappedArguments, UnmappedArguments},
-    vm::CompletionType,
-    Context, JsResult,
+    Context,
 };
 
 /// `CreateMappedArgumentsObject` implements the Opcode Operation for `Opcode::CreateMappedArgumentsObject`
@@ -13,13 +12,12 @@ use crate::{
 pub(crate) struct CreateMappedArgumentsObject;
 
 impl CreateMappedArgumentsObject {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let frame = context.vm.frame();
         let function_object = frame
             .function(&context.vm)
@@ -40,7 +38,6 @@ impl CreateMappedArgumentsObject {
             context,
         );
         registers.set(value.into(), arguments.into());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -58,17 +55,11 @@ impl Operation for CreateMappedArgumentsObject {
 pub(crate) struct CreateUnmappedArgumentsObject;
 
 impl CreateUnmappedArgumentsObject {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(super) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         let args = context.vm.frame().arguments(&context.vm).to_vec();
         let arguments = UnmappedArguments::new(&args, context);
         registers.set(dst.into(), arguments.into());
-        Ok(CompletionType::Normal)
     }
 }
 

@@ -1,9 +1,9 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult, JsValue,
+    Context, JsValue,
 };
 
 pub(crate) mod array;
@@ -31,9 +31,8 @@ macro_rules! implement_push_generics {
 
         impl $name {
             #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+            pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, _: &mut Context) {
                 registers.set(dst.value, $push_value.into());
-                Ok(CompletionType::Normal)
             }
         }
 

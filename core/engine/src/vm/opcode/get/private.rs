@@ -1,7 +1,7 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -19,7 +19,7 @@ impl GetPrivateField {
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let name = context
             .vm
             .frame()
@@ -35,7 +35,7 @@ impl GetPrivateField {
 
         let result = object.private_get(&name, context)?;
         registers.set(dst.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

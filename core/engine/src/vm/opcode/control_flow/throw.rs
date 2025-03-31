@@ -1,9 +1,11 @@
+use std::ops::ControlFlow;
+
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        CompletionRecord, Registers,
     },
-    Context, JsError, JsNativeError, JsResult,
+    Context, JsError, JsNativeError,
 };
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`
@@ -14,13 +16,12 @@ use crate::{
 pub(crate) struct Throw;
 
 impl Throw {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         let value = registers.get(value.into());
         let error = JsError::from_opaque(value.clone());
         context.vm.pending_exception = Some(error);
@@ -28,10 +29,10 @@ impl Throw {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc - 1;
         if context.vm.handle_exception_at(pc) {
-            return Ok(CompletionType::Normal);
+            return ControlFlow::Continue(());
         }
 
-        Ok(CompletionType::Throw)
+        context.handle_thow(registers)
     }
 }
 
@@ -49,17 +50,16 @@ impl Operation for Throw {
 pub(crate) struct ReThrow;
 
 impl ReThrow {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (): (),
-        _: &mut Registers,
+        registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc.saturating_sub(1);
         if context.vm.handle_exception_at(pc) {
-            return Ok(CompletionType::Normal);
+            return ControlFlow::Continue(());
         }
 
         // Note: If we are rethowing and there is no pending error,
@@ -68,10 +68,10 @@ impl ReThrow {
         // Note: If we reached this stage then we there is no handler to handle this,
         //       so return (only for generators).
         if context.vm.pending_exception.is_none() {
-            return Ok(CompletionType::Return);
+            return context.handle_return(registers);
         }
 
-        Ok(CompletionType::Throw)
+        context.handle_thow(registers)
     }
 }
 
@@ -94,11 +94,11 @@ impl Exception {
         dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
             registers.set(dst.into(), error);
-            return Ok(CompletionType::Normal);
+            return ControlFlow::Continue(());
         }
 
         // If there is no pending error, this means that `return()` was called
@@ -124,13 +124,12 @@ impl Operation for Exception {
 pub(crate) struct MaybeException;
 
 impl MaybeException {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (has_exception, exception): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
             registers.set(exception.into(), error);
@@ -138,7 +137,6 @@ impl MaybeException {
         } else {
             registers.set(has_exception.into(), false.into());
         }
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -161,7 +159,7 @@ impl ThrowNewTypeError {
         index: VaryingOperand,
         _: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsError {
         let msg = context
             .vm
             .frame()
@@ -170,7 +168,7 @@ impl ThrowNewTypeError {
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
-        Err(JsNativeError::typ().with_message(msg).into())
+        JsNativeError::typ().with_message(msg).into()
     }
 }
 
@@ -193,7 +191,7 @@ impl ThrowNewSyntaxError {
         index: VaryingOperand,
         _: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsError {
         let msg = context
             .vm
             .frame()
@@ -202,7 +200,7 @@ impl ThrowNewSyntaxError {
         let msg = msg
             .to_std_string()
             .expect("throw message must be an ASCII string");
-        Err(JsNativeError::syntax().with_message(msg).into())
+        JsNativeError::syntax().with_message(msg).into()
     }
 }
 

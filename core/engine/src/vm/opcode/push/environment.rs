@@ -3,7 +3,7 @@ use crate::{
     environments::PrivateEnvironment,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult,
 };
@@ -17,19 +17,13 @@ use boa_gc::Gc;
 pub(crate) struct PushScope;
 
 impl PushScope {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(crate) fn operation(
-        index: VaryingOperand,
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation(index: VaryingOperand, _: &mut Registers, context: &mut Context) {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
         context
             .vm
             .environments
             .push_lexical(scope.num_bindings_non_local());
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -52,11 +46,11 @@ impl PushObjectEnvironment {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let object = registers.get(value.into());
         let object = object.to_object(context)?;
         context.vm.environments.push_object(object);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -74,13 +68,12 @@ impl Operation for PushObjectEnvironment {
 pub(crate) struct PushPrivateEnvironment;
 
 impl PushPrivateEnvironment {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (class, name_indices): (VaryingOperand, Vec<u32>),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let class = registers.get(class.into());
         let class = class.as_object().expect("should be a object");
         let mut names = Vec::with_capacity(name_indices.len());
@@ -101,8 +94,6 @@ impl PushPrivateEnvironment {
             .expect("class object must be function")
             .push_private_environment(environment.clone());
         context.vm.environments.push_private(environment);
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -120,15 +111,9 @@ impl Operation for PushPrivateEnvironment {
 pub(crate) struct PopPrivateEnvironment;
 
 impl PopPrivateEnvironment {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
-    pub(crate) fn operation(
-        (): (),
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    pub(crate) fn operation((): (), _: &mut Registers, context: &mut Context) {
         context.vm.environments.pop_private();
-        Ok(CompletionType::Normal)
     }
 }
 

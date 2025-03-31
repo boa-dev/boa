@@ -4,8 +4,8 @@ use crate::{
     js_string,
     object::IntegrityLevel,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context,
 };
 
 /// `TemplateLookup` implements the Opcode Operation for `Opcode::TemplateLookup`
@@ -16,19 +16,16 @@ use crate::{
 pub(crate) struct TemplateLookup;
 
 impl TemplateLookup {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (jump, site, dst): (u32, u64, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         if let Some(template) = context.realm().lookup_template(site) {
             registers.set(dst.into(), template.into());
             context.vm.frame_mut().pc = jump;
         }
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -46,13 +43,12 @@ impl Operation for TemplateLookup {
 pub(crate) struct TemplateCreate;
 
 impl TemplateCreate {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(super) fn operation(
         (site, dst, values): (u64, VaryingOperand, Vec<u32>),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) {
         let count = values.len() / 2;
         let template =
             Array::array_create(count as u64, None, context).expect("cannot fail per spec");
@@ -115,7 +111,6 @@ impl TemplateCreate {
         context.realm().push_template(site, template.clone());
 
         registers.set(dst.into(), template.into());
-        Ok(CompletionType::Normal)
     }
 }
 

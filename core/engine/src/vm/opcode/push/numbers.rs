@@ -1,9 +1,9 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsResult,
+    Context,
 };
 
 macro_rules! implement_push_numbers_with_conversion {
@@ -17,9 +17,8 @@ macro_rules! implement_push_numbers_with_conversion {
 
         impl $name {
             #[inline(always)]
-    pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) {
                 registers.set(dst.into(), i32::from(value).into());
-                Ok(CompletionType::Normal)
             }
         }
 
@@ -42,9 +41,8 @@ macro_rules! implement_push_numbers_no_conversion {
 
         impl $name {
             #[inline(always)]
-    pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) {
                 registers.set(dst.into(), value.into());
-                Ok(CompletionType::Normal)
             }
         }
 

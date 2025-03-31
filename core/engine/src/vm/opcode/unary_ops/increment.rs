@@ -2,7 +2,7 @@ use crate::{
     value::{JsValue, JsVariant, Numeric},
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsBigInt, JsResult,
 };
@@ -15,13 +15,12 @@ use crate::{
 pub(crate) struct Inc;
 
 impl Inc {
-    #[allow(clippy::unnecessary_wraps)]
     #[inline(always)]
     pub(crate) fn operation(
         (dst, src): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(src.into());
 
         let (numeric, value) = match value.variant() {
@@ -38,7 +37,7 @@ impl Inc {
         };
         registers.set(src.into(), numeric);
         registers.set(dst.into(), value);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

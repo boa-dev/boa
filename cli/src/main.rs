@@ -17,11 +17,8 @@ use boa_engine::{
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
-    // vm::flowgraph::{Direction, Graph},
-    Context,
-    JsError,
-    JsResult,
-    Source,
+    vm::flowgraph::{Direction, Graph},
+    Context, JsError, JsResult, Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
@@ -234,32 +231,30 @@ fn dump<R: ReadChar>(src: Source<'_, R>, args: &Opt, context: &mut Context) -> R
     Ok(())
 }
 
-// fn generate_flowgraph<R: ReadChar>(
-//     context: &mut Context,
-//     src: Source<'_, R>,
-//     format: FlowgraphFormat,
-//     direction: Option<FlowgraphDirection>,
-// ) -> Result<String> {
-//     let script = Script::parse(src, None, context).map_err(|e| e.into_erased(context))?;
-//     let code = script
-//         .codeblock(context)
-//         .map_err(|e| e.into_erased(context))?;
-//
-//     let direction = match direction {
-//         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
-//         Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
-//         Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
-//         Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
-//     };
-//
-//     let mut graph = Graph::new(direction);
-//     code.to_graph(graph.subgraph(String::default()));
-//     let result = match format {
-//         FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
-//         FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
-//     };
-//     Ok(result)
-// }
+fn generate_flowgraph<R: ReadChar>(
+    context: &mut Context,
+    src: Source<'_, R>,
+    format: FlowgraphFormat,
+    direction: Option<FlowgraphDirection>,
+) -> Result<String> {
+    let script = Script::parse(src, None, context).map_err(|e| e.into_erased(context))?;
+    let code = script
+        .codeblock(context)
+        .map_err(|e| e.into_erased(context))?;
+    let direction = match direction {
+        Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
+        Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
+        Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
+        Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
+    };
+    let mut graph = Graph::new(direction);
+    code.to_graph(graph.subgraph(String::default()));
+    let result = match format {
+        FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
+        FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
+    };
+    Ok(result)
+}
 
 fn evaluate_file(
     file: &Path,
@@ -271,18 +266,18 @@ fn evaluate_file(
         return dump(Source::from_filepath(file)?, args, context);
     }
 
-    //if let Some(flowgraph) = args.flowgraph {
-    //    let flowgraph = generate_flowgraph(
-    //        context,
-    //        Source::from_filepath(file)?,
-    //        flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
-    //        args.flowgraph_direction,
-    //    )?;
-    //
-    //    println!("{flowgraph}");
-    //
-    //    return Ok(());
-    //}
+    if let Some(flowgraph) = args.flowgraph {
+        let flowgraph = generate_flowgraph(
+            context,
+            Source::from_filepath(file)?,
+            flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+            args.flowgraph_direction,
+        )?;
+
+        println!("{flowgraph}");
+
+        return Ok(());
+    }
 
     if args.module {
         let module = Module::parse(Source::from_filepath(file)?, None, context)
@@ -409,16 +404,16 @@ fn main() -> Result<()> {
                     if let Err(e) = dump(Source::from_bytes(&line), &args, &mut context) {
                         eprintln!("{e:?}");
                     }
-                // } else if let Some(flowgraph) = args.flowgraph {
-                //     match generate_flowgraph(
-                //         &mut context,
-                //         Source::from_bytes(line.trim_end()),
-                //         flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
-                //         args.flowgraph_direction,
-                //     ) {
-                //         Ok(v) => println!("{v}"),
-                //         Err(v) => eprintln!("{v:?}"),
-                //     }
+                } else if let Some(flowgraph) = args.flowgraph {
+                    match generate_flowgraph(
+                        &mut context,
+                        Source::from_bytes(line.trim_end()),
+                        flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
+                        args.flowgraph_direction,
+                    ) {
+                        Ok(v) => println!("{v}"),
+                        Err(v) => eprintln!("{v:?}"),
+                    }
                 } else {
                     match context.eval(Source::from_bytes(line.trim_end())) {
                         Ok(v) => {

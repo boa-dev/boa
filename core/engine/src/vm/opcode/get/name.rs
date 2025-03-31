@@ -4,7 +4,7 @@ use crate::{
     property::PropertyKey,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
     Context, JsResult, JsValue,
 };
@@ -22,7 +22,7 @@ impl GetName {
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
@@ -31,7 +31,7 @@ impl GetName {
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
         registers.set(value.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -54,7 +54,7 @@ impl GetNameGlobal {
         (dst, index, ic_index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
@@ -83,7 +83,7 @@ impl GetNameGlobal {
                     )?;
                 }
                 registers.set(dst.into(), result);
-                return Ok(CompletionType::Normal);
+                return Ok(());
             }
 
             drop(object_borrowed);
@@ -108,7 +108,7 @@ impl GetNameGlobal {
             }
 
             registers.set(dst.into(), result);
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         let result = context.get_binding(&binding_locator)?.ok_or_else(|| {
@@ -117,7 +117,7 @@ impl GetNameGlobal {
         })?;
 
         registers.set(dst.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -140,14 +140,14 @@ impl GetLocator {
         index: VaryingOperand,
         _: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
 
         context.vm.frame_mut().binding_stack.push(binding_locator);
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -171,7 +171,7 @@ impl GetNameAndLocator {
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
@@ -182,7 +182,7 @@ impl GetNameAndLocator {
 
         context.vm.frame_mut().binding_stack.push(binding_locator);
         registers.set(value.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -205,7 +205,7 @@ impl GetNameOrUndefined {
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
 
@@ -225,7 +225,7 @@ impl GetNameOrUndefined {
         };
 
         registers.set(value.into(), result);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

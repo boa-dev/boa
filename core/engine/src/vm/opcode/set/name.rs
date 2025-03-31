@@ -4,9 +4,9 @@ use crate::{
     environments::Environment,
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionType, Registers,
+        Registers,
     },
-    Context, JsNativeError, JsResult,
+    Context, JsError, JsNativeError, JsResult,
 };
 
 /// `ThrowMutateImmutable` implements the Opcode Operation for `Opcode::ThrowMutateImmutable`
@@ -22,19 +22,19 @@ impl ThrowMutateImmutable {
         index: VaryingOperand,
         _: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsError {
         let name = context
             .vm
             .frame()
             .code_block()
             .constant_string(index.into());
 
-        Err(JsNativeError::typ()
+        JsNativeError::typ()
             .with_message(format!(
                 "cannot mutate an immutable binding '{}'",
                 name.to_std_string_escaped()
             ))
-            .into())
+            .into()
     }
 }
 
@@ -57,7 +57,7 @@ impl SetName {
         (value, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let value = registers.get(value.into());
         let code_block = context.vm.frame().code_block();
         let mut binding_locator = code_block.bindings[usize::from(index)].clone();
@@ -69,7 +69,7 @@ impl SetName {
 
         context.set_binding(&binding_locator, value.clone(), strict)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -92,7 +92,7 @@ impl SetNameByLocator {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let frame = context.vm.frame_mut();
         let strict = frame.code_block.strict();
         let binding_locator = frame
@@ -105,7 +105,7 @@ impl SetNameByLocator {
 
         context.set_binding(&binding_locator, value.clone(), strict)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 

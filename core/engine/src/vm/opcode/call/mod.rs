@@ -4,7 +4,7 @@ use crate::{
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -21,7 +21,7 @@ impl CallEval {
         (argument_count, scope_index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let argument_count = usize::from(argument_count);
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
@@ -70,13 +70,13 @@ impl CallEval {
                 context.vm.push(JsValue::undefined());
             }
 
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -99,7 +99,7 @@ impl CallEvalSpread {
         index: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -153,7 +153,7 @@ impl CallEvalSpread {
                 context.vm.push(JsValue::undefined());
             }
 
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         let argument_count = arguments.len();
@@ -162,7 +162,7 @@ impl CallEvalSpread {
         if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -185,7 +185,7 @@ impl Call {
         argument_count: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let argument_count = usize::from(argument_count);
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
@@ -200,7 +200,7 @@ impl Call {
             registers.push_function(register_count);
         }
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -219,7 +219,7 @@ impl CallSpread {
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -246,7 +246,7 @@ impl CallSpread {
         if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -269,7 +269,7 @@ impl ImportCall {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
@@ -467,7 +467,7 @@ impl ImportCall {
 
         // 9. Return promiseCapability.[[Promise]].
         registers.set(value.into(), promise.into());
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
