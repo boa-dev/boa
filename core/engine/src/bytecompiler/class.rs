@@ -1,7 +1,7 @@
 use super::{BindingAccessOpcode, ByteCompiler, Literal, Register, ToJsString};
 use crate::{
     js_string,
-    vm::{BindingOpcode, CodeBlock, CodeBlockFlags},
+    vm::{opcode::BindingOpcode, CodeBlock, CodeBlockFlags},
 };
 use boa_ast::{
     expression::Identifier,

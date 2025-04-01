@@ -1,7 +1,7 @@
 use super::{BindingAccessOpcode, ToJsString};
 use crate::{
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
-    vm::BindingOpcode,
+    vm::opcode::BindingOpcode,
     Context, JsNativeError, JsResult, SpannedSourceText,
 };
 use boa_ast::{

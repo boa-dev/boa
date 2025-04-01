@@ -1,6 +1,6 @@
 use crate::{
     bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler, Register, ToJsString},
-    vm::BindingOpcode,
+    vm::opcode::BindingOpcode,
 };
 use boa_ast::{
     declaration::Binding,

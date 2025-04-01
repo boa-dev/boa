@@ -13,30 +13,7 @@ use boa_profiler::Profiler;
 use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
-use crate::sys::time::Instant;
-
-#[cfg(feature = "trace")]
-use opcode::Opcode;
-
-mod call_frame;
-mod code_block;
-mod completion_record;
-mod inline_cache;
-mod opcode;
-mod runtime_limits;
-
-#[cfg(feature = "flowgraph")]
-pub mod flowgraph;
-
-pub(crate) use inline_cache::InlineCache;
-
-// TODO: see if this can be exposed on all features.
-pub(crate) use opcode::{ByteCodeEmitter, VaryingOperand};
-pub use runtime_limits::RuntimeLimits;
-pub use {
-    call_frame::{CallFrame, GeneratorResumeKind},
-    code_block::CodeBlock,
-};
+use crate::{sys::time::Instant, vm::opcode::Opcode};
 
 pub(crate) use {
     call_frame::CallFrameFlags,
@@ -44,8 +21,25 @@ pub(crate) use {
         create_function_object, create_function_object_fast, CodeBlockFlags, Constant, Handler,
     },
     completion_record::CompletionRecord,
-    opcode::BindingOpcode,
+    inline_cache::InlineCache,
 };
+
+pub use runtime_limits::RuntimeLimits;
+pub use {
+    call_frame::{CallFrame, GeneratorResumeKind},
+    code_block::CodeBlock,
+};
+
+mod call_frame;
+mod code_block;
+mod completion_record;
+mod inline_cache;
+mod runtime_limits;
+
+pub(crate) mod opcode;
+
+#[cfg(feature = "flowgraph")]
+pub mod flowgraph;
 
 #[cfg(test)]
 mod tests;

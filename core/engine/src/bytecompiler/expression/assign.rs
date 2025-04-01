@@ -1,6 +1,6 @@
 use crate::{
     bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Label, Register, ToJsString},
-    vm::BindingOpcode,
+    vm::opcode::BindingOpcode,
 };
 use boa_ast::{
     expression::{

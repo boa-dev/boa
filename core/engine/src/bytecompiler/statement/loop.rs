@@ -11,7 +11,7 @@ use boa_interner::Sym;
 
 use crate::{
     bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, ToJsString},
-    vm::BindingOpcode,
+    vm::opcode::BindingOpcode,
 };
 
 impl ByteCompiler<'_> {

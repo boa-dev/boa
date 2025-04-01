@@ -20,13 +20,13 @@ use boa_interner::Sym;
 /// An actions to be performed for the local control flow.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum JumpRecordAction {
-    /// Places a [`Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
+    /// Places a [`crate::vm::opcode::Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
     Transfer {
         /// [`JumpControlInfo`] index to be transferred.
         index: u32,
     },
 
-    /// Places [`Opcode::PopEnvironment`] opcodes, `count` times.
+    /// Places [`crate::vm::opcode::Opcode::PopEnvironment`] opcodes, `count` times.
     PopEnvironments { count: u32 },
 
     /// Closes the an iterator.
@@ -35,9 +35,9 @@ pub(crate) enum JumpRecordAction {
     /// Handles finally, this needs to be done if we are in the try or catch section of a try statement that
     /// has a finally block.
     ///
-    /// It places push integer value [`Opcode`] as well as [`Opcode::PushFalse`], which means don't [`ReThrow`](Opcode::ReThrow).
+    /// It places push integer value [`crate::vm::opcode::Opcode`] as well as [`crate::vm::opcode::Opcode::PushFalse`], which means don't [`ReThrow`](crate::vm::opcode::Opcode::ReThrow).
     ///
-    /// The integer is an index used to jump. See [`Opcode::JumpTable`]. This is needed because the following code:
+    /// The integer is an index used to jump. See [`crate::vm::opcode::Opcode::JumpTable`]. This is needed because the following code:
     ///
     /// ```JavaScript
     /// do {
@@ -54,7 +54,7 @@ pub(crate) enum JumpRecordAction {
     /// ```
     ///
     /// Both `continue` and `break` must go through the finally, but the `continue` goes to the beginning of the loop,
-    /// and the `break` goes to the end of the loop, this is solved by having a jump table (See [`Opcode::JumpTable`])
+    /// and the `break` goes to the end of the loop, this is solved by having a jump table (See [`crate::vm::opcode::Opcode::JumpTable`])
     /// at the end of finally (It is constructed in [`ByteCompiler::pop_try_with_finally_control_info()`]).
     HandleFinally {
         /// Jump table index.

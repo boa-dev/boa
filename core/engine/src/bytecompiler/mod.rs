@@ -18,8 +18,8 @@ use crate::{
     builtins::function::{arguments::MappedArguments, ThisMode},
     js_string,
     vm::{
-        BindingOpcode, ByteCodeEmitter, CallFrame, CodeBlock, CodeBlockFlags, Constant,
-        GeneratorResumeKind, Handler, InlineCache,
+        opcode::{BindingOpcode, ByteCodeEmitter},
+        CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
     },
     JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
 };

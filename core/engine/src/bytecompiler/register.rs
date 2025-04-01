@@ -1,6 +1,5 @@
+use crate::vm::opcode::VaryingOperand;
 use std::mem::forget;
-
-use crate::vm::VaryingOperand;
 
 bitflags::bitflags! {
     #[derive(Debug, Default, Clone, Copy)]
