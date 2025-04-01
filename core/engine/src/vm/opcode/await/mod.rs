@@ -1,7 +1,4 @@
-use std::cell::Cell;
-
-use boa_gc::Gc;
-
+use super::VaryingOperand;
 use crate::{
     builtins::{
         async_generator::AsyncGenerator, generator::GeneratorContext, promise::PromiseCapability,
@@ -10,9 +7,11 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType, GeneratorResumeKind, Registers},
-    Context, JsArgs, JsResult, JsValue,
+    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind, Registers},
+    Context, JsArgs, JsValue,
 };
+use boa_gc::Gc;
+use std::{cell::Cell, ops::ControlFlow};
 
 /// `Await` implements the Opcode Operation for `Opcode::Await`
 ///
@@ -22,19 +21,23 @@ use crate::{
 pub(crate) struct Await;
 
 impl Await {
-    fn operation(
-        value: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
+    ) -> ControlFlow<CompletionRecord> {
+        let value = registers.get(value.into());
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
-        let promise = Promise::promise_resolve(
+        let promise = match Promise::promise_resolve(
             &context.intrinsics().constructors().promise().constructor(),
             value.clone(),
             context,
-        )?;
+        ) {
+            Ok(promise) => promise,
+            Err(err) => return context.handle_error(registers, err),
+        };
 
         let return_value = context
             .vm
@@ -138,7 +141,7 @@ impl Await {
         );
 
         context.vm.set_return_value(return_value);
-        Ok(CompletionType::Yield)
+        context.handle_yield(registers)
     }
 }
 
@@ -146,21 +149,6 @@ impl Operation for Await {
     const NAME: &'static str = "Await";
     const INSTRUCTION: &'static str = "INST - Await";
     const COST: u8 = 5;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }
 
 /// `CreatePromiseCapability` implements the Opcode Operation for `Opcode::CreatePromiseCapability`
@@ -170,14 +158,11 @@ impl Operation for Await {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CreatePromiseCapability;
 
-impl Operation for CreatePromiseCapability {
-    const NAME: &'static str = "CreatePromiseCapability";
-    const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
-    const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl CreatePromiseCapability {
+    #[inline(always)]
+    pub(super) fn operation((): (), registers: &mut Registers, context: &mut Context) {
         if context.vm.frame().promise_capability(registers).is_some() {
-            return Ok(CompletionType::Normal);
+            return;
         }
 
         let promise_capability = PromiseCapability::new(
@@ -190,8 +175,13 @@ impl Operation for CreatePromiseCapability {
             .vm
             .frame
             .set_promise_capability(registers, Some(&promise_capability));
-        Ok(CompletionType::Normal)
     }
+}
+
+impl Operation for CreatePromiseCapability {
+    const NAME: &'static str = "CreatePromiseCapability";
+    const INSTRUCTION: &'static str = "INST - CreatePromiseCapability";
+    const COST: u8 = 8;
 }
 
 /// `CompletePromiseCapability` implements the Opcode Operation for `Opcode::CompletePromiseCapability`
@@ -201,19 +191,20 @@ impl Operation for CreatePromiseCapability {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CompletePromiseCapability;
 
-impl Operation for CompletePromiseCapability {
-    const NAME: &'static str = "CompletePromiseCapability";
-    const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
-    const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl CompletePromiseCapability {
+    #[inline(always)]
+    pub(super) fn operation(
+        (): (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> ControlFlow<CompletionRecord> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let Some(promise_capability) = context.vm.frame().promise_capability(registers) else {
             return if context.vm.pending_exception.is_some() {
-                Ok(CompletionType::Throw)
+                context.handle_thow(registers)
             } else {
-                Ok(CompletionType::Normal)
+                ControlFlow::Continue(())
             };
         };
 
@@ -234,6 +225,12 @@ impl Operation for CompletePromiseCapability {
             .vm
             .set_return_value(promise_capability.promise().clone().into());
 
-        Ok(CompletionType::Normal)
+        ControlFlow::Continue(())
     }
+}
+
+impl Operation for CompletePromiseCapability {
+    const NAME: &'static str = "CompletePromiseCapability";
+    const INSTRUCTION: &'static str = "INST - CompletePromiseCapability";
+    const COST: u8 = 8;
 }

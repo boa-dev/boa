@@ -1,6 +1,7 @@
+use super::VaryingOperand;
 use crate::{
     error::JsNativeError,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
 
@@ -12,12 +13,13 @@ use crate::{
 pub(crate) struct ValueNotNullOrUndefined;
 
 impl ValueNotNullOrUndefined {
-    fn operation(
-        value: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         _: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
+    ) -> JsResult<()> {
+        let value = registers.get(value.into());
         if value.is_null() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot destructure 'null' value")
@@ -28,7 +30,7 @@ impl ValueNotNullOrUndefined {
                 .with_message("Cannot destructure 'undefined' value")
                 .into());
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -36,21 +38,6 @@ impl Operation for ValueNotNullOrUndefined {
     const NAME: &'static str = "ValueNotNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - ValueNotNullOrUndefined";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }
 
 /// `IsObject` implements the Opcode Operation for `Opcode::IsObject`
@@ -61,15 +48,10 @@ impl Operation for ValueNotNullOrUndefined {
 pub(crate) struct IsObject;
 
 impl IsObject {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        value: u32,
-        registers: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let is_object = registers.get(value).is_object();
-        registers.set(value, is_object.into());
-        Ok(CompletionType::Normal)
+    #[inline(always)]
+    pub(super) fn operation(value: VaryingOperand, registers: &mut Registers, _: &mut Context) {
+        let is_object = registers.get(value.into()).is_object();
+        registers.set(value.into(), is_object.into());
     }
 }
 
@@ -77,19 +59,4 @@ impl Operation for IsObject {
     const NAME: &'static str = "IsObject";
     const INSTRUCTION: &'static str = "INST - IsObject";
     const COST: u8 = 1;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }

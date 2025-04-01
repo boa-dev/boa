@@ -9,25 +9,24 @@
 //! [try spec]: https://tc39.es/ecma262/#sec-try-statement
 //! [labelled spec]: https://tc39.es/ecma262/#sec-labelled-statements
 
+use super::Register;
 use crate::{
     bytecompiler::{ByteCompiler, Label},
-    vm::{Handler, Opcode},
+    vm::Handler,
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
 
-use super::{Operand, Register};
-
 /// An actions to be performed for the local control flow.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum JumpRecordAction {
-    /// Places a [`Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
+    /// Places a [`crate::vm::opcode::Opcode::Jump`], transfers to a specified [`JumpControlInfo`] to be handled when it gets poped.
     Transfer {
         /// [`JumpControlInfo`] index to be transferred.
         index: u32,
     },
 
-    /// Places [`Opcode::PopEnvironment`] opcodes, `count` times.
+    /// Places [`crate::vm::opcode::Opcode::PopEnvironment`] opcodes, `count` times.
     PopEnvironments { count: u32 },
 
     /// Closes the an iterator.
@@ -36,9 +35,9 @@ pub(crate) enum JumpRecordAction {
     /// Handles finally, this needs to be done if we are in the try or catch section of a try statement that
     /// has a finally block.
     ///
-    /// It places push integer value [`Opcode`] as well as [`Opcode::PushFalse`], which means don't [`ReThrow`](Opcode::ReThrow).
+    /// It places push integer value [`crate::vm::opcode::Opcode`] as well as [`crate::vm::opcode::Opcode::PushFalse`], which means don't [`ReThrow`](crate::vm::opcode::Opcode::ReThrow).
     ///
-    /// The integer is an index used to jump. See [`Opcode::JumpTable`]. This is needed because the following code:
+    /// The integer is an index used to jump. See [`crate::vm::opcode::Opcode::JumpTable`]. This is needed because the following code:
     ///
     /// ```JavaScript
     /// do {
@@ -55,7 +54,7 @@ pub(crate) enum JumpRecordAction {
     /// ```
     ///
     /// Both `continue` and `break` must go through the finally, but the `continue` goes to the beginning of the loop,
-    /// and the `break` goes to the end of the loop, this is solved by having a jump table (See [`Opcode::JumpTable`])
+    /// and the `break` goes to the end of the loop, this is solved by having a jump table (See [`crate::vm::opcode::Opcode::JumpTable`])
     /// at the end of finally (It is constructed in [`ByteCompiler::pop_try_with_finally_control_info()`]).
     HandleFinally {
         /// Jump table index.
@@ -103,7 +102,7 @@ impl JumpRecord {
                 }
                 JumpRecordAction::PopEnvironments { count } => {
                     for _ in 0..count {
-                        compiler.emit_opcode(Opcode::PopEnvironment);
+                        compiler.bytecode.emit_pop_environment();
                     }
                 }
                 JumpRecordAction::HandleFinally {
@@ -115,7 +114,7 @@ impl JumpRecord {
                     let value = compiler.register_allocator.alloc();
                     compiler.emit_push_integer(index, &value);
                     compiler.push_from_register(&value);
-                    compiler.emit(Opcode::PushFalse, &[Operand::Varying(finally_throw)]);
+                    compiler.bytecode.emit_push_false(finally_throw.into());
                     compiler.register_allocator.dealloc(value);
                 }
                 JumpRecordAction::CloseIterator { r#async } => {
@@ -134,7 +133,7 @@ impl JumpRecord {
                 if return_value_on_stack {
                     let value = compiler.register_allocator.alloc();
                     compiler.pop_into_register(&value);
-                    compiler.emit(Opcode::SetAccumulator, &[Operand::Register(&value)]);
+                    compiler.bytecode.emit_set_accumulator(value.variable());
                     compiler.register_allocator.dealloc(value);
                 }
 
@@ -143,22 +142,22 @@ impl JumpRecord {
                     //  - 27.6.3.2 AsyncGeneratorStart ( generator, generatorBody ): https://tc39.es/ecma262/#sec-asyncgeneratorstart
                     //
                     // Note: If we are returning we have to close the async generator function.
-                    (true, true) => compiler.emit_opcode(Opcode::AsyncGeneratorClose),
+                    (true, true) => compiler.bytecode.emit_async_generator_close(),
 
                     // Taken from:
                     //  - 27.7.5.2 AsyncBlockStart ( promiseCapability, asyncBody, asyncContext ): <https://tc39.es/ecma262/#sec-asyncblockstart>
                     //
                     // Note: If there is promise capability resolve or reject it based on pending exception.
-                    (true, false) => compiler.emit_opcode(Opcode::CompletePromiseCapability),
+                    (true, false) => compiler.bytecode.emit_complete_promise_capability(),
                     (false, false) => {
                         // TODO: We can omit checking for return, when constructing for functions,
                         // that cannot be constructed, like arrow functions.
-                        compiler.emit_opcode(Opcode::CheckReturn);
+                        compiler.bytecode.emit_check_return();
                     }
                     (false, true) => {}
                 }
 
-                compiler.emit_opcode(Opcode::Return);
+                compiler.bytecode.emit_return();
             }
         }
     }
@@ -558,17 +557,25 @@ impl ByteCompiler<'_> {
             self.patch_jump_with_target(*label, finally_start);
         }
 
-        let (jumps, default) = self.jump_table(info.jumps.len() as u32);
+        let jump_table_index = self.next_opcode_location();
+        self.bytecode.emit_jump_table(
+            Self::DUMMY_ADDRESS,
+            vec![Self::DUMMY_ADDRESS; info.jumps.len()],
+        );
 
+        let mut patch_jumps = Vec::with_capacity(info.jumps.len());
         // Handle breaks/continue/returns in a finally block
-        for (i, label) in jumps.iter().enumerate() {
-            self.patch_jump(*label);
+        for i in 0..info.jumps.len() {
+            patch_jumps.push(self.next_opcode_location());
 
             let jump_record = info.jumps[i].clone();
-            jump_record.perform_actions(label.index, self);
+            jump_record.perform_actions(Self::DUMMY_ADDRESS, self);
         }
 
-        self.patch_jump(default);
+        let default = self.bytecode.next_opcode_location();
+
+        self.bytecode
+            .patch_jump_table(jump_table_index, (default, &patch_jumps));
     }
 
     pub(crate) fn jump_info_open_environment_count(&self, index: usize) -> u32 {

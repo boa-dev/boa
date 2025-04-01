@@ -394,6 +394,7 @@ dependencies = [
  "num-traits",
  "num_enum",
  "once_cell",
+ "paste",
  "portable-atomic",
  "rand 0.9.0",
  "regress",
