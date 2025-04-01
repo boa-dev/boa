@@ -8,14 +8,15 @@ use crate::{
     environments::EnvironmentStack, realm::Realm, script::Script, Context, JsError, JsNativeError,
     JsObject, JsResult, JsString, JsValue, Module,
 };
-
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use opcode::Opcode;
 use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
+
+#[cfg(feature = "trace")]
+use opcode::Opcode;
 
 mod call_frame;
 mod code_block;

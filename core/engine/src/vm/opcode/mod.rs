@@ -431,6 +431,7 @@ macro_rules! generate_opcodes {
                 }
             }
 
+            #[cfg(feature = "trace")]
             pub(crate) fn next_opcode(&self, pc: usize) -> Opcode {
                 let instruction = self.bytecode[pc];
                 Opcode::decode(instruction)
