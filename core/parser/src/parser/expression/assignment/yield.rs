@@ -72,8 +72,8 @@ where
             TokenKind::Punctuator(Punctuator::Mul) => {
                 cursor.advance(interner);
                 let expr = AssignmentExpression::new(self.allow_in, true, self.allow_await)
-                    .parse(cursor, interner)?;
-                Ok(Yield::new(Some(expr), true).into())
+                    .parse_boxed(cursor, interner)?;
+                Ok(Yield::new_boxed(Some(expr), true).into())
             }
             TokenKind::IdentifierName(_)
             | TokenKind::Punctuator(
@@ -111,10 +111,10 @@ where
             | TokenKind::RegularExpressionLiteral(_, _)
             | TokenKind::TemplateMiddle(_) => {
                 let expr = AssignmentExpression::new(self.allow_in, true, self.allow_await)
-                    .parse(cursor, interner)?;
-                Ok(Yield::new(Some(expr), false).into())
+                    .parse_boxed(cursor, interner)?;
+                Ok(Yield::new_boxed(Some(expr), false).into())
             }
-            _ => Ok(Yield::new(None, false).into()),
+            _ => Ok(Yield::new_boxed(None, false).into()),
         }
     }
 }

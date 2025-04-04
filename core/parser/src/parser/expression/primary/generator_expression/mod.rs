@@ -53,6 +53,14 @@ where
     type Output = GeneratorExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("GeneratorExpression", "Parsing");
 
         let token = cursor.expect((Keyword::Function, false), "generator expression", interner)?;
@@ -156,9 +164,9 @@ where
 
         let span = start_linear_span.union(body.linear_pos_end());
 
-        let function = GeneratorExpressionNode::new(name, params, body, span, name.is_some());
+        let function = GeneratorExpressionNode::new_boxed(name, params, body, span, name.is_some());
 
-        if contains(&function, ContainsSymbol::Super) {
+        if contains(function.as_ref(), ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(
                 "invalid super usage".into(),
                 params_start_position,

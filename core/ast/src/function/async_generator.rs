@@ -166,18 +166,17 @@ pub struct AsyncGeneratorExpression {
 
 impl AsyncGeneratorExpression {
     /// Creates a new async generator expression.
-    #[inline]
     #[must_use]
-    pub fn new(
+    pub fn new_boxed(
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
-    ) -> Self {
+    ) -> Box<Self> {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
-        Self {
+        Box::new(Self {
             name,
             parameters,
             body,
@@ -186,7 +185,7 @@ impl AsyncGeneratorExpression {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
-        }
+        })
     }
 
     /// Gets the name of the async generator expression.
@@ -264,9 +263,9 @@ impl ToIndentedString for AsyncGeneratorExpression {
     }
 }
 
-impl From<AsyncGeneratorExpression> for Expression {
+impl From<Box<AsyncGeneratorExpression>> for Expression {
     #[inline]
-    fn from(expr: AsyncGeneratorExpression) -> Self {
+    fn from(expr: Box<AsyncGeneratorExpression>) -> Self {
         Self::AsyncGeneratorExpression(expr)
     }
 }
