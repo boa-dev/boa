@@ -427,7 +427,7 @@ fn main() -> Result<()> {
                     }
                     if let Err(err) = context.run_jobs() {
                         eprintln!("{err}");
-                    };
+                    }
                 }
             }
 

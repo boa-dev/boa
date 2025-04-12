@@ -14,7 +14,7 @@ use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{cell::Cell, fmt::Display, mem::size_of};
+use std::{cell::Cell, fmt::Display, fmt::Write as _, mem::size_of};
 use thin_vec::ThinVec;
 
 use super::{InlineCache, Instruction, InstructionIterator};
@@ -972,7 +972,7 @@ impl CodeBlock {
             Instruction::JumpTable { default, addresses } => {
                 let mut operands = format!("#{}: Default: {default:4}", addresses.len());
                 for (i, address) in addresses.iter().enumerate() {
-                    operands += &format!(", {i}: {address}");
+                    let _ = write!(operands, ", {i}: {address}");
                 }
                 operands
             }

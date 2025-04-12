@@ -90,7 +90,6 @@ bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
 fast-float2.workspace = true
-once_cell = { workspace = true, features = ["std"] }
 tap.workspace = true
 
 thiserror.workspace = true
@@ -154,7 +153,7 @@ tinystr = { workspace = true, optional = true }
 
 # temporal deps
 temporal_rs = { workspace = true, optional = true }
-iana-time-zone = { version = "0.1.62", optional = true }
+iana-time-zone = { version = "0.1.63", optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { workspace = true, optional = true }

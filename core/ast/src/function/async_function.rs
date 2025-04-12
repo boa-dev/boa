@@ -11,7 +11,7 @@ use crate::{
     Declaration, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, ToIndentedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An async function declaration.
 ///
@@ -251,21 +251,19 @@ impl ToIndentedString for AsyncFunctionExpression {
         let mut buf = "async function".to_owned();
         if self.has_binding_identifier {
             if let Some(name) = self.name {
-                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
             }
         }
-        buf.push_str(&format!(
-            "({}",
-            join_nodes(interner, self.parameters.as_ref())
-        ));
+        let _ = write!(buf, "({}", join_nodes(interner, self.parameters.as_ref()));
         if self.body().statements().is_empty() {
             buf.push_str(") {}");
         } else {
-            buf.push_str(&format!(
+            let _ = write!(
+                buf,
                 ") {{\n{}{}}}",
                 self.body.to_indented_string(interner, indentation + 1),
                 "    ".repeat(indentation)
-            ));
+            );
         }
         buf
     }

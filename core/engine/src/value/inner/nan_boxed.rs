@@ -693,6 +693,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) const fn as_variant(&self) -> JsVariant<'_> {
+        #[allow(clippy::match_overlapping_arm)]
         match self.0 {
             bits::UNDEFINED => JsVariant::Undefined,
             bits::NULL => JsVariant::Null,

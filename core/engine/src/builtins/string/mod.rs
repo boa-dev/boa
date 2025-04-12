@@ -726,9 +726,7 @@ impl String {
                 let n = n as usize;
                 let mut result = Vec::with_capacity(n);
 
-                std::iter::repeat(string.as_str())
-                    .take(n)
-                    .for_each(|s| result.push(s));
+                std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
 
                 // 6. Return the String value that is made from n copies of S appended together.
                 Ok(JsString::concat_array(&result).into())

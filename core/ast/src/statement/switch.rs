@@ -1,4 +1,5 @@
 //! Switch node.
+
 use crate::{
     expression::Expression,
     operations::{contains, ContainsSymbol},
@@ -8,7 +9,7 @@ use crate::{
     StatementList,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// A case clause inside a [`Switch`] statement, as defined by the [spec].
 ///
@@ -180,20 +181,22 @@ impl ToIndentedString for Switch {
         let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
         for e in &*self.cases {
             if let Some(condition) = e.condition() {
-                buf.push_str(&format!(
+                let _ = write!(
+                    buf,
                     "{indent}    case {}:\n{}",
                     condition.to_interned_string(interner),
                     e.body().to_indented_string(interner, indentation + 2)
-                ));
+                );
             } else {
-                buf.push_str(&format!(
+                let _ = write!(
+                    buf,
                     "{indent}    default:\n{}",
                     e.body().to_indented_string(interner, indentation + 2)
-                ));
+                );
             }
         }
 
-        buf.push_str(&format!("{indent}}}"));
+        let _ = write!(buf, "{indent}}}");
 
         buf
     }

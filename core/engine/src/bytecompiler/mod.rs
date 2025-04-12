@@ -737,7 +737,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                 }
                 _ => {}
-            };
+            }
         }
 
         match varying_kind {
@@ -1841,7 +1841,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                         self.compile_expr(init, &value);
                     } else {
                         self.push_undefined(&value);
-                    };
+                    }
                     self.compile_declaration_pattern(pattern, BindingOpcode::InitVar, &value);
                     self.register_allocator.dealloc(value);
                 }
@@ -1862,7 +1862,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 self.compile_expr(init, &value);
                             } else {
                                 self.push_undefined(&value);
-                            };
+                            }
                             self.emit_binding(BindingOpcode::InitLexical, ident, &value);
                             self.register_allocator.dealloc(value);
                         }
@@ -1872,7 +1872,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 self.compile_expr(init, &value);
                             } else {
                                 self.push_undefined(&value);
-                            };
+                            }
                             self.compile_declaration_pattern(
                                 pattern,
                                 BindingOpcode::InitLexical,
@@ -1902,7 +1902,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                                 self.compile_expr(init, &value);
                             } else {
                                 self.push_undefined(&value);
-                            };
+                            }
                             self.compile_declaration_pattern(
                                 pattern,
                                 BindingOpcode::InitLexical,
@@ -1913,7 +1913,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     }
                 }
             }
-        };
+        }
     }
 
     /// Compile a [`StatementListItem`].

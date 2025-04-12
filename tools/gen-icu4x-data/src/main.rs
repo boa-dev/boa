@@ -30,10 +30,7 @@ fn export_for_service(
     provider: &DatagenProvider,
     driver: DatagenDriver,
 ) -> Result<(), Box<dyn Error>> {
-    log::info!(
-        "Generating ICU4X data for service `{service}` with keys: {:#?}",
-        keys
-    );
+    log::info!("Generating ICU4X data for service `{service}` with keys: {keys:#?}");
 
     let export_path = Path::new(EXPORT_PATH);
     let export_file = export_path.join(format!("{service}.postcard"));

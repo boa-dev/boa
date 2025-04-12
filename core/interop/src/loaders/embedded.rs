@@ -52,7 +52,7 @@ impl EmbeddedModuleEntry {
                     return Err(err);
                 }
             }
-        };
+        }
 
         match self {
             Self::Module(module) => Ok(module),

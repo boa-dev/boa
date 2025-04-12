@@ -271,7 +271,7 @@ impl BuiltInConstructor for PlainDate {
             return Err(JsNativeError::typ()
                 .with_message("NewTarget cannot be undefined.")
                 .into());
-        };
+        }
 
         let year = args
             .get_or_undefined(0)

@@ -5,7 +5,7 @@ use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// Template literals are string literals allowing embedded expressions.
 ///
@@ -88,10 +88,10 @@ impl ToInternedString for TemplateLiteral {
         for elt in &self.elements {
             match elt {
                 TemplateElement::String(s) => {
-                    buf.push_str(&format!("{}", interner.resolve_expect(*s)));
+                    let _ = write!(buf, "{}", interner.resolve_expect(*s));
                 }
                 TemplateElement::Expr(n) => {
-                    buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)));
+                    let _ = write!(buf, "${{{}}}", n.to_interned_string(interner));
                 }
             }
         }

@@ -589,7 +589,7 @@ impl JobExecutor for SimpleJobExecutor {
                     self.async_jobs.borrow_mut().clear();
                     self.promise_jobs.borrow_mut().clear();
                     return Err(err);
-                };
+                }
                 next_job = self.async_jobs.borrow_mut().pop_front();
             }
             let mut next_job = self.promise_jobs.borrow_mut().pop_front();
@@ -598,7 +598,7 @@ impl JobExecutor for SimpleJobExecutor {
                     self.async_jobs.borrow_mut().clear();
                     self.promise_jobs.borrow_mut().clear();
                     return Err(err);
-                };
+                }
                 next_job = self.promise_jobs.borrow_mut().pop_front();
             }
         }

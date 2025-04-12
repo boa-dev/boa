@@ -142,7 +142,7 @@ where
                 "Illegal 'use strict' directive in function with non-simple parameter list".into(),
                 params_start_position,
             )));
-        };
+        }
 
         // It is a Syntax Error if any element of the BoundNames of ArrowParameters
         // also occurs in the LexicallyDeclaredNames of ConciseBody.

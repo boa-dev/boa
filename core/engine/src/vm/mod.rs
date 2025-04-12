@@ -16,6 +16,9 @@ use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
 
+#[cfg(feature = "trace")]
+use std::fmt::Write as _;
+
 mod call_frame;
 mod code_block;
 mod completion_record;
@@ -362,7 +365,7 @@ impl Context {
 
                 if fp == Some(j) {
                     let frame_index = self.vm.frames.len() - 1;
-                    stack.push_str(&format!(" |{frame_index}|"));
+                    let _ = write!(stack, " |{frame_index}|");
                 } else if i + 1 != self.vm.stack.len() {
                     stack.push(',');
                 }

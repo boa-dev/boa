@@ -36,7 +36,7 @@ impl<R> Tokenizer<R> for SingleLineComment {
             match tried_ch {
                 Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => break,
                 _ => {}
-            };
+            }
             cursor.next_char().expect("Comment character vanished");
         }
         Ok(Token::new_by_position_group(
@@ -90,7 +90,7 @@ impl<R> Tokenizer<R> for MultiLineComment {
                     new_line = true;
                 }
                 _ => {}
-            };
+            }
         }
 
         Err(Error::syntax(
@@ -125,7 +125,7 @@ impl<R> Tokenizer<R> for HashbangComment {
             match tried_ch {
                 Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => break,
                 _ => {}
-            };
+            }
         }
 
         Ok(Token::new_by_position_group(

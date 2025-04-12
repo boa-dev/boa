@@ -50,7 +50,7 @@ impl<R: Read> ReadChar for UTF8Input<R> {
                 let w = self.next_byte()?.unwrap_or(0);
                 ch = ((init & 7) << 18) | utf8_acc_cont_byte(y_z, w);
             }
-        };
+        }
 
         Ok(Some(ch))
     }
