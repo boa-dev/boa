@@ -11,10 +11,13 @@ use crate::{
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{fmt::Write as _, future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
+use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
+
+#[cfg(feature = "trace")]
+use std::fmt::Write as _;
 
 mod call_frame;
 mod code_block;
