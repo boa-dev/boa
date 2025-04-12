@@ -340,7 +340,7 @@ impl ListFormat {
                         "element" => self.0.push(Part::Element(string.0)),
                         "literal" => self.0.push(Part::Literal(string.0)),
                         _ => unreachable!(),
-                    };
+                    }
                 }
                 Ok(())
             }

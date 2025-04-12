@@ -7,7 +7,7 @@ use crate::{
     Expression,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// The `for` statement creates a loop that consists of three optional expressions.
 ///
@@ -85,10 +85,11 @@ impl ToIndentedString for ForLoop {
         if let Some(final_expr) = self.final_expr() {
             buf.push_str(&final_expr.to_interned_string(interner));
         }
-        buf.push_str(&format!(
+        let _ = write!(
+            buf,
             ") {}",
             self.inner.body().to_indented_string(interner, indentation)
-        ));
+        );
 
         buf
     }

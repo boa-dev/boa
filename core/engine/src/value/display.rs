@@ -36,7 +36,7 @@ impl ValueDisplay<'_> {
 /// - The function with which to print
 /// - The indentation for the current level (for nested objects)
 /// - A `HashSet` with the addresses of the already printed objects for the current branch
-///      (used to avoid infinite loops when there are cyclic deps)
+///   (used to avoid infinite loops when there are cyclic deps)
 macro_rules! print_obj_value {
     (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
         {

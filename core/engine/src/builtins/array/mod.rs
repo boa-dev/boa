@@ -1490,7 +1490,7 @@ impl Array {
             if k < 0 {
                 k = 0;
             }
-        };
+        }
 
         let search_element = args.get_or_undefined(0);
 
@@ -1781,7 +1781,7 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => depth_num = u64::MAX,
                 _ => depth_num = 0,
             }
-        };
+        }
 
         // 5. Let A be ArraySpeciesCreate(O, 0)
         let a = Self::array_species_create(&o, 0, context)?;

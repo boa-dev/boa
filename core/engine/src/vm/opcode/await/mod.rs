@@ -228,7 +228,7 @@ impl Operation for CompletePromiseCapability {
                 .resolve()
                 .call(&JsValue::undefined(), &[return_value], context)
                 .expect("cannot fail per spec");
-        };
+        }
 
         context
             .vm

@@ -341,7 +341,7 @@ impl BuiltInConstructor for PlainDateTime {
             return Err(JsNativeError::typ()
                 .with_message("NewTarget cannot be undefined when contructing PlainDatedt.")
                 .into());
-        };
+        }
 
         // 2. Set isoYear to ? ToIntegerWithTruncation(isoYear).
         let iso_year = args

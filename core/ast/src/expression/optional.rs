@@ -5,7 +5,7 @@ use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// List of valid operations in an [`Optional`] chain.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -118,18 +118,22 @@ impl ToInternedString for OptionalOperation {
 
             String::new()
         };
-        buf.push_str(&match &self.kind {
+        match &self.kind {
             OptionalOperationKind::SimplePropertyAccess { field } => match field {
-                PropertyAccessField::Const(name) => interner.resolve_expect(*name).to_string(),
+                PropertyAccessField::Const(name) => {
+                    buf.push_str(&interner.resolve_expect(*name).to_string());
+                }
                 PropertyAccessField::Expr(expr) => {
-                    format!("[{}]", expr.to_interned_string(interner))
+                    let _ = write!(buf, "[{}]", expr.to_interned_string(interner));
                 }
             },
             OptionalOperationKind::PrivatePropertyAccess { field } => {
-                format!("#{}", interner.resolve_expect(field.description()))
+                let _ = write!(buf, "#{}", interner.resolve_expect(field.description()));
             }
-            OptionalOperationKind::Call { args } => format!("({})", join_nodes(interner, args)),
-        });
+            OptionalOperationKind::Call { args } => {
+                let _ = write!(buf, "({})", join_nodes(interner, args));
+            }
+        }
         buf
     }
 }

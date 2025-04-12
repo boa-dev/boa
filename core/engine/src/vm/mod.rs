@@ -11,7 +11,7 @@ use crate::{
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
+use std::{fmt::Write as _, future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
@@ -362,7 +362,7 @@ impl Context {
 
                 if fp == Some(j) {
                     let frame_index = self.vm.frames.len() - 1;
-                    stack.push_str(&format!(" |{frame_index}|"));
+                    let _ = write!(stack, " |{frame_index}|");
                 } else if i + 1 != self.vm.stack.len() {
                     stack.push(',');
                 }

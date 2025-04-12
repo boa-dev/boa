@@ -504,7 +504,7 @@ impl ImportCall {
                 }),
                 context,
             ),
-        };
+        }
 
         // 9. Return promiseCapability.[[Promise]].
         registers.set(value, promise.into());

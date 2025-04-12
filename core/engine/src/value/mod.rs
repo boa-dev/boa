@@ -6,12 +6,12 @@ use std::{
     collections::HashSet,
     fmt::{self, Display},
     ops::Sub,
+    sync::LazyLock,
 };
 
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::{ToPrimitive, Zero};
-use once_cell::sync::Lazy;
 
 use boa_gc::{Finalize, Trace};
 #[doc(inline)]
@@ -56,12 +56,12 @@ mod variant;
 #[cfg(test)]
 mod tests;
 
-static TWO_E_64: Lazy<BigInt> = Lazy::new(|| {
+static TWO_E_64: LazyLock<BigInt> = LazyLock::new(|| {
     const TWO_E_64: u128 = 2u128.pow(64);
     BigInt::from(TWO_E_64)
 });
 
-static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
+static TWO_E_63: LazyLock<BigInt> = LazyLock::new(|| {
     const TWO_E_63: u128 = 2u128.pow(63);
     BigInt::from(TWO_E_63)
 });

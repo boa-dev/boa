@@ -29,7 +29,7 @@ use crate::{
     Expression,
 };
 use boa_interner::{Interner, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An object or array pattern binding or assignment.
 ///
@@ -214,12 +214,14 @@ impl ToInternedString for ArrayPattern {
             if i == self.0.len() - 1 {
                 match binding {
                     ArrayPatternElement::Elision => {
-                        buf.push_str(&format!("{}, ", binding.to_interned_string(interner)));
+                        let _ = write!(buf, "{}, ", binding.to_interned_string(interner));
                     }
-                    _ => buf.push_str(&format!("{} ", binding.to_interned_string(interner))),
+                    _ => {
+                        let _ = write!(buf, "{} ", binding.to_interned_string(interner));
+                    }
                 }
             } else {
-                buf.push_str(&format!("{},", binding.to_interned_string(interner)));
+                let _ = write!(buf, "{},", binding.to_interned_string(interner));
             }
         }
         buf.push(']');
@@ -388,7 +390,7 @@ impl ToInternedString for ObjectPatternElement {
                     }
                 };
                 if let Some(ref init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -420,7 +422,7 @@ impl ToInternedString for ObjectPatternElement {
                     }
                 };
                 if let Some(init) = &default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -446,7 +448,7 @@ impl ToInternedString for ObjectPatternElement {
                     }
                 };
                 if let Some(ref init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -670,7 +672,7 @@ impl ToInternedString for ArrayPatternElement {
             } => {
                 let mut buf = format!(" {}", interner.resolve_expect(ident.sym()));
                 if let Some(ref init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -680,7 +682,7 @@ impl ToInternedString for ArrayPatternElement {
             } => {
                 let mut buf = format!(" {}", access.to_interned_string(interner));
                 if let Some(init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -690,7 +692,7 @@ impl ToInternedString for ArrayPatternElement {
             } => {
                 let mut buf = format!(" {}", pattern.to_interned_string(interner));
                 if let Some(init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }

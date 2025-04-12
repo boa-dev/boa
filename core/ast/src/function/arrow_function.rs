@@ -1,3 +1,4 @@
+use super::{FormalParameterList, FunctionBody};
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::FunctionScopes;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
@@ -7,9 +8,7 @@ use crate::{
 };
 use crate::{LinearSpan, LinearSpanIgnoreEq};
 use boa_interner::{Interner, ToIndentedString};
-use core::ops::ControlFlow;
-
-use super::{FormalParameterList, FunctionBody};
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An arrow function expression, as defined by the [spec].
 ///
@@ -111,11 +110,12 @@ impl ToIndentedString for ArrowFunction {
         if self.body().statements().is_empty() {
             buf.push_str(") => {}");
         } else {
-            buf.push_str(&format!(
+            let _ = write!(
+                buf,
                 ") => {{\n{}{}}}",
                 self.body.to_indented_string(interner, indentation + 1),
                 "    ".repeat(indentation)
-            ));
+            );
         }
         buf
     }

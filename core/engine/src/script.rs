@@ -121,7 +121,7 @@ impl Script {
 
         if let Some(codeblock) = &*codeblock {
             return Ok(codeblock.clone());
-        };
+        }
 
         let _timer = Profiler::global().start_event("Script compilation", "Main");
 

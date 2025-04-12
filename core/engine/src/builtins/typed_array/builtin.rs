@@ -2515,7 +2515,7 @@ impl BuiltinTypedArray {
                     .to_string(context)?;
 
                 r.extend(s.iter());
-            };
+            }
         }
 
         Ok(js_string!(&r[..]).into())

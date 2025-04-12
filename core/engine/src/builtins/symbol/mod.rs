@@ -18,7 +18,7 @@
 #[cfg(test)]
 mod tests;
 
-use std::hash::BuildHasherDefault;
+use std::{hash::BuildHasherDefault, sync::LazyLock};
 
 use crate::{
     builtins::BuiltInObject,
@@ -35,12 +35,12 @@ use crate::{
 };
 use boa_profiler::Profiler;
 use dashmap::DashMap;
-use once_cell::sync::Lazy;
 use rustc_hash::FxHasher;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-static GLOBAL_SYMBOL_REGISTRY: Lazy<GlobalSymbolRegistry> = Lazy::new(GlobalSymbolRegistry::new);
+static GLOBAL_SYMBOL_REGISTRY: LazyLock<GlobalSymbolRegistry> =
+    LazyLock::new(GlobalSymbolRegistry::new);
 
 type FxDashMap<K, V> = DashMap<K, V, BuildHasherDefault<FxHasher>>;
 

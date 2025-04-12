@@ -16,7 +16,7 @@ use crate::{
     LinearPosition, LinearSpan, LinearSpanIgnoreEq,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// Objects in ECMAScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
@@ -212,31 +212,39 @@ impl ToIndentedString for ObjectLiteral {
         let mut buf = "{\n".to_owned();
         let indentation = "    ".repeat(indent_n + 1);
         for property in &*self.properties {
-            buf.push_str(&match property {
+            match property {
                 PropertyDefinition::IdentifierReference(ident) => {
-                    format!("{indentation}{},\n", interner.resolve_expect(ident.sym()))
+                    let _ = writeln!(
+                        buf,
+                        "{indentation}{},",
+                        interner.resolve_expect(ident.sym())
+                    );
                 }
                 PropertyDefinition::Property(key, value) => {
-                    format!(
-                        "{indentation}{}: {},\n",
+                    let _ = writeln!(
+                        buf,
+                        "{indentation}{}: {},",
                         key.to_interned_string(interner),
                         value.to_no_indent_string(interner, indent_n + 1)
-                    )
+                    );
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    format!("{indentation}...{},\n", key.to_interned_string(interner))
+                    let _ = writeln!(buf, "{indentation}...{},", key.to_interned_string(interner));
                 }
-                PropertyDefinition::MethodDefinition(m) => m.to_indented_string(interner, indent_n),
+                PropertyDefinition::MethodDefinition(m) => {
+                    buf.push_str(&m.to_indented_string(interner, indent_n));
+                }
                 PropertyDefinition::CoverInitializedName(ident, expr) => {
-                    format!(
-                        "{indentation}{} = {},\n",
+                    let _ = writeln!(
+                        buf,
+                        "{indentation}{} = {},",
                         interner.resolve_expect(ident.sym()),
                         expr.to_no_indent_string(interner, indent_n + 1)
-                    )
+                    );
                 }
-            });
+            }
         }
-        buf.push_str(&format!("{}}}", "    ".repeat(indent_n)));
+        let _ = write!(buf, "{}}}", "    ".repeat(indent_n));
 
         buf
     }

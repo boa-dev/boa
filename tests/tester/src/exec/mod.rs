@@ -291,7 +291,7 @@ impl Test {
 
                     if let Err(err) = context.run_jobs() {
                         return (false, format!("Uncaught {err}"));
-                    };
+                    }
 
                     match promise.state() {
                         PromiseState::Pending => {
@@ -326,7 +326,7 @@ impl Test {
 
                 if let Err(err) = context.run_jobs() {
                     return (false, format!("Uncaught {err}"));
-                };
+                }
 
                 match *async_result.inner.borrow() {
                     UninitResult::Err(ref e) => return (false, format!("Uncaught {e}")),
@@ -394,7 +394,7 @@ impl Test {
 
                 if let Err(err) = context.run_jobs() {
                     return (false, format!("Uncaught {err}"));
-                };
+                }
 
                 match promise.state() {
                     PromiseState::Pending => {
@@ -441,7 +441,7 @@ impl Test {
 
                     if let Err(err) = context.run_jobs() {
                         return (false, format!("Uncaught {err}"));
-                    };
+                    }
 
                     match promise.state() {
                         PromiseState::Pending => {
@@ -461,7 +461,7 @@ impl Test {
 
                     if let Err(err) = context.run_jobs() {
                         return (false, format!("Uncaught {err}"));
-                    };
+                    }
 
                     match promise.state() {
                         PromiseState::Pending => {

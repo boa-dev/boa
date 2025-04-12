@@ -2159,30 +2159,26 @@ fn module_instantiation(module: &Module, env: &Scope, interner: &Interner) {
                     let name = name.to_js_string(interner);
                     drop(env.create_mutable_binding(name, false));
                 }
-                continue;
             }
             LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(c)) => {
                 for name in bound_names(c) {
                     let name = name.to_js_string(interner);
                     env.create_immutable_binding(name, true);
                 }
-                continue;
             }
             LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) => {
                 for name in bound_names(l) {
                     let name = name.to_js_string(interner);
                     drop(env.create_mutable_binding(name, false));
                 }
-                continue;
             }
             LexicallyScopedDeclaration::AssignmentExpression(expr) => {
                 for name in bound_names(expr) {
                     let name = name.to_js_string(interner);
                     drop(env.create_mutable_binding(name, false));
                 }
-                continue;
             }
-        };
+        }
     }
 }
 

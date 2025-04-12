@@ -128,7 +128,7 @@ impl BuiltInConstructor for Instant {
             return Err(JsNativeError::typ()
                 .with_message("Temporal.Instant new target cannot be undefined.")
                 .into());
-        };
+        }
 
         // 2. Let epochNanoseconds be ? ToBigInt(epochNanoseconds).
         let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;

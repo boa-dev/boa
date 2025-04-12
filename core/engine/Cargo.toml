@@ -90,7 +90,6 @@ bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
 fast-float2.workspace = true
-once_cell = { workspace = true, features = ["std"] }
 tap.workspace = true
 
 thiserror.workspace = true

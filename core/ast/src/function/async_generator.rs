@@ -1,4 +1,6 @@
 //! Async Generator Expression
+
+use super::{FormalParameterList, FunctionBody};
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::{FunctionScopes, Scope};
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
@@ -9,9 +11,7 @@ use crate::{
 };
 use crate::{LinearSpan, LinearSpanIgnoreEq};
 use boa_interner::{Interner, ToIndentedString};
-use core::ops::ControlFlow;
-
-use super::{FormalParameterList, FunctionBody};
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An async generator declaration.
 ///
@@ -251,14 +251,15 @@ impl ToIndentedString for AsyncGeneratorExpression {
         let mut buf = "async function*".to_owned();
         if self.has_binding_identifier {
             if let Some(name) = self.name {
-                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
             }
         }
-        buf.push_str(&format!(
+        let _ = write!(
+            buf,
             "({}) {}",
             join_nodes(interner, self.parameters.as_ref()),
             block_to_string(&self.body.statements, interner, indentation)
-        ));
+        );
 
         buf
     }
