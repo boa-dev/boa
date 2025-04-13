@@ -1,7 +1,4 @@
-use crate::{
-    bytecompiler::{Access, ByteCompiler, FunctionSpec, MethodKind, Operand, Register},
-    vm::Opcode,
-};
+use crate::bytecompiler::{Access, ByteCompiler, FunctionSpec, MethodKind, Register};
 use boa_ast::{
     expression::literal::{ObjectLiteral, PropertyDefinition},
     property::{MethodDefinitionKind, PropertyName},
@@ -11,7 +8,7 @@ use boa_interner::Sym;
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_object_literal(&mut self, literal: &ObjectLiteral, dst: &Register) {
-        self.emit(Opcode::PushEmptyObject, &[Operand::Register(dst)]);
+        self.bytecode.emit_push_empty_object(dst.variable());
 
         for property in literal.properties() {
             match property {
@@ -19,13 +16,10 @@ impl ByteCompiler<'_> {
                     let value = self.register_allocator.alloc();
                     self.access_get(Access::Variable { name: *ident }, &value);
                     let index = self.get_or_insert_name(*ident);
-                    self.emit(
-                        Opcode::DefineOwnPropertyByName,
-                        &[
-                            Operand::Register(dst),
-                            Operand::Register(&value),
-                            Operand::Varying(index),
-                        ],
+                    self.bytecode.emit_define_own_property_by_name(
+                        dst.variable(),
+                        value.variable(),
+                        index.into(),
                     );
                     self.register_allocator.dealloc(value);
                 }
@@ -34,19 +28,14 @@ impl ByteCompiler<'_> {
                         let value = self.register_allocator.alloc();
                         self.compile_expr(expr, &value);
                         if *name == Sym::__PROTO__ && !self.json_parse {
-                            self.emit(
-                                Opcode::SetPrototype,
-                                &[Operand::Register(dst), Operand::Register(&value)],
-                            );
+                            self.bytecode
+                                .emit_set_prototype(dst.variable(), value.variable());
                         } else {
                             let index = self.get_or_insert_name((*name).into());
-                            self.emit(
-                                Opcode::DefineOwnPropertyByName,
-                                &[
-                                    Operand::Register(dst),
-                                    Operand::Register(&value),
-                                    Operand::Varying(index),
-                                ],
+                            self.bytecode.emit_define_own_property_by_name(
+                                dst.variable(),
+                                value.variable(),
+                                index.into(),
                             );
                         }
                         self.register_allocator.dealloc(value);
@@ -54,29 +43,21 @@ impl ByteCompiler<'_> {
                     PropertyName::Computed(name_node) => {
                         let key = self.register_allocator.alloc();
                         self.compile_expr(name_node, &key);
-                        self.emit(
-                            Opcode::ToPropertyKey,
-                            &[Operand::Register(&key), Operand::Register(&key)],
-                        );
+                        self.bytecode
+                            .emit_to_property_key(key.variable(), key.variable());
                         let function = self.register_allocator.alloc();
                         self.compile_expr(expr, &function);
                         if expr.is_anonymous_function_definition() {
-                            self.emit(
-                                Opcode::SetFunctionName,
-                                &[
-                                    Operand::Register(&function),
-                                    Operand::Register(&key),
-                                    Operand::U8(0),
-                                ],
+                            self.bytecode.emit_set_function_name(
+                                function.variable(),
+                                key.variable(),
+                                0u32.into(),
                             );
                         }
-                        self.emit(
-                            Opcode::DefineOwnPropertyByValue,
-                            &[
-                                Operand::Register(&function),
-                                Operand::Register(&key),
-                                Operand::Register(dst),
-                            ],
+                        self.bytecode.emit_define_own_property_by_value(
+                            function.variable(),
+                            key.variable(),
+                            dst.variable(),
                         );
                         self.register_allocator.dealloc(key);
                         self.register_allocator.dealloc(function);
@@ -91,25 +72,28 @@ impl ByteCompiler<'_> {
                     match m.name() {
                         PropertyName::Literal(name) => {
                             let method = self.object_method(m.into(), kind);
-                            self.emit(
-                                Opcode::SetHomeObject,
-                                &[Operand::Register(&method), Operand::Register(dst)],
-                            );
+                            self.bytecode
+                                .emit_set_home_object(method.variable(), dst.variable());
                             let index = self.get_or_insert_name((*name).into());
-                            let opcode = match kind {
-                                MethodKind::Get => Opcode::SetPropertyGetterByName,
-                                MethodKind::Set => Opcode::SetPropertySetterByName,
-                                MethodKind::Ordinary => Opcode::DefineOwnPropertyByName,
-                            };
-                            self.emit(
-                                opcode,
-                                &[
-                                    Operand::Register(dst),
-                                    Operand::Register(&method),
-                                    Operand::Varying(index),
-                                ],
-                            );
-
+                            match kind {
+                                MethodKind::Get => self.bytecode.emit_set_property_getter_by_name(
+                                    dst.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                ),
+                                MethodKind::Set => self.bytecode.emit_set_property_setter_by_name(
+                                    dst.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                ),
+                                MethodKind::Ordinary => {
+                                    self.bytecode.emit_define_own_property_by_name(
+                                        dst.variable(),
+                                        method.variable(),
+                                        index.into(),
+                                    );
+                                }
+                            }
                             self.register_allocator.dealloc(method);
                         }
                         PropertyName::Computed(name_node) => {
@@ -125,13 +109,10 @@ impl ByteCompiler<'_> {
                 PropertyDefinition::SpreadObject(expr) => {
                     let source = self.register_allocator.alloc();
                     self.compile_expr(expr, &source);
-                    self.emit(
-                        Opcode::CopyDataProperties,
-                        &[
-                            Operand::Register(dst),
-                            Operand::Register(&source),
-                            Operand::Varying(0),
-                        ],
+                    self.bytecode.emit_copy_data_properties(
+                        dst.variable(),
+                        source.variable(),
+                        Vec::new(),
                     );
                     self.register_allocator.dealloc(source);
                 }
@@ -152,41 +133,37 @@ impl ByteCompiler<'_> {
         let key = self.register_allocator.alloc();
         self.compile_expr(expr, &key);
 
-        self.emit(
-            Opcode::ToPropertyKey,
-            &[Operand::Register(&key), Operand::Register(&key)],
-        );
+        self.bytecode
+            .emit_to_property_key(key.variable(), key.variable());
 
         let method = self.object_method(function, kind);
-        let value = match kind {
+        let value: u32 = match kind {
             MethodKind::Get => 1,
             MethodKind::Set => 2,
             MethodKind::Ordinary => 0,
         };
 
-        self.emit(
-            Opcode::SetFunctionName,
-            &[
-                Operand::Register(&method),
-                Operand::Register(&key),
-                Operand::U8(value),
-            ],
-        );
+        self.bytecode
+            .emit_set_function_name(method.variable(), key.variable(), value.into());
+        self.bytecode
+            .emit_set_home_object(method.variable(), object.variable());
 
-        self.emit(
-            Opcode::SetHomeObject,
-            &[Operand::Register(&method), Operand::Register(object)],
-        );
-
-        let operands = &[
-            Operand::Register(&method),
-            Operand::Register(&key),
-            Operand::Register(object),
-        ];
         match kind {
-            MethodKind::Get => self.emit(Opcode::SetPropertyGetterByValue, operands),
-            MethodKind::Set => self.emit(Opcode::SetPropertySetterByValue, operands),
-            MethodKind::Ordinary => self.emit(Opcode::DefineOwnPropertyByValue, operands),
+            MethodKind::Get => self.bytecode.emit_set_property_getter_by_value(
+                method.variable(),
+                key.variable(),
+                object.variable(),
+            ),
+            MethodKind::Set => self.bytecode.emit_set_property_setter_by_value(
+                method.variable(),
+                key.variable(),
+                object.variable(),
+            ),
+            MethodKind::Ordinary => self.bytecode.emit_define_own_property_by_value(
+                method.variable(),
+                key.variable(),
+                object.variable(),
+            ),
         }
 
         self.register_allocator.dealloc(key);

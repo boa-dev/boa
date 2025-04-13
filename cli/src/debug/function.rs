@@ -13,7 +13,6 @@ fn flowgraph_parse_format_option(value: &JsValue) -> JsResult<FlowgraphFormat> {
     if value.is_undefined() {
         return Ok(FlowgraphFormat::Mermaid);
     }
-
     if let Some(string) = value.as_string() {
         return match string.to_std_string_escaped().cow_to_lowercase().as_ref() {
             "mermaid" => Ok(FlowgraphFormat::Mermaid),
@@ -23,7 +22,6 @@ fn flowgraph_parse_format_option(value: &JsValue) -> JsResult<FlowgraphFormat> {
                 .into()),
         };
     }
-
     Err(JsNativeError::typ()
         .with_message("format type must be a string")
         .into())
@@ -33,7 +31,6 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
     if value.is_undefined() {
         return Ok(Direction::LeftToRight);
     }
-
     if let Some(string) = value.as_string() {
         return match string.to_std_string_escaped().cow_to_lowercase().as_ref() {
             "leftright" | "lr" => Ok(Direction::LeftToRight),
@@ -45,7 +42,6 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
                 .into()),
         };
     }
-
     Err(JsNativeError::typ()
         .with_message("direction type must be a string")
         .into())
@@ -58,13 +54,11 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             .with_message("expected function argument")
             .into());
     };
-
     let Some(object) = value.as_object() else {
         return Err(JsNativeError::typ()
             .with_message(format!("expected object, got {}", value.type_of()))
             .into());
     };
-
     let mut format = FlowgraphFormat::Mermaid;
     let mut direction = Direction::LeftToRight;
     if let Some(arguments) = args.get(1) {
@@ -87,16 +81,13 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             .with_message("expected an ordinary function object")
             .into());
     };
-
     let code = function.codeblock();
-
     let mut graph = Graph::new(direction);
     code.to_graph(graph.subgraph(String::default()));
     let result = match format {
         FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
         FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
     };
-
     Ok(JsValue::new(js_string!(result)))
 }
 

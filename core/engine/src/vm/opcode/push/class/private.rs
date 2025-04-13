@@ -3,8 +3,11 @@ use crate::{
     js_str, js_string,
     object::{internal_methods::InternalMethodContext, PrivateElement},
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        Registers,
+    },
+    Context,
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`
@@ -15,19 +18,25 @@ use crate::{
 pub(crate) struct PushClassPrivateMethod;
 
 impl PushClassPrivateMethod {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        object: u32,
-        prototype: u32,
-        value: u32,
-        index: usize,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, prototype, value, index): (
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+        ),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let prototype = registers.get(prototype);
-        let value = registers.get(value);
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) {
+        let object = registers.get(object.into());
+        let prototype = registers.get(prototype.into());
+        let value = registers.get(value.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let value = value.as_callable().expect("method must be callable");
         let prototype = prototype
@@ -61,8 +70,6 @@ impl PushClassPrivateMethod {
                 object.private_name(name),
                 PrivateElement::Method(value.clone()),
             );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -70,30 +77,6 @@ impl Operation for PushClassPrivateMethod {
     const NAME: &'static str = "PushClassPrivateMethod";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateMethod";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let prototype = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, prototype, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let prototype = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, prototype, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let prototype = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, prototype, value, index, registers, context)
-    }
 }
 
 /// `PushClassPrivateGetter` implements the Opcode Operation for `Opcode::PushClassPrivateGetter`
@@ -104,17 +87,19 @@ impl Operation for PushClassPrivateMethod {
 pub(crate) struct PushClassPrivateGetter;
 
 impl PushClassPrivateGetter {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) {
+        let object = registers.get(object.into());
+        let value = registers.get(value.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");
@@ -129,8 +114,6 @@ impl PushClassPrivateGetter {
                     setter: None,
                 },
             );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -138,27 +121,6 @@ impl Operation for PushClassPrivateGetter {
     const NAME: &'static str = "PushClassPrivateGetter";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateGetter";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }
 
 /// `PushClassPrivateSetter` implements the Opcode Operation for `Opcode::PushClassPrivateSetter`
@@ -169,17 +131,19 @@ impl Operation for PushClassPrivateGetter {
 pub(crate) struct PushClassPrivateSetter;
 
 impl PushClassPrivateSetter {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) {
+        let object = registers.get(object.into());
+        let value = registers.get(value.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object.as_object().expect("class must be function object");
@@ -194,8 +158,6 @@ impl PushClassPrivateSetter {
                     setter: Some(value.clone()),
                 },
             );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -203,25 +165,4 @@ impl Operation for PushClassPrivateSetter {
     const NAME: &'static str = "PushClassPrivateSetter";
     const INSTRUCTION: &'static str = "INST - PushClassPrivateSetter";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }

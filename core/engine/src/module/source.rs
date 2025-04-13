@@ -19,7 +19,7 @@ use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
+    bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     js_string,
     module::ModuleKind,
@@ -27,7 +27,7 @@ use crate::{
     realm::Realm,
     vm::{
         create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
-        CompletionRecord, Opcode, Registers,
+        CompletionRecord, Registers,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
     SpannedSourceText,
@@ -1529,8 +1529,12 @@ impl SourceTextModule {
                             .expect("binding must exist");
                         let index = compiler.get_or_insert_binding(binding);
                         let value = compiler.register_allocator.alloc();
-                        compiler.push_undefined(&value);
-                        compiler.emit_binding_access(Opcode::DefInitVar, &index, &value);
+                        compiler.bytecode.emit_push_undefined(value.variable());
+                        compiler.emit_binding_access(
+                            BindingAccessOpcode::DefInitVar,
+                            &index,
+                            &value,
+                        );
                         compiler.register_allocator.dealloc(value);
 
                         // 3. Append dn to declaredVarNames.

@@ -1,5 +1,6 @@
+use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsNativeError, JsResult,
 };
 
@@ -11,17 +12,14 @@ use crate::{
 pub(crate) struct PopIntoLocal;
 
 impl PopIntoLocal {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(
-        src: u32,
-        dst: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        (src, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        context.vm.frame_mut().local_bindings_initialized[dst as usize] = true;
-        registers.set(dst, registers.get(src).clone());
-        Ok(CompletionType::Normal)
+    ) {
+        context.vm.frame_mut().local_bindings_initialized[usize::from(dst)] = true;
+        registers.set(dst.into(), registers.get(src.into()).clone());
     }
 }
 
@@ -29,24 +27,6 @@ impl Operation for PopIntoLocal {
     const NAME: &'static str = "PopIntoLocal";
     const INSTRUCTION: &'static str = "INST - PopIntoLocal";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let src = context.vm.read::<u8>().into();
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(src, dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let src = context.vm.read::<u16>().into();
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(src, dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let src = context.vm.read::<u32>();
-        let dst = context.vm.read::<u32>();
-        Self::operation(src, dst, registers, context)
-    }
 }
 
 /// `PushFromLocal` implements the Opcode Operation for `Opcode::PushFromLocal`
@@ -57,21 +37,19 @@ impl Operation for PopIntoLocal {
 pub(crate) struct PushFromLocal;
 
 impl PushFromLocal {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(
-        src: u32,
-        dst: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        (src, dst): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        if !context.vm.frame().local_bindings_initialized[src as usize] {
+    ) -> JsResult<()> {
+        if !context.vm.frame().local_bindings_initialized[usize::from(src)] {
             return Err(JsNativeError::reference()
                 .with_message("access to uninitialized binding")
                 .into());
         }
-        registers.set(dst, registers.get(src).clone());
-        Ok(CompletionType::Normal)
+        registers.set(dst.into(), registers.get(src.into()).clone());
+        Ok(())
     }
 }
 
@@ -79,22 +57,4 @@ impl Operation for PushFromLocal {
     const NAME: &'static str = "PushFromLocal";
     const INSTRUCTION: &'static str = "INST - PushFromLocal";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let src = context.vm.read::<u8>().into();
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(src, dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let src = context.vm.read::<u16>().into();
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(src, dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let src = context.vm.read::<u32>();
-        let dst = context.vm.read::<u32>();
-        Self::operation(src, dst, registers, context)
-    }
 }
