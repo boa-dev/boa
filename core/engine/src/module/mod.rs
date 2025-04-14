@@ -31,6 +31,7 @@ use rustc_hash::FxHashSet;
 
 use boa_engine::js_string;
 use boa_engine::property::PropertyKey;
+use boa_engine::value::TryFromJs;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
@@ -526,7 +527,7 @@ impl Module {
     ///
     /// let promise = module.load_link_evaluate(context);
     ///
-    /// context.run_jobs();
+    /// context.run_jobs().unwrap();
     ///
     /// assert_eq!(
     ///     promise.state(),
@@ -635,7 +636,7 @@ impl Module {
     ) -> JsResult<TypedJsFunction<A, R>>
     where
         A: crate::object::TryIntoJsArguments,
-        R: crate::value::TryFromJs,
+        R: TryFromJs,
     {
         let func = self.get_value(name.clone(), context)?;
         let func = func.as_function().ok_or_else(|| {
@@ -664,5 +665,34 @@ impl Hash for Module {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         std::ptr::hash(self.inner.as_ref(), state);
+    }
+}
+
+/// A trait to convert a type into a JS module.
+pub trait IntoJsModule {
+    /// Converts the type into a JS module.
+    fn into_js_module(self, context: &mut Context) -> Module;
+}
+
+impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule for T {
+    fn into_js_module(self, context: &mut Context) -> Module {
+        let (names, fns): (Vec<_>, Vec<_>) = self.into_iter().unzip();
+        let exports = names.clone();
+
+        Module::synthetic(
+            exports.as_slice(),
+            unsafe {
+                SyntheticModuleInitializer::from_closure(move |module, context| {
+                    for (name, f) in names.iter().zip(fns.iter()) {
+                        module
+                            .set_export(name, f.clone().to_js_function(context.realm()).into())?;
+                    }
+                    Ok(())
+                })
+            },
+            None,
+            None,
+            context,
+        )
     }
 }

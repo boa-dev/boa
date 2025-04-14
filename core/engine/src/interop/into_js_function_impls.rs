@@ -1,11 +1,10 @@
 //! Implementations of the `IntoJsFunction` trait for various function signatures.
 
+use super::private::IntoJsFunctionSealed;
+use super::{IntoJsFunctionCopied, UnsafeIntoJsFunction};
+use crate::interop::{JsRest, TryFromJsArgument};
+use crate::{js_string, Context, JsError, NativeFunction, TryIntoJsResult};
 use std::cell::RefCell;
-
-use boa_engine::{js_string, Context, JsError, NativeFunction, TryIntoJsResult};
-
-use crate::private::IntoJsFunctionSealed;
-use crate::{IntoJsFunctionCopied, JsRest, TryFromJsArgument, UnsafeIntoJsFunction};
 
 /// A token to represent the context argument in the function signature.
 /// This should not be used directly and has no external meaning.
