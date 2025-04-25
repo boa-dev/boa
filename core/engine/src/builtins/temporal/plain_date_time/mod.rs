@@ -26,8 +26,8 @@ mod tests;
 
 use temporal_rs::{
     options::{
-        ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingOptions,
-        TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions,
+        ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingMode,
+        RoundingOptions, ToStringRoundingOptions, Unit,
     },
     partial::{PartialDate, PartialDateTime, PartialTime},
     Calendar, MonthCode, PlainDateTime as InnerDateTime, TinyAsciiStr,
@@ -951,14 +951,14 @@ impl PlainDateTime {
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         options.rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
+            get_option::<RoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", TIME, REQUIRED, undefined).
         options.smallest_unit = get_temporal_unit(
             &round_to,
             js_string!("smallestUnit"),
             TemporalUnitGroup::Time,
-            Some(vec![TemporalUnit::Day]),
+            Some(vec![Unit::Day]),
             context,
         )?;
 
@@ -1005,9 +1005,8 @@ impl PlainDateTime {
                 .unwrap_or(DisplayCalendar::Auto);
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+            get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
         let ixdtf = dt.inner.to_ixdtf_string(
             ToStringRoundingOptions {

@@ -15,8 +15,8 @@ use crate::{
 use temporal_rs::{
     options::{
         ArithmeticOverflow, DifferenceSettings, Disambiguation, DisplayCalendar, DisplayOffset,
-        DisplayTimeZone, DurationOverflow, OffsetDisambiguation, RoundingIncrement,
-        TemporalRoundingMode, TemporalUnit,
+        DisplayTimeZone, DurationOverflow, OffsetDisambiguation, RoundingIncrement, RoundingMode,
+        Unit,
     },
     parsers::Precision,
     provider::TransitionDirection,
@@ -30,9 +30,9 @@ pub(crate) fn get_temporal_unit(
     options: &JsObject,
     key: JsString,
     unit_group: TemporalUnitGroup,
-    extra_values: Option<Vec<TemporalUnit>>,
+    extra_values: Option<Vec<Unit>>,
     context: &mut Context,
-) -> JsResult<Option<TemporalUnit>> {
+) -> JsResult<Option<Unit>> {
     let extra = extra_values.unwrap_or_default();
     let mut unit_values = unit_group.group();
     unit_values.extend(extra);
@@ -56,14 +56,12 @@ pub(crate) fn get_difference_settings(
     context: &mut Context,
 ) -> JsResult<DifferenceSettings> {
     let mut settings = DifferenceSettings::default();
-    settings.largest_unit =
-        get_option::<TemporalUnit>(options, js_string!("largestUnit"), context)?;
+    settings.largest_unit = get_option::<Unit>(options, js_string!("largestUnit"), context)?;
     settings.increment =
         get_option::<RoundingIncrement>(options, js_string!("roundingIncrement"), context)?;
     settings.rounding_mode =
-        get_option::<TemporalRoundingMode>(options, js_string!("roundingMode"), context)?;
-    settings.smallest_unit =
-        get_option::<TemporalUnit>(options, js_string!("smallestUnit"), context)?;
+        get_option::<RoundingMode>(options, js_string!("roundingMode"), context)?;
+    settings.smallest_unit = get_option::<Unit>(options, js_string!("smallestUnit"), context)?;
     Ok(settings)
 }
 
@@ -113,7 +111,7 @@ pub(crate) enum TemporalUnitGroup {
 }
 
 impl TemporalUnitGroup {
-    fn group(self) -> Vec<TemporalUnit> {
+    fn group(self) -> Vec<Unit> {
         use TemporalUnitGroup::{Date, DateTime, Time};
 
         match self {
@@ -124,40 +122,35 @@ impl TemporalUnitGroup {
     }
 }
 
-fn time_units() -> impl Iterator<Item = TemporalUnit> {
+fn time_units() -> impl Iterator<Item = Unit> {
     [
-        TemporalUnit::Hour,
-        TemporalUnit::Minute,
-        TemporalUnit::Second,
-        TemporalUnit::Millisecond,
-        TemporalUnit::Microsecond,
-        TemporalUnit::Nanosecond,
+        Unit::Hour,
+        Unit::Minute,
+        Unit::Second,
+        Unit::Millisecond,
+        Unit::Microsecond,
+        Unit::Nanosecond,
     ]
     .iter()
     .copied()
 }
 
-fn date_units() -> impl Iterator<Item = TemporalUnit> {
-    [
-        TemporalUnit::Year,
-        TemporalUnit::Month,
-        TemporalUnit::Week,
-        TemporalUnit::Day,
-    ]
-    .iter()
-    .copied()
+fn date_units() -> impl Iterator<Item = Unit> {
+    [Unit::Year, Unit::Month, Unit::Week, Unit::Day]
+        .iter()
+        .copied()
 }
 
-fn datetime_units() -> impl Iterator<Item = TemporalUnit> {
+fn datetime_units() -> impl Iterator<Item = Unit> {
     date_units().chain(time_units())
 }
 
-impl ParsableOptionType for TemporalUnit {}
+impl ParsableOptionType for Unit {}
 impl ParsableOptionType for ArithmeticOverflow {}
 impl ParsableOptionType for DurationOverflow {}
 impl ParsableOptionType for Disambiguation {}
 impl ParsableOptionType for OffsetDisambiguation {}
-impl ParsableOptionType for TemporalRoundingMode {}
+impl ParsableOptionType for RoundingMode {}
 impl ParsableOptionType for DisplayCalendar {}
 impl ParsableOptionType for DisplayOffset {}
 impl ParsableOptionType for DisplayTimeZone {}

@@ -23,10 +23,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{
-        RoundingIncrement, RoundingOptions, TemporalRoundingMode, TemporalUnit,
-        ToStringRoundingOptions,
-    },
+    options::{RoundingIncrement, RoundingMode, RoundingOptions, ToStringRoundingOptions, Unit},
     partial::PartialDuration,
     Duration as InnerDuration,
 };
@@ -724,7 +721,7 @@ impl Duration {
             &round_to,
             js_string!("largestUnit"),
             TemporalUnitGroup::DateTime,
-            Some([TemporalUnit::Auto].into()),
+            Some([Unit::Auto].into()),
             context,
         )?;
 
@@ -739,7 +736,7 @@ impl Duration {
 
         // 14. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         options.rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
+            get_option::<RoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 15. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", datetime, undefined).
         options.smallest_unit = get_temporal_unit(
@@ -843,9 +840,8 @@ impl Duration {
         let options = get_options_object(args.get_or_undefined(0))?;
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+            get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
         let result = duration.inner.as_temporal_string(ToStringRoundingOptions {
             precision,

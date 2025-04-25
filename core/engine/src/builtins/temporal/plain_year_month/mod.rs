@@ -369,7 +369,7 @@ impl PlainYearMonth {
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
                 .unwrap_or_default();
         // 10. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
-        let result = year_month.inner.with(partial, overflow)?;
+        let result = year_month.inner.with(partial, Some(overflow))?;
         // 11. Return ! CreateTemporalYearMonth(isoDate, calendar).
         create_temporal_year_month(result, None, context)
     }
