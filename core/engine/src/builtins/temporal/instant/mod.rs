@@ -26,9 +26,9 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
-use temporal_rs::options::{Unit, ToStringRoundingOptions};
+use temporal_rs::options::{ToStringRoundingOptions, Unit};
 use temporal_rs::{
-    options::{RoundingIncrement, RoundingOptions, RoundingMode},
+    options::{RoundingIncrement, RoundingMode, RoundingOptions},
     Instant as InnerInstant,
 };
 
@@ -469,8 +469,7 @@ impl Instant {
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
             get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
         // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
         let timezone = options
             .get(js_string!("timeZone"), context)?

@@ -26,8 +26,8 @@ mod tests;
 
 use temporal_rs::{
     options::{
-        ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingOptions,
-        RoundingMode, Unit, ToStringRoundingOptions,
+        ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingMode,
+        RoundingOptions, ToStringRoundingOptions, Unit,
     },
     partial::{PartialDate, PartialDateTime, PartialTime},
     Calendar, MonthCode, PlainDateTime as InnerDateTime, TinyAsciiStr,
@@ -1006,8 +1006,7 @@ impl PlainDateTime {
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
             get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
         let ixdtf = dt.inner.to_ixdtf_string(
             ToStringRoundingOptions {

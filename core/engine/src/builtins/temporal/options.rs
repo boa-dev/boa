@@ -15,8 +15,8 @@ use crate::{
 use temporal_rs::{
     options::{
         ArithmeticOverflow, DifferenceSettings, Disambiguation, DisplayCalendar, DisplayOffset,
-        DisplayTimeZone, DurationOverflow, OffsetDisambiguation, RoundingIncrement,
-        RoundingMode, Unit,
+        DisplayTimeZone, DurationOverflow, OffsetDisambiguation, RoundingIncrement, RoundingMode,
+        Unit,
     },
     parsers::Precision,
     provider::TransitionDirection,
@@ -56,14 +56,12 @@ pub(crate) fn get_difference_settings(
     context: &mut Context,
 ) -> JsResult<DifferenceSettings> {
     let mut settings = DifferenceSettings::default();
-    settings.largest_unit =
-        get_option::<Unit>(options, js_string!("largestUnit"), context)?;
+    settings.largest_unit = get_option::<Unit>(options, js_string!("largestUnit"), context)?;
     settings.increment =
         get_option::<RoundingIncrement>(options, js_string!("roundingIncrement"), context)?;
     settings.rounding_mode =
         get_option::<RoundingMode>(options, js_string!("roundingMode"), context)?;
-    settings.smallest_unit =
-        get_option::<Unit>(options, js_string!("smallestUnit"), context)?;
+    settings.smallest_unit = get_option::<Unit>(options, js_string!("smallestUnit"), context)?;
     Ok(settings)
 }
 
@@ -138,14 +136,9 @@ fn time_units() -> impl Iterator<Item = Unit> {
 }
 
 fn date_units() -> impl Iterator<Item = Unit> {
-    [
-        Unit::Year,
-        Unit::Month,
-        Unit::Week,
-        Unit::Day,
-    ]
-    .iter()
-    .copied()
+    [Unit::Year, Unit::Month, Unit::Week, Unit::Day]
+        .iter()
+        .copied()
 }
 
 fn datetime_units() -> impl Iterator<Item = Unit> {

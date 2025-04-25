@@ -23,10 +23,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{
-        RoundingIncrement, RoundingOptions, RoundingMode, Unit,
-        ToStringRoundingOptions,
-    },
+    options::{RoundingIncrement, RoundingMode, RoundingOptions, ToStringRoundingOptions, Unit},
     partial::PartialDuration,
     Duration as InnerDuration,
 };
@@ -844,8 +841,7 @@ impl Duration {
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
             get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
         let result = duration.inner.as_temporal_string(ToStringRoundingOptions {
             precision,

@@ -22,7 +22,7 @@ use cow_utils::CowUtils;
 use temporal_rs::{
     options::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
-        OffsetDisambiguation, RoundingMode, Unit, ToStringRoundingOptions,
+        OffsetDisambiguation, RoundingMode, ToStringRoundingOptions, Unit,
     },
     partial::{PartialDate, PartialTime, PartialZonedDateTime},
     provider::{TimeZoneProvider, TransitionDirection},
@@ -1092,8 +1092,7 @@ impl ZonedDateTime {
             .unwrap_or(DisplayOffset::Auto);
         let rounding_mode =
             get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
         // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
         let display_timezone =
             get_option::<DisplayTimeZone>(&options, js_string!("timeZoneName"), context)?

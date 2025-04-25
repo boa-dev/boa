@@ -23,7 +23,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{ArithmeticOverflow, RoundingMode, Unit, ToStringRoundingOptions},
+    options::{ArithmeticOverflow, RoundingMode, ToStringRoundingOptions, Unit},
     partial::PartialTime,
     PlainTime as PlainTimeInner,
 };
@@ -546,8 +546,7 @@ impl PlainTime {
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
             get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
         let options = ToStringRoundingOptions {
             precision,
