@@ -76,7 +76,7 @@ impl Now {
     /// 2.2.3 `Temporal.Now.plainDateTimeISO ( [ temporalTimeZoneLike ] )`
     fn plain_datetime(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let (epoch_nanos, timezone) = resolve_system_values(args.get_or_undefined(0), context)?;
-        let datetime = NowInner::plain_datetime_iso_with_provider(
+        let datetime = NowInner::plain_datetime_iso_with_provider_and_system_info(
             epoch_nanos,
             timezone,
             context.tz_provider(),
@@ -87,7 +87,7 @@ impl Now {
     /// 2.2.4 `Temporal.Now.zonedDateTimeISO ( [ temporalTimeZoneLike ] )`
     fn zoneddatetime(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let (epoch_nanos, timezone) = resolve_system_values(args.get_or_undefined(0), context)?;
-        let zdt = NowInner::zoneddatetime_iso_with_system_values(epoch_nanos, timezone)?;
+        let zdt = NowInner::zoneddatetime_iso_with_system_info(epoch_nanos, timezone)?;
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 
@@ -95,7 +95,7 @@ impl Now {
     fn plain_date(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let (epoch_nanos, timezone) = resolve_system_values(args.get_or_undefined(0), context)?;
         let pd =
-            NowInner::plain_date_iso_with_provider(epoch_nanos, timezone, context.tz_provider())?;
+            NowInner::plain_date_iso_with_provider_and_system_info(epoch_nanos, timezone, context.tz_provider())?;
         create_temporal_date(pd, None, context).map(Into::into)
     }
 
@@ -103,7 +103,7 @@ impl Now {
     fn plain_time(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let (epoch_nanos, timezone) = resolve_system_values(args.get_or_undefined(0), context)?;
         let pt =
-            NowInner::plain_time_iso_with_provider(epoch_nanos, timezone, context.tz_provider())?;
+            NowInner::plain_time_iso_with_provider_and_system_info(epoch_nanos, timezone, context.tz_provider())?;
         create_temporal_time(pt, None, context).map(Into::into)
     }
 }
