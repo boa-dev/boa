@@ -798,7 +798,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let _date = this
+        let date = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
@@ -807,7 +807,7 @@ impl PlainDate {
 
         let item = args.get_or_undefined(0);
         // 3. If item is an Object, then
-        let (_timezone, _time) = if let Some(obj) = item.as_object() {
+        let (timezone, time) = if let Some(obj) = item.as_object() {
             // a. Let timeZoneLike be ? Get(item, "timeZone").
             let time_zone_like = obj.get(js_string!("timeZone"), context)?;
             // b. If timeZoneLike is undefined, then
@@ -837,14 +837,10 @@ impl PlainDate {
             (to_temporal_timezone_identifier(item, context)?, None)
         };
 
-        // TODO: uncomment once merged in `temporal_rs`
-        // let result = date.inner.to_zoned_date_time_with_provider(timezone, time, context.tz_provider())
+        let result = date.inner.to_zoned_date_time_with_provider(timezone, time, context.tz_provider())?;
 
         // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, temporalDate.[[Calendar]]).
-        // create_temporal_zoneddatetime(result, None, context)
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+        create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
     /// 3.3.30 `Temporal.PlainDate.prototype.toString ( [ options ] )`
