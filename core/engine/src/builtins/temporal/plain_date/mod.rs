@@ -837,7 +837,9 @@ impl PlainDate {
             (to_temporal_timezone_identifier(item, context)?, None)
         };
 
-        let result = date.inner.to_zoned_date_time_with_provider(timezone, time, context.tz_provider())?;
+        let result =
+            date.inner
+                .to_zoned_date_time_with_provider(timezone, time, context.tz_provider())?;
 
         // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, temporalDate.[[Calendar]]).
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
