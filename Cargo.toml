@@ -86,7 +86,7 @@ simple_logger = "5.0.0"
 cargo_metadata = "0.19.2"
 trybuild = "1.0.104"
 rayon = "1.10.0"
-toml = "0.8.20"
+toml = "0.8.21"
 color-eyre = "0.6.3"
 comfy-table = "7.1.4"
 serde_repr = "0.1.20"
@@ -100,7 +100,7 @@ isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.40"
-syn = { version = "2.0.100", default-features = false }
+syn = { version = "2.0.101", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.1"
