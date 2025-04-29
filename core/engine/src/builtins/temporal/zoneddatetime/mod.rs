@@ -1055,7 +1055,14 @@ impl ZonedDateTime {
     }
 
     /// 6.3.39 `Temporal.ZonedDateTime.prototype.round ( roundTo )`
-    fn round(_this: &JsValue, _args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+    fn round(this: &JsValue, _args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+        let _zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
         Err(JsNativeError::error()
             .with_message("Not yet implemented.")
             .into())
