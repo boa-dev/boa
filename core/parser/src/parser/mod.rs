@@ -56,6 +56,19 @@ where
     ///
     /// It will fail if the cursor is not placed at the beginning of the expected non-terminal.
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output>;
+
+    /// Parses the token stream into boxed result using the current parser.
+    ///
+    /// # Errors
+    ///
+    /// It will fail if the cursor is not placed at the beginning of the expected non-terminal.
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
+        self.parse(cursor, interner).map(Box::new)
+    }
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -582,12 +595,12 @@ fn name_in_lexically_declared_names(
 
 /// Trait to reduce boilerplate in the parser.
 trait OrAbrupt<T> {
-    /// Will convert an `Ok(None)` to an [`Error::AbruptEnd`] or return the inner type if not.
+    /// Will convert an `Ok(None)` to an [`crate::error::ErrorInner::AbruptEnd`] or return the inner type if not.
     fn or_abrupt(self) -> ParseResult<T>;
 }
 
 impl<T> OrAbrupt<T> for ParseResult<Option<T>> {
     fn or_abrupt(self) -> ParseResult<T> {
-        self?.ok_or(Error::AbruptEnd)
+        self?.ok_or(Error::abrupt_end())
     }
 }
