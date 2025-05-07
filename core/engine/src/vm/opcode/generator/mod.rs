@@ -11,7 +11,7 @@ use crate::{
     vm::{
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CompletionRecord, Registers,
+        CompletionRecord, OpStatus, Registers,
     },
     Context, JsError, JsObject, JsResult,
 };
@@ -32,7 +32,7 @@ impl Generator {
         r#async: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let r#async = u32::from(r#async) != 0;
 
         let active_function = context.vm.frame().function(&context.vm);
@@ -177,10 +177,10 @@ impl GeneratorNext {
         (resume_kind, value): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let resume_kind = registers.get(resume_kind.into()).to_generator_resume_kind();
         match resume_kind {
-            GeneratorResumeKind::Normal => ControlFlow::Continue(()),
+            GeneratorResumeKind::Normal => ControlFlow::Continue(OpStatus::Finished),
             GeneratorResumeKind::Throw => context.handle_error(
                 registers,
                 JsError::from_opaque(registers.get(value.into()).clone()),

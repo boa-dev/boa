@@ -2,7 +2,7 @@
 
 #![allow(clippy::inline_always)]
 
-use super::Registers;
+use super::{OpStatus, Registers};
 use crate::{Context, JsError, JsResult, JsValue};
 use boa_gc::{custom_trace, Finalize, Trace};
 use std::ops::ControlFlow;
@@ -56,7 +56,8 @@ pub(crate) trait IntoCompletionRecord {
         self,
         context: &mut Context,
         registers: &mut Registers,
-    ) -> ControlFlow<CompletionRecord>;
+        saved_pc: u32,
+    ) -> ControlFlow<CompletionRecord, OpStatus>;
 }
 
 impl IntoCompletionRecord for () {
@@ -65,8 +66,9 @@ impl IntoCompletionRecord for () {
         self,
         _: &mut Context,
         _: &mut Registers,
-    ) -> ControlFlow<CompletionRecord> {
-        ControlFlow::Continue(())
+        _: u32,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
+        ControlFlow::Continue(OpStatus::Finished)
     }
 }
 
@@ -76,7 +78,8 @@ impl IntoCompletionRecord for JsError {
         self,
         context: &mut Context,
         registers: &mut Registers,
-    ) -> ControlFlow<CompletionRecord> {
+        _: u32,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         context.handle_error(registers, self)
     }
 }
@@ -87,9 +90,29 @@ impl IntoCompletionRecord for JsResult<()> {
         self,
         context: &mut Context,
         registers: &mut Registers,
-    ) -> ControlFlow<CompletionRecord> {
+        _: u32,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         match self {
-            Ok(()) => ControlFlow::Continue(()),
+            Ok(()) => ControlFlow::Continue(OpStatus::Finished),
+            Err(err) => context.handle_error(registers, err),
+        }
+    }
+}
+
+impl IntoCompletionRecord for JsResult<OpStatus> {
+    #[inline(always)]
+    fn into_completion_record(
+        self,
+        context: &mut Context,
+        registers: &mut Registers,
+        saved_pc: u32,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
+        match self {
+            Ok(OpStatus::Finished) => ControlFlow::Continue(OpStatus::Finished),
+            Ok(OpStatus::Pending) => {
+                context.vm.frame_mut().pc = saved_pc;
+                ControlFlow::Continue(OpStatus::Pending)
+            }
             Err(err) => context.handle_error(registers, err),
         }
     }
@@ -101,7 +124,30 @@ impl IntoCompletionRecord for ControlFlow<CompletionRecord> {
         self,
         _: &mut Context,
         _: &mut Registers,
-    ) -> ControlFlow<CompletionRecord> {
-        self
+        _: u32,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
+        match self {
+            ControlFlow::Continue(()) => ControlFlow::Continue(OpStatus::Finished),
+            ControlFlow::Break(completion_record) => ControlFlow::Break(completion_record),
+        }
+    }
+}
+
+impl IntoCompletionRecord for ControlFlow<CompletionRecord, OpStatus> {
+    #[inline(always)]
+    fn into_completion_record(
+        self,
+        context: &mut Context,
+        _: &mut Registers,
+        saved_pc: u32,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
+        match self {
+            ControlFlow::Continue(OpStatus::Finished) => ControlFlow::Continue(OpStatus::Finished),
+            ControlFlow::Continue(OpStatus::Pending) => {
+                context.vm.frame_mut().pc = saved_pc;
+                ControlFlow::Continue(OpStatus::Pending)
+            }
+            ControlFlow::Break(completion_record) => ControlFlow::Break(completion_record),
+        }
     }
 }
