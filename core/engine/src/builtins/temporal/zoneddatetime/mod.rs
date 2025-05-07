@@ -22,7 +22,8 @@ use cow_utils::CowUtils;
 use temporal_rs::{
     options::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
-        OffsetDisambiguation, RoundingMode, ToStringRoundingOptions, Unit,
+        OffsetDisambiguation, RoundingIncrement, RoundingMode, RoundingOptions,
+        ToStringRoundingOptions, Unit,
     },
     partial::{PartialDate, PartialTime, PartialZonedDateTime},
     provider::{TimeZoneProvider, TransitionDirection},
@@ -33,7 +34,7 @@ use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_date, create_temporal_datetime, create_temporal_duration,
     create_temporal_instant, create_temporal_time, is_partial_temporal_object,
-    options::get_difference_settings,
+    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration, to_temporal_time,
 };
 
@@ -903,18 +904,22 @@ impl ZonedDateTime {
         // 19. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // 20. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
-        let _disambiguation =
-            get_option::<Disambiguation>(&resolved_options, js_string!("disambiguation"), context)?
-                .unwrap_or_default();
+        let disambiguation =
+            get_option::<Disambiguation>(&resolved_options, js_string!("disambiguation"), context)?;
         // 21. Let offset be ? GetTemporalOffsetOption(resolvedOptions, prefer).
-        let _offset =
-            get_option::<OffsetDisambiguation>(&resolved_options, js_string!("offset"), context)?
-                .unwrap_or(OffsetDisambiguation::Prefer);
+        let offset =
+            get_option::<OffsetDisambiguation>(&resolved_options, js_string!("offset"), context)?;
         // 22. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let _overflow =
+        let overflow =
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
 
-        let result = zdt.inner.with(partial)?;
+        let result = zdt.inner.with(
+            partial,
+            disambiguation,
+            offset,
+            overflow,
+            context.tz_provider(),
+        )?;
         create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
@@ -1055,17 +1060,71 @@ impl ZonedDateTime {
     }
 
     /// 6.3.39 `Temporal.ZonedDateTime.prototype.round ( roundTo )`
-    fn round(this: &JsValue, _args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
-        let _zdt = this
+    fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let zonedDateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
+        let zdt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Err(JsNativeError::error()
-            .with_message("Not yet implemented.")
-            .into())
+        let round_to = match args.first().map(JsValue::variant) {
+            // 3. If roundTo is undefined, then
+            None | Some(JsVariant::Undefined) => {
+                // a. Throw a TypeError exception.
+                return Err(JsNativeError::typ()
+                    .with_message("roundTo cannot be undefined.")
+                    .into());
+            }
+            // 4. If Type(roundTo) is String, then
+            Some(JsVariant::String(rt)) => {
+                // a. Let paramString be roundTo.
+                let param_string = rt.clone();
+                // b. Set roundTo to OrdinaryObjectCreate(null).
+                let new_round_to = JsObject::with_null_proto();
+                // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
+                new_round_to.create_data_property_or_throw(
+                    js_string!("smallestUnit"),
+                    param_string,
+                    context,
+                )?;
+                new_round_to
+            }
+            // 5. Else,
+            Some(round_to) => {
+                // a. Set roundTo to ? GetOptionsObject(roundTo).
+                get_options_object(&JsValue::from(round_to))?
+            }
+        };
+
+        // 6. NOTE: The following steps read options and perform independent validation
+        // in alphabetical order (GetRoundingIncrementOption reads "roundingIncrement"
+        // and GetRoundingModeOption reads "roundingMode").
+        let mut options = RoundingOptions::default();
+
+        // 7. Let roundingIncrement be ? GetRoundingIncrementOption(roundTo).
+        options.increment =
+            get_option::<RoundingIncrement>(&round_to, js_string!("roundingIncrement"), context)?;
+
+        // 8. Let roundingMode be ? GetRoundingModeOption(roundTo, half-expand).
+        options.rounding_mode =
+            get_option::<RoundingMode>(&round_to, js_string!("roundingMode"), context)?;
+
+        // 9. Let smallestUnit be ? GetTemporalUnitValuedOption(roundTo, "smallestUnit", time, required, « day »).
+        options.smallest_unit = get_temporal_unit(
+            &round_to,
+            js_string!("smallestUnit"),
+            TemporalUnitGroup::Time,
+            Some(vec![Unit::Day]),
+            context,
+        )?;
+
+        let result = zdt
+            .inner
+            .round_with_provider(options, context.tz_provider())?;
+        create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
     /// 6.3.40 `Temporal.ZonedDateTime.prototype.equals ( other )`

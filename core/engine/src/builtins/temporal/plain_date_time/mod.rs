@@ -299,7 +299,7 @@ impl IntrinsicObject for PlainDateTime {
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::compare, js_string!("compare"), 2)
             .method(Self::with, js_string!("with"), 1)
-            .method(Self::with_plain_time, js_string!("withPlainTime"), 1)
+            .method(Self::with_plain_time, js_string!("withPlainTime"), 0)
             .method(Self::with_calendar, js_string!("withCalendar"), 1)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)

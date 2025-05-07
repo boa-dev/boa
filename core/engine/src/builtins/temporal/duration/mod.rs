@@ -292,7 +292,7 @@ impl BuiltInConstructor for Duration {
         let microseconds = args.get_or_undefined(8).map_or(Ok(0), |v| {
             let finite = v.to_finitef64(context)?;
             finite
-                .as_integer_if_integral::<i64>()
+                .as_integer_if_integral::<i128>()
                 .map_err(JsError::from)
         })?;
 
@@ -300,21 +300,21 @@ impl BuiltInConstructor for Duration {
         let nanoseconds = args.get_or_undefined(9).map_or(Ok(0), |v| {
             let finite = v.to_finitef64(context)?;
             finite
-                .as_integer_if_integral::<i64>()
+                .as_integer_if_integral::<i128>()
                 .map_err(JsError::from)
         })?;
 
         let record = InnerDuration::new(
-            years.try_into()?,
-            months.try_into()?,
-            weeks.try_into()?,
-            days.try_into()?,
-            hours.try_into()?,
-            minutes.try_into()?,
-            seconds.try_into()?,
-            milliseconds.try_into()?,
-            microseconds.try_into()?,
-            nanoseconds.try_into()?,
+            years,
+            months,
+            weeks,
+            days,
+            hours,
+            minutes,
+            seconds,
+            milliseconds,
+            microseconds,
+            nanoseconds,
         )?;
 
         // 12. Return ? CreateTemporalDuration(y, mo, w, d, h, m, s, ms, mis, ns, NewTarget).
@@ -337,16 +337,16 @@ impl Duration {
         let inner = &duration.inner;
 
         match field {
-            DateTimeValues::Year => Ok(JsValue::new(inner.years().as_inner())),
-            DateTimeValues::Month => Ok(JsValue::new(inner.months().as_inner())),
-            DateTimeValues::Week => Ok(JsValue::new(inner.weeks().as_inner())),
-            DateTimeValues::Day => Ok(JsValue::new(inner.days().as_inner())),
-            DateTimeValues::Hour => Ok(JsValue::new(inner.hours().as_inner())),
-            DateTimeValues::Minute => Ok(JsValue::new(inner.minutes().as_inner())),
-            DateTimeValues::Second => Ok(JsValue::new(inner.seconds().as_inner())),
-            DateTimeValues::Millisecond => Ok(JsValue::new(inner.milliseconds().as_inner())),
-            DateTimeValues::Microsecond => Ok(JsValue::new(inner.microseconds().as_inner())),
-            DateTimeValues::Nanosecond => Ok(JsValue::new(inner.nanoseconds().as_inner())),
+            DateTimeValues::Year => Ok(JsValue::new(inner.years())),
+            DateTimeValues::Month => Ok(JsValue::new(inner.months())),
+            DateTimeValues::Week => Ok(JsValue::new(inner.weeks())),
+            DateTimeValues::Day => Ok(JsValue::new(inner.days())),
+            DateTimeValues::Hour => Ok(JsValue::new(inner.hours())),
+            DateTimeValues::Minute => Ok(JsValue::new(inner.minutes())),
+            DateTimeValues::Second => Ok(JsValue::new(inner.seconds())),
+            DateTimeValues::Millisecond => Ok(JsValue::new(inner.milliseconds())),
+            DateTimeValues::Microsecond => Ok(JsValue::new(inner.microseconds() as f64)),
+            DateTimeValues::Nanosecond => Ok(JsValue::new(inner.nanoseconds() as f64)),
             DateTimeValues::MonthCode => unreachable!(
                 "Any other DateTimeValue fields on Duration would be an implementation error."
             ),
@@ -1030,10 +1030,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("days"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1043,10 +1042,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("hours"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1056,10 +1054,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("microseconds"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i128>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1069,10 +1066,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("milliseconds"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1082,10 +1078,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("minutes"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1095,10 +1090,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("months"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1108,10 +1102,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("nanoseconds"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i128>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1121,10 +1114,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("seconds"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1134,10 +1126,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("weeks"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 
@@ -1147,10 +1138,9 @@ pub(crate) fn to_temporal_partial_duration(
         .get(js_string!("years"), context)?
         .map(|v| {
             let finite = v.to_finitef64(context)?;
-            let integral_int = finite
+            finite
                 .as_integer_if_integral::<i64>()
-                .map_err(JsError::from)?;
-            integral_int.try_into().map_err(JsError::from)
+                .map_err(JsError::from)
         })
         .transpose()?;
 

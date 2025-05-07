@@ -3637,7 +3637,7 @@ checksum = "1ac9aa371f599d22256307c24a9d748c041e548cbf599f35d890f9d365361790"
 [[package]]
 name = "temporal_provider"
 version = "0.0.6"
-source = "git+https://github.com/boa-dev/temporal.git?rev=ca7a601580cbb240c751bfc0de000a1a48e9766d#ca7a601580cbb240c751bfc0de000a1a48e9766d"
+source = "git+https://github.com/boa-dev/temporal.git?rev=6e7e341e15625cbc85a8842b794224c16da58fb6#6e7e341e15625cbc85a8842b794224c16da58fb6"
 dependencies = [
  "databake 0.2.0",
  "parse-zoneinfo",
@@ -3651,10 +3651,10 @@ dependencies = [
 [[package]]
 name = "temporal_rs"
 version = "0.0.6"
-source = "git+https://github.com/boa-dev/temporal.git?rev=ca7a601580cbb240c751bfc0de000a1a48e9766d#ca7a601580cbb240c751bfc0de000a1a48e9766d"
+source = "git+https://github.com/boa-dev/temporal.git?rev=6e7e341e15625cbc85a8842b794224c16da58fb6#6e7e341e15625cbc85a8842b794224c16da58fb6"
 dependencies = [
  "combine",
- "iana-time-zone",
+ "core_maths",
  "icu_calendar 2.0.0-beta2",
  "ixdtf",
  "jiff-tzdb",
