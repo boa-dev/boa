@@ -138,6 +138,7 @@ impl Vm {
     where
         T: Into<JsValue>,
     {
+        //println!("Pushing value");
         self.stack.push(value.into());
     }
 
@@ -148,6 +149,7 @@ impl Vm {
     /// If there is nothing to pop, then this will panic.
     #[track_caller]
     pub(crate) fn pop(&mut self) -> JsValue {
+        //println!("Popping value");
         self.stack.pop().expect("stack was empty")
     }
 
@@ -254,11 +256,13 @@ impl Vm {
     }
 
     pub(crate) fn pop_n_values(&mut self, n: usize) -> Vec<JsValue> {
+        //println!("Popping {n} values");
         let at = self.stack.len() - n;
         self.stack.split_off(at)
     }
 
     pub(crate) fn push_values(&mut self, values: &[JsValue]) {
+        //println!("Pushing {} values", values.len());
         self.stack.extend_from_slice(values);
     }
 
@@ -270,6 +274,7 @@ impl Vm {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum CompletionType {
     Normal,
+    NormalPending,
     Return,
     Throw,
     Yield,
@@ -405,7 +410,7 @@ impl Context {
     where
         F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
     {
-        let opcode: Opcode = {
+        let (opcode, save_pc): (Opcode, _) = {
             let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
 
             let frame = self.vm.frame_mut();
@@ -413,12 +418,28 @@ impl Context {
             let pc = frame.pc;
             let opcode = frame.code_block.bytecode[pc as usize].into();
             frame.pc += 1;
-            opcode
+            (opcode, pc)
         };
 
         let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
 
-        f(opcode, registers, self)
+        //println!("Executing opcode: {} @ {}", opcode.as_str(), save_pc);
+        let r = f(opcode, registers, self);
+        match r {
+            Err(ref err) if err.is_catchable() => {
+                // If the error is catchable, we need to set the pc to the
+                // instruction that caused the error.
+                self.vm.frame_mut().pc = save_pc;
+            }
+            Ok(CompletionType::NormalPending) => {
+                //println!("Reverting PC for 'Pending' opcode to {}", save_pc);
+                // If the instruction is pending, we need to set the pc to the
+                // instruction that is still pending.
+                self.vm.frame_mut().pc = save_pc;
+            }
+            _ => {}
+        }
+        r
     }
 
     fn execute_one<F>(&mut self, f: F, registers: &mut Registers) -> ControlFlow<CompletionRecord>
@@ -446,7 +467,9 @@ impl Context {
         let result = self.execute_instruction(f, registers);
 
         let result = match result {
-            Ok(result) => result,
+            Ok(result) => {
+                result
+            },
             Err(err) => {
                 // If we hit the execution step limit, bubble up the error to the
                 // (Rust) caller instead of trying to handle as an exception.
@@ -490,6 +513,9 @@ impl Context {
 
         match result {
             CompletionType::Normal => {}
+            CompletionType::NormalPending => {
+
+            }
             CompletionType::Return => {
                 let frame = self.vm.frame();
                 let fp = frame.fp() as usize;
@@ -598,6 +624,7 @@ impl Context {
 
             if runtime_budget == 0 {
                 runtime_budget = budget;
+                //println!("Yielding to executor");
                 yield_now().await;
             }
         }

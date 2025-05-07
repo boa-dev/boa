@@ -28,7 +28,7 @@ use tokio::{task, time};
 fn main() -> JsResult<()> {
     // An internally async event loop. This event loop blocks the execution of the thread
     // while executing tasks, but internally uses async to run its tasks.
-    internally_async_event_loop()?;
+    //internally_async_event_loop()?;
 
     // An externally async event loop. This event loop can yield to the runtime to concurrently
     // run tasks with it.
@@ -213,6 +213,20 @@ fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult
     Ok(JsValue::undefined())
 }
 
+async fn host_async_fn(n: usize) -> JsResult<JsValue> {
+    println!("Host async function called");
+
+    // XXX: can't use Tokio currently since the VM doesn't have access to the
+    // Tokio Context + Waker
+
+    for i in 0..n {
+        println!("Host async function iteration {i}");
+        time::sleep(Duration::from_millis(500)).await;
+    }
+    println!("Host async function finished");
+    Ok(JsValue::undefined())
+}
+
 /// Adds the custom runtime to the context.
 fn add_runtime(context: &mut Context) {
     // First add the `console` object, to be able to call `console.log()`.
@@ -238,6 +252,26 @@ fn add_runtime(context: &mut Context) {
             NativeFunction::from_fn_ptr(interval),
         )
         .expect("the delay builtin shouldn't exist");
+
+    context
+        .register_global_builtin_callable(
+            js_string!("host_async"),
+            1,
+            NativeFunction::from_async_as_sync_with_captures(
+                |this, args, context| {
+                    let Some(arg) = args.get(0) else {
+                        return Err(JsNativeError::typ()
+                            .with_message("arg must be a callable")
+                            .into());
+                    };
+                    let arg = arg.to_u32(context)?;
+
+                    Ok(Box::pin(host_async_fn(arg as usize)))
+                },
+                (),
+            ),
+        )
+        .expect("the foo builtin shouldn't exist");
 }
 
 // Script that does multiple calls to multiple async timers.
@@ -245,6 +279,9 @@ const SCRIPT: &str = r"
     function print(elapsed) {
         console.log(`Finished delay. Elapsed time: ${elapsed * 1000} ms`);
     }
+
+    console.log(`======= host_async(5) =======`);
+    host_async(5);
 
     delay(1000).then(print);
     delay(500).then(print);
@@ -259,6 +296,12 @@ const SCRIPT: &str = r"
     }
 
     interval(counter, 100);
+    console.log(`====================`);
+    console.log(`Started interval job`);
+    console.log(`====================`);
+
+    console.log(`======= host_async(2) =======`);
+    host_async(2);
 
     for(let i = 0; i <= 100000; i++) {
         // Emulate a long-running evaluation of a script.
@@ -337,7 +380,9 @@ async fn externally_async_event_loop() -> JsResult<()> {
         script.evaluate_async(context).await.unwrap();
 
         // Run the jobs asynchronously, which avoids blocking the main thread.
+        println!("===============");
         println!("Running jobs...");
+        println!("===============");
         context.run_jobs_async().await
     });
 

@@ -191,6 +191,7 @@ impl Script {
     /// customize this parameter.
     #[allow(clippy::future_not_send)]
     pub async fn evaluate_async(&self, context: &mut Context) -> JsResult<JsValue> {
+        println!("Evaluating async script");
         self.evaluate_async_with_budget(context, 256).await
     }
 

@@ -2,7 +2,7 @@ use crate::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
-    object::FunctionObjectBuilder,
+    object::{internal_methods::{CallValue, ResolvedCallValue}, FunctionObjectBuilder},
     vm::{opcode::Operation, CompletionType, Registers},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
@@ -224,17 +224,26 @@ impl Call {
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
+        //println!("Call function: {:?}", func);
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("not a callable function")
                 .into());
         };
 
-        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
+        match object.__call__(argument_count).async_resolve(context)? {
+            ResolvedCallValue::Ready { register_count } => {
+                registers.push_function(register_count);
+                Ok(CompletionType::Normal)
+            }
+            ResolvedCallValue::Complete => {
+                Ok(CompletionType::Normal)
+            }
+            ResolvedCallValue::Pending => {
+                //println!("Pending call");
+                Ok(CompletionType::NormalPending)
+            }
         }
-
-        Ok(CompletionType::Normal)
     }
 }
 
