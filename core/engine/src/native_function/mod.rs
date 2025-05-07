@@ -4,8 +4,12 @@
 //! from native Rust functions and closures.
 
 use std::cell::RefCell;
+use std::future::Future;
+use std::pin::Pin;
+use std::rc::Rc;
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
+use futures_lite::FutureExt as _;
 
 use crate::job::NativeAsyncJob;
 use crate::value::JsVariant;
@@ -39,6 +43,23 @@ pub(crate) use continuation::{CoroutineState, NativeCoroutine};
 ///
 /// - The last argument is the engine [`Context`].
 pub type NativeFunctionPointer = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
+
+/// The required signature for spawning async native functions.
+///
+/// # Arguments
+///
+/// - The first argument represents the `this` variable of every ECMAScript function.
+/// - The second argument represents the list of all arguments passed to the function.
+/// - The last argument is the engine [`Context`].
+///
+/// Returns a boxed future that will be awaited by the engine, stalling the engine
+/// on its current operation until the future is resolved.
+pub type SpawnAsyncFunctionFn =
+    dyn Fn(
+        &JsValue,
+        &[JsValue],
+        &mut Context,
+    ) -> JsResult<Pin<Box<dyn Future<Output = JsResult<JsValue>>>>>;
 
 trait TraceableClosure: Trace {
     fn call(&self, this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue>;
@@ -108,6 +129,148 @@ impl JsData for NativeFunctionObject {
     }
 }
 
+enum AsyncCallResult {
+    Pending,
+    Ready(JsResult<JsValue>),
+}
+
+enum AsyncRunningState {
+    None,
+    Calling,
+    Constructing { new_target: JsValue },
+}
+trait TraceableAsyncFunction: Trace {
+    fn running(&self) -> AsyncRunningState;
+    fn call_or_construct(
+        &self,
+        this: &JsValue,
+        args: &[JsValue],
+        new_target: &JsValue,
+        context: &mut Context,
+    ) -> AsyncCallResult;
+    fn poll(&self, context: &mut Context) -> AsyncCallResult {
+        self.call_or_construct(&JsValue::undefined(), &[], &JsValue::undefined(), context)
+    }
+}
+
+#[derive(Finalize)]
+enum AsyncCallState {
+    None,
+    Calling {
+        this: JsValue,
+        args: Vec<JsValue>,
+        f: Pin<Box<dyn Future<Output = JsResult<JsValue>>>>,
+    },
+    Constructing {
+        new_target: JsValue,
+        args: Vec<JsValue>,
+        f: Pin<Box<dyn Future<Output = JsResult<JsValue>>>>,
+    },
+}
+unsafe impl Trace for AsyncCallState {
+    custom_trace!(this, mark, {
+        match this {
+            AsyncCallState::None => {}
+            AsyncCallState::Calling { this, args, f: _ } => {
+                mark(this);
+                mark(args);
+            }
+            AsyncCallState::Constructing {
+                new_target,
+                args,
+                f: _,
+            } => {
+                mark(new_target);
+                mark(args);
+            }
+        }
+    });
+}
+
+#[derive(Finalize)]
+struct NativeAsyncFunction<T: Trace> {
+    start: Rc<SpawnAsyncFunctionFn>,
+    captures: T,
+    state: RefCell<AsyncCallState>,
+}
+unsafe impl<T: Trace> Trace for NativeAsyncFunction<T> {
+    custom_trace!(this, mark, {
+        mark(&this.captures);
+        mark(&*this.state.borrow());
+    });
+}
+
+impl<T> TraceableAsyncFunction for NativeAsyncFunction<T>
+where
+    T: Trace,
+{
+    fn running(&self) -> AsyncRunningState {
+        match &*self.state.borrow() {
+            AsyncCallState::None => AsyncRunningState::None,
+            AsyncCallState::Calling { .. } => AsyncRunningState::Calling,
+            AsyncCallState::Constructing { new_target, .. } => AsyncRunningState::Constructing {
+                new_target: new_target.clone(),
+            },
+        }
+    }
+
+    fn call_or_construct(
+        &self,
+        this: &JsValue,
+        args: &[JsValue],
+        new_target: &JsValue,
+        context: &mut Context,
+    ) -> AsyncCallResult {
+        let mut state = self.state.borrow_mut();
+        match *state {
+            AsyncCallState::None => {
+                if new_target.is_undefined() {
+                    let f = (*self.start)(this, args, context);
+                    let f = match f {
+                        Ok(f) => f,
+                        Err(e) => return AsyncCallResult::Ready(Err(e)),
+                    };
+                    *state = AsyncCallState::Calling {
+                        this: this.clone(),
+                        args: args.to_vec(),
+                        f,
+                    };
+                } else {
+                    let f = (*self.start)(new_target, args, context);
+                    let f = match f {
+                        Ok(f) => f,
+                        Err(e) => return AsyncCallResult::Ready(Err(e)),
+                    };
+                    *state = AsyncCallState::Constructing {
+                        new_target: new_target.clone(),
+                        args: args.to_vec(),
+                        f,
+                    };
+                }
+
+                AsyncCallResult::Pending
+            }
+            AsyncCallState::Calling { ref mut f, .. }
+            | AsyncCallState::Constructing { ref mut f, .. } => {
+                // FIXME: figure out how to work with an async Context / Waker from the application (e.g. from Tokio)
+                let waker = std::task::Waker::noop();
+                let mut context = std::task::Context::from_waker(waker);
+                let result = f.poll(&mut context);
+                match result {
+                    std::task::Poll::Pending => {
+                        //println!("Pending");
+                        AsyncCallResult::Pending
+                    }
+                    std::task::Poll::Ready(result) => {
+                        *state = AsyncCallState::None;
+                        AsyncCallResult::Ready(result)
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// A callable Rust function that can be invoked by the engine.
 ///
 /// `NativeFunction` functions are divided in two:
@@ -129,6 +292,7 @@ pub struct NativeFunction {
 #[derive(Clone)]
 enum Inner {
     PointerFn(NativeFunctionPointer),
+    AsyncFn(Gc<dyn TraceableAsyncFunction>),
     Closure(Gc<dyn TraceableClosure>),
 }
 
@@ -308,6 +472,40 @@ impl NativeFunction {
         })
     }
 
+    /// Creates a `NativeFunction` from a function returning a [`Future`] and a list of traceable
+    /// captures.
+    ///
+    /// When called from JavaScript, the function will appear to be synchronous, but it will be
+    /// able to yield the VM's control to the applications event loop, enabling the native function to
+    /// perform I/O operations or other tasks that may take a long time to complete without blocking.
+    ///
+    /// This also ensures that scripts that make long-running calls to native functions can be
+    /// cooperatively scheduled within a single threaded environment (e.g. a browser) and can be
+    /// stopped if they take too long to complete.
+    pub fn from_async_as_sync_with_captures<F, T>(f: F, captures: T) -> Self
+    where
+        F: Fn(
+                &JsValue,
+                &[JsValue],
+                &mut Context,
+            ) -> JsResult<Pin<Box<dyn Future<Output = JsResult<JsValue>>>>>
+            + 'static,
+        T: Trace + 'static,
+    {
+        let ptr = Gc::into_raw(Gc::new(NativeAsyncFunction {
+            start: Rc::new(f),
+            captures,
+            state: RefCell::new(AsyncCallState::None),
+        }));
+
+        // SAFETY: The pointer returned by `into_raw` is only used to coerce to a trait object,
+        unsafe {
+            Self {
+                inner: Inner::AsyncFn(Gc::from_raw(ptr)),
+            }
+        }
+    }
+
     /// Creates a `NativeFunction` from a `Copy` closure.
     pub fn from_copy_closure<F>(closure: F) -> Self
     where
@@ -377,7 +575,11 @@ impl NativeFunction {
     }
 
     /// Calls this `NativeFunction`, forwarding the arguments to the corresponding function.
-    #[inline]
+    ///
+    /// This is mainly for compatibility with rustdoc tests that expect to be able to create
+    /// various types of native functions and call them.
+    ///
+    /// Panics if the function has an async implementation
     pub fn call(
         &self,
         this: &JsValue,
@@ -387,6 +589,114 @@ impl NativeFunction {
         match self.inner {
             Inner::PointerFn(f) => f(this, args, context),
             Inner::Closure(ref c) => c.call(this, args, context),
+            Inner::AsyncFn(_) => unreachable!("cannot call async function synchronously"),
+        }
+    }
+
+    /// Calls this `NativeFunction`, forwarding the arguments to the corresponding function.
+    ///
+    /// XXX: Does it make sense to allow constructors to be called if the `NativeFunction`
+    /// for a constructor expects a `new_target` argument which will be `undefined`?
+    ///
+    /// The ECMA spec has a more general `BuiltinCallOrConstruct` operation that differentiates
+    /// `this` and `newTarget` and maybe a `NativeFunction` should implement that?
+    #[inline]
+    fn try_call(
+        &self,
+        is_constructor: bool,
+        argument_count: usize,
+        context: &mut Context,
+    ) -> AsyncCallResult {
+        //println!("[NativeFunction] call, arg_count: {}", argument_count);
+        if let Inner::AsyncFn(ref f) = self.inner {
+            match f.running() {
+                AsyncRunningState::None => {
+                    let args = context
+                        .vm
+                        .stack
+                        .calling_convention_pop_arguments(argument_count);
+                    let func = context.vm.stack.pop();
+                    let this = context.vm.stack.pop();
+                    let this_ref = if is_constructor {
+                        &JsValue::undefined()
+                    } else {
+                        &this
+                    };
+                    let result =
+                        f.call_or_construct(this_ref, &args, &JsValue::undefined(), context);
+                    if matches!(result, AsyncCallResult::Pending) {
+                        context.vm.stack.push(this);
+                        context.vm.stack.push(func);
+                        context.vm.stack.calling_convention_push_arguments(&args);
+                    }
+                    result
+                }
+                AsyncRunningState::Calling => f.poll(context),
+                AsyncRunningState::Constructing { new_target: _ } => {
+                    unreachable!()
+                }
+            }
+        } else {
+            let args = context
+                .vm
+                .stack
+                .calling_convention_pop_arguments(argument_count);
+            let _func = context.vm.stack.pop();
+            let this = context.vm.stack.pop();
+            let this = if is_constructor {
+                JsValue::undefined()
+            } else {
+                this
+            };
+            AsyncCallResult::Ready(match self.inner {
+                Inner::PointerFn(f) => f(&this, &args, context),
+                Inner::Closure(ref c) => c.call(&this, &args, context),
+                Inner::AsyncFn(_) => unreachable!(),
+            })
+        }
+    }
+
+    fn try_construct(
+        &self,
+        argument_count: usize,
+        context: &mut Context,
+    ) -> (JsValue, AsyncCallResult) {
+        if let Inner::AsyncFn(ref f) = self.inner {
+            match f.running() {
+                AsyncRunningState::None => {
+                    let new_target = context.vm.stack.pop();
+                    let args = context
+                        .vm
+                        .stack
+                        .calling_convention_pop_arguments(argument_count);
+                    let _func = context.vm.stack.pop();
+                    let _this = context.vm.stack.pop();
+                    (
+                        new_target.clone(),
+                        f.call_or_construct(&JsValue::undefined(), &args, &new_target, context),
+                    )
+                }
+                AsyncRunningState::Constructing { new_target } => {
+                    (new_target.clone(), f.poll(context))
+                }
+                AsyncRunningState::Calling => {
+                    unreachable!()
+                }
+            }
+        } else {
+            let new_target = context.vm.stack.pop();
+            let args = context
+                .vm
+                .stack
+                .calling_convention_pop_arguments(argument_count);
+            let _func = context.vm.stack.pop();
+            let _this = context.vm.stack.pop();
+            let result = AsyncCallResult::Ready(match self.inner {
+                Inner::PointerFn(f) => f(&new_target, &args, context),
+                Inner::Closure(ref c) => c.call(&new_target, &args, context),
+                Inner::AsyncFn(_) => unreachable!(),
+            });
+            (new_target.clone(), result)
         }
     }
 
@@ -410,13 +720,7 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
-    let args = context
-        .vm
-        .stack
-        .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm.stack.pop();
-    let this = context.vm.stack.pop();
-
+    //println!("native_function_call");
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
@@ -436,19 +740,23 @@ pub(crate) fn native_function_call(
     context.swap_realm(&mut realm);
     context.vm.native_active_function = Some(this_function_object);
 
-    let result = if constructor.is_some() {
-        function.call(&JsValue::undefined(), &args, context)
-    } else {
-        function.call(&this, &args, context)
-    }
-    .map_err(|err| err.inject_realm(context.realm().clone()));
+    let result = function.try_call(constructor.is_some(), argument_count, context);
+
+    let result = match result {
+        AsyncCallResult::Pending => Ok(CallValue::AsyncPending),
+        AsyncCallResult::Ready(result) => {
+            context
+                .vm
+                .stack
+                .push(result.map_err(|err| err.inject_realm(context.realm().clone()))?);
+            Ok(CallValue::Complete)
+        }
+    };
 
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
 
-    context.vm.stack.push(result?);
-
-    Ok(CallValue::Complete)
+    result
 }
 
 /// Construct an instance of this object with the specified arguments.
@@ -462,6 +770,7 @@ fn native_function_construct(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
+    //println!("native_function_construct");
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
     context.check_runtime_limits()?;
@@ -481,43 +790,49 @@ fn native_function_construct(
     context.swap_realm(&mut realm);
     context.vm.native_active_function = Some(this_function_object);
 
-    let new_target = context.vm.stack.pop();
-    let args = context
-        .vm
-        .stack
-        .calling_convention_pop_arguments(argument_count);
-    let _func = context.vm.stack.pop();
-    let _this = context.vm.stack.pop();
+    let (new_target, result) = function.try_construct(argument_count, context);
 
-    let result = function
-        .call(&new_target, &args, context)
-        .map_err(|err| err.inject_realm(context.realm().clone()))
-        .and_then(|v| match v.variant() {
-            JsVariant::Object(o) => Ok(o.clone()),
-            val => {
-                if constructor.expect("must be a constructor").is_base() || val.is_undefined() {
-                    let prototype = get_prototype_from_constructor(
-                        &new_target,
-                        StandardConstructors::object,
-                        context,
-                    )?;
-                    Ok(JsObject::from_proto_and_data_with_shared_shape(
-                        context.root_shape(),
-                        prototype,
-                        OrdinaryObject,
-                    ))
-                } else {
-                    Err(JsNativeError::typ()
-                        .with_message("derived constructor can only return an Object or undefined")
-                        .into())
-                }
-            }
-        });
+    let result = match result {
+        AsyncCallResult::Pending => None,
+        AsyncCallResult::Ready(result) => Some(
+            result
+                .map_err(|err| err.inject_realm(context.realm().clone()))
+                .and_then(|v| match v.variant() {
+                    JsVariant::Object(o) => Ok(o.clone()),
+                    val => {
+                        if constructor.expect("must be a constructor").is_base()
+                            || val.is_undefined()
+                        {
+                            let prototype = get_prototype_from_constructor(
+                                &new_target,
+                                StandardConstructors::object,
+                                context,
+                            )?;
+                            Ok(JsObject::from_proto_and_data_with_shared_shape(
+                                context.root_shape(),
+                                prototype,
+                                OrdinaryObject,
+                            ))
+                        } else {
+                            Err(JsNativeError::typ()
+                                .with_message(
+                                    "derived constructor can only return an Object or undefined",
+                                )
+                                .into())
+                        }
+                    }
+                }),
+        ),
+    };
 
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
 
-    context.vm.stack.push(result?);
-
-    Ok(CallValue::Complete)
+    match result {
+        None => Ok(CallValue::AsyncPending),
+        Some(result) => {
+            context.vm.stack.push(result?);
+            Ok(CallValue::Complete)
+        }
+    }
 }

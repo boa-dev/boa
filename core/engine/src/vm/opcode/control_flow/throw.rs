@@ -3,7 +3,7 @@ use std::ops::ControlFlow;
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionRecord,
+        CompletionRecord, OpStatus,
     },
     Context, JsError, JsNativeError,
 };
@@ -20,7 +20,7 @@ impl Throw {
     pub(crate) fn operation(
         value: VaryingOperand,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let value = context.vm.get_register(value.into());
         let error = JsError::from_opaque(value.clone());
         context.vm.pending_exception = Some(error);
@@ -28,7 +28,7 @@ impl Throw {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc - 1;
         if context.vm.handle_exception_at(pc) {
-            return ControlFlow::Continue(());
+            return ControlFlow::Continue(OpStatus::Finished);
         }
 
         context.handle_thow()
@@ -50,11 +50,14 @@ pub(crate) struct ReThrow;
 
 impl ReThrow {
     #[inline(always)]
-    pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
+    pub(crate) fn operation(
+        (): (),
+        context: &mut Context,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc.saturating_sub(1);
         if context.vm.handle_exception_at(pc) {
-            return ControlFlow::Continue(());
+            return ControlFlow::Continue(OpStatus::Finished);
         }
 
         // Note: If we are rethowing and there is no pending error,
@@ -88,11 +91,11 @@ impl Exception {
     pub(crate) fn operation(
         dst: VaryingOperand,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
             context.vm.set_register(dst.into(), error);
-            return ControlFlow::Continue(());
+            return ControlFlow::Continue(OpStatus::Finished);
         }
 
         // If there is no pending error, this means that `return()` was called
