@@ -297,13 +297,13 @@ impl Context {
         &mut self,
         f: F,
         registers: &mut Registers,
+        opcode: Opcode,
     ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(&mut Context, &mut Registers) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
     {
         let frame = self.vm.frame();
-        let opcode = frame.code_block.bytecode.next_opcode(frame.pc as usize);
-        let instruction = frame
+        let (instruction, _) = frame
             .code_block
             .bytecode
             .next_instruction(frame.pc as usize);
@@ -330,7 +330,7 @@ impl Context {
         }
 
         let instant = Instant::now();
-        let result = self.execute_instruction(f, registers);
+        let result = self.execute_instruction(f, registers, opcode);
         let duration = instant.elapsed();
 
         let fp = if self.vm.frames.is_empty() {
@@ -380,16 +380,22 @@ impl Context {
         &mut self,
         f: F,
         registers: &mut Registers,
+        opcode: Opcode,
     ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(&mut Context, &mut Registers) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
     {
-        f(self, registers)
+        f(self, registers, opcode)
     }
 
-    fn execute_one<F>(&mut self, f: F, registers: &mut Registers) -> ControlFlow<CompletionRecord>
+    fn execute_one<F>(
+        &mut self,
+        f: F,
+        registers: &mut Registers,
+        opcode: Opcode,
+    ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(&mut Context, &mut Registers) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
     {
         #[cfg(feature = "fuzz")]
         {
@@ -403,13 +409,13 @@ impl Context {
 
         #[cfg(feature = "trace")]
         if self.vm.trace || self.vm.frame().code_block.traceable() {
-            self.trace_execute_instruction(f, registers)
+            self.trace_execute_instruction(f, registers, opcode)
         } else {
-            self.execute_instruction(f, registers)
+            self.execute_instruction(f, registers, opcode)
         }
 
         #[cfg(not(feature = "trace"))]
-        self.execute_instruction(f, registers)
+        self.execute_instruction(f, registers, opcode)
     }
 
     fn handle_error(
@@ -549,15 +555,29 @@ impl Context {
 
         let mut runtime_budget: u32 = budget;
 
-        loop {
+        while let Some(byte) = self
+            .vm
+            .frame
+            .code_block
+            .bytecode
+            .bytecode
+            .get(self.vm.frame.pc as usize)
+        {
+            let opcode = Opcode::decode(*byte);
+
             match self.execute_one(
-                |context, registers| {
-                    context.execute_bytecode_instruction_with_budget(registers, &mut runtime_budget)
+                |context, registers, opcode| {
+                    context.execute_bytecode_instruction_with_budget(
+                        registers,
+                        &mut runtime_budget,
+                        opcode,
+                    )
                 },
                 registers,
+                opcode,
             ) {
                 ControlFlow::Continue(()) => {}
-                ControlFlow::Break(record) => return record,
+                ControlFlow::Break(value) => return value,
             }
 
             if runtime_budget == 0 {
@@ -565,6 +585,8 @@ impl Context {
                 yield_now().await;
             }
         }
+
+        CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
     pub(crate) fn run(&mut self, registers: &mut Registers) -> CompletionRecord {
@@ -575,12 +597,23 @@ impl Context {
             self.trace_call_frame();
         }
 
-        loop {
-            match self.execute_one(Self::execute_bytecode_instruction, registers) {
+        while let Some(byte) = self
+            .vm
+            .frame
+            .code_block
+            .bytecode
+            .bytecode
+            .get(self.vm.frame.pc as usize)
+        {
+            let opcode = Opcode::decode(*byte);
+
+            match self.execute_one(Self::execute_bytecode_instruction, registers, opcode) {
                 ControlFlow::Continue(()) => {}
                 ControlFlow::Break(value) => return value,
             }
         }
+
+        CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
     /// Checks if we haven't exceeded the defined runtime limits.

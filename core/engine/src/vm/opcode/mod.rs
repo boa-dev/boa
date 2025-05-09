@@ -4,7 +4,7 @@ use crate::{
     vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord, Registers},
     Context,
 };
-use args::{Argument, ArgumentsFormat};
+use args::{read, Argument};
 use std::ops::ControlFlow;
 
 mod args;
@@ -116,108 +116,120 @@ pub(crate) trait Operation {
     const COST: u8;
 }
 
+/// The compile time representation of bytecode instructions.
 #[derive(Debug)]
 pub(crate) struct ByteCodeEmitter {
-    bytecode: Vec<u64>,
-    extended: Vec<u32>,
+    bytecode: Vec<u8>,
 }
 
 impl ByteCodeEmitter {
+    /// Create a new [`ByteCodeEmitter`] instance.
     pub(crate) fn new() -> Self {
         Self {
             bytecode: Vec::new(),
-            extended: Vec::new(),
         }
     }
 
+    /// Convert the [`ByteCodeEmitter`] into a [`ByteCode`] instance.
     pub(crate) fn into_bytecode(self) -> ByteCode {
         ByteCode {
             bytecode: self.bytecode.into_boxed_slice(),
-            extended: self.extended.into_boxed_slice(),
         }
     }
 
+    /// Get the location of the next opcode in the bytecode.
     pub(crate) fn next_opcode_location(&self) -> u32 {
         self.bytecode.len() as u32
     }
 
+    /// Patch the jump instruction at the given label with the given address.
     pub(crate) fn patch_jump(&mut self, label: u32, patch: u32) {
-        let address = label as usize;
-        let instruction = self.bytecode[address];
-        let opcode = Opcode::decode(instruction);
-        let format = ArgumentsFormat::decode(instruction);
-        match format {
-            ArgumentsFormat::OneArgU32 => {
-                let new_instruction = encode_instruction(opcode, patch, &mut self.extended);
-                self.bytecode[address] = new_instruction;
-            }
-            ArgumentsFormat::TwoArgU32
-            | ArgumentsFormat::ThreeArgU32
-            | ArgumentsFormat::VariableArgsU32 => {
-                let index = (instruction >> 16) as u32 as usize;
-                self.extended[index] = patch;
-            }
-            _ => unreachable!(
-                "Invalid format for patching jump, {:?}: opcode: {:?}",
-                format, opcode
-            ),
-        }
+        let pos = label as usize;
+        let bytes = patch.to_le_bytes();
+        self.bytecode[pos + 1] = bytes[0];
+        self.bytecode[pos + 2] = bytes[1];
+        self.bytecode[pos + 3] = bytes[2];
+        self.bytecode[pos + 4] = bytes[3];
     }
 
+    /// Patch the jump instruction at the given label with two addresses.
     pub(crate) fn patch_jump_two_addresses(&mut self, label: u32, patch: (u32, u32)) {
-        let address = label as usize;
-        let instruction = self.bytecode[address];
-        let format = ArgumentsFormat::decode(instruction);
-        assert_eq!(ArgumentsFormat::VariableArgsU32, format);
-        let index = (instruction >> 16) as u32 as usize;
-        self.extended[index] = patch.0;
-        self.extended[index + 1] = patch.1;
+        let pos = label as usize;
+        // Write first patched value
+        let bytes = patch.0.to_le_bytes();
+        self.bytecode[pos + 1] = bytes[0];
+        self.bytecode[pos + 2] = bytes[1];
+        self.bytecode[pos + 3] = bytes[2];
+        self.bytecode[pos + 4] = bytes[3];
+
+        // Write second patched value
+        let bytes = patch.1.to_le_bytes();
+        self.bytecode[pos + 5] = bytes[0];
+        self.bytecode[pos + 6] = bytes[1];
+        self.bytecode[pos + 7] = bytes[2];
+        self.bytecode[pos + 8] = bytes[3];
     }
 
+    /// Patch the jump instruction at the given label with jump table addresses.
     pub(crate) fn patch_jump_table(&mut self, label: u32, patch: (u32, &[u32])) {
-        let address = label as usize;
-        let instruction = self.bytecode[address];
-        let format = ArgumentsFormat::decode(instruction);
-        assert_eq!(ArgumentsFormat::VariableArgsU32, format);
-        let index = (instruction >> 16) as u32 as usize;
-        self.extended[index] = patch.0;
+        let pos = label as usize;
+
+        let (total_len, pos) = read::<u16>(&self.bytecode, pos + 1);
+        let arg_count = total_len as usize;
+        assert_eq!(arg_count, patch.1.len());
+
+        // Write first patched value (default address)
+        let bytes = patch.0.to_le_bytes();
+        self.bytecode[pos] = bytes[0];
+        self.bytecode[pos + 1] = bytes[1];
+        self.bytecode[pos + 2] = bytes[2];
+        self.bytecode[pos + 3] = bytes[3];
+
+        // Write remaining patched values
         for (i, value) in patch.1.iter().enumerate() {
-            self.extended[index + i + 1] = *value;
+            let offset = pos + 4 + (i) * 4;
+            let bytes = value.to_le_bytes();
+            self.bytecode[offset] = bytes[0];
+            self.bytecode[offset + 1] = bytes[1];
+            self.bytecode[offset + 2] = bytes[2];
+            self.bytecode[offset + 3] = bytes[3];
         }
     }
 }
 
 #[derive(Clone, Debug, Default)]
+/// The bytecode representation of a codeblock.
 pub(crate) struct ByteCode {
-    bytecode: Box<[u64]>,
-    extended: Box<[u32]>,
+    pub(crate) bytecode: Box<[u8]>,
 }
 
-enum VaryingOperandValue {
+/// The enum representation of [`VaryingOperand`] values.
+enum VaryingOperandVariant {
     U8(u8),
     U16(u16),
     U32(u32),
 }
 
 #[derive(Debug, Clone, Copy)]
+/// A varying operand is a value that can be either a u8, u16 or u32.
 pub(crate) struct VaryingOperand {
     value: u32,
 }
 
 impl VaryingOperand {
+    /// Create a new [`VaryingOperand`] from a u32 value.
     pub(crate) fn new(value: u32) -> Self {
         Self { value }
     }
-}
 
-impl VaryingOperand {
-    fn value(self) -> VaryingOperandValue {
+    /// Return the variant of the [`VaryingOperand`].
+    fn variant(self) -> VaryingOperandVariant {
         if let Ok(value) = u8::try_from(self.value) {
-            VaryingOperandValue::U8(value)
+            VaryingOperandVariant::U8(value)
         } else if let Ok(value) = u16::try_from(self.value) {
-            VaryingOperandValue::U16(value)
+            VaryingOperandVariant::U16(value)
         } else {
-            VaryingOperandValue::U32(self.value)
+            VaryingOperandVariant::U32(self.value)
         }
     }
 }
@@ -266,17 +278,18 @@ impl std::fmt::Display for VaryingOperand {
 }
 
 impl Opcode {
-    fn encode(self) -> u64 {
-        (self as u64) << 56
+    fn encode(self) -> u8 {
+        self as u8
     }
 
-    fn decode(instruction: u64) -> Self {
-        Self::from((instruction >> 56) as u8)
+    pub(crate) fn decode(instruction: u8) -> Self {
+        Self::from(instruction)
     }
 }
 
-fn encode_instruction<A: Argument>(opcode: Opcode, format: A, extended: &mut Vec<u32>) -> u64 {
-    opcode.encode() | format.encode(extended)
+fn encode_instruction<A: Argument>(opcode: Opcode, args: A, bytes: &mut Vec<u8>) {
+    bytes.push(opcode.encode());
+    args.encode(bytes);
 }
 
 macro_rules! generate_opcodes {
@@ -328,17 +341,17 @@ macro_rules! generate_opcodes {
                 paste::paste! {
                     #[allow(unused)]
                     pub(crate) fn [<emit_ $Variant:snake>](&mut self $( $(, $FieldName: $FieldType)* )? ) {
-                        self.bytecode.push(encode_instruction(
+                        encode_instruction(
                             Opcode::$Variant,
                             ($($($FieldName),*)?),
-                            &mut self.extended,
-                        ));
+                            &mut self.bytecode,
+                        );
                     }
                 }
             )*
         }
 
-        type OpcodeHandler = fn(&mut Context, &mut Registers, u64) -> ControlFlow<CompletionRecord>;
+        type OpcodeHandler = fn(&mut Context, &mut Registers, usize) -> ControlFlow<CompletionRecord>;
 
         const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
             [
@@ -348,7 +361,7 @@ macro_rules! generate_opcodes {
             ]
         };
 
-        type OpcodeHandlerBudget = fn(&mut Context, &mut Registers, u64, &mut u32) -> ControlFlow<CompletionRecord>;
+        type OpcodeHandlerBudget = fn(&mut Context, &mut Registers, usize, &mut u32) -> ControlFlow<CompletionRecord>;
 
         const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
             [
@@ -361,8 +374,11 @@ macro_rules! generate_opcodes {
         $(
             paste::paste! {
                 #[inline(always)]
-                fn [<handle_ $Variant:snake>](context: &mut Context, registers: &mut Registers, instruction: u64) -> ControlFlow<CompletionRecord> {
-                    let args = Argument::decode(instruction, &context.vm.frame.code_block.bytecode.extended);
+                #[allow(unused_parens)]
+                fn [<handle_ $Variant:snake>](context: &mut Context, registers: &mut Registers, pc: usize) -> ControlFlow<CompletionRecord> {
+                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
+                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
+                    context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, registers, context);
                     IntoCompletionRecord::into_completion_record(result, context, registers)
                 }
@@ -372,9 +388,12 @@ macro_rules! generate_opcodes {
         $(
             paste::paste! {
                 #[inline(always)]
-                fn [<handle_ $Variant:snake _budget>](context: &mut Context, registers: &mut Registers, instruction: u64, budget: &mut u32) -> ControlFlow<CompletionRecord> {
+                #[allow(unused_parens)]
+                fn [<handle_ $Variant:snake _budget>](context: &mut Context, registers: &mut Registers, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
                     *budget = budget.saturating_sub(u32::from($Variant::COST));
-                    let args = Argument::decode(instruction, &context.vm.frame.code_block.bytecode.extended);
+                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
+                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
+                    context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, registers, context);
                     IntoCompletionRecord::into_completion_record(result, context, registers)
                 }
@@ -414,27 +433,22 @@ macro_rules! generate_opcodes {
 
         impl ByteCode {
             #[allow(unused_parens)]
-            pub(crate) fn next_instruction(&self, pc: usize) -> Instruction {
-                let instruction = self.bytecode[pc];
-                let opcode = Opcode::decode(instruction);
+            pub(crate) fn next_instruction(&self, pc: usize) -> (Instruction, usize) {
+                let bytes = &self.bytecode;
+                let opcode = Opcode::decode(bytes[pc]);
+
                 match opcode {
                     $(
                         Opcode::$Variant => {
-                            let ($($($FieldName),*)?) = <($($($FieldType),*)?)>::decode(instruction, &self.extended);
-                            Instruction::$Variant $({
+                            let (($($($FieldName),*)?), read_size) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
+                            (Instruction::$Variant $({
                                 $(
                                     $FieldName: $FieldName
                                 ),*
-                            })?
+                            })?, read_size)
                         }
                     ),*
                 }
-            }
-
-            #[cfg(feature = "trace")]
-            pub(crate) fn next_opcode(&self, pc: usize) -> Opcode {
-                let instruction = self.bytecode[pc];
-                Opcode::decode(instruction)
             }
         }
     }
@@ -444,26 +458,24 @@ impl Context {
     pub(crate) fn execute_bytecode_instruction(
         &mut self,
         registers: &mut Registers,
+        opcode: Opcode,
     ) -> ControlFlow<CompletionRecord> {
         let frame = self.vm.frame_mut();
-        let pc = frame.pc;
-        frame.pc += 1;
-        let instruction = self.vm.frame.code_block.bytecode.bytecode[pc as usize];
-        let opcode = Opcode::decode(instruction);
-        OPCODE_HANDLERS[opcode as usize](self, registers, instruction)
+        let pc = frame.pc as usize;
+
+        OPCODE_HANDLERS[opcode as usize](self, registers, pc)
     }
 
     pub(crate) fn execute_bytecode_instruction_with_budget(
         &mut self,
         registers: &mut Registers,
         budget: &mut u32,
+        opcode: Opcode,
     ) -> ControlFlow<CompletionRecord> {
         let frame = self.vm.frame_mut();
-        let pc = frame.pc;
-        frame.pc += 1;
-        let instruction = self.vm.frame.code_block.bytecode.bytecode[pc as usize];
-        let opcode = Opcode::decode(instruction);
-        OPCODE_HANDLERS_BUDGET[opcode as usize](self, registers, instruction, budget)
+        let pc = frame.pc as usize;
+
+        OPCODE_HANDLERS_BUDGET[opcode as usize](self, registers, pc, budget)
     }
 }
 
@@ -502,10 +514,11 @@ impl Iterator for InstructionIterator<'_> {
             return None;
         }
 
-        let instruction = self.bytes.next_instruction(self.pc);
-        let opcode = Opcode::decode(self.bytes.bytecode[self.pc]);
-        self.pc += 1;
-
+        let bytes = &self.bytes.bytecode;
+        let opcode = Opcode::decode(bytes[self.pc]);
+        // Get instruction and determine how much to advance pc
+        let (instruction, read_size) = self.bytes.next_instruction(self.pc);
+        self.pc = read_size;
         Some((start_pc, opcode, instruction))
     }
 }

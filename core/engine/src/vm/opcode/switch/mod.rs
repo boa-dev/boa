@@ -15,14 +15,14 @@ pub(crate) struct Case;
 impl Case {
     #[inline(always)]
     pub(super) fn operation(
-        (address, value, condition): (VaryingOperand, VaryingOperand, VaryingOperand),
+        (address, value, condition): (u32, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
     ) {
         let value = registers.get(value.into());
         let condition = registers.get(condition.into());
         if value.strict_equals(condition) {
-            context.vm.frame_mut().pc = address.into();
+            context.vm.frame_mut().pc = address;
         }
     }
 }
