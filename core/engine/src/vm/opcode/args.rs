@@ -25,6 +25,8 @@ unsafe impl Readable for (u32, i32) {}
 unsafe impl Readable for (u8, u8, u8) {}
 unsafe impl Readable for (u16, u16, u16) {}
 unsafe impl Readable for (u32, u32, u32) {}
+unsafe impl Readable for (u8, u8, u8, u8) {}
+unsafe impl Readable for (u16, u16, u16, u16) {}
 unsafe impl Readable for (u32, u32, u32, u32) {}
 unsafe impl Readable for (u32, u32, u32, u32, u32) {}
 
@@ -453,15 +455,86 @@ impl Argument
     )
 {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_u32(bytes, self.1.value);
-        write_u32(bytes, self.2.value);
-        write_u32(bytes, self.3.value);
+        let format = match (
+            self.0.variant(),
+            self.1.variant(),
+            self.2.variant(),
+            self.3.variant(),
+        ) {
+            (
+                VaryingOperandVariant::U8(_),
+                VaryingOperandVariant::U8(_),
+                VaryingOperandVariant::U8(_),
+                VaryingOperandVariant::U8(_),
+            ) => Format::U8,
+            (VaryingOperandVariant::U16(_), _, _, _)
+            | (_, VaryingOperandVariant::U16(_), _, _)
+            | (_, _, VaryingOperandVariant::U16(_), _)
+            | (_, _, _, VaryingOperandVariant::U16(_))
+                if !matches!(self.0.variant(), VaryingOperandVariant::U32(_))
+                    && !matches!(self.1.variant(), VaryingOperandVariant::U32(_))
+                    && !matches!(self.2.variant(), VaryingOperandVariant::U32(_))
+                    && !matches!(self.3.variant(), VaryingOperandVariant::U32(_)) =>
+            {
+                Format::U16
+            }
+            _ => Format::U32,
+        };
+
+        write_format(bytes, format);
+
+        match format {
+            Format::U8 => {
+                if let (
+                    VaryingOperandVariant::U8(v1),
+                    VaryingOperandVariant::U8(v2),
+                    VaryingOperandVariant::U8(v3),
+                    VaryingOperandVariant::U8(v4),
+                ) = (
+                    self.0.variant(),
+                    self.1.variant(),
+                    self.2.variant(),
+                    self.3.variant(),
+                ) {
+                    write_u8(bytes, v1);
+                    write_u8(bytes, v2);
+                    write_u8(bytes, v3);
+                    write_u8(bytes, v4);
+                }
+            }
+            Format::U16 => {
+                write_u16(bytes, self.0.value as u16);
+                write_u16(bytes, self.1.value as u16);
+                write_u16(bytes, self.2.value as u16);
+                write_u16(bytes, self.3.value as u16);
+            }
+            Format::U32 => {
+                write_u32(bytes, self.0.value);
+                write_u32(bytes, self.1.value);
+                write_u32(bytes, self.2.value);
+                write_u32(bytes, self.3.value);
+            }
+        }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2, arg3, arg4), pos) = read::<(u32, u32, u32, u32)>(bytes, pos);
-        ((arg1.into(), arg2.into(), arg3.into(), arg4.into()), pos)
+        let format = Format::from(bytes[pos]);
+        let pos = pos + 1;
+
+        match format {
+            Format::U8 => {
+                let ((arg1, arg2, arg3, arg4), pos) = read::<(u8, u8, u8, u8)>(bytes, pos);
+                ((arg1.into(), arg2.into(), arg3.into(), arg4.into()), pos)
+            }
+            Format::U16 => {
+                let ((arg1, arg2, arg3, arg4), pos) = read::<(u16, u16, u16, u16)>(bytes, pos);
+                ((arg1.into(), arg2.into(), arg3.into(), arg4.into()), pos)
+            }
+            Format::U32 => {
+                let ((arg1, arg2, arg3, arg4), pos) = read::<(u32, u32, u32, u32)>(bytes, pos);
+                ((arg1.into(), arg2.into(), arg3.into(), arg4.into()), pos)
+            }
+        }
     }
 }
 
