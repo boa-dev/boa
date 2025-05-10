@@ -6,10 +6,10 @@ mod update;
 
 use std::ops::Deref;
 
-use super::{Access, Callable, NodeKind, Operand, Register, ToJsString};
+use super::{Access, Callable, NodeKind, Register, ToJsString};
 use crate::{
     bytecompiler::{ByteCompiler, Literal},
-    vm::{GeneratorResumeKind, Opcode},
+    vm::GeneratorResumeKind,
 };
 use boa_ast::{
     expression::{
@@ -20,6 +20,7 @@ use boa_ast::{
     },
     Expression,
 };
+use thin_vec::ThinVec;
 
 impl ByteCompiler<'_> {
     fn compile_literal(&mut self, lit: &AstLiteral, dst: &Register) {
@@ -32,10 +33,10 @@ impl ByteCompiler<'_> {
             AstLiteral::BigInt(v) => {
                 self.emit_push_literal(Literal::BigInt(v.clone().into()), dst);
             }
-            AstLiteral::Bool(true) => self.push_true(dst),
-            AstLiteral::Bool(false) => self.push_false(dst),
-            AstLiteral::Null => self.push_null(dst),
-            AstLiteral::Undefined => self.push_undefined(dst),
+            AstLiteral::Bool(true) => self.bytecode.emit_push_true(dst.variable()),
+            AstLiteral::Bool(false) => self.bytecode.emit_push_false(dst.variable()),
+            AstLiteral::Null => self.bytecode.emit_push_null(dst.variable()),
+            AstLiteral::Undefined => self.bytecode.emit_push_undefined(dst.variable()),
         }
     }
 
@@ -67,13 +68,11 @@ impl ByteCompiler<'_> {
             registers.push(value);
         }
 
-        let mut args = Vec::with_capacity(registers.len() + 2);
-        args.push(Operand::Register(dst));
-        args.push(Operand::Varying(registers.len() as u32));
+        let mut values = ThinVec::with_capacity(registers.len());
         for reg in &registers {
-            args.push(Operand::Register(reg));
+            values.push(reg.variable());
         }
-        self.emit(Opcode::ConcatToString, &args);
+        self.bytecode.emit_concat_to_string(dst.variable(), values);
         for reg in registers {
             self.register_allocator.dealloc(reg);
         }
@@ -85,13 +84,10 @@ impl ByteCompiler<'_> {
             Expression::RegExpLiteral(regexp) => {
                 let pattern_index = self.get_or_insert_name(Identifier::new(regexp.pattern()));
                 let flags_index = self.get_or_insert_name(Identifier::new(regexp.flags()));
-                self.emit(
-                    Opcode::PushRegExp,
-                    &[
-                        Operand::Register(dst),
-                        Operand::Varying(pattern_index),
-                        Operand::Varying(flags_index),
-                    ],
+                self.bytecode.emit_push_regexp(
+                    dst.variable(),
+                    pattern_index.into(),
+                    flags_index.into(),
                 );
             }
             Expression::Unary(unary) => self.compile_unary(unary, dst),
@@ -106,22 +102,20 @@ impl ByteCompiler<'_> {
             Expression::ArrayLiteral(literal) => {
                 let value = self.register_allocator.alloc();
 
-                self.emit(Opcode::PushNewArray, &[Operand::Register(dst)]);
+                self.bytecode.emit_push_new_array(dst.variable());
 
                 for element in literal.as_ref() {
                     if let Some(element) = element {
                         self.compile_expr(element, &value);
                         if let Expression::Spread(_) = element {
-                            self.emit(Opcode::GetIterator, &[Operand::Register(&value)]);
-                            self.emit(Opcode::PushIteratorToArray, &[Operand::Register(dst)]);
+                            self.bytecode.emit_get_iterator(value.variable());
+                            self.bytecode.emit_push_iterator_to_array(dst.variable());
                         } else {
-                            self.emit(
-                                Opcode::PushValueToArray,
-                                &[Operand::Register(&value), Operand::Register(dst)],
-                            );
+                            self.bytecode
+                                .emit_push_value_to_array(value.variable(), dst.variable());
                         }
                     } else {
-                        self.emit(Opcode::PushElisionToArray, &[Operand::Register(dst)]);
+                        self.bytecode.emit_push_elision_to_array(dst.variable());
                     }
                 }
                 self.register_allocator.dealloc(value);
@@ -153,70 +147,81 @@ impl ByteCompiler<'_> {
             }
             Expression::Await(expr) => {
                 self.compile_expr(expr.target(), dst);
-                self.emit(Opcode::Await, &[Operand::Register(dst)]);
+                self.bytecode.emit_await(dst.variable());
                 let resume_kind = self.register_allocator.alloc();
                 self.pop_into_register(&resume_kind);
                 self.pop_into_register(dst);
-                self.emit(
-                    Opcode::GeneratorNext,
-                    &[Operand::Register(&resume_kind), Operand::Register(dst)],
-                );
+                self.bytecode
+                    .emit_generator_next(resume_kind.variable(), dst.variable());
                 self.register_allocator.dealloc(resume_kind);
             }
             Expression::Yield(r#yield) => {
                 if let Some(expr) = r#yield.target() {
                     self.compile_expr(expr, dst);
                 } else {
-                    self.push_undefined(dst);
+                    self.bytecode.emit_push_undefined(dst.variable());
                 }
 
                 if r#yield.delegate() {
                     if self.is_async() {
-                        self.emit(Opcode::GetAsyncIterator, &[Operand::Register(dst)]);
+                        self.bytecode.emit_get_async_iterator(dst.variable());
                     } else {
-                        self.emit(Opcode::GetIterator, &[Operand::Register(dst)]);
+                        self.bytecode.emit_get_iterator(dst.variable());
                     }
 
                     let resume_kind = self.register_allocator.alloc();
                     let is_return = self.register_allocator.alloc();
-                    self.push_undefined(dst);
+                    self.bytecode.emit_push_undefined(dst.variable());
                     self.emit_resume_kind(GeneratorResumeKind::Normal, &resume_kind);
 
                     let start_address = self.next_opcode_location();
 
-                    let (throw_method_undefined, return_method_undefined) =
-                        self.generator_delegate_next(dst, &resume_kind, &is_return);
+                    let generator_delegate_next_label = self.next_opcode_location();
+                    self.bytecode.emit_generator_delegate_next(
+                        Self::DUMMY_ADDRESS,
+                        Self::DUMMY_ADDRESS,
+                        dst.variable(),
+                        resume_kind.variable(),
+                        is_return.variable(),
+                    );
 
                     if self.is_async() {
-                        self.emit(Opcode::Await, &[Operand::Register(dst)]);
+                        self.bytecode.emit_await(dst.variable());
                         self.pop_into_register(&resume_kind);
                         self.pop_into_register(dst);
                     } else {
                         self.emit_resume_kind(GeneratorResumeKind::Normal, &resume_kind);
                     }
 
-                    let (return_gen, exit) =
-                        self.generator_delegate_resume(dst, &resume_kind, &is_return);
+                    let generator_delegate_resume_label = self.next_opcode_location();
+                    self.bytecode.emit_generator_delegate_resume(
+                        Self::DUMMY_ADDRESS,
+                        Self::DUMMY_ADDRESS,
+                        dst.variable(),
+                        resume_kind.variable(),
+                        is_return.variable(),
+                    );
 
                     if self.is_async() {
-                        self.emit(Opcode::IteratorValue, &[Operand::Register(dst)]);
+                        self.bytecode.emit_iterator_value(dst.variable());
                         self.async_generator_yield(dst, &resume_kind);
                     } else {
-                        self.emit(Opcode::IteratorResult, &[Operand::Register(dst)]);
-                        self.emit(Opcode::GeneratorYield, &[Operand::Register(dst)]);
+                        self.bytecode.emit_iterator_result(dst.variable());
+                        self.bytecode.emit_generator_yield(dst.variable());
                         self.pop_into_register(&resume_kind);
                         self.pop_into_register(dst);
                     }
-                    self.emit(Opcode::Jump, &[Operand::U32(start_address)]);
+                    self.bytecode.emit_jump(start_address);
 
                     self.register_allocator.dealloc(resume_kind);
                     self.register_allocator.dealloc(is_return);
 
-                    self.patch_jump(return_gen);
-                    self.patch_jump(return_method_undefined);
+                    let generator_delegate_resume_return = self.next_opcode_location();
+                    let generator_delegate_next_return = self.next_opcode_location();
+
                     if self.is_async() {
-                        self.emit(Opcode::Await, &[Operand::Register(dst)]);
-                        self.emit_opcode(Opcode::Pop);
+                        self.bytecode.emit_await(dst.variable());
+                        self.bytecode.emit_pop();
                     } else {
                         self.push_from_register(dst);
                     }
@@ -224,11 +229,26 @@ impl ByteCompiler<'_> {
 
                     self.r#return(true);
 
-                    self.patch_jump(throw_method_undefined);
+                    let generator_delegate_next_throw = self.next_opcode_location();
+
                     self.iterator_close(self.is_async());
                     self.emit_type_error("iterator does not have a throw method");
 
-                    self.patch_jump(exit);
+                    let generator_delegate_resume_exit = self.next_opcode_location();
+                    self.bytecode.patch_jump_two_addresses(
+                        generator_delegate_resume_label,
+                        (
+                            generator_delegate_resume_return,
+                            generator_delegate_resume_exit,
+                        ),
+                    );
+                    self.bytecode.patch_jump_two_addresses(
+                        generator_delegate_next_label,
+                        (
+                            generator_delegate_next_throw,
+                            generator_delegate_next_return,
+                        ),
+                    );
                 } else {
                     self.r#yield(dst);
                 }
@@ -247,14 +267,11 @@ impl ByteCompiler<'_> {
                             PropertyAccessField::Expr(field) => {
                                 let key = self.register_allocator.alloc();
                                 self.compile_expr(field, &key);
-                                self.emit(
-                                    Opcode::GetPropertyByValue,
-                                    &[
-                                        Operand::Register(&function),
-                                        Operand::Register(&key),
-                                        Operand::Register(&this),
-                                        Operand::Register(&this),
-                                    ],
+                                self.bytecode.emit_get_property_by_value(
+                                    function.variable(),
+                                    key.variable(),
+                                    this.variable(),
+                                    this.variable(),
                                 );
                                 self.register_allocator.dealloc(key);
                             }
@@ -263,17 +280,14 @@ impl ByteCompiler<'_> {
                     Expression::PropertyAccess(PropertyAccess::Private(access)) => {
                         let index = self.get_or_insert_private_name(access.field());
                         self.compile_expr(access.target(), &this);
-                        self.emit(
-                            Opcode::GetPrivateField,
-                            &[
-                                Operand::Register(&function),
-                                Operand::Register(&this),
-                                Operand::Varying(index),
-                            ],
+                        self.bytecode.emit_get_private_field(
+                            function.variable(),
+                            this.variable(),
+                            index.into(),
                         );
                     }
                     expr => {
-                        self.push_undefined(&this);
+                        self.bytecode.emit_push_undefined(this.variable());
                         self.compile_expr(expr, &function);
                     }
                 }
@@ -298,7 +312,7 @@ impl ByteCompiler<'_> {
                             &value,
                         );
                     } else {
-                        self.push_undefined(&value);
+                        self.bytecode.emit_push_undefined(value.variable());
                     }
                     part_registers.push(value);
                     let value = self.register_allocator.alloc();
@@ -309,14 +323,12 @@ impl ByteCompiler<'_> {
                     part_registers.push(value);
                 }
 
-                let mut args = Vec::with_capacity(count as usize * 2 + 2);
-                args.push(Operand::U64(site));
-                args.push(Operand::Register(dst));
-                args.push(Operand::Varying(count));
+                let mut values = ThinVec::with_capacity(count as usize * 2);
                 for r in &part_registers {
-                    args.push(Operand::Register(r));
+                    values.push(r.index());
                 }
-                self.emit(Opcode::TemplateCreate, &args);
+                self.bytecode
+                    .emit_template_create(site, dst.variable(), values);
                 for r in part_registers {
                     self.register_allocator.dealloc(r);
                 }
@@ -331,7 +343,8 @@ impl ByteCompiler<'_> {
                     self.register_allocator.dealloc(value);
                 }
 
-                self.emit_with_varying_operand(Opcode::Call, template.exprs().len() as u32 + 1);
+                self.bytecode
+                    .emit_call((template.exprs().len() as u32 + 1).into());
                 self.pop_into_register(dst);
             }
             Expression::ClassExpression(class) => {
@@ -339,7 +352,7 @@ impl ByteCompiler<'_> {
             }
             Expression::SuperCall(super_call) => {
                 let value = self.register_allocator.alloc();
-                self.emit(Opcode::SuperCallPrepare, &[Operand::Register(&value)]);
+                self.bytecode.emit_super_call_prepare(value.variable());
                 self.push_from_register(&value);
                 self.register_allocator.dealloc(value);
 
@@ -352,18 +365,16 @@ impl ByteCompiler<'_> {
                     let array = self.register_allocator.alloc();
                     let value = self.register_allocator.alloc();
 
-                    self.emit(Opcode::PushNewArray, &[Operand::Register(&array)]);
+                    self.bytecode.emit_push_new_array(array.variable());
 
                     for arg in super_call.arguments() {
                         self.compile_expr(arg, &value);
                         if let Expression::Spread(_) = arg {
-                            self.emit(Opcode::GetIterator, &[Operand::Register(&value)]);
-                            self.emit(Opcode::PushIteratorToArray, &[Operand::Register(&array)]);
+                            self.bytecode.emit_get_iterator(value.variable());
+                            self.bytecode.emit_push_iterator_to_array(array.variable());
                         } else {
-                            self.emit(
-                                Opcode::PushValueToArray,
-                                &[Operand::Register(&value), Operand::Register(&array)],
-                            );
+                            self.bytecode
+                                .emit_push_value_to_array(value.variable(), array.variable());
                         }
                     }
 
@@ -381,25 +392,23 @@ impl ByteCompiler<'_> {
                 }
 
                 if contains_spread {
-                    self.emit_opcode(Opcode::SuperCallSpread);
+                    self.bytecode.emit_super_call_spread();
                 } else {
-                    self.emit_with_varying_operand(
-                        Opcode::SuperCall,
-                        super_call.arguments().len() as u32,
-                    );
+                    self.bytecode
+                        .emit_super_call((super_call.arguments().len() as u32).into());
                 }
                 self.pop_into_register(dst);
-                self.emit(Opcode::BindThisValue, &[Operand::Register(dst)]);
+                self.bytecode.emit_bind_this_value(dst.variable());
             }
             Expression::ImportCall(import) => {
                 self.compile_expr(import.argument(), dst);
-                self.emit(Opcode::ImportCall, &[Operand::Register(dst)]);
+                self.bytecode.emit_import_call(dst.variable());
             }
             Expression::NewTarget => {
-                self.emit(Opcode::NewTarget, &[Operand::Register(dst)]);
+                self.bytecode.emit_new_target(dst.variable());
             }
             Expression::ImportMeta => {
-                self.emit(Opcode::ImportMeta, &[Operand::Register(dst)]);
+                self.bytecode.emit_import_meta(dst.variable());
             }
             Expression::Optional(opt) => {
                 let this = self.register_allocator.alloc();

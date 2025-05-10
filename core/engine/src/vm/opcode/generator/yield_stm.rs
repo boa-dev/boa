@@ -1,7 +1,12 @@
+use std::ops::ControlFlow;
+
 use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
-    vm::{opcode::Operation, CompletionRecord, CompletionType, GeneratorResumeKind, Registers},
-    Context, JsResult, JsValue,
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        CompletionRecord, GeneratorResumeKind, Registers,
+    },
+    Context, JsValue,
 };
 
 /// `GeneratorYield` implements the Opcode Operation for `Opcode::GeneratorYield`
@@ -12,15 +17,15 @@ use crate::{
 pub(crate) struct GeneratorYield;
 
 impl GeneratorYield {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        value: u32,
+    #[inline(always)]
+    pub(crate) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
+    ) -> ControlFlow<CompletionRecord> {
+        let value = registers.get(value.into());
         context.vm.set_return_value(value.clone());
-        Ok(CompletionType::Yield)
+        context.handle_yield(registers)
     }
 }
 
@@ -28,21 +33,6 @@ impl Operation for GeneratorYield {
     const NAME: &'static str = "GeneratorYield";
     const INSTRUCTION: &'static str = "INST - GeneratorYield";
     const COST: u8 = 1;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }
 
 /// `AsyncGeneratorYield` implements the Opcode Operation for `Opcode::AsyncGeneratorYield`
@@ -53,12 +43,12 @@ impl Operation for GeneratorYield {
 pub(crate) struct AsyncGeneratorYield;
 
 impl AsyncGeneratorYield {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        value: u32,
+    #[inline(always)]
+    pub(crate) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> ControlFlow<CompletionRecord> {
         // AsyncGeneratorYield ( value )
         // https://tc39.es/ecma262/#sec-asyncgeneratoryield
 
@@ -76,7 +66,7 @@ impl AsyncGeneratorYield {
             .expect("must be async generator object");
 
         // 5. Let completion be NormalCompletion(value).
-        let value = registers.get(value);
+        let value = registers.get(value.into());
         let completion = Ok(value.clone());
 
         // TODO: 6. Assert: The execution context stack has at least two elements.
@@ -112,7 +102,7 @@ impl AsyncGeneratorYield {
             context.vm.push(resume_kind);
 
             // d. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
-            return Ok(CompletionType::Normal);
+            return ControlFlow::Continue(());
         }
 
         // 12. Else,
@@ -126,7 +116,7 @@ impl AsyncGeneratorYield {
         //     e. Assert: If control reaches here, then genContext is the running execution context again.
         //     f. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
         context.vm.set_return_value(JsValue::undefined());
-        Ok(CompletionType::Yield)
+        context.handle_yield(registers)
     }
 }
 
@@ -134,19 +124,4 @@ impl Operation for AsyncGeneratorYield {
     const NAME: &'static str = "AsyncGeneratorYield";
     const INSTRUCTION: &'static str = "INST - AsyncGeneratorYield";
     const COST: u8 = 8;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }

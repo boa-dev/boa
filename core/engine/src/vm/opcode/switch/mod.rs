@@ -1,6 +1,7 @@
+use super::VaryingOperand;
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context,
 };
 
 /// `Case` implements the Opcode Operation for `Opcode::Case`
@@ -12,20 +13,17 @@ use crate::{
 pub(crate) struct Case;
 
 impl Case {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        address: u32,
-        value: u32,
-        condition: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        (address, value, condition): (u32, VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
-        let condition = registers.get(condition);
+    ) {
+        let value = registers.get(value.into());
+        let condition = registers.get(condition.into());
         if value.strict_equals(condition) {
             context.vm.frame_mut().pc = address;
         }
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -33,25 +31,4 @@ impl Operation for Case {
     const NAME: &'static str = "Case";
     const INSTRUCTION: &'static str = "INST - Case";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        let value = context.vm.read::<u8>().into();
-        let condition = context.vm.read::<u8>().into();
-        Self::operation(address, value, condition, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        let value = context.vm.read::<u16>().into();
-        let condition = context.vm.read::<u16>().into();
-        Self::operation(address, value, condition, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let condition = context.vm.read::<u32>();
-        Self::operation(address, value, condition, registers, context)
-    }
 }

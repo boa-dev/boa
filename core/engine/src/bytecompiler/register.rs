@@ -1,3 +1,4 @@
+use crate::vm::opcode::VaryingOperand;
 use std::mem::forget;
 
 bitflags::bitflags! {
@@ -43,6 +44,11 @@ impl Register {
     /// The index of the [`Register`].
     pub(crate) fn index(&self) -> u32 {
         self.index
+    }
+
+    /// The index of the [`Register`] as a [`VaryingOperand`].
+    pub(crate) fn variable(&self) -> VaryingOperand {
+        self.index.into()
     }
 }
 

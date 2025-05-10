@@ -1,8 +1,11 @@
 //! An implementation of a `CompletionRecord` for Boa's VM.
 
-use boa_gc::{custom_trace, Finalize, Trace};
+#![allow(clippy::inline_always)]
 
-use crate::{JsError, JsResult, JsValue};
+use super::Registers;
+use crate::{Context, JsError, JsResult, JsValue};
+use boa_gc::{custom_trace, Finalize, Trace};
+use std::ops::ControlFlow;
 
 /// An implementation of the ECMAScript's `CompletionRecord` [specification] for
 /// Boa's VM output Completion and Result.
@@ -45,5 +48,60 @@ impl CompletionRecord {
             Self::Throw(error) => Err(error),
             Self::Normal(value) | Self::Return(value) => Ok(value),
         }
+    }
+}
+
+pub(crate) trait IntoCompletionRecord {
+    fn into_completion_record(
+        self,
+        context: &mut Context,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord>;
+}
+
+impl IntoCompletionRecord for () {
+    #[inline(always)]
+    fn into_completion_record(
+        self,
+        _: &mut Context,
+        _: &mut Registers,
+    ) -> ControlFlow<CompletionRecord> {
+        ControlFlow::Continue(())
+    }
+}
+
+impl IntoCompletionRecord for JsError {
+    #[inline(always)]
+    fn into_completion_record(
+        self,
+        context: &mut Context,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord> {
+        context.handle_error(registers, self)
+    }
+}
+
+impl IntoCompletionRecord for JsResult<()> {
+    #[inline(always)]
+    fn into_completion_record(
+        self,
+        context: &mut Context,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord> {
+        match self {
+            Ok(()) => ControlFlow::Continue(()),
+            Err(err) => context.handle_error(registers, err),
+        }
+    }
+}
+
+impl IntoCompletionRecord for ControlFlow<CompletionRecord> {
+    #[inline(always)]
+    fn into_completion_record(
+        self,
+        _: &mut Context,
+        _: &mut Registers,
+    ) -> ControlFlow<CompletionRecord> {
+        self
     }
 }
