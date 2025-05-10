@@ -6,6 +6,7 @@ use crate::{
 };
 use args::{read, Argument};
 use std::ops::ControlFlow;
+use thin_vec::ThinVec;
 
 mod args;
 
@@ -1484,7 +1485,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: object, source, excluded_keys
-    CopyDataProperties { object: VaryingOperand, source: VaryingOperand, excluded_keys: Vec<VaryingOperand> },
+    CopyDataProperties { object: VaryingOperand, source: VaryingOperand, excluded_keys: ThinVec<VaryingOperand> },
 
     /// Call ToPropertyKey on the value on the stack.
     ///
@@ -1551,7 +1552,7 @@ generate_opcodes! {
     /// Operands: default: `u32`, count: `u32`, address: `u32` * count
     ///
     /// Stack: value: [`i32`] **=>**
-    JumpTable { default: u32, addresses: Vec<u32> },
+    JumpTable { default: u32, addresses: ThinVec<u32> },
 
     /// Throw exception.
     ///
@@ -1893,7 +1894,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: values
     ///   - Output: dst
-    ConcatToString { dst: VaryingOperand, values: Vec<VaryingOperand> },
+    ConcatToString { dst: VaryingOperand, values: ThinVec<VaryingOperand> },
 
     /// Require the stack value to be neither null nor undefined.
     ///
@@ -2022,7 +2023,7 @@ generate_opcodes! {
     /// - Registers:
     ///   - Inputs: values
     ///   - Output: dst
-    TemplateCreate { site: u64, dst: VaryingOperand, values: Vec<u32> },
+    TemplateCreate { site: u64, dst: VaryingOperand, values: ThinVec<u32> },
 
     /// Push a private environment.
     ///
@@ -2030,7 +2031,7 @@ generate_opcodes! {
     ///
     /// - Registers:
     ///   - Input: class, name_indices
-    PushPrivateEnvironment { class: VaryingOperand, name_indices: Vec<u32> },
+    PushPrivateEnvironment { class: VaryingOperand, name_indices: ThinVec<u32> },
 
     /// Pop a private environment.
     PopPrivateEnvironment,

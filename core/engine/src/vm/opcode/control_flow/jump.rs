@@ -5,6 +5,7 @@ use crate::{
     },
     Context,
 };
+use thin_vec::ThinVec;
 
 /// `Jump` implements the Opcode Operation for `Opcode::Jump`
 ///
@@ -144,7 +145,7 @@ pub(crate) struct JumpTable;
 impl JumpTable {
     #[inline(always)]
     pub(crate) fn operation(
-        (default, addresses): (u32, Vec<u32>),
+        (default, addresses): (u32, ThinVec<u32>),
         _: &mut Registers,
         context: &mut Context,
     ) {

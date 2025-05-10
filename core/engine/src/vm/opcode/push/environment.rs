@@ -8,6 +8,7 @@ use crate::{
     Context, JsResult,
 };
 use boa_gc::Gc;
+use thin_vec::ThinVec;
 
 /// `PushScope` implements the Opcode Operation for `Opcode::PushScope`
 ///
@@ -70,7 +71,7 @@ pub(crate) struct PushPrivateEnvironment;
 impl PushPrivateEnvironment {
     #[inline(always)]
     pub(crate) fn operation(
-        (class, name_indices): (VaryingOperand, Vec<u32>),
+        (class, name_indices): (VaryingOperand, ThinVec<u32>),
         registers: &mut Registers,
         context: &mut Context,
     ) {

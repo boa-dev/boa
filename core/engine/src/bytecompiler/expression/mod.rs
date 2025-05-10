@@ -20,6 +20,7 @@ use boa_ast::{
     },
     Expression,
 };
+use thin_vec::ThinVec;
 
 impl ByteCompiler<'_> {
     fn compile_literal(&mut self, lit: &AstLiteral, dst: &Register) {
@@ -67,7 +68,7 @@ impl ByteCompiler<'_> {
             registers.push(value);
         }
 
-        let mut values = Vec::with_capacity(registers.len());
+        let mut values = ThinVec::with_capacity(registers.len());
         for reg in &registers {
             values.push(reg.variable());
         }
@@ -322,7 +323,7 @@ impl ByteCompiler<'_> {
                     part_registers.push(value);
                 }
 
-                let mut values = Vec::with_capacity(count as usize * 2);
+                let mut values = ThinVec::with_capacity(count as usize * 2);
                 for r in &part_registers {
                     values.push(r.index());
                 }

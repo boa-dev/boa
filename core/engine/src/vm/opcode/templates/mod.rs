@@ -7,6 +7,7 @@ use crate::{
     vm::{opcode::Operation, Registers},
     Context,
 };
+use thin_vec::ThinVec;
 
 /// `TemplateLookup` implements the Opcode Operation for `Opcode::TemplateLookup`
 ///
@@ -45,7 +46,7 @@ pub(crate) struct TemplateCreate;
 impl TemplateCreate {
     #[inline(always)]
     pub(super) fn operation(
-        (site, dst, values): (u64, VaryingOperand, Vec<u32>),
+        (site, dst, values): (u64, VaryingOperand, ThinVec<u32>),
         registers: &mut Registers,
         context: &mut Context,
     ) {

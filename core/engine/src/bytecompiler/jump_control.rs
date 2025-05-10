@@ -16,6 +16,7 @@ use crate::{
 };
 use bitflags::bitflags;
 use boa_interner::Sym;
+use thin_vec::thin_vec;
 
 /// An actions to be performed for the local control flow.
 #[derive(Debug, Clone, Copy)]
@@ -560,7 +561,7 @@ impl ByteCompiler<'_> {
         let jump_table_index = self.next_opcode_location();
         self.bytecode.emit_jump_table(
             Self::DUMMY_ADDRESS,
-            vec![Self::DUMMY_ADDRESS; info.jumps.len()],
+            thin_vec![Self::DUMMY_ADDRESS; info.jumps.len()],
         );
 
         let mut patch_jumps = Vec::with_capacity(info.jumps.len());

@@ -3,6 +3,7 @@ use crate::{
     vm::{opcode::Operation, Registers},
     Context, JsResult,
 };
+use thin_vec::ThinVec;
 
 /// `CopyDataProperties` implements the Opcode Operation for `Opcode::CopyDataProperties`
 ///
@@ -14,7 +15,7 @@ pub(crate) struct CopyDataProperties;
 impl CopyDataProperties {
     #[inline(always)]
     pub(super) fn operation(
-        (object, source, keys): (VaryingOperand, VaryingOperand, Vec<VaryingOperand>),
+        (object, source, keys): (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>),
         registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {

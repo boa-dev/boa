@@ -5,6 +5,7 @@ use boa_ast::{
     Expression,
 };
 use boa_interner::Sym;
+use thin_vec::ThinVec;
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_object_literal(&mut self, literal: &ObjectLiteral, dst: &Register) {
@@ -112,7 +113,7 @@ impl ByteCompiler<'_> {
                     self.bytecode.emit_copy_data_properties(
                         dst.variable(),
                         source.variable(),
-                        Vec::new(),
+                        ThinVec::new(),
                     );
                     self.register_allocator.dealloc(source);
                 }
