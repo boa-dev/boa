@@ -1,9 +1,10 @@
+use super::VaryingOperand;
 use crate::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::{opcode::Operation, Registers},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -15,12 +16,13 @@ use crate::{
 pub(crate) struct CallEval;
 
 impl CallEval {
-    fn operation(
+    #[inline(always)]
+    pub(super) fn operation(
+        (argument_count, scope_index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-        argument_count: usize,
-        scope_index: usize,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
+        let argument_count = usize::from(argument_count);
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
@@ -50,7 +52,11 @@ impl CallEval {
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
                 let strict = context.vm.frame().code_block.strict();
-                let scope = context.vm.frame().code_block().constant_scope(scope_index);
+                let scope = context
+                    .vm
+                    .frame()
+                    .code_block()
+                    .constant_scope(scope_index.into());
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -64,13 +70,13 @@ impl CallEval {
                 context.vm.push(JsValue::undefined());
             }
 
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -78,34 +84,6 @@ impl Operation for CallEval {
     const NAME: &'static str = "CallEval";
     const INSTRUCTION: &'static str = "INST - CallEval";
     const COST: u8 = 5;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u8>();
-        let scope_index = context.vm.read::<u8>();
-        Self::operation(
-            registers,
-            context,
-            argument_count as usize,
-            scope_index as usize,
-        )
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u16>() as usize;
-        let scope_index = context.vm.read::<u16>();
-        Self::operation(registers, context, argument_count, scope_index as usize)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u32>();
-        let scope_index = context.vm.read::<u32>();
-        Self::operation(
-            registers,
-            context,
-            argument_count as usize,
-            scope_index as usize,
-        )
-    }
 }
 
 /// `CallEvalSpread` implements the Opcode Operation for `Opcode::CallEvalSpread`
@@ -116,11 +94,12 @@ impl Operation for CallEval {
 pub(crate) struct CallEvalSpread;
 
 impl CallEvalSpread {
-    fn operation(
+    #[inline(always)]
+    pub(super) fn operation(
+        index: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-        index: usize,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -160,7 +139,7 @@ impl CallEvalSpread {
                 //     let strictCaller be true. Otherwise let strictCaller be false.
                 // v. Return ? PerformEval(evalArg, strictCaller, true).
                 let strict = context.vm.frame().code_block.strict();
-                let scope = context.vm.frame().code_block().constant_scope(index);
+                let scope = context.vm.frame().code_block().constant_scope(index.into());
                 let result = crate::builtins::eval::Eval::perform_eval(
                     x,
                     true,
@@ -174,7 +153,7 @@ impl CallEvalSpread {
                 context.vm.push(JsValue::undefined());
             }
 
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
 
         let argument_count = arguments.len();
@@ -183,7 +162,7 @@ impl CallEvalSpread {
         if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -191,21 +170,6 @@ impl Operation for CallEvalSpread {
     const NAME: &'static str = "CallEvalSpread";
     const INSTRUCTION: &'static str = "INST - CallEvalSpread";
     const COST: u8 = 5;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(registers, context, index as usize)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>();
-        Self::operation(registers, context, index as usize)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(registers, context, index as usize)
-    }
 }
 
 /// `Call` implements the Opcode Operation for `Opcode::Call`
@@ -216,11 +180,13 @@ impl Operation for CallEvalSpread {
 pub(crate) struct Call;
 
 impl Call {
-    fn operation(
+    #[inline(always)]
+    pub(super) fn operation(
+        argument_count: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-        argument_count: usize,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
+        let argument_count = usize::from(argument_count);
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
@@ -234,7 +200,7 @@ impl Call {
             registers.push_function(register_count);
         }
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -242,32 +208,18 @@ impl Operation for Call {
     const NAME: &'static str = "Call";
     const INSTRUCTION: &'static str = "INST - Call";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u8>();
-        Self::operation(registers, context, argument_count as usize)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u16>() as usize;
-        Self::operation(registers, context, argument_count)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let argument_count = context.vm.read::<u32>();
-        Self::operation(registers, context, argument_count as usize)
-    }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CallSpread;
 
-impl Operation for CallSpread {
-    const NAME: &'static str = "CallSpread";
-    const INSTRUCTION: &'static str = "INST - CallSpread";
-    const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl CallSpread {
+    #[inline(always)]
+    pub(super) fn operation(
+        (): (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -294,8 +246,14 @@ impl Operation for CallSpread {
         if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for CallSpread {
+    const NAME: &'static str = "CallSpread";
+    const INSTRUCTION: &'static str = "INST - CallSpread";
+    const COST: u8 = 3;
 }
 
 /// `ImportCall` implements the Opcode Operation for `Opcode::ImportCall`
@@ -306,11 +264,12 @@ impl Operation for CallSpread {
 pub(crate) struct ImportCall;
 
 impl ImportCall {
-    fn operation(
-        value: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
@@ -323,7 +282,7 @@ impl ImportCall {
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let arg = registers.get(value);
+        let arg = registers.get(value.into());
 
         // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let cap = PromiseCapability::new(
@@ -507,8 +466,8 @@ impl ImportCall {
         }
 
         // 9. Return promiseCapability.[[Promise]].
-        registers.set(value, promise.into());
-        Ok(CompletionType::Normal)
+        registers.set(value.into(), promise.into());
+        Ok(())
     }
 }
 
@@ -516,19 +475,4 @@ impl Operation for ImportCall {
     const NAME: &'static str = "ImportCall";
     const INSTRUCTION: &'static str = "INST - ImportCall";
     const COST: u8 = 15;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }

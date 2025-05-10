@@ -1,7 +1,9 @@
 use crate::{
-    value::JsVariant,
-    value::{JsValue, Numeric},
-    vm::{opcode::Operation, CompletionType, Registers},
+    value::{JsValue, JsVariant, Numeric},
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        Registers,
+    },
     Context, JsBigInt, JsResult,
 };
 
@@ -13,14 +15,13 @@ use crate::{
 pub(crate) struct Inc;
 
 impl Inc {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        src: u32,
-        dst: u32,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (dst, src): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(src);
+    ) -> JsResult<()> {
+        let value = registers.get(src.into());
 
         let (numeric, value) = match value.variant() {
             JsVariant::Integer32(number) if number < i32::MAX => {
@@ -34,9 +35,9 @@ impl Inc {
                 ),
             },
         };
-        registers.set(src, numeric);
-        registers.set(dst, value);
-        Ok(CompletionType::Normal)
+        registers.set(src.into(), numeric);
+        registers.set(dst.into(), value);
+        Ok(())
     }
 }
 
@@ -44,22 +45,4 @@ impl Operation for Inc {
     const NAME: &'static str = "Inc";
     const INSTRUCTION: &'static str = "INST - Inc";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        let src = context.vm.read::<u8>().into();
-        Self::operation(src, dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        let src = context.vm.read::<u16>().into();
-        Self::operation(src, dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        let src = context.vm.read::<u32>();
-        Self::operation(src, dst, registers, context)
-    }
 }

@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{opcode::Operation, Registers},
+    Context,
 };
 
 /// `Reserved` implements the Opcode Operation for `Opcode::Reserved`
@@ -10,20 +10,15 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Reserved;
 
+impl Reserved {
+    #[inline(always)]
+    pub(crate) fn operation((): (), _: &mut Registers, _: &mut Context) {
+        unreachable!("Reserved opcodes are unreachable!")
+    }
+}
+
 impl Operation for Reserved {
     const NAME: &'static str = "Reserved";
     const INSTRUCTION: &'static str = "INST - Reserved";
     const COST: u8 = 0;
-
-    fn execute(_: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
-        unreachable!("Reserved opcodes are unreachable!")
-    }
-
-    fn execute_u16(_: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
-        unreachable!("Reserved.U16 opcodes are unreachable!")
-    }
-
-    fn execute_u32(_: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
-        unreachable!("Reserved.U32 opcodes are unreachable!")
-    }
 }

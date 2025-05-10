@@ -1,7 +1,10 @@
 use crate::{
     builtins::function::OrdinaryFunction,
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        Registers,
+    },
+    Context,
 };
 
 /// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`
@@ -12,15 +15,14 @@ use crate::{
 pub(crate) struct SetHomeObject;
 
 impl SetHomeObject {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        function: u32,
-        home: u32,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, home): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         _: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let home = registers.get(home);
+    ) {
+        let function = registers.get(function.into());
+        let home = registers.get(home.into());
 
         function
             .as_object()
@@ -28,8 +30,6 @@ impl SetHomeObject {
             .downcast_mut::<OrdinaryFunction>()
             .expect("must be function object")
             .set_home_object(home.as_object().expect("must be object").clone());
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -37,22 +37,4 @@ impl Operation for SetHomeObject {
     const NAME: &'static str = "SetHomeObject";
     const INSTRUCTION: &'static str = "INST - SetHomeObject";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let home = context.vm.read::<u8>().into();
-        Self::operation(function, home, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let home = context.vm.read::<u16>().into();
-        Self::operation(function, home, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let home = context.vm.read::<u32>();
-        Self::operation(function, home, registers, context)
-    }
 }

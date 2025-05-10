@@ -1,6 +1,6 @@
 use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand, Register, ToJsString},
-    vm::{BindingOpcode, Opcode},
+    bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Label, Register, ToJsString},
+    vm::opcode::BindingOpcode,
 };
 use boa_ast::{
     expression::{
@@ -8,6 +8,7 @@ use boa_ast::{
         operator::{assign::AssignOp, Assign},
     },
     scope::BindingLocatorError,
+    Expression,
 };
 
 impl ByteCompiler<'_> {
@@ -29,30 +30,104 @@ impl ByteCompiler<'_> {
             let access = Access::from_assign_target(assign.lhs())
                 .expect("patterns should throw early errors on complex assignment operators");
 
-            let opcode = match assign.op() {
-                AssignOp::Assign => unreachable!(),
-                AssignOp::Add => Opcode::Add,
-                AssignOp::Sub => Opcode::Sub,
-                AssignOp::Mul => Opcode::Mul,
-                AssignOp::Div => Opcode::Div,
-                AssignOp::Mod => Opcode::Mod,
-                AssignOp::Exp => Opcode::Pow,
-                AssignOp::And => Opcode::BitAnd,
-                AssignOp::Or => Opcode::BitOr,
-                AssignOp::Xor => Opcode::BitXor,
-                AssignOp::Shl => Opcode::ShiftLeft,
-                AssignOp::Shr => Opcode::ShiftRight,
-                AssignOp::Ushr => Opcode::UnsignedShiftRight,
-                AssignOp::BoolAnd => Opcode::LogicalAnd,
-                AssignOp::BoolOr => Opcode::LogicalOr,
-                AssignOp::Coalesce => Opcode::Coalesce,
-            };
-
             let short_circuit = matches!(
                 assign.op(),
                 AssignOp::BoolAnd | AssignOp::BoolOr | AssignOp::Coalesce
             );
-            let mut early_exit = None;
+
+            let emit = |compiler: &mut Self,
+                        dst: &Register,
+                        expr: &Expression,
+                        op: AssignOp|
+             -> Option<Label> {
+                if short_circuit {
+                    let next = compiler.next_opcode_location();
+                    match op {
+                        AssignOp::BoolAnd => compiler
+                            .bytecode
+                            .emit_logical_and(Self::DUMMY_ADDRESS, dst.variable()),
+                        AssignOp::BoolOr => compiler
+                            .bytecode
+                            .emit_logical_or(Self::DUMMY_ADDRESS, dst.variable()),
+                        AssignOp::Coalesce => compiler
+                            .bytecode
+                            .emit_coalesce(Self::DUMMY_ADDRESS, dst.variable()),
+                        _ => unreachable!(),
+                    }
+                    compiler.compile_expr(expr, dst);
+                    Some(Label { index: next })
+                } else {
+                    let rhs = compiler.register_allocator.alloc();
+                    compiler.compile_expr(expr, &rhs);
+                    match op {
+                        AssignOp::Add => compiler.bytecode.emit_add(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Sub => compiler.bytecode.emit_sub(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Mul => compiler.bytecode.emit_mul(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Div => compiler.bytecode.emit_div(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Mod => compiler.bytecode.emit_mod(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Exp => compiler.bytecode.emit_pow(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::And => compiler.bytecode.emit_bit_and(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Or => compiler.bytecode.emit_bit_or(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Xor => compiler.bytecode.emit_bit_xor(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Shl => compiler.bytecode.emit_shift_left(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Shr => compiler.bytecode.emit_shift_right(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        AssignOp::Ushr => compiler.bytecode.emit_unsigned_shift_right(
+                            dst.variable(),
+                            dst.variable(),
+                            rhs.variable(),
+                        ),
+                        _ => unreachable!(),
+                    }
+                    compiler.register_allocator.dealloc(rhs);
+                    None
+                }
+            };
+
+            let early_exit;
 
             match access {
                 Access::Variable { name } => {
@@ -63,43 +138,35 @@ impl ByteCompiler<'_> {
                     let index = self.get_or_insert_binding(binding);
 
                     if is_lexical {
-                        self.emit_binding_access(Opcode::GetName, &index, dst);
+                        self.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
                     } else {
-                        self.emit_binding_access(Opcode::GetNameAndLocator, &index, dst);
-                    }
-
-                    if short_circuit {
-                        early_exit = Some(self.emit_with_label(opcode, &[Operand::Register(dst)]));
-
-                        self.compile_expr(assign.rhs(), dst);
-                    } else {
-                        let rhs = self.register_allocator.alloc();
-                        self.compile_expr(assign.rhs(), &rhs);
-                        self.emit(
-                            opcode,
-                            &[
-                                Operand::Register(dst),
-                                Operand::Register(dst),
-                                Operand::Register(&rhs),
-                            ],
+                        self.emit_binding_access(
+                            BindingAccessOpcode::GetNameAndLocator,
+                            &index,
+                            dst,
                         );
-                        self.register_allocator.dealloc(rhs);
                     }
+
+                    early_exit = emit(self, dst, assign.rhs(), assign.op());
 
                     if is_lexical {
                         match self.lexical_scope.set_mutable_binding(name.clone()) {
                             Ok(binding) => {
                                 let index = self.get_or_insert_binding(binding);
-                                self.emit_binding_access(Opcode::SetName, &index, dst);
+                                self.emit_binding_access(BindingAccessOpcode::SetName, &index, dst);
                             }
                             Err(BindingLocatorError::MutateImmutable) => {
                                 let index = self.get_or_insert_string(name);
-                                self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
+                                self.bytecode.emit_throw_mutate_immutable(index.into());
                             }
                             Err(BindingLocatorError::Silent) => {}
                         }
                     } else {
-                        self.emit_binding_access(Opcode::SetNameByLocator, &index, dst);
+                        self.emit_binding_access(
+                            BindingAccessOpcode::SetNameByLocator,
+                            &index,
+                            dst,
+                        );
                     }
                 }
                 Access::Property { access } => match access {
@@ -110,23 +177,7 @@ impl ByteCompiler<'_> {
 
                             self.emit_get_property_by_name(dst, &object, &object, *name);
 
-                            if short_circuit {
-                                early_exit =
-                                    Some(self.emit_with_label(opcode, &[Operand::Register(dst)]));
-                                self.compile_expr(assign.rhs(), dst);
-                            } else {
-                                let rhs = self.register_allocator.alloc();
-                                self.compile_expr(assign.rhs(), &rhs);
-                                self.emit(
-                                    opcode,
-                                    &[
-                                        Operand::Register(dst),
-                                        Operand::Register(dst),
-                                        Operand::Register(&rhs),
-                                    ],
-                                );
-                                self.register_allocator.dealloc(rhs);
-                            }
+                            early_exit = emit(self, dst, assign.rhs(), assign.op());
 
                             self.emit_set_property_by_name(dst, &object, &object, *name);
 
@@ -139,42 +190,20 @@ impl ByteCompiler<'_> {
                             let key = self.register_allocator.alloc();
                             self.compile_expr(expr, &key);
 
-                            self.emit(
-                                Opcode::GetPropertyByValuePush,
-                                &[
-                                    Operand::Register(dst),
-                                    Operand::Register(&key),
-                                    Operand::Register(&object),
-                                    Operand::Register(&object),
-                                ],
+                            self.bytecode.emit_get_property_by_value_push(
+                                dst.variable(),
+                                key.variable(),
+                                object.variable(),
+                                object.variable(),
                             );
 
-                            if short_circuit {
-                                early_exit =
-                                    Some(self.emit_with_label(opcode, &[Operand::Register(dst)]));
-                                self.compile_expr(assign.rhs(), dst);
-                            } else {
-                                let rhs = self.register_allocator.alloc();
-                                self.compile_expr(assign.rhs(), &rhs);
-                                self.emit(
-                                    opcode,
-                                    &[
-                                        Operand::Register(dst),
-                                        Operand::Register(dst),
-                                        Operand::Register(&rhs),
-                                    ],
-                                );
-                                self.register_allocator.dealloc(rhs);
-                            }
+                            early_exit = emit(self, dst, assign.rhs(), assign.op());
 
-                            self.emit(
-                                Opcode::SetPropertyByValue,
-                                &[
-                                    Operand::Register(dst),
-                                    Operand::Register(&key),
-                                    Operand::Register(&object),
-                                    Operand::Register(&object),
-                                ],
+                            self.bytecode.emit_set_property_by_value(
+                                dst.variable(),
+                                key.variable(),
+                                object.variable(),
+                                object.variable(),
                             );
 
                             self.register_allocator.dealloc(key);
@@ -187,41 +216,18 @@ impl ByteCompiler<'_> {
                         let object = self.register_allocator.alloc();
                         self.compile_expr(access.target(), &object);
 
-                        self.emit(
-                            Opcode::GetPrivateField,
-                            &[
-                                Operand::Register(dst),
-                                Operand::Register(&object),
-                                Operand::Varying(index),
-                            ],
+                        self.bytecode.emit_get_private_field(
+                            dst.variable(),
+                            object.variable(),
+                            index.into(),
                         );
 
-                        if short_circuit {
-                            early_exit =
-                                Some(self.emit_with_label(opcode, &[Operand::Register(dst)]));
-                            self.compile_expr(assign.rhs(), dst);
-                        } else {
-                            let rhs = self.register_allocator.alloc();
-                            self.compile_expr(assign.rhs(), &rhs);
+                        early_exit = emit(self, dst, assign.rhs(), assign.op());
 
-                            self.emit(
-                                opcode,
-                                &[
-                                    Operand::Register(dst),
-                                    Operand::Register(dst),
-                                    Operand::Register(&rhs),
-                                ],
-                            );
-                            self.register_allocator.dealloc(rhs);
-                        }
-
-                        self.emit(
-                            Opcode::SetPrivateField,
-                            &[
-                                Operand::Register(dst),
-                                Operand::Register(&object),
-                                Operand::Varying(index),
-                            ],
+                        self.bytecode.emit_set_private_field(
+                            dst.variable(),
+                            object.variable(),
+                            index.into(),
                         );
 
                         self.register_allocator.dealloc(object);
@@ -230,28 +236,12 @@ impl ByteCompiler<'_> {
                         PropertyAccessField::Const(name) => {
                             let object = self.register_allocator.alloc();
                             let receiver = self.register_allocator.alloc();
-                            self.emit(Opcode::Super, &[Operand::Register(&object)]);
-                            self.emit(Opcode::This, &[Operand::Register(&receiver)]);
+                            self.bytecode.emit_super(object.variable());
+                            self.bytecode.emit_this(receiver.variable());
 
                             self.emit_get_property_by_name(dst, &receiver, &object, *name);
 
-                            if short_circuit {
-                                early_exit =
-                                    Some(self.emit_with_label(opcode, &[Operand::Register(dst)]));
-                                self.compile_expr(assign.rhs(), dst);
-                            } else {
-                                let rhs = self.register_allocator.alloc();
-                                self.compile_expr(assign.rhs(), &rhs);
-                                self.emit(
-                                    opcode,
-                                    &[
-                                        Operand::Register(dst),
-                                        Operand::Register(dst),
-                                        Operand::Register(&rhs),
-                                    ],
-                                );
-                                self.register_allocator.dealloc(rhs);
-                            }
+                            early_exit = emit(self, dst, assign.rhs(), assign.op());
 
                             self.emit_set_property_by_name(dst, &receiver, &object, *name);
 
@@ -261,48 +251,26 @@ impl ByteCompiler<'_> {
                         PropertyAccessField::Expr(expr) => {
                             let object = self.register_allocator.alloc();
                             let receiver = self.register_allocator.alloc();
-                            self.emit(Opcode::Super, &[Operand::Register(&object)]);
-                            self.emit(Opcode::This, &[Operand::Register(&receiver)]);
+                            self.bytecode.emit_super(object.variable());
+                            self.bytecode.emit_this(receiver.variable());
 
                             let key = self.register_allocator.alloc();
                             self.compile_expr(expr, &key);
 
-                            self.emit(
-                                Opcode::GetPropertyByValuePush,
-                                &[
-                                    Operand::Register(dst),
-                                    Operand::Register(&key),
-                                    Operand::Register(&receiver),
-                                    Operand::Register(&object),
-                                ],
+                            self.bytecode.emit_get_property_by_value_push(
+                                dst.variable(),
+                                key.variable(),
+                                receiver.variable(),
+                                object.variable(),
                             );
 
-                            if short_circuit {
-                                early_exit =
-                                    Some(self.emit_with_label(opcode, &[Operand::Register(dst)]));
-                                self.compile_expr(assign.rhs(), dst);
-                            } else {
-                                let rhs = self.register_allocator.alloc();
-                                self.compile_expr(assign.rhs(), &rhs);
-                                self.emit(
-                                    opcode,
-                                    &[
-                                        Operand::Register(dst),
-                                        Operand::Register(dst),
-                                        Operand::Register(&rhs),
-                                    ],
-                                );
-                                self.register_allocator.dealloc(rhs);
-                            }
+                            early_exit = emit(self, dst, assign.rhs(), assign.op());
 
-                            self.emit(
-                                Opcode::SetPropertyByValue,
-                                &[
-                                    Operand::Register(dst),
-                                    Operand::Register(&key),
-                                    Operand::Register(&receiver),
-                                    Operand::Register(&object),
-                                ],
+                            self.bytecode.emit_set_property_by_value(
+                                dst.variable(),
+                                key.variable(),
+                                receiver.variable(),
+                                object.variable(),
                             );
 
                             self.register_allocator.dealloc(key);
@@ -315,9 +283,9 @@ impl ByteCompiler<'_> {
             }
 
             if let Some(early_exit) = early_exit {
-                let exit = self.jump();
+                let skip = self.jump();
                 self.patch_jump(early_exit);
-                self.patch_jump(exit);
+                self.patch_jump(skip);
             }
         }
     }

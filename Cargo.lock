@@ -393,6 +393,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "num_enum",
+ "paste",
  "portable-atomic",
  "rand 0.9.1",
  "regress",

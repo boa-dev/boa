@@ -1,8 +1,9 @@
+use super::VaryingOperand;
 use crate::{
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CallFrameFlags, CompletionType, Registers},
+    vm::{opcode::Operation, CallFrameFlags, Registers},
     Context, JsResult, JsValue,
 };
 
@@ -14,17 +15,18 @@ use crate::{
 pub(crate) struct This;
 
 impl This {
-    fn operation(
-        dst: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let frame = context.vm.frame_mut();
         let this_index = frame.fp();
         if frame.has_this_value_cached() {
             let this = context.vm.stack[this_index as usize].clone();
-            registers.set(dst, this);
-            return Ok(CompletionType::Normal);
+            registers.set(dst.into(), this);
+            return Ok(());
         }
 
         let this = context
@@ -34,8 +36,8 @@ impl This {
             .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         context.vm.stack[this_index as usize] = this.clone();
-        registers.set(dst, this);
-        Ok(CompletionType::Normal)
+        registers.set(dst.into(), this);
+        Ok(())
     }
 }
 
@@ -43,21 +45,6 @@ impl Operation for This {
     const NAME: &'static str = "This";
     const INSTRUCTION: &'static str = "INST - This";
     const COST: u8 = 1;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }
 
 /// `ThisForObjectEnvironmentName` implements the Opcode Operation for `Opcode::ThisForObjectEnvironmentName`
@@ -68,18 +55,18 @@ impl Operation for This {
 pub(crate) struct ThisForObjectEnvironmentName;
 
 impl ThisForObjectEnvironmentName {
-    fn operation(
-        dst: u32,
-        index: usize,
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, index): (VaryingOperand, VaryingOperand),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let binding_locator = context.vm.frame().code_block.bindings[index].clone();
+    ) -> JsResult<()> {
+        let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
-        registers.set(dst, this);
-        Ok(CompletionType::Normal)
+        registers.set(dst.into(), this);
+        Ok(())
     }
 }
 
@@ -87,24 +74,6 @@ impl Operation for ThisForObjectEnvironmentName {
     const NAME: &'static str = "ThisForObjectEnvironmentName";
     const INSTRUCTION: &'static str = "INST - ThisForObjectEnvironmentName";
     const COST: u8 = 1;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(dst, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(dst, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(dst, index, registers, context)
-    }
 }
 
 /// `Super` implements the Opcode Operation for `Opcode::Super`
@@ -115,11 +84,12 @@ impl Operation for ThisForObjectEnvironmentName {
 pub(crate) struct Super;
 
 impl Super {
-    fn operation(
-        dst: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        dst: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         let home_object = {
             let env = context
                 .vm
@@ -146,8 +116,8 @@ impl Super {
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
 
-        registers.set(dst, value);
-        Ok(CompletionType::Normal)
+        registers.set(dst.into(), value);
+        Ok(())
     }
 }
 
@@ -155,21 +125,6 @@ impl Operation for Super {
     const NAME: &'static str = "Super";
     const INSTRUCTION: &'static str = "INST - Super";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }
 
 /// `SuperCallPrepare` implements the Opcode Operation for `Opcode::SuperCallPrepare`
@@ -180,12 +135,8 @@ impl Operation for Super {
 pub(crate) struct SuperCallPrepare;
 
 impl SuperCallPrepare {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        dst: u32,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    #[inline(always)]
+    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
         let this_env = context
             .vm
             .environments
@@ -197,10 +148,9 @@ impl SuperCallPrepare {
             .__get_prototype_of__(&mut InternalMethodContext::new(context))
             .expect("function object must have prototype");
         registers.set(
-            dst,
+            dst.into(),
             super_constructor.map_or_else(JsValue::null, JsValue::from),
         );
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -208,21 +158,6 @@ impl Operation for SuperCallPrepare {
     const NAME: &'static str = "SuperCallPrepare";
     const INSTRUCTION: &'static str = "INST - SuperCallPrepare";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        Self::operation(dst, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, registers, context)
-    }
 }
 
 /// `SuperCall` implements the Opcode Operation for `Opcode::SuperCall`
@@ -233,11 +168,13 @@ impl Operation for SuperCallPrepare {
 pub(crate) struct SuperCall;
 
 impl SuperCall {
-    fn operation(
+    #[inline(always)]
+    pub(super) fn operation(
+        argument_count: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-        argument_count: usize,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
+        let argument_count = usize::from(argument_count);
         let super_constructor_index = context.vm.stack.len() - argument_count - 1;
         let super_constructor = context.vm.stack[super_constructor_index].clone();
         let Some(super_constructor) = super_constructor.as_constructor() else {
@@ -267,7 +204,7 @@ impl SuperCall {
         {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -275,21 +212,6 @@ impl Operation for SuperCall {
     const NAME: &'static str = "SuperCall";
     const INSTRUCTION: &'static str = "INST - SuperCall";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value_count = context.vm.read::<u8>() as usize;
-        Self::operation(registers, context, value_count)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value_count = context.vm.read::<u16>() as usize;
-        Self::operation(registers, context, value_count)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value_count = context.vm.read::<u32>() as usize;
-        Self::operation(registers, context, value_count)
-    }
 }
 
 /// `SuperCallSpread` implements the Opcode Operation for `Opcode::SuperCallSpread`
@@ -299,12 +221,13 @@ impl Operation for SuperCall {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SuperCallSpread;
 
-impl Operation for SuperCallSpread {
-    const NAME: &'static str = "SuperCallSpread";
-    const INSTRUCTION: &'static str = "INST - SuperCallSpread";
-    const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl SuperCallSpread {
+    #[inline(always)]
+    pub(super) fn operation(
+        (): (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
         let arguments_array_object = arguments_array
@@ -349,8 +272,14 @@ impl Operation for SuperCallSpread {
         {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for SuperCallSpread {
+    const NAME: &'static str = "SuperCallSpread";
+    const INSTRUCTION: &'static str = "INST - SuperCallSpread";
+    const COST: u8 = 3;
 }
 
 /// `SuperCallDerived` implements the Opcode Operation for `Opcode::SuperCallDerived`
@@ -360,12 +289,13 @@ impl Operation for SuperCallSpread {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SuperCallDerived;
 
-impl Operation for SuperCallDerived {
-    const NAME: &'static str = "SuperCallDerived";
-    const INSTRUCTION: &'static str = "INST - SuperCallDerived";
-    const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
+impl SuperCallDerived {
+    #[inline(always)]
+    pub(super) fn operation(
+        (): (),
+        registers: &mut Registers,
+        context: &mut Context,
+    ) -> JsResult<()> {
         let rp = context.vm.frame().rp;
         let argument_count = context.vm.frame().argument_count;
         let arguments_start_index = rp - argument_count;
@@ -406,8 +336,14 @@ impl Operation for SuperCallDerived {
         {
             registers.push_function(register_count);
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for SuperCallDerived {
+    const NAME: &'static str = "SuperCallDerived";
+    const INSTRUCTION: &'static str = "INST - SuperCallDerived";
+    const COST: u8 = 3;
 }
 
 /// `BindThisValue` implements the Opcode Operation for `Opcode::BindThisValue`
@@ -418,17 +354,18 @@ impl Operation for SuperCallDerived {
 pub(crate) struct BindThisValue;
 
 impl BindThisValue {
-    fn operation(
-        value: u32,
+    #[inline(always)]
+    pub(super) fn operation(
+        value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
+    ) -> JsResult<()> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
 
         let result = registers
-            .get(value)
+            .get(value.into())
             .as_object()
             .expect("construct result should be an object");
 
@@ -451,8 +388,8 @@ impl BindThisValue {
         result.initialize_instance_elements(&active_function, context)?;
 
         // 12. Return result.
-        registers.set(value, result.clone().into());
-        Ok(CompletionType::Normal)
+        registers.set(value.into(), result.clone().into());
+        Ok(())
     }
 }
 
@@ -460,19 +397,4 @@ impl Operation for BindThisValue {
     const NAME: &'static str = "BindThisValue";
     const INSTRUCTION: &'static str = "INST - BindThisValue";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        Self::operation(value, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        Self::operation(value, registers, context)
-    }
 }

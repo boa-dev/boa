@@ -20,7 +20,7 @@ use crate::{
     realm::Realm,
     spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant, Opcode, Registers},
+    vm::{CallFrame, CallFrameFlags, Constant, Registers},
     Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
@@ -285,7 +285,7 @@ impl Eval {
             .constants
             .push(Constant::Scope(lexical_scope.clone()));
 
-        compiler.emit_with_varying_operand(Opcode::PushScope, scope_index);
+        compiler.bytecode.emit_push_scope(scope_index.into());
         if strict {
             variable_scope = lexical_scope.clone();
             compiler.variable_scope = lexical_scope.clone();

@@ -5,13 +5,12 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    environments::EnvironmentStack, realm::Realm, script::Script, vm::code_block::Readable,
-    Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
+    environments::EnvironmentStack, realm::Realm, script::Script, Context, JsError, JsNativeError,
+    JsObject, JsResult, JsString, JsValue, Module,
 };
-
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
-use std::{future::Future, mem::size_of, ops::ControlFlow, pin::Pin, task};
+use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
 use crate::sys::time::Instant;
@@ -19,26 +18,8 @@ use crate::sys::time::Instant;
 #[cfg(feature = "trace")]
 use std::fmt::Write as _;
 
-mod call_frame;
-mod code_block;
-mod completion_record;
-mod inline_cache;
-mod opcode;
-mod runtime_limits;
-
-#[cfg(feature = "flowgraph")]
-pub mod flowgraph;
-
-pub(crate) use inline_cache::InlineCache;
-
-// TODO: see if this can be exposed on all features.
 #[allow(unused_imports)]
-pub(crate) use opcode::{Instruction, InstructionIterator, Opcode, VaryingOperandKind};
-pub use runtime_limits::RuntimeLimits;
-pub use {
-    call_frame::{CallFrame, GeneratorResumeKind},
-    code_block::CodeBlock,
-};
+pub(crate) use opcode::{Instruction, InstructionIterator, Opcode};
 
 pub(crate) use {
     call_frame::CallFrameFlags,
@@ -46,8 +27,25 @@ pub(crate) use {
         create_function_object, create_function_object_fast, CodeBlockFlags, Constant, Handler,
     },
     completion_record::CompletionRecord,
-    opcode::BindingOpcode,
+    inline_cache::InlineCache,
 };
+
+pub use runtime_limits::RuntimeLimits;
+pub use {
+    call_frame::{CallFrame, GeneratorResumeKind},
+    code_block::CodeBlock,
+};
+
+mod call_frame;
+mod code_block;
+mod completion_record;
+mod inline_cache;
+mod runtime_limits;
+
+pub(crate) mod opcode;
+
+#[cfg(feature = "flowgraph")]
+pub mod flowgraph;
 
 #[cfg(test)]
 mod tests;
@@ -149,14 +147,6 @@ impl Vm {
     #[track_caller]
     pub(crate) fn pop(&mut self) -> JsValue {
         self.stack.pop().expect("stack was empty")
-    }
-
-    #[track_caller]
-    pub(crate) fn read<T: Readable>(&mut self) -> T {
-        let frame = self.frame_mut();
-        let value = frame.code_block.read::<T>(frame.pc as usize);
-        frame.pc += size_of::<T>() as u32;
-        value
     }
 
     /// Retrieves the VM frame.
@@ -267,14 +257,6 @@ impl Vm {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) enum CompletionType {
-    Normal,
-    Return,
-    Throw,
-    Yield,
-}
-
 #[allow(clippy::print_stdout)]
 #[cfg(feature = "trace")]
 impl Context {
@@ -315,19 +297,22 @@ impl Context {
         &mut self,
         f: F,
         registers: &mut Registers,
-    ) -> JsResult<CompletionType>
+        opcode: Opcode,
+    ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
     {
         let frame = self.vm.frame();
-        let bytecodes = &frame.code_block.bytecode;
-        let pc = frame.pc as usize;
-        let (_, varying_operand_kind, instruction) = InstructionIterator::with_pc(bytecodes, pc)
-            .next()
-            .expect("There should be an instruction left");
-        let operands = frame.code_block.instruction_operands(&instruction);
+        let (instruction, _) = frame
+            .code_block
+            .bytecode
+            .next_instruction(frame.pc as usize);
+        let operands = self
+            .vm
+            .frame()
+            .code_block()
+            .instruction_operands(&instruction);
 
-        let opcode = instruction.opcode();
         match opcode {
             Opcode::Call
             | Opcode::CallSpread
@@ -345,7 +330,7 @@ impl Context {
         }
 
         let instant = Instant::now();
-        let result = self.execute_instruction(f, registers);
+        let result = self.execute_instruction(f, registers, opcode);
         let duration = instant.elapsed();
 
         let fp = if self.vm.frames.is_empty() {
@@ -377,16 +362,10 @@ impl Context {
             stack
         };
 
-        let varying_operand_kind = match varying_operand_kind {
-            VaryingOperandKind::U8 => "",
-            VaryingOperandKind::U16 => ".U16",
-            VaryingOperandKind::U32 => ".U32",
-        };
-
         println!(
             "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {stack}",
             format!("{}μs", duration.as_micros()),
-            format!("{}{varying_operand_kind}", opcode.as_str()),
+            format!("{}", opcode.as_str()),
             TIME_COLUMN_WIDTH = Self::TIME_COLUMN_WIDTH,
             OPCODE_COLUMN_WIDTH = Self::OPCODE_COLUMN_WIDTH,
             OPERAND_COLUMN_WIDTH = Self::OPERAND_COLUMN_WIDTH,
@@ -401,29 +380,22 @@ impl Context {
         &mut self,
         f: F,
         registers: &mut Registers,
-    ) -> JsResult<CompletionType>
+        opcode: Opcode,
+    ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
     {
-        let opcode: Opcode = {
-            let _timer = Profiler::global().start_event("Opcode retrieval", "vm");
-
-            let frame = self.vm.frame_mut();
-
-            let pc = frame.pc;
-            let opcode = frame.code_block.bytecode[pc as usize].into();
-            frame.pc += 1;
-            opcode
-        };
-
-        let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
-
-        f(opcode, registers, self)
+        f(self, registers, opcode)
     }
 
-    fn execute_one<F>(&mut self, f: F, registers: &mut Registers) -> ControlFlow<CompletionRecord>
+    fn execute_one<F>(
+        &mut self,
+        f: F,
+        registers: &mut Registers,
+        opcode: Opcode,
+    ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(Opcode, &mut Registers, &mut Context) -> JsResult<CompletionType>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
     {
         #[cfg(feature = "fuzz")]
         {
@@ -436,135 +408,133 @@ impl Context {
         }
 
         #[cfg(feature = "trace")]
-        let result = if self.vm.trace || self.vm.frame().code_block.traceable() {
-            self.trace_execute_instruction(f, registers)
+        if self.vm.trace || self.vm.frame().code_block.traceable() {
+            self.trace_execute_instruction(f, registers, opcode)
         } else {
-            self.execute_instruction(f, registers)
-        };
-
-        #[cfg(not(feature = "trace"))]
-        let result = self.execute_instruction(f, registers);
-
-        let result = match result {
-            Ok(result) => result,
-            Err(err) => {
-                // If we hit the execution step limit, bubble up the error to the
-                // (Rust) caller instead of trying to handle as an exception.
-                if !err.is_catchable() {
-                    let mut fp = self.vm.stack.len();
-                    let mut env_fp = self.vm.environments.len();
-                    loop {
-                        if self.vm.frame.exit_early() {
-                            break;
-                        }
-
-                        fp = self.vm.frame.fp() as usize;
-                        env_fp = self.vm.frame.env_fp as usize;
-
-                        if self.vm.pop_frame().is_some() {
-                            registers
-                                .pop_function(self.vm.frame().code_block().register_count as usize);
-                        } else {
-                            break;
-                        }
-                    }
-                    self.vm.environments.truncate(env_fp);
-                    self.vm.stack.truncate(fp);
-                    return ControlFlow::Break(CompletionRecord::Throw(err));
-                }
-
-                // Note: -1 because we increment after fetching the opcode.
-                let pc = self.vm.frame().pc.saturating_sub(1);
-                if self.vm.handle_exception_at(pc) {
-                    self.vm.pending_exception = Some(err);
-                    return ControlFlow::Continue(());
-                }
-
-                // Inject realm before crossing the function boundry
-                let err = err.inject_realm(self.realm().clone());
-
-                self.vm.pending_exception = Some(err);
-                CompletionType::Throw
-            }
-        };
-
-        match result {
-            CompletionType::Normal => {}
-            CompletionType::Return => {
-                let frame = self.vm.frame();
-                let fp = frame.fp() as usize;
-                let exit_early = frame.exit_early();
-                self.vm.stack.truncate(fp);
-
-                let result = self.vm.take_return_value();
-                if exit_early {
-                    return ControlFlow::Break(CompletionRecord::Normal(result));
-                }
-
-                self.vm.push(result);
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
-            }
-            CompletionType::Throw => {
-                let frame = self.vm.frame();
-                let mut fp = frame.fp();
-                let mut env_fp = frame.env_fp;
-                if frame.exit_early() {
-                    self.vm.environments.truncate(env_fp as usize);
-                    self.vm.stack.truncate(fp as usize);
-                    return ControlFlow::Break(CompletionRecord::Throw(
-                        self.vm
-                            .pending_exception
-                            .take()
-                            .expect("Err must exist for a CompletionType::Throw"),
-                    ));
-                }
-
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
-
-                loop {
-                    fp = self.vm.frame.fp();
-                    env_fp = self.vm.frame.env_fp;
-                    let pc = self.vm.frame.pc;
-                    let exit_early = self.vm.frame.exit_early();
-
-                    if self.vm.handle_exception_at(pc) {
-                        return ControlFlow::Continue(());
-                    }
-
-                    if exit_early {
-                        return ControlFlow::Break(CompletionRecord::Throw(
-                            self.vm
-                                .pending_exception
-                                .take()
-                                .expect("Err must exist for a CompletionType::Throw"),
-                        ));
-                    }
-
-                    if self.vm.pop_frame().is_some() {
-                        registers
-                            .pop_function(self.vm.frame().code_block().register_count as usize);
-                    } else {
-                        break;
-                    }
-                }
-                self.vm.environments.truncate(env_fp as usize);
-                self.vm.stack.truncate(fp as usize);
-            }
-            // Early return immediately.
-            CompletionType::Yield => {
-                let result = self.vm.take_return_value();
-                if self.vm.frame().exit_early() {
-                    return ControlFlow::Break(CompletionRecord::Return(result));
-                }
-
-                self.vm.push(result);
-                self.vm.pop_frame().expect("frame must exist");
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
-            }
+            self.execute_instruction(f, registers, opcode)
         }
 
+        #[cfg(not(feature = "trace"))]
+        self.execute_instruction(f, registers, opcode)
+    }
+
+    fn handle_error(
+        &mut self,
+        registers: &mut Registers,
+        err: JsError,
+    ) -> ControlFlow<CompletionRecord> {
+        // If we hit the execution step limit, bubble up the error to the
+        // (Rust) caller instead of trying to handle as an exception.
+        if !err.is_catchable() {
+            let mut fp = self.vm.stack.len();
+            let mut env_fp = self.vm.environments.len();
+            loop {
+                if self.vm.frame.exit_early() {
+                    break;
+                }
+
+                fp = self.vm.frame.fp() as usize;
+                env_fp = self.vm.frame.env_fp as usize;
+
+                if self.vm.pop_frame().is_some() {
+                    registers.pop_function(self.vm.frame().code_block().register_count as usize);
+                } else {
+                    break;
+                }
+            }
+            self.vm.environments.truncate(env_fp);
+            self.vm.stack.truncate(fp);
+            return ControlFlow::Break(CompletionRecord::Throw(err));
+        }
+
+        // Note: -1 because we increment after fetching the opcode.
+        let pc = self.vm.frame().pc.saturating_sub(1);
+        if self.vm.handle_exception_at(pc) {
+            self.vm.pending_exception = Some(err);
+            return ControlFlow::Continue(());
+        }
+
+        // Inject realm before crossing the function boundry
+        let err = err.inject_realm(self.realm().clone());
+
+        self.vm.pending_exception = Some(err);
+        self.handle_thow(registers)
+    }
+
+    fn handle_return(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame();
+        let fp = frame.fp() as usize;
+        let exit_early = frame.exit_early();
+        self.vm.stack.truncate(fp);
+
+        let result = self.vm.take_return_value();
+        if exit_early {
+            return ControlFlow::Break(CompletionRecord::Normal(result));
+        }
+
+        self.vm.push(result);
+        self.vm.pop_frame().expect("frame must exist");
+        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+        ControlFlow::Continue(())
+    }
+
+    fn handle_yield(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+        let result = self.vm.take_return_value();
+        if self.vm.frame().exit_early() {
+            return ControlFlow::Break(CompletionRecord::Return(result));
+        }
+
+        self.vm.push(result);
+        self.vm.pop_frame().expect("frame must exist");
+        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+        ControlFlow::Continue(())
+    }
+
+    fn handle_thow(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame();
+        let mut fp = frame.fp();
+        let mut env_fp = frame.env_fp;
+        if frame.exit_early() {
+            self.vm.environments.truncate(env_fp as usize);
+            self.vm.stack.truncate(fp as usize);
+            return ControlFlow::Break(CompletionRecord::Throw(
+                self.vm
+                    .pending_exception
+                    .take()
+                    .expect("Err must exist for a CompletionType::Throw"),
+            ));
+        }
+
+        self.vm.pop_frame().expect("frame must exist");
+        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+
+        loop {
+            fp = self.vm.frame.fp();
+            env_fp = self.vm.frame.env_fp;
+            let pc = self.vm.frame.pc;
+            let exit_early = self.vm.frame.exit_early();
+
+            if self.vm.handle_exception_at(pc) {
+                return ControlFlow::Continue(());
+            }
+
+            if exit_early {
+                return ControlFlow::Break(CompletionRecord::Throw(
+                    self.vm
+                        .pending_exception
+                        .take()
+                        .expect("Err must exist for a CompletionType::Throw"),
+                ));
+            }
+
+            if self.vm.pop_frame().is_some() {
+                registers.pop_function(self.vm.frame().code_block().register_count as usize);
+            } else {
+                break;
+            }
+        }
+        self.vm.environments.truncate(env_fp as usize);
+        self.vm.stack.truncate(fp as usize);
         ControlFlow::Continue(())
     }
 
@@ -585,15 +555,29 @@ impl Context {
 
         let mut runtime_budget: u32 = budget;
 
-        loop {
+        while let Some(byte) = self
+            .vm
+            .frame
+            .code_block
+            .bytecode
+            .bytecode
+            .get(self.vm.frame.pc as usize)
+        {
+            let opcode = Opcode::decode(*byte);
+
             match self.execute_one(
-                |opcode, registers, context| {
-                    opcode.spend_budget_and_execute(registers, context, &mut runtime_budget)
+                |context, registers, opcode| {
+                    context.execute_bytecode_instruction_with_budget(
+                        registers,
+                        &mut runtime_budget,
+                        opcode,
+                    )
                 },
                 registers,
+                opcode,
             ) {
                 ControlFlow::Continue(()) => {}
-                ControlFlow::Break(record) => return record,
+                ControlFlow::Break(value) => return value,
             }
 
             if runtime_budget == 0 {
@@ -601,6 +585,8 @@ impl Context {
                 yield_now().await;
             }
         }
+
+        CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
     pub(crate) fn run(&mut self, registers: &mut Registers) -> CompletionRecord {
@@ -611,12 +597,23 @@ impl Context {
             self.trace_call_frame();
         }
 
-        loop {
-            match self.execute_one(Opcode::execute, registers) {
+        while let Some(byte) = self
+            .vm
+            .frame
+            .code_block
+            .bytecode
+            .bytecode
+            .get(self.vm.frame.pc as usize)
+        {
+            let opcode = Opcode::decode(*byte);
+
+            match self.execute_one(Self::execute_bytecode_instruction, registers, opcode) {
                 ControlFlow::Continue(()) => {}
                 ControlFlow::Break(value) => return value,
             }
         }
+
+        CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
     /// Checks if we haven't exceeded the defined runtime limits.
