@@ -48,42 +48,24 @@ unsafe fn read_unchecked<T: Readable>(bytes: &[u8], offset: usize) -> T {
 /// The opcode argument formats of the vm.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub(crate) enum ArgumentsFormat {
-    OpcodeOnly,
-    OneArgU8,
-    OneArgU16,
-    OneArgU32,
-    TwoArgU8,
-    TwoArgU16,
-    TwoArgU32,
-    ThreeArgU8,
-    ThreeArgU16,
-    ThreeArgU32,
-    FourArgU32,
-    VariableArgsU32,
-    Reserved,
+enum Format {
+    U8,
+    U16,
+    U32,
 }
 
-impl ArgumentsFormat {
-    const fn to_u8(self) -> u8 {
-        self as u8
+impl From<Format> for u8 {
+    fn from(value: Format) -> Self {
+        value as u8
     }
+}
 
-    pub(crate) const fn from_u8(value: u8) -> Self {
+impl From<u8> for Format {
+    fn from(value: u8) -> Self {
         match value {
-            0 => Self::OpcodeOnly,
-            1 => Self::OneArgU8,
-            2 => Self::OneArgU16,
-            3 => Self::OneArgU32,
-            4 => Self::TwoArgU8,
-            5 => Self::TwoArgU16,
-            6 => Self::TwoArgU32,
-            7 => Self::ThreeArgU8,
-            8 => Self::ThreeArgU16,
-            9 => Self::ThreeArgU32,
-            10 => Self::FourArgU32,
-            11 => Self::VariableArgsU32,
-            _ => Self::Reserved,
+            1 => Self::U16,
+            2 => Self::U32,
+            _ => Self::U8,
         }
     }
 }
@@ -95,6 +77,10 @@ pub(crate) trait Argument: Sized + std::fmt::Debug {
     /// Decode the argument from a byte slice
     /// Returns the decoded argument and the new position after reading
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize);
+}
+
+fn write_format(bytes: &mut Vec<u8>, value: Format) {
+    bytes.push(value.into());
 }
 
 fn write_u8(bytes: &mut Vec<u8>, value: u8) {
@@ -133,38 +119,37 @@ impl Argument for VaryingOperand {
     fn encode(self, bytes: &mut Vec<u8>) {
         match self.variant() {
             VaryingOperandVariant::U8(value) => {
-                write_u8(bytes, ArgumentsFormat::OneArgU8.to_u8());
+                write_format(bytes, Format::U8);
                 write_u8(bytes, value);
             }
             VaryingOperandVariant::U16(value) => {
-                write_u8(bytes, ArgumentsFormat::OneArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, value);
             }
             VaryingOperandVariant::U32(value) => {
-                write_u8(bytes, ArgumentsFormat::OneArgU32.to_u8());
+                write_format(bytes, Format::U32);
                 write_u32(bytes, value);
             }
         }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = ArgumentsFormat::from_u8(bytes[pos]);
+        let format = Format::from(bytes[pos]);
         let pos = pos + 1;
 
         match format {
-            ArgumentsFormat::OneArgU8 => {
+            Format::U8 => {
                 let (arg1, pos) = read::<u8>(bytes, pos);
                 (arg1.into(), pos)
             }
-            ArgumentsFormat::OneArgU16 => {
+            Format::U16 => {
                 let (arg1, pos) = read::<u16>(bytes, pos);
                 (arg1.into(), pos)
             }
-            ArgumentsFormat::OneArgU32 => {
+            Format::U32 => {
                 let (arg1, pos) = read::<u32>(bytes, pos);
                 (arg1.into(), pos)
             }
-            _ => unreachable!(),
         }
     }
 }
@@ -173,17 +158,17 @@ impl Argument for (VaryingOperand, i8) {
     fn encode(self, bytes: &mut Vec<u8>) {
         match self.0.variant() {
             VaryingOperandVariant::U8(value) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU8.to_u8());
+                write_format(bytes, Format::U8);
                 write_u8(bytes, value);
                 write_u8(bytes, self.1 as u8);
             }
             VaryingOperandVariant::U16(value) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, value);
                 write_u16(bytes, self.1 as u16);
             }
             VaryingOperandVariant::U32(value) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU32.to_u8());
+                write_format(bytes, Format::U32);
                 write_u32(bytes, value);
                 write_u32(bytes, self.1 as u32);
             }
@@ -191,23 +176,22 @@ impl Argument for (VaryingOperand, i8) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = ArgumentsFormat::from_u8(bytes[pos]);
+        let format = Format::from(bytes[pos]);
         let pos = pos + 1;
 
         match format {
-            ArgumentsFormat::TwoArgU8 => {
+            Format::U8 => {
                 let ((arg1, arg2), pos) = read::<(u8, u8)>(bytes, pos);
                 ((arg1.into(), arg2 as i8), pos)
             }
-            ArgumentsFormat::TwoArgU16 => {
+            Format::U16 => {
                 let ((arg1, arg2), pos) = read::<(u16, u16)>(bytes, pos);
                 ((arg1.into(), arg2 as i8), pos)
             }
-            ArgumentsFormat::TwoArgU32 => {
+            Format::U32 => {
                 let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
                 ((arg1.into(), arg2 as i8), pos)
             }
-            _ => unreachable!(),
         }
     }
 }
@@ -216,17 +200,17 @@ impl Argument for (VaryingOperand, i16) {
     fn encode(self, bytes: &mut Vec<u8>) {
         match self.0.variant() {
             VaryingOperandVariant::U8(value) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU16.to_u8());
-                write_u16(bytes, value.into());
+                write_format(bytes, Format::U8);
+                write_u8(bytes, value);
                 write_u16(bytes, self.1 as u16);
             }
             VaryingOperandVariant::U16(value) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, value);
                 write_u16(bytes, self.1 as u16);
             }
             VaryingOperandVariant::U32(value) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU32.to_u8());
+                write_format(bytes, Format::U32);
                 write_u32(bytes, value);
                 write_u32(bytes, self.1 as u32);
             }
@@ -234,19 +218,28 @@ impl Argument for (VaryingOperand, i16) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = ArgumentsFormat::from_u8(bytes[pos]);
+        let format = Format::from(bytes[pos]);
         let pos = pos + 1;
 
         match format {
-            ArgumentsFormat::TwoArgU16 => {
+            Format::U8 => {
+                assert!(bytes.len() >= pos + 3, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u8>(bytes, pos),
+                        read_unchecked::<u16>(bytes, pos + 1),
+                    )
+                };
+                ((arg1.into(), arg2 as i16), pos + 3)
+            }
+            Format::U16 => {
                 let ((arg1, arg2), pos) = read::<(u16, u16)>(bytes, pos);
                 ((arg1.into(), arg2 as i16), pos)
             }
-            ArgumentsFormat::TwoArgU32 => {
+            Format::U32 => {
                 let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
                 ((arg1.into(), arg2 as i16), pos)
             }
-            _ => unreachable!(),
         }
     }
 }
@@ -302,27 +295,27 @@ impl Argument for (VaryingOperand, VaryingOperand) {
     fn encode(self, bytes: &mut Vec<u8>) {
         match (self.0.variant(), self.1.variant()) {
             (VaryingOperandVariant::U8(lhs), VaryingOperandVariant::U8(rhs)) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU8.to_u8());
+                write_format(bytes, Format::U8);
                 write_u8(bytes, lhs);
                 write_u8(bytes, rhs);
             }
             (VaryingOperandVariant::U8(lhs), VaryingOperandVariant::U16(rhs)) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, lhs.into());
                 write_u16(bytes, rhs);
             }
             (VaryingOperandVariant::U16(lhs), VaryingOperandVariant::U8(rhs)) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, lhs);
                 write_u16(bytes, rhs.into());
             }
             (VaryingOperandVariant::U16(lhs), VaryingOperandVariant::U16(rhs)) => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, lhs);
                 write_u16(bytes, rhs);
             }
             _ => {
-                write_u8(bytes, ArgumentsFormat::TwoArgU32.to_u8());
+                write_format(bytes, Format::U32);
                 write_u32(bytes, self.0.value);
                 write_u32(bytes, self.1.value);
             }
@@ -330,23 +323,22 @@ impl Argument for (VaryingOperand, VaryingOperand) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = ArgumentsFormat::from_u8(bytes[pos]);
+        let format = Format::from(bytes[pos]);
         let pos = pos + 1;
 
         match format {
-            ArgumentsFormat::TwoArgU8 => {
+            Format::U8 => {
                 let ((arg1, arg2), pos) = read::<(u8, u8)>(bytes, pos);
                 ((arg1.into(), arg2.into()), pos)
             }
-            ArgumentsFormat::TwoArgU16 => {
+            Format::U16 => {
                 let ((arg1, arg2), pos) = read::<(u16, u16)>(bytes, pos);
                 ((arg1.into(), arg2.into()), pos)
             }
-            ArgumentsFormat::TwoArgU32 => {
+            Format::U32 => {
                 let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
                 ((arg1.into(), arg2.into()), pos)
             }
-            _ => unreachable!(),
         }
     }
 }
@@ -359,7 +351,7 @@ impl Argument for (VaryingOperand, VaryingOperand, VaryingOperand) {
                 VaryingOperandVariant::U8(mid),
                 VaryingOperandVariant::U8(rhs),
             ) => {
-                write_u8(bytes, ArgumentsFormat::ThreeArgU8.to_u8());
+                write_format(bytes, Format::U8);
                 write_u8(bytes, lhs);
                 write_u8(bytes, mid);
                 write_u8(bytes, rhs);
@@ -369,7 +361,7 @@ impl Argument for (VaryingOperand, VaryingOperand, VaryingOperand) {
                 VaryingOperandVariant::U8(mid),
                 VaryingOperandVariant::U16(rhs),
             ) => {
-                write_u8(bytes, ArgumentsFormat::ThreeArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, lhs.into());
                 write_u16(bytes, mid.into());
                 write_u16(bytes, rhs);
@@ -379,13 +371,13 @@ impl Argument for (VaryingOperand, VaryingOperand, VaryingOperand) {
                 VaryingOperandVariant::U16(mid),
                 VaryingOperandVariant::U16(rhs),
             ) => {
-                write_u8(bytes, ArgumentsFormat::ThreeArgU16.to_u8());
+                write_format(bytes, Format::U16);
                 write_u16(bytes, lhs);
                 write_u16(bytes, mid);
                 write_u16(bytes, rhs);
             }
             _ => {
-                write_u8(bytes, ArgumentsFormat::ThreeArgU32.to_u8());
+                write_format(bytes, Format::U32);
                 write_u32(bytes, self.0.value);
                 write_u32(bytes, self.1.value);
                 write_u32(bytes, self.2.value);
@@ -394,23 +386,22 @@ impl Argument for (VaryingOperand, VaryingOperand, VaryingOperand) {
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let format = ArgumentsFormat::from_u8(bytes[pos]);
+        let format = Format::from(bytes[pos]);
         let pos = pos + 1;
 
         match format {
-            ArgumentsFormat::ThreeArgU8 => {
+            Format::U8 => {
                 let ((arg1, arg2, arg3), pos) = read::<(u8, u8, u8)>(bytes, pos);
                 ((arg1.into(), arg2.into(), arg3.into()), pos)
             }
-            ArgumentsFormat::ThreeArgU16 => {
+            Format::U16 => {
                 let ((arg1, arg2, arg3), pos) = read::<(u16, u16, u16)>(bytes, pos);
                 ((arg1.into(), arg2.into(), arg3.into()), pos)
             }
-            ArgumentsFormat::ThreeArgU32 => {
+            Format::U32 => {
                 let ((arg1, arg2, arg3), pos) = read::<(u32, u32, u32)>(bytes, pos);
                 ((arg1.into(), arg2.into(), arg3.into()), pos)
             }
-            _ => unreachable!(),
         }
     }
 }
