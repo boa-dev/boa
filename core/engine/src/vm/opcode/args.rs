@@ -8,12 +8,18 @@ use super::{VaryingOperand, VaryingOperandVariant};
 pub(super) unsafe trait Readable: Copy + Sized {}
 
 unsafe impl Readable for u8 {}
+unsafe impl Readable for i8 {}
 unsafe impl Readable for u16 {}
+unsafe impl Readable for i16 {}
 unsafe impl Readable for u32 {}
 unsafe impl Readable for u64 {}
+unsafe impl Readable for f64 {}
 unsafe impl Readable for (u8, u8) {}
+unsafe impl Readable for (u8, i8) {}
 unsafe impl Readable for (u16, u16) {}
+unsafe impl Readable for (u16, i16) {}
 unsafe impl Readable for (u32, u32) {}
+unsafe impl Readable for (u32, i32) {}
 unsafe impl Readable for (u8, u8, u8) {}
 unsafe impl Readable for (u16, u16, u16) {}
 unsafe impl Readable for (u32, u32, u32) {}
@@ -87,11 +93,23 @@ fn write_u8(bytes: &mut Vec<u8>, value: u8) {
     bytes.push(value);
 }
 
+fn write_i8(bytes: &mut Vec<u8>, value: i8) {
+    bytes.extend_from_slice(&value.to_le_bytes());
+}
+
 fn write_u16(bytes: &mut Vec<u8>, value: u16) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
 
+fn write_i16(bytes: &mut Vec<u8>, value: i16) {
+    bytes.extend_from_slice(&value.to_le_bytes());
+}
+
 fn write_u32(bytes: &mut Vec<u8>, value: u32) {
+    bytes.extend_from_slice(&value.to_le_bytes());
+}
+
+fn write_i32(bytes: &mut Vec<u8>, value: i32) {
     bytes.extend_from_slice(&value.to_le_bytes());
 }
 
@@ -104,7 +122,7 @@ fn write_f32(bytes: &mut Vec<u8>, value: f32) {
 }
 
 fn write_f64(bytes: &mut Vec<u8>, value: f64) {
-    bytes.extend_from_slice(&value.to_bits().to_le_bytes());
+    bytes.extend_from_slice(&value.to_le_bytes());
 }
 
 impl Argument for () {
@@ -160,17 +178,17 @@ impl Argument for (VaryingOperand, i8) {
             VaryingOperandVariant::U8(value) => {
                 write_format(bytes, Format::U8);
                 write_u8(bytes, value);
-                write_u8(bytes, self.1 as u8);
+                write_i8(bytes, self.1);
             }
             VaryingOperandVariant::U16(value) => {
                 write_format(bytes, Format::U16);
                 write_u16(bytes, value);
-                write_u16(bytes, self.1 as u16);
+                write_i8(bytes, self.1);
             }
             VaryingOperandVariant::U32(value) => {
                 write_format(bytes, Format::U32);
                 write_u32(bytes, value);
-                write_u32(bytes, self.1 as u32);
+                write_i8(bytes, self.1);
             }
         }
     }
@@ -181,16 +199,28 @@ impl Argument for (VaryingOperand, i8) {
 
         match format {
             Format::U8 => {
-                let ((arg1, arg2), pos) = read::<(u8, u8)>(bytes, pos);
-                ((arg1.into(), arg2 as i8), pos)
+                let ((arg1, arg2), pos) = read::<(u8, i8)>(bytes, pos);
+                ((arg1.into(), arg2), pos)
             }
             Format::U16 => {
-                let ((arg1, arg2), pos) = read::<(u16, u16)>(bytes, pos);
-                ((arg1.into(), arg2 as i8), pos)
+                assert!(bytes.len() >= pos + 3, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u16>(bytes, pos),
+                        read_unchecked::<i8>(bytes, pos + 2),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 3)
             }
             Format::U32 => {
-                let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
-                ((arg1.into(), arg2 as i8), pos)
+                assert!(bytes.len() >= pos + 5, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u32>(bytes, pos),
+                        read_unchecked::<i8>(bytes, pos + 4),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 5)
             }
         }
     }
@@ -202,17 +232,17 @@ impl Argument for (VaryingOperand, i16) {
             VaryingOperandVariant::U8(value) => {
                 write_format(bytes, Format::U8);
                 write_u8(bytes, value);
-                write_u16(bytes, self.1 as u16);
+                write_i16(bytes, self.1);
             }
             VaryingOperandVariant::U16(value) => {
                 write_format(bytes, Format::U16);
                 write_u16(bytes, value);
-                write_u16(bytes, self.1 as u16);
+                write_i16(bytes, self.1);
             }
             VaryingOperandVariant::U32(value) => {
                 write_format(bytes, Format::U32);
                 write_u32(bytes, value);
-                write_u32(bytes, self.1 as u32);
+                write_i16(bytes, self.1);
             }
         }
     }
@@ -227,18 +257,24 @@ impl Argument for (VaryingOperand, i16) {
                 let (arg1, arg2) = unsafe {
                     (
                         read_unchecked::<u8>(bytes, pos),
-                        read_unchecked::<u16>(bytes, pos + 1),
+                        read_unchecked::<i16>(bytes, pos + 1),
                     )
                 };
-                ((arg1.into(), arg2 as i16), pos + 3)
+                ((arg1.into(), arg2), pos + 3)
             }
             Format::U16 => {
-                let ((arg1, arg2), pos) = read::<(u16, u16)>(bytes, pos);
-                ((arg1.into(), arg2 as i16), pos)
+                let ((arg1, arg2), pos) = read::<(u16, i16)>(bytes, pos);
+                ((arg1.into(), arg2), pos)
             }
             Format::U32 => {
-                let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
-                ((arg1.into(), arg2 as i16), pos)
+                assert!(bytes.len() >= pos + 6, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u32>(bytes, pos),
+                        read_unchecked::<i16>(bytes, pos + 4),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 6)
             }
         }
     }
@@ -247,12 +283,12 @@ impl Argument for (VaryingOperand, i16) {
 impl Argument for (VaryingOperand, i32) {
     fn encode(self, bytes: &mut Vec<u8>) {
         write_u32(bytes, self.0.value);
-        write_u32(bytes, self.1 as u32);
+        write_i32(bytes, self.1);
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
-        ((arg1.into(), arg2 as i32), pos)
+        let ((arg1, arg2), pos) = read::<(u32, i32)>(bytes, pos);
+        ((arg1.into(), arg2), pos)
     }
 }
 
@@ -283,7 +319,7 @@ impl Argument for (VaryingOperand, f64) {
         let (arg1, arg2) = unsafe {
             (
                 read_unchecked::<u32>(bytes, pos),
-                f64::from_bits(read_unchecked::<u64>(bytes, pos + 4)),
+                read_unchecked::<f64>(bytes, pos + 4),
             )
         };
 
