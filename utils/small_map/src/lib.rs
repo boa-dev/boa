@@ -1,6 +1,9 @@
-// TODO: Maybe extract to a separate crate? It could be useful for some applications.
-#![allow(unreachable_pub)]
-#![allow(unused)]
+//! A crate that provides a `SmallMap` collection, which is initially backed by an inline vec
+//! but changes its backing to a heap map if its number of elements exceeds `ARRAY_SIZE`.
+//!
+//! This provides performance benefits for maps that are expected to be small most of the time,
+//! by avoiding heap allocations for the common case while still supporting larger collections when needed.
+
 
 use std::{
     borrow::Borrow,
@@ -22,7 +25,7 @@ use Entry::{Occupied, Vacant};
 /// A map that is initially backed by an inline vec, but changes its backing to a heap map if its
 /// number of elements exceeds `ARRAY_SIZE`.
 #[derive(Clone)]
-pub(crate) struct SmallMap<K, V, const ARRAY_SIZE: usize> {
+pub struct SmallMap<K, V, const ARRAY_SIZE: usize> {
     inner: Inner<K, V, ARRAY_SIZE>,
 }
 
@@ -137,6 +140,7 @@ impl<K, V, const ARRAY_SIZE: usize> Default for IntoIter<K, V, ARRAY_SIZE> {
 
 impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     /// Makes a new, empty `SmallMap`.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             inner: Inner::Inline(ArrayVec::new_const()),

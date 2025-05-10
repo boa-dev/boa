@@ -154,10 +154,9 @@ mod sync {
 
     use intrusive_collections::{intrusive_adapter, LinkedList, LinkedListLink, UnsafeRef};
 
-    use crate::{
-        small_map::{Entry, SmallMap},
-        JsNativeError, JsResult,
-    };
+    use small_map::{Entry, SmallMap};
+
+    use crate::{JsNativeError, JsResult};
 
     /// A waiter of a memory address.
     #[derive(Debug, Default)]
