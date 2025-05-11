@@ -65,7 +65,7 @@ temporal = ["dep:icu_calendar", "dep:temporal_rs", "dep:iana-time-zone"]
 experimental = ["temporal"]
 
 # Enable binding to JS APIs for system related utilities.
-js = ["dep:web-time"]
+js = ["dep:web-time", "dep:getrandom"]
 
 [dependencies]
 tag_ptr.workspace = true
@@ -158,6 +158,8 @@ iana-time-zone = { version = "0.1.63", optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { workspace = true, optional = true }
+# NOTE: This enables the wasm_js required for rand to work on wasm
+getrandom = { workspace = true, features = ["wasm_js"], optional = true }
 
 [dev-dependencies]
 criterion.workspace = true
