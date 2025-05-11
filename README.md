@@ -111,21 +111,24 @@ Check [debugging.md](./docs/debugging.md) for more info on debugging.
 
 ### Web Assembly
 
-This interpreter can be exposed to JavaScript!
-You can build the example locally with:
+> [!IMPORTANT]
+>
+> This only applies to `wasm32-unknown-unknown` target,
+> `WASI` and `Emscripten` target variants are handled automatically.
 
-```shell
-npm run build
+- Enable the `js` feature flag.
+- Set `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`
+
+The `rustflags` can also be set by adding a `.cargo/config.toml` file in the project root directory:
+
+```toml
+[target.wasm32-unknown-unknown]
+rustflags = '--cfg getrandom_backend="wasm_js"'
 ```
 
-In the console you can use `window.evaluate` to pass JavaScript in.
-To develop on the web assembly side you can run:
+For more information see: [`getrandom` WebAssembly Support][getrandom-webassembly-support]
 
-```shell
-npm run serve
-```
-
-then go to `http://localhost:8080`.
+[getrandom-webassembly-support]: https://docs.rs/getrandom/latest/getrandom/index.html#webassembly-support
 
 ## Usage
 
