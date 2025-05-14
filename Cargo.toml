@@ -120,7 +120,7 @@ intrusive-collections = "0.9.7"
 cfg-if = "1.0.0"
 either = "1.15.0"
 sys-locale = "0.3.2"
-temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "6e7e341e15625cbc85a8842b794224c16da58fb6", default-features = false, features = [
+temporal_rs = { git = "https://github.com/boa-dev/temporal.git", rev = "b6875b7f271bcff77361840c2222a2cd7e198562", default-features = false, features = [
     "tzdb",
 ] }
 web-time = "1.1.0"
