@@ -10,7 +10,11 @@ use crate::{
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_profiler::Profiler;
-use temporal_rs::{unix_time::EpochNanoseconds, Instant, now::{NowBuilder, Now as NowInner}, TimeZone};
+use temporal_rs::{
+    now::{Now as NowInner, NowBuilder},
+    unix_time::EpochNanoseconds,
+    Instant, TimeZone,
+};
 
 use super::{
     create_temporal_date, create_temporal_datetime, create_temporal_instant, create_temporal_time,
@@ -75,23 +79,30 @@ impl Now {
     }
 
     /// 2.2.3 `Temporal.Now.plainDateTimeISO ( [ temporalTimeZoneLike ] )`
-    fn plain_date_time_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time_zone = args.get_or_undefined(0)
+    fn plain_date_time_iso(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let time_zone = args
+            .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
         let now = build_now(context)?;
 
-        let datetime = now.plain_date_time_iso_with_provider(
-            time_zone,
-            context.tz_provider(),
-        )?;
+        let datetime = now.plain_date_time_iso_with_provider(time_zone, context.tz_provider())?;
         create_temporal_datetime(datetime, None, context).map(Into::into)
     }
 
     /// 2.2.4 `Temporal.Now.zonedDateTimeISO ( [ temporalTimeZoneLike ] )`
-    fn zoned_date_time_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time_zone = args.get_or_undefined(0)
+    fn zoned_date_time_iso(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let time_zone = args
+            .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
@@ -102,31 +113,27 @@ impl Now {
 
     /// 2.2.5 `Temporal.Now.plainDateISO ( [ temporalTimeZoneLike ] )`
     fn plain_date_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time_zone = args.get_or_undefined(0)
+        let time_zone = args
+            .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
         let now = build_now(context)?;
 
-        let pd = now.plain_date_iso_with_provider(
-            time_zone,
-            context.tz_provider(),
-        )?;
+        let pd = now.plain_date_iso_with_provider(time_zone, context.tz_provider())?;
         create_temporal_date(pd, None, context).map(Into::into)
     }
 
     /// 2.2.6 `Temporal.Now.plainTimeISO ( [ temporalTimeZoneLike ] )`
     fn plain_time_iso(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time_zone = args.get_or_undefined(0)
+        let time_zone = args
+            .get_or_undefined(0)
             .map(|v| to_temporal_timezone_identifier(v, context))
             .transpose()?;
 
         let now = build_now(context)?;
 
-        let pt = now.plain_time_with_provider(
-            time_zone,
-            context.tz_provider(),
-        )?;
+        let pt = now.plain_time_with_provider(time_zone, context.tz_provider())?;
         create_temporal_time(pt, None, context).map(Into::into)
     }
 }
@@ -151,6 +158,5 @@ fn system_time_zone_id() -> JsResult<String> {
 
 // TODO: Move system time zone fetching to context similiar to `Clock` and `TimeZoneProvider`
 fn system_time_zone() -> JsResult<TimeZone> {
-    system_time_zone_id()
-        .and_then(|s| TimeZone::try_from_identifier_str(&s).map_err(Into::into))
+    system_time_zone_id().and_then(|s| TimeZone::try_from_identifier_str(&s).map_err(Into::into))
 }
