@@ -719,13 +719,14 @@ impl Set {
     /// - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.symmerticDifference
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference
+    /// [mdn]: https://developer.mozilla.org/en-USSet/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference
     pub(crate) fn symmetric_difference(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
         let Some(set) = this
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
@@ -734,29 +735,51 @@ impl Set {
                 .with_message("Method Set.prototype.symmetricDifference called on incompatible receiver")
                 .into());
         };
-
-        // 2. Let otherRec be ? GetSetRecord(other).
+    
+        // 3. Let otherRec be ? GetSetRecord(other).
         let other_rec = get_set_record(args.get_or_undefined(0), context)?;
-
-        // 3. Let resultSetData be a copy of O.[[SetData]].
-        let mut result_set = set.clone();
-
-        // 4. Get an iterator from the other set's keys method
+    
+        // 4. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
         let keys_result = other_rec.keys.call(&other_rec.object.clone().into(), &[], context)?;
         let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-        
-        // 5. Process each element from other set
-        while let Some(value) = iterator_record.step_value(context)? {
-            if set.contains(&value) {
-                // If value is in both sets, remove it from result
-                result_set.delete(&value);
+    
+        // 5. Let resultSetData be a copy of O.[[SetData]].
+        let mut result_set = set.clone();
+    
+        // 6. Let next be not-started.
+        // 7. Repeat, while next is not done,
+        while let Some(next_value) = iterator_record.step_value(context)? {
+            // a. Set next to ? IteratorStepValue(keysIter).
+            // b. If next is not done, then
+            // i. Set next to CanonicalizeKeyedCollectionKey(next).
+            let next = match next_value.as_number() {
+                Some(n) if n.is_zero() => JsValue::new(0),
+                _ => next_value,
+            };
+    
+            // ii. Let resultIndex be SetDataIndex(resultSetData, next).
+            // iii. If resultIndex is not-found, let alreadyInResult be false.
+            // Otherwise let alreadyInResult be true.
+            let already_in_result = result_set.contains(&next);
+    
+            // iv. If SetDataHas(O.[[SetData]], next) is true, then
+            if set.contains(&next) {
+                // 1. If alreadyInResult is true, set resultSetData[resultIndex] to empty.
+                if already_in_result {
+                    result_set.delete(&next);
+                }
             } else {
-                // If value is only in other set, add it to result
-                result_set.add(value);
+                // v. Else,
+                // 1. If alreadyInResult is false, append next to resultSetData.
+                if !already_in_result {
+                    result_set.add(next);
+                }
             }
         }
-
-        // 6. Return a new Set with the symmetric difference
+    
+        // 8. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
+        // 9. Set result.[[SetData]] to resultSetData.
+        // 10. Return result.
         Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
@@ -836,15 +859,10 @@ impl Set {
         // 2. Let otherRec be ? GetSetRecord(other).
         let other_rec = get_set_record(args.get_or_undefined(0), context)?;
 
-        // 3. If either set is empty, return an empty Set.
-        if set.is_empty() || other_rec.size == 0 {
-            return Ok(Self::create_set_from_list(vec![], context).into());
-        }
-
-        // 4. Create an empty result set.
+        // Create an empty result set.
         let mut result_set = OrderedSet::new();
 
-        // 5. Optimize by iterating over the smaller set
+        // Optimize by iterating over the smaller set
         if Self::get_size_full(this)? <= other_rec.size {
             for value in set.iter() {
                 // Check if the element exists in otherRec using its has method
@@ -865,7 +883,7 @@ impl Set {
             }
         }
 
-        // 6. Return the result set.
+        // Return the result set.
         Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
