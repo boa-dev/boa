@@ -149,7 +149,7 @@ impl BuiltInConstructor for PlainMonthDay {
                     .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
             .transpose()?
-            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .map(|s| Calendar::try_from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
 
@@ -188,7 +188,7 @@ impl PlainMonthDay {
             })?;
         let inner = &month_day.inner;
         match field {
-            DateTimeValues::Day => Ok(inner.iso_day().into()),
+            DateTimeValues::Day => Ok(inner.day().into()),
             DateTimeValues::MonthCode => Ok(js_string!(inner.month_code().as_str()).into()),
             _ => unreachable!(),
         }
