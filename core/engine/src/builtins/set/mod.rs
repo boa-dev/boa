@@ -590,16 +590,23 @@ impl Set {
         if Self::get_size_full(this)? <= other_rec.size {
             for value in set.iter() {
                 // Use the has method from the SetRecord
-                let has_result = other_rec.has.call(&other_rec.object.clone().into(), &[value.clone()], context)?;
+                let has_result = other_rec.has.call(
+                    &other_rec.object.clone().into(),
+                    &[value.clone()],
+                    context,
+                )?;
                 if has_result.to_boolean() {
                     return Ok(JsValue::from(false));
                 }
             }
         } else {
             // Get an iterator from the other set's keys method
-            let keys_result = other_rec.keys.call(&other_rec.object.clone().into(), &[], context)?;
+            let keys_result =
+                other_rec
+                    .keys
+                    .call(&other_rec.object.clone().into(), &[], context)?;
             let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-            
+
             while let Some(value) = iterator_record.step_value(context)? {
                 if set.contains(&value) {
                     return Ok(JsValue::from(false));
@@ -649,7 +656,10 @@ impl Set {
         // 4. For each element in the current set
         for value in set.iter() {
             // 5. Check if the element exists in otherRec using its has method
-            let has_result = other_rec.has.call(&other_rec.object.clone().into(), &[value.clone()], context)?;
+            let has_result =
+                other_rec
+                    .has
+                    .call(&other_rec.object.clone().into(), &[value.clone()], context)?;
             if !has_result.to_boolean() {
                 return Ok(JsValue::from(false));
             }
@@ -695,9 +705,11 @@ impl Set {
         }
 
         // 4. Get an iterator from the other set's keys method
-        let keys_result = other_rec.keys.call(&other_rec.object.into(), &[], context)?;
+        let keys_result = other_rec
+            .keys
+            .call(&other_rec.object.into(), &[], context)?;
         let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-        
+
         // 5. Check each element from other set
         while let Some(value) = iterator_record.step_value(context)? {
             if !set.contains(&value) {
@@ -732,20 +744,24 @@ impl Set {
             .and_then(JsObject::downcast_ref::<OrderedSet>)
         else {
             return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.symmetricDifference called on incompatible receiver")
+                .with_message(
+                    "Method Set.prototype.symmetricDifference called on incompatible receiver",
+                )
                 .into());
         };
-    
+
         // 3. Let otherRec be ? GetSetRecord(other).
         let other_rec = get_set_record(args.get_or_undefined(0), context)?;
-    
+
         // 4. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
-        let keys_result = other_rec.keys.call(&other_rec.object.clone().into(), &[], context)?;
+        let keys_result = other_rec
+            .keys
+            .call(&other_rec.object.clone().into(), &[], context)?;
         let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-    
+
         // 5. Let resultSetData be a copy of O.[[SetData]].
         let mut result_set = set.clone();
-    
+
         // 6. Let next be not-started.
         // 7. Repeat, while next is not done,
         while let Some(next_value) = iterator_record.step_value(context)? {
@@ -756,12 +772,12 @@ impl Set {
                 Some(n) if n.is_zero() => JsValue::new(0),
                 _ => next_value,
             };
-    
+
             // ii. Let resultIndex be SetDataIndex(resultSetData, next).
             // iii. If resultIndex is not-found, let alreadyInResult be false.
             // Otherwise let alreadyInResult be true.
             let already_in_result = result_set.contains(&next);
-    
+
             // iv. If SetDataHas(O.[[SetData]], next) is true, then
             if set.contains(&next) {
                 // 1. If alreadyInResult is true, set resultSetData[resultIndex] to empty.
@@ -776,7 +792,7 @@ impl Set {
                 }
             }
         }
-    
+
         // 8. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
         // 9. Set result.[[SetData]] to resultSetData.
         // 10. Return result.
@@ -816,9 +832,11 @@ impl Set {
         let mut result_set = set.clone();
 
         // 4. Get an iterator from the other set's keys method
-        let keys_result = other_rec.keys.call(&other_rec.object.clone().into(), &[], context)?;
+        let keys_result = other_rec
+            .keys
+            .call(&other_rec.object.clone().into(), &[], context)?;
         let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-        
+
         // 5. Add each element from other set to the result
         while let Some(value) = iterator_record.step_value(context)? {
             result_set.add(value);
@@ -866,16 +884,23 @@ impl Set {
         if Self::get_size_full(this)? <= other_rec.size {
             for value in set.iter() {
                 // Check if the element exists in otherRec using its has method
-                let has_result = other_rec.has.call(&other_rec.object.clone().into(), &[value.clone()], context)?;
+                let has_result = other_rec.has.call(
+                    &other_rec.object.clone().into(),
+                    &[value.clone()],
+                    context,
+                )?;
                 if has_result.to_boolean() {
                     result_set.add(value.clone());
                 }
             }
         } else {
             // Get an iterator from the other set's keys method
-            let keys_result = other_rec.keys.call(&other_rec.object.clone().into(), &[], context)?;
+            let keys_result =
+                other_rec
+                    .keys
+                    .call(&other_rec.object.clone().into(), &[], context)?;
             let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-            
+
             while let Some(value) = iterator_record.step_value(context)? {
                 if set.contains(&value) {
                     result_set.add(value);
@@ -925,16 +950,23 @@ impl Set {
             let elements: Vec<_> = result_set.iter().cloned().collect();
             for element in elements {
                 // Check if the element exists in otherRec using its has method
-                let has_result = other_rec.has.call(&other_rec.object.clone().into(), &[element.clone()], context)?;
+                let has_result = other_rec.has.call(
+                    &other_rec.object.clone().into(),
+                    &[element.clone()],
+                    context,
+                )?;
                 if has_result.to_boolean() {
                     result_set.delete(&element);
                 }
             }
         } else {
             // Get an iterator from the other set's keys method
-            let keys_result = other_rec.keys.call(&other_rec.object.clone().into(), &[], context)?;
+            let keys_result =
+                other_rec
+                    .keys
+                    .call(&other_rec.object.clone().into(), &[], context)?;
             let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-            
+
             while let Some(element) = iterator_record.step_value(context)? {
                 result_set.delete(&element);
             }
