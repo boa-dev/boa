@@ -3638,7 +3638,8 @@ checksum = "1ac9aa371f599d22256307c24a9d748c041e548cbf599f35d890f9d365361790"
 [[package]]
 name = "temporal_rs"
 version = "0.0.7"
-source = "git+https://github.com/boa-dev/temporal.git?rev=b6875b7f271bcff77361840c2222a2cd7e198562#b6875b7f271bcff77361840c2222a2cd7e198562"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccda662f507af0e3aaa650a396c96c740d18d1d4f3514d5e7510273d86276cdb"
 dependencies = [
  "combine",
  "core_maths",
@@ -3785,7 +3786,8 @@ dependencies = [
 [[package]]
 name = "timezone_provider"
 version = "0.0.7"
-source = "git+https://github.com/boa-dev/temporal.git?rev=b6875b7f271bcff77361840c2222a2cd7e198562#b6875b7f271bcff77361840c2222a2cd7e198562"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c5eafec6b49f22d9ded880711b7a5acdf1fcb3d0bd1f91fd501dc05d5c985d50"
 dependencies = [
  "databake 0.2.0",
  "parse-zoneinfo",
