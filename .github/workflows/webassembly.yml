@@ -55,7 +55,7 @@ jobs:
         with:
           crate: wasm-pack
       - name: Build Playground
-        run: wasm-pack build --no-opt ./ffi/wasm --verbose
+        run: wasm-pack build ./ffi/wasm --verbose
       - name: Test (Chrome)
         run: wasm-pack test --headless --chrome ./ffi/wasm --verbose
       - name: Test (Firefox)

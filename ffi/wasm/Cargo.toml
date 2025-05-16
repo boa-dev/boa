@@ -36,3 +36,6 @@ workspace = true
 
 [package.metadata.docs.rs]
 all-features = true
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
