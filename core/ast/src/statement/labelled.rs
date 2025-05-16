@@ -18,6 +18,7 @@ use core::ops::ControlFlow;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
+#[allow(clippy::large_enum_variant)]
 pub enum LabelledItem {
     /// A labelled [`FunctionDeclaration`].
     FunctionDeclaration(FunctionDeclaration),

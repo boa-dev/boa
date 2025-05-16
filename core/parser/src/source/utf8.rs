@@ -11,6 +11,7 @@ impl<R: Read> UTF8Input<R> {
     /// Creates a new `UTF8Input` from a UTF-8 encoded source.
     pub(crate) fn new(iter: R) -> Self {
         Self {
+            #[allow(clippy::unbuffered_bytes)]
             input: iter.bytes(),
         }
     }

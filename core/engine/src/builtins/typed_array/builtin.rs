@@ -2637,7 +2637,7 @@ impl BuiltinTypedArray {
                 obj.downcast_ref::<TypedArray>()
                     .map(|o| o.kind().js_name().into())
             })
-            .unwrap_or(JsValue::undefined()))
+            .unwrap_or_default())
     }
 
     /// `TypedArraySpeciesCreate ( exemplar, argumentList )`

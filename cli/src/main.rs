@@ -396,9 +396,7 @@ fn main() -> Result<()> {
             Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
             Ok(line) => {
-                editor
-                    .add_history_entry(&line)
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+                editor.add_history_entry(&line).map_err(io::Error::other)?;
 
                 if args.has_dump_flag() {
                     if let Err(e) = dump(Source::from_bytes(&line), &args, &mut context) {
