@@ -1180,7 +1180,7 @@ pub(crate) fn to_temporal_datetime(
         // b. If item has an [[InitializedTemporalZonedDateTime]] internal slot, then
         } else if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
-            let options = get_options_object(&options.unwrap_or(JsValue::undefined()))?;
+            let options = get_options_object(&options.unwrap_or_default())?;
             let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // ii. Let instant be ! CreateTemporalInstant(item.[[Nanoseconds]]).
             // iii. Let timeZoneRec be ? CreateTimeZoneMethodsRecord(item.[[TimeZone]], « get-offset-nanoseconds-for »).
@@ -1192,7 +1192,7 @@ pub(crate) fn to_temporal_datetime(
         // c. If item has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
-            let options = get_options_object(&options.unwrap_or(JsValue::undefined()))?;
+            let options = get_options_object(&options.unwrap_or_default())?;
             let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // ii. Return ? CreateTemporalDateTime(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], 0, 0, 0, 0, 0, 0, item.[[Calendar]]).
             return Ok(InnerDateTime::new(
@@ -1216,7 +1216,7 @@ pub(crate) fn to_temporal_datetime(
         // "nanosecond", "second" », «»)
         // TODO: Move validation to `temporal_rs`.
         let partial_dt = to_partial_datetime(object, context)?;
-        let resolved_options = get_options_object(&options.unwrap_or(JsValue::undefined()))?;
+        let resolved_options = get_options_object(&options.unwrap_or_default())?;
         // g. Let result be ? InterpretTemporalDateTimeFields(calendarRec, fields, resolvedOptions).
         let overflow =
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
@@ -1239,7 +1239,7 @@ pub(crate) fn to_temporal_datetime(
     // h. Set calendar to CanonicalizeUValue("ca", calendar).
     let date = string.to_std_string_escaped().parse::<InnerDateTime>()?;
     // i. Perform ? GetTemporalOverflowOption(resolvedOptions).
-    let resolved_options = get_options_object(&options.unwrap_or(JsValue::undefined()))?;
+    let resolved_options = get_options_object(&options.unwrap_or_default())?;
     let _ = get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
     // 5. Return ? CreateTemporalDateTime(result.[[Year]], result.[[Month]], result.[[Day]],
     // result.[[Hour]], result.[[Minute]], result.[[Second]], result.[[Millisecond]],

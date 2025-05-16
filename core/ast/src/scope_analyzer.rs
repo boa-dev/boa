@@ -970,7 +970,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         if let Some(expr) = &mut node.inner.final_expr {
             self.visit_expression_mut(expr)?;
         }
-        self.visit_statement_mut(&mut node.inner.body);
+        self.visit_statement_mut(&mut node.inner.body)?;
         if let Some(mut scope) = scope {
             std::mem::swap(&mut self.scope, &mut scope);
         }
@@ -1194,7 +1194,7 @@ where
     let mut visitor = ScopeIndexVisitor {
         index: scope.scope_index(),
     };
-    visitor.visit(node.into());
+    let _ = visitor.visit(node.into());
 }
 
 struct ScopeIndexVisitor {
@@ -1543,7 +1543,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         if let Some(expr) = &mut node.inner.final_expr {
             self.visit_expression_mut(expr)?;
         }
-        self.visit_statement_mut(&mut node.inner.body);
+        self.visit_statement_mut(&mut node.inner.body)?;
         self.index = index;
         ControlFlow::Continue(())
     }

@@ -526,6 +526,7 @@ impl JobExecutor for IdleJobExecutor {
 /// custom event loop.
 ///
 /// To disable running promise jobs on the engine, see [`IdleJobExecutor`].
+#[allow(clippy::struct_field_names)]
 #[derive(Default)]
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,

@@ -615,7 +615,7 @@ where
     &'a N: Into<NodeRef<'a>>,
 {
     let mut names = Vec::new();
-    BoundNamesVisitor(&mut names).visit(node.into());
+    let _ = BoundNamesVisitor(&mut names).visit(node.into());
 
     names
 }
@@ -757,7 +757,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
         if let ClassElement::StaticBlock(block) = node {
-            self.visit_function_body(&block.body);
+            self.visit_function_body(&block.body)?;
         }
         ControlFlow::Continue(())
     }
@@ -791,7 +791,7 @@ where
     &'a N: Into<NodeRef<'a>>,
 {
     let mut names = Vec::new();
-    LexicallyDeclaredNamesVisitor(&mut names).visit(node.into());
+    let _ = LexicallyDeclaredNamesVisitor(&mut names).visit(node.into());
     names
 }
 
@@ -808,7 +808,7 @@ where
     &'a N: Into<NodeRef<'a>>,
 {
     let mut names = Vec::new();
-    LexicallyDeclaredNamesVisitor(&mut names).visit(node.into());
+    let _ = LexicallyDeclaredNamesVisitor(&mut names).visit(node.into());
     names
 }
 
@@ -891,7 +891,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.else_node() {
-            self.visit(node);
+            self.visit(node)?;
         }
         self.visit(node.body())
     }
@@ -915,7 +915,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         node: &'ast crate::statement::ForLoop,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ForLoopInitializer::Var(node)) = node.init() {
-            BoundNamesVisitor(self.0).visit_var_declaration(node);
+            BoundNamesVisitor(self.0).visit_var_declaration(node)?;
         }
         self.visit(node.body())
     }
@@ -925,7 +925,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         node: &'ast crate::statement::ForInLoop,
     ) -> ControlFlow<Self::BreakTy> {
         if let IterableLoopInitializer::Var(node) = node.initializer() {
-            BoundNamesVisitor(self.0).visit_variable(node);
+            BoundNamesVisitor(self.0).visit_variable(node)?;
         }
         self.visit(node.body())
     }
@@ -935,7 +935,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
         node: &'ast crate::statement::ForOfLoop,
     ) -> ControlFlow<Self::BreakTy> {
         if let IterableLoopInitializer::Var(node) = node.initializer() {
-            BoundNamesVisitor(self.0).visit_variable(node);
+            BoundNamesVisitor(self.0).visit_variable(node)?;
         }
         self.visit(node.body())
     }
@@ -946,10 +946,10 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
         for case in node.cases() {
-            self.visit(case);
+            self.visit(case)?;
         }
         if let Some(node) = node.default() {
-            self.visit(node);
+            self.visit(node)?;
         }
         ControlFlow::Continue(())
     }
@@ -963,10 +963,10 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.finally() {
-            self.visit(node);
+            self.visit(node)?;
         }
         if let Some(node) = node.catch() {
-            self.visit(node.block());
+            self.visit(node.block())?;
         }
         self.visit(node.block())
     }
@@ -1029,7 +1029,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 
     fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
         if let ClassElement::StaticBlock(block) = node {
-            self.visit_function_body(&block.body);
+            self.visit_function_body(&block.body)?;
         }
         node.visit_with(self)
     }
@@ -1065,7 +1065,7 @@ where
     &'a N: Into<NodeRef<'a>>,
 {
     let mut names = FxHashSet::default();
-    VarDeclaredNamesVisitor(&mut names).visit(node.into());
+    let _ = VarDeclaredNamesVisitor(&mut names).visit(node.into());
     names
 }
 
@@ -1086,10 +1086,10 @@ fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
                 | Declaration::AsyncFunctionDeclaration(_)
                 | Declaration::AsyncGeneratorDeclaration(_) => {}
                 Declaration::ClassDeclaration(class) => {
-                    BoundNamesVisitor(names).visit_class_declaration(class);
+                    let _ = BoundNamesVisitor(names).visit_class_declaration(class);
                 }
                 Declaration::Lexical(decl) => {
-                    BoundNamesVisitor(names).visit_lexical_declaration(decl);
+                    let _ = BoundNamesVisitor(names).visit_lexical_declaration(decl);
                 }
             }
         }
@@ -1110,16 +1110,16 @@ fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
                     // At the top level of a function, or script, function declarations are treated like
                     // var declarations rather than like lexical declarations.
                     Declaration::FunctionDeclaration(f) => {
-                        BoundNamesVisitor(names).visit_function_declaration(f);
+                        let _ = BoundNamesVisitor(names).visit_function_declaration(f);
                     }
                     Declaration::GeneratorDeclaration(f) => {
-                        BoundNamesVisitor(names).visit_generator_declaration(f);
+                        let _ = BoundNamesVisitor(names).visit_generator_declaration(f);
                     }
                     Declaration::AsyncFunctionDeclaration(f) => {
-                        BoundNamesVisitor(names).visit_async_function_declaration(f);
+                        let _ = BoundNamesVisitor(names).visit_async_function_declaration(f);
                     }
                     Declaration::AsyncGeneratorDeclaration(f) => {
-                        BoundNamesVisitor(names).visit_async_generator_declaration(f);
+                        let _ = BoundNamesVisitor(names).visit_async_generator_declaration(f);
                     }
                     Declaration::ClassDeclaration(_) | Declaration::Lexical(_) => {}
                 }
@@ -1129,14 +1129,14 @@ fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
                 while let Some(Statement::Labelled(labelled)) = stmt {
                     match labelled.item() {
                         LabelledItem::FunctionDeclaration(f) => {
-                            BoundNamesVisitor(names).visit_function_declaration(f);
+                            let _ = BoundNamesVisitor(names).visit_function_declaration(f);
                             stmt = None;
                         }
                         LabelledItem::Statement(s) => stmt = Some(s),
                     }
                 }
                 if let Some(stmt) = stmt {
-                    VarDeclaredNamesVisitor(names).visit(stmt);
+                    let _ = VarDeclaredNamesVisitor(names).visit(stmt);
                 }
             }
         }
@@ -1796,7 +1796,7 @@ where
     &'a N: Into<NodeRef<'a>>,
 {
     let mut declarations = Vec::new();
-    LexicallyScopedDeclarationsVisitor(&mut declarations).visit(node.into());
+    let _ = LexicallyScopedDeclarationsVisitor(&mut declarations).visit(node.into());
     declarations
 }
 
@@ -2033,7 +2033,7 @@ where
     &'a N: Into<NodeRef<'a>>,
 {
     let mut declarations = Vec::new();
-    VarScopedDeclarationsVisitor(&mut declarations).visit(node.into());
+    let _ = VarScopedDeclarationsVisitor(&mut declarations).visit(node.into());
     declarations
 }
 
@@ -2097,9 +2097,9 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
     }
 
     fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.body());
+        self.visit(node.body())?;
         if let Some(else_node) = node.else_node() {
-            self.visit(else_node);
+            self.visit(else_node)?;
         }
         ControlFlow::Continue(())
     }
@@ -2108,7 +2108,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::DoWhileLoop,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.body());
+        self.visit(node.body())?;
         ControlFlow::Continue(())
     }
 
@@ -2116,7 +2116,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::WhileLoop,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.body());
+        self.visit(node.body())?;
         ControlFlow::Continue(())
     }
 
@@ -2125,9 +2125,9 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         node: &'ast crate::statement::ForLoop,
     ) -> ControlFlow<Self::BreakTy> {
         if let Some(ForLoopInitializer::Var(v)) = node.init() {
-            self.visit(v);
+            self.visit(v)?;
         }
-        self.visit(node.body());
+        self.visit(node.body())?;
         ControlFlow::Continue(())
     }
 
@@ -2139,7 +2139,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
             self.0
                 .push(VarScopedDeclaration::VariableDeclaration(var.clone()));
         }
-        self.visit(node.body());
+        self.visit(node.body())?;
         ControlFlow::Continue(())
     }
 
@@ -2151,27 +2151,27 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
             self.0
                 .push(VarScopedDeclaration::VariableDeclaration(var.clone()));
         }
-        self.visit(node.body());
+        self.visit(node.body())?;
         ControlFlow::Continue(())
     }
 
     fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.statement());
+        self.visit(node.statement())?;
         ControlFlow::Continue(())
     }
 
     fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
         for case in node.cases() {
-            self.visit(case);
+            self.visit(case)?;
         }
         if let Some(default) = node.default() {
-            self.visit(default);
+            self.visit(default)?;
         }
         ControlFlow::Continue(())
     }
 
     fn visit_case(&mut self, node: &'ast crate::statement::Case) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.body());
+        self.visit(node.body())?;
         ControlFlow::Continue(())
     }
 
@@ -2183,7 +2183,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
     }
 
     fn visit_catch(&mut self, node: &'ast crate::statement::Catch) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.block());
+        self.visit(node.block())?;
         ControlFlow::Continue(())
     }
 
@@ -2193,12 +2193,12 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
             ModuleItem::ExportDeclaration(decl) => {
                 if let ExportDeclaration::VarStatement(var) = decl {
                     //     1. If ExportDeclaration is export VariableStatement, return VarScopedDeclarations of VariableStatement.
-                    self.visit_var_declaration(var);
+                    self.visit_var_declaration(var)?;
                 }
                 // 2. Return a new empty List.
             }
             ModuleItem::StatementListItem(item) => {
-                self.visit_statement_list_item(item);
+                self.visit_statement_list_item(item)?;
             }
             // ModuleItem : ImportDeclaration
             ModuleItem::ImportDeclaration(_) => {
@@ -2249,7 +2249,7 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
             }
             StatementListItem::Statement(Statement::Labelled(s)) => self.visit(s),
             StatementListItem::Statement(s) => {
-                VarScopedDeclarationsVisitor(self.0).visit(s);
+                VarScopedDeclarationsVisitor(self.0).visit(s)?;
                 ControlFlow::Continue(())
             }
         }
@@ -2259,7 +2259,7 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
         match node {
             LabelledItem::Statement(Statement::Labelled(s)) => self.visit(s),
             LabelledItem::Statement(s) => {
-                VarScopedDeclarationsVisitor(self.0).visit(s);
+                VarScopedDeclarationsVisitor(self.0).visit(s)?;
                 ControlFlow::Continue(())
             }
             LabelledItem::FunctionDeclaration(f) => {
@@ -2289,7 +2289,7 @@ where
     &'a N: Into<NodeRef<'a>>,
 {
     let mut declarations = Vec::new();
-    AnnexBFunctionDeclarationNamesVisitor(&mut declarations).visit(node.into());
+    let _ = AnnexBFunctionDeclarationNamesVisitor(&mut declarations).visit(node.into());
     declarations
 }
 
@@ -2328,7 +2328,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     }
 
     fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.statement_list());
+        self.visit(node.statement_list())?;
         for statement in node.statement_list().statements() {
             if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
                 statement
@@ -2348,7 +2348,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
 
     fn visit_switch(&mut self, node: &'ast crate::statement::Switch) -> ControlFlow<Self::BreakTy> {
         for case in node.cases() {
-            self.visit(case);
+            self.visit(case)?;
             for statement in case.body().statements() {
                 if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
                     statement
@@ -2359,7 +2359,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
             }
         }
         if let Some(default) = node.default() {
-            self.visit(default);
+            self.visit(default)?;
             for statement in default.statements() {
                 if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
                     statement
@@ -2379,9 +2379,9 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     }
 
     fn visit_try(&mut self, node: &'ast crate::statement::Try) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.block());
+        self.visit(node.block())?;
         if let Some(catch) = node.catch() {
-            self.visit(catch.block());
+            self.visit(catch.block())?;
 
             if let Some(Binding::Pattern(pattern)) = catch.parameter() {
                 let bound_names = bound_names(pattern);
@@ -2390,14 +2390,14 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
             }
         }
         if let Some(finally) = node.finally() {
-            self.visit(finally.block());
+            self.visit(finally.block())?;
         }
         ControlFlow::Continue(())
     }
 
     fn visit_if(&mut self, node: &'ast crate::statement::If) -> ControlFlow<Self::BreakTy> {
         if let Some(node) = node.else_node() {
-            self.visit(node);
+            self.visit(node)?;
         }
         self.visit(node.body())
     }
@@ -2420,7 +2420,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::ForLoop,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.body());
+        self.visit(node.body())?;
 
         if let Some(ForLoopInitializer::Lexical(node)) = node.init() {
             let bound_names = bound_names(&node.declaration);
@@ -2434,7 +2434,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::ForInLoop,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.body());
+        self.visit(node.body())?;
 
         if let IterableLoopInitializer::Let(node) = node.initializer() {
             let bound_names = bound_names(node);
@@ -2452,7 +2452,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         &mut self,
         node: &'ast crate::statement::ForOfLoop,
     ) -> ControlFlow<Self::BreakTy> {
-        self.visit(node.body());
+        self.visit(node.body())?;
 
         if let IterableLoopInitializer::Let(node) = node.initializer() {
             let bound_names = bound_names(node);
@@ -2471,7 +2471,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         node: &'ast crate::statement::Labelled,
     ) -> ControlFlow<Self::BreakTy> {
         if let LabelledItem::Statement(node) = node.item() {
-            self.visit(node);
+            self.visit(node)?;
         }
         ControlFlow::Continue(())
     }

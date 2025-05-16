@@ -89,9 +89,9 @@ struct ModuleRepr {
 #[derive(Debug, Trace, Finalize)]
 pub(crate) enum ModuleKind {
     /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records)
-    SourceText(SourceTextModule),
+    SourceText(Box<SourceTextModule>),
     /// A [**Synthetic Module Record**](https://tc39.es/proposal-json-modules/#sec-synthetic-module-records)
-    Synthetic(SyntheticModule),
+    Synthetic(Box<SyntheticModule>),
 }
 
 impl ModuleKind {
@@ -178,7 +178,7 @@ impl Module {
             inner: Gc::new(ModuleRepr {
                 realm,
                 namespace: GcRefCell::default(),
-                kind: ModuleKind::SourceText(src),
+                kind: ModuleKind::SourceText(Box::new(src)),
                 host_defined: HostDefined::default(),
                 path,
             }),
@@ -207,7 +207,7 @@ impl Module {
             inner: Gc::new(ModuleRepr {
                 realm,
                 namespace: GcRefCell::default(),
-                kind: ModuleKind::Synthetic(synth),
+                kind: ModuleKind::Synthetic(Box::new(synth)),
                 host_defined: HostDefined::default(),
                 path,
             }),

@@ -944,7 +944,7 @@ pub(crate) fn to_temporal_date(
     context: &mut Context,
 ) -> JsResult<InnerDate> {
     // 1. If options is not present, set options to undefined.
-    let options = options.unwrap_or(JsValue::undefined());
+    let options = options.unwrap_or_default();
 
     // 2. Assert: Type(options) is Object or Undefined.
     // 3. If options is not undefined, set options to ? SnapshotOwnProperties(? GetOptionsObject(options), null).

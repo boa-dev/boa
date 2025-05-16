@@ -118,7 +118,7 @@ impl ModuleItemList {
 
         let mut names = Vec::new();
 
-        ExportedItemsVisitor(&mut names).visit_module_item_list(self);
+        let _ = ExportedItemsVisitor(&mut names).visit_module_item_list(self);
 
         names
     }
@@ -190,7 +190,7 @@ impl ModuleItemList {
 
         let mut names = FxHashSet::default();
 
-        ExportedBindingsVisitor(&mut names).visit_module_item_list(self);
+        let _ = ExportedBindingsVisitor(&mut names).visit_module_item_list(self);
 
         names
     }
@@ -226,7 +226,7 @@ impl ModuleItemList {
 
         let mut requests = IndexSet::default();
 
-        RequestsVisitor(&mut requests).visit_module_item_list(self);
+        let _ = RequestsVisitor(&mut requests).visit_module_item_list(self);
 
         requests
     }
@@ -291,7 +291,7 @@ impl ModuleItemList {
 
         let mut entries = Vec::default();
 
-        ImportEntriesVisitor(&mut entries).visit_module_item_list(self);
+        let _ = ImportEntriesVisitor(&mut entries).visit_module_item_list(self);
 
         entries
     }
@@ -403,7 +403,7 @@ impl ModuleItemList {
 
         let mut entries = Vec::default();
 
-        ExportEntriesVisitor(&mut entries).visit_module_item_list(self);
+        let _ = ExportEntriesVisitor(&mut entries).visit_module_item_list(self);
 
         entries
     }
