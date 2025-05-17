@@ -18,6 +18,7 @@ mod tests;
 pub mod ordered_set;
 
 use self::ordered_set::OrderedSet;
+use super::iterable::IteratorHint;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -32,10 +33,63 @@ use crate::{
 };
 use boa_profiler::Profiler;
 use num_traits::Zero;
-
 pub(crate) use set_iterator::SetIterator;
 
-use super::iterable::IteratorHint;
+/// A record containing information about a Set-like object.
+#[derive(Debug)]
+struct SetRecord {
+    /// The Set-like object.
+    object: JsObject,
+    /// The size of the Set-like object.
+    size: usize,
+    /// The `has` method of the Set-like object.
+    has: JsObject,
+    /// The `keys` method of the Set-like object.
+    keys: JsObject,
+}
+
+/// Implementation of the abstract operation `GetSetRecord`.
+///
+/// More information:
+/// - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-getsetrecord
+fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
+    // 1. If obj is not an Object, throw a TypeError exception.
+    let obj = obj.as_object().ok_or_else(|| {
+        JsNativeError::typ().with_message("Set operation called with non-object argument")
+    })?;
+
+    // 2. Let has = ? Get(obj, "has").
+    let has = obj.get(js_string!("has"), context)?;
+
+    // 3. If IsCallable(has) is false, throw a TypeError exception.
+    let has = has.as_callable().ok_or_else(|| {
+        JsNativeError::typ().with_message("Set-like object must have a callable 'has' method")
+    })?;
+
+    // 4. Let keys = ? Get(obj, "keys").
+    let keys = obj.get(js_string!("keys"), context)?;
+
+    // 5. If IsCallable(keys) is false, throw a TypeError exception.
+    let keys = keys.as_callable().ok_or_else(|| {
+        JsNativeError::typ().with_message("Set-like object must have a callable 'keys' method")
+    })?;
+
+    // 6. Let size = ? Get(obj, "size").
+    let size = obj.get(js_string!("size"), context)?;
+
+    // 7. Let numberSize = ? ToNumber(size).
+    let size = size.to_number(context)? as usize;
+
+    // 8. Return the SetRecord { [[Set]]: obj, [[Size]]: numberSize, [[Has]]: has, [[Keys]]: keys }.
+    Ok(SetRecord {
+        object: obj.clone(),
+        size,
+        has: has.clone(),
+        keys: keys.clone(),
+    })
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct Set;
@@ -72,6 +126,17 @@ impl IntrinsicObject for Set {
             .method(Self::entries, js_string!("entries"), 0)
             .method(Self::for_each, js_string!("forEach"), 1)
             .method(Self::has, js_string!("has"), 1)
+            .method(Self::difference, js_string!("difference"), 1)
+            .method(Self::intersection, js_string!("intersection"), 1)
+            .method(Self::is_disjoint_from, js_string!("isDisjointFrom"), 0)
+            .method(Self::is_subset_of, js_string!("isSubsetOf"), 0)
+            .method(Self::is_superset_of, js_string!("isSupersetOf"), 0)
+            .method(
+                Self::symmetric_difference,
+                js_string!("symmetricDifference"),
+                1,
+            )
+            .method(Self::union, js_string!("union"), 1)
             .property(
                 js_string!("keys"),
                 values_function.clone(),
@@ -489,6 +554,426 @@ impl Set {
             lock,
             context,
         ))
+    }
+
+    /// `Set.prototype.isDisjointFrom ( other )`
+    ///
+    /// This method checks whether the current Set and the given iterable `other` have no elements in common.
+    /// It returns `true` if the two Sets are disjoint (i.e., they have no overlapping elements),
+    /// and `false` otherwise.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.isdisjointfrom
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isDisjointFrom
+    pub(crate) fn is_disjoint_from(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isDisjointFrom called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Let otherRec be ? GetSetRecord(other).
+        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+
+        // 3. If SetDataSize(O.[[SetData]]) > otherRec.[[Size]], return false.
+        if Self::get_size_full(this)? <= other_rec.size {
+            for value in set.iter() {
+                // Use the has method from the SetRecord
+                let has_result = other_rec.has.call(
+                    &other_rec.object.clone().into(),
+                    &[value.clone()],
+                    context,
+                )?;
+                if has_result.to_boolean() {
+                    return Ok(JsValue::from(false));
+                }
+            }
+        } else {
+            // Get an iterator from the other set's keys method
+            let keys_result =
+                other_rec
+                    .keys
+                    .call(&other_rec.object.clone().into(), &[], context)?;
+            let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+
+            while let Some(value) = iterator_record.step_value(context)? {
+                if set.contains(&value) {
+                    return Ok(JsValue::from(false));
+                }
+            }
+        }
+
+        // 4. Return true if no common elements are found.
+        Ok(JsValue::from(true))
+    }
+
+    /// `Set.prototype.isSubsetOf ( other )`
+    ///
+    /// This method checks whether the current Set is a subset of the given iterable `other`.
+    /// It returns `true` if all elements of the current Set are present in the given iterable,
+    /// and `false` otherwise.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issubsetof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSubsetOf
+    pub(crate) fn is_subset_of(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSubsetOf called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Let otherRec be ? GetSetRecord(other).
+        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+
+        // 3. If SetDataSize(O.[[SetData]]) > otherRec.[[Size]], return false.
+        if Self::get_size_full(this)? > other_rec.size {
+            return Ok(JsValue::from(false));
+        }
+
+        // 4. For each element in the current set
+        for value in set.iter() {
+            // 5. Check if the element exists in otherRec using its has method
+            let has_result =
+                other_rec
+                    .has
+                    .call(&other_rec.object.clone().into(), &[value.clone()], context)?;
+            if !has_result.to_boolean() {
+                return Ok(JsValue::from(false));
+            }
+        }
+
+        // 6. Return true if all elements were found
+        Ok(JsValue::from(true))
+    }
+
+    /// `Set.prototype.isSupersetOf ( other )`
+    ///
+    /// This method checks whether the current Set is a superset of the given iterable `other`.
+    /// It returns `true` if the current Set contains all elements from the given iterable,
+    /// and `false` otherwise.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.issupersetof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/isSupersetOf
+    pub(crate) fn is_superset_of(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.isSupersetOf called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Let otherRec be ? GetSetRecord(other).
+        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+
+        // 3. If SetDataSize(O.[[SetData]]) < otherRec.[[Size]], return false.
+        if Self::get_size_full(this)? < other_rec.size {
+            return Ok(JsValue::from(false));
+        }
+
+        // 4. Get an iterator from the other set's keys method
+        let keys_result = other_rec
+            .keys
+            .call(&other_rec.object.into(), &[], context)?;
+        let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+
+        // 5. Check each element from other set
+        while let Some(value) = iterator_record.step_value(context)? {
+            if !set.contains(&value) {
+                return Ok(JsValue::from(false));
+            }
+        }
+
+        // 6. Return true if all elements were found
+        Ok(JsValue::from(true))
+    }
+
+    /// ` Set.prototype.symmetricDifference(other)`
+    ///
+    /// Returns a new set containing the symmetric difference between the current set (`this`)
+    /// and the provided set (`other`)
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.symmerticDifference
+    /// [mdn]: https://developer.mozilla.org/en-USSet/docs/Web/JavaScript/Reference/Global_Objects/Set/symmetricDifference
+    pub(crate) fn symmetric_difference(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Method Set.prototype.symmetricDifference called on incompatible receiver",
+                )
+                .into());
+        };
+
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+
+        // 4. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+        let keys_result = other_rec
+            .keys
+            .call(&other_rec.object.clone().into(), &[], context)?;
+        let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+
+        // 5. Let resultSetData be a copy of O.[[SetData]].
+        let mut result_set = set.clone();
+
+        // 6. Let next be not-started.
+        // 7. Repeat, while next is not done,
+        while let Some(next_value) = iterator_record.step_value(context)? {
+            // a. Set next to ? IteratorStepValue(keysIter).
+            // b. If next is not done, then
+            // i. Set next to CanonicalizeKeyedCollectionKey(next).
+            let next = match next_value.as_number() {
+                Some(n) if n.is_zero() => JsValue::new(0),
+                _ => next_value,
+            };
+
+            // ii. Let resultIndex be SetDataIndex(resultSetData, next).
+            // iii. If resultIndex is not-found, let alreadyInResult be false.
+            // Otherwise let alreadyInResult be true.
+            let already_in_result = result_set.contains(&next);
+
+            // iv. If SetDataHas(O.[[SetData]], next) is true, then
+            if set.contains(&next) {
+                // 1. If alreadyInResult is true, set resultSetData[resultIndex] to empty.
+                if already_in_result {
+                    result_set.delete(&next);
+                }
+            } else {
+                // v. Else,
+                // 1. If alreadyInResult is false, append next to resultSetData.
+                if !already_in_result {
+                    result_set.add(next);
+                }
+            }
+        }
+
+        // 8. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
+        // 9. Set result.[[SetData]] to resultSetData.
+        // 10. Return result.
+        Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
+    }
+
+    /// `Set.prototype.union ( other )`
+    ///
+    /// Returns a new set containing the union of the elements in the current set (`this`)
+    /// and the set provided as the argument (`other`).
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.union
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/union
+    pub(crate) fn union(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.union called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Let otherRec be ? GetSetRecord(other).
+        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+
+        // 3. Create a new set with all elements from the current set
+        let mut result_set = set.clone();
+
+        // 4. Get an iterator from the other set's keys method
+        let keys_result = other_rec
+            .keys
+            .call(&other_rec.object.clone().into(), &[], context)?;
+        let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+
+        // 5. Add each element from other set to the result
+        while let Some(value) = iterator_record.step_value(context)? {
+            result_set.add(value);
+        }
+
+        // 6. Return the new Set with the union of elements
+        Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
+    }
+
+    /// `Set.prototype.intersection ( other )`
+    ///
+    /// This method returns a new Set containing all elements that are present in both
+    /// the current Set and the given iterable `other`.
+    ///
+    /// It effectively computes the intersection of the two Sets.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    /// - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.intersection
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/intersection
+    pub(crate) fn intersection(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.intersection called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Let otherRec be ? GetSetRecord(other).
+        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+
+        // Create an empty result set.
+        let mut result_set = OrderedSet::new();
+
+        // Optimize by iterating over the smaller set
+        if Self::get_size_full(this)? <= other_rec.size {
+            for value in set.iter() {
+                // Check if the element exists in otherRec using its has method
+                let has_result = other_rec.has.call(
+                    &other_rec.object.clone().into(),
+                    &[value.clone()],
+                    context,
+                )?;
+                if has_result.to_boolean() {
+                    result_set.add(value.clone());
+                }
+            }
+        } else {
+            // Get an iterator from the other set's keys method
+            let keys_result =
+                other_rec
+                    .keys
+                    .call(&other_rec.object.clone().into(), &[], context)?;
+            let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+
+            while let Some(value) = iterator_record.step_value(context)? {
+                if set.contains(&value) {
+                    result_set.add(value);
+                }
+            }
+        }
+
+        // Return the result set.
+        Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
+    }
+
+    /// ` Set.prototype.difference ( other ) `
+    ///
+    /// This method returns a new Set containing all elements that are in the current Set
+    /// but not in the given iterable `other`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.difference
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
+    pub(crate) fn difference(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let S be the this value.
+        let Some(set) = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
+                .into());
+        };
+
+        // 2. Let otherRec be ? GetSetRecord(other).
+        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+
+        // 3. Let resultSetData be a copy of O.[[SetData]].
+        let mut result_set = set.clone();
+
+        // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then:
+        if Self::get_size_full(this)? <= other_rec.size {
+            // Iterate over elements of the current set.
+            let elements: Vec<_> = result_set.iter().cloned().collect();
+            for element in elements {
+                // Check if the element exists in otherRec using its has method
+                let has_result = other_rec.has.call(
+                    &other_rec.object.clone().into(),
+                    &[element.clone()],
+                    context,
+                )?;
+                if has_result.to_boolean() {
+                    result_set.delete(&element);
+                }
+            }
+        } else {
+            // Get an iterator from the other set's keys method
+            let keys_result =
+                other_rec
+                    .keys
+                    .call(&other_rec.object.clone().into(), &[], context)?;
+            let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+
+            while let Some(element) = iterator_record.step_value(context)? {
+                result_set.delete(&element);
+            }
+        }
+
+        // 5. Return a new set with the updated resultSetData.
+        Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
