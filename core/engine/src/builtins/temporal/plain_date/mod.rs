@@ -293,7 +293,7 @@ impl BuiltInConstructor for PlainDate {
                     .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
             .transpose()?
-            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .map(|s| Calendar::try_from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
 
@@ -424,7 +424,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.day_of_week().into())
+        Ok(date.inner.day_of_week()?.into())
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.dayOfYear`
@@ -454,7 +454,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.week_of_year()?.into_or_undefined())
+        Ok(date.inner.week_of_year().into_or_undefined())
     }
 
     /// 3.3.13 get `Temporal.PlainDate.prototype.yearOfWeek`
@@ -469,7 +469,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.year_of_week()?.into_or_undefined())
+        Ok(date.inner.year_of_week().into_or_undefined())
     }
 
     /// 3.3.14 get `Temporal.PlainDate.prototype.daysInWeek`

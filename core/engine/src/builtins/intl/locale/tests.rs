@@ -1,13 +1,12 @@
-use icu_datetime::{
-    options::preferences::HourCycle, pattern::CoarseHourCycle,
-    provider::calendar::TimeLengthsV1Marker,
-};
-use icu_locid::{
-    extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
-    locale, Locale,
+use icu_datetime::provider::{calendar::TimeLengthsV1Marker, pattern::CoarseHourCycle};
+use icu_locale::{
+    extensions_unicode_key as key, extensions_unicode_value as value, locale,
+    preferences::extensions::unicode::keywords::HourCycle, Locale,
 };
 use icu_plurals::provider::CardinalV1Marker;
-use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
+use icu_provider::{
+    DataIdentifierBorrowed, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
+};
 
 use crate::{
     builtins::intl::{
@@ -36,23 +35,16 @@ impl Service for TestService {
             .unicode
             .keywords
             .get(&key!("hc"))
-            .and_then(Value::as_single_subtag)
-            .and_then(|s| match &**s {
-                "h11" => Some(HourCycle::H11),
-                "h12" => Some(HourCycle::H12),
-                "h23" => Some(HourCycle::H23),
-                "h24" => Some(HourCycle::H24),
-                _ => None,
-            });
+            .and_then(|v| HourCycle::try_from(v).ok());
         let hc = options.hc.or(loc_hc).unwrap_or_else(|| {
+            let locale = &DataLocale::from(&*locale);
             let req = DataRequest {
-                locale: &DataLocale::from(&*locale),
+                id: DataIdentifierBorrowed::for_locale(locale),
                 metadata: DataRequestMetadata::default(),
             };
             let preferred = DataProvider::<TimeLengthsV1Marker>::load(provider, req)
                 .unwrap()
-                .take_payload()
-                .unwrap()
+                .payload
                 .get()
                 .preferred_hour_cycle;
             match preferred {
@@ -60,20 +52,18 @@ impl Service for TestService {
                 CoarseHourCycle::H23H24 => HourCycle::H23,
             }
         });
-        let hc_value = match hc {
-            HourCycle::H11 => value!("h11"),
-            HourCycle::H12 => value!("h12"),
-            HourCycle::H23 => value!("h23"),
-            HourCycle::H24 => value!("h24"),
-        };
-        locale.extensions.unicode.keywords.set(key!("hc"), hc_value);
+        locale
+            .extensions
+            .unicode
+            .keywords
+            .set(key!("hc"), hc.into());
         options.hc = Some(hc);
     }
 }
 
 #[test]
 fn locale_resolution() {
-    let provider = IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer());
+    let provider = IntlProvider::try_new_buffer(boa_icu_provider::buffer());
     let mut default = default_locale(provider.locale_canonicalizer().unwrap());
     default
         .extensions

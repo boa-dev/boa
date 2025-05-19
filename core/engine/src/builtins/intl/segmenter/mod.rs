@@ -2,19 +2,19 @@ use std::ops::Range;
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use icu_collator::provider::CollationDiacriticsV1Marker;
-use icu_locid::Locale;
-use icu_segmenter::{GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter};
+use icu_collator::provider::CollationDiacriticsV1;
+use icu_locale::Locale;
+use icu_segmenter::{
+    options::{SentenceBreakOptions, WordBreakOptions},
+    GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter,
+};
 
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
-    context::{
-        icu::ErasedProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectInitializer},
     property::Attribute,
@@ -66,14 +66,26 @@ impl NativeSegmenter {
     pub(crate) fn segment<'l, 's>(&'l self, input: JsStr<'s>) -> NativeSegmentIterator<'l, 's> {
         match input.variant() {
             crate::string::JsStrVariant::Latin1(input) => match self {
-                Self::Grapheme(g) => NativeSegmentIterator::GraphemeLatin1(g.segment_latin1(input)),
-                Self::Word(w) => NativeSegmentIterator::WordLatin1(w.segment_latin1(input)),
-                Self::Sentence(s) => NativeSegmentIterator::SentenceLatin1(s.segment_latin1(input)),
+                Self::Grapheme(g) => {
+                    NativeSegmentIterator::GraphemeLatin1(g.as_borrowed().segment_latin1(input))
+                }
+                Self::Word(w) => {
+                    NativeSegmentIterator::WordLatin1(w.as_borrowed().segment_latin1(input))
+                }
+                Self::Sentence(s) => {
+                    NativeSegmentIterator::SentenceLatin1(s.as_borrowed().segment_latin1(input))
+                }
             },
             crate::string::JsStrVariant::Utf16(input) => match self {
-                Self::Grapheme(g) => NativeSegmentIterator::GraphemeUtf16(g.segment_utf16(input)),
-                Self::Word(w) => NativeSegmentIterator::WordUtf16(w.segment_utf16(input)),
-                Self::Sentence(s) => NativeSegmentIterator::SentenceUtf16(s.segment_utf16(input)),
+                Self::Grapheme(g) => {
+                    NativeSegmentIterator::GraphemeUtf16(g.as_borrowed().segment_utf16(input))
+                }
+                Self::Word(w) => {
+                    NativeSegmentIterator::WordUtf16(w.as_borrowed().segment_utf16(input))
+                }
+                Self::Sentence(s) => {
+                    NativeSegmentIterator::SentenceUtf16(s.as_borrowed().segment_utf16(input))
+                }
             },
         }
     }
@@ -82,7 +94,7 @@ impl NativeSegmenter {
 impl Service for Segmenter {
     // TODO: Track https://github.com/unicode-org/icu4x/issues/3284
     // and replace when segmenters are locale-aware.
-    type LangMarker = CollationDiacriticsV1Marker;
+    type LangMarker = CollationDiacriticsV1;
 
     type LocaleOptions = ();
 }
@@ -167,31 +179,29 @@ impl BuiltInConstructor for Segmenter {
             get_option(&options, js_string!("granularity"), context)?.unwrap_or_default();
 
         // 13. Set segmenter.[[SegmenterGranularity]] to granularity.
-        let native = match (granularity, context.intl_provider().erased_provider()) {
-            (Granularity::Grapheme, ErasedProvider::Any(a)) => {
-                GraphemeClusterSegmenter::try_new_with_any_provider(a)
-                    .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
-            }
-            (Granularity::Word, ErasedProvider::Any(a)) => {
-                WordSegmenter::try_new_auto_with_any_provider(a)
-                    .map(|s| NativeSegmenter::Word(Box::new(s)))
-            }
-            (Granularity::Sentence, ErasedProvider::Any(a)) => {
-                SentenceSegmenter::try_new_with_any_provider(a)
-                    .map(|s| NativeSegmenter::Sentence(Box::new(s)))
-            }
-            (Granularity::Grapheme, ErasedProvider::Buffer(b)) => {
-                GraphemeClusterSegmenter::try_new_with_buffer_provider(b)
-                    .map(|s| NativeSegmenter::Grapheme(Box::new(s)))
-            }
-            (Granularity::Word, ErasedProvider::Buffer(b)) => {
-                WordSegmenter::try_new_auto_with_buffer_provider(b)
-                    .map(|s| NativeSegmenter::Word(Box::new(s)))
-            }
-            (Granularity::Sentence, ErasedProvider::Buffer(b)) => {
-                SentenceSegmenter::try_new_with_buffer_provider(b)
-                    .map(|s| NativeSegmenter::Sentence(Box::new(s)))
-            }
+        let native = match granularity {
+            Granularity::Grapheme => GraphemeClusterSegmenter::try_new_with_buffer_provider(
+                &context.intl_provider().erased_provider(),
+            )
+            .map(|s| NativeSegmenter::Grapheme(Box::new(s))),
+            Granularity::Word => WordSegmenter::try_new_auto_with_buffer_provider(
+                &context.intl_provider().erased_provider(),
+                {
+                    let mut options = WordBreakOptions::default();
+                    options.content_locale = Some(&locale.id);
+                    options
+                },
+            )
+            .map(|s| NativeSegmenter::Word(Box::new(s))),
+            Granularity::Sentence => SentenceSegmenter::try_new_with_buffer_provider(
+                &context.intl_provider().erased_provider(),
+                {
+                    let mut options = SentenceBreakOptions::default();
+                    options.content_locale = Some(&locale.id);
+                    options
+                },
+            )
+            .map(|s| NativeSegmenter::Sentence(Box::new(s))),
         }
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 

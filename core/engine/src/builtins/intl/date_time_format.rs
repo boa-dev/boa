@@ -9,7 +9,7 @@
 
 use crate::{
     builtins::{
-        options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -23,21 +23,6 @@ use crate::{
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use icu_datetime::options::preferences::HourCycle;
-
-impl OptionType for HourCycle {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
-        match value.to_string(context)?.to_std_string_escaped().as_str() {
-            "h11" => Ok(Self::H11),
-            "h12" => Ok(Self::H12),
-            "h23" => Ok(Self::H23),
-            "h24" => Ok(Self::H24),
-            _ => Err(JsNativeError::range()
-                .with_message("provided string was not `h11`, `h12`, `h23` or `h24`")
-                .into()),
-        }
-    }
-}
 
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]

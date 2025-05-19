@@ -1454,7 +1454,7 @@ impl String {
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
 
-                collator.compare_utf16(&s, &that_value) as i8
+                collator.as_borrowed().compare_utf16(&s, &that_value) as i8
             }
 
             // Default to common comparison if the user doesn't have `Intl` enabled.
@@ -1761,8 +1761,8 @@ impl String {
             };
             // TODO: Small hack to make lookups behave.
             // We would really like to be able to use `icu_casemap::provider::CaseMapV1Marker`
-            use icu_locid::Locale;
-            use icu_plurals::provider::OrdinalV1Marker;
+            use icu_locale::Locale;
+            use icu_plurals::provider::PluralsOrdinalV1;
 
             // 1. Let O be ? RequireObjectCoercible(this value).
             let this = this.require_object_coercible()?;
@@ -1797,11 +1797,11 @@ impl String {
             //    language tags if they support case mapping for additional locales.
             // 6. Let match be LookupMatchingLocaleByPrefix(availableLocales, noExtensionsLocale).
             // 7. If match is not undefined, let locale be match.[[locale]]; else let locale be "und".
-            let locale = lookup_matching_locale_by_prefix::<OrdinalV1Marker>(
+            let locale = lookup_matching_locale_by_prefix::<PluralsOrdinalV1>(
                 [requested_locale],
                 context.intl_provider(),
             )
-            .unwrap_or(Locale::UND);
+            .unwrap_or(Locale::UNKNOWN);
 
             let casemapper = context.intl_provider().case_mapper()?;
 
@@ -1811,11 +1811,11 @@ impl String {
                     // 10. Else,
                     //     a. Assert: targetCase is upper.
                     //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.uppercase_to_string(&segment, &locale.id)
+                    casemapper.as_borrowed().uppercase_to_string(&segment, &locale.id).into()
                 } else {
                     // 9. If targetCase is lower, then
                     //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.lowercase_to_string(&segment, &locale.id)
+                    casemapper.as_borrowed().lowercase_to_string(&segment, &locale.id).into()
                 }
             });
 
@@ -2194,10 +2194,10 @@ impl String {
         let s = s.iter().collect::<Vec<_>>();
 
         let result = match normalization {
-            Normalization::Nfc => normalizers.nfc.normalize_utf16(&s),
-            Normalization::Nfd => normalizers.nfd.normalize_utf16(&s),
-            Normalization::Nfkc => normalizers.nfkc.normalize_utf16(&s),
-            Normalization::Nfkd => normalizers.nfkd.normalize_utf16(&s),
+            Normalization::Nfc => normalizers.nfc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfd => normalizers.nfd.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkc => normalizers.nfkc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkd => normalizers.nfkd.as_borrowed().normalize_utf16(&s),
         };
 
         // 7. Return ns.

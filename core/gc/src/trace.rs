@@ -519,7 +519,7 @@ unsafe impl<T: Trace> Trace for OnceCell<T> {
 
 #[cfg(feature = "icu")]
 mod icu {
-    use icu_locid::{LanguageIdentifier, Locale};
+    use icu_locale_core::{LanguageIdentifier, Locale};
 
     use crate::{Finalize, Trace};
 

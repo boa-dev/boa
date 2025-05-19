@@ -407,7 +407,7 @@ impl BuiltInConstructor for PlainDateTime {
                     .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
             .transpose()?
-            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .map(|s| Calendar::try_from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
 
@@ -619,7 +619,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.day_of_week().into())
+        Ok(dt.inner.day_of_week()?.into())
     }
 
     /// 5.3.17 get `Temporal.PlainDatedt.prototype.dayOfYear`
@@ -643,7 +643,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.week_of_year()?.into_or_undefined())
+        Ok(dt.inner.week_of_year().into_or_undefined())
     }
 
     /// 5.3.19 get `Temporal.PlainDatedt.prototype.yearOfWeek`
@@ -655,7 +655,7 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        Ok(dt.inner.year_of_week()?.into_or_undefined())
+        Ok(dt.inner.year_of_week().into_or_undefined())
     }
 
     /// 5.3.20 get `Temporal.PlainDatedt.prototype.daysInWeek`

@@ -24,8 +24,9 @@
 extern crate alloc;
 use core::fmt::Debug;
 
-use icu_provider::{BufferMarker, BufferProvider, DataError, DataErrorKind, DataKey, DataResponse};
-use icu_provider_adapters::{fallback::LocaleFallbackProvider, fork::MultiForkByKeyProvider};
+use icu_locale::LocaleFallbacker;
+use icu_provider::prelude::*;
+use icu_provider_adapters::{fallback::LocaleFallbackProvider, fork::MultiForkByMarkerProvider};
 use icu_provider_blob::BlobDataProvider;
 use once_cell::sync::{Lazy, OnceCell};
 
@@ -36,7 +37,7 @@ use once_cell::sync::{Lazy, OnceCell};
 struct LazyBufferProvider {
     provider: OnceCell<BlobDataProvider>,
     bytes: &'static [u8],
-    valid_keys: &'static [DataKey],
+    valid_markers: &'static [DataMarkerInfo],
 }
 
 impl Debug for LazyBufferProvider {
@@ -44,19 +45,19 @@ impl Debug for LazyBufferProvider {
         f.debug_struct("LazyBufferProvider")
             .field("provider", &self.provider)
             .field("bytes", &"[...]")
-            .field("valid_keys", &self.valid_keys)
+            .field("valid_keys", &self.valid_markers)
             .finish()
     }
 }
 
-impl BufferProvider for LazyBufferProvider {
-    fn load_buffer(
+impl DynamicDataProvider<BufferMarker> for LazyBufferProvider {
+    fn load_data(
         &self,
-        key: DataKey,
-        req: icu_provider::DataRequest<'_>,
+        marker: DataMarkerInfo,
+        req: DataRequest<'_>,
     ) -> Result<DataResponse<BufferMarker>, DataError> {
-        if !self.valid_keys.contains(&key) {
-            return Err(DataErrorKind::MissingDataKey.with_key(key));
+        if !self.valid_markers.contains(&marker) {
+            return Err(DataErrorKind::MarkerNotFound.with_marker(marker));
         }
 
         let Ok(provider) = self
@@ -66,7 +67,28 @@ impl BufferProvider for LazyBufferProvider {
             return Err(DataErrorKind::Custom.with_str_context("invalid blob data provider"));
         };
 
-        provider.load_buffer(key, req)
+        provider.load_data(marker, req)
+    }
+}
+
+impl DynamicDryDataProvider<BufferMarker> for LazyBufferProvider {
+    fn dry_load_data(
+        &self,
+        marker: DataMarkerInfo,
+        req: DataRequest<'_>,
+    ) -> Result<DataResponseMetadata, DataError> {
+        if !self.valid_markers.contains(&marker) {
+            return Err(DataErrorKind::MarkerNotFound.with_marker(marker));
+        }
+
+        let Ok(provider) = self
+            .provider
+            .get_or_try_init(|| BlobDataProvider::try_new_from_static_blob(self.bytes))
+        else {
+            return Err(DataErrorKind::Custom.with_str_context("invalid blob data provider"));
+        };
+
+        provider.dry_load_data(marker, req)
     }
 }
 
@@ -82,34 +104,62 @@ macro_rules! provider_from_icu_crate {
                     stringify!($service),
                     ".postcard",
                 )),
-                valid_keys: $service::provider::KEYS,
+                valid_markers: $service::provider::MARKERS,
             }
         }
     };
 }
 
 /// Boa's default buffer provider.
-static PROVIDER: Lazy<LocaleFallbackProvider<MultiForkByKeyProvider<LazyBufferProvider>>> =
+static PROVIDER: Lazy<LocaleFallbackProvider<MultiForkByMarkerProvider<LazyBufferProvider>>> =
     Lazy::new(|| {
-        let provider = MultiForkByKeyProvider::new(alloc::vec![
+        let provider = MultiForkByMarkerProvider::new(alloc::vec![
             provider_from_icu_crate!(icu_casemap),
             provider_from_icu_crate!(icu_collator),
             provider_from_icu_crate!(icu_datetime),
             provider_from_icu_crate!(icu_decimal),
             provider_from_icu_crate!(icu_list),
-            provider_from_icu_crate!(icu_locid_transform),
+            provider_from_icu_crate!(icu_locale),
             provider_from_icu_crate!(icu_normalizer),
             provider_from_icu_crate!(icu_plurals),
             provider_from_icu_crate!(icu_segmenter),
         ]);
-        LocaleFallbackProvider::try_new_with_buffer_provider(provider)
-            .expect("The statically compiled data file should be valid.")
+        let fallbacker = LocaleFallbacker::try_new_with_buffer_provider(&provider)
+            .expect("The statically compiled data file should be valid.");
+        LocaleFallbackProvider::new(provider, fallbacker)
     });
 
-/// Gets the default data provider stored as a [`BufferProvider`].
+#[derive(Debug)]
+struct Wrapper<T: 'static>(&'static T);
+
+impl<T> DynamicDataProvider<BufferMarker> for Wrapper<T>
+where
+    T: DynamicDataProvider<BufferMarker>,
+{
+    fn load_data(
+        &self,
+        marker: DataMarkerInfo,
+        req: DataRequest<'_>,
+    ) -> Result<DataResponse<BufferMarker>, DataError> {
+        self.0.load_data(marker, req)
+    }
+}
+
+impl<T> DynamicDryDataProvider<BufferMarker> for Wrapper<T>
+where T: DynamicDryDataProvider<BufferMarker> {
+    fn dry_load_data(
+        &self,
+        marker: DataMarkerInfo,
+        req: DataRequest<'_>,
+    ) -> Result<DataResponseMetadata, DataError> {
+        self.0.dry_load_data(marker, req)
+    }
+}
+
+/// Gets the default data provider stored as a [`DynamicDryDataProvider<BufferMarker>`].
 ///
-/// [`BufferProvider`]: icu_provider::BufferProvider
+/// [`DynamicDryDataProvider<BufferMarker>`]: icu_provider::DynamicDryDataProvider
 #[must_use]
-pub fn buffer() -> &'static impl BufferProvider {
-    &*PROVIDER
+pub fn buffer() -> impl DynamicDryDataProvider<BufferMarker> {
+    Wrapper(&*PROVIDER)
 }
