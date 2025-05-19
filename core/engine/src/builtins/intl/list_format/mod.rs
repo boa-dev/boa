@@ -2,9 +2,12 @@ use std::fmt::Write;
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
-use icu_locid::Locale;
-use icu_provider::DataLocale;
+use icu_list::{
+    provider::AndListV2Marker, ListFormatter, ListFormatterOptions, ListFormatterPreferences,
+    ListLength,
+};
+use icu_locale::Locale;
+use icu_provider::any::AsDynamicDataProviderAnyMarkerWrap;
 
 use crate::{
     builtins::{
@@ -45,7 +48,7 @@ pub(crate) struct ListFormat {
 }
 
 impl Service for ListFormat {
-    type LangMarker = AndListV1Marker;
+    type LangMarker = AndListV2Marker;
 
     type LocaleOptions = ();
 }
@@ -148,25 +151,26 @@ impl BuiltInConstructor for ListFormat {
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
         // 17. Let dataLocaleTypes be dataLocaleData.[[<type>]].
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[<style>]].
-        let data_locale = &DataLocale::from(&locale);
+        let Ok(prefs) = ListFormatterPreferences::try_from(&locale);
+        let options = ListFormatterOptions::default().with_length(style);
         let formatter = match (typ, context.intl_provider().erased_provider()) {
             (ListFormatType::Conjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_and_with_length_with_any_provider(a, data_locale, style)
+                ListFormatter::try_new_and_with_any_provider(&a.as_any_provider(), prefs, options)
             }
             (ListFormatType::Disjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_or_with_length_with_any_provider(a, data_locale, style)
+                ListFormatter::try_new_or_with_any_provider(&a.as_any_provider(), prefs, options)
             }
             (ListFormatType::Unit, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_unit_with_length_with_any_provider(a, data_locale, style)
+                ListFormatter::try_new_unit_with_any_provider(&a.as_any_provider(), prefs, options)
             }
             (ListFormatType::Conjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_and_with_length_with_buffer_provider(b, data_locale, style)
+                ListFormatter::try_new_and_with_buffer_provider(b, prefs, options)
             }
             (ListFormatType::Disjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_or_with_length_with_buffer_provider(b, data_locale, style)
+                ListFormatter::try_new_or_with_buffer_provider(b, prefs, options)
             }
             (ListFormatType::Unit, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_unit_with_length_with_buffer_provider(b, data_locale, style)
+                ListFormatter::try_new_unit_with_buffer_provider(b, prefs, options)
             }
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;

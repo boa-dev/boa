@@ -2,19 +2,18 @@ use std::borrow::Cow;
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use fixed_decimal::{FixedDecimal, FloatPrecision, SignDisplay};
+use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
-    options::{FixedDecimalFormatterOptions, GroupingStrategy},
-    provider::DecimalSymbolsV1Marker,
-    FixedDecimalFormatter, FormattedFixedDecimal,
+    options::{DecimalFormatterOptions, GroupingStrategy},
+    provider::DecimalSymbolsV1,
+    DecimalFormatter, FormattedDecimal,
 };
 
 mod options;
-use icu_locid::{
+use icu_locale::{
     extensions::unicode::{key, Value},
     Locale,
 };
-use icu_provider::DataLocale;
 use num_bigint::BigInt;
 use num_traits::Num;
 pub(crate) use options::*;
@@ -30,10 +29,7 @@ use crate::{
         builder::BuiltInBuilder, options::get_option, string::is_trimmable_whitespace,
         BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
-    context::{
-        icu::ErasedProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
@@ -55,7 +51,7 @@ mod tests;
 #[boa_gc(unsafe_empty_trace)]
 pub(crate) struct NumberFormat {
     locale: Locale,
-    formatter: FixedDecimalFormatter,
+    formatter: DecimalFormatter,
     numbering_system: Option<Value>,
     unit_options: UnitFormatOptions,
     digit_options: DigitFormatOptions,
@@ -73,7 +69,7 @@ impl NumberFormat {
     ///
     /// [full]: https://tc39.es/ecma402/#sec-formatnumber
     /// [parts]: https://tc39.es/ecma402/#sec-formatnumbertoparts
-    fn format<'a>(&'a self, value: &'a mut FixedDecimal) -> FormattedFixedDecimal<'a> {
+    fn format<'a>(&'a self, value: &'a mut Decimal) -> FormattedDecimal<'a> {
         // TODO: Missing support from ICU4X for Percent/Currency/Unit formatting.
         // TODO: Missing support from ICU4X for Scientific/Engineering/Compact notation.
 
@@ -90,7 +86,7 @@ pub(super) struct NumberFormatLocaleOptions {
 }
 
 impl Service for NumberFormat {
-    type LangMarker = DecimalSymbolsV1Marker;
+    type LangMarker = DecimalSymbolsV1;
 
     type LocaleOptions = NumberFormatLocaleOptions;
 
@@ -371,19 +367,14 @@ impl BuiltInConstructor for NumberFormat {
         let sign_display =
             get_option(&options, js_string!("signDisplay"), context)?.unwrap_or(SignDisplay::Auto);
 
-        let mut options = FixedDecimalFormatterOptions::default();
-        options.grouping_strategy = use_grouping;
+        let mut options = DecimalFormatterOptions::default();
+        options.grouping_strategy = Some(use_grouping);
 
-        let data_locale = &DataLocale::from(&locale);
-
-        let formatter = match context.intl_provider().erased_provider() {
-            ErasedProvider::Any(a) => {
-                FixedDecimalFormatter::try_new_with_any_provider(a, data_locale, options)
-            }
-            ErasedProvider::Buffer(b) => {
-                FixedDecimalFormatter::try_new_with_buffer_provider(b, data_locale, options)
-            }
-        }
+        let formatter = DecimalFormatter::try_new_with_buffer_provider(
+            context.intl_provider().erased_provider(),
+            (&locale).into(),
+            options,
+        )
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 
         let number_format = JsObject::from_proto_and_data_with_shared_shape(
@@ -765,19 +756,16 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
 /// Abstract operation [`ToIntlMathematicalValue ( value )`][spec].
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-tointlmathematicalvalue
-fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResult<FixedDecimal> {
+fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResult<Decimal> {
     // 1. Let primValue be ? ToPrimitive(value, number).
     let prim_value = value.to_primitive(context, PreferredType::Number)?;
 
-    // TODO: Add support in `FixedDecimal` for infinity and NaN, which
+    // TODO: Add support in `Decimal` for infinity and NaN, which
     // should remove the returned errors.
     match prim_value.variant() {
         // 2. If Type(primValue) is BigInt, return ℝ(primValue).
-        JsVariant::BigInt(bi) => {
-            let bi = bi.to_string();
-            FixedDecimal::try_from(bi.as_bytes())
-                .map_err(|err| JsNativeError::range().with_message(err.to_string()).into())
-        }
+        JsVariant::BigInt(bi) => Decimal::try_from_str(&bi.to_string())
+            .map_err(|err| JsNativeError::range().with_message(err.to_string()).into()),
         // 3. If Type(primValue) is String, then
         //     a. Let str be primValue.
         JsVariant::String(s) => {
@@ -804,7 +792,7 @@ fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResul
             // c. Let str be Number::toString(x, 10).
             let x = prim_value.to_number(context)?;
 
-            FixedDecimal::try_from_f64(x, FloatPrecision::Floating)
+            Decimal::try_from_f64(x, FloatPrecision::RoundTrip)
                 .map_err(|err| JsNativeError::range().with_message(err.to_string()).into())
         }
     }
@@ -814,9 +802,9 @@ fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResul
 /// to a `FixedDecimal`.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-stringtonumber
-// TODO: Introduce `Infinity` and `NaN` to `FixedDecimal` to make this operation
+// TODO: Introduce `Infinity` and `NaN` to `Decimal` to make this operation
 // infallible.
-pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<FixedDecimal> {
+pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<Decimal> {
     // 1. Let text be ! StringToCodePoints(str).
     // 2. Let literal be ParseText(text, StringNumericLiteral).
     let Ok(string) = string.to_std_string() else {
@@ -826,7 +814,7 @@ pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<FixedDecim
     // 4. Return StringNumericValue of literal.
     let string = string.trim_matches(is_trimmable_whitespace);
     match string {
-        "" => return Some(FixedDecimal::from(0)),
+        "" => return Some(Decimal::from(0)),
         "-Infinity" | "Infinity" | "+Infinity" => return None,
         _ => {}
     }
@@ -857,5 +845,5 @@ pub(crate) fn js_string_to_fixed_decimal(string: &JsString) -> Option<FixedDecim
         Cow::Borrowed(string)
     };
 
-    FixedDecimal::try_from(s.as_bytes()).ok()
+    Decimal::try_from_str(&s).ok()
 }
