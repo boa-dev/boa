@@ -120,7 +120,7 @@ fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
 
 /// [`CanonicalizeKeyedCollectionKey ( key )`][spec]
 ///
-/// The abstract operation CanonicalizeKeyedCollectionKey takes argument key (an ECMAScript
+/// The abstract operation `CanonicalizeKeyedCollectionKey` takes argument key (an ECMAScript
 /// language value) and returns an ECMAScript language value. It performs the following steps
 /// when called:
 ///
@@ -785,7 +785,7 @@ impl Set {
                     "Method Set.prototype.symmetricDifference called on incompatible receiver",
                 )
                 .into());
-        };
+        }
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
@@ -869,7 +869,7 @@ impl Set {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.union called on incompatible receiver")
                 .into());
-        };
+        }
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
