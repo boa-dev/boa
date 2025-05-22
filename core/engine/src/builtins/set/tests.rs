@@ -358,14 +358,14 @@ fn symmetric_difference_same_set() {
             let setA = new Set(["JavaScript", "HTML", "CSS"]);
             let setACopy = new Set(["JavaScript", "HTML", "CSS"]);
             "#}),
-        // Используем копию вместо того же объекта, чтобы избежать конфликта заимствований
+        // We use a copy instead of the same object to avoid borrowing conflicts.
         TestAction::assert_with_op("setA.symmetricDifference(setACopy)", |v, _| {
             v.display().to_string() == "Set(0)"
         }),
     ]);
 }
 
-// Альтернативный тест, который создает новый Set с тем же содержимым программно
+// Alternative test that programmatically creates a new Set with the same content.
 #[test]
 fn symmetric_difference_with_identical_content() {
     run_test_actions([
@@ -376,7 +376,7 @@ fn symmetric_difference_with_identical_content() {
                 return new Set(Array.from(setA));
             }
             "#}),
-        // Используем функцию для получения нового объекта Set с тем же содержимым
+        // We use a function to get a new Set object with the same content.
         TestAction::assert_with_op("setA.symmetricDifference(getIdenticalSet())", |v, _| {
             v.display().to_string() == "Set(0)"
         }),

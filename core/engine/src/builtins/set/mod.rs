@@ -31,6 +31,7 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
+use boa_engine::value::IntegerOrInfinity;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 pub(crate) use set_iterator::SetIterator;
@@ -60,29 +61,55 @@ fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
         JsNativeError::typ().with_message("Set operation called with non-object argument")
     })?;
 
-    // 2. Let has = ? Get(obj, "has").
+    // 2. Let rawSize be ? Get(obj, "size").
+    let raw_size = obj.get(js_string!("size"), context)?;
+
+    // 3. Let numSize be ? ToNumber(rawSize).
+    // 4. NOTE: If rawSize is undefined, then numSize will be NaN.
+    let num_size = raw_size.to_number(context)?;
+
+    // 5. If numSize is NaN, throw a TypeError exception.
+    if num_size.is_nan() {
+        return Err(JsNativeError::typ()
+            .with_message("size is undefined")
+            .into());
+    }
+
+    // 6. Let intSize be ! ToIntegerOrInfinity(numSize).
+    let int_size = IntegerOrInfinity::from(num_size);
+    // 7. If intSize < 0, throw a RangeError exception.
+    let size: usize = match int_size {
+        IntegerOrInfinity::NegativeInfinity => {
+            return Err(JsNativeError::range()
+                .with_message("Set size must be non-negative")
+                .into());
+        }
+        IntegerOrInfinity::Integer(size) if size < 0 => {
+            return Err(JsNativeError::range()
+                .with_message("Set size must be non-negative")
+                .into());
+        }
+        IntegerOrInfinity::Integer(size) => size as usize,
+        IntegerOrInfinity::PositiveInfinity => usize::MAX,
+    };
+
+    // 8. Let has be ? Get(obj, "has").
     let has = obj.get(js_string!("has"), context)?;
 
-    // 3. If IsCallable(has) is false, throw a TypeError exception.
+    // 9. If IsCallable(has) is false, throw a TypeError exception.
     let has = has.as_callable().ok_or_else(|| {
         JsNativeError::typ().with_message("Set-like object must have a callable 'has' method")
     })?;
 
-    // 4. Let keys = ? Get(obj, "keys").
+    // 10. Let keys be ? Get(obj, "keys").
     let keys = obj.get(js_string!("keys"), context)?;
 
-    // 5. If IsCallable(keys) is false, throw a TypeError exception.
+    // 11. If IsCallable(keys) is false, throw a TypeError exception.
     let keys = keys.as_callable().ok_or_else(|| {
         JsNativeError::typ().with_message("Set-like object must have a callable 'keys' method")
     })?;
 
-    // 6. Let size = ? Get(obj, "size").
-    let size = obj.get(js_string!("size"), context)?;
-
-    // 7. Let numberSize = ? ToNumber(size).
-    let size = size.to_number(context)? as usize;
-
-    // 8. Return the SetRecord { [[Set]]: obj, [[Size]]: numberSize, [[Has]]: has, [[Keys]]: keys }.
+    // 12. Return a new Set Record { [[SetObject]]: obj, [[Size]]: intSize, [[Has]]: has, [[Keys]]: keys }.
     Ok(SetRecord {
         object: obj.clone(),
         size,
@@ -816,6 +843,23 @@ impl Set {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
+        let Some(lock) = this.as_object().and_then(|o| {
+            o.downcast_mut::<OrderedSet>()
+                .map(|mut set| set.lock(o.clone()))
+        }) else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.entries called on incompatible receiver")
+                .into());
+        };
+
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let other_rec = get_set_record(other, context)?;
+
+        // 4. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+        let mut iterator_record = other.get_iterator_from_method(&other_rec.keys, context)?;
+
+        // 5. Let resultSetData be a copy of O.[[SetData]].
         let Some(set) = this
             .as_object()
             .and_then(JsObject::downcast_ref::<OrderedSet>)
@@ -824,25 +868,25 @@ impl Set {
                 .with_message("Method Set.prototype.union called on incompatible receiver")
                 .into());
         };
+        let mut result_set = OrderedSet::clone(&set);
+        drop(set); // Make sure we don't retain a borrow on this.
 
-        // 2. Let otherRec be ? GetSetRecord(other).
-        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
-
-        // 3. Create a new set with all elements from the current set
-        let mut result_set = set.clone();
-
-        // 4. Get an iterator from the other set's keys method
-        let keys_result = other_rec
-            .keys
-            .call(&other_rec.object.clone().into(), &[], context)?;
-        let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-
-        // 5. Add each element from other set to the result
+        // 6. Let next be not-started.
+        // 7. Repeat, while next is not done,
+        //        a. Set next to ? IteratorStepValue(keysIter).
+        //        b. If next is not done, then
+        //               i. Set next to CanonicalizeKeyedCollectionKey(next).
+        //               ii. If SetDataHas(resultSetData, next) is false, then
+        //                       1. Append next to resultSetData.
         while let Some(value) = iterator_record.step_value(context)? {
-            result_set.add(value);
+            result_set.add(value.clone());
         }
 
-        // 6. Return the new Set with the union of elements
+        drop(lock);
+
+        // 8. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
+        // 9. Set result.[[SetData]] to resultSetData.
+        // 10. Return result.
         Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
     }
 
