@@ -298,9 +298,9 @@ impl Context {
         f: F,
         registers: &mut Registers,
         opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord>
+    ) -> ControlFlow<CompletionRecord, OpStatus>
     where
-        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord, OpStatus>,
     {
         let frame = self.vm.frame();
         let (instruction, _) = frame
@@ -375,15 +375,21 @@ impl Context {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum OpStatus {
+    Finished,
+    Pending,
+}
+
 impl Context {
     fn execute_instruction<F>(
         &mut self,
         f: F,
         registers: &mut Registers,
         opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord>
+    ) -> ControlFlow<CompletionRecord, OpStatus>
     where
-        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord, OpStatus>,
     {
         f(self, registers, opcode)
     }
@@ -393,9 +399,9 @@ impl Context {
         f: F,
         registers: &mut Registers,
         opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord>
+    ) -> ControlFlow<CompletionRecord, OpStatus>
     where
-        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord, OpStatus>,
     {
         #[cfg(feature = "fuzz")]
         {
@@ -422,7 +428,7 @@ impl Context {
         &mut self,
         registers: &mut Registers,
         err: JsError,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
@@ -451,7 +457,7 @@ impl Context {
         let pc = self.vm.frame().pc.saturating_sub(1);
         if self.vm.handle_exception_at(pc) {
             self.vm.pending_exception = Some(err);
-            return ControlFlow::Continue(());
+            return ControlFlow::Continue(OpStatus::Finished);
         }
 
         // Inject realm before crossing the function boundry
@@ -461,7 +467,10 @@ impl Context {
         self.handle_thow(registers)
     }
 
-    fn handle_return(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+    fn handle_return(
+        &mut self,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let frame = self.vm.frame();
         let fp = frame.fp() as usize;
         let exit_early = frame.exit_early();
@@ -475,10 +484,13 @@ impl Context {
         self.vm.push(result);
         self.vm.pop_frame().expect("frame must exist");
         registers.pop_function(self.vm.frame().code_block().register_count as usize);
-        ControlFlow::Continue(())
+        ControlFlow::Continue(OpStatus::Finished)
     }
 
-    fn handle_yield(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+    fn handle_yield(
+        &mut self,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let result = self.vm.take_return_value();
         if self.vm.frame().exit_early() {
             return ControlFlow::Break(CompletionRecord::Return(result));
@@ -487,10 +499,13 @@ impl Context {
         self.vm.push(result);
         self.vm.pop_frame().expect("frame must exist");
         registers.pop_function(self.vm.frame().code_block().register_count as usize);
-        ControlFlow::Continue(())
+        ControlFlow::Continue(OpStatus::Finished)
     }
 
-    fn handle_thow(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+    fn handle_thow(
+        &mut self,
+        registers: &mut Registers,
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let frame = self.vm.frame();
         let mut fp = frame.fp();
         let mut env_fp = frame.env_fp;
@@ -515,7 +530,7 @@ impl Context {
             let exit_early = self.vm.frame.exit_early();
 
             if self.vm.handle_exception_at(pc) {
-                return ControlFlow::Continue(());
+                return ControlFlow::Continue(OpStatus::Finished);
             }
 
             if exit_early {
@@ -535,7 +550,7 @@ impl Context {
         }
         self.vm.environments.truncate(env_fp as usize);
         self.vm.stack.truncate(fp as usize);
-        ControlFlow::Continue(())
+        ControlFlow::Continue(OpStatus::Finished)
     }
 
     /// Runs the current frame to completion, yielding to the caller each time `budget`
@@ -576,7 +591,10 @@ impl Context {
                 registers,
                 opcode,
             ) {
-                ControlFlow::Continue(()) => {}
+                ControlFlow::Continue(OpStatus::Finished) => {}
+                ControlFlow::Continue(OpStatus::Pending) => {
+                    runtime_budget = 0;
+                }
                 ControlFlow::Break(value) => return value,
             }
 
@@ -608,7 +626,7 @@ impl Context {
             let opcode = Opcode::decode(*byte);
 
             match self.execute_one(Self::execute_bytecode_instruction, registers, opcode) {
-                ControlFlow::Continue(()) => {}
+                ControlFlow::Continue(_) => {}
                 ControlFlow::Break(value) => return value,
             }
         }

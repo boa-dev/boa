@@ -7,7 +7,7 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind, Registers},
+    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind, OpStatus, Registers},
     Context, JsArgs, JsValue,
 };
 use boa_gc::Gc;
@@ -26,7 +26,7 @@ impl Await {
         value: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let value = registers.get(value.into());
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
@@ -197,14 +197,14 @@ impl CompletePromiseCapability {
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let Some(promise_capability) = context.vm.frame().promise_capability(registers) else {
             return if context.vm.pending_exception.is_some() {
                 context.handle_thow(registers)
             } else {
-                ControlFlow::Continue(())
+                ControlFlow::Continue(OpStatus::Finished)
             };
         };
 
@@ -225,7 +225,7 @@ impl CompletePromiseCapability {
             .vm
             .set_return_value(promise_capability.promise().clone().into());
 
-        ControlFlow::Continue(())
+        ControlFlow::Continue(OpStatus::Finished)
     }
 }
 
