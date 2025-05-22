@@ -32,6 +32,7 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_engine::value::IntegerOrInfinity;
+use boa_engine::vm::CompletionRecord;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 pub(crate) use set_iterator::SetIterator;
@@ -172,9 +173,9 @@ impl IntrinsicObject for Set {
             .method(Self::has, js_string!("has"), 1)
             .method(Self::difference, js_string!("difference"), 1)
             .method(Self::intersection, js_string!("intersection"), 1)
-            .method(Self::is_disjoint_from, js_string!("isDisjointFrom"), 0)
-            .method(Self::is_subset_of, js_string!("isSubsetOf"), 0)
-            .method(Self::is_superset_of, js_string!("isSupersetOf"), 0)
+            .method(Self::is_disjoint_from, js_string!("isDisjointFrom"), 1)
+            .method(Self::is_subset_of, js_string!("isSubsetOf"), 1)
+            .method(Self::is_superset_of, js_string!("isSupersetOf"), 1)
             .method(
                 Self::symmetric_difference,
                 js_string!("symmetricDifference"),
@@ -541,7 +542,7 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        // 1. Let S be the this value.
+        // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[SetData]]).
         let Some(set) = this
             .as_object()
@@ -552,16 +553,14 @@ impl Set {
                 .into());
         };
 
+        // 3. Set value to CanonicalizeKeyedCollectionKey(key).
         let value = args.get_or_undefined(0);
-        let value = match value.as_number() {
-            Some(n) if n.is_zero() => &JsValue::new(0),
-            _ => value,
-        };
+        let value = canonicalize_keyed_collection_value(value.clone());
 
-        // 3. For each element e of S.[[SetData]], do
-        // a. If e is not empty and SameValueZero(e, value) is true, return true.
-        // 4. Return false.
-        Ok(set.contains(value).into())
+        // 4. For each element e of S.[[SetData]], do
+        //    a. If e is not empty and SameValue(e, value) is true, return true.
+        // 5. Return false.
+        Ok(set.contains(&value).into())
     }
 
     /// `Set.prototype.values( )`
@@ -676,36 +675,59 @@ impl Set {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
-        let Some(set) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<OrderedSet>)
-        else {
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.isSubsetOf called on incompatible receiver")
                 .into());
-        };
+        }
 
-        // 2. Let otherRec be ? GetSetRecord(other).
-        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
-
-        // 3. If SetDataSize(O.[[SetData]]) > otherRec.[[Size]], return false.
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let other_rec = get_set_record(other, context)?;
+        // 4. If SetDataSize(O.[[SetData]]) > otherRec.[[Size]], return false.
         if Self::get_size_full(this)? > other_rec.size {
             return Ok(JsValue::from(false));
         }
 
-        // 4. For each element in the current set
-        for value in set.iter() {
-            // 5. Check if the element exists in otherRec using its has method
-            let has_result =
-                other_rec
-                    .has
-                    .call(&other_rec.object.clone().into(), &[value.clone()], context)?;
-            if !has_result.to_boolean() {
-                return Ok(JsValue::from(false));
+        // 5. Let thisSize be the number of elements in O.[[SetData]].
+        let this_size = Self::get_size_full(this)?;
+        // 6. Let index be 0.
+        let mut index = 0;
+
+        // 7. Repeat, while index < thisSize,
+        while index < this_size {
+            //    a. Let e be O.[[SetData]][index].
+            let Some(set) = this
+                .as_object()
+                .and_then(JsObject::downcast_ref::<OrderedSet>)
+            else {
+                return Err(JsNativeError::typ()
+                    .with_message("Method Set.prototype.isSubsetOf called on incompatible receiver")
+                    .into());
+            };
+            let e = set.get_index(index).cloned();
+            drop(set);
+
+            //    b. Set index to index + 1.
+            index += 1;
+
+            //    c. If e is not empty, then
+            if let Some(e) = e {
+                //       i. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
+                let in_other = other_rec.has.call(other, &[e], context)?.to_boolean();
+
+                //       ii. If inOther is false, return false.
+                if !in_other {
+                    return Ok(JsValue::from(false));
+                }
+
+                //       iii. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
+                //       iv. Set thisSize to the number of elements in O.[[SetData]].
             }
         }
 
-        // 6. Return true if all elements were found
+        // 8. Return true.
         Ok(JsValue::from(true))
     }
 
@@ -727,37 +749,43 @@ impl Set {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
-        let Some(set) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<OrderedSet>)
-        else {
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.isSupersetOf called on incompatible receiver")
                 .into());
-        };
+        }
 
-        // 2. Let otherRec be ? GetSetRecord(other).
-        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let other_rec = get_set_record(other, context)?;
 
-        // 3. If SetDataSize(O.[[SetData]]) < otherRec.[[Size]], return false.
+        // 4. If SetDataSize(O.[[SetData]]) < otherRec.[[Size]], return false.
         if Self::get_size_full(this)? < other_rec.size {
             return Ok(JsValue::from(false));
         }
 
-        // 4. Get an iterator from the other set's keys method
-        let keys_result = other_rec
-            .keys
-            .call(&other_rec.object.into(), &[], context)?;
-        let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+        // 5. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+        let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
 
-        // 5. Check each element from other set
-        while let Some(value) = iterator_record.step_value(context)? {
-            if !set.contains(&value) {
+        // 6. Let next be not-started.
+        // 7. Repeat, while next is not done,
+        //    a. Set next to ? IteratorStepValue(keysIter).
+        while let Some(next) = keys_iter.step_value(context)? {
+            //  b. If next is not done, then
+            //     i. If SetDataHas(O.[[SetData]], next) is false, then
+            if !Self::has(this, &[next], context)?.to_boolean() {
+                //        1. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
+                keys_iter.close(
+                    CompletionRecord::Normal(JsValue::undefined()).consume(),
+                    context,
+                )?;
+                //        2. Return false.
                 return Ok(JsValue::from(false));
             }
         }
 
-        // 6. Return true if all elements were found
+        // 8. Return true.
         Ok(JsValue::from(true))
     }
 
