@@ -40,7 +40,7 @@ use crate::{
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
-    Context, JsBigInt, JsResult, JsString,
+    Context, JsBigInt, JsResult, JsString, NativeObject,
 };
 
 mod conversions;
@@ -158,6 +158,15 @@ impl JsValue {
     #[must_use]
     pub const fn as_object(&self) -> Option<&JsObject> {
         self.0.as_object()
+    }
+
+    /// Returns a downcasted ref object if the type matches. This is a shorthand
+    /// for `value.as_object().and_then(|o| o.downcast_ref<T>())`, which at time
+    /// can be contriving.
+    #[inline]
+    #[must_use]
+    pub fn as_downcast_ref<T: NativeObject>(&self) -> Option<boa_engine::object::Ref<'_, T>> {
+        self.as_object().and_then(|o| o.downcast_ref::<T>())
     }
 
     /// Consumes the value and return the inner object if it was an object.

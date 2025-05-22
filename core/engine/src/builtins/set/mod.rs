@@ -118,6 +118,23 @@ fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
     })
 }
 
+/// [`CanonicalizeKeyedCollectionKey ( key )`][spec]
+///
+/// The abstract operation CanonicalizeKeyedCollectionKey takes argument key (an ECMAScript
+/// language value) and returns an ECMAScript language value. It performs the following steps
+/// when called:
+///
+///    1. If key is -0𝔽, return +0𝔽.
+///    2. Return key.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-set-iterable
+fn canonicalize_keyed_collection_value(value: JsValue) -> JsValue {
+    match value.as_number() {
+        Some(n) if n.is_zero() => JsValue::new(0),
+        _ => value,
+    }
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct Set;
 
@@ -329,16 +346,12 @@ impl Set {
                 .into());
         };
 
-        // 3. For each element e of S.[[SetData]], do
-        // a. If e is not empty and SameValueZero(e, value) is true, then
-        // i. Return S.
-        // 4. If value is -0𝔽, set value to +0𝔽.
-        let value = args.get_or_undefined(0);
-        let value = match value.as_number() {
-            Some(n) if n.is_zero() => &JsValue::new(0),
-            _ => value,
-        };
+        // 3. Set value to CanonicalizeKeyedCollectionKey(value).
+        let value = canonicalize_keyed_collection_value(args.get_or_undefined(0).clone());
 
+        // 4. For each element e of S.[[SetData]], do
+        //   a. If e is not empty and SameValueZero(e, value) is true, then
+        //     i. Return S.
         // 5. Append value to S.[[SetData]].
         set.add(value.clone());
 
@@ -766,10 +779,7 @@ impl Set {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
-        let Some(set) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<OrderedSet>)
-        else {
+        if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
                 .with_message(
                     "Method Set.prototype.symmetricDifference called on incompatible receiver",
@@ -778,52 +788,63 @@ impl Set {
         };
 
         // 3. Let otherRec be ? GetSetRecord(other).
-        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+        let other = args.get_or_undefined(0);
+        let other_rec = get_set_record(other, context)?;
 
         // 4. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
-        let keys_result = other_rec
-            .keys
-            .call(&other_rec.object.clone().into(), &[], context)?;
-        let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+        let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
 
         // 5. Let resultSetData be a copy of O.[[SetData]].
-        let mut result_set = set.clone();
+        let Some(result_set) = this
+            .as_downcast_ref::<OrderedSet>()
+            .map(|set| {
+                JsObject::from_proto_and_data_with_shared_shape(
+                    context.root_shape(),
+                    context.intrinsics().constructors().set().prototype(),
+                    OrderedSet::clone(&set),
+                )
+            })
+            .map(JsValue::from)
+        else {
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Method Set.prototype.symmetricDifference called on incompatible receiver",
+                )
+                .into());
+        };
 
         // 6. Let next be not-started.
         // 7. Repeat, while next is not done,
-        while let Some(next_value) = iterator_record.step_value(context)? {
-            // a. Set next to ? IteratorStepValue(keysIter).
-            // b. If next is not done, then
-            // i. Set next to CanonicalizeKeyedCollectionKey(next).
-            let next = match next_value.as_number() {
-                Some(n) if n.is_zero() => JsValue::new(0),
-                _ => next_value,
-            };
+        while let Some(value) = keys_iter.step_value(context)? {
+            //  a. Set next to ? IteratorStepValue(keysIter).
+            //  b. If next is not done, then
+            //    i. Set next to CanonicalizeKeyedCollectionKey(next).
+            let next = canonicalize_keyed_collection_value(value);
 
-            // ii. Let resultIndex be SetDataIndex(resultSetData, next).
-            // iii. If resultIndex is not-found, let alreadyInResult be false.
-            // Otherwise let alreadyInResult be true.
-            let already_in_result = result_set.contains(&next);
+            //    ii. Let resultIndex be SetDataIndex(resultSetData, next).
+            //    iii. If resultIndex is not-found, let alreadyInResult be false. Otherwise let alreadyInResult be true.
+            let already_in_result = Set::has(&result_set, &[next.clone()], context)?.to_boolean();
 
-            // iv. If SetDataHas(O.[[SetData]], next) is true, then
-            if set.contains(&next) {
-                // 1. If alreadyInResult is true, set resultSetData[resultIndex] to empty.
+            //    iv. If SetDataHas(O.[[SetData]], next) is true, then
+            if Self::has(this, &[next.clone()], context)?.to_boolean() {
+                //  1. If alreadyInResult is true, set resultSetData[resultIndex] to empty.
                 if already_in_result {
-                    result_set.delete(&next);
+                    Self::delete(&result_set, &[next], context)?;
                 }
-            } else {
-                // v. Else,
-                // 1. If alreadyInResult is false, append next to resultSetData.
+            }
+            //    v. Else,
+            else {
+                //      1. If alreadyInResult is false, append next to resultSetData.
                 if !already_in_result {
-                    result_set.add(next);
+                    Self::add(&result_set, &[next], context)?;
                 }
             }
         }
 
-        // 8. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
-        // 9. Set result.[[SetData]] to resultSetData.
-        // 10. Return result.
-        Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
+        //     8. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
+        //     9. Set result.[[SetData]] to resultSetData.
+        //     10. Return result.
+        Ok(result_set)
     }
 
     /// `Set.prototype.union ( other )`
@@ -843,12 +864,10 @@ impl Set {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
-        let Some(lock) = this.as_object().and_then(|o| {
-            o.downcast_mut::<OrderedSet>()
-                .map(|mut set| set.lock(o.clone()))
-        }) else {
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
-                .with_message("Method Set.prototype.entries called on incompatible receiver")
+                .with_message("Method Set.prototype.union called on incompatible receiver")
                 .into());
         };
 
@@ -857,19 +876,24 @@ impl Set {
         let other_rec = get_set_record(other, context)?;
 
         // 4. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
-        let mut iterator_record = other.get_iterator_from_method(&other_rec.keys, context)?;
+        let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
 
         // 5. Let resultSetData be a copy of O.[[SetData]].
-        let Some(set) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<OrderedSet>)
+        let Some(result_set) = this
+            .as_downcast_ref::<OrderedSet>()
+            .map(|set| {
+                JsObject::from_proto_and_data_with_shared_shape(
+                    context.root_shape(),
+                    context.intrinsics().constructors().set().prototype(),
+                    OrderedSet::clone(&set),
+                )
+            })
+            .map(JsValue::from)
         else {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.union called on incompatible receiver")
                 .into());
         };
-        let mut result_set = OrderedSet::clone(&set);
-        drop(set); // Make sure we don't retain a borrow on this.
 
         // 6. Let next be not-started.
         // 7. Repeat, while next is not done,
@@ -878,16 +902,14 @@ impl Set {
         //               i. Set next to CanonicalizeKeyedCollectionKey(next).
         //               ii. If SetDataHas(resultSetData, next) is false, then
         //                       1. Append next to resultSetData.
-        while let Some(value) = iterator_record.step_value(context)? {
-            result_set.add(value.clone());
+        while let Some(value) = keys_iter.step_value(context)? {
+            Self::add(&result_set, &[value], context)?;
         }
-
-        drop(lock);
 
         // 8. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
         // 9. Set result.[[SetData]] to resultSetData.
         // 10. Return result.
-        Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
+        Ok(result_set)
     }
 
     /// `Set.prototype.intersection ( other )`

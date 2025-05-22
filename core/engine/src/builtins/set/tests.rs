@@ -356,9 +356,8 @@ fn symmetric_difference_same_set() {
     run_test_actions([
         TestAction::run(indoc! {r#"
             let setA = new Set(["JavaScript", "HTML", "CSS"]);
-            let setACopy = new Set(["JavaScript", "HTML", "CSS"]);
-            "#}),
-        // We use a copy instead of the same object to avoid borrowing conflicts.
+            let setACopy = setA;
+        "#}),
         TestAction::assert_with_op("setA.symmetricDifference(setACopy)", |v, _| {
             v.display().to_string() == "Set(0)"
         }),
@@ -395,6 +394,18 @@ fn union() {
         }),
         TestAction::assert_with_op("setB.union(setA)", |v, _| {
             v.display().to_string() == "Set { 1, 4, 9, 2, 6, 8 }"
+        }),
+    ]);
+}
+
+#[test]
+fn union_same_set() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1, 4, 9]);
+            "#}),
+        TestAction::assert_with_op("setA.union(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 4, 9 }"
         }),
     ]);
 }
