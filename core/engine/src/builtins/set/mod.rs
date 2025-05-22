@@ -691,7 +691,7 @@ impl Set {
         }
 
         // 5. Let thisSize be the number of elements in O.[[SetData]].
-        let this_size = Self::get_size_full(this)?;
+        let mut this_size = Self::get_size_full(this)?;
         // 6. Let index be 0.
         let mut index = 0;
 
@@ -724,6 +724,7 @@ impl Set {
 
                 //       iii. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
                 //       iv. Set thisSize to the number of elements in O.[[SetData]].
+                this_size = Self::get_size_full(this)?;
             }
         }
 
