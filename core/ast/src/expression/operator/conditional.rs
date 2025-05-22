@@ -53,11 +53,15 @@ impl Conditional {
     /// Creates a `Conditional` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(condition: Expression, if_true: Expression, if_false: Expression) -> Self {
+    pub fn new(
+        condition: Box<Expression>,
+        if_true: Box<Expression>,
+        if_false: Box<Expression>,
+    ) -> Self {
         Self {
-            condition: Box::new(condition),
-            if_true: Box::new(if_true),
-            if_false: Box::new(if_false),
+            condition,
+            if_true,
+            if_false,
         }
     }
 }
@@ -78,6 +82,13 @@ impl From<Conditional> for Expression {
     #[inline]
     fn from(cond_op: Conditional) -> Self {
         Self::Conditional(cond_op)
+    }
+}
+
+impl From<Conditional> for Box<Expression> {
+    #[inline]
+    fn from(cond_op: Conditional) -> Self {
+        Box::new(Expression::Conditional(cond_op))
     }
 }
 

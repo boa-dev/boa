@@ -20,7 +20,7 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForInLoop {
     pub(crate) initializer: IterableLoopInitializer,
-    pub(crate) target: Expression,
+    pub(crate) target: Box<Expression>,
     pub(crate) body: Box<Statement>,
     pub(crate) target_contains_direct_eval: bool,
     pub(crate) contains_direct_eval: bool,
@@ -36,8 +36,12 @@ impl ForInLoop {
     /// Creates a new `ForInLoop`.
     #[inline]
     #[must_use]
-    pub fn new(initializer: IterableLoopInitializer, target: Expression, body: Statement) -> Self {
-        let target_contains_direct_eval = contains(&target, ContainsSymbol::DirectEval);
+    pub fn new(
+        initializer: IterableLoopInitializer,
+        target: Box<Expression>,
+        body: Statement,
+    ) -> Self {
+        let target_contains_direct_eval = contains(target.as_ref(), ContainsSymbol::DirectEval);
         let contains_direct_eval = contains(&initializer, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
