@@ -17,17 +17,14 @@ pub(crate) struct PushNewArray;
 
 impl PushNewArray {
     #[inline(always)]
-    pub(crate) fn operation(
-        array: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) {
         let value = context
             .intrinsics()
             .templates()
             .array()
             .create(Array, Vec::from([JsValue::new(0)]));
-        registers.set(array.into(), value.into());
+        let fp = context.vm.frame().fp() as usize;
+        context.vm.stack[fp + array.value as usize] = value.into();
     }
 }
 
@@ -46,13 +43,10 @@ pub(crate) struct PushValueToArray;
 
 impl PushValueToArray {
     #[inline(always)]
-    pub(crate) fn operation(
-        (value, array): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
-        let value = registers.get(value.into());
-        let array = registers.get(array.into());
+    pub(crate) fn operation((value, array): (VaryingOperand, VaryingOperand), context: &mut Context) {
+        let fp = context.vm.frame().fp() as usize;
+        let value = &context.vm.stack[fp + value.value as usize];
+        let array = &context.vm.stack[fp + array.value as usize];
         let o = array.as_object().expect("should be an object");
         let len = o
             .length_of_array_like(context)
@@ -77,12 +71,9 @@ pub(crate) struct PushElisionToArray;
 
 impl PushElisionToArray {
     #[inline(always)]
-    pub(crate) fn operation(
-        array: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let array = registers.get(array.into());
+    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let fp = context.vm.frame().fp() as usize;
+        let array = &context.vm.stack[fp + array.value as usize];
         let o = array.as_object().expect("should always be an object");
         let len = o
             .length_of_array_like(context)
@@ -107,12 +98,9 @@ pub(crate) struct PushIteratorToArray;
 
 impl PushIteratorToArray {
     #[inline(always)]
-    pub(crate) fn operation(
-        array: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let array = registers.get(array.into());
+    pub(crate) fn operation(array: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let fp = context.vm.frame().fp() as usize;
+        let array = &context.vm.stack[fp + array.value as usize];
         let mut iterator = context
             .vm
             .frame_mut()

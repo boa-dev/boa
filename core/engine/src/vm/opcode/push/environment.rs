@@ -3,7 +3,7 @@ use crate::{
     environments::PrivateEnvironment,
     vm::{
         opcode::{Operation, VaryingOperand},
-        Registers,
+        // Registers, // removed
     },
     Context, JsResult,
 };
@@ -45,10 +45,10 @@ impl PushObjectEnvironment {
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = registers.get(value.into());
+        let fp = context.vm.frame().fp() as usize;
+        let object = &context.vm.stack[fp + value.value as usize];
         let object = object.to_object(context)?;
         context.vm.environments.push_object(object);
         Ok(())
@@ -72,10 +72,10 @@ impl PushPrivateEnvironment {
     #[inline(always)]
     pub(crate) fn operation(
         (class, name_indices): (VaryingOperand, ThinVec<u32>),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let class = registers.get(class.into());
+        let fp = context.vm.frame().fp() as usize;
+        let class = &context.vm.stack[fp + class.value as usize];
         let class = class.as_object().expect("should be a object");
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
@@ -113,7 +113,7 @@ pub(crate) struct PopPrivateEnvironment;
 
 impl PopPrivateEnvironment {
     #[inline(always)]
-    pub(crate) fn operation((): (), _: &mut Registers, context: &mut Context) {
+    pub(crate) fn operation((): (), context: &mut Context) {
         context.vm.environments.pop_private();
     }
 }

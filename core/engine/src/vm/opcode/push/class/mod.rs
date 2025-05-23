@@ -3,7 +3,7 @@ use crate::{
     object::PROTOTYPE,
     vm::{
         opcode::{Operation, VaryingOperand},
-        Registers,
+        // Registers, // removed
     },
     Context, JsResult, JsValue,
 };
@@ -25,11 +25,11 @@ impl PushClassPrototype {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, class, superclass): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let class = registers.get(class.into());
-        let superclass = registers.get(superclass.into());
+        let fp = context.vm.frame().fp() as usize;
+        let class = &context.vm.stack[fp + class.value as usize];
+        let superclass = &context.vm.stack[fp + superclass.value as usize];
 
         // // Taken from `15.7.14 Runtime Semantics: ClassDefinitionEvaluation`:
         // <https://tc39.es/ecma262/#sec-runtime-semantics-classdefinitionevaluation>
@@ -72,7 +72,7 @@ impl PushClassPrototype {
             class_object.set_prototype(Some(constructor_parent));
         }
 
-        registers.set(dst.into(), proto_parent);
+        context.vm.stack[fp + dst.value as usize] = proto_parent;
         Ok(())
     }
 }

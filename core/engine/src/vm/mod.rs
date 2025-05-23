@@ -296,11 +296,10 @@ impl Context {
     fn trace_execute_instruction<F>(
         &mut self,
         f: F,
-        registers: &mut Registers,
         opcode: Opcode,
     ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
         let frame = self.vm.frame();
         let (instruction, _) = frame
@@ -330,7 +329,7 @@ impl Context {
         }
 
         let instant = Instant::now();
-        let result = self.execute_instruction(f, registers, opcode);
+        let result = self.execute_instruction(f, opcode);
         let duration = instant.elapsed();
 
         let fp = if self.vm.frames.is_empty() {
@@ -376,26 +375,13 @@ impl Context {
 }
 
 impl Context {
-    fn execute_instruction<F>(
-        &mut self,
-        f: F,
-        registers: &mut Registers,
-        opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord>
-    where
-        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
-    {
-        f(self, registers, opcode)
-    }
-
     fn execute_one<F>(
         &mut self,
         f: F,
-        registers: &mut Registers,
         opcode: Opcode,
     ) -> ControlFlow<CompletionRecord>
     where
-        F: FnOnce(&mut Context, &mut Registers, Opcode) -> ControlFlow<CompletionRecord>,
+        F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
     {
         #[cfg(feature = "fuzz")]
         {
@@ -409,18 +395,28 @@ impl Context {
 
         #[cfg(feature = "trace")]
         if self.vm.trace || self.vm.frame().code_block.traceable() {
-            self.trace_execute_instruction(f, registers, opcode)
+            self.trace_execute_instruction(|ctx, _opcode| f(ctx, _opcode), opcode)
         } else {
-            self.execute_instruction(f, registers, opcode)
+            self.execute_instruction(|ctx, _opcode| f(ctx, _opcode), opcode)
         }
 
         #[cfg(not(feature = "trace"))]
-        self.execute_instruction(f, registers, opcode)
+        self.execute_instruction(|ctx, _opcode| f(ctx, _opcode), opcode)
+    }
+
+    fn execute_instruction<F>(
+        &mut self,
+        f: F,
+        opcode: Opcode,
+    ) -> ControlFlow<CompletionRecord>
+    where
+        F: FnOnce(&mut Context, Opcode) -> ControlFlow<CompletionRecord>,
+    {
+        f(self, opcode)
     }
 
     fn handle_error(
         &mut self,
-        registers: &mut Registers,
         err: JsError,
     ) -> ControlFlow<CompletionRecord> {
         // If we hit the execution step limit, bubble up the error to the
@@ -437,7 +433,7 @@ impl Context {
                 env_fp = self.vm.frame.env_fp as usize;
 
                 if self.vm.pop_frame().is_some() {
-                    registers.pop_function(self.vm.frame().code_block().register_count as usize);
+                    // registers.pop_function(self.vm.frame().code_block().register_count as usize);
                 } else {
                     break;
                 }
@@ -458,10 +454,10 @@ impl Context {
         let err = err.inject_realm(self.realm().clone());
 
         self.vm.pending_exception = Some(err);
-        self.handle_thow(registers)
+        self.handle_thow()
     }
 
-    fn handle_return(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+    fn handle_return(&mut self) -> ControlFlow<CompletionRecord> {
         let frame = self.vm.frame();
         let fp = frame.fp() as usize;
         let exit_early = frame.exit_early();
@@ -474,11 +470,13 @@ impl Context {
 
         self.vm.push(result);
         self.vm.pop_frame().expect("frame must exist");
-        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+        // Truncate stack to new frame's register pointer
+        let new_fp = self.vm.frame().fp() as usize;
+        self.vm.stack.truncate(new_fp + self.vm.frame().code_block().register_count as usize);
         ControlFlow::Continue(())
     }
 
-    fn handle_yield(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+    fn handle_yield(&mut self) -> ControlFlow<CompletionRecord> {
         let result = self.vm.take_return_value();
         if self.vm.frame().exit_early() {
             return ControlFlow::Break(CompletionRecord::Return(result));
@@ -486,11 +484,13 @@ impl Context {
 
         self.vm.push(result);
         self.vm.pop_frame().expect("frame must exist");
-        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+        // Truncate stack to new frame's register pointer
+        let new_fp = self.vm.frame().fp() as usize;
+        self.vm.stack.truncate(new_fp + self.vm.frame().code_block().register_count as usize);
         ControlFlow::Continue(())
     }
 
-    fn handle_thow(&mut self, registers: &mut Registers) -> ControlFlow<CompletionRecord> {
+    fn handle_thow(&mut self) -> ControlFlow<CompletionRecord> {
         let frame = self.vm.frame();
         let mut fp = frame.fp();
         let mut env_fp = frame.env_fp;
@@ -506,7 +506,9 @@ impl Context {
         }
 
         self.vm.pop_frame().expect("frame must exist");
-        registers.pop_function(self.vm.frame().code_block().register_count as usize);
+        // Truncate stack to new frame's register pointer
+        let new_fp = self.vm.frame().fp() as usize;
+        self.vm.stack.truncate(new_fp + self.vm.frame().code_block().register_count as usize);
 
         loop {
             fp = self.vm.frame.fp();
@@ -528,7 +530,8 @@ impl Context {
             }
 
             if self.vm.pop_frame().is_some() {
-                registers.pop_function(self.vm.frame().code_block().register_count as usize);
+                let new_fp = self.vm.frame().fp() as usize;
+                self.vm.stack.truncate(new_fp + self.vm.frame().code_block().register_count as usize);
             } else {
                 break;
             }
@@ -544,7 +547,6 @@ impl Context {
     pub(crate) async fn run_async_with_budget(
         &mut self,
         budget: u32,
-        registers: &mut Registers,
     ) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run_async_with_budget", "vm");
 
@@ -566,14 +568,12 @@ impl Context {
             let opcode = Opcode::decode(*byte);
 
             match self.execute_one(
-                |context, registers, opcode| {
+                |context, opcode| {
                     context.execute_bytecode_instruction_with_budget(
-                        registers,
                         &mut runtime_budget,
                         opcode,
                     )
                 },
-                registers,
                 opcode,
             ) {
                 ControlFlow::Continue(()) => {}
@@ -589,7 +589,7 @@ impl Context {
         CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))
     }
 
-    pub(crate) fn run(&mut self, registers: &mut Registers) -> CompletionRecord {
+    pub(crate) fn run(&mut self) -> CompletionRecord {
         let _timer = Profiler::global().start_event("run", "vm");
 
         #[cfg(feature = "trace")]
@@ -607,7 +607,7 @@ impl Context {
         {
             let opcode = Opcode::decode(*byte);
 
-            match self.execute_one(Self::execute_bytecode_instruction, registers, opcode) {
+            match self.execute_one(Self::execute_bytecode_instruction, opcode) {
                 ControlFlow::Continue(()) => {}
                 ControlFlow::Break(value) => return value,
             }
@@ -654,50 +654,4 @@ fn yield_now() -> impl Future<Output = ()> {
     }
 
     YieldNow(false)
-}
-
-#[derive(Debug, Default, Trace, Finalize)]
-pub(crate) struct Registers {
-    rp: usize,
-    registers: Vec<JsValue>,
-}
-
-impl Registers {
-    pub(crate) fn new(register_count: usize) -> Self {
-        let mut registers = Vec::with_capacity(register_count);
-        registers.resize(register_count, JsValue::undefined());
-
-        Self { rp: 0, registers }
-    }
-
-    pub(crate) fn push_function(&mut self, register_count: usize) {
-        self.rp = self.registers.len();
-        self.registers
-            .resize(self.rp + register_count, JsValue::undefined());
-    }
-
-    #[track_caller]
-    pub(crate) fn pop_function(&mut self, register_count: usize) {
-        self.registers.truncate(self.rp);
-        self.rp -= register_count;
-    }
-
-    #[track_caller]
-    pub(crate) fn set(&mut self, index: u32, value: JsValue) {
-        self.registers[self.rp + index as usize] = value;
-    }
-
-    #[track_caller]
-    pub(crate) fn get(&self, index: u32) -> &JsValue {
-        self.registers
-            .get(self.rp + index as usize)
-            .expect("registers must be initialized")
-    }
-
-    pub(crate) fn clone_current_frame(&self) -> Self {
-        Self {
-            rp: 0,
-            registers: self.registers[self.rp..].to_vec(),
-        }
-    }
 }

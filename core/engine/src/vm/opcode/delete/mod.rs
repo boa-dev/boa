@@ -18,10 +18,10 @@ impl DeletePropertyByName {
     #[inline(always)]
     pub(super) fn operation(
         (object_register, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = registers.get(object_register.into());
+        let fp = context.vm.frame().fp() as usize;
+        let object = &context.vm.stack[fp + object_register.value as usize];
         let object = object.to_object(context)?;
         let code_block = context.vm.frame().code_block();
         let key = code_block.constant_string(index.into()).into();
@@ -33,7 +33,7 @@ impl DeletePropertyByName {
                 .with_message("Cannot delete property")
                 .into());
         }
-        registers.set(object_register.into(), result.into());
+        context.vm.stack[fp + object_register.value as usize] = result.into();
         Ok(())
     }
 }
@@ -55,11 +55,11 @@ impl DeletePropertyByValue {
     #[inline(always)]
     pub(super) fn operation(
         (object_register, key): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = registers.get(object_register.into());
-        let key = registers.get(key.into());
+        let fp = context.vm.frame().fp() as usize;
+        let object = &context.vm.stack[fp + object_register.value as usize];
+        let key = &context.vm.stack[fp + key.value as usize];
         let object = object.to_object(context)?;
         let property_key = key.to_property_key(context)?;
 
@@ -69,7 +69,7 @@ impl DeletePropertyByValue {
                 .with_message("Cannot delete property")
                 .into());
         }
-        registers.set(object_register.into(), result.into());
+        context.vm.stack[fp + object_register.value as usize] = result.into();
         Ok(())
     }
 }
@@ -91,14 +91,14 @@ impl DeleteName {
     #[inline(always)]
     pub(super) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
         let deleted = context.delete_binding(&binding_locator)?;
-        registers.set(value.into(), deleted.into());
+        let fp = context.vm.frame().fp() as usize;
+        context.vm.stack[fp + value.value as usize] = deleted.into();
         Ok(())
     }
 }
@@ -118,7 +118,7 @@ pub(crate) struct DeleteSuperThrow;
 
 impl DeleteSuperThrow {
     #[inline(always)]
-    pub(super) fn operation((): (), _: &mut Registers, _: &mut Context) -> JsError {
+    pub(super) fn operation((): (), _: &mut Context) -> JsError {
         JsNativeError::reference()
             .with_message("cannot delete a property of `super`")
             .into()

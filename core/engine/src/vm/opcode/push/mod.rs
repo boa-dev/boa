@@ -1,7 +1,6 @@
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        Registers,
     },
     Context, JsValue,
 };
@@ -31,8 +30,9 @@ macro_rules! implement_push_generics {
 
         impl $name {
             #[inline(always)]
-            pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, _: &mut Context) {
-                registers.set(dst.value, $push_value.into());
+            pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+                let fp = context.vm.frame().fp() as usize;
+                context.vm.stack[fp + dst.value as usize] = $push_value.into();
             }
         }
 

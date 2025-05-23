@@ -26,12 +26,12 @@ impl PushClassPrivateMethod {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let prototype = registers.get(prototype.into());
-        let value = registers.get(value.into());
+        let fp = context.vm.frame().fp() as usize;
+        let object = &context.vm.stack[fp + object.value as usize];
+        let prototype = &context.vm.stack[fp + prototype.value as usize];
+        let value = &context.vm.stack[fp + value.value as usize];
         let name = context
             .vm
             .frame()
@@ -90,11 +90,11 @@ impl PushClassPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let fp = context.vm.frame().fp() as usize;
+        let object = &context.vm.stack[fp + object.value as usize];
+        let value = &context.vm.stack[fp + value.value as usize];
         let name = context
             .vm
             .frame()
@@ -134,11 +134,11 @@ impl PushClassPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let fp = context.vm.frame().fp() as usize;
+        let object = &context.vm.stack[fp + object.value as usize];
+        let value = &context.vm.stack[fp + value.value as usize];
         let name = context
             .vm
             .frame()

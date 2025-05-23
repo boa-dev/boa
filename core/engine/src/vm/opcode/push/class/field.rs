@@ -24,12 +24,12 @@ impl PushClassField {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let class = registers.get(class.into());
-        let name = registers.get(name.into());
-        let function = registers.get(function.into());
+        let fp = context.vm.frame().fp() as usize;
+        let class = &context.vm.stack[fp + class.value as usize];
+        let name = &context.vm.stack[fp + name.value as usize];
+        let function = &context.vm.stack[fp + function.value as usize];
         let is_anonyms_function = u32::from(is_anonyms_function) != 0;
 
         let name = name.to_property_key(context)?;
@@ -76,11 +76,11 @@ impl PushClassFieldPrivate {
     #[inline(always)]
     pub(crate) fn operation(
         (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let class = registers.get(class.into());
-        let function = registers.get(function.into());
+        let fp = context.vm.frame().fp() as usize;
+        let class = &context.vm.stack[fp + class.value as usize];
+        let function = &context.vm.stack[fp + function.value as usize];
         let name = context
             .vm
             .frame()

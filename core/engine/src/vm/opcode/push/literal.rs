@@ -18,7 +18,6 @@ impl PushLiteral {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
         let constant = &context.vm.frame().code_block().constants[usize::from(index)];
@@ -27,7 +26,8 @@ impl PushLiteral {
             Constant::String(v) => v.clone().into(),
             _ => unreachable!("constant should be a string or bigint"),
         };
-        registers.set(dst.into(), value);
+        let fp = context.vm.frame().fp() as usize;
+        context.vm.stack[fp + dst.value as usize] = value;
     }
 }
 
@@ -48,14 +48,14 @@ impl PushRegexp {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, pattern_index, flags_index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let code_block = context.vm.frame().code_block();
         let pattern = code_block.constant_string(pattern_index.into());
         let flags = code_block.constant_string(flags_index.into());
         let regexp = JsRegExp::new(pattern, flags, context)?;
-        registers.set(dst.into(), regexp.into());
+        let fp = context.vm.frame().fp() as usize;
+        context.vm.stack[fp + dst.value as usize] = regexp.into();
         Ok(())
     }
 }
