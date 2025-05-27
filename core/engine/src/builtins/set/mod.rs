@@ -612,48 +612,73 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. Let S be the this value.
-        let Some(set) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<OrderedSet>)
-        else {
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.isDisjointFrom called on incompatible receiver")
                 .into());
-        };
+        }
 
-        // 2. Let otherRec be ? GetSetRecord(other).
-        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let other_rec = get_set_record(other, context)?;
 
-        // 3. If SetDataSize(O.[[SetData]]) > otherRec.[[Size]], return false.
-        if Self::get_size_full(this)? <= other_rec.size {
-            for value in set.iter() {
-                // Use the has method from the SetRecord
-                let has_result = other_rec.has.call(
-                    &other_rec.object.clone().into(),
-                    &[value.clone()],
-                    context,
-                )?;
-                if has_result.to_boolean() {
-                    return Ok(JsValue::from(false));
+        // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
+        let mut this_size = Self::get_size_full(this)?;
+        if this_size <= other_rec.size {
+            //    a. Let thisSize be the number of elements in O.[[SetData]].
+            //    b. Let index be 0.
+            let mut index = 0;
+            //    c. Repeat, while index < thisSize,
+            while index < this_size {
+                //       i. Let e be O.[[SetData]][index].
+                let e = this
+                    .as_downcast_ref::<OrderedSet>()
+                    .and_then(|o| o.get_index(index).cloned());
+
+                //       ii. Set index to index + 1.
+                index += 1;
+
+                //       iii. If e is not empty, then
+                if let Some(e) = e {
+                    //            1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
+                    let in_other = other_rec.has.call(other, &[e], context)?.to_boolean();
+
+                    //            2. If inOther is true, return false.
+                    if in_other {
+                        return Ok(JsValue::from(false));
+                    }
+
+                    //            3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
+                    //            4. Set thisSize to the number of elements in O.[[SetData]].
+                    this_size = Self::get_size_full(this)?;
                 }
             }
         } else {
-            // Get an iterator from the other set's keys method
-            let keys_result =
-                other_rec
-                    .keys
-                    .call(&other_rec.object.clone().into(), &[], context)?;
-            let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
+            // 5. Else,
+            //    a. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+            let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
 
-            while let Some(value) = iterator_record.step_value(context)? {
-                if set.contains(&value) {
+            //    b. Let next be not-started.
+            //    c. Repeat, while next is not done,
+            //       i. Set next to ? IteratorStepValue(keysIter).
+            while let Some(next) = keys_iter.step_value(context)? {
+                //       ii. If next is not done, then
+                //           1. If SetDataHas(O.[[SetData]], next) is true, then
+                if Self::has(this, &[next], context)?.to_boolean() {
+                    //              a. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
+                    keys_iter.close(
+                        CompletionRecord::Normal(JsValue::undefined()).consume(),
+                        context,
+                    )?;
+
+                    //              b. Return false.
                     return Ok(JsValue::from(false));
                 }
             }
         }
-
-        // 4. Return true if no common elements are found.
+        // 6. Return true.
         Ok(JsValue::from(true))
     }
 
@@ -776,12 +801,12 @@ impl Set {
             //  b. If next is not done, then
             //     i. If SetDataHas(O.[[SetData]], next) is false, then
             if !Self::has(this, &[next], context)?.to_boolean() {
-                //        1. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
+                //    1. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
                 keys_iter.close(
                     CompletionRecord::Normal(JsValue::undefined()).consume(),
                     context,
                 )?;
-                //        2. Return false.
+                //    2. Return false.
                 return Ok(JsValue::from(false));
             }
         }
@@ -960,51 +985,81 @@ impl Set {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
-        let Some(set) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<OrderedSet>)
-        else {
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
+        if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.intersection called on incompatible receiver")
                 .into());
-        };
+        }
 
-        // 2. Let otherRec be ? GetSetRecord(other).
-        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let other_rec = get_set_record(other, context)?;
 
-        // Create an empty result set.
-        let mut result_set = OrderedSet::new();
+        // 4. Let resultSetData be a new empty List.
+        let mut result_set_data = OrderedSet::new();
 
-        // Optimize by iterating over the smaller set
-        if Self::get_size_full(this)? <= other_rec.size {
-            for value in set.iter() {
-                // Check if the element exists in otherRec using its has method
-                let has_result = other_rec.has.call(
-                    &other_rec.object.clone().into(),
-                    &[value.clone()],
-                    context,
-                )?;
-                if has_result.to_boolean() {
-                    result_set.add(value.clone());
+        // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
+        let mut this_size = Self::get_size_full(this)?;
+        if this_size <= other_rec.size {
+            //    a. Let thisSize be the number of elements in O.[[SetData]].
+            //    b. Let index be 0.
+            let mut index = 0;
+            //    c. Repeat, while index < thisSize,
+            while index < this_size {
+                //   i. Let e be O.[[SetData]][index].
+                let e = this
+                    .as_downcast_ref::<OrderedSet>()
+                    .and_then(|o| o.get_index(index).cloned());
+                //   ii. Set index to index + 1.
+                index += 1;
+
+                //   iii. If e is not empty, then
+                let Some(e) = e else {
+                    continue;
+                };
+                //        1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
+                let in_other = other_rec.has.call(other, &[e.clone()], context)?;
+                //        2. If inOther is true, then
+                //           a. NOTE: It is possible for earlier calls to otherRec.[[Has]] to remove and re-add an element of O.[[SetData]], which can cause the same element to be visited twice during this iteration.
+                if in_other.to_boolean() {
+                    //           b. If SetDataHas(resultSetData, e) is false, then
+                    //              i. Append e to resultSetData.
+                    result_set_data.add(e);
+                    //        3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
+                    //        4. Set thisSize to the number of elements in O.[[SetData]].
+                    this_size = Self::get_size_full(this)?;
                 }
             }
-        } else {
-            // Get an iterator from the other set's keys method
-            let keys_result =
-                other_rec
-                    .keys
-                    .call(&other_rec.object.clone().into(), &[], context)?;
-            let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
 
-            while let Some(value) = iterator_record.step_value(context)? {
-                if set.contains(&value) {
-                    result_set.add(value);
+        // 6. Else,
+        } else {
+            // a. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+            let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
+            // b. Let next be not-started.
+            // c. Repeat, while next is not done,
+            while let Some(next) = keys_iter.step_value(context)? {
+                // i. Set next to ? IteratorStepValue(keysIter).
+                // ii. If next is not done, then
+                //     1. Set next to CanonicalizeKeyedCollectionKey(next).
+                let next = canonicalize_keyed_collection_value(next);
+                //     2. Let inThis be SetDataHas(O.[[SetData]], next).
+                let in_this = Self::has(this, &[next.clone()], context)?;
+                //     3. If inThis is true, then
+                if in_this.to_boolean() {
+                    //        a. NOTE: Because other is an arbitrary object, it is possible for its "keys" iterator to produce the same value more than once.
+                    //        b. If SetDataHas(resultSetData, next) is false, then
+                    //           i. Append next to resultSetData.
+                    result_set_data.add(next);
                 }
             }
         }
 
+        // 7. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
+        // 8. Set result.[[SetData]] to resultSetData.
+        // 9. Return result.
         // Return the result set.
-        Ok(Set::create_set_from_list(result_set.iter().cloned(), context).into())
+        Ok(Set::create_set_from_list(result_set_data.iter().cloned(), context).into())
     }
 
     /// ` Set.prototype.difference ( other ) `
