@@ -40,8 +40,6 @@ pub(crate) use set_iterator::SetIterator;
 /// A record containing information about a Set-like object.
 #[derive(Debug)]
 struct SetRecord {
-    /// The Set-like object.
-    object: JsObject,
     /// The size of the Set-like object.
     size: usize,
     /// The `has` method of the Set-like object.
@@ -112,7 +110,6 @@ fn get_set_record(obj: &JsValue, context: &mut Context) -> JsResult<SetRecord> {
 
     // 12. Return a new Set Record { [[SetObject]]: obj, [[Size]]: intSize, [[Has]]: has, [[Keys]]: keys }.
     Ok(SetRecord {
-        object: obj.clone(),
         size,
         has: has.clone(),
         keys: keys.clone(),
@@ -1078,18 +1075,20 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. Let S be the this value.
+        // 1. Let O be the this value.
+        // 2. Perform ? RequireInternalSlot(O, [[SetData]]).
         if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
         };
 
-        // 2. Let otherRec be ? GetSetRecord(other).
-        let other_rec = get_set_record(args.get_or_undefined(0), context)?;
+        // 3. Let otherRec be ? GetSetRecord(other).
+        let other = args.get_or_undefined(0);
+        let other_rec = get_set_record(other, context)?;
 
-        // 3. Let resultSetData be a copy of O.[[SetData]].
-        let Some(mut result_set) = this
+        // 4. Let resultSetData be a copy of O.[[SetData]].
+        let Some(mut result_set_data) = this
             .as_downcast_ref::<OrderedSet>()
             .map(|set| OrderedSet::clone(&set))
         else {
@@ -1098,36 +1097,60 @@ impl Set {
                 .into());
         };
 
-        // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then:
-        if Self::get_size_full(this)? <= other_rec.size {
-            // Iterate over elements of the current set.
-            let elements: Vec<_> = result_set.iter().cloned().collect();
-            for element in elements {
-                // Check if the element exists in otherRec using its has method
-                let has_result = other_rec.has.call(
-                    &other_rec.object.clone().into(),
-                    &[element.clone()],
-                    context,
-                )?;
-                if has_result.to_boolean() {
-                    result_set.delete(&element);
+        // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
+        let this_size = result_set_data.full_len();
+        if this_size <= other_rec.size {
+            // a. Let thisSize be the number of elements in O.[[SetData]].
+            // b. Let index be 0.
+            let mut index = 0;
+
+            //  c. Repeat, while index < thisSize,
+            while index < this_size {
+                // i. Let e be resultSetData[index].
+                let e = result_set_data.get_index(index).cloned();
+
+                // ii. If e is not empty, then
+                if let Some(e) = e {
+                    // 1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
+                    let in_other = other_rec
+                        .has
+                        .call(other, &[e.clone()], context)?
+                        .to_boolean();
+                    // 2. If inOther is true, then
+                    if in_other {
+                        // a. Set resultSetData[index] to empty.
+                        result_set_data.delete(&e);
+                    } else {
+                        index += 1; // Do this if we didn't delete an element.
+                    }
+                } else {
+                    // iii. Set index to index + 1.
+                    index += 1; // Do this if we didn't delete an element.
                 }
             }
-        } else {
-            // Get an iterator from the other set's keys method
-            let keys_result =
-                other_rec
-                    .keys
-                    .call(&other_rec.object.clone().into(), &[], context)?;
-            let mut iterator_record = keys_result.get_iterator(IteratorHint::Sync, context)?;
-
-            while let Some(element) = iterator_record.step_value(context)? {
-                result_set.delete(&element);
+        }
+        // 6. Else,
+        else {
+            //    a. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+            let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
+            //    b. Let next be not-started.
+            //    c. Repeat, while next is not done,
+            //       i. Set next to ? IteratorStepValue(keysIter).
+            while let Some(next) = keys_iter.step_value(context)? {
+                //   ii. If next is not done, then
+                //       1. Set next to CanonicalizeKeyedCollectionKey(next).
+                let next = canonicalize_keyed_collection_value(next);
+                //       2. Let valueIndex be SetDataIndex(resultSetData, next).
+                //       3. If valueIndex is not not-found, then
+                //          a. Set resultSetData[valueIndex] to empty.
+                result_set_data.delete(&next);
             }
         }
 
-        // 5. Return a new set with the updated resultSetData.
-        Ok(Self::create_set_from_list(result_set.iter().cloned(), context).into())
+        // 7. Let result be OrdinaryObjectCreate(%Set.prototype%, « [[SetData]] »).
+        // 8. Set result.[[SetData]] to resultSetData.
+        // 9. Return result.
+        Ok(Self::create_set_from_list(result_set_data.iter().cloned(), context).into())
     }
 
     fn size_getter(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
