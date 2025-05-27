@@ -1081,7 +1081,7 @@ impl Set {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
-        };
+        }
 
         // 3. Let otherRec be ? GetSetRecord(other).
         let other = args.get_or_undefined(0);
