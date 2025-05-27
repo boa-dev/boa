@@ -1079,10 +1079,7 @@ impl Set {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
-        let Some(set) = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<OrderedSet>)
-        else {
+        if this.as_downcast_ref::<OrderedSet>().is_none() {
             return Err(JsNativeError::typ()
                 .with_message("Method Set.prototype.difference called on incompatible receiver")
                 .into());
@@ -1092,7 +1089,14 @@ impl Set {
         let other_rec = get_set_record(args.get_or_undefined(0), context)?;
 
         // 3. Let resultSetData be a copy of O.[[SetData]].
-        let mut result_set = set.clone();
+        let Some(mut result_set) = this
+            .as_downcast_ref::<OrderedSet>()
+            .map(|set| OrderedSet::clone(&set))
+        else {
+            return Err(JsNativeError::typ()
+                .with_message("Method Set.prototype.difference called on incompatible receiver")
+                .into());
+        };
 
         // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then:
         if Self::get_size_full(this)? <= other_rec.size {
