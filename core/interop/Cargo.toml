@@ -15,6 +15,7 @@ publish = false
 boa_engine.workspace = true
 boa_gc.workspace = true
 boa_macros.workspace = true
+lz4_flex = { workspace = true, optional = true }
 rustc-hash = { workspace = true, features = ["std"] }
 
 [lints]
@@ -22,3 +23,6 @@ workspace = true
 
 [package.metadata.docs.rs]
 all-features = true
+
+[features]
+embedded_lz4 = ["boa_macros/embedded_lz4", "lz4_flex"]
