@@ -32,7 +32,6 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_engine::value::IntegerOrInfinity;
-use boa_engine::vm::CompletionRecord;
 use boa_profiler::Profiler;
 use num_traits::Zero;
 pub(crate) use set_iterator::SetIterator;
@@ -665,10 +664,7 @@ impl Set {
                 //           1. If SetDataHas(O.[[SetData]], next) is true, then
                 if Self::has(this, &[next], context)?.to_boolean() {
                     //              a. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
-                    keys_iter.close(
-                        CompletionRecord::Normal(JsValue::undefined()).consume(),
-                        context,
-                    )?;
+                    keys_iter.close(Ok(JsValue::undefined()), context)?;
 
                     //              b. Return false.
                     return Ok(JsValue::from(false));
@@ -799,10 +795,7 @@ impl Set {
             //     i. If SetDataHas(O.[[SetData]], next) is false, then
             if !Self::has(this, &[next], context)?.to_boolean() {
                 //    1. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
-                keys_iter.close(
-                    CompletionRecord::Normal(JsValue::undefined()).consume(),
-                    context,
-                )?;
+                keys_iter.close(Ok(JsValue::undefined()), context)?;
                 //    2. Return false.
                 return Ok(JsValue::from(false));
             }
