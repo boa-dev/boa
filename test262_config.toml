@@ -60,10 +60,6 @@ features = [
     # https://github.com/tc39/proposal-iterator-helpers
     "iterator-helpers",
 
-    # Set methods
-    # https://github.com/tc39/proposal-set-methods
-    "set-methods",
-
     # Uint8Array Base64
     # https://github.com/tc39/proposal-arraybuffer-base64
     "uint8array-base64",
