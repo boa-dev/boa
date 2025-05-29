@@ -624,12 +624,12 @@ impl Set {
         // 4. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
         let mut this_size = Self::get_size_full(this)?;
         if this_size <= other_rec.size {
-            //    a. Let thisSize be the number of elements in O.[[SetData]].
-            //    b. Let index be 0.
+            // a. Let thisSize be the number of elements in O.[[SetData]].
+            // b. Let index be 0.
             let mut index = 0;
-            //    c. Repeat, while index < thisSize,
+            // c. Repeat, while index < thisSize,
             while index < this_size {
-                //       i. Let e be O.[[SetData]][index].
+                // i. Let e be O.[[SetData]][index].
                 let e = this
                     .as_downcast_ref::<OrderedSet>()
                     .and_then(|o| o.get_index(index).cloned());
