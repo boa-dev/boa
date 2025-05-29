@@ -633,21 +633,21 @@ impl Set {
                     .as_downcast_ref::<OrderedSet>()
                     .and_then(|o| o.get_index(index).cloned());
 
-                //       ii. Set index to index + 1.
+                // ii. Set index to index + 1.
                 index += 1;
 
-                //       iii. If e is not empty, then
+                // iii. If e is not empty, then
                 if let Some(e) = e {
-                    //            1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
+                    // 1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
                     let in_other = other_rec.has.call(other, &[e], context)?.to_boolean();
 
-                    //            2. If inOther is true, return false.
+                    // 2. If inOther is true, return false.
                     if in_other {
                         return Ok(JsValue::from(false));
                     }
 
-                    //            3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
-                    //            4. Set thisSize to the number of elements in O.[[SetData]].
+                    // 3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
+                    // 4. Set thisSize to the number of elements in O.[[SetData]].
                     this_size = Self::get_size_full(this)?;
                 }
             }
@@ -660,13 +660,13 @@ impl Set {
             //    c. Repeat, while next is not done,
             //       i. Set next to ? IteratorStepValue(keysIter).
             while let Some(next) = keys_iter.step_value(context)? {
-                //       ii. If next is not done, then
-                //           1. If SetDataHas(O.[[SetData]], next) is true, then
+                //   ii. If next is not done, then
+                //       1. If SetDataHas(O.[[SetData]], next) is true, then
                 if Self::has(this, &[next], context)?.to_boolean() {
-                    //              a. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
+                    //      a. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
                     keys_iter.close(Ok(JsValue::undefined()), context)?;
 
-                    //              b. Return false.
+                    //      b. Return false.
                     return Ok(JsValue::from(false));
                 }
             }
@@ -715,7 +715,7 @@ impl Set {
 
         // 7. Repeat, while index < thisSize,
         while index < this_size {
-            //    a. Let e be O.[[SetData]][index].
+            // a. Let e be O.[[SetData]][index].
             let Some(set) = this
                 .as_object()
                 .and_then(JsObject::downcast_ref::<OrderedSet>)
@@ -727,21 +727,21 @@ impl Set {
             let e = set.get_index(index).cloned();
             drop(set);
 
-            //    b. Set index to index + 1.
+            // b. Set index to index + 1.
             index += 1;
 
-            //    c. If e is not empty, then
+            // c. If e is not empty, then
             if let Some(e) = e {
-                //       i. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
+                // i. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
                 let in_other = other_rec.has.call(other, &[e], context)?.to_boolean();
 
-                //       ii. If inOther is false, return false.
+                // ii. If inOther is false, return false.
                 if !in_other {
                     return Ok(JsValue::from(false));
                 }
 
-                //       iii. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
-                //       iv. Set thisSize to the number of elements in O.[[SetData]].
+                // iii. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
+                // iv. Set thisSize to the number of elements in O.[[SetData]].
                 this_size = Self::get_size_full(this)?;
             }
         }
@@ -794,9 +794,9 @@ impl Set {
             //  b. If next is not done, then
             //     i. If SetDataHas(O.[[SetData]], next) is false, then
             if !Self::has(this, &[next], context)?.to_boolean() {
-                //    1. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
+                // 1. Perform ? IteratorClose(keysIter, NormalCompletion(unused)).
                 keys_iter.close(Ok(JsValue::undefined()), context)?;
-                //    2. Return false.
+                // 2. Return false.
                 return Ok(JsValue::from(false));
             }
         }
@@ -992,32 +992,33 @@ impl Set {
         // 5. If SetDataSize(O.[[SetData]]) ≤ otherRec.[[Size]], then
         let mut this_size = Self::get_size_full(this)?;
         if this_size <= other_rec.size {
-            //    a. Let thisSize be the number of elements in O.[[SetData]].
-            //    b. Let index be 0.
+            // a. Let thisSize be the number of elements in O.[[SetData]].
+            // b. Let index be 0.
             let mut index = 0;
-            //    c. Repeat, while index < thisSize,
+            // c. Repeat, while index < thisSize,
             while index < this_size {
-                //   i. Let e be O.[[SetData]][index].
+                // i. Let e be O.[[SetData]][index].
                 let e = this
                     .as_downcast_ref::<OrderedSet>()
                     .and_then(|o| o.get_index(index).cloned());
-                //   ii. Set index to index + 1.
+                // ii. Set index to index + 1.
                 index += 1;
 
-                //   iii. If e is not empty, then
+                // iii. If e is not empty, then
                 let Some(e) = e else {
                     continue;
                 };
-                //        1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
+
+                //      1. Let inOther be ToBoolean(? Call(otherRec.[[Has]], otherRec.[[SetObject]], « e »)).
                 let in_other = other_rec.has.call(other, &[e.clone()], context)?;
-                //        2. If inOther is true, then
-                //           a. NOTE: It is possible for earlier calls to otherRec.[[Has]] to remove and re-add an element of O.[[SetData]], which can cause the same element to be visited twice during this iteration.
+                //      2. If inOther is true, then
+                //         a. NOTE: It is possible for earlier calls to otherRec.[[Has]] to remove and re-add an element of O.[[SetData]], which can cause the same element to be visited twice during this iteration.
                 if in_other.to_boolean() {
-                    //           b. If SetDataHas(resultSetData, e) is false, then
-                    //              i. Append e to resultSetData.
+                    //     b. If SetDataHas(resultSetData, e) is false, then
+                    //        i. Append e to resultSetData.
                     result_set_data.add(e);
-                    //        3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
-                    //        4. Set thisSize to the number of elements in O.[[SetData]].
+                    //  3. NOTE: The number of elements in O.[[SetData]] may have increased during execution of otherRec.[[Has]].
+                    //  4. Set thisSize to the number of elements in O.[[SetData]].
                     this_size = Self::get_size_full(this)?;
                 }
             }
@@ -1124,18 +1125,18 @@ impl Set {
         }
         // 6. Else,
         else {
-            //    a. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
+            // a. Let keysIter be ? GetIteratorFromMethod(otherRec.[[SetObject]], otherRec.[[Keys]]).
             let mut keys_iter = other.get_iterator_from_method(&other_rec.keys, context)?;
-            //    b. Let next be not-started.
-            //    c. Repeat, while next is not done,
-            //       i. Set next to ? IteratorStepValue(keysIter).
+            // b. Let next be not-started.
+            // c. Repeat, while next is not done,
+            //     i. Set next to ? IteratorStepValue(keysIter).
             while let Some(next) = keys_iter.step_value(context)? {
-                //   ii. If next is not done, then
-                //       1. Set next to CanonicalizeKeyedCollectionKey(next).
+                // ii. If next is not done, then
+                //     1. Set next to CanonicalizeKeyedCollectionKey(next).
                 let next = canonicalize_keyed_collection_value(next);
-                //       2. Let valueIndex be SetDataIndex(resultSetData, next).
-                //       3. If valueIndex is not not-found, then
-                //          a. Set resultSetData[valueIndex] to empty.
+                //     2. Let valueIndex be SetDataIndex(resultSetData, next).
+                //     3. If valueIndex is not not-found, then
+                //        a. Set resultSetData[valueIndex] to empty.
                 result_set_data.delete(&next);
             }
         }
