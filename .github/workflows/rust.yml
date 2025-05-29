@@ -83,11 +83,11 @@ jobs:
         run: cargo test --no-run --profile ci
       # this order is faster according to rust-analyzer
       - name: Build
-        run: cargo build --all-targets --quiet --profile ci --features annex-b,intl_bundled,experimental
+        run: cargo build --all-targets --quiet --profile ci --features annex-b,intl_bundled,experimental,embedded_lz4
       - name: Install latest nextest
         uses: taiki-e/install-action@nextest
       - name: Test with nextest
-        run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl_bundled,experimental
+        run: cargo nextest run --profile ci --cargo-profile ci --features annex-b,intl_bundled,experimental,embedded_lz4
       - name: Test docs
         run: cargo test --doc --profile ci --features annex-b,intl_bundled,experimental
 
