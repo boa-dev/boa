@@ -2,10 +2,7 @@ use boa_ast::scope::{BindingLocator, BindingLocatorScope};
 
 use crate::{
     environments::Environment,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsError, JsNativeError, JsResult,
 };
 
@@ -18,11 +15,7 @@ pub(crate) struct ThrowMutateImmutable;
 
 impl ThrowMutateImmutable {
     #[inline(always)]
-    pub(crate) fn operation(
-        index: VaryingOperand,
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsError {
+    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
         let name = context
             .vm
             .frame()
@@ -55,10 +48,9 @@ impl SetName {
     #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = registers.get(value.into());
+        let value = context.vm.get_register(value.into()).clone();
         let code_block = context.vm.frame().code_block();
         let mut binding_locator = code_block.bindings[usize::from(index)].clone();
         let strict = code_block.strict();
@@ -88,18 +80,14 @@ pub(crate) struct SetNameByLocator;
 
 impl SetNameByLocator {
     #[inline(always)]
-    pub(crate) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
         let frame = context.vm.frame_mut();
         let strict = frame.code_block.strict();
         let binding_locator = frame
             .binding_stack
             .pop()
             .expect("locator should have been popped before");
-        let value = registers.get(value.into());
+        let value = context.vm.get_register(value.into()).clone();
 
         verify_initialized(&binding_locator, context)?;
 

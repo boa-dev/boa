@@ -1,4 +1,4 @@
-use super::{Operation, Registers, VaryingOperand};
+use super::{Operation, VaryingOperand};
 use crate::{
     builtins::function::arguments::{MappedArguments, UnmappedArguments},
     Context,
@@ -13,18 +13,15 @@ pub(crate) struct CreateMappedArgumentsObject;
 
 impl CreateMappedArgumentsObject {
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
         let frame = context.vm.frame();
-        let function_object = frame
-            .function(&context.vm)
-            .clone()
+        let function_object = context
+            .vm
+            .stack
+            .get_function(context.vm.frame())
             .expect("there should be a function object");
         let code = frame.code_block().clone();
-        let args = frame.arguments(&context.vm).to_vec();
+        let args = context.vm.stack.get_arguments(context.vm.frame());
         let env = context
             .vm
             .environments
@@ -33,11 +30,11 @@ impl CreateMappedArgumentsObject {
         let arguments = MappedArguments::new(
             &function_object,
             &code.mapped_arguments_binding_indices,
-            &args,
+            args,
             env,
             context,
         );
-        registers.set(value.into(), arguments.into());
+        context.vm.set_register(value.into(), arguments.into());
     }
 }
 
@@ -56,10 +53,10 @@ pub(crate) struct CreateUnmappedArgumentsObject;
 
 impl CreateUnmappedArgumentsObject {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
-        let args = context.vm.frame().arguments(&context.vm).to_vec();
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+        let args = context.vm.stack.get_arguments(context.vm.frame()).to_vec();
         let arguments = UnmappedArguments::new(&args, context);
-        registers.set(dst.into(), arguments.into());
+        context.vm.set_register(dst.into(), arguments.into());
     }
 }
 

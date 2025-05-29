@@ -3,7 +3,7 @@ use std::ops::ControlFlow;
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionRecord, Registers,
+        CompletionRecord,
     },
     Context, JsError, JsNativeError,
 };
@@ -19,10 +19,9 @@ impl Throw {
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
-        registers: &mut Registers,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = registers.get(value.into());
+        let value = context.vm.get_register(value.into());
         let error = JsError::from_opaque(value.clone());
         context.vm.pending_exception = Some(error);
 
@@ -32,7 +31,7 @@ impl Throw {
             return ControlFlow::Continue(());
         }
 
-        context.handle_thow(registers)
+        context.handle_thow()
     }
 }
 
@@ -51,11 +50,7 @@ pub(crate) struct ReThrow;
 
 impl ReThrow {
     #[inline(always)]
-    pub(crate) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
         // Note: -1 because we increment after fetching the opcode.
         let pc = context.vm.frame().pc.saturating_sub(1);
         if context.vm.handle_exception_at(pc) {
@@ -68,10 +63,10 @@ impl ReThrow {
         // Note: If we reached this stage then we there is no handler to handle this,
         //       so return (only for generators).
         if context.vm.pending_exception.is_none() {
-            return context.handle_return(registers);
+            return context.handle_return();
         }
 
-        context.handle_thow(registers)
+        context.handle_thow()
     }
 }
 
@@ -92,12 +87,11 @@ impl Exception {
     #[inline(always)]
     pub(crate) fn operation(
         dst: VaryingOperand,
-        registers: &mut Registers,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
-            registers.set(dst.into(), error);
+            context.vm.set_register(dst.into(), error);
             return ControlFlow::Continue(());
         }
 
@@ -106,7 +100,7 @@ impl Exception {
         // This is done to run the finally code.
         //
         // This should be unreachable for regular functions.
-        ReThrow::operation((), registers, context)
+        ReThrow::operation((), context)
     }
 }
 
@@ -127,15 +121,14 @@ impl MaybeException {
     #[inline(always)]
     pub(crate) fn operation(
         (has_exception, exception): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
         if let Some(error) = context.vm.pending_exception.take() {
             let error = error.to_opaque(context);
-            registers.set(exception.into(), error);
-            registers.set(has_exception.into(), true.into());
+            context.vm.set_register(exception.into(), error);
+            context.vm.set_register(has_exception.into(), true.into());
         } else {
-            registers.set(has_exception.into(), false.into());
+            context.vm.set_register(has_exception.into(), false.into());
         }
     }
 }
@@ -155,11 +148,7 @@ pub(crate) struct ThrowNewTypeError;
 
 impl ThrowNewTypeError {
     #[inline(always)]
-    pub(crate) fn operation(
-        index: VaryingOperand,
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsError {
+    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
         let msg = context
             .vm
             .frame()
@@ -187,11 +176,7 @@ pub(crate) struct ThrowNewSyntaxError;
 
 impl ThrowNewSyntaxError {
     #[inline(always)]
-    pub(crate) fn operation(
-        index: VaryingOperand,
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsError {
+    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
         let msg = context
             .vm
             .frame()

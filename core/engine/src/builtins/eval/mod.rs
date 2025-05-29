@@ -20,7 +20,7 @@ use crate::{
     realm::Realm,
     spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant, Registers},
+    vm::{CallFrame, CallFrameFlags, Constant},
     Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
@@ -333,8 +333,7 @@ impl Eval {
 
         context.realm().resize_global_env();
 
-        let register_count = context.vm.frame().code_block().register_count;
-        let record = context.run(&mut Registers::new(register_count as usize));
+        let record = context.run();
         context.vm.pop_frame();
 
         record.consume()

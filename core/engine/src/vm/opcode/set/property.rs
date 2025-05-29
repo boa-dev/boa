@@ -6,7 +6,7 @@ use crate::{
     builtins::function::set_function_name,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
-    vm::{opcode::Operation, Registers},
+    vm::opcode::Operation,
     Context, JsNativeError, JsResult,
 };
 
@@ -26,12 +26,11 @@ impl SetPropertyByName {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = registers.get(value.into());
-        let receiver = registers.get(receiver.into());
-        let object = registers.get(object.into());
+        let value = context.vm.get_register(value.into()).clone();
+        let receiver = context.vm.get_register(receiver.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
 
         let ic = &context.vm.frame().code_block().ic[usize::from(index)];
@@ -53,7 +52,7 @@ impl SetPropertyByName {
                 drop(object_borrowed);
                 if slot.attributes.has_set() && result.is_object() {
                     result.as_object().expect("should contain getter").call(
-                        receiver,
+                        &receiver,
                         &[value.clone()],
                         context,
                     )?;
@@ -117,13 +116,12 @@ impl SetPropertyByValue {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = registers.get(value.into());
-        let key = registers.get(key.into());
-        let receiver = registers.get(receiver.into());
-        let object = registers.get(object.into());
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let receiver = context.vm.get_register(receiver.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
 
         let key = key.to_property_key(context)?;
@@ -141,7 +139,7 @@ impl SetPropertyByValue {
 
                     if object_borrowed
                         .properties_mut()
-                        .set_dense_property(index.get(), value)
+                        .set_dense_property(index.get(), &value)
                     {
                         return Ok(());
                     }
@@ -183,11 +181,10 @@ impl SetPropertyGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -232,12 +229,11 @@ impl SetPropertyGetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = registers.get(value.into());
-        let key = registers.get(key.into());
-        let object = registers.get(object.into());
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
 
@@ -277,11 +273,10 @@ impl SetPropertySetterByName {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -327,12 +322,11 @@ impl SetPropertySetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = registers.get(value.into());
-        let key = registers.get(key.into());
-        let object = registers.get(object.into());
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
 
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
@@ -373,11 +367,10 @@ impl SetFunctionName {
     #[inline(always)]
     pub(crate) fn operation(
         (function, name, prefix): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let function = registers.get(function.into());
-        let name = registers.get(name.into());
+        let function = context.vm.get_register(function.into()).clone();
+        let name = context.vm.get_register(name.into()).clone();
         let name = match name.variant() {
             JsVariant::String(name) => PropertyKey::from(name.clone()),
             JsVariant::Symbol(name) => PropertyKey::from(name.clone()),

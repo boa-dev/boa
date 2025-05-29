@@ -7,7 +7,7 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind, Registers},
+    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind},
     Context, JsArgs, JsValue,
 };
 use boa_gc::Gc;
@@ -24,10 +24,9 @@ impl Await {
     #[inline(always)]
     pub(super) fn operation(
         value: VaryingOperand,
-        registers: &mut Registers,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = registers.get(value.into());
+        let value = context.vm.get_register(value.into());
 
         // 2. Let promise be ? PromiseResolve(%Promise%, value).
         let promise = match Promise::promise_resolve(
@@ -36,20 +35,20 @@ impl Await {
             context,
         ) {
             Ok(promise) => promise,
-            Err(err) => return context.handle_error(registers, err),
+            Err(err) => return context.handle_error(err),
         };
 
         let return_value = context
             .vm
-            .frame()
-            .promise_capability(registers)
+            .stack
+            .get_promise_capability(&context.vm.frame)
             .as_ref()
             .map(PromiseCapability::promise)
             .cloned()
             .map(JsValue::from)
             .unwrap_or_default();
 
-        let gen = GeneratorContext::from_current(context, registers.clone_current_frame(), None);
+        let gen = GeneratorContext::from_current(context, None);
 
         let captures = Gc::new(Cell::new(Some(gen)));
 
@@ -141,7 +140,7 @@ impl Await {
         );
 
         context.vm.set_return_value(return_value);
-        context.handle_yield(registers)
+        context.handle_yield()
     }
 }
 
@@ -160,8 +159,13 @@ pub(crate) struct CreatePromiseCapability;
 
 impl CreatePromiseCapability {
     #[inline(always)]
-    pub(super) fn operation((): (), registers: &mut Registers, context: &mut Context) {
-        if context.vm.frame().promise_capability(registers).is_some() {
+    pub(super) fn operation((): (), context: &mut Context) {
+        if context
+            .vm
+            .stack
+            .get_promise_capability(&context.vm.frame)
+            .is_some()
+        {
             return;
         }
 
@@ -173,8 +177,8 @@ impl CreatePromiseCapability {
 
         context
             .vm
-            .frame
-            .set_promise_capability(registers, Some(&promise_capability));
+            .stack
+            .set_promise_capability(&context.vm.frame, Some(&promise_capability));
     }
 }
 
@@ -193,16 +197,13 @@ pub(crate) struct CompletePromiseCapability;
 
 impl CompletePromiseCapability {
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    pub(super) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
         // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
-        let Some(promise_capability) = context.vm.frame().promise_capability(registers) else {
+        let Some(promise_capability) = context.vm.stack.get_promise_capability(&context.vm.frame)
+        else {
             return if context.vm.pending_exception.is_some() {
-                context.handle_thow(registers)
+                context.handle_thow()
             } else {
                 ControlFlow::Continue(())
             };

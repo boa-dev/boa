@@ -1,11 +1,7 @@
 use super::VaryingOperand;
 use crate::{
-    builtins::array::Array,
-    js_string,
-    object::IntegrityLevel,
-    property::PropertyDescriptor,
-    vm::{opcode::Operation, Registers},
-    Context,
+    builtins::array::Array, js_string, object::IntegrityLevel, property::PropertyDescriptor,
+    vm::opcode::Operation, Context,
 };
 use thin_vec::ThinVec;
 
@@ -18,13 +14,9 @@ pub(crate) struct TemplateLookup;
 
 impl TemplateLookup {
     #[inline(always)]
-    pub(super) fn operation(
-        (jump, site, dst): (u32, u64, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
+    pub(super) fn operation((jump, site, dst): (u32, u64, VaryingOperand), context: &mut Context) {
         if let Some(template) = context.realm().lookup_template(site) {
-            registers.set(dst.into(), template.into());
+            context.vm.set_register(dst.into(), template.into());
             context.vm.frame_mut().pc = jump;
         }
     }
@@ -47,7 +39,6 @@ impl TemplateCreate {
     #[inline(always)]
     pub(super) fn operation(
         (site, dst, values): (u64, VaryingOperand, ThinVec<u32>),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
         let count = values.len() / 2;
@@ -60,7 +51,7 @@ impl TemplateCreate {
         let mut cooked = true;
         for value in values {
             if cooked {
-                let cooked_value = registers.get(value);
+                let cooked_value = context.vm.get_register(value as usize);
                 template
                     .define_property_or_throw(
                         index,
@@ -73,7 +64,7 @@ impl TemplateCreate {
                     )
                     .expect("should not fail on new array");
             } else {
-                let raw_value = registers.get(value);
+                let raw_value = context.vm.get_register(value as usize);
                 raw_obj
                     .define_property_or_throw(
                         index,
@@ -111,7 +102,7 @@ impl TemplateCreate {
 
         context.realm().push_template(site, template.clone());
 
-        registers.set(dst.into(), template.into());
+        context.vm.set_register(dst.into(), template.into());
     }
 }
 

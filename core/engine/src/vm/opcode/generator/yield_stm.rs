@@ -4,7 +4,7 @@ use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionRecord, GeneratorResumeKind, Registers,
+        CompletionRecord, GeneratorResumeKind,
     },
     Context, JsValue,
 };
@@ -20,12 +20,11 @@ impl GeneratorYield {
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
-        registers: &mut Registers,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
-        let value = registers.get(value.into());
+        let value = context.vm.get_register(value.into());
         context.vm.set_return_value(value.clone());
-        context.handle_yield(registers)
+        context.handle_yield()
     }
 }
 
@@ -46,7 +45,6 @@ impl AsyncGeneratorYield {
     #[inline(always)]
     pub(crate) fn operation(
         value: VaryingOperand,
-        registers: &mut Registers,
         context: &mut Context,
     ) -> ControlFlow<CompletionRecord> {
         // AsyncGeneratorYield ( value )
@@ -58,15 +56,15 @@ impl AsyncGeneratorYield {
         // 4. Assert: GetGeneratorKind() is async.
         let async_generator_object = context
             .vm
-            .frame()
-            .async_generator_object(registers)
+            .stack
+            .async_generator_object(&context.vm.frame)
             .expect("`AsyncGeneratorYield` must only be called inside async generators");
         let async_generator_object = async_generator_object
             .downcast::<AsyncGenerator>()
             .expect("must be async generator object");
 
         // 5. Let completion be NormalCompletion(value).
-        let value = registers.get(value.into());
+        let value = context.vm.get_register(value.into());
         let completion = Ok(value.clone());
 
         // TODO: 6. Assert: The execution context stack has at least two elements.
@@ -85,21 +83,21 @@ impl AsyncGeneratorYield {
             // c. Let resumptionValue be Completion(toYield.[[Completion]]).
             let resume_kind = match next.completion.clone() {
                 CompletionRecord::Normal(val) => {
-                    context.vm.push(val);
+                    context.vm.stack.push(val);
                     GeneratorResumeKind::Normal
                 }
                 CompletionRecord::Return(val) => {
-                    context.vm.push(val);
+                    context.vm.stack.push(val);
                     GeneratorResumeKind::Return
                 }
                 CompletionRecord::Throw(err) => {
                     let err = err.to_opaque(context);
-                    context.vm.push(err);
+                    context.vm.stack.push(err);
                     GeneratorResumeKind::Throw
                 }
             };
 
-            context.vm.push(resume_kind);
+            context.vm.stack.push(resume_kind);
 
             // d. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
             return ControlFlow::Continue(());
@@ -116,7 +114,7 @@ impl AsyncGeneratorYield {
         //     e. Assert: If control reaches here, then genContext is the running execution context again.
         //     f. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
         context.vm.set_return_value(JsValue::undefined());
-        context.handle_yield(registers)
+        context.handle_yield()
     }
 }
 

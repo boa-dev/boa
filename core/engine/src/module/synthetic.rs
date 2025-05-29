@@ -394,7 +394,7 @@ impl SyntheticModule {
         // 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
         let frame = context.vm.pop_frame().expect("there should be a frame");
-        frame.restore_stack(&mut context.vm);
+        context.vm.stack.truncate_to_frame(&frame);
 
         // 13. Let pc be ! NewPromiseCapability(%Promise%).
         let (promise, ResolvingFunctions { resolve, reject }) = JsPromise::new_pending(context);

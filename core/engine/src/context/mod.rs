@@ -880,7 +880,7 @@ impl Context {
             return self.vm.native_active_function.clone();
         }
 
-        self.vm.frame.function(&self.vm)
+        self.vm.stack.get_function(self.vm.frame())
     }
 }
 

@@ -511,22 +511,22 @@ impl<'ctx> ByteCompiler<'ctx> {
 
             debug_assert_eq!(
                 promise_register.index(),
-                CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX
+                CallFrame::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX as u32
             );
             debug_assert_eq!(
                 resolve_register.index(),
-                CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX
+                CallFrame::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX as u32
             );
             debug_assert_eq!(
                 reject_register.index(),
-                CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX
+                CallFrame::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX as u32
             );
 
             if is_generator {
                 let async_function_object_register = register_allocator.alloc_persistent();
                 debug_assert_eq!(
                     async_function_object_register.index(),
-                    CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX
+                    CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX as u32
                 );
             }
         }
@@ -1833,7 +1833,6 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.register_allocator.dealloc(this);
                 self.register_allocator.dealloc(dst);
             }
-
             Expression::Optional(opt) if kind == CallKind::Call => {
                 let this = self.register_allocator.alloc();
                 let dst = self.register_allocator.alloc();
@@ -1883,9 +1882,13 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.register_allocator.dealloc(value);
             }
             expr => {
+                let this = self.register_allocator.alloc();
                 let value = self.register_allocator.alloc();
                 self.compile_expr(expr, &value);
+                self.bytecode.emit_push_undefined(this.variable());
+                self.push_from_register(&this);
                 self.push_from_register(&value);
+                self.register_allocator.dealloc(this);
                 self.register_allocator.dealloc(value);
             }
         }
