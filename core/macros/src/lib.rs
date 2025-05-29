@@ -20,6 +20,8 @@ use synstructure::{decl_derive, AddBounds, Structure};
 
 mod embedded_module_loader;
 
+mod class;
+
 /// Implementation of the inner iterator of the `embed_module!` macro. All
 /// arguments are required.
 ///
@@ -29,6 +31,17 @@ mod embedded_module_loader;
 #[proc_macro]
 pub fn embed_module_inner(input: TokenStream) -> TokenStream {
     embedded_module_loader::embed_module_impl(input)
+}
+
+/// Implementation of the inner iterator of the `embed_module!` macro. All
+/// arguments are required.
+///
+/// # Warning
+/// This should not be used directly as is, and instead should be used through
+/// the `embed_module!` macro in `boa_interop` for convenience.
+#[proc_macro_attribute]
+pub fn boa_class(attr: TokenStream, item: TokenStream) -> TokenStream {
+    class::class_impl(attr, item)
 }
 
 struct Static {
