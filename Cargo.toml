@@ -60,6 +60,7 @@ indexmap = { version = "2.9.0", default-features = false }
 indoc = "2.0.6"
 itoa = "1.0.15"
 jemallocator = "0.5.4"
+lz4_flex = "0.11.3"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }

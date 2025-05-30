@@ -11,37 +11,40 @@ use boa_engine::{Context, JsNativeError, JsResult, JsString, Module, Source};
 /// Create a module loader that embeds files from the filesystem at build
 /// time. This is useful for bundling assets with the binary.
 ///
-/// By default, will error if the total file size exceeds 1MB. This can be
+/// By default will error if the total file size exceeds 1MB. This can be
 /// changed by specifying the `max_size` parameter.
 ///
 /// The embedded module will only contain files that have the `.js`, `.mjs`,
 /// or `.cjs` extension.
 #[macro_export]
 macro_rules! embed_module {
-    ($path: literal, max_size = $max_size: literal) => {
+    ($($x: expr),*) => {
         $crate::loaders::embedded::EmbeddedModuleLoader::from_iter(
-            $crate::boa_macros::embed_module_inner!($path, $max_size),
+            $crate::boa_macros::embed_module_inner!($($x),*),
         )
-    };
-    ($path: literal) => {
-        embed_module!($path, max_size = 1_048_576)
     };
 }
 
 #[derive(Debug, Clone)]
 enum EmbeddedModuleEntry {
-    Source(JsString, &'static [u8]),
+    Source(CompressType, JsString, &'static [u8]),
     Module(Module),
 }
 
 impl EmbeddedModuleEntry {
-    fn from_source(path: JsString, source: &'static [u8]) -> Self {
-        Self::Source(path, source)
+    fn from_source(compress_type: CompressType, path: JsString, source: &'static [u8]) -> Self {
+        Self::Source(compress_type, path, source)
     }
 
     fn cache(&mut self, context: &mut Context) -> JsResult<&Module> {
-        if let Self::Source(path, source) = self {
-            let mut bytes: &[u8] = source;
+        if let Self::Source(compress, path, source) = self {
+            let mut bytes: &[u8] = match compress {
+                CompressType::None => source,
+
+                #[cfg(feature = "embedded_lz4")]
+                CompressType::Lz4 => &lz4_flex::decompress_size_prepended(source)
+                    .map_err(|e| boa_engine::js_error!("Could not decompress module: {}", e))?,
+            };
             let path = path.to_std_string_escaped();
             let source = Source::from_reader(&mut bytes, Some(Path::new(&path)));
             match Module::parse(source, None, context) {
@@ -56,14 +59,38 @@ impl EmbeddedModuleEntry {
 
         match self {
             Self::Module(module) => Ok(module),
-            EmbeddedModuleEntry::Source(_, _) => unreachable!(),
+            EmbeddedModuleEntry::Source(_, _, _) => unreachable!(),
         }
     }
 
     fn as_module(&self) -> Option<&Module> {
         match self {
             Self::Module(module) => Some(module),
-            Self::Source(_, _) => None,
+            Self::Source(_, _, _) => None,
+        }
+    }
+}
+
+/// The type of compression used, if any.
+#[derive(Debug, Copy, Clone)]
+pub enum CompressType {
+    /// No compression used.
+    None,
+
+    #[cfg(feature = "embedded_lz4")]
+    /// LZ4 compression.
+    Lz4,
+}
+
+impl TryFrom<&str> for CompressType {
+    type Error = &'static str;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "none" => Ok(Self::None),
+            #[cfg(feature = "embedded_lz4")]
+            "lz4" => Ok(Self::Lz4),
+            _ => Err("Invalid compression type"),
         }
     }
 }
@@ -75,16 +102,22 @@ pub struct EmbeddedModuleLoader {
     map: HashMap<JsString, RefCell<EmbeddedModuleEntry>>,
 }
 
-impl FromIterator<(&'static str, &'static [u8])> for EmbeddedModuleLoader {
-    fn from_iter<T: IntoIterator<Item = (&'static str, &'static [u8])>>(iter: T) -> Self {
+impl FromIterator<(&'static str, &'static str, &'static [u8])> for EmbeddedModuleLoader {
+    fn from_iter<T: IntoIterator<Item = (&'static str, &'static str, &'static [u8])>>(
+        iter: T,
+    ) -> Self {
         Self {
             map: iter
                 .into_iter()
-                .map(|(path, source)| {
+                .map(|(compress_type, path, source)| {
                     let p = JsString::from(path);
                     (
                         p.clone(),
-                        RefCell::new(EmbeddedModuleEntry::from_source(p, source)),
+                        RefCell::new(EmbeddedModuleEntry::from_source(
+                            compress_type.try_into().expect("Invalid compress type"),
+                            p,
+                            source,
+                        )),
                     )
                 })
                 .collect(),
