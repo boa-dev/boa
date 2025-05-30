@@ -191,7 +191,7 @@ impl CallFrame {
         self.flags.contains(CallFrameFlags::CONSTRUCT)
     }
 
-    /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
+    /// Does this [`CallFrame`] need to push registers on [`super::Vm::push_frame()`].
     pub(crate) fn registers_already_pushed(&self) -> bool {
         self.flags
             .contains(CallFrameFlags::REGISTERS_ALREADY_PUSHED)
