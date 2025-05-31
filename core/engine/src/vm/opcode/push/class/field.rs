@@ -1,10 +1,7 @@
 use crate::{
     builtins::function::OrdinaryFunction,
     object::JsFunction,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -24,12 +21,11 @@ impl PushClassField {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let class = registers.get(class.into());
-        let name = registers.get(name.into());
-        let function = registers.get(function.into());
+        let class = context.vm.get_register(class.into()).clone();
+        let name = context.vm.get_register(name.into()).clone();
+        let function = context.vm.get_register(function.into()).clone();
         let is_anonyms_function = u32::from(is_anonyms_function) != 0;
 
         let name = name.to_property_key(context)?;
@@ -76,11 +72,10 @@ impl PushClassFieldPrivate {
     #[inline(always)]
     pub(crate) fn operation(
         (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let class = registers.get(class.into());
-        let function = registers.get(function.into());
+        let class = context.vm.get_register(class.into());
+        let function = context.vm.get_register(function.into());
         let name = context
             .vm
             .frame()

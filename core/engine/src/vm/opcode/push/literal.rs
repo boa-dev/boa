@@ -2,7 +2,7 @@ use crate::{
     object::JsRegExp,
     vm::{
         opcode::{Operation, VaryingOperand},
-        Constant, Registers,
+        Constant,
     },
     Context, JsResult, JsValue,
 };
@@ -16,18 +16,14 @@ pub(crate) struct PushLiteral;
 
 impl PushLiteral {
     #[inline(always)]
-    pub(crate) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation((dst, index): (VaryingOperand, VaryingOperand), context: &mut Context) {
         let constant = &context.vm.frame().code_block().constants[usize::from(index)];
         let value: JsValue = match constant {
             Constant::BigInt(v) => v.clone().into(),
             Constant::String(v) => v.clone().into(),
             _ => unreachable!("constant should be a string or bigint"),
         };
-        registers.set(dst.into(), value);
+        context.vm.set_register(dst.into(), value);
     }
 }
 
@@ -48,14 +44,13 @@ impl PushRegexp {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, pattern_index, flags_index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let code_block = context.vm.frame().code_block();
         let pattern = code_block.constant_string(pattern_index.into());
         let flags = code_block.constant_string(flags_index.into());
         let regexp = JsRegExp::new(pattern, flags, context)?;
-        registers.set(dst.into(), regexp.into());
+        context.vm.set_register(dst.into(), regexp.into());
         Ok(())
     }
 }

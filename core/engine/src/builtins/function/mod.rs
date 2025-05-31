@@ -995,7 +995,6 @@ pub(crate) fn function_call(
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
-    let register_count = code.register_count as usize;
 
     drop(function);
 
@@ -1007,7 +1006,7 @@ pub(crate) fn function_call(
 
     context.vm.push_frame(frame);
 
-    let this = context.vm.frame().this(&context.vm);
+    let this = context.vm.stack.get_this(context.vm.frame());
 
     let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
@@ -1044,7 +1043,7 @@ pub(crate) fn function_call(
         );
     }
 
-    Ok(CallValue::Ready { register_count })
+    Ok(CallValue::Ready)
 }
 
 /// Construct an instance of this object with the specified arguments.
@@ -1073,12 +1072,11 @@ fn function_construct(
     let code = function.code.clone();
     let environments = function.environments.clone();
     let script_or_module = function.script_or_module.clone();
-    let register_count = code.register_count as usize;
     drop(function);
 
     let env_fp = environments.len() as u32;
 
-    let new_target = context.vm.pop();
+    let new_target = context.vm.stack.pop();
 
     let this = if code.is_derived_constructor() {
         None
@@ -1111,12 +1109,7 @@ fn function_construct(
         .flags
         .set(CallFrameFlags::THIS_VALUE_CACHED, this.is_some());
 
-    let len = context.vm.stack.len();
-
     context.vm.push_frame(frame);
-
-    // NOTE(HalidOdat): +1 because we insert `this` value below.
-    context.vm.frame_mut().rp = len as u32 + 1;
 
     let mut last_env = 0;
 
@@ -1146,11 +1139,10 @@ fn function_construct(
         ),
     );
 
-    // Insert `this` value
-    context.vm.stack.insert(
-        len - argument_count - 1,
+    context.vm.stack.set_this(
+        &context.vm.frame,
         this.map(JsValue::new).unwrap_or_default(),
     );
 
-    Ok(CallValue::Ready { register_count })
+    Ok(CallValue::Ready)
 }

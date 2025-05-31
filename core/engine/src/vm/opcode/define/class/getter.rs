@@ -4,10 +4,7 @@ use crate::{
     builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -22,11 +19,10 @@ impl DefineClassStaticGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
         (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = registers.get(function.into());
-        let class = registers.get(class.into());
+        let function = context.vm.get_register(function.into()).clone();
+        let class = context.vm.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = context
             .vm
@@ -80,11 +76,10 @@ impl DefineClassGetterByName {
     #[inline(always)]
     pub(crate) fn operation(
         (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = registers.get(function.into());
-        let class_proto = registers.get(class_proto.into());
+        let function = context.vm.get_register(function.into()).clone();
+        let class_proto = context.vm.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
             .vm
@@ -138,12 +133,11 @@ impl DefineClassStaticGetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = registers.get(function.into());
-        let key = registers.get(key.into());
-        let class = registers.get(class.into());
+        let function = context.vm.get_register(function.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let class = context.vm.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -195,12 +189,11 @@ impl DefineClassGetterByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let function = registers.get(function.into());
-        let key = registers.get(key.into());
-        let class_proto = registers.get(class_proto.into());
+        let function = context.vm.get_register(function.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let class_proto = context.vm.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)

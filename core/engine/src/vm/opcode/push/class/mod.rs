@@ -1,10 +1,7 @@
 use crate::{
     error::JsNativeError,
     object::PROTOTYPE,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult, JsValue,
 };
 
@@ -25,11 +22,10 @@ impl PushClassPrototype {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, class, superclass): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let class = registers.get(class.into());
-        let superclass = registers.get(superclass.into());
+        let class = context.vm.get_register(class.into()).clone();
+        let superclass = context.vm.get_register(superclass.into()).clone();
 
         // // Taken from `15.7.14 Runtime Semantics: ClassDefinitionEvaluation`:
         // <https://tc39.es/ecma262/#sec-runtime-semantics-classdefinitionevaluation>
@@ -72,7 +68,7 @@ impl PushClassPrototype {
             class_object.set_prototype(Some(constructor_parent));
         }
 
-        registers.set(dst.into(), proto_parent);
+        context.vm.set_register(dst.into(), proto_parent);
         Ok(())
     }
 }

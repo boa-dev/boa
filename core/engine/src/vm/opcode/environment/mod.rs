@@ -3,7 +3,7 @@ use crate::{
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CallFrameFlags, Registers},
+    vm::{opcode::Operation, CallFrameFlags},
     Context, JsResult, JsValue,
 };
 
@@ -16,16 +16,10 @@ pub(crate) struct This;
 
 impl This {
     #[inline(always)]
-    pub(super) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let frame = context.vm.frame_mut();
-        let this_index = frame.fp();
-        if frame.has_this_value_cached() {
-            let this = context.vm.stack[this_index as usize].clone();
-            registers.set(dst.into(), this);
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        if context.vm.frame().has_this_value_cached() {
+            let this = context.vm.stack.get_this(context.vm.frame());
+            context.vm.set_register(dst.into(), this);
             return Ok(());
         }
 
@@ -35,8 +29,8 @@ impl This {
             .get_this_binding()?
             .unwrap_or(context.realm().global_this().clone().into());
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack[this_index as usize] = this.clone();
-        registers.set(dst.into(), this);
+        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        context.vm.set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -58,14 +52,13 @@ impl ThisForObjectEnvironmentName {
     #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let binding_locator = context.vm.frame().code_block.bindings[usize::from(index)].clone();
         let this = context
             .this_from_object_environment_binding(&binding_locator)?
             .map_or(JsValue::undefined(), Into::into);
-        registers.set(dst.into(), this);
+        context.vm.set_register(dst.into(), this);
         Ok(())
     }
 }
@@ -85,11 +78,7 @@ pub(crate) struct Super;
 
 impl Super {
     #[inline(always)]
-    pub(super) fn operation(
-        dst: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) -> JsResult<()> {
         let home_object = {
             let env = context
                 .vm
@@ -116,7 +105,7 @@ impl Super {
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
 
-        registers.set(dst.into(), value);
+        context.vm.set_register(dst.into(), value);
         Ok(())
     }
 }
@@ -136,7 +125,7 @@ pub(crate) struct SuperCallPrepare;
 
 impl SuperCallPrepare {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
         let this_env = context
             .vm
             .environments
@@ -147,7 +136,7 @@ impl SuperCallPrepare {
         let super_constructor = active_function
             .__get_prototype_of__(&mut InternalMethodContext::new(context))
             .expect("function object must have prototype");
-        registers.set(
+        context.vm.set_register(
             dst.into(),
             super_constructor.map_or_else(JsValue::null, JsValue::from),
         );
@@ -169,14 +158,13 @@ pub(crate) struct SuperCall;
 
 impl SuperCall {
     #[inline(always)]
-    pub(super) fn operation(
-        argument_count: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let argument_count = usize::from(argument_count);
-        let super_constructor_index = context.vm.stack.len() - argument_count - 1;
-        let super_constructor = context.vm.stack[super_constructor_index].clone();
+    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let super_constructor = context
+            .vm
+            .stack
+            .calling_convention_get_function(argument_count.into())
+            .clone();
+
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
                 .with_message("super constructor object must be constructor")
@@ -196,14 +184,11 @@ impl SuperCall {
             .expect("must have new.target")
             .clone();
 
-        context.vm.push(new_target);
+        context.vm.stack.push(new_target);
 
-        if let Some(register_count) = super_constructor
-            .__construct__(argument_count)
-            .resolve(context)?
-        {
-            registers.push_function(register_count);
-        }
+        super_constructor
+            .__construct__(argument_count.into())
+            .resolve(context)?;
         Ok(())
     }
 }
@@ -223,13 +208,9 @@ pub(crate) struct SuperCallSpread;
 
 impl SuperCallSpread {
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -239,7 +220,7 @@ impl SuperCallSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let super_constructor = context.vm.pop();
+        let super_constructor = context.vm.stack.pop();
 
         let Some(super_constructor) = super_constructor.as_constructor() else {
             return Err(JsNativeError::typ()
@@ -247,9 +228,12 @@ impl SuperCallSpread {
                 .into());
         };
 
-        context.vm.push(super_constructor.clone());
+        context.vm.stack.push(super_constructor.clone());
 
-        context.vm.push_values(&arguments);
+        context
+            .vm
+            .stack
+            .calling_convention_push_arguments(&arguments);
 
         let this_env = context
             .vm
@@ -264,14 +248,11 @@ impl SuperCallSpread {
             .expect("must have new.target")
             .clone();
 
-        context.vm.push(new_target);
+        context.vm.stack.push(new_target);
 
-        if let Some(register_count) = super_constructor
+        super_constructor
             .__construct__(arguments.len())
-            .resolve(context)?
-        {
-            registers.push_function(register_count);
-        }
+            .resolve(context)?;
         Ok(())
     }
 }
@@ -291,15 +272,7 @@ pub(crate) struct SuperCallDerived;
 
 impl SuperCallDerived {
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let rp = context.vm.frame().rp;
-        let argument_count = context.vm.frame().argument_count;
-        let arguments_start_index = rp - argument_count;
-
+    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let this_env = context
             .vm
             .environments
@@ -323,19 +296,16 @@ impl SuperCallDerived {
                 .into());
         }
 
-        context.vm.push(super_constructor.clone());
-        for i in 0..argument_count {
-            let value = context.vm.stack[(arguments_start_index + i) as usize].clone();
-            context.vm.push(value);
+        context.vm.stack.push(JsValue::undefined());
+        context.vm.stack.push(super_constructor.clone());
+        for argument in Vec::from(context.vm.stack.get_arguments(context.vm.frame())) {
+            context.vm.stack.push(argument.clone());
         }
-        context.vm.push(new_target);
+        context.vm.stack.push(new_target);
 
-        if let Some(register_count) = super_constructor
-            .__construct__(argument_count as usize)
-            .resolve(context)?
-        {
-            registers.push_function(register_count);
-        }
+        super_constructor
+            .__construct__(context.vm.frame().argument_count as usize)
+            .resolve(context)?;
         Ok(())
     }
 }
@@ -355,19 +325,17 @@ pub(crate) struct BindThisValue;
 
 impl BindThisValue {
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
         // Taken from `SuperCall : super Arguments` steps 7-12.
         //
         // <https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation>
 
-        let result = registers
-            .get(value.into())
+        let result = context
+            .vm
+            .get_register(value.into())
             .as_object()
-            .expect("construct result should be an object");
+            .expect("construct result should be an object")
+            .clone();
 
         // 7. Let thisER be GetThisEnvironment().
         let this_env = context
@@ -388,7 +356,7 @@ impl BindThisValue {
         result.initialize_instance_elements(&active_function, context)?;
 
         // 12. Return result.
-        registers.set(value.into(), result.clone().into());
+        context.vm.set_register(value.into(), result.into());
         Ok(())
     }
 }

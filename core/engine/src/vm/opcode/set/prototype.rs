@@ -1,9 +1,6 @@
 use crate::{
     object::internal_methods::InternalMethodContext,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -18,11 +15,10 @@ impl SetPrototype {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into());
 
         let prototype = if let Some(prototype) = value.as_object() {
             Some(prototype.clone())

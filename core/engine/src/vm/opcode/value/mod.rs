@@ -1,9 +1,5 @@
 use super::VaryingOperand;
-use crate::{
-    error::JsNativeError,
-    vm::{opcode::Operation, Registers},
-    Context, JsResult,
-};
+use crate::{error::JsNativeError, vm::opcode::Operation, Context, JsResult};
 
 /// `ValueNotNullOrUndefined` implements the Opcode Operation for `Opcode::ValueNotNullOrUndefined`
 ///
@@ -14,12 +10,8 @@ pub(crate) struct ValueNotNullOrUndefined;
 
 impl ValueNotNullOrUndefined {
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<()> {
-        let value = registers.get(value.into());
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let value = context.vm.get_register(value.into());
         if value.is_null() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot destructure 'null' value")
@@ -49,9 +41,9 @@ pub(crate) struct IsObject;
 
 impl IsObject {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, registers: &mut Registers, _: &mut Context) {
-        let is_object = registers.get(value.into()).is_object();
-        registers.set(value.into(), is_object.into());
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
+        let is_object = context.vm.get_register(value.into()).is_object();
+        context.vm.set_register(value.into(), is_object.into());
     }
 }
 

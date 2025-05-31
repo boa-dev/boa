@@ -1,9 +1,6 @@
 use crate::{
     builtins::OrdinaryObject,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -16,13 +13,13 @@ pub(crate) struct PushEmptyObject;
 
 impl PushEmptyObject {
     #[inline(always)]
-    pub(crate) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
+    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
         let o = context
             .intrinsics()
             .templates()
             .ordinary_object()
             .create(OrdinaryObject, Vec::default());
-        registers.set(dst.into(), o.into());
+        context.vm.set_register(dst.into(), o.into());
     }
 }
 

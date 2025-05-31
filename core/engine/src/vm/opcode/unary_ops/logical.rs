@@ -1,8 +1,5 @@
 use crate::{
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -15,10 +12,10 @@ pub(crate) struct LogicalNot;
 
 impl LogicalNot {
     #[inline(always)]
-    pub(crate) fn operation(value: VaryingOperand, registers: &mut Registers, _: &mut Context) {
-        registers.set(
+    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) {
+        context.vm.set_register(
             value.into(),
-            (!registers.get(value.into()).to_boolean()).into(),
+            (!context.vm.get_register(value.into()).to_boolean()).into(),
         );
     }
 }

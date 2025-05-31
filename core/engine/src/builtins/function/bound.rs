@@ -109,15 +109,19 @@ fn bound_function_exotic_call(
         .downcast_ref::<BoundFunction>()
         .expect("bound function exotic method should only be callable from bound function objects");
 
-    let arguments_start_index = context.vm.stack.len() - argument_count;
-
     // 1. Let target be F.[[BoundTargetFunction]].
     let target = bound_function.target_function();
-    context.vm.stack[arguments_start_index - 1] = target.clone().into();
+    context
+        .vm
+        .stack
+        .calling_convention_set_function(argument_count, target.clone().into());
 
     // 2. Let boundThis be F.[[BoundThis]].
     let bound_this = bound_function.this();
-    context.vm.stack[arguments_start_index - 2] = bound_this.clone();
+    context
+        .vm
+        .stack
+        .calling_convention_set_this(argument_count, bound_this.clone());
 
     // 3. Let boundArgs be F.[[BoundArguments]].
     let bound_args = bound_function.args();
@@ -125,7 +129,8 @@ fn bound_function_exotic_call(
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
     context
         .vm
-        .insert_values_at(bound_args, arguments_start_index);
+        .stack
+        .calling_convention_insert_arguments(argument_count, bound_args);
 
     // 5. Return ? Call(target, boundThis, args).
     Ok(target.__call__(bound_args.len() + argument_count))
@@ -143,7 +148,7 @@ fn bound_function_exotic_construct(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
-    let new_target = context.vm.pop();
+    let new_target = context.vm.stack.pop();
 
     debug_assert!(new_target.is_object(), "new.target should be an object");
 
@@ -160,10 +165,10 @@ fn bound_function_exotic_construct(
     let bound_args = bound_function.args();
 
     // 4. Let args be the list-concatenation of boundArgs and argumentsList.
-    let arguments_start_index = context.vm.stack.len() - argument_count;
     context
         .vm
-        .insert_values_at(bound_args, arguments_start_index);
+        .stack
+        .calling_convention_insert_arguments(argument_count, bound_args);
 
     // 5. If SameValue(F, newTarget) is true, set newTarget to target.
     let function_object: JsValue = function_object.clone().into();
@@ -174,6 +179,6 @@ fn bound_function_exotic_construct(
     };
 
     // 6. Return ? Construct(target, args, newTarget).
-    context.vm.push(new_target);
+    context.vm.stack.push(new_target);
     Ok(target.__construct__(bound_args.len() + argument_count))
 }

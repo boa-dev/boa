@@ -351,9 +351,13 @@ impl ByteCompiler<'_> {
                 self.compile_class(class.deref().into(), Some(dst));
             }
             Expression::SuperCall(super_call) => {
+                let this = self.register_allocator.alloc();
                 let value = self.register_allocator.alloc();
                 self.bytecode.emit_super_call_prepare(value.variable());
+                self.bytecode.emit_push_undefined(this.variable());
+                self.push_from_register(&this);
                 self.push_from_register(&value);
+                self.register_allocator.dealloc(this);
                 self.register_allocator.dealloc(value);
 
                 let contains_spread = super_call

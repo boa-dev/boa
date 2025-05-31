@@ -1,8 +1,5 @@
 use crate::{
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -17,8 +14,8 @@ macro_rules! implement_push_numbers_with_conversion {
 
         impl $name {
             #[inline(always)]
-            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) {
-                registers.set(dst.into(), i32::from(value).into());
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+                context.vm.set_register(dst.into(), i32::from(value).into());
             }
         }
 
@@ -41,8 +38,8 @@ macro_rules! implement_push_numbers_no_conversion {
 
         impl $name {
             #[inline(always)]
-            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type), registers: &mut Registers, _: &mut Context) {
-                registers.set(dst.into(), value.into());
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+                context.vm.set_register(dst.into(), value.into());
             }
         }
 

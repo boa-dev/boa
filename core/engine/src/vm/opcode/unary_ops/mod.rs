@@ -1,10 +1,5 @@
 use super::VaryingOperand;
-use crate::{
-    builtins::Number,
-    value::Numeric,
-    vm::{opcode::Operation, Registers},
-    Context, JsBigInt, JsResult,
-};
+use crate::{builtins::Number, value::Numeric, vm::opcode::Operation, Context, JsBigInt, JsResult};
 use std::ops::Neg as StdNeg;
 
 pub(crate) mod decrement;
@@ -24,10 +19,10 @@ pub(crate) struct TypeOf;
 
 impl TypeOf {
     #[inline(always)]
-    pub(super) fn operation(value: VaryingOperand, registers: &mut Registers, _: &mut Context) {
-        registers.set(
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
+        context.vm.set_register(
             value.into(),
-            registers.get(value.into()).js_type_of().into(),
+            context.vm.get_register(value.into()).js_type_of().into(),
         );
     }
 }
@@ -47,15 +42,14 @@ pub(crate) struct Pos;
 
 impl Pos {
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        registers.set(
-            value.into(),
-            registers.get(value.into()).to_number(context)?.into(),
-        );
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let v = context
+            .vm
+            .get_register(value.into())
+            .clone()
+            .to_number(context)?
+            .into();
+        context.vm.set_register(value.into(), v);
         Ok(())
     }
 }
@@ -75,14 +69,17 @@ pub(crate) struct Neg;
 
 impl Neg {
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        match registers.get(value.into()).to_numeric(context)? {
-            Numeric::Number(number) => registers.set(value.into(), number.neg().into()),
-            Numeric::BigInt(bigint) => registers.set(value.into(), JsBigInt::neg(&bigint).into()),
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        match context
+            .vm
+            .get_register(value.into())
+            .clone()
+            .to_numeric(context)?
+        {
+            Numeric::Number(number) => context.vm.set_register(value.into(), number.neg().into()),
+            Numeric::BigInt(bigint) => context
+                .vm
+                .set_register(value.into(), JsBigInt::neg(&bigint).into()),
         }
         Ok(())
     }
@@ -103,14 +100,19 @@ pub(crate) struct BitNot;
 
 impl BitNot {
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        match registers.get(value.into()).to_numeric(context)? {
-            Numeric::Number(number) => registers.set(value.into(), Number::not(number).into()),
-            Numeric::BigInt(bigint) => registers.set(value.into(), JsBigInt::not(&bigint).into()),
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        match context
+            .vm
+            .get_register(value.into())
+            .clone()
+            .to_numeric(context)?
+        {
+            Numeric::Number(number) => context
+                .vm
+                .set_register(value.into(), Number::not(number).into()),
+            Numeric::BigInt(bigint) => context
+                .vm
+                .set_register(value.into(), JsBigInt::not(&bigint).into()),
         }
         Ok(())
     }

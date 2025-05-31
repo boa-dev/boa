@@ -1,8 +1,5 @@
 use crate::{
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -15,18 +12,14 @@ pub(crate) struct GetArgument;
 
 impl GetArgument {
     #[inline(always)]
-    pub(crate) fn operation(
-        (index, dst): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation((index, dst): (VaryingOperand, VaryingOperand), context: &mut Context) {
         let value = context
             .vm
-            .frame()
-            .argument(index.into(), &context.vm)
+            .stack
+            .get_argument(context.vm.frame(), index.into())
             .cloned()
             .unwrap_or_default();
-        registers.set(dst.into(), value);
+        context.vm.set_register(dst.into(), value);
     }
 }
 

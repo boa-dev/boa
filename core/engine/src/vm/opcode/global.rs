@@ -1,4 +1,4 @@
-use super::{Operation, Registers, VaryingOperand};
+use super::{Operation, VaryingOperand};
 use crate::{Context, JsResult};
 
 /// `HasRestrictedGlobalProperty` implements the Opcode Operation for `Opcode::HasRestrictedGlobalProperty`
@@ -14,7 +14,6 @@ impl HasRestrictedGlobalProperty {
     #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let name = &context
@@ -23,7 +22,7 @@ impl HasRestrictedGlobalProperty {
             .code_block()
             .constant_string(index.into());
         let value = context.has_restricted_global_property(name)?;
-        registers.set(dst.into(), value.into());
+        context.vm.set_register(dst.into(), value.into());
         Ok(())
     }
 }
@@ -47,7 +46,6 @@ impl CanDeclareGlobalFunction {
     #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let name = &context
@@ -56,7 +54,7 @@ impl CanDeclareGlobalFunction {
             .code_block()
             .constant_string(index.into());
         let value = context.can_declare_global_function(name)?;
-        registers.set(dst.into(), value.into());
+        context.vm.set_register(dst.into(), value.into());
         Ok(())
     }
 }
@@ -80,7 +78,6 @@ impl CanDeclareGlobalVar {
     #[inline(always)]
     pub(super) fn operation(
         (dst, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let name = &context
@@ -89,7 +86,7 @@ impl CanDeclareGlobalVar {
             .code_block()
             .constant_string(index.into());
         let value = context.can_declare_global_var(name)?;
-        registers.set(dst.into(), value.into());
+        context.vm.set_register(dst.into(), value.into());
         Ok(())
     }
 }
@@ -113,11 +110,10 @@ impl CreateGlobalFunctionBinding {
     #[inline(always)]
     pub(super) fn operation(
         (function, configurable, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let configurable = u32::from(configurable) != 0;
-        let value = registers.get(function.into());
+        let value = context.vm.get_register(function.into());
         let name = context
             .vm
             .frame()
@@ -153,7 +149,6 @@ impl CreateGlobalVarBinding {
     #[inline(always)]
     pub(super) fn operation(
         (configurable, index): (VaryingOperand, VaryingOperand),
-        _: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let configurable = u32::from(configurable) != 0;

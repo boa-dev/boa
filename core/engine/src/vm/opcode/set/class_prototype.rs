@@ -4,7 +4,7 @@ use crate::{
     builtins::{function::OrdinaryFunction, OrdinaryObject},
     object::{internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE},
     property::PropertyDescriptorBuilder,
-    vm::{opcode::Operation, Registers},
+    vm::opcode::Operation,
     Context,
 };
 
@@ -19,10 +19,9 @@ impl SetClassPrototype {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, prototype, class): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let prototype = registers.get(prototype.into());
+        let prototype = context.vm.get_register(prototype.into());
         let prototype = match prototype.variant() {
             JsVariant::Object(proto) => Some(proto.clone()),
             JsVariant::Null => None,
@@ -36,7 +35,7 @@ impl SetClassPrototype {
             prototype,
             OrdinaryObject,
         );
-        let class = registers.get(class.into());
+        let class = context.vm.get_register(class.into()).clone();
 
         {
             let class_object = class.as_object().expect("class must be object");
@@ -70,7 +69,7 @@ impl SetClassPrototype {
             )
             .expect("cannot fail per spec");
 
-        registers.set(dst.into(), proto.into());
+        context.vm.set_register(dst.into(), proto.into());
     }
 }
 

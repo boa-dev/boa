@@ -1,9 +1,5 @@
 use super::VaryingOperand;
-use crate::{
-    builtins::Array,
-    vm::{opcode::Operation, Registers},
-    Context,
-};
+use crate::{builtins::Array, vm::opcode::Operation, Context};
 
 /// `RestParameterInit` implements the Opcode Operation for `Opcode::RestParameterInit`
 ///
@@ -14,31 +10,17 @@ pub(crate) struct RestParameterInit;
 
 impl RestParameterInit {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
-        let frame = context.vm.frame();
-        let argument_count = frame.argument_count;
-        let param_count = frame.code_block().parameter_length;
-        let array = if argument_count >= param_count {
-            let rest_count = argument_count - param_count + 1;
-
-            let len = context.vm.stack.len() as u32;
-            let start = (len - rest_count) as usize;
-            let end = len as usize;
-
-            let args = &context.vm.stack[start..end];
-
-            let array = Array::create_array_from_list(args.iter().cloned(), context);
-            context.vm.stack.drain(start..end);
-
-            context.vm.frame_mut().rp -= (start..end).len() as u32;
-            context.vm.frame_mut().argument_count -= (start..end).len() as u32;
-
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
+        let array = if let Some(rest) = context.vm.stack.pop_rest_arguments(&context.vm.frame) {
+            let rest_count = rest.len() as u32;
+            let array = Array::create_array_from_list(rest, context);
+            context.vm.frame_mut().rp -= rest_count;
+            context.vm.frame_mut().argument_count -= rest_count;
             array
         } else {
             Array::array_create(0, None, context).expect("could not create an empty array")
         };
-
-        registers.set(dst.into(), array.into());
+        context.vm.set_register(dst.into(), array.into());
     }
 }
 

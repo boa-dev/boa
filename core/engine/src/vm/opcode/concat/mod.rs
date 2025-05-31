@@ -1,8 +1,5 @@
 use super::VaryingOperand;
-use crate::{
-    vm::{opcode::Operation, Registers},
-    Context, JsResult, JsString,
-};
+use crate::{vm::opcode::Operation, Context, JsResult, JsString};
 use thin_vec::ThinVec;
 
 /// `ConcatToString` implements the Opcode Operation for `Opcode::ConcatToString`
@@ -16,16 +13,16 @@ impl ConcatToString {
     #[inline(always)]
     pub(super) fn operation(
         (string, values): (VaryingOperand, ThinVec<VaryingOperand>),
-        registers: &mut Registers,
+
         context: &mut Context,
     ) -> JsResult<()> {
         let mut strings = Vec::with_capacity(values.len());
         for value in values {
-            let val = registers.get(value.into());
+            let val = context.vm.get_register(value.into()).clone();
             strings.push(val.to_string(context)?);
         }
         let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>());
-        registers.set(string.into(), s.into());
+        context.vm.set_register(string.into(), s.into());
         Ok(())
     }
 }

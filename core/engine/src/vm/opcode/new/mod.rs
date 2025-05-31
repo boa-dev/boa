@@ -1,9 +1,5 @@
 use super::VaryingOperand;
-use crate::{
-    error::JsNativeError,
-    vm::{opcode::Operation, Registers},
-    Context, JsResult,
-};
+use crate::{error::JsNativeError, vm::opcode::Operation, Context, JsResult};
 
 /// `New` implements the Opcode Operation for `Opcode::New`
 ///
@@ -14,25 +10,20 @@ pub(crate) struct New;
 
 impl New {
     #[inline(always)]
-    pub(super) fn operation(
-        argument_count: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let argument_count = usize::from(argument_count);
-        let at = context.vm.stack.len() - argument_count;
-        let func = &context.vm.stack[at - 1];
+    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let func = context
+            .vm
+            .stack
+            .calling_convention_get_function(argument_count.into());
 
         let cons = func
             .as_object()
             .ok_or_else(|| JsNativeError::typ().with_message("not a constructor"))?
             .clone();
 
-        context.vm.push(cons.clone()); // Push new.target
+        context.vm.stack.push(cons.clone()); // Push new.target
 
-        if let Some(register_count) = cons.__construct__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
-        }
+        cons.__construct__(argument_count.into()).resolve(context)?;
         Ok(())
     }
 }
@@ -52,13 +43,9 @@ pub(crate) struct NewSpread;
 
 impl NewSpread {
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -68,7 +55,7 @@ impl NewSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let func = context.vm.pop();
+        let func = context.vm.stack.pop();
 
         let cons = func
             .as_object()
@@ -76,13 +63,14 @@ impl NewSpread {
             .clone();
 
         let argument_count = arguments.len();
-        context.vm.push(func);
-        context.vm.push_values(&arguments);
-        context.vm.push(cons.clone()); // Push new.target
+        context.vm.stack.push(func);
+        context
+            .vm
+            .stack
+            .calling_convention_push_arguments(&arguments);
+        context.vm.stack.push(cons.clone()); // Push new.target
 
-        if let Some(register_count) = cons.__construct__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
-        }
+        cons.__construct__(argument_count).resolve(context)?;
         Ok(())
     }
 }

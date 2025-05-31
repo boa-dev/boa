@@ -1,7 +1,4 @@
-use crate::{
-    vm::{opcode::Operation, Registers},
-    Context,
-};
+use crate::{vm::opcode::Operation, Context};
 
 /// `Pop` implements the Opcode Operation for `Opcode::Pop`
 ///
@@ -12,8 +9,8 @@ pub(crate) struct Pop;
 
 impl Pop {
     #[inline(always)]
-    pub(super) fn operation((): (), _: &mut Registers, context: &mut Context) {
-        let _val = context.vm.pop();
+    pub(super) fn operation((): (), context: &mut Context) {
+        let _val = context.vm.stack.pop();
     }
 }
 
@@ -32,7 +29,7 @@ pub(crate) struct PopEnvironment;
 
 impl PopEnvironment {
     #[inline(always)]
-    pub(super) fn operation((): (), _: &mut Registers, context: &mut Context) {
+    pub(super) fn operation((): (), context: &mut Context) {
         context.vm.environments.pop();
     }
 }

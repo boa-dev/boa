@@ -1,10 +1,7 @@
 use crate::{
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -24,11 +21,10 @@ impl GetPropertyByName {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let receiver = registers.get(receiver.into());
-        let object = registers.get(value.into());
+        let receiver = context.vm.get_register(receiver.into()).clone();
+        let object = context.vm.get_register(value.into()).clone();
         let object = object.to_object(context)?;
 
         let ic = &context.vm.frame().code_block().ic[usize::from(index)];
@@ -45,12 +41,12 @@ impl GetPropertyByName {
             drop(object_borrowed);
             if slot.attributes.has_get() && result.is_object() {
                 result = result.as_object().expect("should contain getter").call(
-                    receiver,
+                    &receiver,
                     &[],
                     context,
                 )?;
             }
-            registers.set(dst.into(), result);
+            context.vm.set_register(dst.into(), result);
             return Ok(());
         }
 
@@ -70,7 +66,7 @@ impl GetPropertyByName {
             ic.set(shape, slot);
         }
 
-        registers.set(dst.into(), result);
+        context.vm.set_register(dst.into(), result);
         Ok(())
     }
 }
@@ -97,11 +93,10 @@ impl GetPropertyByValue {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let key = registers.get(key.into());
-        let object = registers.get(object.into());
+        let key = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let key = key.to_property_key(context)?;
 
@@ -111,13 +106,13 @@ impl GetPropertyByValue {
                 let object_borrowed = object.borrow();
                 if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
-                    registers.set(dst.into(), element);
+                    context.vm.set_register(dst.into(), element);
                     return Ok(());
                 }
             }
         }
 
-        let receiver = registers.get(receiver.into());
+        let receiver = context.vm.get_register(receiver.into());
 
         // Slow path:
         let result = object.__get__(
@@ -126,7 +121,7 @@ impl GetPropertyByValue {
             &mut InternalMethodContext::new(context),
         )?;
 
-        registers.set(dst.into(), result);
+        context.vm.set_register(dst.into(), result);
         Ok(())
     }
 }
@@ -153,11 +148,10 @@ impl GetPropertyByValuePush {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let key_value = registers.get(key.into());
-        let object = registers.get(object.into());
+        let key_value = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let key_value = key_value.to_property_key(context)?;
 
@@ -167,14 +161,14 @@ impl GetPropertyByValuePush {
                 let object_borrowed = object.borrow();
                 if let Some(element) = object_borrowed.properties().get_dense_property(index.get())
                 {
-                    registers.set(key.into(), key_value.into());
-                    registers.set(dst.into(), element);
+                    context.vm.set_register(key.into(), key_value.into());
+                    context.vm.set_register(dst.into(), element);
                     return Ok(());
                 }
             }
         }
 
-        let receiver = registers.get(receiver.into());
+        let receiver = context.vm.get_register(receiver.into());
 
         // Slow path:
         let result = object.__get__(
@@ -183,8 +177,8 @@ impl GetPropertyByValuePush {
             &mut InternalMethodContext::new(context),
         )?;
 
-        registers.set(key.into(), key_value.into());
-        registers.set(dst.into(), result);
+        context.vm.set_register(key.into(), key_value.into());
+        context.vm.set_register(dst.into(), result);
         Ok(())
     }
 }

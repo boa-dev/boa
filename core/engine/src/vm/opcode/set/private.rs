@@ -2,10 +2,7 @@ use crate::{
     js_str, js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -20,7 +17,6 @@ impl SetPrivateField {
     #[inline(always)]
     pub(crate) fn operation(
         (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let name = context
@@ -28,8 +24,8 @@ impl SetPrivateField {
             .frame()
             .code_block()
             .constant_string(index.into());
-        let value = registers.get(value.into());
-        let object = registers.get(object.into());
+        let value = context.vm.get_register(value.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let base_obj = object.to_object(context)?;
         let name = context
             .vm
@@ -59,11 +55,10 @@ impl DefinePrivateField {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
         let name = context
             .vm
             .frame()
@@ -98,11 +93,10 @@ impl SetPrivateMethod {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -149,11 +143,10 @@ impl SetPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
         let name = context
             .vm
             .frame()
@@ -192,11 +185,10 @@ impl SetPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
         let name = context
             .vm
             .frame()

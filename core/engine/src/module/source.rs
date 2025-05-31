@@ -27,7 +27,7 @@ use crate::{
     realm::Realm,
     vm::{
         create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
-        CompletionRecord, Registers,
+        CompletionRecord,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
     SpannedSourceText,
@@ -1752,13 +1752,10 @@ impl SourceTextModule {
             .vm
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
-        let register_count = context.vm.frame().code_block().register_count;
-        let registers = &mut Registers::new(register_count as usize);
-
         context
             .vm
-            .frame
-            .set_promise_capability(registers, capability);
+            .stack
+            .set_promise_capability(&context.vm.frame, capability);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -1769,7 +1766,7 @@ impl SourceTextModule {
         // 10. Else,
         //    a. Assert: capability is a PromiseCapability Record.
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
-        let result = context.run(registers);
+        let result = context.run();
 
         context.vm.pop_frame();
 

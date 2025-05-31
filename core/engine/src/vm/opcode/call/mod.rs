@@ -4,7 +4,7 @@ use crate::{
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, Registers},
+    vm::opcode::Operation,
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -19,12 +19,12 @@ impl CallEval {
     #[inline(always)]
     pub(super) fn operation(
         (argument_count, scope_index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let argument_count = usize::from(argument_count);
-        let at = context.vm.stack.len() - argument_count;
-        let func = &context.vm.stack[at - 1];
+        let func = context
+            .vm
+            .stack
+            .calling_convention_get_function(argument_count.into());
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -41,9 +41,12 @@ impl CallEval {
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
         if JsObject::equals(object, &eval) {
-            let arguments = context.vm.pop_n_values(argument_count);
-            let _func = context.vm.pop();
-            let _this = context.vm.pop();
+            let arguments = context
+                .vm
+                .stack
+                .calling_convention_pop_arguments(argument_count.into());
+            let _func = context.vm.stack.pop();
+            let _this = context.vm.stack.pop();
             if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -64,18 +67,16 @@ impl CallEval {
                     strict,
                     context,
                 )?;
-                context.vm.push(result);
+                context.vm.stack.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.push(JsValue::undefined());
+                context.vm.stack.push(JsValue::undefined());
             }
 
             return Ok(());
         }
 
-        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
-        }
+        object.__call__(argument_count.into()).resolve(context)?;
         Ok(())
     }
 }
@@ -95,13 +96,9 @@ pub(crate) struct CallEvalSpread;
 
 impl CallEvalSpread {
     #[inline(always)]
-    pub(super) fn operation(
-        index: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(super) fn operation(index: VaryingOperand, context: &mut Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -111,15 +108,13 @@ impl CallEvalSpread {
             .to_dense_indexed_properties()
             .expect("arguments array in call spread function must be dense");
 
-        let at = context.vm.stack.len();
-        let func = context.vm.stack[at - 1].clone();
+        let func = context.vm.stack.calling_convention_get_function(0);
 
-        let Some(object) = func.as_object() else {
+        let Some(object) = func.as_object().cloned() else {
             return Err(JsNativeError::typ()
                 .with_message("not a callable function")
                 .into());
         };
-
         // Taken from `13.3.6.1 Runtime Semantics: Evaluation`
         //            `CallExpression : CoverCallExpressionAndAsyncArrowHead`
         //
@@ -128,9 +123,9 @@ impl CallEvalSpread {
         // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
-        if JsObject::equals(object, &eval) {
-            let _func = context.vm.pop();
-            let _this = context.vm.pop();
+        if JsObject::equals(&object, &eval) {
+            let _func = context.vm.stack.pop();
+            let _this = context.vm.stack.pop();
             if let Some(x) = arguments.first() {
                 // i. Let argList be ? ArgumentListEvaluation of arguments.
                 // ii. If argList has no elements, return undefined.
@@ -147,21 +142,22 @@ impl CallEvalSpread {
                     strict,
                     context,
                 )?;
-                context.vm.push(result);
+                context.vm.stack.push(result);
             } else {
                 // NOTE: This is a deviation from the spec, to optimize the case when we dont pass anything to `eval`.
-                context.vm.push(JsValue::undefined());
+                context.vm.stack.push(JsValue::undefined());
             }
 
             return Ok(());
         }
 
         let argument_count = arguments.len();
-        context.vm.push_values(&arguments);
+        context
+            .vm
+            .stack
+            .calling_convention_push_arguments(&arguments);
 
-        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
-        }
+        object.__call__(argument_count).resolve(context)?;
         Ok(())
     }
 }
@@ -181,14 +177,11 @@ pub(crate) struct Call;
 
 impl Call {
     #[inline(always)]
-    pub(super) fn operation(
-        argument_count: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let argument_count = usize::from(argument_count);
-        let at = context.vm.stack.len() - argument_count;
-        let func = &context.vm.stack[at - 1];
+    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let func = context
+            .vm
+            .stack
+            .calling_convention_get_function(argument_count.into());
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -196,9 +189,7 @@ impl Call {
                 .into());
         };
 
-        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
-        }
+        object.__call__(argument_count.into()).resolve(context)?;
 
         Ok(())
     }
@@ -215,13 +206,9 @@ pub(crate) struct CallSpread;
 
 impl CallSpread {
     #[inline(always)]
-    pub(super) fn operation(
-        (): (),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(super) fn operation((): (), context: &mut Context) -> JsResult<()> {
         // Get the arguments that are stored as an array object on the stack.
-        let arguments_array = context.vm.pop();
+        let arguments_array = context.vm.stack.pop();
         let arguments_array_object = arguments_array
             .as_object()
             .expect("arguments array in call spread function must be an object");
@@ -232,10 +219,15 @@ impl CallSpread {
             .expect("arguments array in call spread function must be dense");
 
         let argument_count = arguments.len();
-        context.vm.push_values(&arguments);
+        context
+            .vm
+            .stack
+            .calling_convention_push_arguments(&arguments);
 
-        let at = context.vm.stack.len() - argument_count;
-        let func = &context.vm.stack[at - 1];
+        let func = context
+            .vm
+            .stack
+            .calling_convention_get_function(argument_count);
 
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
@@ -243,9 +235,7 @@ impl CallSpread {
                 .into());
         };
 
-        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
-        }
+        object.__call__(argument_count).resolve(context)?;
         Ok(())
     }
 }
@@ -265,11 +255,7 @@ pub(crate) struct ImportCall;
 
 impl ImportCall {
     #[inline(always)]
-    pub(super) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
         // Import Calls
         // Runtime Semantics: Evaluation
         // https://tc39.es/ecma262/#sec-import-call-runtime-semantics-evaluation
@@ -282,7 +268,7 @@ impl ImportCall {
 
         // 3. Let argRef be ? Evaluation of AssignmentExpression.
         // 4. Let specifier be ? GetValue(argRef).
-        let arg = registers.get(value.into());
+        let arg = context.vm.get_register(value.into()).clone();
 
         // 5. Let promiseCapability be ! NewPromiseCapability(%Promise%).
         let cap = PromiseCapability::new(
@@ -466,7 +452,7 @@ impl ImportCall {
         }
 
         // 9. Return promiseCapability.[[Promise]].
-        registers.set(value.into(), promise.into());
+        context.vm.set_register(value.into(), promise.into());
         Ok(())
     }
 }

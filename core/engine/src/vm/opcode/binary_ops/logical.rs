@@ -1,8 +1,5 @@
 use crate::{
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -15,12 +12,8 @@ pub(crate) struct LogicalAnd;
 
 impl LogicalAnd {
     #[inline(always)]
-    pub(crate) fn operation(
-        (exit, lhs): (u32, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
-        let lhs = registers.get(lhs.into());
+    pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &mut Context) {
+        let lhs = context.vm.get_register(lhs.into());
         if !lhs.to_boolean() {
             context.vm.frame_mut().pc = exit;
         }
@@ -42,12 +35,8 @@ pub(crate) struct LogicalOr;
 
 impl LogicalOr {
     #[inline(always)]
-    pub(crate) fn operation(
-        (exit, lhs): (u32, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
-        let lhs = registers.get(lhs.into());
+    pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &mut Context) {
+        let lhs = context.vm.get_register(lhs.into());
         if lhs.to_boolean() {
             context.vm.frame_mut().pc = exit;
         }
@@ -69,12 +58,8 @@ pub(crate) struct Coalesce;
 
 impl Coalesce {
     #[inline(always)]
-    pub(crate) fn operation(
-        (exit, lhs): (u32, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
-        let lhs = registers.get(lhs.into());
+    pub(crate) fn operation((exit, lhs): (u32, VaryingOperand), context: &mut Context) {
+        let lhs = context.vm.get_register(lhs.into());
         if !lhs.is_null_or_undefined() {
             context.vm.frame_mut().pc = exit;
         }

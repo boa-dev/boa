@@ -1,10 +1,7 @@
 use crate::{
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 use boa_gc::Gc;
@@ -19,7 +16,7 @@ pub(crate) struct PushScope;
 
 impl PushScope {
     #[inline(always)]
-    pub(crate) fn operation(index: VaryingOperand, _: &mut Registers, context: &mut Context) {
+    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) {
         let scope = context.vm.frame().code_block().constant_scope(index.into());
         context
             .vm
@@ -43,12 +40,8 @@ pub(crate) struct PushObjectEnvironment;
 
 impl PushObjectEnvironment {
     #[inline(always)]
-    pub(crate) fn operation(
-        value: VaryingOperand,
-        registers: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
-        let object = registers.get(value.into());
+    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let object = context.vm.get_register(value.into()).clone();
         let object = object.to_object(context)?;
         context.vm.environments.push_object(object);
         Ok(())
@@ -72,10 +65,9 @@ impl PushPrivateEnvironment {
     #[inline(always)]
     pub(crate) fn operation(
         (class, name_indices): (VaryingOperand, ThinVec<u32>),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let class = registers.get(class.into());
+        let class = context.vm.get_register(class.into());
         let class = class.as_object().expect("should be a object");
         let mut names = Vec::with_capacity(name_indices.len());
         for index in name_indices {
@@ -113,7 +105,7 @@ pub(crate) struct PopPrivateEnvironment;
 
 impl PopPrivateEnvironment {
     #[inline(always)]
-    pub(crate) fn operation((): (), _: &mut Registers, context: &mut Context) {
+    pub(crate) fn operation((): (), context: &mut Context) {
         context.vm.environments.pop_private();
     }
 }

@@ -2,10 +2,7 @@ use crate::{
     error::JsNativeError,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::PropertyKey,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult, JsValue,
 };
 
@@ -20,7 +17,6 @@ impl GetName {
     #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
@@ -30,7 +26,7 @@ impl GetName {
             let name = binding_locator.name().to_std_string_escaped();
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
-        registers.set(value.into(), result);
+        context.vm.set_register(value.into(), result);
         Ok(())
     }
 }
@@ -52,7 +48,6 @@ impl GetNameGlobal {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, index, ic_index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
@@ -82,7 +77,7 @@ impl GetNameGlobal {
                         context,
                     )?;
                 }
-                registers.set(dst.into(), result);
+                context.vm.set_register(dst.into(), result);
                 return Ok(());
             }
 
@@ -107,7 +102,7 @@ impl GetNameGlobal {
                 ic.set(shape, slot);
             }
 
-            registers.set(dst.into(), result);
+            context.vm.set_register(dst.into(), result);
             return Ok(());
         }
 
@@ -116,7 +111,7 @@ impl GetNameGlobal {
             JsNativeError::reference().with_message(format!("{name} is not defined"))
         })?;
 
-        registers.set(dst.into(), result);
+        context.vm.set_register(dst.into(), result);
         Ok(())
     }
 }
@@ -136,11 +131,7 @@ pub(crate) struct GetLocator;
 
 impl GetLocator {
     #[inline(always)]
-    pub(crate) fn operation(
-        index: VaryingOperand,
-        _: &mut Registers,
-        context: &mut Context,
-    ) -> JsResult<()> {
+    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsResult<()> {
         let mut binding_locator =
             context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
@@ -169,7 +160,6 @@ impl GetNameAndLocator {
     #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
@@ -181,7 +171,7 @@ impl GetNameAndLocator {
         })?;
 
         context.vm.frame_mut().binding_stack.push(binding_locator);
-        registers.set(value.into(), result);
+        context.vm.set_register(value.into(), result);
         Ok(())
     }
 }
@@ -203,7 +193,6 @@ impl GetNameOrUndefined {
     #[inline(always)]
     pub(crate) fn operation(
         (value, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let mut binding_locator =
@@ -224,7 +213,7 @@ impl GetNameOrUndefined {
                 .into());
         };
 
-        registers.set(value.into(), result);
+        context.vm.set_register(value.into(), result);
         Ok(())
     }
 }

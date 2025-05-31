@@ -1,8 +1,5 @@
 use crate::{
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -17,7 +14,6 @@ impl GetPrivateField {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         let name = context
@@ -25,7 +21,7 @@ impl GetPrivateField {
             .frame()
             .code_block()
             .constant_string(index.into());
-        let object = registers.get(object.into());
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let name = context
             .vm
@@ -34,7 +30,7 @@ impl GetPrivateField {
             .expect("private name must be in environment");
 
         let result = object.private_get(&name, context)?;
-        registers.set(dst.into(), result);
+        context.vm.set_register(dst.into(), result);
         Ok(())
     }
 }

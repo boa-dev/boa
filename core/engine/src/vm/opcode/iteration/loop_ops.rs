@@ -1,8 +1,5 @@
 use crate::JsNativeError;
-use crate::{
-    vm::{opcode::Operation, Registers},
-    Context, JsResult,
-};
+use crate::{vm::opcode::Operation, Context, JsResult};
 
 /// `IncrementLoopIteration` implements the Opcode Operation for `Opcode::IncrementLoopIteration`.
 ///
@@ -13,7 +10,7 @@ pub(crate) struct IncrementLoopIteration;
 
 impl IncrementLoopIteration {
     #[inline(always)]
-    pub(crate) fn operation((): (), _: &mut Registers, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let max = context.vm.runtime_limits.loop_iteration_limit();
         let frame = context.vm.frame_mut();
         let previous_iteration_count = frame.loop_iteration_count;
