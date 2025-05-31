@@ -3,7 +3,7 @@ use std::ops::ControlFlow;
 use crate::{
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionRecord, Registers,
+        CompletionRecord, OpStatus, Registers,
     },
     Context, JsNativeError,
 };
@@ -21,7 +21,7 @@ impl Return {
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         context.handle_return(registers)
     }
 }
@@ -45,10 +45,10 @@ impl CheckReturn {
         (): (),
         registers: &mut Registers,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let frame = context.vm.frame();
         if !frame.construct() {
-            return ControlFlow::Continue(());
+            return ControlFlow::Continue(OpStatus::Finished);
         }
         let this = frame.this(&context.vm);
         let result = context.vm.take_return_value();
@@ -86,7 +86,7 @@ impl CheckReturn {
         };
 
         context.vm.set_return_value(result);
-        ControlFlow::Continue(())
+        ControlFlow::Continue(OpStatus::Finished)
     }
 }
 

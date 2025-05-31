@@ -95,6 +95,8 @@ pub(crate) use unary_ops::*;
 #[doc(inline)]
 pub(crate) use value::*;
 
+use super::OpStatus;
+
 /// Specific opcodes for bindings.
 ///
 /// This separate enum exists to make matching exhaustive where needed.
@@ -352,7 +354,7 @@ macro_rules! generate_opcodes {
             )*
         }
 
-        type OpcodeHandler = fn(&mut Context, &mut Registers, usize) -> ControlFlow<CompletionRecord>;
+        type OpcodeHandler = fn(&mut Context, &mut Registers, usize) -> ControlFlow<CompletionRecord, OpStatus>;
 
         const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
             [
@@ -362,7 +364,7 @@ macro_rules! generate_opcodes {
             ]
         };
 
-        type OpcodeHandlerBudget = fn(&mut Context, &mut Registers, usize, &mut u32) -> ControlFlow<CompletionRecord>;
+        type OpcodeHandlerBudget = fn(&mut Context, &mut Registers, usize, &mut u32) -> ControlFlow<CompletionRecord, OpStatus>;
 
         const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
             [
@@ -376,12 +378,12 @@ macro_rules! generate_opcodes {
             paste::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
-                fn [<handle_ $Variant:snake>](context: &mut Context, registers: &mut Registers, pc: usize) -> ControlFlow<CompletionRecord> {
+                fn [<handle_ $Variant:snake>](context: &mut Context, registers: &mut Registers, pc: usize) -> ControlFlow<CompletionRecord, OpStatus> {
                     let bytes = &context.vm.frame.code_block.bytecode.bytecode;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
                     context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, registers, context);
-                    IntoCompletionRecord::into_completion_record(result, context, registers)
+                    IntoCompletionRecord::into_completion_record(result, context, registers, pc as u32)
                 }
             }
         )*
@@ -390,13 +392,13 @@ macro_rules! generate_opcodes {
             paste::paste! {
                 #[inline(always)]
                 #[allow(unused_parens)]
-                fn [<handle_ $Variant:snake _budget>](context: &mut Context, registers: &mut Registers, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
+                fn [<handle_ $Variant:snake _budget>](context: &mut Context, registers: &mut Registers, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord, OpStatus> {
                     *budget = budget.saturating_sub(u32::from($Variant::COST));
                     let bytes = &context.vm.frame.code_block.bytecode.bytecode;
                     let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
                     context.vm.frame_mut().pc = next_pc as u32;
                     let result = $Variant::operation(args, registers, context);
-                    IntoCompletionRecord::into_completion_record(result, context, registers)
+                    IntoCompletionRecord::into_completion_record(result, context, registers, pc as u32)
                 }
             }
         )*
@@ -460,7 +462,7 @@ impl Context {
         &mut self,
         registers: &mut Registers,
         opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let frame = self.vm.frame_mut();
         let pc = frame.pc as usize;
 
@@ -472,7 +474,7 @@ impl Context {
         registers: &mut Registers,
         budget: &mut u32,
         opcode: Opcode,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let frame = self.vm.frame_mut();
         let pc = frame.pc as usize;
 

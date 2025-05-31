@@ -3,8 +3,8 @@ use crate::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
-    object::FunctionObjectBuilder,
-    vm::{opcode::Operation, Registers},
+    object::{internal_methods::ResolvedCallValue, FunctionObjectBuilder},
+    vm::{opcode::Operation, OpStatus, Registers},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -185,22 +185,29 @@ impl Call {
         argument_count: VaryingOperand,
         registers: &mut Registers,
         context: &mut Context,
-    ) -> JsResult<()> {
+    ) -> JsResult<OpStatus> {
         let argument_count = usize::from(argument_count);
         let at = context.vm.stack.len() - argument_count;
         let func = &context.vm.stack[at - 1];
 
+        //println!("Call function: {:?}", func);
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("not a callable function")
                 .into());
         };
 
-        if let Some(register_count) = object.__call__(argument_count).resolve(context)? {
-            registers.push_function(register_count);
+        match object.__call__(argument_count).async_resolve(context)? {
+            ResolvedCallValue::Ready { register_count } => {
+                registers.push_function(register_count);
+                Ok(OpStatus::Finished)
+            }
+            ResolvedCallValue::Complete => Ok(OpStatus::Finished),
+            ResolvedCallValue::Pending => {
+                //println!("Pending call");
+                Ok(OpStatus::Pending)
+            }
         }
-
-        Ok(())
     }
 }
 
