@@ -1,10 +1,7 @@
 use crate::{
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsNativeError, JsResult,
 };
 
@@ -19,11 +16,10 @@ impl DefineOwnPropertyByName {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -61,12 +57,11 @@ impl DefineOwnPropertyByValue {
     #[inline(always)]
     pub(crate) fn operation(
         (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = registers.get(value.into());
-        let key = registers.get(key.into());
-        let object = registers.get(object.into());
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let key = key.to_property_key(context)?;
         let success = object.__define_own_property__(

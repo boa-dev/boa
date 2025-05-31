@@ -3,10 +3,7 @@ use crate::{
     js_str, js_string,
     object::{internal_methods::InternalMethodContext, PrivateElement},
     property::PropertyDescriptor,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -26,12 +23,11 @@ impl PushClassPrivateMethod {
             VaryingOperand,
             VaryingOperand,
         ),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let prototype = registers.get(prototype.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into()).clone();
+        let prototype = context.vm.get_register(prototype.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
@@ -90,11 +86,10 @@ impl PushClassPrivateGetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
         let name = context
             .vm
             .frame()
@@ -134,11 +129,10 @@ impl PushClassPrivateSetter {
     #[inline(always)]
     pub(crate) fn operation(
         (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) {
-        let object = registers.get(object.into());
-        let value = registers.get(value.into());
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
         let name = context
             .vm
             .frame()

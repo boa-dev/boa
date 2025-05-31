@@ -2,7 +2,6 @@ use crate::{
     vm::{
         code_block::create_function_object_fast,
         opcode::{Operation, VaryingOperand},
-        Registers,
     },
     Context,
 };
@@ -16,18 +15,14 @@ pub(crate) struct GetFunction;
 
 impl GetFunction {
     #[inline(always)]
-    pub(crate) fn operation(
-        (dst, index): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
+    pub(crate) fn operation((dst, index): (VaryingOperand, VaryingOperand), context: &mut Context) {
         let code = context
             .vm
             .frame()
             .code_block()
             .constant_function(index.into());
         let function = create_function_object_fast(code, context);
-        registers.set(dst.into(), function.into());
+        context.vm.set_register(dst.into(), function.into());
     }
 }
 

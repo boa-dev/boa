@@ -410,9 +410,12 @@ pub(crate) fn native_function_call(
     argument_count: usize,
     context: &mut Context,
 ) -> JsResult<CallValue> {
-    let args = context.vm.pop_n_values(argument_count);
-    let _func = context.vm.pop();
-    let this = context.vm.pop();
+    let args = context
+        .vm
+        .stack
+        .calling_convention_pop_arguments(argument_count);
+    let _func = context.vm.stack.pop();
+    let this = context.vm.stack.pop();
 
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
@@ -443,7 +446,7 @@ pub(crate) fn native_function_call(
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
 
-    context.vm.push(result?);
+    context.vm.stack.push(result?);
 
     Ok(CallValue::Complete)
 }
@@ -478,9 +481,13 @@ fn native_function_construct(
     context.swap_realm(&mut realm);
     context.vm.native_active_function = Some(this_function_object);
 
-    let new_target = context.vm.pop();
-    let args = context.vm.pop_n_values(argument_count);
-    let _func = context.vm.pop();
+    let new_target = context.vm.stack.pop();
+    let args = context
+        .vm
+        .stack
+        .calling_convention_pop_arguments(argument_count);
+    let _func = context.vm.stack.pop();
+    let _this = context.vm.stack.pop();
 
     let result = function
         .call(&new_target, &args, context)
@@ -510,7 +517,7 @@ fn native_function_construct(
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
 
-    context.vm.push(result?);
+    context.vm.stack.push(result?);
 
     Ok(CallValue::Complete)
 }

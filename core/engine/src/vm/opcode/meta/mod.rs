@@ -1,7 +1,7 @@
 use super::VaryingOperand;
 use crate::{
     module::ModuleKind,
-    vm::{opcode::Operation, ActiveRunnable, Registers},
+    vm::{opcode::Operation, ActiveRunnable},
     Context, JsObject, JsValue,
 };
 use std::unreachable;
@@ -15,7 +15,7 @@ pub(crate) struct NewTarget;
 
 impl NewTarget {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
         let new_target = if let Some(new_target) = context
             .vm
             .environments
@@ -27,7 +27,7 @@ impl NewTarget {
         } else {
             JsValue::undefined()
         };
-        registers.set(dst.into(), new_target);
+        context.vm.set_register(dst.into(), new_target);
     }
 }
 
@@ -46,7 +46,7 @@ pub(crate) struct ImportMeta;
 
 impl ImportMeta {
     #[inline(always)]
-    pub(super) fn operation(dst: VaryingOperand, registers: &mut Registers, context: &mut Context) {
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
         // Meta Properties
         //
         // ImportMeta : import . meta
@@ -89,7 +89,7 @@ impl ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        registers.set(dst.into(), import_meta.into());
+        context.vm.set_register(dst.into(), import_meta.into());
     }
 }
 

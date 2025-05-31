@@ -1,9 +1,6 @@
 use crate::{
     value::{JsValue, JsVariant, Numeric},
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsBigInt, JsResult,
 };
 
@@ -18,10 +15,9 @@ impl Dec {
     #[inline(always)]
     pub(crate) fn operation(
         (dst, src): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
-        let value = registers.get(src.into());
+        let value = context.vm.get_register(src.into()).clone();
 
         let (numeric, value) = match value.variant() {
             JsVariant::Integer32(number) if number > i32::MIN => {
@@ -35,8 +31,8 @@ impl Dec {
                 ),
             },
         };
-        registers.set(src.into(), numeric);
-        registers.set(dst.into(), value);
+        context.vm.set_register(src.into(), numeric);
+        context.vm.set_register(dst.into(), value);
         Ok(())
     }
 }

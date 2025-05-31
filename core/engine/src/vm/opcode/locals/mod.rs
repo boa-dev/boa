@@ -1,8 +1,5 @@
 use super::VaryingOperand;
-use crate::{
-    vm::{opcode::Operation, Registers},
-    Context, JsNativeError, JsResult,
-};
+use crate::{vm::opcode::Operation, Context, JsNativeError, JsResult};
 
 /// `PopIntoLocal` implements the Opcode Operation for `Opcode::PopIntoLocal`
 ///
@@ -13,13 +10,11 @@ pub(crate) struct PopIntoLocal;
 
 impl PopIntoLocal {
     #[inline(always)]
-    pub(super) fn operation(
-        (src, dst): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
-        context: &mut Context,
-    ) {
+    pub(super) fn operation((src, dst): (VaryingOperand, VaryingOperand), context: &mut Context) {
         context.vm.frame_mut().local_bindings_initialized[usize::from(dst)] = true;
-        registers.set(dst.into(), registers.get(src.into()).clone());
+        context
+            .vm
+            .set_register(dst.into(), context.vm.get_register(src.into()).clone());
     }
 }
 
@@ -40,7 +35,6 @@ impl PushFromLocal {
     #[inline(always)]
     pub(super) fn operation(
         (src, dst): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
         context: &mut Context,
     ) -> JsResult<()> {
         if !context.vm.frame().local_bindings_initialized[usize::from(src)] {
@@ -48,7 +42,9 @@ impl PushFromLocal {
                 .with_message("access to uninitialized binding")
                 .into());
         }
-        registers.set(dst.into(), registers.get(src.into()).clone());
+        context
+            .vm
+            .set_register(dst.into(), context.vm.get_register(src.into()).clone());
         Ok(())
     }
 }

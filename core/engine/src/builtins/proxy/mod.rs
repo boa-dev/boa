@@ -1165,21 +1165,24 @@ fn proxy_exotic_call(
         return Ok(target.__call__(argument_count));
     };
 
-    let args = context.vm.pop_n_values(argument_count);
+    let args = context
+        .vm
+        .stack
+        .calling_convention_pop_arguments(argument_count);
 
     // 7. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
 
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    let _func = context.vm.pop();
-    let this = context.vm.pop();
+    let _func = context.vm.stack.pop();
+    let this = context.vm.stack.pop();
 
-    context.vm.push(handler); // This
-    context.vm.push(trap.clone()); // Function
+    context.vm.stack.push(handler); // This
+    context.vm.stack.push(trap.clone()); // Function
 
-    context.vm.push(target);
-    context.vm.push(this);
-    context.vm.push(arg_array);
+    context.vm.stack.push(target);
+    context.vm.stack.push(this);
+    context.vm.stack.push(arg_array);
     Ok(trap.__call__(3))
 }
 
@@ -1213,9 +1216,13 @@ fn proxy_exotic_construct(
         return Ok(target.__construct__(argument_count));
     };
 
-    let new_target = context.vm.pop();
-    let args = context.vm.pop_n_values(argument_count);
-    let _func = context.vm.pop();
+    let new_target = context.vm.stack.pop();
+    let args = context
+        .vm
+        .stack
+        .calling_convention_pop_arguments(argument_count);
+    let _func = context.vm.stack.pop();
+    let _this = context.vm.stack.pop();
 
     // 8. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
@@ -1233,6 +1240,6 @@ fn proxy_exotic_construct(
     })?;
 
     // 11. Return newObj.
-    context.vm.push(new_obj);
+    context.vm.stack.push(new_obj);
     Ok(CallValue::Complete)
 }

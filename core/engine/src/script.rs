@@ -21,7 +21,7 @@ use crate::{
     js_string,
     realm::Realm,
     spanned_source_text::SourceText,
-    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock, Registers},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
@@ -174,8 +174,7 @@ impl Script {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
         self.prepare_run(context)?;
-        let register_count = self.codeblock(context)?.register_count;
-        let record = context.run(&mut Registers::new(register_count as usize));
+        let record = context.run();
 
         context.vm.pop_frame();
         context.clear_kept_objects();
@@ -211,10 +210,7 @@ impl Script {
 
         self.prepare_run(context)?;
 
-        let register_count = self.codeblock(context)?.register_count;
-        let record = context
-            .run_async_with_budget(budget, &mut Registers::new(register_count as usize))
-            .await;
+        let record = context.run_async_with_budget(budget).await;
 
         context.vm.pop_frame();
         context.clear_kept_objects();

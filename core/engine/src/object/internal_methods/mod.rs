@@ -397,7 +397,7 @@ pub(crate) enum CallValue {
     /// Calling is ready, the frames have been setup.
     ///
     /// Requires calling [`Context::run()`].
-    Ready { register_count: usize },
+    Ready,
 
     /// Further processing is needed.
     Pending {
@@ -412,7 +412,7 @@ pub(crate) enum CallValue {
 
 impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
-    pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<Option<usize>> {
+    pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
         while let Self::Pending {
             func,
             object,
@@ -423,8 +423,8 @@ impl CallValue {
         }
 
         match self {
-            Self::Ready { register_count } => Ok(Some(register_count)),
-            Self::Complete => Ok(None),
+            Self::Ready => Ok(false),
+            Self::Complete => Ok(true),
             Self::Pending { .. } => unreachable!(),
         }
     }

@@ -1,9 +1,6 @@
 use crate::{
     builtins::function::OrdinaryFunction,
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        Registers,
-    },
+    vm::opcode::{Operation, VaryingOperand},
     Context,
 };
 
@@ -18,11 +15,10 @@ impl SetHomeObject {
     #[inline(always)]
     pub(crate) fn operation(
         (function, home): (VaryingOperand, VaryingOperand),
-        registers: &mut Registers,
-        _: &mut Context,
+        context: &mut Context,
     ) {
-        let function = registers.get(function.into());
-        let home = registers.get(home.into());
+        let function = context.vm.get_register(function.into());
+        let home = context.vm.get_register(home.into());
 
         function
             .as_object()
