@@ -161,6 +161,7 @@ impl FunctionCompiler {
                         || scopes.function_scope().escaped_this()
                         || contains(parameters, ContainsSymbol::Super)
                         || contains(body, ContainsSymbol::Super)
+                        || contains(parameters, ContainsSymbol::NewTarget)
                         || contains(body, ContainsSymbol::NewTarget),
                 );
                 if compiler

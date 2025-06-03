@@ -1645,6 +1645,7 @@ impl ScopeIndexVisitor {
                 let require_function_scope = scopes.function_scope().escaped_this()
                     || contains(parameters, ContainsSymbol::Super)
                     || contains(body, ContainsSymbol::Super)
+                    || contains(parameters, ContainsSymbol::NewTarget)
                     || contains(body, ContainsSymbol::NewTarget);
                 self.index += u32::from(require_function_scope);
             }
