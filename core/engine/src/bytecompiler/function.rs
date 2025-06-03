@@ -158,6 +158,7 @@ impl FunctionCompiler {
                 compiler.code_block_flags.set(
                     CodeBlockFlags::HAS_FUNCTION_SCOPE,
                     self.force_function_scope
+                        || scopes.function_scope().escaped_this()
                         || contains(parameters, ContainsSymbol::Super)
                         || contains(body, ContainsSymbol::Super)
                         || contains(body, ContainsSymbol::NewTarget),

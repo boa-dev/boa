@@ -60,6 +60,8 @@ pub(crate) struct Inner {
     index: Cell<u32>,
     bindings: RefCell<Vec<Binding>>,
     function: bool,
+    // Has the `this` been accessed/escaped outside the function environment boundry.
+    this_escaped: Cell<bool>,
 }
 
 impl Scope {
@@ -73,6 +75,7 @@ impl Scope {
                 index: Cell::default(),
                 bindings: RefCell::default(),
                 function: true,
+                this_escaped: Cell::new(false),
             }),
         }
     }
@@ -88,6 +91,7 @@ impl Scope {
                 index: Cell::new(index),
                 bindings: RefCell::default(),
                 function,
+                this_escaped: Cell::new(false),
             }),
         }
     }
@@ -108,6 +112,12 @@ impl Scope {
         for binding in self.inner.bindings.borrow_mut().iter_mut() {
             binding.escapes = true;
         }
+    }
+
+    /// Has this binding escaped.
+    #[must_use]
+    pub fn escaped_this(&self) -> bool {
+        self.inner.this_escaped.get()
     }
 
     /// Check if the scope has a lexical binding with the given name.
@@ -268,6 +278,27 @@ impl Scope {
             }
             if let Some(outer) = &current.inner.outer {
                 if current.inner.function {
+                    crossed_function_border = true;
+                }
+                current = outer;
+            } else {
+                return;
+            }
+        }
+    }
+
+    /// Escape enclosing function environment's `this`.
+    pub fn escape_this_in_enclosing_function_scope(&self) {
+        let mut current = self;
+        let mut crossed_function_border = false;
+
+        loop {
+            if crossed_function_border && current.is_function() {
+                current.inner.this_escaped.set(true);
+                return;
+            }
+            if let Some(outer) = &current.inner.outer {
+                if current.is_function() {
                     crossed_function_border = true;
                 }
                 current = outer;

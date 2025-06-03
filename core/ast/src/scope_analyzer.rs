@@ -26,7 +26,7 @@ use crate::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         Block, Catch, ForInLoop, ForLoop, ForOfLoop, Switch, With,
     },
-    visitor::{NodeRef, NodeRefMut, VisitorMut},
+    visitor::{NodeRef, NodeRefMut, VisitWith, VisitorMut},
     Declaration, Module, Script, StatementListItem, ToJsString,
 };
 use boa_interner::{Interner, Sym};
@@ -48,6 +48,7 @@ where
     let mut visitor = BindingCollectorVisitor {
         strict,
         eval,
+        in_arrow: false,
         scope: scope.clone(),
         interner,
     };
@@ -560,11 +561,26 @@ struct BindingCollectorVisitor<'interner> {
     strict: bool,
     eval: bool,
     scope: Scope,
+    in_arrow: bool,
     interner: &'interner Interner,
 }
 
 impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     type BreakTy = &'static str;
+
+    fn visit_expression_mut(
+        &mut self,
+        node: &'ast mut crate::Expression,
+    ) -> ControlFlow<Self::BreakTy> {
+        if *node == crate::Expression::This {
+            if self.in_arrow {
+                self.scope.escape_this_in_enclosing_function_scope();
+            }
+            return ControlFlow::Continue(());
+        }
+
+        node.visit_with_mut(self)
+    }
 
     fn visit_function_declaration_mut(
         &mut self,
@@ -1149,6 +1165,8 @@ impl BindingCollectorVisitor<'_> {
         arrow: bool,
     ) -> ControlFlow<&'static str> {
         let strict = self.strict || strict;
+        let old_in_arrow = self.in_arrow;
+        self.in_arrow = arrow;
 
         let function_scope = if let Some(name) = name {
             let scope = Scope::new(self.scope.clone(), false);
@@ -1181,6 +1199,8 @@ impl BindingCollectorVisitor<'_> {
         std::mem::swap(&mut self.scope, &mut body_scope);
 
         *scopes = function_scopes;
+
+        self.in_arrow = old_in_arrow;
 
         ControlFlow::Continue(())
     }
@@ -1621,10 +1641,12 @@ impl ScopeIndexVisitor {
             self.index += 1;
         } else if scopes.function_scope().all_bindings_local() {
             if !arrow {
-                let contains_super = contains(parameters, ContainsSymbol::Super)
+                assert!(scopes.function_scope().is_function());
+                let require_function_scope = scopes.function_scope().escaped_this()
+                    || contains(parameters, ContainsSymbol::Super)
                     || contains(body, ContainsSymbol::Super)
                     || contains(body, ContainsSymbol::NewTarget);
-                self.index += u32::from(contains_super);
+                self.index += u32::from(require_function_scope);
             }
         } else {
             self.index += 1;
