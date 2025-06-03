@@ -1013,15 +1013,23 @@ pub(crate) fn function_call(
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else if code.strict() {
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
         ThisBindingStatus::Initialized(this.clone())
     } else if this.is_null_or_undefined() {
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.vm.stack.set_this(
+            &context.vm.frame,
+            context.realm().global_this().clone().into(),
+        );
         ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
     } else {
-        ThisBindingStatus::Initialized(
-            this.to_object(context)
-                .expect("conversion cannot fail")
-                .into(),
-        )
+        let this: JsValue = this
+            .to_object(context)
+            .expect("conversion cannot fail")
+            .into();
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        ThisBindingStatus::Initialized(this)
     };
 
     let mut last_env = 0;
