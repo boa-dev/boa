@@ -1616,9 +1616,20 @@ impl ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        if !(arrow && scopes.function_scope.all_bindings_local() && !contains_direct_eval) {
+
+        if contains_direct_eval {
+            self.index += 1;
+        } else if scopes.function_scope().all_bindings_local() {
+            if !arrow {
+                let contains_super = contains(parameters, ContainsSymbol::Super)
+                    || contains(body, ContainsSymbol::Super)
+                    || contains(body, ContainsSymbol::NewTarget);
+                self.index += u32::from(contains_super);
+            }
+        } else {
             self.index += 1;
         }
+
         scopes.function_scope.set_index(self.index);
         if let Some(scope) = &scopes.parameters_eval_scope {
             if !scope.all_bindings_local() {

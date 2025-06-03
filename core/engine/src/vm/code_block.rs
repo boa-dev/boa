@@ -623,7 +623,8 @@ impl CodeBlock {
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
-                    "dst:{dst}, receiver:{receiver}, value:{value}, ic:shape:0x{:x}",
+                    "dst:{dst}, receiver:{receiver}, value:{value}, ic:[name:{}, shape:0x{:x}]",
+                    ic.name.to_std_string_escaped(),
                     ic.shape.borrow().to_addr_usize(),
                 )
             }
@@ -896,8 +897,12 @@ impl Display for CodeBlock {
         let name = self.name();
         writeln!(
             f,
-            "{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n",
+            "{:-^70}",
             format!("Compiled Output: '{}'", name.to_std_string_escaped()),
+        )?;
+        writeln!(
+            f,
+            "Location  Count    Handler    Opcode                     Operands"
         )?;
         let mut iterator = InstructionIterator::new(&self.bytecode);
         let mut count = 0;
@@ -924,11 +929,12 @@ impl Display for CodeBlock {
             )?;
             count += 1;
         }
-        f.write_str("\nConstants:")?;
+        writeln!(f, "\nFlags: {:?}", self.flags.get())?;
+        f.write_str("Constants:")?;
         if self.constants.is_empty() {
             f.write_str(" <empty>\n")?;
         } else {
-            f.write_str("\n")?;
+            f.write_char('\n')?;
             for (i, value) in self.constants.iter().enumerate() {
                 write!(f, "    {i:04}: ")?;
                 match value {
@@ -942,7 +948,7 @@ impl Display for CodeBlock {
                     Constant::BigInt(v) => writeln!(f, "[BIGINT] {v}n")?,
                     Constant::Function(code) => writeln!(
                         f,
-                        "[FUNCTION] name: '{}' (length: {})\n",
+                        "[FUNCTION] name: '{}' (length: {})",
                         code.name().to_std_string_escaped(),
                         code.length
                     )?,
@@ -957,22 +963,25 @@ impl Display for CodeBlock {
                 }
             }
         }
-        f.write_str("\nBindings:\n")?;
+        f.write_str("Bindings:")?;
         if self.bindings.is_empty() {
-            f.write_str("    <empty>\n")?;
+            f.write_str(" <empty>\n")?;
         } else {
+            f.write_char('\n')?;
             for (i, binding_locator) in self.bindings.iter().enumerate() {
                 writeln!(
                     f,
-                    "    {i:04}: {}",
-                    binding_locator.name().to_std_string_escaped()
+                    "    {i:04}: {}, scope: {:?}",
+                    binding_locator.name().to_std_string_escaped(),
+                    binding_locator.scope()
                 )?;
             }
         }
-        f.write_str("\nHandlers:\n")?;
+        f.write_str("Handlers:")?;
         if self.handlers.is_empty() {
-            f.write_str("    <empty>\n")?;
+            f.write_str(" <empty>\n")?;
         } else {
+            f.write_char('\n')?;
             for (i, handler) in self.handlers.iter().enumerate() {
                 writeln!(
                     f,

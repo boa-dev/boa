@@ -655,6 +655,7 @@ impl BuiltInFunctionObject {
             .generator(generator)
             .r#async(r#async)
             .in_with(in_with)
+            .force_function_scope(true)
             .compile(
                 function.parameters(),
                 function.body(),
@@ -1005,7 +1006,6 @@ pub(crate) fn function_call(
         .with_env_fp(env_fp);
 
     context.vm.push_frame(frame);
-
     let this = context.vm.stack.get_this(context.vm.frame());
 
     let lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -1131,21 +1131,23 @@ fn function_construct(
         last_env += 1;
     }
 
-    context.vm.environments.push_function(
-        code.constant_scope(last_env),
-        FunctionSlots::new(
-            this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
-                ThisBindingStatus::Initialized(o.into())
-            }),
-            this_function_object.clone(),
-            Some(
-                new_target
-                    .as_object()
-                    .expect("new.target should be an object")
-                    .clone(),
+    if code.has_function_scope() {
+        context.vm.environments.push_function(
+            code.constant_scope(last_env),
+            FunctionSlots::new(
+                this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                    ThisBindingStatus::Initialized(o.into())
+                }),
+                this_function_object.clone(),
+                Some(
+                    new_target
+                        .as_object()
+                        .expect("new.target should be an object")
+                        .clone(),
+                ),
             ),
-        ),
-    );
+        );
+    }
 
     context.vm.stack.set_this(
         &context.vm.frame,

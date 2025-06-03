@@ -110,7 +110,9 @@ fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue>
     };
     let code = function.codeblock();
 
-    Ok(js_string!(code.to_string()).into())
+    println!("{code}");
+
+    Ok(JsValue::undefined())
 }
 
 fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult<()> {
