@@ -1014,14 +1014,12 @@ pub(crate) fn function_call(
         ThisBindingStatus::Lexical
     } else if code.strict() {
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        ThisBindingStatus::Initialized(this.clone())
+        ThisBindingStatus::Initialized(this)
     } else if this.is_null_or_undefined() {
         context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
-        context.vm.stack.set_this(
-            &context.vm.frame,
-            context.realm().global_this().clone().into(),
-        );
-        ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
+        let this: JsValue = context.realm().global_this().clone().into();
+        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        ThisBindingStatus::Initialized(this)
     } else {
         let this: JsValue = this
             .to_object(context)
