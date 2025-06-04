@@ -28,7 +28,7 @@ Try out the engine now at the live WASM playground [here](https://boajs.dev/play
 
 Prefer a CLI? Feel free to try out `boa_cli`!
 
-## 📦 Boa Crates
+## 📦 Crates
 
 Boa currently publishes and actively maintains the following crates:
 
@@ -49,7 +49,7 @@ Boa currently publishes and actively maintains the following crates:
 >
 > The `Boa` and `boa_unicode` crates are deprecated.
 
-## 🚀 Boa Engine Example
+## 🚀 Example
 
 To use `Boa` simply follow the below.
 
