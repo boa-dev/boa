@@ -689,7 +689,8 @@ impl PlainDate {
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialDate).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let partial = to_partial_date_record(partial_object, context)?;
+        let partial =
+            to_partial_date_record(partial_object, date.inner.calendar().clone(), context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
@@ -981,17 +982,17 @@ pub(crate) fn to_temporal_date(
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             return Ok(date);
         }
-
-        let options_obj = get_options_object(&options)?;
-        // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
+        // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
+        let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
+        // e. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », «», «»).
+        let partial = to_partial_date_record(object, calendar, context)?;
+        // f. Let resolvedOptions be ? GetOptionsObject(options).
+        let resolved_options = get_options_object(&options)?;
+        // g. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&options_obj, js_string!("overflow"), context)?;
-
-        // e. Let fieldNames be ? CalendarFields(calendar, « "day", "month", "monthCode", "year" »).
-        // f. Let fields be ? PrepareTemporalFields(item, fieldNames, «»).
-        let partial = to_partial_date_record(object, context)?;
-        // TODO: Move validation to `temporal_rs`.
-        // g. Return ? CalendarDateFromFields(calendar, fields, options).
+            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+        // h. Let isoDate be ? CalendarDateFromFields(calendar, fields, overflow).
+        // i. Return ! CreateTemporalDate(isoDate, calendar).
         return Ok(InnerDate::from_partial(partial, overflow)?);
     }
 
@@ -1026,9 +1027,10 @@ pub(crate) fn to_temporal_date(
 // TODO: For order of operations, `to_partial_date_record` may need to take a `Option<Calendar>` arg.
 pub(crate) fn to_partial_date_record(
     partial_object: &JsObject,
+    calendar: Calendar,
     context: &mut Context,
 ) -> JsResult<PartialDate> {
-    let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    // let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
     // TODO: Most likely need to use an iterator to handle.
     let day = partial_object
         .get(js_string!("day"), context)?
