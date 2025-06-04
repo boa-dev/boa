@@ -56,6 +56,14 @@ bitflags! {
     }
 }
 
+impl CodeBlockFlags {
+    /// Check if the [`CodeBlock`] has a function scope.
+    #[must_use]
+    pub(crate) fn has_function_scope(self) -> bool {
+        self.contains(Self::HAS_FUNCTION_SCOPE)
+    }
+}
+
 // SAFETY: Nothing in CodeBlockFlags needs tracing, so this is safe.
 unsafe impl Trace for CodeBlockFlags {
     empty_trace!();
@@ -259,9 +267,7 @@ impl CodeBlock {
 
     /// Returns true if this function requires a function scope.
     pub(crate) fn has_function_scope(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::HAS_FUNCTION_SCOPE)
+        self.flags.get().has_function_scope()
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).

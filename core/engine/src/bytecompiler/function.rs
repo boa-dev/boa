@@ -150,33 +150,26 @@ impl FunctionCompiler {
             }
         }
 
-        if scopes.function_scope().all_bindings_local() && !contains_direct_eval {
-            if self.arrow {
-                compiler.variable_scope = scopes.function_scope().clone();
-                compiler.lexical_scope = scopes.function_scope().clone();
-            } else {
-                compiler.code_block_flags.set(
-                    CodeBlockFlags::HAS_FUNCTION_SCOPE,
-                    self.force_function_scope
-                        || scopes.function_scope().escaped_this()
-                        || contains(parameters, ContainsSymbol::Super)
-                        || contains(body, ContainsSymbol::Super)
-                        || contains(parameters, ContainsSymbol::NewTarget)
-                        || contains(body, ContainsSymbol::NewTarget),
-                );
-                if compiler
-                    .code_block_flags
-                    .contains(CodeBlockFlags::HAS_FUNCTION_SCOPE)
-                {
-                    let _ = compiler.push_scope(scopes.function_scope());
-                } else {
-                    compiler.variable_scope = scopes.function_scope().clone();
-                    compiler.lexical_scope = scopes.function_scope().clone();
-                }
-            }
-        } else {
+        if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+        } else if !self.arrow {
+            let requires_function_scope = self.force_function_scope
+                || scopes.function_scope().escaped_this()
+                || contains(parameters, ContainsSymbol::Super)
+                || contains(body, ContainsSymbol::Super)
+                || contains(parameters, ContainsSymbol::NewTarget)
+                || contains(body, ContainsSymbol::NewTarget);
+
+            compiler
+                .code_block_flags
+                .set(CodeBlockFlags::HAS_FUNCTION_SCOPE, requires_function_scope);
+        }
+
+        if compiler.code_block_flags.has_function_scope() {
             let _ = compiler.push_scope(scopes.function_scope());
+        } else {
+            compiler.variable_scope = scopes.function_scope().clone();
+            compiler.lexical_scope = scopes.function_scope().clone();
         }
 
         // Taken from:
