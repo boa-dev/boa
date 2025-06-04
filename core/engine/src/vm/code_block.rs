@@ -373,9 +373,7 @@ impl CodeBlock {
             Instruction::Inc { src, dst }
             | Instruction::Dec { src, dst }
             | Instruction::Move { src, dst }
-            | Instruction::ToPropertyKey { src, dst }
-            | Instruction::PopIntoLocal { src, dst }
-            | Instruction::PushFromLocal { src, dst } => {
+            | Instruction::ToPropertyKey { src, dst } => {
                 format!("src:{src}, dst:{dst}")
             }
             Instruction::SetFunctionName {
@@ -883,7 +881,9 @@ impl CodeBlock {
             | Instruction::Reserved58
             | Instruction::Reserved59
             | Instruction::Reserved60
-            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved61
+            | Instruction::Reserved62
+            | Instruction::Reserved63 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

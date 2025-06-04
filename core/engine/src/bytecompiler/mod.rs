@@ -832,16 +832,16 @@ impl<'ctx> ByteCompiler<'ctx> {
             BindingKind::Local(Some(index)) => match opcode {
                 BindingAccessOpcode::GetName
                 | BindingAccessOpcode::GetNameOrUndefined
-                | BindingAccessOpcode::GetNameAndLocator => self
-                    .bytecode
-                    .emit_push_from_local((*index).into(), value.variable()),
+                | BindingAccessOpcode::GetNameAndLocator => {
+                    self.bytecode.emit_move(value.variable(), (*index).into());
+                }
                 BindingAccessOpcode::GetLocator | BindingAccessOpcode::DefVar => {}
                 BindingAccessOpcode::SetName
                 | BindingAccessOpcode::DefInitVar
                 | BindingAccessOpcode::PutLexicalValue
-                | BindingAccessOpcode::SetNameByLocator => self
-                    .bytecode
-                    .emit_pop_into_local(value.variable(), (*index).into()),
+                | BindingAccessOpcode::SetNameByLocator => {
+                    self.bytecode.emit_move((*index).into(), value.variable());
+                }
                 BindingAccessOpcode::DeleteName => self.bytecode.emit_push_false(value.variable()),
             },
         }
