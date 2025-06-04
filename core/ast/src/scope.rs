@@ -616,6 +616,7 @@ pub struct FunctionScopes {
     pub(crate) parameters_scope: Option<Scope>,
     pub(crate) lexical_scope: Option<Scope>,
     pub(crate) mapped_arguments_object: bool,
+    pub(crate) requires_function_scope: bool,
 }
 
 impl FunctionScopes {
@@ -654,6 +655,12 @@ impl FunctionScopes {
         }
 
         false
+    }
+
+    /// Check if the creation of the function scope is required.
+    #[must_use]
+    pub fn requires_function_scope(&self) -> bool {
+        self.requires_function_scope
     }
 
     /// Returns the parameters eval scope for this function.
@@ -734,6 +741,7 @@ impl<'a> arbitrary::Arbitrary<'a> for FunctionScopes {
             parameters_scope: None,
             lexical_scope: None,
             mapped_arguments_object: false,
+            requires_function_scope: false,
         })
     }
 }

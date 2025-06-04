@@ -7,7 +7,6 @@ use crate::{
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
-    operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
 };
 use boa_gc::Gc;
@@ -153,16 +152,10 @@ impl FunctionCompiler {
         if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
         } else if !self.arrow {
-            let requires_function_scope = self.force_function_scope
-                || scopes.function_scope().escaped_this()
-                || contains(parameters, ContainsSymbol::Super)
-                || contains(body, ContainsSymbol::Super)
-                || contains(parameters, ContainsSymbol::NewTarget)
-                || contains(body, ContainsSymbol::NewTarget);
-
-            compiler
-                .code_block_flags
-                .set(CodeBlockFlags::HAS_FUNCTION_SCOPE, requires_function_scope);
+            compiler.code_block_flags.set(
+                CodeBlockFlags::HAS_FUNCTION_SCOPE,
+                self.force_function_scope || scopes.requires_function_scope(),
+            );
         }
 
         if compiler.code_block_flags.has_function_scope() {

@@ -1638,15 +1638,16 @@ impl ScopeIndexVisitor {
         }
 
         if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
+            scopes.requires_function_scope = true;
             self.index += 1;
         } else if !arrow {
             assert!(scopes.function_scope().is_function());
-            let require_function_scope = scopes.function_scope().escaped_this()
+            scopes.requires_function_scope = scopes.function_scope().escaped_this()
                 || contains(parameters, ContainsSymbol::Super)
                 || contains(body, ContainsSymbol::Super)
                 || contains(parameters, ContainsSymbol::NewTarget)
                 || contains(body, ContainsSymbol::NewTarget);
-            self.index += u32::from(require_function_scope);
+            self.index += u32::from(scopes.requires_function_scope);
         }
 
         scopes.function_scope.set_index(self.index);
@@ -1836,6 +1837,7 @@ fn function_declaration_instantiation(
         parameters_scope: None,
         lexical_scope: None,
         mapped_arguments_object: false,
+        requires_function_scope: false,
     };
 
     // 1. Let calleeContext be the running execution context.
