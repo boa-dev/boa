@@ -235,7 +235,7 @@ impl PlainMonthDay {
         // 4. Let calendar be monthDay.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
         // 6. Let partialMonthDay be ? PrepareCalendarFields(calendar, temporalMonthDayLike, « year, month, month-code, day », « », partial).
-        let partial = to_partial_date_record(object, context)?;
+        let partial = to_partial_date_record(object, month_day.inner.calendar().clone(), context)?;
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialMonthDay).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
@@ -331,7 +331,7 @@ impl PlainMonthDay {
             })?;
 
         // 3. If item is not an Object, then
-        let Some(_item) = args.get_or_undefined(0).as_object() else {
+        let Some(item) = args.get_or_undefined(0).as_object() else {
             // a. Throw a TypeError exception.
             return Err(JsNativeError::typ()
                 .with_message("toPlainDate item must be an object")
@@ -342,10 +342,20 @@ impl PlainMonthDay {
         // 4. Let calendar be monthDay.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
         // 6. Let inputFields be ? PrepareCalendarFields(calendar, item, « year », « », « »).
+        let year = item
+            .get(js_string!("year"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+
+        let partial = PartialDate::new().with_year(year);
+
         // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
         // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
         // 9. Return ! CreateTemporalDate(isoDate, calendar).
-        let result = month_day.inner.to_plain_date()?;
+        let result = month_day.inner.to_plain_date(Some(partial))?;
         create_temporal_date(result, None, context).map(Into::into)
     }
 }
