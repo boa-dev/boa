@@ -714,7 +714,7 @@ impl ByteCompiler<'_> {
                     // ii. If bindingExists is false, then
                     // i. Perform ! varEnv.CreateMutableBinding(F, true).
                     // ii. Perform ! varEnv.InitializeBinding(F, undefined).
-                    let index = self.get_or_insert_binding(binding);
+                    let index = self.insert_binding(binding);
                     let value = self.register_allocator.alloc();
                     self.bytecode.emit_push_undefined(value.variable());
                     self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
@@ -868,13 +868,13 @@ impl ByteCompiler<'_> {
                 // iii. Else,
                 if *binding_exists {
                     // 1. Perform ! varEnv.SetMutableBinding(fn, fo, false).
-                    let index = self.get_or_insert_binding(binding.clone());
+                    let index = self.insert_binding(binding.clone());
                     self.emit_binding_access(BindingAccessOpcode::SetName, &index, &dst);
                 } else {
                     // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
                     // 2. Perform ! varEnv.CreateMutableBinding(fn, true).
                     // 3. Perform ! varEnv.InitializeBinding(fn, fo).
-                    let index = self.get_or_insert_binding(binding.clone());
+                    let index = self.insert_binding(binding.clone());
                     self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &dst);
                 }
                 self.register_allocator.dealloc(dst);
@@ -899,7 +899,7 @@ impl ByteCompiler<'_> {
             // 1. NOTE: The following invocation cannot return an abrupt completion because of the validation preceding step 14.
             // 2. Perform ! varEnv.CreateMutableBinding(vn, true).
             // 3. Perform ! varEnv.InitializeBinding(vn, undefined).
-            let index = self.get_or_insert_binding(binding);
+            let index = self.insert_binding(binding);
             let value = self.register_allocator.alloc();
             self.bytecode.emit_push_undefined(value.variable());
             self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
@@ -1146,12 +1146,12 @@ impl ByteCompiler<'_> {
                             let binding = scope
                                 .get_binding_reference(&n_string)
                                 .expect("must have binding");
-                            let index = self.get_or_insert_binding(binding);
+                            let index = self.get_binding(&binding);
                             self.emit_binding_access(BindingAccessOpcode::GetName, &index, &value);
                         }
 
                         // 5. Perform ! varEnv.InitializeBinding(n, initialValue).
-                        let index = self.get_or_insert_binding(binding);
+                        let index = self.insert_binding(binding);
 
                         // TODO: What?
                         self.bytecode.emit_push_undefined(value.variable());
@@ -1181,7 +1181,7 @@ impl ByteCompiler<'_> {
                         // 2. Perform ! env.CreateMutableBinding(n, false).
                         // 3. Perform ! env.InitializeBinding(n, undefined).
                         let binding = scope.get_binding_reference(&n).expect("binding must exist");
-                        let index = self.get_or_insert_binding(binding);
+                        let index = self.insert_binding(binding);
                         let value = self.register_allocator.alloc();
                         self.bytecode.emit_push_undefined(value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
@@ -1217,7 +1217,7 @@ impl ByteCompiler<'_> {
                         let binding = variable_scope
                             .get_binding_reference(&f_string)
                             .expect("binding must exist");
-                        let index = self.get_or_insert_binding(binding);
+                        let index = self.insert_binding(binding);
                         let value = self.register_allocator.alloc();
                         self.bytecode.emit_push_undefined(value.variable());
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);

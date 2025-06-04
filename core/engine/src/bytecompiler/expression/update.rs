@@ -23,7 +23,7 @@ impl ByteCompiler<'_> {
                 let name = name.to_js_string(self.interner());
                 let binding = self.lexical_scope.get_identifier_reference(name.clone());
                 let is_lexical = binding.is_lexical();
-                let index = self.get_or_insert_binding(binding);
+                let index = self.get_binding(&binding);
 
                 if is_lexical {
                     self.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
@@ -41,7 +41,7 @@ impl ByteCompiler<'_> {
                 if is_lexical {
                     match self.lexical_scope.set_mutable_binding(name.clone()) {
                         Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
+                            let index = self.insert_binding(binding);
                             self.emit_binding_access(BindingAccessOpcode::SetName, &index, &value);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {

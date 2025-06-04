@@ -53,10 +53,6 @@ pub struct CallFrame {
     #[unsafe_ignore_trace]
     pub(crate) binding_stack: Vec<BindingLocator>,
 
-    // SAFETY: Nothing requires tracing, so this is safe.
-    #[unsafe_ignore_trace]
-    pub(crate) local_bindings_initialized: Box<[bool]>,
-
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
 
@@ -108,7 +104,6 @@ impl CallFrame {
             argument_count: 0,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
-            local_bindings_initialized: code_block.local_bindings_initialized.clone(),
             code_block,
             loop_iteration_count: 0,
             active_runnable,
