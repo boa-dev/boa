@@ -22,13 +22,13 @@
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
 [build_link]: https://github.com/boa-dev/boa/actions/workflows/rust.yml?query=event%3Apush+branch%3Amain
 
-## Live Demo (WASM)
+## ⚡️ Live Demo (WASM)
 
 Try out the engine now at the live WASM playground [here](https://boajs.dev/playground)!
 
 Prefer a CLI? Feel free to try out `boa_cli`!
 
-## Boa Crates
+## 📦 Boa Crates
 
 Boa currently publishes and actively maintains the following crates:
 
@@ -43,10 +43,13 @@ Boa currently publishes and actively maintains the following crates:
 - **`boa_icu_provider`** - Boa's ICU4X data provider
 - **`boa_runtime`** - Boa's WebAPI features
 - **`boa_string`** - Boa's ECMAScript string implementation.
+- **`tag_ptr`** - Utility library that enables a pointer to be associated with a tag of type `usize`.
 
-Please note: the `Boa` and `boa_unicode` crates are deprecated.
+> [!NOTE]
+>
+> The `Boa` and `boa_unicode` crates are deprecated.
 
-## Boa Engine Example
+## 🚀 Boa Engine Example
 
 To use `Boa` simply follow the below.
 
@@ -87,28 +90,28 @@ Now, all that's left to do is `cargo run`.
 
 Congrats! You've executed your first `JavaScript` using `Boa`!
 
-## Documentation
+## 🔎 Documentation
 
 For more information on `Boa`'s API. Feel free to check out our documentation.
 
 [**API Documentation**](https://docs.rs/boa_engine/latest/boa_engine/)
 
-## Conformance
+## 🏅 Conformance
 
 To know how much of the _ECMAScript_ specification does Boa cover, you can check out results
 running the _ECMASCript Test262_ test suite [here](https://boajs.dev/conformance).
 
-## Contributing
+## 🪚 Contributing
 
 Please, check the [CONTRIBUTING.md](CONTRIBUTING.md) file to know how to
 contribute in the project. You will need Rust installed and an editor. We have
 some configurations ready for VSCode.
 
-### Debugging
+### 🐛 Debugging
 
 Check [debugging.md](./docs/debugging.md) for more info on debugging.
 
-### Web Assembly
+### 🕸 Web Assembly
 
 > [!IMPORTANT]
 >
@@ -129,7 +132,7 @@ For more information see: [`getrandom` WebAssembly Support][getrandom-webassembl
 
 [getrandom-webassembly-support]: https://docs.rs/getrandom/latest/getrandom/index.html#webassembly-support
 
-## Usage
+## ⚙️ Usage
 
 - Clone this repo.
 - Run with `cargo run -- test.js` in the project root directory where `test.js` is a path to an existing JS file with any valid JS code.
@@ -139,7 +142,7 @@ For more information see: [`getrandom` WebAssembly Support][getrandom-webassembl
 
 ![Example](docs/img/latestDemo.gif)
 
-## Command-line Options
+### Command-line Options
 
 ```txt
 Usage: boa [OPTIONS] [FILE]...
@@ -152,8 +155,8 @@ Options:
   -a, --dump-ast [<FORMAT>]           Dump the AST to stdout with the given format [possible values: debug, json, json-pretty]
   -t, --trace                         Dump the AST to stdout with the given format
       --vi                            Use vi mode in the REPL
-  -O, --optimize                      
-      --optimizer-statistics          
+  -O, --optimize
+      --optimizer-statistics
       --flowgraph [<FORMAT>]          Generate instruction flowgraph. Default is Graphviz [possible values: graphviz, mermaid]
       --flowgraph-direction <FORMAT>  Specifies the direction of the flowgraph. Default is top-top-bottom [possible values: top-to-bottom, bottom-to-top, left-to-right, right-to-left]
       --debug-object                  Inject debugging object `$boa`
@@ -163,11 +166,11 @@ Options:
   -V, --version                       Print version
 ```
 
-## Roadmap
+## 🧭 Roadmap
 
 See [Milestones](https://github.com/boa-dev/boa/milestones).
 
-## Benchmarks
+## 📊 Benchmarks
 
 The current benchmarks are taken from v8's benchmark, you can find [here][boa-benchmarks], You can also view the results of nightly benchmark runs comparing Boa with other JavaScript engines [here](https://boajs.dev/benchmarks).
 
@@ -184,20 +187,20 @@ cargo run --release -p boa_cli -- bench-v8/combined.js
 
 [boa-benchmarks]: https://github.com/boa-dev/data/tree/benchmarks/bench
 
-## Profiling
+## 🧠 Profiling
 
 See [Profiling](./docs/profiling.md).
 
-## Changelog
+## 📆 Changelog
 
 See [CHANGELOG.md](./CHANGELOG.md).
 
-## Communication
+## 💬 Communication
 
 Feel free to contact us on [Matrix](https://matrix.to/#/#boa:matrix.org) if you have any questions.
 Contributor discussions take place on the same Matrix Space if you're interested in contributing.
 We also have a [Discord](https://discord.gg/tUFFk9Y) for any questions or issues.
 
-## License
+## ⚖️ License
 
 This project is licensed under the [Unlicense](./LICENSE-UNLICENSE) or [MIT](./LICENSE-MIT) licenses, at your option.
