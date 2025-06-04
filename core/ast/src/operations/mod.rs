@@ -33,6 +33,9 @@ use crate::{
     StatementListItem,
 };
 
+#[cfg(test)]
+mod tests;
+
 /// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
 ///
 /// [contains]: https://tc39.es/ecma262/#sec-syntax-directed-operations-contains
@@ -83,7 +86,7 @@ where
         type BreakTy = ();
 
         fn visit_with(&mut self, node: &'ast With) -> ControlFlow<Self::BreakTy> {
-            node.expression().visit_with(self)?;
+            self.visit_expression(node.expression())?;
             node.statement().visit_with(self)
         }
 
@@ -95,9 +98,9 @@ where
                     }
                 }
             }
-            node.function().visit_with(self)?;
+            self.visit_expression(node.function())?;
             for arg in node.args() {
-                arg.visit_with(self)?;
+                self.visit_expression(arg)?;
             }
             ControlFlow::Continue(())
         }
