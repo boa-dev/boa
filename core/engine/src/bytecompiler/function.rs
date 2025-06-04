@@ -23,6 +23,7 @@ pub(crate) struct FunctionCompiler {
     arrow: bool,
     method: bool,
     in_with: bool,
+    force_function_scope: bool,
     name_scope: Option<Scope>,
     spanned_source_text: SpannedSourceText,
 }
@@ -38,6 +39,7 @@ impl FunctionCompiler {
             arrow: false,
             method: false,
             in_with: false,
+            force_function_scope: false,
             name_scope: None,
             spanned_source_text,
         }
@@ -95,6 +97,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Indicate if the function is in a `with` statement.
+    pub(crate) const fn force_function_scope(mut self, force_function_scope: bool) -> Self {
+        self.force_function_scope = force_function_scope;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
@@ -141,12 +149,20 @@ impl FunctionCompiler {
             }
         }
 
-        if self.arrow && scopes.function_scope().all_bindings_local() && !contains_direct_eval {
+        if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+        } else if !self.arrow {
+            compiler.code_block_flags.set(
+                CodeBlockFlags::HAS_FUNCTION_SCOPE,
+                self.force_function_scope || scopes.requires_function_scope(),
+            );
+        }
+
+        if compiler.code_block_flags.has_function_scope() {
+            let _ = compiler.push_scope(scopes.function_scope());
+        } else {
             compiler.variable_scope = scopes.function_scope().clone();
             compiler.lexical_scope = scopes.function_scope().clone();
-        } else {
-            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
-            let _ = compiler.push_scope(scopes.function_scope());
         }
 
         // Taken from:
