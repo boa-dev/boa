@@ -1594,6 +1594,12 @@ generate_opcodes! {
     ///   - message: `VaryingOperand`
     ThrowNewSyntaxError { message: VaryingOperand },
 
+    /// Throw a new `ReferenceError` exception
+    ///
+    /// - Operands:
+    ///   - message: `VaryingOperand`
+    ThrowNewReferenceError { message: VaryingOperand },
+
     /// Pushes `this` value
     ///
     /// - Registers:
@@ -2226,6 +2232,4 @@ generate_opcodes! {
     Reserved60 => Reserved,
     /// Reserved [`Opcode`].
     Reserved61 => Reserved,
-    /// Reserved [`Opcode`].
-    Reserved62 => Reserved,
 }

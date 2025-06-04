@@ -137,8 +137,6 @@ pub struct CodeBlock {
     #[unsafe_ignore_trace]
     pub(crate) bindings: Box<[BindingLocator]>,
 
-    pub(crate) local_bindings_initialized: Box<[bool]>,
-
     /// Exception [`Handler`]s.
     #[unsafe_ignore_trace]
     pub(crate) handlers: ThinVec<Handler>,
@@ -161,7 +159,6 @@ impl CodeBlock {
             bytecode: ByteCode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
-            local_bindings_initialized: Box::default(),
             name,
             flags: Cell::new(flags),
             length,
@@ -424,7 +421,8 @@ impl CodeBlock {
                 format!("index:{index}, dst:{dst}")
             }
             Instruction::ThrowNewTypeError { message }
-            | Instruction::ThrowNewSyntaxError { message } => format!("message:{message}"),
+            | Instruction::ThrowNewSyntaxError { message }
+            | Instruction::ThrowNewReferenceError { message } => format!("message:{message}"),
             Instruction::PushRegexp {
                 pattern_index,
                 flags_index,
@@ -885,8 +883,7 @@ impl CodeBlock {
             | Instruction::Reserved58
             | Instruction::Reserved59
             | Instruction::Reserved60
-            | Instruction::Reserved61
-            | Instruction::Reserved62 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved61 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }

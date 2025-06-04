@@ -205,7 +205,7 @@ impl ByteCompiler<'_> {
 
         if let Some(scope) = class.name_scope {
             let binding = scope.get_identifier_reference(class_name.clone());
-            let index = self.get_or_insert_binding(binding);
+            let index = self.insert_binding(binding);
             self.emit_binding_access(
                 BindingAccessOpcode::PutLexicalValue,
                 &index,
