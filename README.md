@@ -18,7 +18,7 @@ Currently, it has support for some of the language.
 [![Crates.io](https://img.shields.io/crates/v/boa_engine.svg)](https://crates.io/crates/boa_engine)
 [![Docs.rs](https://docs.rs/boa_engine/badge.svg)](https://docs.rs/boa_engine)
 [![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)](https://discord.gg/tUFFk9Y)
-[![Matrix](https://img.shields.io/matrix/boa:matrix.org)](https://matrix.to/#/#boa:matrix.org)
+[![Matrix](https://img.shields.io/matrix/boa:matrix.org?logo=matrix)](https://matrix.to/#/#boa:matrix.org)
 
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
 [build_link]: https://github.com/boa-dev/boa/actions/workflows/rust.yml?query=event%3Apush+branch%3Amain
@@ -153,8 +153,8 @@ Options:
   -a, --dump-ast [<FORMAT>]           Dump the AST to stdout with the given format [possible values: debug, json, json-pretty]
   -t, --trace                         Dump the AST to stdout with the given format
       --vi                            Use vi mode in the REPL
-  -O, --optimize
-      --optimizer-statistics
+  -O, --optimize                      
+      --optimizer-statistics          
       --flowgraph [<FORMAT>]          Generate instruction flowgraph. Default is Graphviz [possible values: graphviz, mermaid]
       --flowgraph-direction <FORMAT>  Specifies the direction of the flowgraph. Default is top-top-bottom [possible values: top-to-bottom, bottom-to-top, left-to-right, right-to-left]
       --debug-object                  Inject debugging object `$boa`
