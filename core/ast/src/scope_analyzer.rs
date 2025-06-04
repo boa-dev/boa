@@ -573,6 +573,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         node: &'ast mut crate::Expression,
     ) -> ControlFlow<Self::BreakTy> {
         if *node == crate::Expression::This {
+            // NOTE: Arrow functions inherit 'this' from their enclosing scope, so we must escape it.
             if self.in_arrow {
                 self.scope.escape_this_in_enclosing_function_scope();
             }
