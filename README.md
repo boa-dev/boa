@@ -170,7 +170,20 @@ See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 ## Benchmarks
 
-See [Benchmarks](https://boajs.dev/benchmarks).
+The current benchmarks are taken from v8's benchmark, you can find [here][boa-benchmarks], You can also view the results of nightly benchmark runs comparing Boa with other JavaScript engines [here](https://boajs.dev/benchmarks).
+
+If you wish to run the benchmarks locally, then run boa in release using the `combined.js` which contains all the sub-benchmarks in the `bench-v8` directory.
+
+```bash
+cargo run --release -p boa_cli -- bench-v8/combined.js
+```
+
+> [!TIP]
+>
+> If you'd like to run only a subset of the benchmarks, you can modify the `Makefile` located in the [`bench-v8` directory][boa-benchmarks].
+> Comment out the benchmarks you don't want to include, then run `make`. After that, you can run Boa using the same command as above.
+
+[boa-benchmarks]: https://github.com/boa-dev/data/tree/benchmarks/bench
 
 ## Profiling
 
