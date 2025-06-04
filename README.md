@@ -10,8 +10,7 @@
     </a>
 </p>
 
-This is an experimental Javascript lexer, parser and interpreter written in Rust.
-Currently, it has support for some of the language.
+`Boa` is an experimental JavaScript lexer, parser and interpreter written in Rust 🦀, it has support for **more** that `90%` of the latest ECMAScript specification. We continuously improve the conformance to keep up with the ever-evolving standard.
 
 [![Build Status][build_badge]][build_link]
 [![codecov](https://codecov.io/gh/boa-dev/boa/branch/main/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
