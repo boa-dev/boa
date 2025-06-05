@@ -21,7 +21,7 @@ use crate::{
     string::StaticJsStrings,
 };
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 /// JavaScript `URIError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -82,7 +82,7 @@ impl BuiltInConstructor for UriError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Uri,
+            Error::with_caller_position(ErrorKind::Uri, context),
         );
 
         // 3. If message is not undefined, then

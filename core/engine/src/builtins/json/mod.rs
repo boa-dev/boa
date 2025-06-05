@@ -32,7 +32,7 @@ use crate::{
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{CallFrame, CallFrameFlags},
+    vm::{CallFrame, CallFrameFlags, source_info::SourcePath},
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
@@ -107,7 +107,9 @@ impl Json {
         // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
-        let mut parser = Parser::new(Source::from_bytes(&script_string));
+        let source = Source::from_bytes(&script_string);
+
+        let mut parser = Parser::new(source);
         parser.set_json_parse();
         // In json we don't need the source: there no way to pass an object that needs a source text
         // But if it's incorrect, just call `parser.parse_script_with_source` here
@@ -117,7 +119,7 @@ impl Json {
             // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
             let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
-                js_string!("<main>"),
+                js_string!("<json>"),
                 script.strict(),
                 true,
                 context.realm().scope().clone(),
@@ -127,6 +129,8 @@ impl Json {
                 context.interner_mut(),
                 in_with,
                 spanned_source_text,
+                // TODO: Could give more information from previous shadow stack.
+                SourcePath::Json,
             );
             compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())

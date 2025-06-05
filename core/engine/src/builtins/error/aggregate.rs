@@ -21,7 +21,7 @@ use crate::{
     string::StaticJsStrings,
 };
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct AggregateError;
@@ -88,7 +88,7 @@ impl BuiltInConstructor for AggregateError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Aggregate,
+            Error::with_caller_position(ErrorKind::Aggregate, context),
         );
 
         // 3. If message is not undefined, then

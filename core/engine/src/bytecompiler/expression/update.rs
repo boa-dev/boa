@@ -9,6 +9,7 @@ use boa_ast::{
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register) {
+        self.push_source_position(update.span().start());
         let increment = matches!(
             update.op(),
             UpdateOp::IncrementPost | UpdateOp::IncrementPre
@@ -209,5 +210,6 @@ impl ByteCompiler<'_> {
             },
             Access::This => unreachable!(),
         }
+        self.pop_source_position();
     }
 }

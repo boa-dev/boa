@@ -203,7 +203,7 @@ impl CompletePromiseCapability {
         let Some(promise_capability) = context.vm.stack.get_promise_capability(&context.vm.frame)
         else {
             return if context.vm.pending_exception.is_some() {
-                context.handle_thow()
+                context.handle_throw()
             } else {
                 ControlFlow::Continue(())
             };

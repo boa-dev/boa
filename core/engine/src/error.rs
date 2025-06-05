@@ -2,11 +2,15 @@
 
 use crate::{
     Context, JsString, JsValue,
-    builtins::{Array, error::Error},
+    builtins::{
+        Array,
+        error::{Error, ErrorKind},
+    },
     js_string,
     object::JsObject,
     property::PropertyDescriptor,
     realm::Realm,
+    vm::shadow_stack::{Backtrace, ShadowEntry},
 };
 use boa_gc::{Finalize, Trace, custom_trace};
 use std::{borrow::Cow, error, fmt};
@@ -187,10 +191,23 @@ macro_rules! js_error {
 /// let kind = &native_error.as_native().unwrap().kind;
 /// assert!(matches!(kind, JsNativeErrorKind::Type));
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize)]
+#[derive(Debug, Clone, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 pub struct JsError {
     inner: Repr,
+
+    pub(crate) backtrace: Option<Backtrace>,
+}
+
+impl Eq for JsError {}
+impl PartialEq for JsError {
+    /// The backtrace information is ignored.
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        // NOTE: We want to ignore stack trace, since that is
+        //       meta-information about the error.
+        self.inner == other.inner
+    }
 }
 
 /// Internal representation of a [`JsError`].
@@ -281,6 +298,7 @@ impl JsError {
     pub const fn from_native(err: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(err),
+            backtrace: None,
         }
     }
 
@@ -321,6 +339,7 @@ impl JsError {
     pub const fn from_opaque(value: JsValue) -> Self {
         Self {
             inner: Repr::Opaque(value),
+            backtrace: None,
         }
     }
 
@@ -391,9 +410,10 @@ impl JsError {
                 let obj = val
                     .as_object()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
-                let error = *obj
+                let error_data: Error = obj
                     .downcast_ref::<Error>()
-                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
+                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?
+                    .clone();
 
                 let try_get_property = |key: JsString, name, context: &mut Context| {
                     obj.try_get(key, context)
@@ -419,15 +439,15 @@ impl JsError {
 
                 let cause = try_get_property(js_string!("cause"), "cause", context)?;
 
-                let kind = match error {
-                    Error::Error => JsNativeErrorKind::Error,
-                    Error::Eval => JsNativeErrorKind::Eval,
-                    Error::Type => JsNativeErrorKind::Type,
-                    Error::Range => JsNativeErrorKind::Range,
-                    Error::Reference => JsNativeErrorKind::Reference,
-                    Error::Syntax => JsNativeErrorKind::Syntax,
-                    Error::Uri => JsNativeErrorKind::Uri,
-                    Error::Aggregate => {
+                let kind = match error_data.tag {
+                    ErrorKind::Error => JsNativeErrorKind::Error,
+                    ErrorKind::Eval => JsNativeErrorKind::Eval,
+                    ErrorKind::Type => JsNativeErrorKind::Type,
+                    ErrorKind::Range => JsNativeErrorKind::Range,
+                    ErrorKind::Reference => JsNativeErrorKind::Reference,
+                    ErrorKind::Syntax => JsNativeErrorKind::Syntax,
+                    ErrorKind::Uri => JsNativeErrorKind::Uri,
+                    ErrorKind::Aggregate => {
                         let errors = obj.get(js_string!("errors"), context).map_err(|e| {
                             TryNativeError::InaccessibleProperty {
                                 property: "errors",
@@ -633,6 +653,7 @@ impl From<JsNativeError> for JsError {
     fn from(error: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(error),
+            backtrace: None,
         }
     }
 }
@@ -640,9 +661,44 @@ impl From<JsNativeError> for JsError {
 impl fmt::Display for JsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
-            Repr::Native(e) => e.fmt(f),
-            Repr::Opaque(v) => v.display().fmt(f),
+            Repr::Native(e) => e.fmt(f)?,
+            Repr::Opaque(v) => v.display().fmt(f)?,
         }
+
+        if let Some(shadow_stack) = &self.backtrace {
+            for entry in shadow_stack.iter().rev() {
+                write!(f, "\n    at ")?;
+                match entry {
+                    ShadowEntry::Native { function_name } => {
+                        write!(f, "{} (native)", function_name.to_std_string_escaped())?;
+                    }
+                    ShadowEntry::Bytecode { pc, source_info } => {
+                        let has_function_name = !source_info.function_name().is_empty();
+                        if has_function_name {
+                            write!(f, "{}", source_info.function_name().to_std_string_escaped(),)?;
+                        } else {
+                            f.write_str("<anonymous>")?;
+                        }
+
+                        f.write_str(" (")?;
+                        source_info.map().path().fmt(f)?;
+
+                        if let Some(position) = source_info.map().find(*pc) {
+                            write!(
+                                f,
+                                ":{}:{}",
+                                position.line_number(),
+                                position.column_number()
+                            )?;
+                        } else {
+                            f.write_str(":?:?")?;
+                        }
+                        f.write_str(")")?;
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -1095,18 +1151,22 @@ impl JsNativeError {
             |realm| realm.intrinsics().constructors(),
         );
         let (prototype, tag) = match kind {
-            JsNativeErrorKind::Aggregate(_) => {
-                (constructors.aggregate_error().prototype(), Error::Aggregate)
+            JsNativeErrorKind::Aggregate(_) => (
+                constructors.aggregate_error().prototype(),
+                ErrorKind::Aggregate,
+            ),
+            JsNativeErrorKind::Error => (constructors.error().prototype(), ErrorKind::Error),
+            JsNativeErrorKind::Eval => (constructors.eval_error().prototype(), ErrorKind::Eval),
+            JsNativeErrorKind::Range => (constructors.range_error().prototype(), ErrorKind::Range),
+            JsNativeErrorKind::Reference => (
+                constructors.reference_error().prototype(),
+                ErrorKind::Reference,
+            ),
+            JsNativeErrorKind::Syntax => {
+                (constructors.syntax_error().prototype(), ErrorKind::Syntax)
             }
-            JsNativeErrorKind::Error => (constructors.error().prototype(), Error::Error),
-            JsNativeErrorKind::Eval => (constructors.eval_error().prototype(), Error::Eval),
-            JsNativeErrorKind::Range => (constructors.range_error().prototype(), Error::Range),
-            JsNativeErrorKind::Reference => {
-                (constructors.reference_error().prototype(), Error::Reference)
-            }
-            JsNativeErrorKind::Syntax => (constructors.syntax_error().prototype(), Error::Syntax),
-            JsNativeErrorKind::Type => (constructors.type_error().prototype(), Error::Type),
-            JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), Error::Uri),
+            JsNativeErrorKind::Type => (constructors.type_error().prototype(), ErrorKind::Type),
+            JsNativeErrorKind::Uri => (constructors.uri_error().prototype(), ErrorKind::Uri),
             #[cfg(feature = "fuzz")]
             JsNativeErrorKind::NoInstructionsRemain => {
                 unreachable!(
@@ -1118,8 +1178,11 @@ impl JsNativeError {
             }
         };
 
-        let o =
-            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, tag);
+        let o = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            Error::new(tag),
+        );
 
         o.create_non_enumerable_data_property_or_throw(
             js_string!("message"),
@@ -1312,18 +1375,18 @@ impl JsNativeErrorKind {
     }
 }
 
-impl PartialEq<Error> for JsNativeErrorKind {
-    fn eq(&self, other: &Error) -> bool {
+impl PartialEq<ErrorKind> for JsNativeErrorKind {
+    fn eq(&self, other: &ErrorKind) -> bool {
         matches!(
             (self, other),
-            (Self::Aggregate(_), Error::Aggregate)
-                | (Self::Error, Error::Error)
-                | (Self::Eval, Error::Eval)
-                | (Self::Range, Error::Range)
-                | (Self::Reference, Error::Reference)
-                | (Self::Syntax, Error::Syntax)
-                | (Self::Type, Error::Type)
-                | (Self::Uri, Error::Uri)
+            (Self::Aggregate(_), ErrorKind::Aggregate)
+                | (Self::Error, ErrorKind::Error)
+                | (Self::Eval, ErrorKind::Eval)
+                | (Self::Range, ErrorKind::Range)
+                | (Self::Reference, ErrorKind::Reference)
+                | (Self::Syntax, ErrorKind::Syntax)
+                | (Self::Type, ErrorKind::Type)
+                | (Self::Uri, ErrorKind::Uri)
         )
     }
 }

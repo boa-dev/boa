@@ -3,7 +3,7 @@ use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     js_string,
-    vm::{CodeBlock, CodeBlockFlags},
+    vm::{CodeBlock, CodeBlockFlags, source_info::SourcePath},
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -26,6 +26,7 @@ pub(crate) struct FunctionCompiler {
     force_function_scope: bool,
     name_scope: Option<Scope>,
     spanned_source_text: SpannedSourceText,
+    source_path: SourcePath,
 }
 
 impl FunctionCompiler {
@@ -42,6 +43,7 @@ impl FunctionCompiler {
             force_function_scope: false,
             name_scope: None,
             spanned_source_text,
+            source_path: SourcePath::None,
         }
     }
 
@@ -103,6 +105,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Set source map file path.
+    pub(crate) fn source_path(mut self, source_path: SourcePath) -> Self {
+        self.source_path = source_path;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
@@ -130,6 +138,7 @@ impl FunctionCompiler {
             interner,
             self.in_with,
             self.spanned_source_text,
+            self.source_path,
         );
 
         compiler.length = length;
@@ -212,7 +221,9 @@ impl FunctionCompiler {
             }
         }
 
+        compiler.push_source_position(body.span().start());
         compiler.compile_statement_list(body.statement_list(), false, false);
+        compiler.pop_source_position();
 
         compiler.params = parameters.clone();
         compiler.parameter_scope = scopes.parameter_scope();

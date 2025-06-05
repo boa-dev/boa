@@ -12,7 +12,7 @@ impl Inner {
     }
 }
 
-#[derive(Trace, Finalize, Clone)]
+#[derive(Default, Trace, Finalize, Clone)]
 pub(crate) struct SourceText {
     #[unsafe_ignore_trace]
     source_text: Option<Rc<Inner>>,
@@ -41,12 +41,12 @@ impl SourceText {
 }
 
 /// Contains pointer to source code and span of the object.
-#[derive(Trace, Finalize, Clone)]
+#[derive(Default, Clone)]
 pub struct SpannedSourceText {
     source_text: SourceText,
-    #[unsafe_ignore_trace]
     span: Option<LinearSpan>,
 }
+
 impl SpannedSourceText {
     pub(crate) fn new(source_text: SourceText, span: Option<LinearSpan>) -> Self {
         Self { source_text, span }
