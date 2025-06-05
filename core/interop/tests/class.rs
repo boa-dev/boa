@@ -31,6 +31,17 @@ impl Animal {
         Self { ty, age }
     }
 
+    fn static_method() -> i32 {
+        42
+    }
+
+    // Force this being a method (instead of a static function) by declaring it
+    // as a method.
+    #[boa(method)]
+    fn method() -> i32 {
+        43
+    }
+
     #[boa(getter)]
     fn age(&self) -> i32 {
         self.age
@@ -60,13 +71,22 @@ fn boa_class() {
     let result = context
         .eval(Source::from_bytes(
             r#"
-         let pet = new Animal("dog", 3);
-         if (pet.age !== 3) {
-            throw "age should be 3";
-         }
-         pet.age = 4;
+            let pet = new Animal("dog", 3);
+            if (pet.age !== 3) {
+                throw "age should be 3";
+            }
+            
+            let v = Animal.static_method();
+            if (v !== 42) {
+                throw "Static method returned " + v;
+            }
+            v = Animal.method();
+            if (v !== 43) {
+                throw "Method returned " + v;
+            }
 
-        `My pet is ${pet.age} years old. Right, buddy? - ${pet.speak()}!`
+            pet.age = 4;
+            `My pet is ${pet.age} years old. Right, buddy? - ${pet.speak()}!`
      "#,
         ))
         .expect("Could not evaluate script");

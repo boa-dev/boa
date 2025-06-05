@@ -99,10 +99,15 @@ fn take_error_from_attrs(attrs: &mut Vec<Attribute>) -> SpannedResult<Option<Str
 struct Function {
     /// The name of the function. Can be overridden with `#[boa(name = "...")]`.
     name: String,
+
     /// The length of the function in JavaScript. Can be overridden with `#[boa(length = ...)]`.
     length: usize,
+
     /// The body of the function serialized. This depends highly on the type of function.
     body: TokenStream2,
+
+    /// Whether a receiver was found.
+    is_static: bool,
 }
 
 impl std::fmt::Debug for Function {
@@ -187,6 +192,8 @@ impl Function {
             take_length_from_attrs(&mut fn_.attrs)?.unwrap_or(args_decl.len() - has_receiver);
         let fn_name = &fn_.sig.ident;
 
+        let is_static = take_path_attr(&mut fn_.attrs, "method") || has_receiver > 0;
+
         Ok(Self {
             length,
             name,
@@ -202,6 +209,7 @@ impl Function {
                     boa_engine::TryIntoJsResult::try_into_js_result(result, context)
                 }
             },
+            is_static,
         })
     }
 
@@ -213,7 +221,7 @@ impl Function {
         Self::method(name, fn_, class_ty)
     }
 
-    fn constructor(name: String, fn_: &mut ImplItemFn, _class_ty: &Type) -> SpannedResult<Self> {
+    fn constructor(fn_: &mut ImplItemFn, _class_ty: &Type) -> SpannedResult<Self> {
         if fn_.sig.asyncness.is_some() {
             error(&fn_.sig.asyncness, "Async methods are not supported.")?;
         }
@@ -259,7 +267,7 @@ impl Function {
 
         Ok(Self {
             length,
-            name,
+            name: "".to_string(),
             body: quote! {
                 let rest = args;
                 #(#args_decl)*
@@ -267,6 +275,7 @@ impl Function {
                 let result = Self:: #fn_name ( #(#args_call),* );
                 #return_statement
             },
+            is_static: false,
         })
     }
 }
@@ -365,6 +374,9 @@ struct ClassVisitor {
     // Whether we detected a constructor while visiting.
     constructor: Option<Function>,
 
+    // All static functions recorded.
+    statics: Vec<Function>,
+
     // All methods recorded.
     methods: Vec<Function>,
 
@@ -380,22 +392,52 @@ impl ClassVisitor {
         Self {
             type_,
             constructor: None,
+            statics: Vec::new(),
             methods: Vec::new(),
             accessors: BTreeMap::default(),
             errors: None,
         }
     }
 
+    fn name_of(fn_: &mut ImplItemFn) -> SpannedResult<String> {
+        take_name_value_attr(&mut fn_.attrs, "name").map_or_else(
+            || Ok(fn_.sig.ident.to_string()),
+            |nv| match &nv {
+                Lit::Str(s) => Ok(s.value()),
+                _ => error(&nv, "Invalid attribute value literal"),
+            },
+        )
+    }
+
     fn method(&mut self, _span: &impl Spanned, fn_: &mut ImplItemFn) {
-        let name = fn_.sig.ident.to_string();
+        let name = match Self::name_of(fn_) {
+            Ok(name) => name,
+            Err((span, msg)) => {
+                self.error(span, msg);
+                return;
+            }
+        };
+
         match Function::method(name, fn_, &self.type_) {
-            Ok(f) => self.methods.push(f),
+            Ok(f) => {
+                if f.is_static {
+                    self.methods.push(f);
+                } else {
+                    self.statics.push(f);
+                }
+            }
             Err((span, err)) => self.error(span, err),
         }
     }
 
     fn getter(&mut self, fn_: &mut ImplItemFn) {
-        let name = fn_.sig.ident.to_string();
+        let name = match Self::name_of(fn_) {
+            Ok(name) => name,
+            Err((span, msg)) => {
+                self.error(span, msg);
+                return;
+            }
+        };
         if let Err((span, msg)) =
             self.accessors
                 .entry(name.clone())
@@ -407,21 +449,13 @@ impl ClassVisitor {
     }
 
     fn setter(&mut self, fn_: &mut ImplItemFn) {
-        let name = take_name_value_attr(&mut fn_.attrs, "name").map_or_else(
-            || Ok(fn_.sig.ident.to_string()),
-            |nv| match &nv {
-                Lit::Str(s) => Ok(s.value()),
-                _ => Err(""),
-            },
-        );
-        let name = match name {
+        let name = match Self::name_of(fn_) {
             Ok(name) => name,
-            Err(err) => {
-                self.error(fn_, err);
+            Err((span, msg)) => {
+                self.error(span, msg);
                 return;
             }
         };
-
         if let Err((span, msg)) =
             self.accessors
                 .entry(name.clone())
@@ -433,8 +467,7 @@ impl ClassVisitor {
     }
 
     fn constructor(&mut self, fn_: &mut ImplItemFn) {
-        let name = fn_.sig.ident.to_string();
-        match Function::constructor(name, fn_, &self.type_) {
+        match Function::constructor(fn_, &self.type_) {
             Ok(f) => self.constructor = Some(f),
             Err((span, err)) => self.error(span, err),
         }
@@ -478,6 +511,22 @@ impl ClassVisitor {
             }
         });
 
+        let builder_statics = self.statics.iter().map(|m| {
+            let name_str = m.name.as_str();
+            let length = m.length;
+            let body = &m.body;
+
+            quote! {
+                builder.static_method(
+                    boa_engine::js_string!( #name_str ),
+                    #length,
+                    boa_engine::NativeFunction::from_copy_closure(
+                        #body
+                    )
+                );
+            }
+        });
+
         let constructor_body = self.constructor.as_ref().map_or_else(
             || {
                 quote! {
@@ -501,6 +550,9 @@ impl ClassVisitor {
                 }
 
                 fn init(builder: &mut boa_engine::class::ClassBuilder) -> boa_engine::JsResult<()> {
+                    // Add all statics.
+                    #(#builder_statics)*
+
                     // Add all accessors.
                     #(#accessors)*
 
