@@ -515,6 +515,8 @@ impl ClassVisitor {
 }
 
 impl VisitMut for ClassVisitor {
+    // Allow similar names as there are no better ways to name `getter` and `setter`.
+    #[allow(clippy::similar_names)]
     fn visit_impl_item_fn_mut(&mut self, item: &mut ImplItemFn) {
         // If there's a `boa` argument, parse it.
         let has_ctor_attr = take_path_attr(&mut item.attrs, "constructor");
@@ -617,7 +619,7 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     #[allow(clippy::print_stderr)]
     if debug {
-        eprintln!("---------\n{}\n---------\n", tokens);
+        eprintln!("---------\n{tokens}\n---------\n");
     }
 
     tokens.into()
