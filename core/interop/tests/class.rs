@@ -31,6 +31,7 @@ impl Animal {
         Self { ty, age }
     }
 
+    #[boa(name = "staticMethod")]
     fn static_method() -> i32 {
         42
     }
@@ -78,7 +79,7 @@ fn boa_class() {
                 throw "age should be 3";
             }
 
-            let v = Animal.static_method();
+            let v = Animal.staticMethod();
             if (v !== 42) {
                 throw "Static method returned " + JSON.stringify(v);
             }
