@@ -115,6 +115,7 @@ impl std::fmt::Debug for Function {
         f.debug_struct("Function")
             .field("name", &self.name)
             .field("length", &self.length)
+            .field("is_static", &self.is_static)
             .field("body", &self.body.to_string())
             .finish()
     }
@@ -267,7 +268,7 @@ impl Function {
 
         Ok(Self {
             length,
-            name: "".to_string(),
+            name: String::new(),
             body: quote! {
                 let rest = args;
                 #(#args_decl)*
