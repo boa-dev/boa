@@ -178,7 +178,7 @@ impl JsValue {
     pub fn as_downcast_mut<T: NativeObject>(
         &self,
     ) -> Option<boa_engine::object::RefMut<'_, ErasedObject, T>> {
-        self.as_object().and_then(|o| o.downcast_mut::<T>())
+        self.as_object().and_then(JsObject::downcast_mut::<T>)
     }
 
     /// Consumes the value and return the inner object if it was an object.
