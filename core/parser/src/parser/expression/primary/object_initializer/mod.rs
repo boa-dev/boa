@@ -611,9 +611,15 @@ where
                 (*name).into()
             }
             TokenKind::NumericLiteral(num) => match num {
-                Numeric::Rational(num) => Expression::Literal(Literal::from(*num)).into(),
-                Numeric::Integer(num) => Expression::Literal(Literal::from(*num)).into(),
-                Numeric::BigInt(num) => Expression::Literal(Literal::from(num.clone())).into(),
+                Numeric::Rational(num) => {
+                    Expression::Literal(Literal::new(*num, token.span())).into()
+                }
+                Numeric::Integer(num) => {
+                    Expression::Literal(Literal::new(*num, token.span())).into()
+                }
+                Numeric::BigInt(num) => {
+                    Expression::Literal(Literal::new(num.clone(), token.span())).into()
+                }
             },
             TokenKind::Keyword((word, _)) => {
                 let (utf8, utf16) = word.as_str();

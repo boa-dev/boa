@@ -10,7 +10,7 @@ use boa_ast::{
     },
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
     property::PropertyName,
-    Expression, Statement,
+    Expression, Span, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -20,7 +20,10 @@ fn check_string() {
     // Check empty string
     check_script_parser(
         "\"\"",
-        vec![Statement::Expression(Expression::from(Literal::from(Sym::EMPTY_STRING))).into()],
+        vec![Statement::Expression(
+            Literal::new(Sym::EMPTY_STRING, Span::new((1, 1), (1, 3))).into(),
+        )
+        .into()],
         &mut Interner::default(),
     );
 
@@ -28,9 +31,13 @@ fn check_string() {
     let interner = &mut Interner::default();
     check_script_parser(
         "\"hello\"",
-        vec![Statement::Expression(Expression::from(Literal::from(
-            interner.get_or_intern_static("hello", utf16!("hello")),
-        )))
+        vec![Statement::Expression(
+            Literal::new(
+                interner.get_or_intern_static("hello", utf16!("hello")),
+                Span::new((1, 1), (1, 8)),
+            )
+            .into(),
+        )
         .into()],
         interner,
     );
@@ -50,10 +57,10 @@ fn check_destructuring_assignment_object_assignment_operator() {
                         ObjectPatternElement::SingleName {
                             name: PropertyName::from(a),
                             ident: Identifier::from(a),
-                            default_init: Some(Literal::from(0).into()),
+                            default_init: Some(Literal::new(0, Span::new((1, 11), (1, 12))).into()),
                         },
                     ]))),
-                    Literal::from(0).into(),
+                    Literal::new(0, Span::new((1, 17), (1, 18))).into(),
                 )),
             )))
             .into(),
@@ -94,7 +101,7 @@ fn check_destructuring_assignment_array_assignment_operator() {
                     AssignTarget::Pattern(Pattern::Array(ArrayPattern::from(vec![
                         ArrayPatternElement::SingleName {
                             ident: Identifier::from(a),
-                            default_init: Some(Literal::from(0).into()),
+                            default_init: Some(Literal::new(0, Span::new((1, 8), (1, 9))).into()),
                         },
                     ]))),
                     ArrayLiteral::from([]).into(),

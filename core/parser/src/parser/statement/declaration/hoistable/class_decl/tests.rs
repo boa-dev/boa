@@ -11,10 +11,11 @@ use boa_ast::{
         FormalParameterList, FunctionBody, FunctionExpression,
     },
     property::{MethodDefinitionKind, PropertyName},
-    Declaration, Expression, Statement, StatementListItem,
+    Declaration, Expression, Span, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 #[test]
 fn check_async_ordinary_method() {
@@ -53,15 +54,16 @@ fn check_async_field_initialization() {
 
     let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
         PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
-        Some(Literal::from(1).into()),
+        Some(Literal::new(1, Span::new((3, 7), (3, 8))).into()),
     ))];
 
     check_script_parser(
-        "class A {
-            async
-              = 1
-         }
-        ",
+        indoc! {"
+            class A {
+                async
+                = 1
+            }
+        "},
         [Declaration::ClassDeclaration(ClassDeclaration::new(
             interner.get_or_intern_static("A", utf16!("A")).into(),
             None,

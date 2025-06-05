@@ -528,6 +528,7 @@ dependencies = [
  "boa_profiler",
  "fast-float2",
  "icu_properties",
+ "indoc",
  "num-bigint",
  "num-traits",
  "regress",

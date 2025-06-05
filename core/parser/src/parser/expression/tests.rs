@@ -11,7 +11,7 @@ use boa_ast::{
         Call, Identifier, Parenthesized, RegExpLiteral,
     },
     function::{AsyncArrowFunction, FormalParameter, FormalParameterList, FunctionBody},
-    Declaration, Expression, LinearPosition, LinearSpan, Statement,
+    Declaration, Expression, LinearPosition, LinearSpan, Span, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -37,7 +37,7 @@ fn check_numeric_operations() {
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Add.into(),
             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Literal::from(1).into(),
+            Literal::new(1, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
         interner,
@@ -61,7 +61,7 @@ fn check_numeric_operations() {
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Sub.into(),
             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Literal::from(1).into(),
+            Literal::new(1, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
         interner,
@@ -85,7 +85,7 @@ fn check_numeric_operations() {
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Div.into(),
             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Literal::from(2).into(),
+            Literal::new(2, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
         interner,
@@ -181,7 +181,7 @@ fn check_numeric_operations() {
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mul.into(),
             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Literal::from(2).into(),
+            Literal::new(2, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
         interner,
@@ -205,7 +205,7 @@ fn check_numeric_operations() {
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Exp.into(),
             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Literal::from(2).into(),
+            Literal::new(2, Span::new((1, 4), (1, 5))).into(),
         )))
         .into()],
         interner,
@@ -229,7 +229,7 @@ fn check_numeric_operations() {
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mod.into(),
             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Literal::from(2).into(),
+            Literal::new(2, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
         interner,
@@ -254,7 +254,7 @@ fn check_complex_numeric_operations() {
                         Binary::new(
                             ArithmeticOp::Sub.into(),
                             Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                            Literal::from(3).into(),
+                            Literal::new(3, Span::new((1, 10), (1, 11))).into(),
                         )
                         .into(),
                     )
@@ -263,7 +263,7 @@ fn check_complex_numeric_operations() {
                 .into(),
             )
             .into(),
-            Literal::from(1).into(),
+            Literal::new(1, Span::new((1, 13), (1, 14))).into(),
         )))
         .into()],
         interner,
@@ -549,8 +549,8 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
             Binary::new(
                 ArithmeticOp::Div.into(),
-                Literal::from(10).into(),
-                Literal::from(2).into(),
+                Literal::new(10, Span::new((1, 6), (1, 8))).into(),
+                Literal::new(2, Span::new((1, 11), (1, 12))).into(),
             )
             .into(),
         )))

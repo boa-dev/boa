@@ -14,10 +14,11 @@ use boa_ast::{
     },
     function::{FormalParameterList, FunctionBody, FunctionDeclaration},
     statement::{Block, Return},
-    Declaration, Expression, Statement, StatementListItem,
+    Declaration, Expression, Span, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
@@ -46,15 +47,17 @@ fn non_empty() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
-        r"{
-            var a = 10;
-            a++;
-        }",
+        indoc! {"
+            {
+                var a = 10;
+                a++;
+            }
+        "},
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
                     a.into(),
-                    Some(Literal::from(10).into()),
+                    Some(Literal::new(10, Span::new((2, 13), (2, 15))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -73,21 +76,23 @@ fn non_empty() {
     let hello = interner.get_or_intern_static("hello", utf16!("hello"));
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
-        r"{
-            function hello() {
-                return 10
-            }
+        indoc! {"
+            {
+                function hello() {
+                    return 10
+                }
 
-            var a = hello();
-            a++;
-        }",
+                var a = hello();
+                a++;
+            }
+        "},
         vec![
             Declaration::FunctionDeclaration(FunctionDeclaration::new(
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
                     [StatementListItem::Statement(Statement::Return(
-                        Return::new(Some(Literal::from(10).into())),
+                        Return::new(Some(Literal::new(10, Span::new((3, 16), (3, 18))).into())),
                     ))],
                     PSEUDO_LINEAR_POS,
                     false,
@@ -120,12 +125,14 @@ fn hoisting() {
     let hello = interner.get_or_intern_static("hello", utf16!("hello"));
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
-        r"{
-            var a = hello();
-            a++;
+        indoc! {"
+            {
+                var a = hello();
+                a++;
 
-            function hello() { return 10 }
-        }",
+                function hello() { return 10 }
+            }
+        "},
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
@@ -146,7 +153,7 @@ fn hoisting() {
                 FormalParameterList::default(),
                 FunctionBody::new(
                     [StatementListItem::Statement(Statement::Return(
-                        Return::new(Some(Literal::from(10).into())),
+                        Return::new(Some(Literal::new(10, Span::new((5, 31), (5, 33))).into())),
                     ))],
                     PSEUDO_LINEAR_POS,
                     false,
@@ -161,17 +168,19 @@ fn hoisting() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
-        r"{
-            a = 10;
-            a++;
+        indoc! {"
+            {
+                a = 10;
+                a++;
 
-            var a;
-        }",
+                var a;
+            }
+        "},
         vec![
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
                 Identifier::new(a).into(),
-                Literal::from(10).into(),
+                Literal::new(10, Span::new((2, 9), (2, 11))).into(),
             )))
             .into(),
             Statement::Expression(Expression::from(Update::new(

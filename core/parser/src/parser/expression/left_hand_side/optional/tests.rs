@@ -5,7 +5,7 @@ use boa_ast::{
         access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalOperation,
         OptionalOperationKind,
     },
-    Expression, Statement,
+    Span, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -18,7 +18,7 @@ fn simple() {
         r#"5?.name"#,
         vec![Statement::Expression(
             Optional::new(
-                Literal::Int(5).into(),
+                Literal::new(5, Span::new((1, 1), (1, 2))).into(),
                 vec![OptionalOperation::new(
                     OptionalOperationKind::SimplePropertyAccess {
                         field: PropertyAccessField::Const(
@@ -56,15 +56,19 @@ fn complex_chain() {
                     ),
                     OptionalOperation::new(
                         OptionalOperationKind::Call {
-                            args: vec![Expression::Literal(Literal::Bool(true))].into(),
+                            args: vec![Literal::new(true, Span::new((1, 6), (1, 10))).into()]
+                                .into(),
                         },
                         false,
                     ),
                     OptionalOperation::new(
                         OptionalOperationKind::SimplePropertyAccess {
                             field: PropertyAccessField::Expr(Box::new(
-                                Literal::String(interner.get_or_intern_static("c", utf16!("c")))
-                                    .into(),
+                                Literal::new(
+                                    interner.get_or_intern_static("c", utf16!("c")),
+                                    Span::new((1, 14), (1, 17)),
+                                )
+                                .into(),
                             )),
                         },
                         true,

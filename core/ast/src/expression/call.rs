@@ -1,5 +1,5 @@
-use crate::join_nodes;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{join_nodes, Span};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -33,7 +33,7 @@ impl Call {
     #[must_use]
     pub fn new(function: Expression, args: Box<[Expression]>) -> Self {
         Self {
-            function: function.into(),
+            function: Box::new(function),
             args,
         }
     }
@@ -50,6 +50,13 @@ impl Call {
     #[must_use]
     pub const fn args(&self) -> &[Expression] {
         &self.args
+    }
+
+    /// Retrieves span of the [`Call`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.function.span()
     }
 }
 

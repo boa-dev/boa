@@ -3,7 +3,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::literal::{ArrayLiteral, Literal},
-    Expression, Statement,
+    Expression, Span, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -35,9 +35,9 @@ fn check_numeric_array() {
         "[1, 2, 3]",
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
-                Some(Literal::from(1).into()),
-                Some(Literal::from(2).into()),
-                Some(Literal::from(3).into()),
+                Some(Literal::new(1, Span::new((1, 2), (1, 3))).into()),
+                Some(Literal::new(2, Span::new((1, 5), (1, 6))).into()),
+                Some(Literal::new(3, Span::new((1, 8), (1, 9))).into()),
             ])))
             .into(),
         ],
@@ -52,9 +52,9 @@ fn check_numeric_array_trailing() {
         "[1, 2, 3,]",
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
-                Some(Literal::from(1).into()),
-                Some(Literal::from(2).into()),
-                Some(Literal::from(3).into()),
+                Some(Literal::new(1, Span::new((1, 2), (1, 3))).into()),
+                Some(Literal::new(2, Span::new((1, 5), (1, 6))).into()),
+                Some(Literal::new(3, Span::new((1, 8), (1, 9))).into()),
             ])))
             .into(),
         ],
@@ -69,10 +69,10 @@ fn check_numeric_array_elision() {
         "[1, 2, , 3]",
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
-                Some(Literal::from(1).into()),
-                Some(Literal::from(2).into()),
+                Some(Literal::new(1, Span::new((1, 2), (1, 3))).into()),
+                Some(Literal::new(2, Span::new((1, 5), (1, 6))).into()),
                 None,
-                Some(Literal::from(3).into()),
+                Some(Literal::new(3, Span::new((1, 10), (1, 11))).into()),
             ])))
             .into(),
         ],
@@ -87,11 +87,11 @@ fn check_numeric_array_repeated_elision() {
         "[1, 2, ,, 3]",
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
-                Some(Literal::from(1).into()),
-                Some(Literal::from(2).into()),
+                Some(Literal::new(1, Span::new((1, 2), (1, 3))).into()),
+                Some(Literal::new(2, Span::new((1, 5), (1, 6))).into()),
                 None,
                 None,
-                Some(Literal::from(3).into()),
+                Some(Literal::new(3, Span::new((1, 11), (1, 12))).into()),
             ])))
             .into(),
         ],
@@ -104,12 +104,18 @@ fn check_numeric_array_repeated_elision() {
 fn check_combined() {
     let interner = &mut Interner::default();
     check_script_parser(
-        "[1, \"a\", 2]",
+        r#"[1, "a", 2]"#,
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
-                Some(Literal::from(1).into()),
-                Some(Literal::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-                Some(Literal::from(2).into()),
+                Some(Literal::new(1, Span::new((1, 2), (1, 3))).into()),
+                Some(
+                    Literal::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 8)),
+                    )
+                    .into(),
+                ),
+                Some(Literal::new(2, Span::new((1, 10), (1, 11))).into()),
             ])))
             .into(),
         ],
@@ -121,12 +127,12 @@ fn check_combined() {
 #[test]
 fn check_combined_empty_str() {
     check_script_parser(
-        "[1, \"\", 2]",
+        r#"[1, "", 2]"#,
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
-                Some(Literal::from(1).into()),
-                Some(Literal::from(Sym::EMPTY_STRING).into()),
-                Some(Literal::from(2).into()),
+                Some(Literal::new(1, Span::new((1, 2), (1, 3))).into()),
+                Some(Literal::new(Sym::EMPTY_STRING, Span::new((1, 5), (1, 7))).into()),
+                Some(Literal::new(2, Span::new((1, 9), (1, 10))).into()),
             ])))
             .into(),
         ],
@@ -141,7 +147,7 @@ fn check_elision_start_end() {
         vec![
             Statement::Expression(Expression::from(ArrayLiteral::from(vec![
                 None,
-                Some(Literal::from(1).into()),
+                Some(Literal::new(1, Span::new((1, 4), (1, 5))).into()),
                 None,
             ])))
             .into(),

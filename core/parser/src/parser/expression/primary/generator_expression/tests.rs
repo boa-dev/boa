@@ -3,10 +3,11 @@ use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{literal::Literal, Yield},
     function::{FormalParameterList, FunctionBody, GeneratorExpression},
-    Declaration, Expression, Statement, StatementListItem,
+    Declaration, Expression, Span, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
@@ -17,10 +18,11 @@ fn check_generator_function_expression() {
     let interner = &mut Interner::default();
     let gen = interner.get_or_intern_static("gen", utf16!("gen"));
     check_script_parser(
-        "const gen = function*() {
+        indoc! {"
+        const gen = function*() {
             yield 1;
         };
-        ",
+        "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
                 gen.into(),
@@ -30,7 +32,10 @@ fn check_generator_function_expression() {
                         FormalParameterList::default(),
                         FunctionBody::new(
                             [StatementListItem::Statement(Statement::Expression(
-                                Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
+                                Expression::from(Yield::new(
+                                    Some(Literal::new(1, Span::new((2, 11), (2, 12))).into()),
+                                    false,
+                                )),
                             ))],
                             PSEUDO_LINEAR_POS,
                             false,
@@ -54,10 +59,11 @@ fn check_generator_function_delegate_yield_expression() {
     let interner = &mut Interner::default();
     let gen = interner.get_or_intern_static("gen", utf16!("gen"));
     check_script_parser(
-        "const gen = function*() {
+        indoc! {"
+        const gen = function*() {
             yield* 1;
         };
-        ",
+        "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
                 gen.into(),
@@ -67,7 +73,10 @@ fn check_generator_function_delegate_yield_expression() {
                         FormalParameterList::default(),
                         FunctionBody::new(
                             [StatementListItem::Statement(Statement::Expression(
-                                Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
+                                Expression::from(Yield::new(
+                                    Some(Literal::new(1, Span::new((2, 12), (2, 13))).into()),
+                                    true,
+                                )),
                             ))],
                             PSEUDO_LINEAR_POS,
                             false,

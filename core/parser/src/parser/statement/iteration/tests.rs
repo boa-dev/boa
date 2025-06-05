@@ -13,10 +13,11 @@ use boa_ast::{
         Call, Identifier,
     },
     statement::{Block, Break, DoWhileLoop, WhileLoop},
-    Expression, Statement, StatementListItem,
+    Expression, Span, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 
@@ -25,9 +26,11 @@ const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(
 fn check_do_while() {
     let interner = &mut Interner::default();
     check_script_parser(
-        r#"do {
-            a += 1;
-        } while (true)"#,
+        indoc! {"
+            do {
+                a += 1;
+            } while (true)
+        "},
         vec![Statement::DoWhileLoop(DoWhileLoop::new(
             Statement::Block(
                 (
@@ -35,14 +38,14 @@ fn check_do_while() {
                         Expression::from(Assign::new(
                             AssignOp::Add,
                             Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                            Literal::from(1).into(),
+                            Literal::new(1, Span::new((2, 10), (2, 11))).into(),
                         )),
                     ))],
                     PSEUDO_LINEAR_POS,
                 )
                     .into(),
             ),
-            Literal::from(true).into(),
+            Literal::new(true, Span::new((3, 10), (3, 14))).into(),
         ))
         .into()],
         interner,
@@ -54,13 +57,15 @@ fn check_do_while() {
 fn check_do_while_semicolon_insertion() {
     let interner = &mut Interner::default();
     check_script_parser(
-        r#"var i = 0;
-        do {console.log("hello");} while(i++ < 10) console.log("end");"#,
+        indoc! {r#"
+            var i = 0;
+            do {console.log("hello");} while(i++ < 10) console.log("end");
+        "#},
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("i", utf16!("i")).into(),
-                    Some(Literal::from(0).into()),
+                    Some(Literal::new(0, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -82,8 +87,9 @@ fn check_do_while_semicolon_insertion() {
                                     )
                                     .into(),
                                 ),
-                                vec![Literal::from(
+                                vec![Literal::new(
                                     interner.get_or_intern_static("hello", utf16!("hello")),
+                                    Span::new((2, 17), (2, 24)),
                                 )
                                 .into()]
                                 .into(),
@@ -102,7 +108,7 @@ fn check_do_while_semicolon_insertion() {
                         )),
                     )
                     .into(),
-                    Literal::from(10).into(),
+                    Literal::new(10, Span::new((2, 40), (2, 42))).into(),
                 )
                 .into(),
             ))
@@ -118,8 +124,12 @@ fn check_do_while_semicolon_insertion() {
                     )
                     .into(),
                 ),
-                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
-                    .into(),
+                vec![Literal::new(
+                    interner.get_or_intern_static("end", utf16!("end")),
+                    Span::new((2, 56), (2, 61)),
+                )
+                .into()]
+                .into(),
             )))
             .into(),
         ],
@@ -133,13 +143,15 @@ fn check_do_while_semicolon_insertion() {
 fn check_do_while_semicolon_insertion_no_space() {
     let interner = &mut Interner::default();
     check_script_parser(
-        r#"var i = 0;
-        do {console.log("hello");} while(i++ < 10)console.log("end");"#,
+        indoc! {r#"
+            var i = 0;
+            do {console.log("hello");} while(i++ < 10)console.log("end");
+        "#},
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("i", utf16!("i")).into(),
-                    Some(Literal::from(0).into()),
+                    Some(Literal::new(0, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -161,8 +173,9 @@ fn check_do_while_semicolon_insertion_no_space() {
                                     )
                                     .into(),
                                 ),
-                                vec![Literal::from(
+                                vec![Literal::new(
                                     interner.get_or_intern_static("hello", utf16!("hello")),
+                                    Span::new((2, 17), (2, 24)),
                                 )
                                 .into()]
                                 .into(),
@@ -181,7 +194,7 @@ fn check_do_while_semicolon_insertion_no_space() {
                         )),
                     )
                     .into(),
-                    Literal::from(10).into(),
+                    Literal::new(10, Span::new((2, 40), (2, 42))).into(),
                 )
                 .into(),
             ))
@@ -197,8 +210,12 @@ fn check_do_while_semicolon_insertion_no_space() {
                     )
                     .into(),
                 ),
-                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
-                    .into(),
+                vec![Literal::new(
+                    interner.get_or_intern_static("end", utf16!("end")),
+                    Span::new((2, 55), (2, 60)),
+                )
+                .into()]
+                .into(),
             )))
             .into(),
         ],
@@ -210,21 +227,21 @@ fn check_do_while_semicolon_insertion_no_space() {
 #[test]
 fn while_spaces() {
     check_script_parser(
-        r#"
+        indoc! {"
 
-        while
+            while
 
-        (
+            (
 
-        true
+            true
 
-        )
+            )
 
-        break;
+            break;
 
-        "#,
+        "},
         vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::from(true).into(),
+            Literal::new(true, Span::new((6, 1), (6, 5))).into(),
             Break::new(None).into(),
         ))
         .into()],
@@ -236,7 +253,7 @@ fn while_spaces() {
 #[test]
 fn do_while_spaces() {
     check_script_parser(
-        r#"
+        indoc! {"
 
         do
 
@@ -248,7 +265,7 @@ fn do_while_spaces() {
 
         while (true)
 
-        "#,
+        "},
         vec![Statement::DoWhileLoop(DoWhileLoop::new(
             Block::from((
                 vec![StatementListItem::Statement(Statement::Break(Break::new(
@@ -257,7 +274,7 @@ fn do_while_spaces() {
                 PSEUDO_LINEAR_POS,
             ))
             .into(),
-            Literal::Bool(true).into(),
+            Literal::new(true, Span::new((10, 8), (10, 12))).into(),
         ))
         .into()],
         &mut Interner::default(),

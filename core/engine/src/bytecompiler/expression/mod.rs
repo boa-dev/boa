@@ -14,7 +14,9 @@ use crate::{
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        literal::{Literal as AstLiteral, TemplateElement, TemplateLiteral},
+        literal::{
+            Literal as AstLiteral, LiteralKind as AstLiteralKind, TemplateElement, TemplateLiteral,
+        },
         operator::Conditional,
         Identifier,
     },
@@ -24,19 +26,19 @@ use thin_vec::ThinVec;
 
 impl ByteCompiler<'_> {
     fn compile_literal(&mut self, lit: &AstLiteral, dst: &Register) {
-        match lit {
-            AstLiteral::String(v) => {
+        match lit.kind() {
+            AstLiteralKind::String(v) => {
                 self.emit_push_literal(Literal::String(v.to_js_string(self.interner())), dst);
             }
-            AstLiteral::Int(v) => self.emit_push_integer(*v, dst),
-            AstLiteral::Num(v) => self.emit_push_rational(*v, dst),
-            AstLiteral::BigInt(v) => {
+            AstLiteralKind::Int(v) => self.emit_push_integer(*v, dst),
+            AstLiteralKind::Num(v) => self.emit_push_rational(*v, dst),
+            AstLiteralKind::BigInt(v) => {
                 self.emit_push_literal(Literal::BigInt(v.clone().into()), dst);
             }
-            AstLiteral::Bool(true) => self.bytecode.emit_push_true(dst.variable()),
-            AstLiteral::Bool(false) => self.bytecode.emit_push_false(dst.variable()),
-            AstLiteral::Null => self.bytecode.emit_push_null(dst.variable()),
-            AstLiteral::Undefined => self.bytecode.emit_push_undefined(dst.variable()),
+            AstLiteralKind::Bool(true) => self.bytecode.emit_push_true(dst.variable()),
+            AstLiteralKind::Bool(false) => self.bytecode.emit_push_false(dst.variable()),
+            AstLiteralKind::Null => self.bytecode.emit_push_null(dst.variable()),
+            AstLiteralKind::Undefined => self.bytecode.emit_push_undefined(dst.variable()),
         }
     }
 

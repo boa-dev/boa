@@ -47,7 +47,7 @@ use boa_ast::{
     self as ast,
     declaration::Variable,
     expression::{
-        literal::{self, Literal, TemplateElement},
+        literal::{self, Literal, LiteralKind, TemplateElement},
         operator::{assign::AssignTarget, binary::BinaryOp},
         Identifier, Parenthesized,
     },
@@ -192,13 +192,14 @@ where
                     .map(Into::into)
             }
             TokenKind::BooleanLiteral((boolean, _)) => {
-                let node = Literal::from(*boolean).into();
+                let node = Literal::new(*boolean, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::NullLiteral(_) => {
+                let node = Literal::new(LiteralKind::Null, tok.span());
                 cursor.advance(interner);
-                Ok(Literal::Null.into())
+                Ok(node.into())
             }
             TokenKind::IdentifierName(_)
             | TokenKind::Keyword((
@@ -208,9 +209,9 @@ where
                 .parse(cursor, interner)
                 .map(Into::into),
             TokenKind::StringLiteral((lit, _)) => {
-                let node = Literal::from(*lit).into();
+                let node = Literal::new(*lit, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::TemplateNoSubstitution(template_string) => {
                 let Some(cooked) = template_string.cooked() else {
@@ -225,19 +226,19 @@ where
                 Ok(temp.into())
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => {
-                let node = Literal::from(*num).into();
+                let node = Literal::new(*num, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::NumericLiteral(Numeric::Rational(num)) => {
-                let node = Literal::from(*num).into();
+                let node = Literal::new(*num, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => {
-                let node = Literal::from(num.clone()).into();
+                let node = Literal::new(num.clone(), tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::RegularExpressionLiteral(body, flags) => {
                 let node = AstRegExp::new(*body, *flags).into();

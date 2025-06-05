@@ -16,7 +16,10 @@ use core::ops::ControlFlow;
 pub use object::{ObjectLiteral, ObjectMethodDefinition, PropertyDefinition};
 pub use template::{TemplateElement, TemplateLiteral};
 
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
+};
 use boa_interner::{Interner, Sym, ToInternedString};
 use num_bigint::BigInt;
 
@@ -33,8 +36,114 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Debug, Clone, PartialEq)]
+pub struct Literal {
+    kind: LiteralKind,
+    span: Span,
+}
+
+impl Literal {
+    /// Create a new [`Literal`].
+    #[inline]
+    #[must_use]
+    pub fn new<T: Into<LiteralKind>>(kind: T, span: Span) -> Self {
+        Self {
+            kind: kind.into(),
+            span,
+        }
+    }
+
+    /// Get reference to the [`LiteralKind`] of [`Literal`].
+    #[inline]
+    #[must_use]
+    pub const fn kind(&self) -> &LiteralKind {
+        &self.kind
+    }
+
+    /// Get mutable reference to the [`LiteralKind`] of [`Literal`].
+    #[inline]
+    #[must_use]
+    pub const fn kind_mut(&mut self) -> &mut LiteralKind {
+        &mut self.kind
+    }
+
+    /// Get span of the node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
+    }
+
+    /// Get position of the node.
+    #[inline]
+    #[must_use]
+    pub const fn as_string(&self) -> Option<Sym> {
+        if let LiteralKind::String(sym) = self.kind() {
+            return Some(*sym);
+        }
+        None
+    }
+
+    /// Check if [`Literal`] is a [`LiteralKind::Undefined`].
+    #[inline]
+    #[must_use]
+    pub const fn is_undefined(&self) -> bool {
+        matches!(self.kind(), LiteralKind::Undefined)
+    }
+}
+
+impl From<Literal> for Expression {
+    #[inline]
+    fn from(lit: Literal) -> Self {
+        Self::Literal(lit)
+    }
+}
+
+impl ToInternedString for Literal {
+    #[inline]
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.kind().to_interned_string(interner)
+    }
+}
+
+impl VisitWith for Literal {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let LiteralKind::String(sym) = &self.kind {
+            visitor.visit_sym(sym)
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let LiteralKind::String(sym) = &mut self.kind {
+            visitor.visit_sym_mut(sym)
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+}
+
+/// Literals represent values in ECMAScript.
+///
+/// These are fixed values **not variables** that you literally provide in your script.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum Literal {
+pub enum LiteralKind {
     /// A string literal is zero or more characters enclosed in double (`"`) or single (`'`) quotation marks.
     ///
     /// A string must be delimited by quotation marks of the same type (that is, either both single quotation marks, or both double quotation marks).
@@ -119,7 +228,7 @@ pub enum Literal {
 
 /// Manual implementation, because `Undefined` is never constructed during parsing.
 #[cfg(feature = "arbitrary")]
-impl<'a> arbitrary::Arbitrary<'a> for Literal {
+impl<'a> arbitrary::Arbitrary<'a> for LiteralKind {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let c = <u8 as arbitrary::Arbitrary<'a>>::arbitrary(u)? % 6;
         match c {
@@ -136,56 +245,49 @@ impl<'a> arbitrary::Arbitrary<'a> for Literal {
     }
 }
 
-impl From<Sym> for Literal {
+impl From<Sym> for LiteralKind {
     #[inline]
     fn from(string: Sym) -> Self {
         Self::String(string)
     }
 }
 
-impl From<f64> for Literal {
+impl From<f64> for LiteralKind {
     #[inline]
     fn from(num: f64) -> Self {
         Self::Num(num)
     }
 }
 
-impl From<i32> for Literal {
+impl From<i32> for LiteralKind {
     #[inline]
     fn from(i: i32) -> Self {
         Self::Int(i)
     }
 }
 
-impl From<BigInt> for Literal {
+impl From<BigInt> for LiteralKind {
     #[inline]
     fn from(i: BigInt) -> Self {
         Self::BigInt(Box::new(i))
     }
 }
 
-impl From<Box<BigInt>> for Literal {
+impl From<Box<BigInt>> for LiteralKind {
     #[inline]
     fn from(i: Box<BigInt>) -> Self {
         Self::BigInt(i)
     }
 }
 
-impl From<bool> for Literal {
+impl From<bool> for LiteralKind {
     #[inline]
     fn from(b: bool) -> Self {
         Self::Bool(b)
     }
 }
 
-impl From<Literal> for Expression {
-    #[inline]
-    fn from(lit: Literal) -> Self {
-        Self::Literal(lit)
-    }
-}
-
-impl ToInternedString for Literal {
+impl ToInternedString for LiteralKind {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match *self {
@@ -198,30 +300,6 @@ impl ToInternedString for Literal {
             Self::Bool(v) => v.to_string(),
             Self::Null => "null".to_owned(),
             Self::Undefined => "undefined".to_owned(),
-        }
-    }
-}
-
-impl VisitWith for Literal {
-    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
-    where
-        V: Visitor<'a>,
-    {
-        if let Self::String(sym) = self {
-            visitor.visit_sym(sym)
-        } else {
-            ControlFlow::Continue(())
-        }
-    }
-
-    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
-    where
-        V: VisitorMut<'a>,
-    {
-        if let Self::String(sym) = self {
-            visitor.visit_sym_mut(sym)
-        } else {
-            ControlFlow::Continue(())
         }
     }
 }

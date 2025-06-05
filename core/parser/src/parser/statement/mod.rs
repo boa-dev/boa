@@ -318,11 +318,14 @@ where
                     .parse(cursor, interner)?;
 
             if directive_prologues {
-                match &item {
-                    ast::StatementListItem::Statement(ast::Statement::Expression(
-                        ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
-                    )) if !strict => {
-                        if interner.resolve_expect(*string).join(
+                if let ast::StatementListItem::Statement(ast::Statement::Expression(
+                    ast::Expression::Literal(lit),
+                )) = &item
+                {
+                    if let Some(string) = lit.as_string() {
+                        if strict {
+                            // TODO: should store directives in some place
+                        } else if interner.resolve_expect(string).join(
                             |s| s == "use strict",
                             |g| g == utf16!("use strict"),
                             true,
@@ -337,9 +340,9 @@ where
                             for (position, escape) in std::mem::take(&mut directives_stack) {
                                 if escape.contains(EscapeSequence::LEGACY_OCTAL) {
                                     return Err(Error::general(
-                                        "legacy octal escape sequences are not allowed in strict mode",
-                                        position,
-                                    ));
+                                "legacy octal escape sequences are not allowed in strict mode",
+                                position,
+                            ));
                                 }
 
                                 if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
@@ -350,18 +353,13 @@ where
                                 }
                             }
                         }
-                    }
-                    ast::StatementListItem::Statement(ast::Statement::Expression(
-                        ast::Expression::Literal(ast::expression::literal::Literal::String(
-                            _string,
-                        )),
-                    )) => {
-                        // TODO: should store directives in some place
-                    }
-                    _ => {
+                    } else {
                         directive_prologues = false;
                         directives_stack.clear();
                     }
+                } else {
+                    directive_prologues = false;
+                    directives_stack.clear();
                 }
             }
 

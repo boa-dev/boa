@@ -5,7 +5,7 @@ use boa_ast::{
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
     property::PropertyName,
     statement::{Block, Catch, ErrorHandler, Finally, Try},
-    Statement, StatementListItem,
+    Span, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -39,7 +39,7 @@ fn check_inline_with_var_decl_inside_try() {
                 vec![Statement::Var(VarDeclaration(
                     vec![Variable::from_identifier(
                         interner.get_or_intern_static("x", utf16!("x")).into(),
-                        Some(Literal::from(1).into()),
+                        Some(Literal::new(1, Span::new((1, 15), (1, 16))).into()),
                     )]
                     .try_into()
                     .unwrap(),
@@ -68,7 +68,7 @@ fn check_inline_with_var_decl_inside_catch() {
                 vec![Statement::Var(VarDeclaration(
                     vec![Variable::from_identifier(
                         interner.get_or_intern_static("x", utf16!("x")).into(),
-                        Some(Literal::from(1).into()),
+                        Some(Literal::new(1, Span::new((1, 15), (1, 16))).into()),
                     )]
                     .try_into()
                     .unwrap(),
@@ -83,7 +83,7 @@ fn check_inline_with_var_decl_inside_catch() {
                     vec![Statement::Var(VarDeclaration(
                         vec![Variable::from_identifier(
                             interner.get_or_intern_static("x", utf16!("x")).into(),
-                            Some(Literal::from(1).into()),
+                            Some(Literal::new(1, Span::new((1, 39), (1, 40))).into()),
                         )]
                         .try_into()
                         .unwrap(),
@@ -144,7 +144,7 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
                     VarDeclaration(
                         vec![Variable::from_identifier(
                             interner.get_or_intern_static("x", utf16!("x")).into(),
-                            Some(Literal::from(1).into()),
+                            Some(Literal::new(1, Span::new((1, 26), (1, 27))).into()),
                         )]
                         .try_into()
                         .unwrap(),
@@ -171,7 +171,7 @@ fn check_inline_empty_try_paramless_catch() {
                     vec![Statement::Var(VarDeclaration(
                         vec![Variable::from_identifier(
                             interner.get_or_intern_static("x", utf16!("x")).into(),
-                            Some(Literal::from(1).into()),
+                            Some(Literal::new(1, Span::new((1, 24), (1, 25))).into()),
                         )]
                         .try_into()
                         .unwrap(),
@@ -264,8 +264,11 @@ fn check_catch_with_var_redeclaration() {
                         vec![Variable::from_identifier(
                             interner.get_or_intern_static("e", utf16!("e")).into(),
                             Some(
-                                Literal::from(interner.get_or_intern_static("oh", utf16!("oh")))
-                                    .into(),
+                                Literal::new(
+                                    interner.get_or_intern_static("oh", utf16!("oh")),
+                                    Span::new((1, 27), (1, 31)),
+                                )
+                                .into(),
                             ),
                         )]
                         .try_into()

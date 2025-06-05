@@ -3,10 +3,11 @@ use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
     expression::{access::SimplePropertyAccess, literal::Literal, Call, Identifier},
     statement::{Break, Case, Switch},
-    Declaration, Expression, Statement,
+    Declaration, Expression, Span, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 
@@ -111,7 +112,7 @@ fn check_switch_seperated_defaults() {
 /// Example of JS code <https://jsfiddle.net/zq6jx47h/4/>.
 #[test]
 fn check_separated_switch() {
-    let s = r#"
+    let s = indoc! {r#"
         let a = 10;
 
         switch
@@ -147,7 +148,7 @@ fn check_separated_switch() {
         console.log("Default")
 
         }
-        "#;
+    "#};
 
     let interner = &mut Interner::default();
     let log = interner.get_or_intern_static("log", utf16!("log"));
@@ -160,7 +161,7 @@ fn check_separated_switch() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     a.into(),
-                    Some(Literal::from(10).into()),
+                    Some(Literal::new(10, Span::new((1, 9), (1, 11))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -170,7 +171,7 @@ fn check_separated_switch() {
                 Identifier::new(a).into(),
                 vec![
                     Case::new(
-                        Literal::from(5).into(),
+                        Literal::new(5, Span::new((11, 1), (11, 2))).into(),
                         (
                             vec![
                                 Statement::Expression(Expression::from(Call::new(
@@ -181,7 +182,8 @@ fn check_separated_switch() {
                                         )
                                         .into(),
                                     ),
-                                    vec![Literal::from(5).into()].into(),
+                                    vec![Literal::new(5, Span::new((15, 13), (15, 14))).into()]
+                                        .into(),
                                 )))
                                 .into(),
                                 Statement::Break(Break::new(None)).into(),
@@ -191,7 +193,7 @@ fn check_separated_switch() {
                             .into(),
                     ),
                     Case::new(
-                        Literal::from(10).into(),
+                        Literal::new(10, Span::new((21, 1), (21, 3))).into(),
                         (
                             vec![
                                 Statement::Expression(Expression::from(Call::new(
@@ -202,7 +204,8 @@ fn check_separated_switch() {
                                         )
                                         .into(),
                                     ),
-                                    vec![Literal::from(10).into()].into(),
+                                    vec![Literal::new(10, Span::new((25, 13), (25, 15))).into()]
+                                        .into(),
                                 )))
                                 .into(),
                                 Statement::Break(Break::new(None)).into(),
@@ -218,8 +221,9 @@ fn check_separated_switch() {
                                     SimplePropertyAccess::new(Identifier::new(console).into(), log)
                                         .into(),
                                 ),
-                                vec![Literal::from(
+                                vec![Literal::new(
                                     interner.get_or_intern_static("Default", utf16!("Default")),
+                                    Span::new((33, 13), (33, 22)),
                                 )
                                 .into()]
                                 .into(),

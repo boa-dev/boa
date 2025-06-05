@@ -11,7 +11,7 @@
 
 use self::{
     access::PropertyAccess,
-    literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
+    literal::{ArrayLiteral, ObjectLiteral, TemplateLiteral},
     operator::{Assign, Binary, BinaryInPrivate, Conditional, Unary, Update},
 };
 use super::{
@@ -24,6 +24,7 @@ use super::{
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
+use literal::Literal;
 
 mod r#await;
 mod call;
@@ -36,7 +37,10 @@ mod spread;
 mod tagged_template;
 mod r#yield;
 
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
+};
 pub use call::{Call, ImportCall, SuperCall};
 pub use identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
 pub use new::New;
@@ -276,6 +280,53 @@ impl Expression {
             expression = p.expression();
         }
         expression
+    }
+
+    /// Get [`Span`] of the [`Expression`].
+    #[inline]
+    #[must_use]
+    // TODO: Remove lint allows after implemenation is complete.
+    #[allow(clippy::match_same_arms)]
+    #[allow(unused_variables)]
+    pub fn span(&self) -> Span {
+        let span = Span::new((1, 1), (1, 1));
+        match self {
+            Self::This => span,
+            Self::Identifier(id) => span,
+            Self::Literal(lit) => lit.span(),
+            Self::ArrayLiteral(arr) => span,
+            Self::ObjectLiteral(o) => span,
+            Self::Spread(sp) => span,
+            Self::FunctionExpression(f) => span,
+            Self::AsyncArrowFunction(f) => span,
+            Self::ArrowFunction(arrf) => span,
+            Self::ClassExpression(cl) => span,
+            Self::GeneratorExpression(gen) => span,
+            Self::AsyncFunctionExpression(asf) => span,
+            Self::AsyncGeneratorExpression(asgen) => span,
+            Self::TemplateLiteral(tem) => span,
+            Self::PropertyAccess(prop) => span,
+            Self::New(new) => span,
+            Self::Call(call) => call.span(),
+            Self::SuperCall(supc) => span,
+            Self::ImportCall(impc) => span,
+            Self::Optional(opt) => span,
+            Self::NewTarget => span,
+            Self::ImportMeta => span,
+            Self::TaggedTemplate(tag) => span,
+            Self::Assign(assign) => span,
+            Self::Unary(unary) => span,
+            Self::Update(update) => span,
+            Self::Binary(bin) => span,
+            Self::BinaryInPrivate(bin) => span,
+            Self::Conditional(cond) => span,
+            Self::Await(aw) => span,
+            Self::Yield(yi) => span,
+            Self::Parenthesized(expr) => span,
+            Self::RegExpLiteral(regexp) => span,
+            Self::FormalParameterList(_) => span,
+            Self::Debugger => span,
+        }
     }
 }
 
