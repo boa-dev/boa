@@ -13,6 +13,7 @@ use boa_ast::{
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_assign(&mut self, assign: &Assign, dst: &Register) {
+        self.push_source_position(assign.span().start());
         if assign.op() == AssignOp::Assign {
             match Access::from_assign_target(assign.lhs()) {
                 Ok(access) => {
@@ -288,5 +289,6 @@ impl ByteCompiler<'_> {
                 self.patch_jump(skip);
             }
         }
+        self.pop_source_position();
     }
 }

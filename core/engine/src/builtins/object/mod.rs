@@ -13,9 +13,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
-use super::{
-    error::Error, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
-};
+use super::error::Error;
+use super::{Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp};
 use crate::value::JsVariant;
 use crate::{
     builtins::{iterable::IteratorHint, map, BuiltInObject},

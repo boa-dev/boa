@@ -1,4 +1,5 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
+use crate::js_string;
 use crate::{
     builtins::function::ConstructorKind, native_function::NativeFunctionObject, object::JsObject,
     value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
@@ -129,6 +130,7 @@ impl JsFunction {
                 None,
                 NativeFunctionObject {
                     f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+                    name: js_string!(),
                     constructor: constructor.then_some(ConstructorKind::Base),
                     realm: None,
                 },

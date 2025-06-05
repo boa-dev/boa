@@ -8,12 +8,14 @@ impl ByteCompiler<'_> {
     pub(crate) fn compile_unary(&mut self, unary: &Unary, dst: &Register) {
         match unary.op() {
             UnaryOp::Delete => {
+                self.push_source_position(unary.span().start());
                 if let Some(access) = Access::from_expression(unary.target()) {
                     self.access_delete(access, dst);
                 } else {
                     self.compile_expr(unary.target(), dst);
                     self.bytecode.emit_push_true(dst.variable());
                 }
+                self.pop_source_position();
             }
             UnaryOp::Minus => {
                 self.compile_expr(unary.target(), dst);
