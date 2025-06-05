@@ -18,9 +18,9 @@ struct Animal {
 }
 
 #[boa_class]
-#[boa(debug)]
 impl Animal {
     #[boa(constructor)]
+    #[allow(clippy::needless_pass_by_value)]
     fn new(name: String, age: i32) -> Self {
         let ty = match name.as_str() {
             "cat" => AnimalType::Cat,
