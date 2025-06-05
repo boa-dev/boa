@@ -169,9 +169,10 @@ impl JsValue {
         self.as_object().and_then(|o| o.downcast_ref::<T>())
     }
 
-    /// Returns a downcasted mut ref object if the type matches. This is a shorthand
-    /// for `value.as_object().and_then(|o| o.downcast_ref<T>())`, which at time
-    /// can be contriving.
+    /// Returns a downcasted mut ref object if the type matches.
+    ///
+    /// This is a shorthand for `value.as_object().and_then(|o| o.downcast_ref<T>())`,
+    /// which at time can be contriving.
     #[inline]
     #[must_use]
     pub fn as_downcast_mut<T: NativeObject>(
