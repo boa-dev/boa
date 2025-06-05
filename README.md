@@ -10,7 +10,7 @@
     </a>
 </p>
 
-`Boa` is an experimental JavaScript lexer, parser and interpreter written in Rust 🦀, it has support for **more** than `90%` of the latest ECMAScript specification. We continuously improve the conformance to keep up with the ever-evolving standard.
+Boa is an experimental JavaScript lexer, parser and interpreter written in Rust 🦀, it has support for **more** than 90% of the latest ECMAScript specification. We continuously improve the conformance to keep up with the ever-evolving standard.
 
 [![Build Status][build_badge]][build_link]
 [![codecov](https://codecov.io/gh/boa-dev/boa/branch/main/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
@@ -51,9 +51,7 @@ Boa currently publishes and actively maintains the following crates:
 
 ## 🚀 Example
 
-To use `Boa` simply follow the below.
-
-Add the below dependency to your `Cargo.toml`:
+To start using Boa simply add the `boa_engine` crate to your `Cargo.toml`:
 
 ```toml
 [dependencies]
@@ -88,18 +86,18 @@ fn main() -> JsResult<()> {
 
 Now, all that's left to do is `cargo run`.
 
-Congrats! You've executed your first `JavaScript` using `Boa`!
+Congrats! You've executed your first JavaScript code using Boa!
 
 ## 🔎 Documentation
 
-For more information on `Boa`'s API. Feel free to check out our documentation.
+For more information on Boa's API, feel free to check out our documentation.
 
 [**API Documentation**](https://docs.rs/boa_engine/latest/boa_engine/)
 
 ## 🏅 Conformance
 
-To know how much of the _ECMAScript_ specification does Boa cover, you can check out results
-running the _ECMASCript Test262_ test suite [here](https://boajs.dev/conformance).
+To know more details about Boa's conformance surrounding the _ECMAScript_ specification,
+you can check out our _ECMASCript Test262_ test suite results [here](https://boajs.dev/conformance).
 
 ## 🪚 Contributing
 
@@ -174,7 +172,7 @@ See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 The current benchmarks are taken from v8's benchmark, you can find [here][boa-benchmarks], You can also view the results of nightly benchmark runs comparing Boa with other JavaScript engines [here](https://boajs.dev/benchmarks).
 
-If you wish to run the benchmarks locally, then run boa in release using the `combined.js` which contains all the sub-benchmarks in the `bench-v8` directory.
+If you wish to run the benchmarks locally, then run Boa in release using the `combined.js` script which contains all the sub-benchmarks in the `bench-v8` directory.
 
 ```bash
 cargo run --release -p boa_cli -- bench-v8/combined.js
