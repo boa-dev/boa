@@ -18,7 +18,7 @@ fn simple() {
         r#"5?.name"#,
         vec![Statement::Expression(
             Optional::new(
-                Literal::Int(5).into(),
+                Box::new(Literal::Int(5).into()),
                 vec![OptionalOperation::new(
                     OptionalOperationKind::SimplePropertyAccess {
                         field: PropertyAccessField::Const(

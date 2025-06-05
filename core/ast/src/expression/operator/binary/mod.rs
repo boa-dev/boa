@@ -50,6 +50,24 @@ impl Binary {
         }
     }
 
+    /// Creates a `BinOp` AST Expression with boxed values.
+    #[inline]
+    #[must_use]
+    pub fn new_boxed(op: BinaryOp, lhs: Box<Expression>, rhs: Box<Expression>) -> Self {
+        Self { op, lhs, rhs }
+    }
+
+    /// Creates an `Box<Expression::Binary>` from boxed values.
+    // Non-inline to reduce stack alloc size: most likely, it will be inlined in release anyway.
+    #[must_use]
+    pub fn new_boxed_expr(
+        op: BinaryOp,
+        lhs: Box<Expression>,
+        rhs: Box<Expression>,
+    ) -> Box<Expression> {
+        Box::new(Self::new_boxed(op, lhs, rhs).into())
+    }
+
     /// Gets the binary operation of the Expression.
     #[inline]
     #[must_use]
@@ -105,6 +123,13 @@ impl From<Binary> for Expression {
     }
 }
 
+impl From<Binary> for Box<Expression> {
+    #[inline]
+    fn from(op: Binary) -> Self {
+        Box::new(Expression::Binary(op))
+    }
+}
+
 impl VisitWith for Binary {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
@@ -147,6 +172,13 @@ impl BinaryInPrivate {
         }
     }
 
+    /// Creates a `BinaryInPrivate` AST Expression.
+    #[inline]
+    #[must_use]
+    pub fn new_boxed(lhs: PrivateName, rhs: Box<Expression>) -> Self {
+        Self { lhs, rhs }
+    }
+
     /// Gets the left hand side of the binary operation.
     #[inline]
     #[must_use]
@@ -177,6 +209,12 @@ impl From<BinaryInPrivate> for Expression {
     #[inline]
     fn from(op: BinaryInPrivate) -> Self {
         Self::BinaryInPrivate(op)
+    }
+}
+
+impl From<BinaryInPrivate> for Box<Expression> {
+    fn from(op: BinaryInPrivate) -> Self {
+        Box::new(Expression::BinaryInPrivate(op))
     }
 }
 
