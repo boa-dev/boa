@@ -148,13 +148,12 @@ impl Function {
 
     /// Serializes an argument of form `pat: Type` into its declaration and call.
     #[allow(clippy::unnecessary_wraps)]
-    fn arg_from_pat_type(pat_type: &mut PatType) -> SpannedResult<(TokenStream2, TokenStream2)> {
-        let path = pat_type.pat.as_ref();
+    fn arg_from_pat_type(
+        pat_type: &mut PatType,
+        i: usize,
+    ) -> SpannedResult<(TokenStream2, TokenStream2)> {
         let ty = pat_type.ty.as_ref();
-        let ident = Ident::new(
-            &format!("boa_{}", path.to_token_stream()),
-            Span::call_site(),
-        );
+        let ident = Ident::new(&format!("boa_arg_{i}"), Span::call_site());
 
         // Find out if it's a boa context.
         let is_context = match ty {
@@ -203,12 +202,13 @@ impl Function {
             .sig
             .inputs
             .iter_mut()
-            .map(|a| match a {
+            .enumerate()
+            .map(|(i, a)| match a {
                 FnArg::Receiver(receiver) => {
                     has_receiver += 1;
                     Self::arg_self_from_receiver(receiver, class_ty)
                 }
-                FnArg::Typed(ty) => Self::arg_from_pat_type(ty),
+                FnArg::Typed(ty) => Self::arg_from_pat_type(ty, i),
             })
             .collect::<SpannedResult<_>>()?;
 
@@ -258,9 +258,10 @@ impl Function {
             .sig
             .inputs
             .iter_mut()
-            .map(|a| match a {
+            .enumerate()
+            .map(|(i, a)| match a {
                 FnArg::Receiver(receiver) => error(receiver, "Constructors cannot use 'self'"),
-                FnArg::Typed(ty) => Self::arg_from_pat_type(ty),
+                FnArg::Typed(ty) => Self::arg_from_pat_type(ty, i),
             })
             .collect::<SpannedResult<_>>()?;
 
