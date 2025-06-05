@@ -156,13 +156,36 @@ impl Function {
             Span::call_site(),
         );
 
-        Ok((
-            quote! {
-                let (#ident, rest): (#ty, &[boa_engine::JsValue]) =
-                    boa_engine::interop::TryFromJsArgument::try_from_js_argument( this, rest, context )?;
+        // Find out if it's a boa context.
+        let is_context = match ty {
+            Type::Reference(syn::TypeReference {
+                elem,
+                mutability: Some(_),
+                ..
+            }) => match elem.as_ref() {
+                Type::Path(syn::TypePath { qself: _, path }) => {
+                    if let Some(maybe_ctx) = path.segments.last() {
+                        maybe_ctx.ident == "Context"
+                    } else {
+                        false
+                    }
+                }
+                _ => take_path_attr(&mut pat_type.attrs, "context"),
             },
-            quote!( #ident ),
-        ))
+            _ => false,
+        };
+
+        if is_context {
+            Ok((quote! {}, quote! { context }))
+        } else {
+            Ok((
+                quote! {
+                    let (#ident, rest): (#ty, &[boa_engine::JsValue]) =
+                        boa_engine::interop::TryFromJsArgument::try_from_js_argument( this, rest, context )?;
+                },
+                quote! { #ident },
+            ))
+        }
     }
 
     /// Create a `Function` from its name,

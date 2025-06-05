@@ -1,7 +1,7 @@
 //! Test for the class proc-macro.
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{js_str, js_string, Context, JsString, Source};
+use boa_engine::{js_str, js_string, Context, JsObject, JsString, JsValue, Source};
 use boa_macros::{boa_class, Finalize, JsData, Trace};
 
 #[derive(Clone, Trace, Finalize, JsData)]
@@ -38,8 +38,10 @@ impl Animal {
     // Force this being a method (instead of a static function) by declaring it
     // as a method.
     #[boa(method)]
-    fn method() -> i32 {
-        43
+    fn method(context: &mut Context) -> JsValue {
+        let obj = JsObject::with_null_proto();
+        obj.set(js_string!("key"), 43, false, context).unwrap();
+        obj.into()
     }
 
     #[boa(getter)]
@@ -75,14 +77,14 @@ fn boa_class() {
             if (pet.age !== 3) {
                 throw "age should be 3";
             }
-            
+
             let v = Animal.static_method();
             if (v !== 42) {
-                throw "Static method returned " + v;
+                throw "Static method returned " + JSON.stringify(v);
             }
             v = Animal.method();
-            if (v !== 43) {
-                throw "Method returned " + v;
+            if (v.key !== 43) {
+                throw "Method returned " + JSON.stringify(v);
             }
 
             pet.age = 4;
