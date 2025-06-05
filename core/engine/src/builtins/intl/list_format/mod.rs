@@ -3,11 +3,11 @@ use std::fmt::Write;
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use icu_list::{
-    provider::AndListV2Marker, ListFormatter, ListFormatterOptions, ListFormatterPreferences,
-    ListLength,
+    options::{ListFormatterOptions, ListLength},
+    provider::ListAndV1,
+    ListFormatter, ListFormatterPreferences,
 };
 use icu_locale::Locale;
-use icu_provider::any::AsDynamicDataProviderAnyMarkerWrap;
 
 use crate::{
     builtins::{
@@ -15,10 +15,7 @@ use crate::{
         options::{get_option, get_options_object},
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
-    context::{
-        icu::ErasedProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
@@ -48,7 +45,7 @@ pub(crate) struct ListFormat {
 }
 
 impl Service for ListFormat {
-    type LangMarker = AndListV2Marker;
+    type LangMarker = ListAndV1;
 
     type LocaleOptions = ();
 }
@@ -153,25 +150,22 @@ impl BuiltInConstructor for ListFormat {
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[<style>]].
         let Ok(prefs) = ListFormatterPreferences::try_from(&locale);
         let options = ListFormatterOptions::default().with_length(style);
-        let formatter = match (typ, context.intl_provider().erased_provider()) {
-            (ListFormatType::Conjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_and_with_any_provider(&a.as_any_provider(), prefs, options)
-            }
-            (ListFormatType::Disjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_or_with_any_provider(&a.as_any_provider(), prefs, options)
-            }
-            (ListFormatType::Unit, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_unit_with_any_provider(&a.as_any_provider(), prefs, options)
-            }
-            (ListFormatType::Conjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_and_with_buffer_provider(b, prefs, options)
-            }
-            (ListFormatType::Disjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_or_with_buffer_provider(b, prefs, options)
-            }
-            (ListFormatType::Unit, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_unit_with_buffer_provider(b, prefs, options)
-            }
+        let formatter = match typ {
+            ListFormatType::Conjunction => ListFormatter::try_new_and_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
+            ListFormatType::Disjunction => ListFormatter::try_new_or_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
+            ListFormatType::Unit => ListFormatter::try_new_unit_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 

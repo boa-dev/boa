@@ -13,14 +13,10 @@ use crate::{
     Context, JsNativeError, JsResult, JsValue,
 };
 
-use icu_locale::{
-    extensions::unicode::{Key, Value},
-    subtags::Variants,
-    LanguageIdentifier, Locale, LocaleCanonicalizer,
-};
+use icu_locale::{LanguageIdentifier, Locale, LocaleCanonicalizer};
 use icu_provider::{
-    DataIdentifierBorrowed, DataLocale, DataMarker, DataProvider, DataRequest, DataRequestMetadata,
-    DryDataProvider,
+    DataIdentifierBorrowed, DataLocale, DataMarker, DataMarkerAttributes, DataRequest,
+    DataRequestMetadata, DryDataProvider,
 };
 use indexmap::IndexSet;
 
@@ -41,7 +37,7 @@ pub(crate) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
         .tap_some_mut(|loc| {
             canonicalizer.canonicalize(loc);
         })
-        .unwrap_or_default()
+        .unwrap_or(Locale::UNKNOWN)
 }
 
 /// Gets the `Locale` struct from a `JsValue`.
@@ -469,29 +465,28 @@ where
 /// Calling this function with a singleton `DataMarker` will always return `None`.
 pub(in crate::builtins::intl) fn validate_extension<M: DataMarker>(
     language: LanguageIdentifier,
-    key: Key,
-    value: &Value,
-    provider: &impl DataProvider<M>,
+    attributes: &DataMarkerAttributes,
+    provider: &impl DryDataProvider<M>,
 ) -> bool {
-    // let mut locale = DataLocale::from(language);
-    // locale.set_unicode_ext(key, value.clone());
-    // let request = DataRequest {
-    //     locale: &locale,
-    //     metadata: DataRequestMetadata::default(),
-    // };
+    let locale = DataLocale::from(language);
+    let req = DataRequest {
+        id: DataIdentifierBorrowed::for_marker_attributes_and_locale(attributes, &locale),
+        metadata: {
+            let mut metadata = DataRequestMetadata::default();
+            metadata.silent = true;
+            metadata
+        },
+    };
 
-    // DataProvider::load(provider, request)
-    //     .ok()
-    //     .map(|res| res.metadata.locale.unwrap_or_else(|| locale.clone()))
-    //     .filter(|loc| loc == &locale)
-    //     .is_some()
-    true
+    provider
+        .dry_load(req)
+        .is_ok_and(|md| md.locale.is_none_or(|loc| loc == locale))
 }
 
 #[cfg(all(test, feature = "intl_bundled"))]
 mod tests {
     use icu_locale::{langid, locale, Locale};
-    use icu_plurals::provider::CardinalV1Marker;
+    use icu_plurals::provider::PluralsCardinalV1;
 
     use crate::{
         builtins::intl::locale::utils::{
@@ -505,17 +500,17 @@ mod tests {
         let icu = &IntlProvider::try_new_buffer(boa_icu_provider::buffer());
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<CardinalV1Marker>([locale!("en")], icu),
+            lookup_matching_locale_by_best_fit::<PluralsCardinalV1>([locale!("en")], icu),
             Some(locale!("en"))
         );
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<CardinalV1Marker>([locale!("es-ES")], icu),
+            lookup_matching_locale_by_best_fit::<PluralsCardinalV1>([locale!("es-ES")], icu),
             Some(locale!("es"))
         );
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<CardinalV1Marker>([locale!("kr")], icu),
+            lookup_matching_locale_by_best_fit::<PluralsCardinalV1>([locale!("kr")], icu),
             None
         );
     }
@@ -528,7 +523,8 @@ mod tests {
         let requested: Locale = "fr-FR-u-hc-h12".parse().unwrap();
 
         let result =
-            lookup_matching_locale_by_prefix::<CardinalV1Marker>([requested.clone()], icu).unwrap();
+            lookup_matching_locale_by_prefix::<PluralsCardinalV1>([requested.clone()], icu)
+                .unwrap();
         assert_eq!(result.id, langid!("fr"));
         assert_eq!(result.extensions, requested.extensions);
 
@@ -539,7 +535,7 @@ mod tests {
         let uz = locale!("uz-Cyrl");
         let requested = vec![kr, gr, es.clone(), uz];
 
-        let res = lookup_matching_locale_by_best_fit::<CardinalV1Marker>(requested, icu).unwrap();
+        let res = lookup_matching_locale_by_best_fit::<PluralsCardinalV1>(requested, icu).unwrap();
         assert_eq!(res.id, langid!("es"));
         assert_eq!(res.extensions, es.extensions);
     }

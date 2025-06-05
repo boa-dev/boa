@@ -11,6 +11,7 @@ use icu_locale::{
     extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
     Locale,
 };
+use icu_provider::DataMarkerAttributes;
 
 use crate::{
     builtins::{
@@ -86,7 +87,10 @@ impl Service for Collator {
             .collation
             .take()
             .filter(|co| {
-                validate_extension::<Self::LangMarker>(locale.id.clone(), key!("co"), co, provider)
+                CollationType::try_from(co).is_ok_and(|co| {
+                    let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
+                    validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
+                })
             })
             .or_else(|| {
                 locale
@@ -96,12 +100,14 @@ impl Service for Collator {
                     .get(&key!("co"))
                     .cloned()
                     .filter(|co| {
-                        validate_extension::<Self::LangMarker>(
-                            locale.id.clone(),
-                            key!("co"),
-                            co,
-                            provider,
-                        )
+                        CollationType::try_from(co).is_ok_and(|co| {
+                            let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
+                            validate_extension::<Self::LangMarker>(
+                                locale.id.clone(),
+                                attr,
+                                provider,
+                            )
+                        })
                     })
             })
             .filter(|co| co != &value!("search"));
@@ -279,13 +285,13 @@ impl BuiltInConstructor for Collator {
 
         // 18. Let relevantExtensionKeys be %Collator%.[[RelevantExtensionKeys]].
         // 19. Let r be ResolveLocale(%Collator%.[[AvailableLocales]], requestedLocales, opt, relevantExtensionKeys, localeData).
-        let mut locale = resolve_locale::<Self>(
+        let locale = resolve_locale::<Self>(
             requested_locales,
             &mut intl_options,
             context.intl_provider(),
         )?;
 
-        let locale_prefs = CollatorPreferences::from(&locale);
+        let mut locale_prefs = CollatorPreferences::from(&locale);
 
         // 20. Set collator.[[Locale]] to r.[[locale]].
 
@@ -344,11 +350,11 @@ impl BuiltInConstructor for Collator {
         if usage == Usage::Search {
             prefs.collation_type = Some(CollationType::Search)
         }
-        prefs.extend(locale_prefs);
+        locale_prefs.extend(prefs);
 
         let collator = icu_collator::Collator::try_new_with_buffer_provider(
             context.intl_provider().erased_provider(),
-            prefs,
+            locale_prefs,
             options,
         )
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;

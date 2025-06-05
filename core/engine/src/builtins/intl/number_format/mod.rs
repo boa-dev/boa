@@ -5,6 +5,7 @@ use boa_profiler::Profiler;
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
     options::{DecimalFormatterOptions, GroupingStrategy},
+    preferences::NumberingSystem,
     provider::DecimalSymbolsV1,
     DecimalFormatter, FormattedDecimal,
 };
@@ -14,6 +15,7 @@ use icu_locale::{
     extensions::unicode::{key, Value},
     Locale,
 };
+use icu_provider::DataMarkerAttributes;
 use num_bigint::BigInt;
 use num_traits::Num;
 pub(crate) use options::*;
@@ -99,7 +101,10 @@ impl Service for NumberFormat {
             .numbering_system
             .take()
             .filter(|nu| {
-                validate_extension::<Self::LangMarker>(locale.id.clone(), key!("nu"), nu, provider)
+                NumberingSystem::try_from(nu.clone()).is_ok_and(|nu| {
+                    let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
+                    validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
+                })
             })
             .or_else(|| {
                 locale
@@ -109,12 +114,14 @@ impl Service for NumberFormat {
                     .get(&key!("nu"))
                     .cloned()
                     .filter(|nu| {
-                        validate_extension::<Self::LangMarker>(
-                            locale.id.clone(),
-                            key!("nu"),
-                            nu,
-                            provider,
-                        )
+                        NumberingSystem::try_from(nu.clone()).is_ok_and(|nu| {
+                            let attr = DataMarkerAttributes::from_str_or_panic(nu.as_str());
+                            validate_extension::<Self::LangMarker>(
+                                locale.id.clone(),
+                                attr,
+                                provider,
+                            )
+                        })
                     })
             });
 

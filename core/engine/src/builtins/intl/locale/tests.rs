@@ -3,7 +3,7 @@ use icu_locale::{
     extensions_unicode_key as key, extensions_unicode_value as value, locale,
     preferences::extensions::unicode::keywords::HourCycle, Locale,
 };
-use icu_plurals::provider::CardinalV1Marker;
+use icu_plurals::provider::PluralsCardinalV1;
 use icu_provider::{
     DataIdentifierBorrowed, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
 };
@@ -25,7 +25,7 @@ struct TestOptions {
 struct TestService;
 
 impl Service for TestService {
-    type LangMarker = CardinalV1Marker;
+    type LangMarker = PluralsCardinalV1;
 
     type LocaleOptions = TestOptions;
 
@@ -49,7 +49,7 @@ impl Service for TestService {
                 .preferred_hour_cycle;
             match preferred {
                 CoarseHourCycle::H11H12 => HourCycle::H11,
-                CoarseHourCycle::H23H24 => HourCycle::H23,
+                CoarseHourCycle::H23 => HourCycle::H23,
             }
         });
         locale
