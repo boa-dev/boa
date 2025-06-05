@@ -8,6 +8,7 @@ use crate::{
     realm::Realm,
     Context, JsString, JsValue,
 };
+use boa_ast::Position;
 use boa_gc::{custom_trace, Finalize, Trace};
 use std::{borrow::Cow, error, fmt};
 use thiserror::Error;
@@ -191,6 +192,8 @@ macro_rules! js_error {
 #[boa_gc(unsafe_no_drop)]
 pub struct JsError {
     inner: Repr,
+    #[unsafe_ignore_trace]
+    position: Option<Position>,
 }
 
 /// Internal representation of a [`JsError`].
@@ -281,6 +284,7 @@ impl JsError {
     pub const fn from_native(err: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(err),
+            position: None,
         }
     }
 
@@ -321,6 +325,7 @@ impl JsError {
     pub const fn from_opaque(value: JsValue) -> Self {
         Self {
             inner: Repr::Opaque(value),
+            position: None,
         }
     }
 
@@ -621,6 +626,17 @@ impl JsError {
     pub(crate) fn is_catchable(&self) -> bool {
         self.as_native().is_none_or(JsNativeError::is_catchable)
     }
+
+    /// Get the position of the [`JsError`] in the source code.
+    #[must_use]
+    pub fn position(&self) -> Option<Position> {
+        self.position
+    }
+
+    /// Set the position of the [`JsError`] in the source code.
+    pub fn set_position(&mut self, position: Option<Position>) {
+        self.position = position;
+    }
 }
 
 impl From<boa_parser::Error> for JsError {
@@ -633,6 +649,7 @@ impl From<JsNativeError> for JsError {
     fn from(error: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(error),
+            position: None,
         }
     }
 }
