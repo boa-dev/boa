@@ -170,7 +170,7 @@ See [Milestones](https://github.com/boa-dev/boa/milestones).
 
 ## 📊 Benchmarks
 
-The current benchmarks are taken from v8's benchmark, you can find [here][boa-benchmarks], You can also view the results of nightly benchmark runs comparing Boa with other JavaScript engines [here](https://boajs.dev/benchmarks).
+The current benchmarks are taken from v8's benchmark that you can find [here][boa-benchmarks]. You can also view the results of nightly benchmark runs comparing Boa with other JavaScript engines [here](https://boajs.dev/benchmarks).
 
 If you wish to run the benchmarks locally, then run Boa in release using the `combined.js` script which contains all the sub-benchmarks in the `bench-v8` directory.
 
