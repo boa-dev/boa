@@ -41,7 +41,7 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 /// 1. `fn some_method(&self, ...) -> ... {}` will be added as class methods with
 ///    the name `some_method`, borrowing the object for the ref. This is dangerous
 ///    if the function execute/eval JavaScript back (potentially leading to a
-///    BorrowError).
+///    `BorrowError`).
 /// 2. `fn some_method(&mut self, ...) -> ... {}` will be added as class methods,
 ///    similar to the above but borrowing as mutable at runtime.
 /// 3. `fn some_method(...) -> ... {}` (no self mention) will be added as a

@@ -1,7 +1,7 @@
 //! Test for the class proc-macro.
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{js_str, js_string, Context, JsObject, JsString, JsValue, Source};
+use boa_engine::{js_string, Context, JsObject, JsString, Source};
 use boa_macros::{boa_class, Finalize, JsData, Trace};
 
 #[derive(Clone, Trace, Finalize, JsData)]
@@ -39,10 +39,11 @@ impl Animal {
     // Force this being a method (instead of a static function) by declaring it
     // as a method.
     #[boa(method)]
-    fn method(context: &mut Context) -> JsValue {
+    #[boa(length = 11)]
+    fn method(context: &mut Context) -> JsObject {
         let obj = JsObject::with_null_proto();
         obj.set(js_string!("key"), 43, false, context).unwrap();
-        obj.into()
+        obj
     }
 
     #[boa(getter)]
@@ -51,6 +52,7 @@ impl Animal {
     }
 
     #[boa(setter)]
+    #[boa(method)]
     #[boa(name = "age")]
     fn set_age(&mut self, age: i32) {
         self.age = age;
@@ -65,37 +67,46 @@ impl Animal {
     }
 }
 
+const ASSERT_DECL: &str = r"
+    function assertEq(lhs, rhs, message) {
+      if (lhs !== rhs) {
+        throw `AssertionError: ${message ? message + ',' : ''} expected ${JSON.stringify(rhs)}, actual ${JSON.stringify(lhs)}`;
+      }
+    }
+";
+
 #[test]
 fn boa_class() {
     let mut context = Context::default();
 
     context.register_global_class::<Animal>().unwrap();
 
-    let result = context
+    context
+        .eval(Source::from_bytes(ASSERT_DECL))
+        .expect("Unreachable.");
+
+    context
         .eval(Source::from_bytes(
             r#"
             let pet = new Animal("dog", 3);
-            if (pet.age !== 3) {
-                throw "age should be 3";
-            }
+            assertEq(pet.age, 3, "Age should be the age passed to constructor");
 
             let v = Animal.staticMethod();
-            if (v !== 42) {
-                throw "Static method returned " + JSON.stringify(v);
-            }
-            v = Animal.method();
-            if (v.key !== 43) {
-                throw "Method returned " + JSON.stringify(v);
-            }
+            assertEq(v, 42, "Static method");
+
+            v = pet.method();
+            assertEq(v.key, 43, "Method returned");
 
             pet.age = 4;
-            `My pet is ${pet.age} years old. Right, buddy? - ${pet.speak()}!`
+            assertEq(pet.age, 4, "Pet setter");
+
+            pet.setAge(5);
+            assertEq(pet.age, 5, "Pet.setAge");
+
+            assertEq(Animal.prototype.method.length, 11, "Method.length");
+            assertEq(Animal.prototype.speak.length, 0, "speak.length");
+            assertEq(Animal.prototype.setAge.length, 1, "setAge.length");
      "#,
         ))
         .expect("Could not evaluate script");
-
-    assert_eq!(
-        result.as_string().unwrap(),
-        &js_str!("My pet is 4 years old. Right, buddy? - woof!")
-    );
 }

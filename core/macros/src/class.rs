@@ -147,12 +147,13 @@ impl Function {
         Ok((downcast, quote! { self_ }))
     }
 
-    /// Serializes an argument of form `pat: Type` into its declaration and call.
+    /// Serializes an argument of form `pat: Type` into its declaration and call. Also returns
+    /// whether we should increment the length.
     #[allow(clippy::unnecessary_wraps)]
     fn arg_from_pat_type(
         pat_type: &mut PatType,
         i: usize,
-    ) -> SpannedResult<(TokenStream2, TokenStream2)> {
+    ) -> SpannedResult<(bool, TokenStream2, TokenStream2)> {
         let ty = pat_type.ty.as_ref();
         let ident = Ident::new(&format!("boa_arg_{i}"), Span::call_site());
 
@@ -176,9 +177,10 @@ impl Function {
         };
 
         if is_context {
-            Ok((quote! {}, quote! { context }))
+            Ok((true, quote! {}, quote! { context }))
         } else {
             Ok((
+                false,
                 quote! {
                     let (#ident, rest): (#ty, &[boa_engine::JsValue]) =
                         boa_engine::interop::TryFromJsArgument::try_from_js_argument( this, rest, context )?;
@@ -189,7 +191,12 @@ impl Function {
     }
 
     /// Create a `Function` from its name,
-    fn method(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
+    fn method(
+        name: String,
+        has_explicit_method: bool,
+        fn_: &mut ImplItemFn,
+        class_ty: &Type,
+    ) -> SpannedResult<Self> {
         if fn_.sig.asyncness.is_some() {
             error(&fn_.sig.asyncness, "Async methods are not supported.")?;
         }
@@ -198,7 +205,7 @@ impl Function {
             error(&fn_.sig.generics, "Generic methods are not supported.")?;
         }
 
-        let mut has_receiver = false;
+        let mut has_receiver = 0;
         let (args_decl, args_call): (Vec<TokenStream2>, Vec<TokenStream2>) = fn_
             .sig
             .inputs
@@ -206,21 +213,32 @@ impl Function {
             .enumerate()
             .map(|(i, a)| match a {
                 FnArg::Receiver(receiver) => {
-                    has_receiver = true;
+                    has_receiver += 1;
                     Self::arg_self_from_receiver(receiver, class_ty)
                 }
-                FnArg::Typed(ty) => Self::arg_from_pat_type(ty, i),
+                FnArg::Typed(ty) => {
+                    let (incr, decl, call) = Self::arg_from_pat_type(ty, i)?;
+                    if incr {
+                        has_receiver += 1;
+                    }
+                    Ok((decl, call))
+                }
             })
             .collect::<SpannedResult<_>>()?;
 
-        let length = take_length_from_attrs(&mut fn_.attrs)?
-            .unwrap_or(args_decl.len() - usize::from(has_receiver));
+        let length =
+            take_length_from_attrs(&mut fn_.attrs)?.unwrap_or(args_decl.len() - has_receiver);
+
+        eprintln!(
+            "name {name} length {length} args_decl.len() {} has_receiver {has_receiver}",
+            args_decl.len()
+        );
         let fn_name = &fn_.sig.ident;
 
         // A method is static if it has the `#[boa(static)]` attribute, or if it is
         // not a method and doesn't contain `self`.
-        let is_static = take_path_attr(&mut fn_.attrs, "static")
-            || !(take_path_attr(&mut fn_.attrs, "method") || has_receiver);
+        let is_static =
+            take_path_attr(&mut fn_.attrs, "static") || !(has_explicit_method || has_receiver > 0);
 
         Ok(Self {
             length,
@@ -242,11 +260,11 @@ impl Function {
     }
 
     fn getter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
-        Self::method(name, fn_, class_ty)
+        Self::method(name, true, fn_, class_ty)
     }
 
     fn setter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
-        Self::method(name, fn_, class_ty)
+        Self::method(name, true, fn_, class_ty)
     }
 
     fn constructor(fn_: &mut ImplItemFn, _class_ty: &Type) -> SpannedResult<Self> {
@@ -265,7 +283,10 @@ impl Function {
             .enumerate()
             .map(|(i, a)| match a {
                 FnArg::Receiver(receiver) => error(receiver, "Constructors cannot use 'self'"),
-                FnArg::Typed(ty) => Self::arg_from_pat_type(ty, i),
+                FnArg::Typed(ty) => {
+                    let (_, decl, call) = Self::arg_from_pat_type(ty, i)?;
+                    Ok((decl, call))
+                }
             })
             .collect::<SpannedResult<_>>()?;
 
@@ -525,9 +546,9 @@ impl ClassVisitor {
         )
     }
 
-    fn method(&mut self, _span: &impl Spanned, fn_: &mut ImplItemFn) -> SpannedResult<()> {
+    fn method(&mut self, explicit: bool, fn_: &mut ImplItemFn) -> SpannedResult<()> {
         let name = self.name_of(fn_)?;
-        let f = Function::method(name, fn_, &self.type_)?;
+        let f = Function::method(name, explicit, fn_, &self.type_)?;
 
         if f.is_static {
             self.statics.push(f);
@@ -686,7 +707,7 @@ impl VisitMut for ClassVisitor {
         // A function is a method if it has a `#[boa(method)]` attribute or has no
         // method-type related attributes.
         if has_method_attr || !(has_getter_attr || has_ctor_attr || has_setter_attr) {
-            if let Err((span, msg)) = self.method(&item.sig.span(), item) {
+            if let Err((span, msg)) = self.method(has_method_attr, item) {
                 self.error(span, msg);
             }
         }
