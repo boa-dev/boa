@@ -303,7 +303,7 @@ impl Function {
                     } else if t.ident == "JsResult" {
                         quote! { result.into() }
                     } else {
-                        return error(&fn_.sig.output, "Invalid return type.");
+                        return error(&fn_.sig.output, "Invalid return type: constructors should return Self or JsResult<Self>.");
                     }
                 } else {
                     quote! { Ok(result) }
@@ -339,10 +339,10 @@ impl Accessor {
         fn_: &mut ImplItemFn,
         class_ty: &Type,
     ) -> SpannedResult<()> {
-        let getter = Function::getter(name, fn_, class_ty)?;
         if self.getter.is_some() {
-            error(fn_, "Getter for this property already declared.")
+            error(fn_, "Getter for property {name:?} already declared.")
         } else {
+            let getter = Function::getter(name, fn_, class_ty)?;
             self.getter = Some(getter);
             Ok(())
         }
@@ -354,10 +354,13 @@ impl Accessor {
         fn_: &mut ImplItemFn,
         class_ty: &Type,
     ) -> SpannedResult<()> {
-        let setter = Function::setter(name, fn_, class_ty)?;
         if self.setter.is_some() {
-            error(fn_, "Setter for this property already declared.")
+            error(
+                fn_,
+                format!("Setter for property {name:?} already declared."),
+            )
         } else {
+            let setter = Function::setter(name, fn_, class_ty)?;
             self.setter = Some(setter);
             Ok(())
         }
@@ -426,7 +429,9 @@ impl FromStr for RenameScheme {
         } else if s.eq_ignore_ascii_case("camelcase") {
             Ok(Self::CamelCase)
         } else {
-            Err(format!("Invalid rename scheme: {s:?}"))
+            Err(format!(
+                r#"Invalid rename scheme: {s:?}. Accepted values are "none" or "camelCase"."#
+            ))
         }
     }
 }
