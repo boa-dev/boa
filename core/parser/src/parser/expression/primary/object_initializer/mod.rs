@@ -13,7 +13,7 @@ mod tests;
 use crate::{
     lexer::{
         token::{ContainsEscapeSequence, Numeric},
-        Error as LexError, TokenKind,
+        Error as LexError, InputElement, TokenKind,
     },
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
@@ -39,7 +39,7 @@ use boa_ast::{
         bound_names, contains, has_direct_super_new, lexically_declared_names, ContainsSymbol,
     },
     property::{MethodDefinitionKind, PropertyName as PropertyNameNode},
-    Expression, Keyword, Punctuator,
+    Expression, Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -80,14 +80,18 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ObjectLiteral", "Parsing");
+
+        let open_block_token = cursor.expect(Punctuator::OpenBlock, "object parsing", interner)?;
+        cursor.set_goal(InputElement::RegExp);
+
         let mut elements = Vec::new();
 
         let mut has_proto = false;
         let mut duplicate_proto_position = None;
 
-        loop {
-            if cursor.next_if(Punctuator::CloseBlock, interner)?.is_some() {
-                break;
+        let end = loop {
+            if let Some(token) = cursor.next_if(Punctuator::CloseBlock, interner)? {
+                break token.span().end();
             }
 
             let position = cursor.peek(0, interner).or_abrupt()?.span().start();
@@ -108,8 +112,8 @@ where
 
             elements.push(property);
 
-            if cursor.next_if(Punctuator::CloseBlock, interner)?.is_some() {
-                break;
+            if let Some(token) = cursor.next_if(Punctuator::CloseBlock, interner)? {
+                break token.span().end();
             }
 
             if cursor.next_if(Punctuator::Comma, interner)?.is_none() {
@@ -121,7 +125,7 @@ where
                     "object literal",
                 ));
             }
-        }
+        };
 
         if let Some(position) = duplicate_proto_position {
             if !cursor.json_parse()
@@ -136,7 +140,8 @@ where
             }
         }
 
-        Ok(literal::ObjectLiteral::from(elements))
+        let start = open_block_token.span().start();
+        Ok(literal::ObjectLiteral::new(elements, Span::new(start, end)))
     }
 }
 

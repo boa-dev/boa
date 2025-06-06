@@ -509,7 +509,7 @@ fn spread_in_object() {
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
-                Some(ObjectLiteral::from(object_properties).into()),
+                Some(ObjectLiteral::new(object_properties, Span::new((1, 9), (4, 2))).into()),
             )]
             .try_into()
             .unwrap(),

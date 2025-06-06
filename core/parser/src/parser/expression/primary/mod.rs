@@ -183,8 +183,6 @@ where
                     .map(Into::into)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.advance(interner);
-                cursor.set_goal(InputElement::RegExp);
                 ObjectLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
