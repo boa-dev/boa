@@ -4,13 +4,14 @@ use quote::{quote, ToTokens};
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
     Attribute, Expr, ExprLit, FnArg, Ident, ImplItemFn, ItemImpl, Lit, Meta, MetaNameValue,
-    PatType, Path, Receiver, ReturnType, Token, Type,
+    PatType, Receiver, ReturnType, Token, Type,
 };
 
 type SpannedResult<T> = Result<T, (Span2, String)>;
@@ -25,10 +26,10 @@ fn take_path_attr(attrs: &mut Vec<Attribute>, name: &str) -> bool {
     if let Some((i, _)) = attrs
         .iter()
         .enumerate()
-        .filter(|(_, a)| a.meta.path().is_ident("boa"))
+        .filter(|(_, a)| a.path().is_ident("boa"))
         .filter_map(|(i, a)| a.meta.require_list().ok().map(|nv| (i, nv)))
-        .filter_map(|(i, m)| m.parse_args::<Path>().ok().map(|p| (i, p)))
-        .find(|(_, path)| path.is_ident(name))
+        .filter_map(|(i, m)| m.parse_args_with(Ident::parse_any).ok().map(|p| (i, p)))
+        .find(|(_, path)| path == name)
     {
         attrs.remove(i);
         true
@@ -194,6 +195,7 @@ impl Function {
     fn method(
         name: String,
         has_explicit_method: bool,
+        has_explicit_static: bool,
         fn_: &mut ImplItemFn,
         class_ty: &Type,
     ) -> SpannedResult<Self> {
@@ -233,8 +235,7 @@ impl Function {
 
         // A method is static if it has the `#[boa(static)]` attribute, or if it is
         // not a method and doesn't contain `self`.
-        let is_static =
-            take_path_attr(&mut fn_.attrs, "static") || !(has_explicit_method || has_receiver > 0);
+        let is_static = has_explicit_static || !(has_explicit_method || has_receiver > 0);
 
         Ok(Self {
             length,
@@ -256,11 +257,11 @@ impl Function {
     }
 
     fn getter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
-        Self::method(name, true, fn_, class_ty)
+        Self::method(name, false, true, fn_, class_ty)
     }
 
     fn setter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
-        Self::method(name, true, fn_, class_ty)
+        Self::method(name, false, true, fn_, class_ty)
     }
 
     fn constructor(fn_: &mut ImplItemFn, _class_ty: &Type) -> SpannedResult<Self> {
@@ -389,7 +390,7 @@ impl Accessor {
             let body = setter.body.clone();
             quote! {
                 Some(
-                    boa_engine::NativeFunction::from_copy_closure( #body )
+                    boa_engine::NativeFunction::from_fn_ptr( #body )
                         .to_js_function(builder.context().realm())
                 )
             }
@@ -442,6 +443,7 @@ impl RenameScheme {
         enum State {
             First,
             NextOfUpper,
+            NextOfContinuedUpper(char),
             NextOfSepMark,
             Other,
         }
@@ -464,11 +466,24 @@ impl RenameScheme {
                 }
                 (State::First, false, false) => {}
                 (State::NextOfUpper, true, false) => {
-                    result.push(ch.to_ascii_lowercase());
+                    state = State::NextOfContinuedUpper(ch);
                 }
                 (State::NextOfUpper, false, true) => {
                     state = State::First;
                     result.push(ch);
+                }
+                (State::NextOfContinuedUpper(last), true, false) => {
+                    result.push(last.to_ascii_lowercase());
+                    state = State::NextOfContinuedUpper(ch);
+                }
+                (State::NextOfContinuedUpper(last), false, true) => {
+                    result.push(last.to_ascii_uppercase());
+                    state = State::First;
+                    result.push(ch);
+                }
+                (State::NextOfContinuedUpper(last), false, false) => {
+                    result.push(last.to_ascii_lowercase());
+                    state = State::NextOfSepMark;
                 }
                 (State::NextOfSepMark, true, false) => {
                     state = State::NextOfUpper;
@@ -486,6 +501,10 @@ impl RenameScheme {
                 }
                 (_, _, _) => {}
             }
+        }
+
+        if let State::NextOfContinuedUpper(last) = state {
+            result.push(last.to_ascii_lowercase());
         }
 
         result
@@ -547,9 +566,14 @@ impl ClassVisitor {
         )
     }
 
-    fn method(&mut self, explicit: bool, fn_: &mut ImplItemFn) -> SpannedResult<()> {
+    fn method(
+        &mut self,
+        explicit_method: bool,
+        explicit_static: bool,
+        fn_: &mut ImplItemFn,
+    ) -> SpannedResult<()> {
         let name = self.name_of(fn_)?;
-        let f = Function::method(name, explicit, fn_, &self.type_)?;
+        let f = Function::method(name, explicit_method, explicit_static, fn_, &self.type_)?;
 
         if f.is_static {
             self.statics.push(f);
@@ -615,7 +639,7 @@ impl ClassVisitor {
                 builder.method(
                     boa_engine::js_string!( #name_str ),
                     #length,
-                    boa_engine::NativeFunction::from_copy_closure(
+                    boa_engine::NativeFunction::from_fn_ptr(
                         #body
                     )
                 );
@@ -631,7 +655,7 @@ impl ClassVisitor {
                 builder.static_method(
                     boa_engine::js_string!( #name_str ),
                     #length,
-                    boa_engine::NativeFunction::from_copy_closure(
+                    boa_engine::NativeFunction::from_fn_ptr(
                         #body
                     )
                 );
@@ -686,6 +710,7 @@ impl VisitMut for ClassVisitor {
         let has_getter_attr = take_path_attr(&mut item.attrs, "getter");
         let has_setter_attr = take_path_attr(&mut item.attrs, "setter");
         let has_method_attr = take_path_attr(&mut item.attrs, "method");
+        let has_static_attr = take_path_attr(&mut item.attrs, "static");
 
         if has_getter_attr {
             if let Err((span, msg)) = self.getter(item) {
@@ -707,8 +732,11 @@ impl VisitMut for ClassVisitor {
 
         // A function is a method if it has a `#[boa(method)]` attribute or has no
         // method-type related attributes.
-        if has_method_attr || !(has_getter_attr || has_ctor_attr || has_setter_attr) {
-            if let Err((span, msg)) = self.method(has_method_attr, item) {
+        if has_static_attr
+            || has_method_attr
+            || !(has_getter_attr || has_ctor_attr || has_setter_attr)
+        {
+            if let Err((span, msg)) = self.method(has_method_attr, has_static_attr, item) {
                 self.error(span, msg);
             }
         }
@@ -823,6 +851,9 @@ mod tests {
     #[test_case("Hello_World", "helloWorld" ; "2")]
     #[test_case("hello_world", "helloWorld" ; "3")]
     #[test_case("__hello_world__", "helloWorld" ; "4")]
+    #[test_case("HELLOWorld", "helloWorld" ; "5")]
+    #[test_case("helloWORLD", "helloWorld" ; "6")]
+    #[test_case("HELLO_WORLD", "helloWorld" ; "7")]
     fn camel_case(input: &str, expected: &str) {
         assert_eq!(RenameScheme::camel_case(input).as_str(), expected);
     }

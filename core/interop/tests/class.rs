@@ -32,6 +32,11 @@ impl Animal {
         Self { ty, age }
     }
 
+    #[boa(static)]
+    fn marked_static_method() -> i32 {
+        123
+    }
+
     fn static_method() -> i32 {
         42
     }
@@ -91,8 +96,8 @@ fn boa_class() {
             let pet = new Animal("dog", 3);
             assertEq(pet.age, 3, "Age should be the age passed to constructor");
 
-            let v = Animal.staticMethod();
-            assertEq(v, 42, "Static method");
+            assertEq(Animal.staticMethod(), 42, "Static method");
+            assertEq(Animal.markedStaticMethod(), 123, "Marked static method");
 
             v = pet.method();
             assertEq(v.key, 43, "Method returned");
