@@ -1,104 +1,27 @@
+use crate::utils::{
+    error, take_error_from_attrs, take_length_from_attrs, take_name_value_attr, take_path_attr,
+    RenameScheme, SpannedResult,
+};
 use proc_macro::TokenStream;
-use proc_macro2::{Span as Span2, Span, TokenStream as TokenStream2};
-use quote::{quote, ToTokens};
+use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
+use quote::quote;
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
-use std::str::FromStr;
-use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit_mut::VisitMut;
 use syn::{
-    Attribute, Expr, ExprLit, FnArg, Ident, ImplItemFn, ItemImpl, Lit, Meta, MetaNameValue,
-    PatType, Receiver, ReturnType, Token, Type,
+    Attribute, Expr, FnArg, Ident, ImplItemFn, ItemImpl, Lit, Meta, MetaNameValue, PatType,
+    Receiver, ReturnType, Signature, Token, Type,
 };
-
-type SpannedResult<T> = Result<T, (Span2, String)>;
-
-/// A function to make it easier to return error messages.
-fn error<T>(span: &impl Spanned, message: impl Display) -> SpannedResult<T> {
-    Err((span.span(), message.to_string()))
-}
-
-/// Look (and remove from AST) a `path` version of the attribute `boa`, e.g. `#[boa(something)]`.
-fn take_path_attr(attrs: &mut Vec<Attribute>, name: &str) -> bool {
-    if let Some((i, _)) = attrs
-        .iter()
-        .enumerate()
-        .filter(|(_, a)| a.path().is_ident("boa"))
-        .filter_map(|(i, a)| a.meta.require_list().ok().map(|nv| (i, nv)))
-        .filter_map(|(i, m)| m.parse_args_with(Ident::parse_any).ok().map(|p| (i, p)))
-        .find(|(_, path)| path == name)
-    {
-        attrs.remove(i);
-        true
-    } else {
-        false
-    }
-}
-
-/// Look (and remove from AST) for a `#[boa(name = ...)]` attribute, where `...`
-/// is a literal. The validation of the literal's type should be done separately.
-fn take_name_value_attr(attrs: &mut Vec<Attribute>, name: &str) -> Option<Lit> {
-    if let Some((i, lit)) = attrs
-        .iter()
-        .enumerate()
-        .filter(|(_, a)| a.meta.path().is_ident("boa"))
-        .filter_map(|(i, a)| a.meta.require_list().ok().map(|nv| (i, nv)))
-        .filter_map(|(i, a)| {
-            syn::parse2::<MetaNameValue>(a.tokens.to_token_stream())
-                .ok()
-                .map(|nv| (i, nv))
-        })
-        .filter(|(_, nv)| nv.path.is_ident(name))
-        .find_map(|(i, nv)| match &nv.value {
-            Expr::Lit(ExprLit { lit, .. }) => Some((i, lit.clone())),
-            _ => None,
-        })
-    {
-        attrs.remove(i);
-        Some(lit)
-    } else {
-        None
-    }
-}
-
-/// Take the length name-value from the list of attributes.
-fn take_length_from_attrs(attrs: &mut Vec<Attribute>) -> SpannedResult<Option<usize>> {
-    match take_name_value_attr(attrs, "length") {
-        None => Ok(None),
-        Some(lit) => match lit {
-            Lit::Int(int) if int.base10_parse::<usize>().is_ok() => int
-                .base10_parse::<usize>()
-                .map(Some)
-                .map_err(|e| (int.span(), format!("Invalid literal: {e}"))),
-            l => error(&l, "Invalid literal type. Was expecting a number")?,
-        },
-    }
-}
-
-/// Take the last `#[boa(error = "...")]` statement if found, remove it from the list
-/// of attributes, and return the literal string.
-fn take_error_from_attrs(attrs: &mut Vec<Attribute>) -> SpannedResult<Option<String>> {
-    match take_name_value_attr(attrs, "error") {
-        None => Ok(None),
-        Some(lit) => match lit {
-            Lit::Str(s) => Ok(Some(s.value())),
-            l => Err((
-                l.span(),
-                "Invalid literal type. Was expecting a string".to_string(),
-            )),
-        },
-    }
-}
 
 /// A function representation. Takes a function from the AST and remember its name, length and
 /// how its body should be in the output AST.
 /// There are three types of functions: Constructors, Methods and Accessors (setter/getter).
 ///
 /// This is not an enum for simplicity. The body is dependent on how this was created.
-struct Function {
+pub(crate) struct Function {
     /// The name of the function. Can be overridden with `#[boa(name = "...")]`.
     name: String,
 
@@ -156,7 +79,7 @@ impl Function {
         i: usize,
     ) -> SpannedResult<(bool, TokenStream2, TokenStream2)> {
         let ty = pat_type.ty.as_ref();
-        let ident = Ident::new(&format!("boa_arg_{i}"), Span::call_site());
+        let ident = Ident::new(&format!("boa_arg_{i}"), Span2::call_site());
 
         // Find out if it's a boa context.
         let is_context = match ty {
@@ -191,51 +114,54 @@ impl Function {
         }
     }
 
-    /// Create a `Function` from its name,
-    fn method(
+    pub(crate) fn from_sig(
         name: String,
         has_explicit_method: bool,
         has_explicit_static: bool,
-        fn_: &mut ImplItemFn,
-        class_ty: &Type,
+        attrs: &mut Vec<Attribute>,
+        sig: &mut Signature,
+        class_ty: Option<&Type>,
     ) -> SpannedResult<Self> {
-        if fn_.sig.asyncness.is_some() {
-            error(&fn_.sig.asyncness, "Async methods are not supported.")?;
-        }
-
-        if !fn_.sig.generics.params.is_empty() {
-            error(&fn_.sig.generics, "Generic methods are not supported.")?;
-        }
-
-        let mut has_receiver = 0;
-        let (args_decl, args_call): (Vec<TokenStream2>, Vec<TokenStream2>) = fn_
-            .sig
+        // The amount of arguments that aren't really arguments in JavaScript,
+        // e.g. `self`, `&mut Context`, etc.
+        let mut not_param_count = 0;
+        let (args_decl, args_call): (Vec<TokenStream2>, Vec<TokenStream2>) = sig
             .inputs
             .iter_mut()
             .enumerate()
             .map(|(i, a)| match a {
                 FnArg::Receiver(receiver) => {
-                    has_receiver += 1;
-                    Self::arg_self_from_receiver(receiver, class_ty)
+                    not_param_count += 1;
+                    if let Some(cty) = class_ty {
+                        Self::arg_self_from_receiver(receiver, cty)
+                    } else {
+                        error(receiver, "Invalid context for using a receiver.")
+                    }
                 }
                 FnArg::Typed(ty) => {
                     let (incr, decl, call) = Self::arg_from_pat_type(ty, i)?;
                     if incr {
-                        has_receiver += 1;
+                        not_param_count += 1;
                     }
                     Ok((decl, call))
                 }
             })
             .collect::<SpannedResult<_>>()?;
 
-        let length =
-            take_length_from_attrs(&mut fn_.attrs)?.unwrap_or(args_decl.len() - has_receiver);
+        let length = take_length_from_attrs(attrs)?.unwrap_or(args_decl.len() - not_param_count);
 
-        let fn_name = &fn_.sig.ident;
+        let fn_name = &sig.ident;
 
         // A method is static if it has the `#[boa(static)]` attribute, or if it is
         // not a method and doesn't contain `self`.
-        let is_static = has_explicit_static || !(has_explicit_method || has_receiver > 0);
+        let is_static = has_explicit_static || !(has_explicit_method || not_param_count > 0);
+
+        // If this is a scoped function to a type (e.g. inside an `impl` block),
+        let scope = if class_ty.is_some() {
+            quote! { Self :: }
+        } else {
+            quote! {}
+        };
 
         Ok(Self {
             length,
@@ -248,7 +174,7 @@ impl Function {
                     let rest = args;
                     #(#args_decl)*
 
-                    let result = Self:: #fn_name ( #(#args_call),* );
+                    let result = #scope #fn_name ( #(#args_call),* );
                     boa_engine::TryIntoJsResult::try_into_js_result(result, context)
                 }
             },
@@ -256,12 +182,38 @@ impl Function {
         })
     }
 
+    /// Create a `Function` from its name,
+    fn method(
+        name: String,
+        has_explicit_method: bool,
+        has_explicit_static: bool,
+        fn_: &mut ImplItemFn,
+        class_ty: Option<&Type>,
+    ) -> SpannedResult<Self> {
+        if fn_.sig.asyncness.is_some() {
+            error(&fn_.sig.asyncness, "Async methods are not supported.")?;
+        }
+
+        if !fn_.sig.generics.params.is_empty() {
+            error(&fn_.sig.generics, "Generic methods are not supported.")?;
+        }
+
+        Self::from_sig(
+            name,
+            has_explicit_method,
+            has_explicit_static,
+            &mut fn_.attrs,
+            &mut fn_.sig,
+            class_ty,
+        )
+    }
+
     fn getter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
-        Self::method(name, false, true, fn_, class_ty)
+        Self::method(name, false, true, fn_, Some(class_ty))
     }
 
     fn setter(name: String, fn_: &mut ImplItemFn, class_ty: &Type) -> SpannedResult<Self> {
-        Self::method(name, false, true, fn_, class_ty)
+        Self::method(name, false, true, fn_, Some(class_ty))
     }
 
     fn constructor(fn_: &mut ImplItemFn, _class_ty: &Type) -> SpannedResult<Self> {
@@ -324,6 +276,10 @@ impl Function {
             },
             is_static: false,
         })
+    }
+
+    pub(crate) fn body(&self) -> &TokenStream2 {
+        &self.body
     }
 }
 
@@ -414,110 +370,6 @@ impl Accessor {
     }
 }
 
-#[derive(Debug, Default)]
-enum RenameScheme {
-    #[default]
-    None,
-    CamelCase,
-}
-
-impl FromStr for RenameScheme {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.eq_ignore_ascii_case("none") {
-            Ok(Self::None)
-        } else if s.eq_ignore_ascii_case("camelcase") {
-            Ok(Self::CamelCase)
-        } else {
-            Err(format!(
-                r#"Invalid rename scheme: {s:?}. Accepted values are "none" or "camelCase"."#
-            ))
-        }
-    }
-}
-
-impl RenameScheme {
-    fn camel_case(s: &str) -> String {
-        #[derive(PartialEq)]
-        enum State {
-            First,
-            NextOfUpper,
-            NextOfContinuedUpper(char),
-            NextOfSepMark,
-            Other,
-        }
-
-        let mut result = String::with_capacity(s.len());
-        let mut state = State::First;
-
-        for ch in s.chars() {
-            let is_upper = ch.is_ascii_uppercase();
-            let is_lower = ch.is_ascii_lowercase();
-
-            match (&state, is_upper, is_lower) {
-                (State::First, true, false) => {
-                    state = State::NextOfUpper;
-                    result.push(ch.to_ascii_lowercase());
-                }
-                (State::First, false, true) => {
-                    state = State::Other;
-                    result.push(ch);
-                }
-                (State::First, false, false) => {}
-                (State::NextOfUpper, true, false) => {
-                    state = State::NextOfContinuedUpper(ch);
-                }
-                (State::NextOfUpper, false, true) => {
-                    state = State::First;
-                    result.push(ch);
-                }
-                (State::NextOfContinuedUpper(last), true, false) => {
-                    result.push(last.to_ascii_lowercase());
-                    state = State::NextOfContinuedUpper(ch);
-                }
-                (State::NextOfContinuedUpper(last), false, true) => {
-                    result.push(last.to_ascii_uppercase());
-                    state = State::First;
-                    result.push(ch);
-                }
-                (State::NextOfContinuedUpper(last), false, false) => {
-                    result.push(last.to_ascii_lowercase());
-                    state = State::NextOfSepMark;
-                }
-                (State::NextOfSepMark, true, false) => {
-                    state = State::NextOfUpper;
-                    result.push(ch);
-                }
-                (State::NextOfSepMark, false, true) | (State::Other, true, false) => {
-                    state = State::NextOfUpper;
-                    result.push(ch.to_ascii_uppercase());
-                }
-                (State::Other, false, true) => {
-                    result.push(ch);
-                }
-                (_, false, false) => {
-                    state = State::NextOfSepMark;
-                }
-                (_, _, _) => {}
-            }
-        }
-
-        if let State::NextOfContinuedUpper(last) = state {
-            result.push(last.to_ascii_lowercase());
-        }
-
-        result
-    }
-
-    fn rename(&self, s: String) -> String {
-        match self {
-            Self::None => s,
-            Self::CamelCase => Self::camel_case(&s),
-        }
-    }
-}
-
 /// A visitor for the `impl X { ... }` block. This will record all top-level functions
 /// and create endpoints for the JavaScript class.
 #[derive(Debug)]
@@ -573,7 +425,13 @@ impl ClassVisitor {
         fn_: &mut ImplItemFn,
     ) -> SpannedResult<()> {
         let name = self.name_of(fn_)?;
-        let f = Function::method(name, explicit_method, explicit_static, fn_, &self.type_)?;
+        let f = Function::method(
+            name,
+            explicit_method,
+            explicit_static,
+            fn_,
+            Some(&self.type_),
+        )?;
 
         if f.is_static {
             self.statics.push(f);
@@ -782,20 +640,10 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the input.
     let mut impl_ = syn::parse_macro_input!(input as ItemImpl);
 
-    let renaming = match take_name_value_attr(&mut impl_.attrs, "rename") {
-        None => RenameScheme::default(),
-        Some(Lit::Str(lit_str)) => match RenameScheme::from_str(lit_str.value().as_str()) {
-            Ok(renaming) => renaming,
-            Err(e) => {
-                return syn::Error::new(lit_str.span(), format!("Invalid rename value: {e}"))
-                    .to_compile_error()
-                    .into()
-            }
-        },
-        Some(lit) => {
-            return syn::Error::new(lit.span(), "Invalid attribute value literal type.")
-                .to_compile_error()
-                .into();
+    let renaming = match RenameScheme::from_attrs(&mut impl_.attrs) {
+        Ok(r) => r,
+        Err((span, msg)) => {
+            return syn::Error::new(span, msg).to_compile_error().into();
         }
     };
 
@@ -839,22 +687,4 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     tokens.into()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::RenameScheme;
-    use test_case::test_case;
-
-    #[rustfmt::skip]
-    #[test_case("HelloWorld", "helloWorld" ; "1")]
-    #[test_case("Hello_World", "helloWorld" ; "2")]
-    #[test_case("hello_world", "helloWorld" ; "3")]
-    #[test_case("__hello_world__", "helloWorld" ; "4")]
-    #[test_case("HELLOWorld", "helloWorld" ; "5")]
-    #[test_case("helloWORLD", "helloWorld" ; "6")]
-    #[test_case("HELLO_WORLD", "helloWorld" ; "7")]
-    fn camel_case(input: &str, expected: &str) {
-        assert_eq!(RenameScheme::camel_case(input).as_str(), expected);
-    }
 }

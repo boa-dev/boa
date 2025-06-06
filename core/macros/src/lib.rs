@@ -21,6 +21,8 @@ use synstructure::{decl_derive, AddBounds, Structure};
 mod embedded_module_loader;
 
 mod class;
+mod module;
+mod utils;
 
 /// Implementation of the inner iterator of the `embed_module!` macro. All
 /// arguments are required.
@@ -76,6 +78,13 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn boa_class(attr: TokenStream, item: TokenStream) -> TokenStream {
     class::class_impl(attr, item)
+}
+
+/// `boa_module` proc macro attribute for declaring a `boa_engine::Module` based
+/// on a Rust module. The original Rust module will also be exposed as is.
+#[proc_macro_attribute]
+pub fn boa_module(attr: TokenStream, item: TokenStream) -> TokenStream {
+    module::module_impl(attr, item)
 }
 
 struct Static {
