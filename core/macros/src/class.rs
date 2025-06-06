@@ -375,7 +375,7 @@ impl Accessor {
             let body = getter.body.clone();
             quote! {
                 Some(
-                    boa_engine::NativeFunction::from_copy_closure( #body )
+                    boa_engine::NativeFunction::from_fn_ptr( #body )
                         .to_js_function(builder.context().realm())
                 )
             }
