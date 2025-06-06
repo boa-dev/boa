@@ -104,7 +104,7 @@ fn check_destructuring_assignment_array_assignment_operator() {
                             default_init: Some(Literal::new(0, Span::new((1, 8), (1, 9))).into()),
                         },
                     ]))),
-                    ArrayLiteral::from([]).into(),
+                    ArrayLiteral::new([], false, Span::new((1, 14), (1, 16))).into(),
                 )),
             )))
             .into(),

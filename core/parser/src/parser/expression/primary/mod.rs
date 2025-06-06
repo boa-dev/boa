@@ -178,8 +178,6 @@ where
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                cursor.advance(interner);
-                cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)

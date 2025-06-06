@@ -11,7 +11,7 @@
 mod tests;
 
 use crate::{
-    lexer::TokenKind,
+    lexer::{InputElement, TokenKind},
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
         TokenParser,
@@ -21,7 +21,7 @@ use crate::{
 };
 use boa_ast::{
     expression::{literal, Spread},
-    Punctuator,
+    Punctuator, Span,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -62,17 +62,26 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ArrayLiteral", "Parsing");
+
+        let open_brancket_token = cursor.expect(
+            TokenKind::Punctuator(Punctuator::OpenBracket),
+            "array parsing",
+            interner,
+        )?;
+        cursor.set_goal(InputElement::RegExp);
+
         let mut elements = Vec::new();
         let mut has_trailing_comma_spread = false;
         let mut next_comma = false;
         let mut last_spread = false;
 
-        loop {
+        let end = loop {
             let token = cursor.peek(0, interner).or_abrupt()?;
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBracket) => {
+                    let end = token.span().end();
                     cursor.advance(interner);
-                    break;
+                    break end;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) if next_comma => {
                     cursor.advance(interner);
@@ -120,15 +129,17 @@ where
                     last_spread = false;
                 }
             }
-        }
+        };
 
         if last_spread && elements.last() == Some(&None) {
             has_trailing_comma_spread = true;
         }
 
+        let start = open_brancket_token.span().start();
         Ok(literal::ArrayLiteral::new(
             elements,
             has_trailing_comma_spread,
+            Span::new(start, end),
         ))
     }
 }
