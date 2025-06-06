@@ -1000,10 +1000,7 @@ impl ContextBuilder {
     ///
     /// [`Maximal`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.Maximal
     /// [`RetainBaseLanguages`]: https://docs.rs/icu_datagen/latest/icu_datagen/enum.DeduplicationStrategy.html#variant.RetainBaseLanguages
-    /// [`ResolveLocale`]: https://tc39.es/ecma402/#sec-resolvelocale
-    /// [`LocaleCanonicalizer`]: icu_locale_transform::LocaleCanonicalizer
-    /// [`LocaleExpander`]: icu_locale_transform::LocaleExpander
-    /// [`BufferProvider`]: icu_provider::BufferProvider
+    /// [`BufferProvider`]: icu_provider::buf::BufferProvider
     #[cfg(feature = "intl")]
     pub fn icu_buffer_provider<
         T: icu_provider::prelude::DynamicDryDataProvider<icu_provider::prelude::BufferMarker>

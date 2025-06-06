@@ -148,7 +148,7 @@ impl BuiltInConstructor for ListFormat {
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
         // 17. Let dataLocaleTypes be dataLocaleData.[[<type>]].
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[<style>]].
-        let Ok(prefs) = ListFormatterPreferences::try_from(&locale);
+        let prefs = ListFormatterPreferences::from(&locale);
         let options = ListFormatterOptions::default().with_length(style);
         let formatter = match typ {
             ListFormatType::Conjunction => ListFormatter::try_new_and_with_buffer_provider(

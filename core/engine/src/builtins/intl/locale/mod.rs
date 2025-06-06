@@ -429,7 +429,7 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [mdc]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.toString
+    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.toString
     /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/toString
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
@@ -592,7 +592,7 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [mnd]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
     /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.numeric
     pub(crate) fn numeric(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
