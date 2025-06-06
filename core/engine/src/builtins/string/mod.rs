@@ -2184,10 +2184,10 @@ impl String {
             #[cfg(not(feature = "intl"))]
             {
                 const NORMALIZERS: StringNormalizers = StringNormalizers {
-                    nfc: ComposingNormalizer::new_nfc(),
-                    nfkc: ComposingNormalizer::new_nfkc(),
-                    nfd: DecomposingNormalizer::new_nfd(),
-                    nfkd: DecomposingNormalizer::new_nfkd(),
+                    nfc: ComposingNormalizer::new_nfc().static_to_owned(),
+                    nfkc: ComposingNormalizer::new_nfkc().static_to_owned(),
+                    nfd: DecomposingNormalizer::new_nfd().static_to_owned(),
+                    nfkd: DecomposingNormalizer::new_nfkd().static_to_owned(),
                 };
                 &NORMALIZERS
             }

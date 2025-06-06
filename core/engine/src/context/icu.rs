@@ -13,7 +13,7 @@ use zerofrom::ZeroFrom;
 use crate::{builtins::string::StringNormalizers, JsError, JsNativeError};
 
 /// Error thrown when the engine cannot initialize the ICU4X utilities from a data provider.
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Copy, Clone)]
 pub enum IcuError {
     /// Failed to create the internationalization utilities.
     #[error("could not construct the internationalization utilities")]

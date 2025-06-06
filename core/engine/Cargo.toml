@@ -96,7 +96,10 @@ dashmap.workspace = true
 num_enum.workspace = true
 thin-vec.workspace = true
 itertools = { workspace = true, default-features = false }
-icu_normalizer = { workspace = true, features = ["compiled_data", "utf16_iter"] }
+icu_normalizer = { workspace = true, features = [
+    "compiled_data",
+    "utf16_iter",
+] }
 portable-atomic.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 arrayvec.workspace = true
@@ -128,6 +131,7 @@ icu_plurals = { workspace = true, default-features = false, features = [
 ], optional = true }
 icu_list = { workspace = true, default-features = false, features = [
     "serde",
+    "alloc",
 ], optional = true }
 icu_casemap = { workspace = true, default-features = false, features = [
     "serde",
