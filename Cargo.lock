@@ -507,6 +507,7 @@ dependencies = [
  "quote",
  "syn",
  "synstructure",
+ "test-case",
 ]
 
 [[package]]

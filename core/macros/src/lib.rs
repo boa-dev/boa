@@ -20,6 +20,8 @@ use synstructure::{decl_derive, AddBounds, Structure};
 
 mod embedded_module_loader;
 
+mod class;
+
 /// Implementation of the inner iterator of the `embed_module!` macro. All
 /// arguments are required.
 ///
@@ -29,6 +31,51 @@ mod embedded_module_loader;
 #[proc_macro]
 pub fn embed_module_inner(input: TokenStream) -> TokenStream {
     embedded_module_loader::embed_module_impl(input)
+}
+
+/// `boa_class` proc macro attribute that applies to an `impl XYZ` block and
+/// add a `[boa_engine::JsClass]` implementation for it.
+///
+/// It will transform functions in the `impl ...` block as follow (by default, see
+/// below):
+/// 1. `fn some_method(&self, ...) -> ... {}` will be added as class methods with
+///    the name `some_method`, borrowing the object for the ref. This is dangerous
+///    if the function execute/eval JavaScript back (potentially leading to a
+///    `BorrowError`).
+/// 2. `fn some_method(&mut self, ...) -> ... {}` will be added as class methods,
+///    similar to the above but borrowing as mutable at runtime.
+/// 3. `fn some_method(...) -> ... {}` (no self mention) will be added as a
+///    static method.
+/// 4. `#[boa(constructor)] fn ...(...) -> Self {}` (or returning `JsResult<Self>`)
+///    will be used as the constructor of the class. If no constructor is declared,
+///    `Default::default()` will be used instead. If the `Default` trait is not
+///    defined for the type, an error will happen.
+/// 5. `#[boa(getter)]`
+///
+/// To change this behaviour, you can use the following attributes on the function
+/// declarations:
+/// 1. `#[boa(name = "...")]` renames the function in JavaScript with the string.
+/// 2. `#[boa(getter)]` will declare a getter accessor.
+/// 2. `#[boa(setter)]` will declare a setter accessor.
+/// 3. `#[boa(static)]` will declare a static method.
+/// 4. `#[boa(method)]` will declare a method.
+/// 5. `#[boa(constructor)]` will declare a constructor.
+/// 6. `#[boa(length = 123)]` sets the length of the function in JavaScript (ie. its
+///    number of arguments accepted).
+///
+/// Multiple of those attributes can be added to a single method.
+///
+/// The top level `boa_class` supports the following:
+/// 1. `#[boa_class(name = "...")]` sets the name of the class in JavaScript.
+/// 2. `#[boa(rename = "camelCase")]` will change the naming scheme of verbatim
+///    to using "camelCase" or "none".
+///
+/// # Warning
+/// This should not be used directly as is, and instead should be used through
+/// the `embed_module!` macro in `boa_interop` for convenience.
+#[proc_macro_attribute]
+pub fn boa_class(attr: TokenStream, item: TokenStream) -> TokenStream {
+    class::class_impl(attr, item)
 }
 
 struct Static {
