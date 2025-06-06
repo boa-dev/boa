@@ -20,6 +20,9 @@ syn = { workspace = true, features = ["full", "visit-mut"] }
 proc-macro2.workspace = true
 synstructure.workspace = true
 
+[dev-dependencies]
+test-case.workspace = true
+
 [lints]
 workspace = true
 

@@ -18,6 +18,7 @@ struct Animal {
 }
 
 #[boa_class]
+#[boa(rename = "camelCase")]
 impl Animal {
     #[boa(constructor)]
     #[allow(clippy::needless_pass_by_value)]
@@ -31,7 +32,6 @@ impl Animal {
         Self { ty, age }
     }
 
-    #[boa(name = "staticMethod")]
     fn static_method() -> i32 {
         42
     }

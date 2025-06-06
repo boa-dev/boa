@@ -3,6 +3,7 @@ use proc_macro2::{Span as Span2, Span, TokenStream as TokenStream2};
 use quote::{quote, ToTokens};
 use std::collections::BTreeMap;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
@@ -85,7 +86,7 @@ fn take_error_from_attrs(attrs: &mut Vec<Attribute>) -> SpannedResult<Option<Str
             Lit::Str(s) => Ok(Some(s.value())),
             l => Err((
                 l.span(),
-                "Invalid literal type. Was expecting a number".to_string(),
+                "Invalid literal type. Was expecting a string".to_string(),
             )),
         },
     }
@@ -197,7 +198,7 @@ impl Function {
             error(&fn_.sig.generics, "Generic methods are not supported.")?;
         }
 
-        let mut has_receiver = 0;
+        let mut has_receiver = false;
         let (args_decl, args_call): (Vec<TokenStream2>, Vec<TokenStream2>) = fn_
             .sig
             .inputs
@@ -205,18 +206,21 @@ impl Function {
             .enumerate()
             .map(|(i, a)| match a {
                 FnArg::Receiver(receiver) => {
-                    has_receiver += 1;
+                    has_receiver = true;
                     Self::arg_self_from_receiver(receiver, class_ty)
                 }
                 FnArg::Typed(ty) => Self::arg_from_pat_type(ty, i),
             })
             .collect::<SpannedResult<_>>()?;
 
-        let length =
-            take_length_from_attrs(&mut fn_.attrs)?.unwrap_or(args_decl.len() - has_receiver);
+        let length = take_length_from_attrs(&mut fn_.attrs)?
+            .unwrap_or(args_decl.len() - usize::from(has_receiver));
         let fn_name = &fn_.sig.ident;
 
-        let is_static = take_path_attr(&mut fn_.attrs, "method") || has_receiver > 0;
+        // A method is static if it has the `#[boa(static)]` attribute, or if it is
+        // not a method and doesn't contain `self`.
+        let is_static = take_path_attr(&mut fn_.attrs, "static")
+            || !(take_path_attr(&mut fn_.attrs, "method") || has_receiver);
 
         Ok(Self {
             length,
@@ -389,10 +393,96 @@ impl Accessor {
     }
 }
 
+#[derive(Debug, Default)]
+enum RenameScheme {
+    #[default]
+    None,
+    CamelCase,
+}
+
+impl FromStr for RenameScheme {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.eq_ignore_ascii_case("none") {
+            Ok(Self::None)
+        } else if s.eq_ignore_ascii_case("camelcase") {
+            Ok(Self::CamelCase)
+        } else {
+            Err(format!("Invalid rename scheme: {s:?}"))
+        }
+    }
+}
+
+impl RenameScheme {
+    fn camel_case(s: &str) -> String {
+        #[derive(PartialEq)]
+        enum State {
+            First,
+            NextOfUpper,
+            NextOfSepMark,
+            Other,
+        }
+
+        let mut result = String::with_capacity(s.len());
+        let mut state = State::First;
+
+        for ch in s.chars() {
+            let is_upper = ch.is_ascii_uppercase();
+            let is_lower = ch.is_ascii_lowercase();
+
+            match (&state, is_upper, is_lower) {
+                (State::First, true, false) => {
+                    state = State::NextOfUpper;
+                    result.push(ch.to_ascii_lowercase());
+                }
+                (State::First, false, true) => {
+                    state = State::Other;
+                    result.push(ch);
+                }
+                (State::First, false, false) => {}
+                (State::NextOfUpper, true, false) => {
+                    result.push(ch.to_ascii_lowercase());
+                }
+                (State::NextOfUpper, false, true) => {
+                    state = State::First;
+                    result.push(ch);
+                }
+                (State::NextOfSepMark, true, false) => {
+                    state = State::NextOfUpper;
+                    result.push(ch);
+                }
+                (State::NextOfSepMark, false, true) | (State::Other, true, false) => {
+                    state = State::NextOfUpper;
+                    result.push(ch.to_ascii_uppercase());
+                }
+                (State::Other, false, true) => {
+                    result.push(ch);
+                }
+                (_, false, false) => {
+                    state = State::NextOfSepMark;
+                }
+                (_, _, _) => {}
+            }
+        }
+
+        result
+    }
+
+    fn rename(&self, s: String) -> String {
+        match self {
+            Self::None => s,
+            Self::CamelCase => Self::camel_case(&s),
+        }
+    }
+}
+
 /// A visitor for the `impl X { ... }` block. This will record all top-level functions
 /// and create endpoints for the JavaScript class.
 #[derive(Debug)]
 struct ClassVisitor {
+    renaming: RenameScheme,
+
     // The type name for this class.
     type_: Type,
 
@@ -413,8 +503,9 @@ struct ClassVisitor {
 }
 
 impl ClassVisitor {
-    fn new(type_: Type) -> Self {
+    fn new(renaming: RenameScheme, type_: Type) -> Self {
         Self {
+            renaming,
             type_,
             constructor: None,
             statics: Vec::new(),
@@ -424,9 +515,9 @@ impl ClassVisitor {
         }
     }
 
-    fn name_of(fn_: &mut ImplItemFn) -> SpannedResult<String> {
+    fn name_of(&self, fn_: &mut ImplItemFn) -> SpannedResult<String> {
         take_name_value_attr(&mut fn_.attrs, "name").map_or_else(
-            || Ok(fn_.sig.ident.to_string()),
+            || Ok(self.renaming.rename(fn_.sig.ident.to_string())),
             |nv| match &nv {
                 Lit::Str(s) => Ok(s.value()),
                 _ => error(&nv, "Invalid attribute value literal"),
@@ -434,68 +525,41 @@ impl ClassVisitor {
         )
     }
 
-    fn method(&mut self, _span: &impl Spanned, fn_: &mut ImplItemFn) {
-        let name = match Self::name_of(fn_) {
-            Ok(name) => name,
-            Err((span, msg)) => {
-                self.error(span, msg);
-                return;
-            }
-        };
+    fn method(&mut self, _span: &impl Spanned, fn_: &mut ImplItemFn) -> SpannedResult<()> {
+        let name = self.name_of(fn_)?;
+        let f = Function::method(name, fn_, &self.type_)?;
 
-        match Function::method(name, fn_, &self.type_) {
-            Ok(f) => {
-                if f.is_static {
-                    self.methods.push(f);
-                } else {
-                    self.statics.push(f);
-                }
-            }
-            Err((span, err)) => self.error(span, err),
+        if f.is_static {
+            self.statics.push(f);
+        } else {
+            self.methods.push(f);
         }
+
+        Ok(())
     }
 
-    fn getter(&mut self, fn_: &mut ImplItemFn) {
-        let name = match Self::name_of(fn_) {
-            Ok(name) => name,
-            Err((span, msg)) => {
-                self.error(span, msg);
-                return;
-            }
-        };
-        if let Err((span, msg)) =
-            self.accessors
-                .entry(name.clone())
-                .or_default()
-                .set_getter(name, fn_, &self.type_)
-        {
-            self.error(span, msg);
-        }
+    fn getter(&mut self, fn_: &mut ImplItemFn) -> SpannedResult<()> {
+        let name = self.name_of(fn_)?;
+        self.accessors
+            .entry(name.clone())
+            .or_default()
+            .set_getter(name, fn_, &self.type_)?;
+
+        Ok(())
     }
 
-    fn setter(&mut self, fn_: &mut ImplItemFn) {
-        let name = match Self::name_of(fn_) {
-            Ok(name) => name,
-            Err((span, msg)) => {
-                self.error(span, msg);
-                return;
-            }
-        };
-        if let Err((span, msg)) =
-            self.accessors
-                .entry(name.clone())
-                .or_default()
-                .set_setter(name, fn_, &self.type_)
-        {
-            self.error(span, msg);
-        }
+    fn setter(&mut self, fn_: &mut ImplItemFn) -> SpannedResult<()> {
+        let name = self.name_of(fn_)?;
+        self.accessors
+            .entry(name.clone())
+            .or_default()
+            .set_setter(name, fn_, &self.type_)?;
+        Ok(())
     }
 
-    fn constructor(&mut self, fn_: &mut ImplItemFn) {
-        match Function::constructor(fn_, &self.type_) {
-            Ok(f) => self.constructor = Some(f),
-            Err((span, err)) => self.error(span, err),
-        }
+    fn constructor(&mut self, fn_: &mut ImplItemFn) -> SpannedResult<()> {
+        self.constructor = Some(Function::constructor(fn_, &self.type_)?);
+        Ok(())
     }
 
     /// Add an error to list of errors we are recording along the way. Errors are handled
@@ -602,21 +666,29 @@ impl VisitMut for ClassVisitor {
         let has_method_attr = take_path_attr(&mut item.attrs, "method");
 
         if has_getter_attr {
-            self.getter(item);
+            if let Err((span, msg)) = self.getter(item) {
+                self.error(span, msg);
+            }
         }
 
         if has_setter_attr {
-            self.setter(item);
+            if let Err((span, msg)) = self.setter(item) {
+                self.error(span, msg);
+            }
         }
 
         if has_ctor_attr {
-            self.constructor(item);
+            if let Err((span, msg)) = self.constructor(item) {
+                self.error(span, msg);
+            }
         }
 
         // A function is a method if it has a `#[boa(method)]` attribute or has no
         // method-type related attributes.
         if has_method_attr || !(has_getter_attr || has_ctor_attr || has_setter_attr) {
-            self.method(&item.sig.span(), item);
+            if let Err((span, msg)) = self.method(&item.sig.span(), item) {
+                self.error(span, msg);
+            }
         }
 
         syn::visit_mut::visit_impl_item_fn_mut(self, item);
@@ -660,8 +732,25 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the input.
     let mut impl_ = syn::parse_macro_input!(input as ItemImpl);
 
+    let renaming = match take_name_value_attr(&mut impl_.attrs, "rename") {
+        None => RenameScheme::default(),
+        Some(Lit::Str(lit_str)) => match RenameScheme::from_str(lit_str.value().as_str()) {
+            Ok(renaming) => renaming,
+            Err(e) => {
+                return syn::Error::new(lit_str.span(), format!("Invalid rename value: {e}"))
+                    .to_compile_error()
+                    .into()
+            }
+        },
+        Some(lit) => {
+            return syn::Error::new(lit.span(), "Invalid attribute value literal type.")
+                .to_compile_error()
+                .into();
+        }
+    };
+
     // Get all methods from the input.
-    let mut visitor = ClassVisitor::new(impl_.self_ty.as_ref().clone());
+    let mut visitor = ClassVisitor::new(renaming, impl_.self_ty.as_ref().clone());
     syn::visit_mut::visit_item_impl_mut(&mut visitor, &mut impl_);
 
     if let Some(err) = visitor.errors {
@@ -700,4 +789,19 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     }
 
     tokens.into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RenameScheme;
+    use test_case::test_case;
+
+    #[rustfmt::skip]
+    #[test_case("HelloWorld", "helloWorld" ; "1")]
+    #[test_case("Hello_World", "helloWorld" ; "2")]
+    #[test_case("hello_world", "helloWorld" ; "3")]
+    #[test_case("__hello_world__", "helloWorld" ; "4")]
+    fn camel_case(input: &str, expected: &str) {
+        assert_eq!(RenameScheme::camel_case(input).as_str(), expected);
+    }
 }
