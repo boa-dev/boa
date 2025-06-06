@@ -9,8 +9,7 @@
 
 use crate::{
     builtins::{
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        OrdinaryObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,

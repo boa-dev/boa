@@ -54,7 +54,7 @@ impl OptionType for Region {
 impl OptionType for HourCycle {
     fn from_value(value: crate::JsValue, context: &mut Context) -> crate::JsResult<Self> {
         let value = Value::from_value(value, context)?;
-        HourCycle::try_from(&value).map_err(|e| {
+        HourCycle::try_from(&value).map_err(|_| {
             JsNativeError::range()
                 .with_message("invalid keyword value for `hc`")
                 .into()

@@ -1811,11 +1811,17 @@ impl String {
                     // 10. Else,
                     //     a. Assert: targetCase is upper.
                     //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.as_borrowed().uppercase_to_string(&segment, &locale.id).into()
+                    casemapper
+                        .as_borrowed()
+                        .uppercase_to_string(&segment, &locale.id)
+                        .into()
                 } else {
                     // 9. If targetCase is lower, then
                     //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.as_borrowed().lowercase_to_string(&segment, &locale.id).into()
+                    casemapper
+                        .as_borrowed()
+                        .lowercase_to_string(&segment, &locale.id)
+                        .into()
                 }
             });
 

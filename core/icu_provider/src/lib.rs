@@ -146,7 +146,9 @@ where
 }
 
 impl<T> DynamicDryDataProvider<BufferMarker> for Wrapper<T>
-where T: DynamicDryDataProvider<BufferMarker> {
+where
+    T: DynamicDryDataProvider<BufferMarker>,
+{
     fn dry_load_data(
         &self,
         marker: DataMarkerInfo,

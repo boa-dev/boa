@@ -177,7 +177,7 @@ where
         //     i. Set extension to the Unicode locale extension sequence of locale.
         //     ii. Set locale to the String value that is locale with any Unicode locale extension sequences removed.
         let mut locale = locale.clone();
-        let id = std::mem::take(&mut locale.id);
+        let id = std::mem::replace(&mut locale.id, LanguageIdentifier::UNKNOWN);
         locale.extensions.transform.clear();
         locale.extensions.private.clear();
 
@@ -261,7 +261,7 @@ where
     IntlProvider: DryDataProvider<M>,
 {
     for mut locale in requested_locales {
-        let id = std::mem::take(&mut locale.id);
+        let id = std::mem::replace(&mut locale.id, LanguageIdentifier::UNKNOWN);
 
         // Only leave unicode extensions when returning the locale.
         locale.extensions.transform.clear();
@@ -283,7 +283,7 @@ where
             continue;
         };
 
-        if id == LanguageIdentifier::default() {
+        if id == LanguageIdentifier::UNKNOWN {
             return Some(locale);
         }
 
@@ -291,7 +291,7 @@ where
             .locale
             .map(|dl| dl.into_locale().id)
             .or(Some(id))
-            .filter(|loc| loc != &LanguageIdentifier::default())
+            .filter(|loc| loc != &LanguageIdentifier::UNKNOWN)
         {
             locale.id = id;
             return Some(locale);
