@@ -194,7 +194,7 @@ impl BuiltInConstructor for Locale {
         //     a. Append [[Numeric]] as the last element of internalSlotsList.
 
         // 7. If Type(tag) is not String or Object, throw a TypeError exception.
-        let mut tag = locale_from_value(&tag, context)?;
+        let mut tag = locale_from_value(tag, context)?;
 
         // 10. Set options to ? CoerceOptionsToObject(options).
         let options = &coerce_options_to_object(options, context)?;
@@ -612,7 +612,7 @@ impl Locale {
             .unicode
             .keywords
             .get(&key!("kn"))
-            .map_or(false, Value::is_empty);
+            .is_some_and(Value::is_empty);
 
         Ok(JsValue::from(kn))
     }

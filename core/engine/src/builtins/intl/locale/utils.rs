@@ -210,9 +210,7 @@ where
                 // the fallback algorithm, even if the used locale is exactly the same as the required
                 // locale.
                 match metadata.locale {
-                    Some(loc)
-                        if loc.clone().into_locale().id == prefix.clone().into_locale().id =>
-                    {
+                    Some(loc) if loc.into_locale().id == prefix.into_locale().id => {
                         locale.id = prefix.into_locale().id;
                         return Some(locale);
                     }

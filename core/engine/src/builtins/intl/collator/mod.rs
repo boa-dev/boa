@@ -348,7 +348,7 @@ impl BuiltInConstructor for Collator {
             CollationNumericOrdering::False
         });
         if usage == Usage::Search {
-            prefs.collation_type = Some(CollationType::Search)
+            prefs.collation_type = Some(CollationType::Search);
         }
         locale_prefs.extend(prefs);
 

@@ -752,7 +752,7 @@ impl DigitFormatOptions {
             mode: SignedRoundingMode,
             multiple: BaseMultiple,
         ) {
-            number.round_with_mode_and_increment(position, mode, multiple)
+            number.round_with_mode_and_increment(position, mode, multiple);
         }
 
         // <https://tc39.es/ecma402/#sec-torawprecision>
