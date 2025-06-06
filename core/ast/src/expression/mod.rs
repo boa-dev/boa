@@ -323,7 +323,7 @@ impl Expression {
             Self::Await(aw) => span,
             Self::Yield(yi) => span,
             Self::Parenthesized(expr) => span,
-            Self::RegExpLiteral(regexp) => span,
+            Self::RegExpLiteral(regexp) => regexp.span(),
             Self::FormalParameterList(_) => span,
             Self::Debugger => span,
         }

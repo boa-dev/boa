@@ -103,6 +103,7 @@ fn check_numeric_operations() {
                     RegExpLiteral::new(
                         interner.get_or_intern_static("=", utf16!("=")),
                         Sym::EMPTY_STRING,
+                        Span::new((1, 15), (1, 18)),
                     )
                     .into(),
                 ),
@@ -122,6 +123,7 @@ fn check_numeric_operations() {
             vec![RegExpLiteral::new(
                 interner.get_or_intern_static("=", utf16!("=")),
                 Sym::EMPTY_STRING,
+                Span::new((1, 4), (1, 7)),
             )
             .into()]
             .into(),

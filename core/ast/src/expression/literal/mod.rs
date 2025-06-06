@@ -68,7 +68,7 @@ impl Literal {
         &mut self.kind
     }
 
-    /// Get span of the node.
+    /// Get the [`Span`] of the [`Literal`] node.
     #[inline]
     #[must_use]
     pub const fn span(&self) -> Span {

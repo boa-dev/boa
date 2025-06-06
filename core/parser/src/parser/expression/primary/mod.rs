@@ -241,7 +241,7 @@ where
                 Ok(node.into())
             }
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                let node = AstRegExp::new(*body, *flags).into();
+                let node = AstRegExp::new(*body, *flags, tok.span()).into();
                 cursor.advance(interner);
                 Ok(node)
             }
@@ -253,7 +253,7 @@ where
                 let tok = cursor.lex_regex(start_pos_group, interner, init_with_eq)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
-                    Ok(AstRegExp::new(body, flags).into())
+                    Ok(AstRegExp::new(body, flags, tok.span()).into())
                 } else {
                     // A regex was expected and nothing else.
                     Err(Error::unexpected(
