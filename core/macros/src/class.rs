@@ -229,10 +229,6 @@ impl Function {
         let length =
             take_length_from_attrs(&mut fn_.attrs)?.unwrap_or(args_decl.len() - has_receiver);
 
-        eprintln!(
-            "name {name} length {length} args_decl.len() {} has_receiver {has_receiver}",
-            args_decl.len()
-        );
         let fn_name = &fn_.sig.ident;
 
         // A method is static if it has the `#[boa(static)]` attribute, or if it is
