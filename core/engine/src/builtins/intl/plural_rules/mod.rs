@@ -2,23 +2,19 @@ mod options;
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use fixed_decimal::FixedDecimal;
-use icu_locid::Locale;
+use fixed_decimal::{Decimal, SignedRoundingMode, UnsignedRoundingMode};
+use icu_locale::Locale;
 use icu_plurals::{
-    provider::CardinalV1Marker, PluralCategory, PluralRuleType, PluralRules as NativePluralRules,
-    PluralRulesWithRanges,
+    provider::PluralsCardinalV1, PluralCategory, PluralRuleType, PluralRules as NativePluralRules,
+    PluralRulesOptions, PluralRulesPreferences, PluralRulesWithRanges,
 };
-use icu_provider::DataLocale;
 
 use crate::{
     builtins::{
         options::get_option, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
         IntrinsicObject,
     },
-    context::{
-        icu::ErasedProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, ObjectInitializer},
     property::Attribute,
@@ -45,7 +41,7 @@ pub(crate) struct PluralRules {
 }
 
 impl Service for PluralRules {
-    type LangMarker = CardinalV1Marker;
+    type LangMarker = PluralsCardinalV1;
 
     type LocaleOptions = ();
 }
@@ -149,16 +145,14 @@ impl BuiltInConstructor for PluralRules {
             context.intl_provider(),
         )?;
 
-        let data_locale = &DataLocale::from(&locale);
+        let prefs = PluralRulesPreferences::from(&locale);
+        let opts = PluralRulesOptions::from(rule_type);
 
-        let native = match context.intl_provider().erased_provider() {
-            ErasedProvider::Any(a) => {
-                PluralRulesWithRanges::try_new_with_any_provider(a, data_locale, rule_type)
-            }
-            ErasedProvider::Buffer(b) => {
-                PluralRulesWithRanges::try_new_with_buffer_provider(b, data_locale, rule_type)
-            }
-        }
+        let native = PluralRulesWithRanges::try_new_with_buffer_provider(
+            context.intl_provider().erased_provider(),
+            prefs,
+            opts,
+        )
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
         // 12. Return pluralRules.
@@ -199,7 +193,6 @@ impl PluralRules {
         })?;
 
         let n = args.get_or_undefined(0).to_number(context)?;
-
         Ok(plural_category_to_js_string(resolve_plural(plural_rules, n).category).into())
     }
 
@@ -386,7 +379,28 @@ impl PluralRules {
         options
             .property(
                 js_string!("roundingMode"),
-                js_string!(plural_rules.format_options.rounding_mode.to_js_string()),
+                match plural_rules.format_options.rounding_mode {
+                    SignedRoundingMode::Unsigned(UnsignedRoundingMode::Expand) => {
+                        js_string!("expand")
+                    }
+                    SignedRoundingMode::Unsigned(UnsignedRoundingMode::Trunc) => {
+                        js_string!("trunc")
+                    }
+                    SignedRoundingMode::Unsigned(UnsignedRoundingMode::HalfExpand) => {
+                        js_string!("halfExpand")
+                    }
+                    SignedRoundingMode::Unsigned(UnsignedRoundingMode::HalfTrunc) => {
+                        js_string!("halfTrunc")
+                    }
+                    SignedRoundingMode::Unsigned(UnsignedRoundingMode::HalfEven) => {
+                        js_string!("halfEven")
+                    }
+                    SignedRoundingMode::Ceil => js_string!("ceil"),
+                    SignedRoundingMode::Floor => js_string!("floor"),
+                    SignedRoundingMode::HalfCeil => js_string!("halfCeil"),
+                    SignedRoundingMode::HalfFloor => js_string!("halfFloor"),
+                    _ => unreachable!("unhandled variant of `SignedRoundingMode`"),
+                },
                 Attribute::all(),
             )
             .property(
@@ -442,7 +456,7 @@ impl PluralRules {
 #[allow(unused)] // Will be used when we implement `selectRange`
 struct ResolvedPlural {
     category: PluralCategory,
-    formatted: Option<FixedDecimal>,
+    formatted: Option<Decimal>,
 }
 
 /// Abstract operation [`ResolvePlural ( pluralRules, n )`][spec]

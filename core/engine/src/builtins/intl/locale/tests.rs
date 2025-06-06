@@ -1,13 +1,12 @@
-use icu_datetime::{
-    options::preferences::HourCycle, pattern::CoarseHourCycle,
-    provider::calendar::TimeLengthsV1Marker,
-};
-use icu_locid::{
+use icu_decimal::provider::DecimalSymbolsV1;
+use icu_locale::{
     extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
-    locale, Locale,
+    locale, preferences::extensions::unicode::keywords::NumberingSystem, Locale,
 };
-use icu_plurals::provider::CardinalV1Marker;
-use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata};
+use icu_plurals::provider::PluralsCardinalV1;
+use icu_provider::{
+    DataIdentifierBorrowed, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
+};
 
 use crate::{
     builtins::intl::{
@@ -20,13 +19,13 @@ use crate::{
 
 #[derive(Debug)]
 struct TestOptions {
-    hc: Option<HourCycle>,
+    nu: Option<NumberingSystem>,
 }
 
 struct TestService;
 
 impl Service for TestService {
-    type LangMarker = CardinalV1Marker;
+    type LangMarker = PluralsCardinalV1;
 
     type LocaleOptions = TestOptions;
 
@@ -35,57 +34,42 @@ impl Service for TestService {
             .extensions
             .unicode
             .keywords
-            .get(&key!("hc"))
-            .and_then(Value::as_single_subtag)
-            .and_then(|s| match &**s {
-                "h11" => Some(HourCycle::H11),
-                "h12" => Some(HourCycle::H12),
-                "h23" => Some(HourCycle::H23),
-                "h24" => Some(HourCycle::H24),
-                _ => None,
-            });
-        let hc = options.hc.or(loc_hc).unwrap_or_else(|| {
+            .get(&key!("nu"))
+            .and_then(|v| NumberingSystem::try_from(v.clone()).ok());
+        let nu = options.nu.or(loc_hc).unwrap_or_else(|| {
+            let locale = &DataLocale::from(&*locale);
             let req = DataRequest {
-                locale: &DataLocale::from(&*locale),
+                id: DataIdentifierBorrowed::for_locale(locale),
                 metadata: DataRequestMetadata::default(),
             };
-            let preferred = DataProvider::<TimeLengthsV1Marker>::load(provider, req)
-                .unwrap()
-                .take_payload()
-                .unwrap()
-                .get()
-                .preferred_hour_cycle;
-            match preferred {
-                CoarseHourCycle::H11H12 => HourCycle::H11,
-                CoarseHourCycle::H23H24 => HourCycle::H23,
-            }
+            let data = DataProvider::<DecimalSymbolsV1>::load(provider, req).unwrap();
+            let preferred = data.payload.get().numsys();
+            NumberingSystem::try_from(Value::try_from_str(preferred).unwrap()).unwrap()
         });
-        let hc_value = match hc {
-            HourCycle::H11 => value!("h11"),
-            HourCycle::H12 => value!("h12"),
-            HourCycle::H23 => value!("h23"),
-            HourCycle::H24 => value!("h24"),
-        };
-        locale.extensions.unicode.keywords.set(key!("hc"), hc_value);
-        options.hc = Some(hc);
+        locale
+            .extensions
+            .unicode
+            .keywords
+            .set(key!("nu"), nu.into());
+        options.nu = Some(nu);
     }
 }
 
 #[test]
 fn locale_resolution() {
-    let provider = IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer());
+    let provider = IntlProvider::try_new_buffer(boa_icu_provider::buffer());
     let mut default = default_locale(provider.locale_canonicalizer().unwrap());
     default
         .extensions
         .unicode
         .keywords
-        .set(key!("hc"), value!("h11"));
+        .set(key!("nu"), value!("latn"));
 
     // test lookup
     let mut options = IntlOptions {
         matcher: LocaleMatcher::Lookup,
         service_options: TestOptions {
-            hc: Some(HourCycle::H11),
+            nu: Some(NumberingSystem::try_from(value!("latn")).unwrap()),
         },
     };
     let locale = resolve_locale::<TestService>([], &mut options, &provider).unwrap();
@@ -95,7 +79,7 @@ fn locale_resolution() {
     let mut options = IntlOptions {
         matcher: LocaleMatcher::BestFit,
         service_options: TestOptions {
-            hc: Some(HourCycle::H11),
+            nu: Some(NumberingSystem::try_from(value!("latn")).unwrap()),
         },
     };
 
@@ -105,10 +89,10 @@ fn locale_resolution() {
     // requested: [es-ES]
     let mut options = IntlOptions {
         matcher: LocaleMatcher::Lookup,
-        service_options: TestOptions { hc: None },
+        service_options: TestOptions { nu: None },
     };
 
     let locale =
-        resolve_locale::<TestService>([locale!("es-AR")], &mut options, &provider).unwrap();
-    assert_eq!(locale, "es-u-hc-h23".parse().unwrap());
+        resolve_locale::<TestService>([locale!("bn-Arab")], &mut options, &provider).unwrap();
+    assert_eq!(locale, "bn-u-nu-beng".parse().unwrap());
 }

@@ -2,9 +2,12 @@ use std::fmt::Write;
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
-use icu_locid::Locale;
-use icu_provider::DataLocale;
+use icu_list::{
+    options::{ListFormatterOptions, ListLength},
+    provider::ListAndV1,
+    ListFormatter, ListFormatterPreferences,
+};
+use icu_locale::Locale;
 
 use crate::{
     builtins::{
@@ -12,10 +15,7 @@ use crate::{
         options::{get_option, get_options_object},
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
-    context::{
-        icu::ErasedProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
@@ -45,7 +45,7 @@ pub(crate) struct ListFormat {
 }
 
 impl Service for ListFormat {
-    type LangMarker = AndListV1Marker;
+    type LangMarker = ListAndV1;
 
     type LocaleOptions = ();
 }
@@ -148,26 +148,24 @@ impl BuiltInConstructor for ListFormat {
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
         // 17. Let dataLocaleTypes be dataLocaleData.[[<type>]].
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[<style>]].
-        let data_locale = &DataLocale::from(&locale);
-        let formatter = match (typ, context.intl_provider().erased_provider()) {
-            (ListFormatType::Conjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_and_with_length_with_any_provider(a, data_locale, style)
-            }
-            (ListFormatType::Disjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_or_with_length_with_any_provider(a, data_locale, style)
-            }
-            (ListFormatType::Unit, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_unit_with_length_with_any_provider(a, data_locale, style)
-            }
-            (ListFormatType::Conjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_and_with_length_with_buffer_provider(b, data_locale, style)
-            }
-            (ListFormatType::Disjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_or_with_length_with_buffer_provider(b, data_locale, style)
-            }
-            (ListFormatType::Unit, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_unit_with_length_with_buffer_provider(b, data_locale, style)
-            }
+        let prefs = ListFormatterPreferences::from(&locale);
+        let options = ListFormatterOptions::default().with_length(style);
+        let formatter = match typ {
+            ListFormatType::Conjunction => ListFormatter::try_new_and_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
+            ListFormatType::Disjunction => ListFormatter::try_new_or_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
+            ListFormatType::Unit => ListFormatter::try_new_unit_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 

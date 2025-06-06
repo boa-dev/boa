@@ -27,7 +27,7 @@ use crate::{
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use icu_provider::KeyedDataMarker;
+use icu_provider::DataMarker;
 use static_assertions::const_assert;
 
 pub(crate) mod collator;
@@ -48,11 +48,11 @@ mod options;
 // No singletons are allowed as lang markers.
 // Hopefully, we'll be able to migrate this to the definition of `Service` in the future
 // (https://github.com/rust-lang/rust/issues/76560)
-const_assert! {!<Collator as Service>::LangMarker::KEY.metadata().singleton}
-const_assert! {!<ListFormat as Service>::LangMarker::KEY.metadata().singleton}
-const_assert! {!<NumberFormat as Service>::LangMarker::KEY.metadata().singleton}
-const_assert! {!<PluralRules as Service>::LangMarker::KEY.metadata().singleton}
-const_assert! {!<Segmenter as Service>::LangMarker::KEY.metadata().singleton}
+const_assert! {!<Collator as Service>::LangMarker::INFO.is_singleton}
+const_assert! {!<ListFormat as Service>::LangMarker::INFO.is_singleton}
+const_assert! {!<NumberFormat as Service>::LangMarker::INFO.is_singleton}
+const_assert! {!<PluralRules as Service>::LangMarker::INFO.is_singleton}
+const_assert! {!<Segmenter as Service>::LangMarker::INFO.is_singleton}
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -188,7 +188,7 @@ impl Intl {
 trait Service {
     /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
     /// which locales are supported by this service.
-    type LangMarker: KeyedDataMarker;
+    type LangMarker: DataMarker;
 
     /// The set of options used in the [`Service::resolve`] method to resolve the provided
     /// locale.
@@ -206,7 +206,7 @@ trait Service {
     /// - If the implementor service doesn't contain any `[[RelevantExtensionKeys]]`, this can be
     ///   skipped.
     fn resolve(
-        _locale: &mut icu_locid::Locale,
+        _locale: &mut icu_locale::Locale,
         _options: &mut Self::LocaleOptions,
         _provider: &IntlProvider,
     ) {
