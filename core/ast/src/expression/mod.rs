@@ -308,7 +308,7 @@ impl Expression {
             Self::PropertyAccess(prop) => span,
             Self::New(new) => span,
             Self::Call(call) => call.span(),
-            Self::SuperCall(supc) => span,
+            Self::SuperCall(supc) => supc.span(),
             Self::ImportCall(impc) => span,
             Self::Optional(opt) => span,
             Self::NewTarget => span,

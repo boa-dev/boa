@@ -146,8 +146,9 @@ where
                         {
                             Arguments::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?
+                                .0
                         }
-                        _ => Box::new([]),
+                        _ => Box::default(),
                     };
                     let call_node = Call::new(lhs_inner, args);
 

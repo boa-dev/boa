@@ -115,21 +115,32 @@ impl VisitWith for Call {
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperCall {
     args: Box<[Expression]>,
+    span: Span,
 }
 
 impl SuperCall {
     /// Creates a new `SuperCall` AST node.
-    pub fn new<A>(args: A) -> Self
+    pub fn new<A>(args: A, span: Span) -> Self
     where
         A: Into<Box<[Expression]>>,
     {
-        Self { args: args.into() }
+        Self {
+            args: args.into(),
+            span,
+        }
     }
 
     /// Retrieves the arguments of the super call.
     #[must_use]
     pub const fn arguments(&self) -> &[Expression] {
         &self.args
+    }
+
+    /// Get the [`Span`] of the [`SuperCall`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 
