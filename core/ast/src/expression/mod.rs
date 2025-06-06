@@ -309,7 +309,7 @@ impl Expression {
             Self::New(new) => span,
             Self::Call(call) => call.span(),
             Self::SuperCall(supc) => supc.span(),
-            Self::ImportCall(impc) => span,
+            Self::ImportCall(impc) => impc.span(),
             Self::Optional(opt) => span,
             Self::NewTarget => span,
             Self::ImportMeta => span,

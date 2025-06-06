@@ -122,7 +122,7 @@ where
             let (args, args_span) =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
             SuperCall::new(args, Span::new(start, args_span.end())).into()
-        } else if let Some(_start) = is_keyword_call(Keyword::Import, cursor, interner)? {
+        } else if let Some(start) = is_keyword_call(Keyword::Import, cursor, interner)? {
             // `import`
             cursor.advance(interner);
             // `(`
@@ -131,16 +131,19 @@ where
             let arg = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::CloseParen),
-                "import call",
-                interner,
-            )?;
+            let end = cursor
+                .expect(
+                    TokenKind::Punctuator(Punctuator::CloseParen),
+                    "import call",
+                    interner,
+                )?
+                .span()
+                .end();
 
             CallExpressionTail::new(
                 self.allow_yield,
                 self.allow_await,
-                ImportCall::new(arg).into(),
+                ImportCall::new(arg, Span::new(start, end)).into(),
             )
             .parse(cursor, interner)?
         } else {

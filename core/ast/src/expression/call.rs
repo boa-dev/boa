@@ -195,16 +195,18 @@ impl VisitWith for SuperCall {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ImportCall {
     arg: Box<Expression>,
+    span: Span,
 }
 
 impl ImportCall {
     /// Creates a new `ImportCall` AST node.
-    pub fn new<A>(arg: A) -> Self
+    pub fn new<A>(arg: A, span: Span) -> Self
     where
         A: Into<Expression>,
     {
         Self {
             arg: Box::new(arg.into()),
+            span,
         }
     }
 
@@ -212,6 +214,13 @@ impl ImportCall {
     #[must_use]
     pub const fn argument(&self) -> &Expression {
         &self.arg
+    }
+
+    /// Get the [`Span`] of the [`ImportCall`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 
