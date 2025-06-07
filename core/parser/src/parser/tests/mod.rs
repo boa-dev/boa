@@ -153,12 +153,15 @@ fn hoisting() {
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    [Statement::Return(Return::new(Some(
-                        Literal::new(10, Span::new((4, 27), (4, 29))).into(),
-                    )))
-                    .into()],
-                    PSEUDO_LINEAR_POS,
-                    false,
+                    StatementList::new(
+                        [Statement::Return(Return::new(Some(
+                            Literal::new(10, Span::new((4, 27), (4, 29))).into(),
+                        )))
+                        .into()],
+                        PSEUDO_LINEAR_POS,
+                        false,
+                    ),
+                    Span::new((4, 18), (4, 31)),
                 ),
                 EMPTY_LINEAR_SPAN,
             ))
@@ -521,11 +524,11 @@ fn spread_in_object() {
 
 #[test]
 fn spread_in_arrow_function() {
-    let s = r#"
-    (...b) => {
-        b
-    }
-    "#;
+    let s = indoc! {r#"
+        (...b) => {
+            b
+        }
+    "#};
 
     let interner = &mut Interner::default();
     let b = interner.get_or_intern_static("b", utf16!("b"));
@@ -541,9 +544,12 @@ fn spread_in_arrow_function() {
             None,
             params,
             FunctionBody::new(
-                [Statement::Expression(Expression::from(Identifier::from(b))).into()],
-                PSEUDO_LINEAR_POS,
-                false,
+                StatementList::new(
+                    [Statement::Expression(Expression::from(Identifier::from(b))).into()],
+                    PSEUDO_LINEAR_POS,
+                    false,
+                ),
+                Span::new((1, 11), (3, 2)),
             ),
             EMPTY_LINEAR_SPAN,
         )))

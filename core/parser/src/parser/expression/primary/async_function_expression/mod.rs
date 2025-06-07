@@ -86,15 +86,9 @@ where
             "async function expression",
             interner,
         )?;
-        cursor.expect(Punctuator::OpenBlock, "async function expression", interner)?;
 
-        let body = FunctionBody::new(false, true).parse(cursor, interner)?;
-
-        cursor.expect(
-            Punctuator::CloseBlock,
-            "async function expression",
-            interner,
-        )?;
+        let body =
+            FunctionBody::new(false, true, "async function expression").parse(cursor, interner)?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.

@@ -87,11 +87,9 @@ where
         let params = FormalParameters::new(true, false).parse(cursor, interner)?;
 
         cursor.expect(Punctuator::CloseParen, "generator expression", interner)?;
-        cursor.expect(Punctuator::OpenBlock, "generator expression", interner)?;
 
-        let body = FunctionBody::new(true, false).parse(cursor, interner)?;
-
-        cursor.expect(Punctuator::CloseBlock, "generator expression", interner)?;
+        let body =
+            FunctionBody::new(true, false, "generator expression").parse(cursor, interner)?;
 
         // If the source text matched by FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.

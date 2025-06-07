@@ -252,7 +252,9 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         allow_yield: bool,
         allow_await: bool,
     ) -> ParseResult<FunctionBody> {
-        FunctionStatementList::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
+        let mut parser = FunctionStatementList::new(allow_yield, allow_await, "function body");
+        parser.parse_full_input(true);
+        parser.parse(&mut self.cursor, interner)
     }
 
     /// Parses the full input as an [ECMAScript `FormalParameterList`][spec] into the boa AST representation.

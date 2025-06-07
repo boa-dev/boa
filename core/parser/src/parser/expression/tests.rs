@@ -11,7 +11,7 @@ use boa_ast::{
         Call, Identifier, Parenthesized, RegExpLiteral,
     },
     function::{AsyncArrowFunction, FormalParameter, FormalParameterList, FunctionBody},
-    Declaration, Expression, LinearPosition, LinearSpan, Span, Statement,
+    Declaration, Expression, LinearPosition, LinearSpan, Span, Statement, StatementList,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -703,7 +703,7 @@ fn parse_async_arrow_function_named_of() {
                     ),
                     false,
                 )]),
-                FunctionBody::default(),
+                FunctionBody::new(StatementList::default(), Span::new((1, 13), (1, 15))),
                 LinearSpan::new(LinearPosition::default(), LinearPosition::default()),
             )))
             .into(),

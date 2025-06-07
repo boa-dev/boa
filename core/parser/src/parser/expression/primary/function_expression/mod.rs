@@ -82,11 +82,9 @@ where
         let params = FormalParameters::new(false, false).parse(cursor, interner)?;
 
         cursor.expect(Punctuator::CloseParen, "function expression", interner)?;
-        cursor.expect(Punctuator::OpenBlock, "function expression", interner)?;
 
-        let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-
-        cursor.expect(Punctuator::CloseBlock, "function expression", interner)?;
+        let body =
+            FunctionBody::new(false, false, "function expression").parse(cursor, interner)?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.

@@ -11,7 +11,7 @@ use boa_ast::{
         FormalParameterList, FunctionBody, FunctionExpression,
     },
     property::{MethodDefinitionKind, PropertyName},
-    Declaration, Expression, Span, Statement, StatementListItem,
+    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -26,17 +26,18 @@ fn check_async_ordinary_method() {
             interner.get_or_intern_static("async", utf16!("async")),
         )),
         FormalParameterList::default(),
-        FunctionBody::default(),
+        FunctionBody::new(StatementList::default(), Span::new((2, 13), (2, 16))),
         MethodDefinitionKind::Ordinary,
         false,
         boa_ast::LinearPosition::default(),
     ))];
 
     check_script_parser(
-        "class A {
-            async() { }
-         }
-        ",
+        indoc! {r#"
+            class A {
+                async() { }
+            }
+        "#},
         [Declaration::ClassDeclaration(ClassDeclaration::new(
             interner.get_or_intern_static("A", utf16!("A")).into(),
             None,
@@ -125,9 +126,12 @@ fn check_new_target_with_property_access() {
         Some(interner.get_or_intern_static("A", utf16!("A")).into()),
         FormalParameterList::default(),
         FunctionBody::new(
-            [Statement::Expression(console).into()],
-            boa_ast::LinearPosition::new(0),
-            false,
+            StatementList::new(
+                [Statement::Expression(console).into()],
+                boa_ast::LinearPosition::new(0),
+                false,
+            ),
+            Span::new((2, 19), (4, 6)),
         ),
         None,
         false,
@@ -165,14 +169,14 @@ fn check_new_target_with_property_access() {
     ];
 
     check_script_parser(
-        r#"
+        indoc! {r#"
             class A {
                 constructor() {
                     console.log(new.target.name);
                 }
             }
             const a = new A();
-        "#,
+        "#},
         script,
         interner,
     );

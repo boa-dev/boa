@@ -7,7 +7,7 @@ use boa_ast::{
     },
     function::{FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionBody},
     property::{MethodDefinitionKind, PropertyName},
-    Declaration, Span,
+    Declaration, Span, StatementList,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -64,7 +64,7 @@ fn check_object_short_function() {
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
             FormalParameterList::default(),
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((3, 9), (3, 11))),
             MethodDefinitionKind::Ordinary,
             PSEUDO_LINEAR_POS,
         )),
@@ -114,7 +114,7 @@ fn check_object_short_function_arguments() {
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
             parameters,
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((3, 13), (3, 15))),
             MethodDefinitionKind::Ordinary,
             PSEUDO_LINEAR_POS,
         )),
@@ -152,7 +152,7 @@ fn check_object_getter() {
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
             FormalParameterList::default(),
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((3, 13), (3, 15))),
             MethodDefinitionKind::Get,
             PSEUDO_LINEAR_POS,
         )),
@@ -201,7 +201,7 @@ fn check_object_setter() {
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
             interner.get_or_intern_static("b", utf16!("b")).into(),
             params,
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((3, 17), (3, 19))),
             MethodDefinitionKind::Set,
             PSEUDO_LINEAR_POS,
         )),
@@ -235,7 +235,7 @@ fn check_object_short_function_get() {
         ObjectMethodDefinition::new(
             Sym::GET.into(),
             FormalParameterList::default(),
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((2, 11), (2, 13))),
             MethodDefinitionKind::Ordinary,
             PSEUDO_LINEAR_POS,
         ),
@@ -268,7 +268,7 @@ fn check_object_short_function_set() {
         ObjectMethodDefinition::new(
             Sym::SET.into(),
             FormalParameterList::default(),
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((2, 11), (2, 13))),
             MethodDefinitionKind::Ordinary,
             PSEUDO_LINEAR_POS,
         ),
@@ -419,7 +419,7 @@ fn check_async_method() {
         ObjectMethodDefinition::new(
             PropertyName::Literal(interner.get_or_intern_static("dive", utf16!("dive"))),
             FormalParameterList::default(),
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((2, 18), (2, 20))),
             MethodDefinitionKind::Async,
             PSEUDO_LINEAR_POS,
         ),
@@ -452,7 +452,7 @@ fn check_async_generator_method() {
         ObjectMethodDefinition::new(
             PropertyName::Literal(interner.get_or_intern_static("vroom", utf16!("vroom"))),
             FormalParameterList::default(),
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((2, 20), (2, 22))),
             MethodDefinitionKind::AsyncGenerator,
             PSEUDO_LINEAR_POS,
         ),
@@ -507,7 +507,7 @@ fn check_async_ordinary_method() {
         ObjectMethodDefinition::new(
             PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
             FormalParameterList::default(),
-            FunctionBody::default(),
+            FunctionBody::new(StatementList::default(), Span::new((2, 13), (2, 15))),
             MethodDefinitionKind::Ordinary,
             PSEUDO_LINEAR_POS,
         ),

@@ -119,19 +119,9 @@ where
             "async generator expression",
             interner,
         )?;
-        cursor.expect(
-            Punctuator::OpenBlock,
-            "async generator expression",
-            interner,
-        )?;
 
-        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-
-        cursor.expect(
-            Punctuator::CloseBlock,
-            "async generator expression",
-            interner,
-        )?;
+        let body =
+            FunctionBody::new(true, true, "async generator expression").parse(cursor, interner)?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.

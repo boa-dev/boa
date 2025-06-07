@@ -372,17 +372,8 @@ where
                     interner,
                 )?;
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "get method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "get method definition",
-                    interner,
-                )?;
+                let body = FunctionBody::new(false, false, "get method definition")
+                    .parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 if has_direct_super_new(&FormalParameterList::default(), &body) {
@@ -431,17 +422,8 @@ where
                     interner,
                 )?;
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "set method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "set method definition",
-                    interner,
-                )?;
+                let body = FunctionBody::new(false, false, "set method definition")
+                    .parse(cursor, interner)?;
 
                 // Catch early error for BindingIdentifier.
                 if body.strict() && contains(&params, ContainsSymbol::EvalOrArguments) {
@@ -515,17 +497,8 @@ where
                     )));
                 }
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "method definition",
-                    interner,
-                )?;
+                let body =
+                    FunctionBody::new(false, false, "method definition").parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of UniqueFormalParameters is false.
@@ -793,20 +766,10 @@ where
             )));
         }
 
-        let body_start = cursor
-            .expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "generator method definition",
-                interner,
-            )?
-            .span()
-            .start();
-        let body = FunctionBody::new(true, false).parse(cursor, interner)?;
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::CloseBlock),
-            "generator method definition",
-            interner,
-        )?;
+        let body = FunctionBody::new(true, false, "generator method definition")
+            .parse(cursor, interner)?;
+
+        let body_start = body.span().start();
 
         // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
         // and IsSimpleParameterList of UniqueFormalParameters is false.
@@ -903,20 +866,10 @@ where
             )));
         }
 
-        let body_start = cursor
-            .expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "async generator method definition",
-                interner,
-            )?
-            .span()
-            .start();
-        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::CloseBlock),
-            "async generator method definition",
-            interner,
-        )?;
+        let body = FunctionBody::new(true, true, "async generator method definition")
+            .parse(cursor, interner)?;
+
+        let body_start = body.span().start();
 
         // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
         // and IsSimpleParameterList of UniqueFormalParameters is false.
@@ -990,20 +943,10 @@ where
 
         let params = UniqueFormalParameters::new(false, true).parse(cursor, interner)?;
 
-        let body_start = cursor
-            .expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "async method definition",
-                interner,
-            )?
-            .span()
-            .start();
-        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::CloseBlock),
-            "async method definition",
-            interner,
-        )?;
+        let body =
+            FunctionBody::new(true, true, "async method definition").parse(cursor, interner)?;
+
+        let body_start = body.span().start();
 
         // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of AsyncFunctionBody
         // is true and IsSimpleParameterList of UniqueFormalParameters is false.

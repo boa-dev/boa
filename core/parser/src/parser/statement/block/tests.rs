@@ -14,7 +14,7 @@ use boa_ast::{
     },
     function::{FormalParameterList, FunctionBody, FunctionDeclaration},
     statement::{Block, Return},
-    Declaration, Expression, Span, Statement, StatementListItem,
+    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -91,11 +91,14 @@ fn non_empty() {
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    [StatementListItem::Statement(Statement::Return(
-                        Return::new(Some(Literal::new(10, Span::new((3, 16), (3, 18))).into())),
-                    ))],
-                    PSEUDO_LINEAR_POS,
-                    false,
+                    StatementList::new(
+                        [StatementListItem::Statement(Statement::Return(
+                            Return::new(Some(Literal::new(10, Span::new((3, 16), (3, 18))).into())),
+                        ))],
+                        PSEUDO_LINEAR_POS,
+                        false,
+                    ),
+                    Span::new((2, 22), (4, 6)),
                 ),
                 EMPTY_LINEAR_SPAN,
             ))
@@ -152,11 +155,14 @@ fn hoisting() {
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    [StatementListItem::Statement(Statement::Return(
-                        Return::new(Some(Literal::new(10, Span::new((5, 31), (5, 33))).into())),
-                    ))],
-                    PSEUDO_LINEAR_POS,
-                    false,
+                    StatementList::new(
+                        [StatementListItem::Statement(Statement::Return(
+                            Return::new(Some(Literal::new(10, Span::new((5, 31), (5, 33))).into())),
+                        ))],
+                        PSEUDO_LINEAR_POS,
+                        false,
+                    ),
+                    Span::new((5, 22), (5, 35)),
                 ),
                 EMPTY_LINEAR_SPAN,
             ))

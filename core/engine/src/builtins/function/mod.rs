@@ -43,6 +43,7 @@ use boa_ast::{
         ContainsSymbol,
     },
     scope::BindingLocatorScope,
+    Span, StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
@@ -535,7 +536,7 @@ impl BuiltInFunctionObject {
         };
 
         let body = if body.is_empty() {
-            FunctionBody::default()
+            FunctionBody::new(StatementList::default(), Span::new((1, 1), (1, 1)))
         } else {
             // 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
             let mut body_parse = Vec::with_capacity(body.len());

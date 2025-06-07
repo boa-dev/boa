@@ -1,4 +1,8 @@
-use std::{cmp::Ordering, fmt, num::NonZeroU32};
+use std::{
+    cmp::Ordering,
+    fmt::{self, Debug},
+    num::NonZeroU32,
+};
 
 /// A position in the ECMAScript source code.
 ///
@@ -130,10 +134,23 @@ impl fmt::Display for LinearPosition {
 /// Note that spans are of the form [start, end) i.e. that the start position is inclusive
 /// and the end position is exclusive.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Span {
     start: Position,
     end: Position,
+}
+
+impl Debug for Span {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Span(({}, {}), ({}, {}))",
+            self.start.line_number,
+            self.start.column_number,
+            self.end.line_number,
+            self.end.column_number,
+        )
+    }
 }
 
 impl Span {
