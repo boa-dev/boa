@@ -6,7 +6,6 @@ use std::{cell::Cell, path::Path, rc::Rc};
 use boa_ast::StatementList;
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
-use boa_profiler::Profiler;
 pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
@@ -198,15 +197,7 @@ impl Context {
     /// on the context or [`JobExecutor::run_jobs`] on the provided queue to run them.
     #[allow(clippy::unit_arg, dropping_copy_types)]
     pub fn eval<R: ReadChar>(&mut self, src: Source<'_, R>) -> JsResult<JsValue> {
-        let main_timer = Profiler::global().start_event("Script evaluation", "Main");
-
-        let result = Script::parse(src, None, self)?.evaluate(self);
-
-        // The main_timer needs to be dropped before the Profiler is.
-        drop(main_timer);
-        Profiler::global().drop();
-
-        result
+        Script::parse(src, None, self)?.evaluate(self)
     }
 
     /// Applies optimizations to the [`StatementList`] inplace.
@@ -1076,7 +1067,6 @@ impl ContextBuilder {
     // TODO: try to use a custom error here, since most of the `JsError` APIs
     // require having a `Context` in the first place.
     pub fn build(self) -> JsResult<Context> {
-        let _timer = Profiler::global().start_event("Ctx::build", "context");
         if self.can_block {
             if CANNOT_BLOCK_COUNTER.get() > 0 {
                 return Err(JsNativeError::typ()

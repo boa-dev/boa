@@ -21,7 +21,6 @@ use crate::{
 };
 use boa_ast::{statement::Continue, Keyword, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// For statement parsing
 ///
@@ -58,7 +57,6 @@ where
     type Output = Continue;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ContinueStatement", "Parsing");
         cursor.expect((Keyword::Continue, false), "continue statement", interner)?;
 
         let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {

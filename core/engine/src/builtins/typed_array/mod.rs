@@ -26,7 +26,6 @@ use crate::{
     Context, JsArgs, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 mod builtin;
 mod element;
@@ -47,8 +46,6 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
     }
 
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_species = BuiltInBuilder::callable(realm, BuiltinTypedArray::get_species)
             .name(js_string!("get [Symbol.species]"))
             .build();

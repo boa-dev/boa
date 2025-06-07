@@ -21,7 +21,6 @@ use crate::{
 };
 use boa_ast::{statement::Break, Keyword, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Break statement parsing
 ///
@@ -58,7 +57,6 @@ where
     type Output = Break;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect((Keyword::Break, false), "break statement", interner)?;
 
         let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {

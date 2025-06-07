@@ -37,7 +37,6 @@ use crate::{
     string::StaticJsStrings,
     Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_profiler::Profiler;
 use temporal_rs::options::RelativeTo;
 use temporal_rs::{
     primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
@@ -70,8 +69,6 @@ impl BuiltInObject for Temporal {
 
 impl IntrinsicObject for Temporal {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),

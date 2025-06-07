@@ -1,5 +1,4 @@
 use crate::{builtins::options::get_option, realm::Realm, string::StaticJsStrings};
-use boa_profiler::Profiler;
 use icu_locale::{
     extensions::unicode::Value,
     extensions_unicode_key as key, extensions_unicode_value as value,
@@ -31,8 +30,6 @@ pub(crate) struct Locale;
 
 impl IntrinsicObject for Locale {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let base_name = BuiltInBuilder::callable(realm, Self::base_name)
             .name(js_string!("get baseName"))
             .build();

@@ -22,7 +22,6 @@ use crate::{
 };
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_calendar::preferences::CalendarAlgorithm;
 use icu_datetime::preferences::HourCycle;
 use icu_locale::extensions::unicode::Value;
@@ -53,8 +52,6 @@ pub(crate) struct DateTimeFormat {
 
 impl IntrinsicObject for DateTimeFormat {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm).build();
     }
 
