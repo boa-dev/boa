@@ -442,7 +442,7 @@ fn assignment_multiline_terminator() {
 
 #[test]
 fn bracketed_expr() {
-    let s = r#"(b)"#;
+    let s = "(b)";
 
     let interner = &mut Interner::default();
     check_script_parser(
@@ -450,6 +450,7 @@ fn bracketed_expr() {
         vec![Statement::Expression(
             Parenthesized::new(
                 Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Span::new((1, 1), (1, 4)),
             )
             .into(),
         )
@@ -460,7 +461,7 @@ fn bracketed_expr() {
 
 #[test]
 fn increment_in_comma_op() {
-    let s = r#"(b++, b)"#;
+    let s = "(b++, b)";
 
     let interner = &mut Interner::default();
     let b = interner.get_or_intern_static("b", utf16!("b"));
@@ -478,6 +479,7 @@ fn increment_in_comma_op() {
                     Identifier::new(b).into(),
                 )
                 .into(),
+                Span::new((1, 1), (1, 9)),
             )
             .into(),
         )

@@ -49,8 +49,8 @@ fn check_destructuring_assignment_object_assignment_operator() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
         "({ a: a = 0 } = 0);",
-        vec![
-            Statement::Expression(Expression::Parenthesized(Parenthesized::new(
+        vec![Statement::Expression(
+            Parenthesized::new(
                 Expression::Assign(Assign::new(
                     AssignOp::Assign,
                     AssignTarget::Pattern(Pattern::Object(ObjectPattern::from(vec![
@@ -62,9 +62,11 @@ fn check_destructuring_assignment_object_assignment_operator() {
                     ]))),
                     Literal::new(0, Span::new((1, 17), (1, 18))).into(),
                 )),
-            )))
+                Span::new((1, 1), (1, 19)),
+            )
             .into(),
-        ],
+        )
+        .into()],
         interner,
     );
 }
@@ -94,8 +96,8 @@ fn check_destructuring_assignment_array_assignment_operator() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
         "([ a = 0 ] = []);",
-        vec![
-            Statement::Expression(Expression::Parenthesized(Parenthesized::new(
+        vec![Statement::Expression(
+            Parenthesized::new(
                 Expression::Assign(Assign::new(
                     AssignOp::Assign,
                     AssignTarget::Pattern(Pattern::Array(ArrayPattern::from(vec![
@@ -106,9 +108,11 @@ fn check_destructuring_assignment_array_assignment_operator() {
                     ]))),
                     ArrayLiteral::new([], false, Span::new((1, 14), (1, 16))).into(),
                 )),
-            )))
+                Span::new((1, 1), (1, 17)),
+            )
             .into(),
-        ],
+        )
+        .into()],
         interner,
     );
 }

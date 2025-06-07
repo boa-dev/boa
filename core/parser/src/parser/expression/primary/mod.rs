@@ -168,8 +168,6 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                cursor.advance(interner);
-                cursor.set_goal(InputElement::RegExp);
                 let expr = CoverParenthesizedExpressionAndArrowParameterList::new(
                     self.allow_yield,
                     self.allow_await,
@@ -330,7 +328,15 @@ where
             "Parsing",
         );
 
-        let start_span = cursor.peek(0, interner).or_abrupt()?.span();
+        let span_start = cursor
+            .expect(
+                Punctuator::OpenParen,
+                "parenthesis expression or arrow function",
+                interner,
+            )?
+            .span();
+
+        cursor.set_goal(InputElement::RegExp);
 
         let mut expressions = Vec::new();
         let mut tailing_comma = None;
@@ -488,6 +494,7 @@ where
             if let InnerExpression::Expression(expression) = &expressions[0] {
                 return Ok(ast::Expression::Parenthesized(Parenthesized::new(
                     expression.clone(),
+                    Span::new(span_start.start(), span.end()),
                 )));
             }
             return Err(Error::unexpected(
@@ -509,7 +516,7 @@ where
                         &node,
                         &mut parameters,
                         cursor.strict(),
-                        start_span,
+                        span_start,
                     )?;
                 }
                 InnerExpression::SpreadObject(bindings) => {
@@ -544,7 +551,7 @@ where
         if contains(&parameters, ContainsSymbol::YieldExpression) {
             return Err(Error::general(
                 "yield expression is not allowed in formal parameter list of arrow function",
-                start_span.start(),
+                span_start.start(),
             ));
         }
 
