@@ -301,7 +301,7 @@ impl Expression {
             Self::AsyncArrowFunction(f) => span,
             Self::ArrowFunction(arrf) => span,
             Self::ClassExpression(cl) => span,
-            Self::GeneratorExpression(gen) => span,
+            Self::GeneratorExpression(gen) => gen.span(),
             Self::AsyncFunctionExpression(asf) => span,
             Self::AsyncGeneratorExpression(asgen) => span,
             Self::TemplateLiteral(tem) => span,

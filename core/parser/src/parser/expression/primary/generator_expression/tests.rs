@@ -45,6 +45,7 @@ fn check_generator_function_expression() {
                         ),
                         EMPTY_LINEAR_SPAN,
                         false,
+                        Span::new((1, 13), (3, 2)),
                     )
                     .into(),
                 ),
@@ -89,6 +90,7 @@ fn check_generator_function_delegate_yield_expression() {
                         ),
                         EMPTY_LINEAR_SPAN,
                         false,
+                        Span::new((1, 13), (3, 2)),
                     )
                     .into(),
                 ),
