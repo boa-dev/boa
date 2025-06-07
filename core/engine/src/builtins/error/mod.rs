@@ -23,7 +23,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use boa_profiler::Profiler;
 
 pub(crate) mod aggregate;
 pub(crate) mod eval;
@@ -129,8 +128,6 @@ pub enum Error {
 
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(js_string!("name"), Self::NAME, attribute)

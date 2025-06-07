@@ -1,7 +1,6 @@
 use std::ops::Range;
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_collator::provider::CollationDiacriticsV1;
 use icu_locale::Locale;
 use icu_segmenter::{
@@ -101,8 +100,6 @@ impl Service for Segmenter {
 
 impl IntrinsicObject for Segmenter {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(
                 Self::supported_locales_of,

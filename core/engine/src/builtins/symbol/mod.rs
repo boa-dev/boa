@@ -33,7 +33,6 @@ use crate::{
     value::JsValue,
     Context, JsArgs, JsResult, JsString,
 };
-use boa_profiler::Profiler;
 use dashmap::DashMap;
 use rustc_hash::FxHasher;
 
@@ -95,8 +94,6 @@ pub struct Symbol;
 
 impl IntrinsicObject for Symbol {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let symbol_async_iterator = JsSymbol::async_iterator();
         let symbol_has_instance = JsSymbol::has_instance();
         let symbol_is_concat_spreadable = JsSymbol::is_concat_spreadable();

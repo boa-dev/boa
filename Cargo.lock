@@ -353,7 +353,6 @@ dependencies = [
  "boa_interner",
  "boa_macros",
  "boa_parser",
- "boa_profiler",
  "boa_string",
  "bytemuck",
  "cfg-if",
@@ -436,7 +435,6 @@ name = "boa_gc"
 version = "0.20.0"
 dependencies = [
  "boa_macros",
- "boa_profiler",
  "boa_string",
  "hashbrown 0.15.4",
  "icu_locale_core",
@@ -520,21 +518,11 @@ dependencies = [
  "boa_ast",
  "boa_interner",
  "boa_macros",
- "boa_profiler",
  "fast-float2",
  "icu_properties",
  "num-bigint",
  "num-traits",
  "regress",
- "rustc-hash 2.1.1",
-]
-
-[[package]]
-name = "boa_profiler"
-version = "0.20.0"
-dependencies = [
- "measureme",
- "once_cell",
  "rustc-hash 2.1.1",
 ]
 
@@ -2383,33 +2371,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "measureme"
-version = "12.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "570a507d8948a66a97f42cbbaf8a6bb9516a51017d4ee949502ad7a10a864395"
-dependencies = [
- "log",
- "memmap2",
- "parking_lot",
- "perf-event-open-sys",
- "rustc-hash 1.1.0",
- "smallvec",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
-
-[[package]]
-name = "memmap2"
-version = "0.2.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "723e3ebdcdc5c023db1df315364573789f8857c11b631a2fdfad7c00f5c046b4"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "memoffset"
@@ -2709,15 +2674,6 @@ name = "percent-encoding"
 version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
-
-[[package]]
-name = "perf-event-open-sys"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b29be2ba35c12c6939f6bc73187f728bba82c3c062ecdc5fa90ea739282a1f58"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "phf"

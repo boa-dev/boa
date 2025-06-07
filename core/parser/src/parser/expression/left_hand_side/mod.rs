@@ -38,7 +38,6 @@ use boa_ast::{
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses a left hand side expression.
 ///
@@ -111,8 +110,6 @@ where
             }
             Ok(false)
         }
-
-        let _timer = Profiler::global().start_event("LeftHandSideExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
 

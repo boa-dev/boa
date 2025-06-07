@@ -19,7 +19,6 @@ use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 use super::iterable::IteratorHint;
 
@@ -34,7 +33,6 @@ impl IntrinsicObject for WeakSet {
     }
 
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),
@@ -177,7 +175,7 @@ impl WeakSet {
 
     /// `WeakSet.prototype.delete( value )`
     ///
-    /// The `delete()` method removes the specified element from a `WeakSet` object.  
+    /// The `delete()` method removes the specified element from a `WeakSet` object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

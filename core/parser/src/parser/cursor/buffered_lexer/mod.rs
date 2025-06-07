@@ -6,7 +6,6 @@ use crate::{
 };
 use boa_ast::{LinearPosition, PositionGroup};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;
@@ -79,7 +78,6 @@ where
 {
     /// Sets the goal symbol for the lexer.
     pub(super) fn set_goal(&mut self, elm: InputElement) {
-        let _timer = Profiler::global().start_event("cursor::set_goal()", "Parsing");
         self.lexer.set_goal(elm);
     }
 
@@ -91,7 +89,6 @@ where
         interner: &mut Interner,
         init_with_eq: bool,
     ) -> ParseResult<Token> {
-        let _timer = Profiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
         self.lexer
             .lex_slash_token(start, interner, init_with_eq)

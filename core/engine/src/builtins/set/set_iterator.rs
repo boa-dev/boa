@@ -20,7 +20,6 @@ use crate::{
     Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 /// The Set Iterator object represents an iteration over a set. It implements the iterator protocol.
 ///
@@ -39,8 +38,6 @@ pub(crate) struct SetIterator {
 
 impl IntrinsicObject for SetIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm

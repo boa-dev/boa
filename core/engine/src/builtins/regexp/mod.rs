@@ -25,7 +25,6 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_macros::{js_str, utf16};
 use boa_parser::lexer::regex::RegExpFlags;
-use boa_profiler::Profiler;
 use regress::{Flags, Range, Regex};
 use std::str::FromStr;
 
@@ -50,8 +49,6 @@ pub struct RegExp {
 
 impl IntrinsicObject for RegExp {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name(js_string!("get [Symbol.species]"))
             .build();

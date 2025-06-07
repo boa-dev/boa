@@ -24,7 +24,6 @@ use boa_ast::{
     statement, Punctuator,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
 /// The possible `TokenKind` which indicate the end of a block statement.
@@ -76,7 +75,6 @@ where
     type Output = statement::Block;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block", interner)?;
         if let Some(tk) = cursor.peek(0, interner)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {

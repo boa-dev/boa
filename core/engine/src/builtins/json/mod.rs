@@ -36,7 +36,6 @@ use crate::{
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -49,8 +48,6 @@ pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 

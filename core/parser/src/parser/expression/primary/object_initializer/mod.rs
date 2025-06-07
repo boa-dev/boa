@@ -42,7 +42,6 @@ use boa_ast::{
     Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses an object literal.
 ///
@@ -79,7 +78,6 @@ where
     type Output = literal::ObjectLiteral;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ObjectLiteral", "Parsing");
         let mut elements = Vec::new();
 
         let mut has_proto = false;
@@ -173,8 +171,6 @@ where
     type Output = PropertyDefinitionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("PropertyDefinition", "Parsing");
-
         match cursor.peek(1, interner).or_abrupt()?.kind() {
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) => {
                 let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
@@ -596,8 +592,6 @@ where
     type Output = PropertyNameNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("PropertyName", "Parsing");
-
         let token = cursor.peek(0, interner).or_abrupt()?;
         let name = match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
@@ -671,8 +665,6 @@ where
     type Output = ClassElementNameNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ClassElementName", "Parsing");
-
         let token = cursor.peek(0, interner).or_abrupt()?;
         match token.kind() {
             TokenKind::PrivateIdentifier(ident) => {
@@ -723,8 +715,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Initializer", "Parsing");
-
         cursor.expect(Punctuator::Assign, "initializer", interner)?;
         AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)
@@ -764,7 +754,6 @@ where
     type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("GeneratorMethod", "Parsing");
         cursor.expect(Punctuator::Mul, "generator method definition", interner)?;
 
         let class_element_name =
@@ -860,7 +849,6 @@ where
     type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("AsyncGeneratorMethod", "Parsing");
         cursor.expect(
             Punctuator::Mul,
             "async generator method definition",
@@ -970,8 +958,6 @@ where
     type Output = (ClassElementNameNode, FormalParameterList, FunctionBodyAst);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("AsyncMethod", "Parsing");
-
         let class_element_name =
             ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
@@ -1057,8 +1043,6 @@ where
     type Output = PropertyDefinitionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("CoverInitializedName", "Parsing");
-
         let ident =
             IdentifierReference::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 

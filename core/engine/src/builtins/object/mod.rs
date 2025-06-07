@@ -36,7 +36,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
 pub(crate) mod for_in_iterator;
@@ -50,8 +49,6 @@ pub struct OrdinaryObject;
 
 impl IntrinsicObject for OrdinaryObject {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let legacy_proto_getter = BuiltInBuilder::callable(realm, Self::legacy_proto_getter)
             .name(js_string!("get __proto__"))
             .build();

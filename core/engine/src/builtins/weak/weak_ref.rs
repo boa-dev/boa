@@ -1,5 +1,4 @@
 use boa_gc::{Finalize, Trace, WeakGc};
-use boa_profiler::Profiler;
 
 use crate::{
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -32,7 +31,6 @@ impl IntrinsicObject for WeakRef {
     }
 
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),

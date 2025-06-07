@@ -1,7 +1,6 @@
 use std::fmt::Write;
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_list::{
     options::{ListFormatterOptions, ListLength},
     provider::{ListAndV1, ListFormatterPatterns},
@@ -54,8 +53,6 @@ impl Service for ListFormat {
 
 impl IntrinsicObject for ListFormat {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(
                 Self::supported_locales_of,
