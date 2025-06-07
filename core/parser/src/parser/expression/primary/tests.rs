@@ -56,7 +56,7 @@ fn check_destructuring_assignment_object_assignment_operator() {
                     AssignTarget::Pattern(Pattern::Object(ObjectPattern::from(vec![
                         ObjectPatternElement::SingleName {
                             name: PropertyName::from(a),
-                            ident: Identifier::from(a),
+                            ident: Identifier::new(a, Span::new((1, 7), (1, 8))),
                             default_init: Some(Literal::new(0, Span::new((1, 11), (1, 12))).into()),
                         },
                     ]))),
@@ -102,7 +102,7 @@ fn check_destructuring_assignment_array_assignment_operator() {
                     AssignOp::Assign,
                     AssignTarget::Pattern(Pattern::Array(ArrayPattern::from(vec![
                         ArrayPatternElement::SingleName {
-                            ident: Identifier::from(a),
+                            ident: Identifier::new(a, Span::new((1, 4), (1, 5))),
                             default_init: Some(Literal::new(0, Span::new((1, 8), (1, 9))).into()),
                         },
                     ]))),

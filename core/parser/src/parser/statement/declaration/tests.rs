@@ -3,7 +3,10 @@ use boa_ast::{
     declaration::{
         ExportDeclaration, ExportSpecifier, LexicalDeclaration, VarDeclaration, Variable,
     },
-    expression::literal::{Literal, LiteralKind},
+    expression::{
+        literal::{Literal, LiteralKind},
+        Identifier,
+    },
     Declaration, ModuleItem, Span, Statement,
 };
 use boa_interner::{Interner, Sym};
@@ -18,7 +21,10 @@ fn var_declaration() {
         "var a = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                ),
                 Some(Literal::new(5, Span::new((1, 9), (1, 10))).into()),
             )]
             .try_into()
@@ -37,7 +43,7 @@ fn var_declaration_keywords() {
         "var yield = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                Sym::YIELD.into(),
+                Identifier::new(Sym::YIELD, Span::new((1, 5), (1, 10))),
                 Some(Literal::new(5, Span::new((1, 13), (1, 14))).into()),
             )]
             .try_into()
@@ -52,7 +58,7 @@ fn var_declaration_keywords() {
         "var await = 5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                Sym::AWAIT.into(),
+                Identifier::new(Sym::AWAIT, Span::new((1, 5), (1, 10))),
                 Some(Literal::new(5, Span::new((1, 13), (1, 14))).into()),
             )]
             .try_into()
@@ -71,7 +77,10 @@ fn var_declaration_no_spaces() {
         "var a=5;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                ),
                 Some(Literal::new(5, Span::new((1, 7), (1, 8))).into()),
             )]
             .try_into()
@@ -90,7 +99,10 @@ fn empty_var_declaration() {
         "var a;",
         vec![Statement::Var(VarDeclaration(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                ),
                 None,
             )]
             .try_into()
@@ -110,15 +122,24 @@ fn multiple_var_declaration() {
         vec![Statement::Var(VarDeclaration(
             vec![
                 Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(5, Span::new((1, 9), (1, 10))).into()),
                 ),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((1, 12), (1, 13)),
+                    ),
                     None,
                 ),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("c", utf16!("c")),
+                        Span::new((1, 15), (1, 16)),
+                    ),
                     Some(Literal::new(6, Span::new((1, 19), (1, 20))).into()),
                 ),
             ]
@@ -138,7 +159,10 @@ fn let_declaration() {
         "let a = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                ),
                 Some(Literal::new(5, Span::new((1, 9), (1, 10))).into()),
             )]
             .try_into()
@@ -157,7 +181,7 @@ fn let_declaration_keywords() {
         "let yield = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                Sym::YIELD.into(),
+                Identifier::new(Sym::YIELD, Span::new((1, 5), (1, 10))),
                 Some(Literal::new(5, Span::new((1, 13), (1, 14))).into()),
             )]
             .try_into()
@@ -172,7 +196,7 @@ fn let_declaration_keywords() {
         "let await = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                Sym::AWAIT.into(),
+                Identifier::new(Sym::AWAIT, Span::new((1, 5), (1, 10))),
                 Some(Literal::new(5, Span::new((1, 13), (1, 14))).into()),
             )]
             .try_into()
@@ -191,7 +215,10 @@ fn let_declaration_no_spaces() {
         "let a=5;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                ),
                 Some(Literal::new(5, Span::new((1, 7), (1, 8))).into()),
             )]
             .try_into()
@@ -210,7 +237,10 @@ fn empty_let_declaration() {
         "let a;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                ),
                 None,
             )]
             .try_into()
@@ -230,15 +260,24 @@ fn multiple_let_declaration() {
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![
                 Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(5, Span::new((1, 9), (1, 10))).into()),
                 ),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((1, 12), (1, 13)),
+                    ),
                     None,
                 ),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("c", utf16!("c")),
+                        Span::new((1, 15), (1, 16)),
+                    ),
                     Some(Literal::new(6, Span::new((1, 19), (1, 20))).into()),
                 ),
             ]
@@ -258,7 +297,10 @@ fn const_declaration() {
         "const a = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 7), (1, 8)),
+                ),
                 Some(Literal::new(5, Span::new((1, 11), (1, 12))).into()),
             )]
             .try_into()
@@ -277,7 +319,7 @@ fn const_declaration_keywords() {
         "const yield = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                Sym::YIELD.into(),
+                Identifier::new(Sym::YIELD, Span::new((1, 7), (1, 12))),
                 Some(Literal::new(5, Span::new((1, 15), (1, 16))).into()),
             )]
             .try_into()
@@ -292,7 +334,7 @@ fn const_declaration_keywords() {
         "const await = 5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                Sym::AWAIT.into(),
+                Identifier::new(Sym::AWAIT, Span::new((1, 7), (1, 12))),
                 Some(Literal::new(5, Span::new((1, 15), (1, 16))).into()),
             )]
             .try_into()
@@ -311,7 +353,10 @@ fn const_declaration_no_spaces() {
         "const a=5;",
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 7), (1, 8)),
+                ),
                 Some(Literal::new(5, Span::new((1, 9), (1, 10))).into()),
             )]
             .try_into()
@@ -337,11 +382,17 @@ fn multiple_const_declaration() {
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![
                 Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 7), (1, 8)),
+                    ),
                     Some(Literal::new(5, Span::new((1, 11), (1, 12))).into()),
                 ),
                 Variable::from_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("c", utf16!("c")),
+                        Span::new((1, 14), (1, 15)),
+                    ),
                     Some(Literal::new(6, Span::new((1, 18), (1, 19))).into()),
                 ),
             ]
@@ -378,7 +429,7 @@ fn module_export_reserved() {
             ModuleItem::StatementListItem(
                 Declaration::Lexical(LexicalDeclaration::Const(
                     vec![Variable::from_identifier(
-                        val.into(),
+                        Identifier::new(val, Span::new((1, 7), (1, 10))),
                         Some(Literal::new(LiteralKind::Null, Span::new((1, 13), (1, 17))).into()),
                     )]
                     .try_into()

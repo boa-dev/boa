@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::{access::SimplePropertyAccess, Call, Identifier},
-    Expression, Statement,
+    Expression, Span, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -9,12 +9,17 @@ use boa_macros::utf16;
 macro_rules! check_call_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
+        let input = format!("a().{}", $property);
         check_script_parser(
-            format!("a().{}", $property).as_str(),
+            input.as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(
                     Call::new(
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Identifier::new(
+                            interner.get_or_intern_static("a", utf16!("a")),
+                            Span::new((1, 1), (1, 2)),
+                        )
+                        .into(),
                         Box::default(),
                     )
                     .into(),
@@ -40,11 +45,16 @@ fn check_call_properties() {
 macro_rules! check_member_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
+        let input = format!("a.{}", $property);
         check_script_parser(
-            format!("a.{}", $property).as_str(),
+            input.as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(
-                    Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 1), (1, 2)),
+                    )
+                    .into(),
                     interner.get_or_intern_static($property, utf16!($property)),
                 )
                 .into(),

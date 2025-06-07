@@ -20,7 +20,6 @@ use crate::{
     Error, Source,
 };
 use boa_ast::{
-    expression::Identifier,
     function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, check_labels, contains, contains_invalid_object_literal,
@@ -29,7 +28,7 @@ use boa_ast::{
     scope::Scope,
     Position, StatementList,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
 use std::path::Path;
 
@@ -471,7 +470,7 @@ where
                 return Err(Error::general(
                     format!(
                         "lexical name `{}` declared multiple times",
-                        interner.resolve_expect(name.sym())
+                        interner.resolve_expect(name)
                     ),
                     Position::new(1, 1),
                 ));
@@ -485,7 +484,7 @@ where
                 return Err(Error::general(
                     format!(
                         "lexical name `{}` declared multiple times",
-                        interner.resolve_expect(name.sym())
+                        interner.resolve_expect(name)
                     ),
                     Position::new(1, 1),
                 ));
@@ -515,7 +514,7 @@ where
                 return Err(Error::general(
                     format!(
                         "could not find the exported binding `{}` in the declared names of the module",
-                        interner.resolve_expect(name.sym())
+                        interner.resolve_expect(name)
                     ),
                     Position::new(1, 1),
                 ));
@@ -563,8 +562,8 @@ where
 
 /// Helper to check if any parameter names are declared in the given list.
 fn name_in_lexically_declared_names(
-    bound_names: &[Identifier],
-    lexical_names: &[Identifier],
+    bound_names: &[Sym],
+    lexical_names: &[Sym],
     position: Position,
     interner: &Interner,
 ) -> ParseResult<()> {
@@ -573,7 +572,7 @@ fn name_in_lexically_declared_names(
             return Err(Error::general(
                 format!(
                     "formal parameter `{}` declared in lexically declared names",
-                    interner.resolve_expect(name.sym())
+                    interner.resolve_expect(*name)
                 ),
                 position,
             ));

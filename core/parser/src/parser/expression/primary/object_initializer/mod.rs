@@ -336,7 +336,10 @@ where
 
             if let Some(name) = property_name.literal() {
                 if name != Sym::__PROTO__ {
-                    value.set_anonymous_function_definition_name(&Identifier::new(name));
+                    value.set_anonymous_function_definition_name(&Identifier::new(
+                        name,
+                        Span::new((1234, 1234), (1234, 1234)),
+                    ));
                 }
             }
 

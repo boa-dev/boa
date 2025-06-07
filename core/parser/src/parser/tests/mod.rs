@@ -22,6 +22,7 @@ use boa_ast::{
         ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags,
         FunctionBody, FunctionDeclaration,
     },
+    property::PropertyName,
     scope::Scope,
     statement::{If, Return},
     Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Span,
@@ -86,8 +87,11 @@ fn check_construct_call_precedence() {
             Expression::PropertyAccess(
                 SimplePropertyAccess::new(
                     New::from(Call::new(
-                        Identifier::new(interner.get_or_intern_static("Date", utf16!("Date")))
-                            .into(),
+                        Identifier::new(
+                            interner.get_or_intern_static("Date", utf16!("Date")),
+                            Span::new((1, 5), (1, 9)),
+                        )
+                        .into(),
                         Box::default(),
                     ))
                     .into(),
@@ -109,10 +113,18 @@ fn assign_operator_precedence() {
         "a = a + 1",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Assign,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Binary::new(
                 ArithmeticOp::Add.into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                )
+                .into(),
                 Literal::new(1, Span::new((1, 9), (1, 10))).into(),
             )
             .into(),
@@ -137,8 +149,14 @@ fn hoisting() {
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    a.into(),
-                    Some(Call::new(Identifier::new(hello).into(), Box::default()).into()),
+                    Identifier::new(a, Span::new((1, 5), (1, 6))),
+                    Some(
+                        Call::new(
+                            Identifier::new(hello, Span::new((1, 9), (1, 14))).into(),
+                            Box::default(),
+                        )
+                        .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -146,11 +164,11 @@ fn hoisting() {
             .into(),
             Statement::Expression(Expression::from(Update::new(
                 UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a)),
+                UpdateTarget::Identifier(Identifier::new(a, Span::new((2, 1), (2, 2)))),
             )))
             .into(),
             Declaration::FunctionDeclaration(FunctionDeclaration::new(
-                hello.into(),
+                Identifier::new(hello, Span::new((4, 10), (4, 15))),
                 FormalParameterList::default(),
                 FunctionBody::new(
                     StatementList::new(
@@ -182,19 +200,22 @@ fn hoisting() {
         vec![
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
-                Identifier::new(a).into(),
+                Identifier::new(a, Span::new((1, 1), (1, 2))).into(),
                 Literal::new(10, Span::new((1, 5), (1, 7))).into(),
             )))
             .into(),
             Statement::Expression(Expression::from(Update::new(
                 UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a)),
+                UpdateTarget::Identifier(Identifier::new(a, Span::new((2, 1), (2, 2)))),
             )))
             .into(),
             Statement::Var(VarDeclaration(
-                vec![Variable::from_identifier(a.into(), None)]
-                    .try_into()
-                    .unwrap(),
+                vec![Variable::from_identifier(
+                    Identifier::new(a, Span::new((4, 5), (4, 6))),
+                    None,
+                )]
+                .try_into()
+                .unwrap(),
             ))
             .into(),
         ],
@@ -214,13 +235,21 @@ fn ambigous_regex_divide_expression() {
             Binary::new(
                 ArithmeticOp::Div.into(),
                 Literal::new(1, Span::new((1, 1), (1, 2))).into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 5), (1, 6)),
+                )
+                .into(),
             )
             .into(),
             Binary::new(
                 ArithmeticOp::Div.into(),
                 Literal::new(1, Span::new((1, 11), (1, 12))).into(),
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("b", utf16!("b")),
+                    Span::new((1, 15), (1, 16)),
+                )
+                .into(),
             )
             .into(),
         )))
@@ -241,7 +270,7 @@ fn two_divisions_in_expression() {
             LogicalOp::Or.into(),
             Binary::new(
                 RelationalOp::StrictNotEqual.into(),
-                Identifier::new(a).into(),
+                Identifier::new(a, Span::new((1, 1), (1, 2))).into(),
                 Literal::new(0, Span::new((1, 7), (1, 8))).into(),
             )
             .into(),
@@ -250,13 +279,17 @@ fn two_divisions_in_expression() {
                 Binary::new(
                     ArithmeticOp::Div.into(),
                     Literal::new(1, Span::new((1, 12), (1, 13))).into(),
-                    Identifier::new(a).into(),
+                    Identifier::new(a, Span::new((1, 16), (1, 17))).into(),
                 )
                 .into(),
                 Binary::new(
                     ArithmeticOp::Div.into(),
                     Literal::new(1, Span::new((1, 22), (1, 23))).into(),
-                    Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((1, 26), (1, 27)),
+                    )
+                    .into(),
                 )
                 .into(),
             )
@@ -280,7 +313,10 @@ fn comment_semi_colon_insertion() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(10, Span::new((1, 9), (1, 11))).into()),
                 )]
                 .try_into()
@@ -289,7 +325,10 @@ fn comment_semi_colon_insertion() {
             .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((2, 5), (2, 6)),
+                    ),
                     Some(Literal::new(20, Span::new((2, 9), (2, 11))).into()),
                 )]
                 .try_into()
@@ -316,7 +355,10 @@ fn multiline_comment_semi_colon_insertion() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(10, Span::new((1, 9), (1, 11))).into()),
                 )]
                 .try_into()
@@ -325,7 +367,10 @@ fn multiline_comment_semi_colon_insertion() {
             .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((4, 8), (4, 9)),
+                    ),
                     Some(Literal::new(20, Span::new((4, 12), (4, 14))).into()),
                 )]
                 .try_into()
@@ -349,7 +394,10 @@ fn multiline_comment_no_lineterminator() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(10, Span::new((1, 9), (1, 11))).into()),
                 )]
                 .try_into()
@@ -358,7 +406,10 @@ fn multiline_comment_no_lineterminator() {
             .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((1, 36), (1, 37)),
+                    ),
                     Some(Literal::new(20, Span::new((1, 40), (1, 42))).into()),
                 )]
                 .try_into()
@@ -385,7 +436,10 @@ fn assignment_line_terminator() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(3, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
@@ -394,7 +448,11 @@ fn assignment_line_terminator() {
             .into(),
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((3, 1), (3, 2)),
+                )
+                .into(),
                 Literal::new(5, Span::new((4, 1), (4, 2))).into(),
             )))
             .into(),
@@ -422,7 +480,7 @@ fn assignment_multiline_terminator() {
         vec![
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    a.into(),
+                    Identifier::new(a, Span::new((1, 5), (1, 6))),
                     Some(Literal::new(3, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
@@ -431,7 +489,7 @@ fn assignment_multiline_terminator() {
             .into(),
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
-                Identifier::new(a).into(),
+                Identifier::new(a, Span::new((4, 1), (4, 2))).into(),
                 Literal::new(5, Span::new((7, 1), (7, 2))).into(),
             )))
             .into(),
@@ -449,7 +507,11 @@ fn bracketed_expr() {
         s,
         vec![Statement::Expression(
             Parenthesized::new(
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("b", utf16!("b")),
+                    Span::new((1, 2), (1, 3)),
+                )
+                .into(),
                 Span::new((1, 1), (1, 4)),
             )
             .into(),
@@ -473,10 +535,10 @@ fn increment_in_comma_op() {
                     BinaryOp::Comma,
                     Update::new(
                         UpdateOp::IncrementPost,
-                        UpdateTarget::Identifier(Identifier::new(b)),
+                        UpdateTarget::Identifier(Identifier::new(b, Span::new((1, 2), (1, 3)))),
                     )
                     .into(),
-                    Identifier::new(b).into(),
+                    Identifier::new(b, Span::new((1, 7), (1, 8))).into(),
                 )
                 .into(),
                 Span::new((1, 1), (1, 9)),
@@ -501,11 +563,15 @@ fn spread_in_object() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            interner.get_or_intern_static("a", utf16!("a")).into(),
+            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
             Literal::new(1, Span::new((2, 8), (2, 9))).into(),
         ),
         PropertyDefinition::SpreadObject(
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((3, 8), (3, 9)),
+            )
+            .into(),
         ),
     ];
 
@@ -513,7 +579,10 @@ fn spread_in_object() {
         s,
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("x", utf16!("x")),
+                    Span::new((1, 5), (1, 6)),
+                ),
                 Some(ObjectLiteral::new(object_properties, Span::new((1, 9), (4, 2))).into()),
             )]
             .try_into()
@@ -535,7 +604,7 @@ fn spread_in_arrow_function() {
     let interner = &mut Interner::default();
     let b = interner.get_or_intern_static("b", utf16!("b"));
     let params = FormalParameterList::from(FormalParameter::new(
-        Variable::from_identifier(b.into(), None),
+        Variable::from_identifier(Identifier::new(b, Span::new((1, 5), (1, 6))), None),
         true,
     ));
     assert_eq!(params.flags(), FormalParameterListFlags::HAS_REST_PARAMETER);
@@ -547,7 +616,10 @@ fn spread_in_arrow_function() {
             params,
             FunctionBody::new(
                 StatementList::new(
-                    [Statement::Expression(Expression::from(Identifier::from(b))).into()],
+                    [
+                        Statement::Expression(Identifier::new(b, Span::new((2, 5), (2, 6))).into())
+                            .into(),
+                    ],
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
@@ -574,14 +646,19 @@ fn empty_statement() {
             Statement::Empty.into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    a.into(),
+                    Identifier::new(a, Span::new((1, 7), (1, 8))),
                     Some(Literal::new(10, Span::new((1, 11), (1, 13))).into()),
                 )]
                 .try_into()
                 .unwrap(),
             ))
             .into(),
-            Statement::If(If::new(Identifier::new(a).into(), Statement::Empty, None)).into(),
+            Statement::If(If::new(
+                Identifier::new(a, Span::new((2, 4), (2, 5))).into(),
+                Statement::Empty,
+                None,
+            ))
+            .into(),
         ],
         interner,
     );
@@ -592,9 +669,7 @@ fn empty_statement_ends_directive_prologues() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     let use_strict = interner.get_or_intern_static("use strict", utf16!("use strict"));
-    let public = interner
-        .get_or_intern_static("public", utf16!("public"))
-        .into();
+    let public = interner.get_or_intern_static("public", utf16!("public"));
     check_script_parser(
         indoc! {r#"
             "a";
@@ -609,7 +684,7 @@ fn empty_statement_ends_directive_prologues() {
                 .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
-                    public,
+                    Identifier::new(public, Span::new((4, 5), (4, 11))),
                     Some(Literal::new(5, Span::new((4, 14), (4, 15))).into()),
                 )]
                 .try_into()

@@ -628,7 +628,7 @@ impl BuiltInFunctionObject {
                         return Err(JsNativeError::syntax()
                             .with_message(format!(
                                 "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(name.sym())
+                                context.interner().resolve_expect(name)
                             ))
                             .into());
                     }

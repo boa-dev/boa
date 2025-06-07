@@ -451,21 +451,27 @@ impl IdentList for Vec<Sym> {
     }
 }
 
-impl IdentList for Vec<Identifier> {
-    fn add(&mut self, value: Sym, _function: bool) {
-        self.push(Identifier::new(value));
-    }
-}
+// impl IdentList for Vec<Identifier> {
+//     fn add(&mut self, value: Sym, _function: bool) {
+//         self.push(Identifier::new(value));
+//     }
+// }
 
-impl IdentList for Vec<(Identifier, bool)> {
+// impl IdentList for Vec<(Identifier, bool)> {
+//     fn add(&mut self, value: Sym, function: bool) {
+//         self.push((Identifier::new(value), function));
+//     }
+// }
+
+impl IdentList for Vec<(Sym, bool)> {
     fn add(&mut self, value: Sym, function: bool) {
-        self.push((Identifier::new(value), function));
+        self.push((value, function));
     }
 }
 
-impl IdentList for FxHashSet<Identifier> {
+impl IdentList for FxHashSet<Sym> {
     fn add(&mut self, value: Sym, _function: bool) {
-        self.insert(Identifier::new(value));
+        self.insert(value);
     }
 }
 
@@ -613,7 +619,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
 #[must_use]
-pub fn bound_names<'a, N>(node: &'a N) -> Vec<Identifier>
+pub fn bound_names<'a, N>(node: &'a N) -> Vec<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -789,7 +795,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 #[must_use]
-pub fn lexically_declared_names<'a, N>(node: &'a N) -> Vec<Identifier>
+pub fn lexically_declared_names<'a, N>(node: &'a N) -> Vec<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -806,7 +812,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 /// [changes]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[must_use]
-pub fn lexically_declared_names_legacy<'a, N>(node: &'a N) -> Vec<(Identifier, bool)>
+pub fn lexically_declared_names_legacy<'a, N>(node: &'a N) -> Vec<(Sym, bool)>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -817,7 +823,7 @@ where
 
 /// The [`Visitor`] used to obtain the var declared names of a node.
 #[derive(Debug)]
-struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Identifier>);
+struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Sym>);
 
 impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     type BreakTy = Infallible;
@@ -1063,7 +1069,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames
 #[must_use]
-pub fn var_declared_names<'a, N>(node: &'a N) -> FxHashSet<Identifier>
+pub fn var_declared_names<'a, N>(node: &'a N) -> FxHashSet<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -1104,7 +1110,7 @@ fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
 /// This is equivalent to the [`TopLevelVarDeclaredNames`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvardeclarednames
-fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
+fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Sym>) {
     for stmt in stmts.statements() {
         match stmt {
             StatementListItem::Declaration(decl) => {
@@ -1762,7 +1768,7 @@ pub enum LexicallyScopedDeclaration<'a> {
 impl LexicallyScopedDeclaration<'_> {
     /// Return the bound names of the declaration.
     #[must_use]
-    pub fn bound_names(&self) -> Vec<Identifier> {
+    pub fn bound_names(&self) -> Vec<Sym> {
         match *self {
             Self::LexicalDeclaration(v) => bound_names(v),
             Self::FunctionDeclaration(f) => bound_names(f),
@@ -2002,7 +2008,7 @@ pub enum VarScopedDeclaration {
 impl VarScopedDeclaration {
     /// Return the bound names of the declaration.
     #[must_use]
-    pub fn bound_names(&self) -> Vec<Identifier> {
+    pub fn bound_names(&self) -> Vec<Sym> {
         match self {
             Self::VariableDeclaration(v) => bound_names(v),
             Self::FunctionDeclaration(f) => bound_names(f),
@@ -2287,7 +2293,7 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
 /// [spec1]: https://tc39.es/ecma262/#sec-web-compat-globaldeclarationinstantiation
 /// [spec2]: https://tc39.es/ecma262/#sec-web-compat-evaldeclarationinstantiation
 #[must_use]
-pub fn annex_b_function_declarations_names<'a, N>(node: &'a N) -> Vec<Identifier>
+pub fn annex_b_function_declarations_names<'a, N>(node: &'a N) -> Vec<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -2298,7 +2304,7 @@ where
 
 /// The [`Visitor`] used for [`annex_b_function_declarations_names`].
 #[derive(Debug)]
-struct AnnexBFunctionDeclarationNamesVisitor<'a>(&'a mut Vec<Identifier>);
+struct AnnexBFunctionDeclarationNamesVisitor<'a>(&'a mut Vec<Sym>);
 
 impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     type BreakTy = Infallible;
@@ -2337,7 +2343,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
                 statement
             {
                 let name = function.name();
-                self.0.push(name);
+                self.0.push(name.sym());
             }
         }
 
@@ -2357,7 +2363,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
                     statement
                 {
                     let name = function.name();
-                    self.0.push(name);
+                    self.0.push(name.sym());
                 }
             }
         }
@@ -2368,7 +2374,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
                     statement
                 {
                     let name = function.name();
-                    self.0.push(name);
+                    self.0.push(name.sym());
                 }
             }
         }

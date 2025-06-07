@@ -18,7 +18,6 @@ use boa_ast::{
             Literal as AstLiteral, LiteralKind as AstLiteralKind, TemplateElement, TemplateLiteral,
         },
         operator::Conditional,
-        Identifier,
     },
     Expression,
 };
@@ -84,8 +83,8 @@ impl ByteCompiler<'_> {
         match expr {
             Expression::Literal(lit) => self.compile_literal(lit, dst),
             Expression::RegExpLiteral(regexp) => {
-                let pattern_index = self.get_or_insert_name(Identifier::new(regexp.pattern()));
-                let flags_index = self.get_or_insert_name(Identifier::new(regexp.flags()));
+                let pattern_index = self.get_or_insert_name(regexp.pattern());
+                let flags_index = self.get_or_insert_name(regexp.flags());
                 self.bytecode.emit_push_regexp(
                     dst.variable(),
                     pattern_index.into(),

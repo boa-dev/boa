@@ -4,7 +4,7 @@ use crate::{
     expression::{Call, Identifier},
     operations::{contains, ContainsSymbol},
     statement::With,
-    Expression, Statement,
+    Expression, Span, Statement,
 };
 
 #[test]
@@ -28,7 +28,7 @@ fn check_contains_new_target_in_call_function_position() {
 #[test]
 fn check_contains_this_in_call_argument_position() {
     let mut interner = Interner::new();
-    let function_name: Identifier = interner.get_or_intern("func").into();
+    let function_name = Identifier::new(interner.get_or_intern("func"), Span::new((1, 1), (1, 5)));
     let node = Call::new(
         function_name.into(),
         vec![Expression::This].into_boxed_slice(),
@@ -40,7 +40,7 @@ fn check_contains_this_in_call_argument_position() {
 #[test]
 fn check_contains_new_target_in_call_argument_position() {
     let mut interner = Interner::new();
-    let function_name: Identifier = interner.get_or_intern("func").into();
+    let function_name = Identifier::new(interner.get_or_intern("func"), Span::new((1, 1), (1, 5)));
     let node = Call::new(
         function_name.into(),
         vec![Expression::NewTarget].into_boxed_slice(),

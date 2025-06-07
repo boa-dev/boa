@@ -292,7 +292,7 @@ impl Expression {
         let span = Span::new((1, 1), (1, 1));
         match self {
             Self::This => span,
-            Self::Identifier(id) => span,
+            Self::Identifier(id) => id.span(),
             Self::Literal(lit) => lit.span(),
             Self::ArrayLiteral(arr) => arr.span(),
             Self::ObjectLiteral(o) => o.span(),

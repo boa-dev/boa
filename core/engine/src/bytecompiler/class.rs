@@ -217,7 +217,7 @@ impl ByteCompiler<'_> {
             match element {
                 ClassElement::MethodDefinition(m) => match m.name() {
                     ClassElementName::PropertyName(PropertyName::Literal(name)) => {
-                        let index = self.get_or_insert_name((*name).into());
+                        let index = self.get_or_insert_name(*name);
                         let method = self.method(m.into());
 
                         let object_register = if m.is_static() {
@@ -492,7 +492,7 @@ impl ByteCompiler<'_> {
                 ClassElement::StaticFieldDefinition(field) => {
                     let name_index = match field.name() {
                         PropertyName::Literal(name) => {
-                            StaticFieldName::Index(self.get_or_insert_name((*name).into()))
+                            StaticFieldName::Index(self.get_or_insert_name(*name))
                         }
                         PropertyName::Computed(name) => {
                             let name_register = self.register_allocator.alloc();

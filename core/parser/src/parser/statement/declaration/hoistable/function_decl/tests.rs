@@ -1,5 +1,6 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    expression::Identifier,
     function::{FormalParameterList, FunctionBody, FunctionDeclaration},
     Declaration, Span, StatementList,
 };
@@ -17,9 +18,10 @@ fn function_declaration() {
     check_script_parser(
         "function hello() {}",
         vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
-            interner
-                .get_or_intern_static("hello", utf16!("hello"))
-                .into(),
+            Identifier::new(
+                interner.get_or_intern_static("hello", utf16!("hello")),
+                Span::new((1, 10), (1, 15)),
+            ),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((1, 18), (1, 20))),
             EMPTY_LINEAR_SPAN,
@@ -33,11 +35,14 @@ fn function_declaration() {
 #[test]
 fn function_declaration_keywords() {
     macro_rules! genast {
-        ($keyword:literal, $interner:expr, $body_span:expr) => {
+        ($keyword:literal, $interner:expr, $name_span:expr, $body_span:expr) => {
             vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
-                $interner
-                    .get_or_intern_static($keyword, utf16!($keyword))
-                    .into(),
+                Identifier::new(
+                    $interner
+                        .get_or_intern_static($keyword, utf16!($keyword))
+                        .into(),
+                    $name_span,
+                ),
                 FormalParameterList::default(),
                 FunctionBody::new(StatementList::default(), $body_span),
                 EMPTY_LINEAR_SPAN,
@@ -47,42 +52,92 @@ fn function_declaration_keywords() {
     }
 
     let interner = &mut Interner::default();
-    let ast = genast!("yield", interner, Span::new((1, 18), (1, 20)));
+    let ast = genast!(
+        "yield",
+        interner,
+        Span::new((1, 10), (1, 15)),
+        Span::new((1, 18), (1, 20))
+    );
     check_script_parser("function yield() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("await", interner, Span::new((1, 18), (1, 20)));
+    let ast = genast!(
+        "await",
+        interner,
+        Span::new((1, 10), (1, 15)),
+        Span::new((1, 18), (1, 20))
+    );
     check_script_parser("function await() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("as", interner, Span::new((1, 15), (1, 17)));
+    let ast = genast!(
+        "as",
+        interner,
+        Span::new((1, 10), (1, 12)),
+        Span::new((1, 15), (1, 17))
+    );
     check_script_parser("function as() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("async", interner, Span::new((1, 18), (1, 20)));
+    let ast = genast!(
+        "async",
+        interner,
+        Span::new((1, 10), (1, 15)),
+        Span::new((1, 18), (1, 20))
+    );
     check_script_parser("function async() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("from", interner, Span::new((1, 17), (1, 19)));
+    let ast = genast!(
+        "from",
+        interner,
+        Span::new((1, 10), (1, 14)),
+        Span::new((1, 17), (1, 19))
+    );
     check_script_parser("function from() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("get", interner, Span::new((1, 16), (1, 18)));
+    let ast = genast!(
+        "get",
+        interner,
+        Span::new((1, 10), (1, 13)),
+        Span::new((1, 16), (1, 18))
+    );
     check_script_parser("function get() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("meta", interner, Span::new((1, 17), (1, 19)));
+    let ast = genast!(
+        "meta",
+        interner,
+        Span::new((1, 10), (1, 14)),
+        Span::new((1, 17), (1, 19))
+    );
     check_script_parser("function meta() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("of", interner, Span::new((1, 15), (1, 17)));
+    let ast = genast!(
+        "of",
+        interner,
+        Span::new((1, 10), (1, 12)),
+        Span::new((1, 15), (1, 17))
+    );
     check_script_parser("function of() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("set", interner, Span::new((1, 16), (1, 18)));
+    let ast = genast!(
+        "set",
+        interner,
+        Span::new((1, 10), (1, 13)),
+        Span::new((1, 16), (1, 18))
+    );
     check_script_parser("function set() {}", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("target", interner, Span::new((1, 19), (1, 21)));
+    let ast = genast!(
+        "target",
+        interner,
+        Span::new((1, 10), (1, 16)),
+        Span::new((1, 19), (1, 21))
+    );
     check_script_parser("function target() {}", ast, interner);
 }

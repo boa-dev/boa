@@ -44,7 +44,11 @@ fn complex_chain() {
         r#"a?.b(true)?.["c"]"#,
         vec![Statement::Expression(
             Optional::new(
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 1), (1, 2)),
+                )
+                .into(),
                 vec![
                     OptionalOperation::new(
                         OptionalOperationKind::SimplePropertyAccess {

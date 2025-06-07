@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
-    expression::literal::Literal,
+    expression::{literal::Literal, Identifier},
     function::{FormalParameterList, FunctionBody, FunctionExpression},
     statement::Return,
     Declaration, Span, Statement, StatementList, StatementListItem,
@@ -25,10 +25,10 @@ fn check_function_expression() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                add.into(),
+                Identifier::new(add, Span::new((1, 7), (1, 10))),
                 Some(
                     FunctionExpression::new(
-                        Some(add.into()),
+                        Some(Identifier::new(add, Span::new((1, 7), (1, 10)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
@@ -72,19 +72,22 @@ fn check_nested_function_expression() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                a.into(),
+                Identifier::new(a, Span::new((1, 7), (1, 8))),
                 Some(
                     FunctionExpression::new(
-                        Some(a.into()),
+                        Some(Identifier::new(a, Span::new((1, 7), (1, 8)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
                                 [Declaration::Lexical(LexicalDeclaration::Const(
                                     vec![Variable::from_identifier(
-                                        b.into(),
+                                        Identifier::new(b, Span::new((2, 11), (2, 12))),
                                         Some(
                                             FunctionExpression::new(
-                                                Some(b.into()),
+                                                Some(Identifier::new(
+                                                    b,
+                                                    Span::new((2, 11), (2, 12)),
+                                                )),
                                                 FormalParameterList::default(),
                                                 FunctionBody::new(
                                                     StatementList::new(
@@ -136,13 +139,13 @@ fn check_nested_function_expression() {
 #[test]
 fn check_function_non_reserved_keyword() {
     macro_rules! genast {
-        ($keyword:literal, $interner:expr, $function_span:expr, $body_span:expr, $literal_span:expr) => {
+        ($keyword:literal, $interner:expr, $function_span:expr, $name_span:expr, $body_span:expr, $literal_span:expr) => {
             vec![Declaration::Lexical(LexicalDeclaration::Const(
                 vec![Variable::from_identifier(
-                    $interner.get_or_intern_static("add", utf16!("add")).into(),
+                    Identifier::new($interner.get_or_intern_static("add", utf16!("add")), Span::new((1, 7), (1, 10))),
                     Some(
                         FunctionExpression::new(
-                            Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
+                            Some(Identifier::new($interner.get_or_intern_static($keyword, utf16!($keyword)), $name_span)),
                             FormalParameterList::default(),
                             FunctionBody::new(
                                 StatementList::new(
@@ -176,6 +179,7 @@ fn check_function_non_reserved_keyword() {
         "as",
         interner,
         Span::new((1, 13), (1, 40)),
+        Span::new((1, 22), (1, 24)),
         Span::new((1, 27), (1, 40)),
         Span::new((1, 36), (1, 37))
     );
@@ -186,6 +190,7 @@ fn check_function_non_reserved_keyword() {
         "async",
         interner,
         Span::new((1, 13), (1, 43)),
+        Span::new((1, 22), (1, 27)),
         Span::new((1, 30), (1, 43)),
         Span::new((1, 39), (1, 40))
     );
@@ -196,6 +201,7 @@ fn check_function_non_reserved_keyword() {
         "from",
         interner,
         Span::new((1, 13), (1, 42)),
+        Span::new((1, 22), (1, 26)),
         Span::new((1, 29), (1, 42)),
         Span::new((1, 38), (1, 39))
     );
@@ -206,6 +212,7 @@ fn check_function_non_reserved_keyword() {
         "get",
         interner,
         Span::new((1, 13), (1, 41)),
+        Span::new((1, 22), (1, 25)),
         Span::new((1, 28), (1, 41)),
         Span::new((1, 37), (1, 38))
     );
@@ -216,6 +223,7 @@ fn check_function_non_reserved_keyword() {
         "meta",
         interner,
         Span::new((1, 13), (1, 42)),
+        Span::new((1, 22), (1, 26)),
         Span::new((1, 29), (1, 42)),
         Span::new((1, 38), (1, 39))
     );
@@ -226,6 +234,7 @@ fn check_function_non_reserved_keyword() {
         "of",
         interner,
         Span::new((1, 13), (1, 40)),
+        Span::new((1, 22), (1, 24)),
         Span::new((1, 27), (1, 40)),
         Span::new((1, 36), (1, 37))
     );
@@ -236,6 +245,7 @@ fn check_function_non_reserved_keyword() {
         "set",
         interner,
         Span::new((1, 13), (1, 41)),
+        Span::new((1, 22), (1, 25)),
         Span::new((1, 28), (1, 41)),
         Span::new((1, 37), (1, 38))
     );
@@ -246,6 +256,7 @@ fn check_function_non_reserved_keyword() {
         "target",
         interner,
         Span::new((1, 13), (1, 44)),
+        Span::new((1, 22), (1, 28)),
         Span::new((1, 31), (1, 44)),
         Span::new((1, 40), (1, 41))
     );

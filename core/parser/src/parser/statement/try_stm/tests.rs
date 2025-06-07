@@ -20,7 +20,13 @@ fn check_inline_with_empty_try_catch() {
         vec![Statement::Try(Try::new(
             Block::default(),
             ErrorHandler::Catch(Catch::new(
-                Some(Identifier::from(interner.get_or_intern_static("e", utf16!("e"))).into()),
+                Some(
+                    Identifier::new(
+                        interner.get_or_intern_static("e", utf16!("e")),
+                        Span::new((1, 15), (1, 16)),
+                    )
+                    .into(),
+                ),
                 Block::default(),
             )),
         ))
@@ -38,7 +44,10 @@ fn check_inline_with_var_decl_inside_try() {
             (
                 vec![Statement::Var(VarDeclaration(
                     vec![Variable::from_identifier(
-                        interner.get_or_intern_static("x", utf16!("x")).into(),
+                        Identifier::new(
+                            interner.get_or_intern_static("x", utf16!("x")),
+                            Span::new((1, 11), (1, 12)),
+                        ),
                         Some(Literal::new(1, Span::new((1, 15), (1, 16))).into()),
                     )]
                     .try_into()
@@ -49,7 +58,13 @@ fn check_inline_with_var_decl_inside_try() {
             )
                 .into(),
             ErrorHandler::Catch(Catch::new(
-                Some(Identifier::from(interner.get_or_intern_static("e", utf16!("e"))).into()),
+                Some(
+                    Identifier::new(
+                        interner.get_or_intern_static("e", utf16!("e")),
+                        Span::new((1, 26), (1, 27)),
+                    )
+                    .into(),
+                ),
                 Block::default(),
             )),
         ))
@@ -67,7 +82,10 @@ fn check_inline_with_var_decl_inside_catch() {
             (
                 vec![Statement::Var(VarDeclaration(
                     vec![Variable::from_identifier(
-                        interner.get_or_intern_static("x", utf16!("x")).into(),
+                        Identifier::new(
+                            interner.get_or_intern_static("x", utf16!("x")),
+                            Span::new((1, 11), (1, 12)),
+                        ),
                         Some(Literal::new(1, Span::new((1, 15), (1, 16))).into()),
                     )]
                     .try_into()
@@ -78,11 +96,20 @@ fn check_inline_with_var_decl_inside_catch() {
             )
                 .into(),
             ErrorHandler::Catch(Catch::new(
-                Some(Identifier::from(interner.get_or_intern_static("e", utf16!("e"))).into()),
+                Some(
+                    Identifier::new(
+                        interner.get_or_intern_static("e", utf16!("e")),
+                        Span::new((1, 26), (1, 27)),
+                    )
+                    .into(),
+                ),
                 (
                     vec![Statement::Var(VarDeclaration(
                         vec![Variable::from_identifier(
-                            interner.get_or_intern_static("x", utf16!("x")).into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("x", utf16!("x")),
+                                Span::new((1, 35), (1, 36)),
+                            ),
                             Some(Literal::new(1, Span::new((1, 39), (1, 40))).into()),
                         )]
                         .try_into()
@@ -108,7 +135,13 @@ fn check_inline_with_empty_try_catch_finally() {
             Block::default(),
             ErrorHandler::Full(
                 Catch::new(
-                    Some(Identifier::from(interner.get_or_intern_static("e", utf16!("e"))).into()),
+                    Some(
+                        Identifier::new(
+                            interner.get_or_intern_static("e", utf16!("e")),
+                            Span::new((1, 14), (1, 15)),
+                        )
+                        .into(),
+                    ),
                     Block::default(),
                 ),
                 Finally::from(Block::default()),
@@ -143,7 +176,10 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
                 vec![StatementListItem::Statement(Statement::Var(
                     VarDeclaration(
                         vec![Variable::from_identifier(
-                            interner.get_or_intern_static("x", utf16!("x")).into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("x", utf16!("x")),
+                                Span::new((1, 22), (1, 23)),
+                            ),
                             Some(Literal::new(1, Span::new((1, 26), (1, 27))).into()),
                         )]
                         .try_into()
@@ -170,7 +206,10 @@ fn check_inline_empty_try_paramless_catch() {
                 (
                     vec![Statement::Var(VarDeclaration(
                         vec![Variable::from_identifier(
-                            interner.get_or_intern_static("x", utf16!("x")).into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("x", utf16!("x")),
+                                Span::new((1, 20), (1, 21)),
+                            ),
                             Some(Literal::new(1, Span::new((1, 24), (1, 25))).into()),
                         )]
                         .try_into()
@@ -199,12 +238,15 @@ fn check_inline_with_binding_pattern_object() {
                 Some(
                     Pattern::from(vec![
                         ObjectPatternElement::SingleName {
-                            ident: a.into(),
+                            ident: Identifier::new(a, Span::new((1, 17), (1, 18))),
                             name: PropertyName::Literal(a),
                             default_init: None,
                         },
                         ObjectPatternElement::SingleName {
-                            ident: interner.get_or_intern_static("c", utf16!("c")).into(),
+                            ident: Identifier::new(
+                                interner.get_or_intern_static("c", utf16!("c")),
+                                Span::new((1, 23), (1, 24)),
+                            ),
                             name: PropertyName::Literal(
                                 interner.get_or_intern_static("b", utf16!("b")),
                             ),
@@ -232,11 +274,17 @@ fn check_inline_with_binding_pattern_array() {
                 Some(
                     Pattern::from(vec![
                         ArrayPatternElement::SingleName {
-                            ident: interner.get_or_intern_static("a", utf16!("a")).into(),
+                            ident: Identifier::new(
+                                interner.get_or_intern_static("a", utf16!("a")),
+                                Span::new((1, 16), (1, 17)),
+                            ),
                             default_init: None,
                         },
                         ArrayPatternElement::SingleName {
-                            ident: interner.get_or_intern_static("b", utf16!("b")).into(),
+                            ident: Identifier::new(
+                                interner.get_or_intern_static("b", utf16!("b")),
+                                Span::new((1, 19), (1, 20)),
+                            ),
                             default_init: None,
                         },
                     ])
@@ -258,11 +306,20 @@ fn check_catch_with_var_redeclaration() {
         vec![Statement::Try(Try::new(
             Block::from((vec![], PSEUDO_LINEAR_POS)),
             ErrorHandler::Catch(Catch::new(
-                Some(Identifier::new(interner.get_or_intern_static("e", utf16!("e"))).into()),
+                Some(
+                    Identifier::new(
+                        interner.get_or_intern_static("e", utf16!("e")),
+                        Span::new((1, 14), (1, 15)),
+                    )
+                    .into(),
+                ),
                 (
                     vec![Statement::Var(VarDeclaration(
                         vec![Variable::from_identifier(
-                            interner.get_or_intern_static("e", utf16!("e")).into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("e", utf16!("e")),
+                                Span::new((1, 23), (1, 24)),
+                            ),
                             Some(
                                 Literal::new(
                                     interner.get_or_intern_static("oh", utf16!("oh")),

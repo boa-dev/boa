@@ -30,9 +30,12 @@ fn script_global_let() {
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
         [Declaration::Lexical(LexicalDeclaration::Let(
-            vec![Variable::from_identifier(a.into(), None)]
-                .try_into()
-                .unwrap(),
+            vec![Variable::from_identifier(
+                Identifier::new(a, Span::new((1, 1), (1, 1))),
+                None,
+            )]
+            .try_into()
+            .unwrap(),
         ))
         .into()],
         LinearPosition::default(),
@@ -54,9 +57,12 @@ fn script_global_const() {
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
         [Declaration::Lexical(LexicalDeclaration::Const(
-            vec![Variable::from_identifier(a.into(), None)]
-                .try_into()
-                .unwrap(),
+            vec![Variable::from_identifier(
+                Identifier::new(a, Span::new((1, 1), (1, 1))),
+                None,
+            )]
+            .try_into()
+            .unwrap(),
         ))
         .into()],
         LinearPosition::default(),
@@ -79,9 +85,12 @@ fn script_block_let() {
     let mut script = Script::new(StatementList::new(
         [Statement::Block(Block::from((
             vec![Declaration::Lexical(LexicalDeclaration::Let(
-                vec![Variable::from_identifier(a.into(), None)]
-                    .try_into()
-                    .unwrap(),
+                vec![Variable::from_identifier(
+                    Identifier::new(a, Span::new((1, 1), (1, 1))),
+                    None,
+                )]
+                .try_into()
+                .unwrap(),
             ))
             .into()],
             LinearPosition::default(),
@@ -114,17 +123,20 @@ fn script_function_mapped_arguments_not_accessed() {
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
         [Declaration::FunctionDeclaration(FunctionDeclaration::new(
-            f.into(),
+            Identifier::new(f, Span::new((1, 1), (1, 1))),
             FormalParameterList::from_parameters(vec![FormalParameter::new(
-                Variable::from_identifier(a.into(), None),
+                Variable::from_identifier(Identifier::new(a, Span::new((1, 1), (1, 1))), None),
                 false,
             )]),
             FunctionBody::new(
                 StatementList::new(
                     [Declaration::Lexical(LexicalDeclaration::Let(
-                        vec![Variable::from_identifier(a.into(), None)]
-                            .try_into()
-                            .unwrap(),
+                        vec![Variable::from_identifier(
+                            Identifier::new(a, Span::new((1, 1), (1, 1))),
+                            None,
+                        )]
+                        .try_into()
+                        .unwrap(),
                     ))
                     .into()],
                     LinearPosition::default(),
@@ -187,22 +199,28 @@ fn script_function_mapped_arguments_accessed() {
     let arguments = interner.get_or_intern("arguments");
     let mut script = Script::new(StatementList::new(
         [Declaration::FunctionDeclaration(FunctionDeclaration::new(
-            f.into(),
+            Identifier::new(f, Span::new((1, 1), (1, 1))),
             FormalParameterList::from_parameters(vec![FormalParameter::new(
-                Variable::from_identifier(a.into(), None),
+                Variable::from_identifier(Identifier::new(a, Span::new((1, 1), (1, 1))), None),
                 false,
             )]),
             FunctionBody::new(
                 StatementList::new(
                     [
                         Declaration::Lexical(LexicalDeclaration::Let(
-                            vec![Variable::from_identifier(a.into(), None)]
-                                .try_into()
-                                .unwrap(),
+                            vec![Variable::from_identifier(
+                                Identifier::new(a, Span::new((1, 1), (1, 1))),
+                                None,
+                            )]
+                            .try_into()
+                            .unwrap(),
                         ))
                         .into(),
-                        Statement::Expression(Expression::Identifier(Identifier::new(arguments)))
-                            .into(),
+                        Statement::Expression(Expression::Identifier(Identifier::new(
+                            arguments,
+                            Span::new((1, 1), (1, 1)),
+                        )))
+                        .into(),
                     ],
                     LinearPosition::default(),
                     false,

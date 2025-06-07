@@ -16,7 +16,7 @@ impl ByteCompiler<'_> {
                 PropertyDefinition::IdentifierReference(ident) => {
                     let value = self.register_allocator.alloc();
                     self.access_get(Access::Variable { name: *ident }, &value);
-                    let index = self.get_or_insert_name(*ident);
+                    let index = self.get_or_insert_name(ident.sym());
                     self.bytecode.emit_define_own_property_by_name(
                         dst.variable(),
                         value.variable(),
@@ -32,7 +32,7 @@ impl ByteCompiler<'_> {
                             self.bytecode
                                 .emit_set_prototype(dst.variable(), value.variable());
                         } else {
-                            let index = self.get_or_insert_name((*name).into());
+                            let index = self.get_or_insert_name(*name);
                             self.bytecode.emit_define_own_property_by_name(
                                 dst.variable(),
                                 value.variable(),
@@ -75,7 +75,7 @@ impl ByteCompiler<'_> {
                             let method = self.object_method(m.into(), kind);
                             self.bytecode
                                 .emit_set_home_object(method.variable(), dst.variable());
-                            let index = self.get_or_insert_name((*name).into());
+                            let index = self.get_or_insert_name(*name);
                             match kind {
                                 MethodKind::Get => self.bytecode.emit_set_property_getter_by_name(
                                     dst.variable(),

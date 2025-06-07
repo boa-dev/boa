@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
-    expression::literal::Literal,
+    expression::{literal::Literal, Identifier},
     function::{AsyncGeneratorExpression, FormalParameterList, FunctionBody},
     statement::Return,
     Declaration, Span, Statement, StatementList, StatementListItem,
@@ -28,10 +28,10 @@ fn check_async_generator_expr() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                add.into(),
+                Identifier::new(add, Span::new((1, 7), (1, 10))),
                 Some(
                     AsyncGeneratorExpression::new(
-                        Some(add.into()),
+                        Some(Identifier::new(add, Span::new((1, 7), (1, 10)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
@@ -75,19 +75,22 @@ fn check_nested_async_generator_expr() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                a.into(),
+                Identifier::new(a, Span::new((1, 7), (1, 8))),
                 Some(
                     AsyncGeneratorExpression::new(
-                        Some(a.into()),
+                        Some(Identifier::new(a, Span::new((1, 7), (1, 8)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
                                 [Declaration::Lexical(LexicalDeclaration::Const(
                                     vec![Variable::from_identifier(
-                                        b.into(),
+                                        Identifier::new(b, Span::new((2, 11), (2, 12))),
                                         Some(
                                             AsyncGeneratorExpression::new(
-                                                Some(b.into()),
+                                                Some(Identifier::new(
+                                                    b,
+                                                    Span::new((2, 11), (2, 12)),
+                                                )),
                                                 FormalParameterList::default(),
                                                 FunctionBody::new(
                                                     StatementList::new(

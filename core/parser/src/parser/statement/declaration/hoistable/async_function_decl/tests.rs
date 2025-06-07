@@ -1,5 +1,6 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    expression::Identifier,
     function::{AsyncFunctionDeclaration, FormalParameterList, FunctionBody},
     Declaration, LinearPosition, LinearSpan, Span, StatementList,
 };
@@ -17,9 +18,10 @@ fn async_function_declaration() {
         "async function hello() {}",
         vec![
             Declaration::AsyncFunctionDeclaration(AsyncFunctionDeclaration::new(
-                interner
-                    .get_or_intern_static("hello", utf16!("hello"))
-                    .into(),
+                Identifier::new(
+                    interner.get_or_intern_static("hello", utf16!("hello")),
+                    Span::new((1, 16), (1, 21)),
+                ),
                 FormalParameterList::default(),
                 FunctionBody::new(StatementList::default(), Span::new((1, 24), (1, 26))),
                 EMPTY_LINEAR_SPAN,
@@ -38,7 +40,7 @@ fn async_function_declaration_keywords() {
         "async function yield() {}",
         vec![
             Declaration::AsyncFunctionDeclaration(AsyncFunctionDeclaration::new(
-                Sym::YIELD.into(),
+                Identifier::new(Sym::YIELD, Span::new((1, 16), (1, 21))),
                 FormalParameterList::default(),
                 FunctionBody::new(StatementList::default(), Span::new((1, 24), (1, 26))),
                 EMPTY_LINEAR_SPAN,
@@ -53,7 +55,7 @@ fn async_function_declaration_keywords() {
         "async function await() {}",
         vec![
             Declaration::AsyncFunctionDeclaration(AsyncFunctionDeclaration::new(
-                Sym::AWAIT.into(),
+                Identifier::new(Sym::AWAIT, Span::new((1, 16), (1, 21))),
                 FormalParameterList::default(),
                 FunctionBody::new(StatementList::default(), Span::new((1, 24), (1, 26))),
                 EMPTY_LINEAR_SPAN,

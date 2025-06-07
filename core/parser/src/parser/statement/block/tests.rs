@@ -56,7 +56,7 @@ fn non_empty() {
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    a.into(),
+                    Identifier::new(a, Span::new((2, 9), (2, 10))),
                     Some(Literal::new(10, Span::new((2, 13), (2, 15))).into()),
                 )]
                 .try_into()
@@ -65,7 +65,7 @@ fn non_empty() {
             .into(),
             Statement::Expression(Expression::from(Update::new(
                 UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a)),
+                UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
             )))
             .into(),
         ],
@@ -88,7 +88,7 @@ fn non_empty() {
         "},
         vec![
             Declaration::FunctionDeclaration(FunctionDeclaration::new(
-                hello.into(),
+                Identifier::new(hello, Span::new((2, 14), (2, 19))),
                 FormalParameterList::default(),
                 FunctionBody::new(
                     StatementList::new(
@@ -105,8 +105,14 @@ fn non_empty() {
             .into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    a.into(),
-                    Some(Call::new(Identifier::new(hello).into(), Box::default()).into()),
+                    Identifier::new(a, Span::new((6, 9), (6, 10))),
+                    Some(
+                        Call::new(
+                            Identifier::new(hello, Span::new((6, 13), (6, 18))).into(),
+                            Box::default(),
+                        )
+                        .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -114,7 +120,7 @@ fn non_empty() {
             .into(),
             Statement::Expression(Expression::from(Update::new(
                 UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a)),
+                UpdateTarget::Identifier(Identifier::new(a, Span::new((7, 5), (7, 6)))),
             )))
             .into(),
         ],
@@ -139,8 +145,14 @@ fn hoisting() {
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    a.into(),
-                    Some(Call::new(Identifier::new(hello).into(), Box::default()).into()),
+                    Identifier::new(a, Span::new((2, 9), (2, 10))),
+                    Some(
+                        Call::new(
+                            Identifier::new(hello, Span::new((2, 13), (2, 18))).into(),
+                            Box::default(),
+                        )
+                        .into(),
+                    ),
                 )]
                 .try_into()
                 .unwrap(),
@@ -148,11 +160,11 @@ fn hoisting() {
             .into(),
             Statement::Expression(Expression::from(Update::new(
                 UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a)),
+                UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
             )))
             .into(),
             Declaration::FunctionDeclaration(FunctionDeclaration::new(
-                hello.into(),
+                Identifier::new(hello, Span::new((5, 14), (5, 19))),
                 FormalParameterList::default(),
                 FunctionBody::new(
                     StatementList::new(
@@ -185,19 +197,22 @@ fn hoisting() {
         vec![
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
-                Identifier::new(a).into(),
+                Identifier::new(a, Span::new((2, 5), (2, 6))).into(),
                 Literal::new(10, Span::new((2, 9), (2, 11))).into(),
             )))
             .into(),
             Statement::Expression(Expression::from(Update::new(
                 UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a)),
+                UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
             )))
             .into(),
             Statement::Var(VarDeclaration(
-                vec![Variable::from_identifier(a.into(), None)]
-                    .try_into()
-                    .unwrap(),
+                vec![Variable::from_identifier(
+                    Identifier::new(a, Span::new((5, 9), (5, 10))),
+                    None,
+                )]
+                .try_into()
+                .unwrap(),
             ))
             .into(),
         ],

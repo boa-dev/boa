@@ -39,7 +39,10 @@ fn check_async_ordinary_method() {
             }
         "#},
         [Declaration::ClassDeclaration(ClassDeclaration::new(
-            interner.get_or_intern_static("A", utf16!("A")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("A", utf16!("A")),
+                Span::new((1, 7), (1, 8)),
+            ),
             None,
             None,
             elements.into(),
@@ -66,7 +69,10 @@ fn check_async_field_initialization() {
             }
         "},
         [Declaration::ClassDeclaration(ClassDeclaration::new(
-            interner.get_or_intern_static("A", utf16!("A")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("A", utf16!("A")),
+                Span::new((1, 7), (1, 8)),
+            ),
             None,
             None,
             elements.into(),
@@ -91,7 +97,10 @@ fn check_async_field() {
          }
         ",
         [Declaration::ClassDeclaration(ClassDeclaration::new(
-            interner.get_or_intern_static("A", utf16!("A")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("A", utf16!("A")),
+                Span::new((1, 7), (1, 8)),
+            ),
             None,
             None,
             elements.into(),
@@ -115,7 +124,11 @@ fn check_new_target_with_property_access() {
 
     let console = Expression::Call(Call::new(
         PropertyAccess::Simple(SimplePropertyAccess::new(
-            Identifier::from(interner.get_or_intern_static("console", utf16!("console"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("console", utf16!("console")),
+                Span::new((3, 9), (3, 16)),
+            )
+            .into(),
             interner.get_or_intern_static("log", utf16!("log")),
         ))
         .into(),
@@ -123,7 +136,10 @@ fn check_new_target_with_property_access() {
     ));
 
     let constructor = FunctionExpression::new(
-        Some(interner.get_or_intern_static("A", utf16!("A")).into()),
+        Some(Identifier::new(
+            interner.get_or_intern_static("A", utf16!("A")),
+            Span::new((1, 7), (1, 8)),
+        )),
         FormalParameterList::default(),
         FunctionBody::new(
             StatementList::new(
@@ -139,7 +155,7 @@ fn check_new_target_with_property_access() {
     );
 
     let class = ClassDeclaration::new(
-        interner.get("A").unwrap().into(),
+        Identifier::new(interner.get("A").unwrap(), Span::new((1, 7), (1, 8))),
         None,
         Some(constructor),
         Box::default(),
@@ -147,7 +163,7 @@ fn check_new_target_with_property_access() {
 
     let instantiation = Expression::New(
         Call::new(
-            Identifier::from(interner.get("A").unwrap()).into(),
+            Identifier::new(interner.get("A").unwrap(), Span::new((6, 15), (6, 16))).into(),
             Box::default(),
         )
         .into(),
@@ -156,7 +172,10 @@ fn check_new_target_with_property_access() {
     let const_decl = LexicalDeclaration::Const(
         VariableList::new(
             [Variable::from_identifier(
-                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((6, 7), (6, 8)),
+                ),
                 Some(instantiation),
             )]
             .into(),

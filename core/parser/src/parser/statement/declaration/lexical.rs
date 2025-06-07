@@ -105,7 +105,7 @@ where
         let bound_names = bound_names(&lexical_declaration);
         let mut names = FxHashSet::default();
         for name in bound_names {
-            if name.sym() == Sym::LET {
+            if name == Sym::LET {
                 return Err(Error::general(
                     "'let' is disallowed as a lexically bound name",
                     tok.span().start(),
@@ -321,7 +321,7 @@ where
 
                 let declaration = Pattern::Object(bindings.into());
 
-                if bound_names(&declaration).contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET) {
                     return Err(Error::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
@@ -349,7 +349,7 @@ where
 
                 let declaration = Pattern::Array(bindings.into());
 
-                if bound_names(&declaration).contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET) {
                     return Err(Error::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,

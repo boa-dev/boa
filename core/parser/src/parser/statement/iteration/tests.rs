@@ -37,7 +37,11 @@ fn check_do_while() {
                     vec![StatementListItem::Statement(Statement::Expression(
                         Expression::from(Assign::new(
                             AssignOp::Add,
-                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("a", utf16!("a")),
+                                Span::new((2, 5), (2, 6)),
+                            )
+                            .into(),
                             Literal::new(1, Span::new((2, 10), (2, 11))).into(),
                         )),
                     ))],
@@ -64,7 +68,10 @@ fn check_do_while_semicolon_insertion() {
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("i", utf16!("i")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("i", utf16!("i")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(0, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
@@ -81,6 +88,7 @@ fn check_do_while_semicolon_insertion() {
                                         Identifier::new(
                                             interner
                                                 .get_or_intern_static("console", utf16!("console")),
+                                            Span::new((2, 5), (2, 12)),
                                         )
                                         .into(),
                                         interner.get_or_intern_static("log", utf16!("log")),
@@ -105,6 +113,7 @@ fn check_do_while_semicolon_insertion() {
                         UpdateOp::IncrementPost,
                         UpdateTarget::Identifier(Identifier::new(
                             interner.get_or_intern_static("i", utf16!("i")),
+                            Span::new((2, 34), (2, 35)),
                         )),
                     )
                     .into(),
@@ -118,6 +127,7 @@ fn check_do_while_semicolon_insertion() {
                     SimplePropertyAccess::new(
                         Identifier::new(
                             interner.get_or_intern_static("console", utf16!("console")),
+                            Span::new((2, 44), (2, 51)),
                         )
                         .into(),
                         interner.get_or_intern_static("log", utf16!("log")),
@@ -150,7 +160,10 @@ fn check_do_while_semicolon_insertion_no_space() {
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("i", utf16!("i")).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("i", utf16!("i")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
                     Some(Literal::new(0, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
@@ -167,6 +180,7 @@ fn check_do_while_semicolon_insertion_no_space() {
                                         Identifier::new(
                                             interner
                                                 .get_or_intern_static("console", utf16!("console")),
+                                            Span::new((2, 5), (2, 12)),
                                         )
                                         .into(),
                                         interner.get_or_intern_static("log", utf16!("log")),
@@ -191,6 +205,7 @@ fn check_do_while_semicolon_insertion_no_space() {
                         UpdateOp::IncrementPost,
                         UpdateTarget::Identifier(Identifier::new(
                             interner.get_or_intern_static("i", utf16!("i")),
+                            Span::new((2, 34), (2, 35)),
                         )),
                     )
                     .into(),
@@ -204,6 +219,7 @@ fn check_do_while_semicolon_insertion_no_space() {
                     SimplePropertyAccess::new(
                         Identifier::new(
                             interner.get_or_intern_static("console", utf16!("console")),
+                            Span::new((2, 43), (2, 50)),
                         )
                         .into(),
                         interner.get_or_intern_static("log", utf16!("log")),

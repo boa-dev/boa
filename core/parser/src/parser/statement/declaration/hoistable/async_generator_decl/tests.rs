@@ -1,5 +1,6 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    expression::Identifier,
     function::{AsyncGeneratorDeclaration, FormalParameterList, FunctionBody},
     Declaration, LinearPosition, LinearSpan, Span, StatementList,
 };
@@ -13,7 +14,10 @@ fn async_generator_function_declaration() {
         "async function* gen() {}",
         vec![
             Declaration::AsyncGeneratorDeclaration(AsyncGeneratorDeclaration::new(
-                interner.get_or_intern_static("gen", utf16!("gen")).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("gen", utf16!("gen")),
+                    Span::new((1, 17), (1, 20)),
+                ),
                 FormalParameterList::default(),
                 FunctionBody::new(StatementList::default(), Span::new((1, 23), (1, 25))),
                 LinearSpan::new(LinearPosition::default(), LinearPosition::default()),

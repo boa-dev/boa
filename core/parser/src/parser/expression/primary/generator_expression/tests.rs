@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     declaration::{LexicalDeclaration, Variable},
-    expression::{literal::Literal, Yield},
+    expression::{literal::Literal, Identifier, Yield},
     function::{FormalParameterList, FunctionBody, GeneratorExpression},
     Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
@@ -25,10 +25,10 @@ fn check_generator_function_expression() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                gen.into(),
+                Identifier::new(gen, Span::new((1, 7), (1, 10))),
                 Some(
                     GeneratorExpression::new(
-                        Some(gen.into()),
+                        Some(Identifier::new(gen, Span::new((1, 7), (1, 10)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
@@ -70,10 +70,10 @@ fn check_generator_function_delegate_yield_expression() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                gen.into(),
+                Identifier::new(gen, Span::new((1, 7), (1, 10))),
                 Some(
                     GeneratorExpression::new(
-                        Some(gen.into()),
+                        Some(Identifier::new(gen, Span::new((1, 7), (1, 10)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(

@@ -24,8 +24,16 @@ fn check_numeric_operations() {
         "a + b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Add.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -36,7 +44,11 @@ fn check_numeric_operations() {
         "a+1",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Add.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Literal::new(1, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
@@ -48,8 +60,16 @@ fn check_numeric_operations() {
         "a - b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Sub.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -60,7 +80,11 @@ fn check_numeric_operations() {
         "a-1",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Sub.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Literal::new(1, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
@@ -72,8 +96,16 @@ fn check_numeric_operations() {
         "a / b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Div.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -84,7 +116,11 @@ fn check_numeric_operations() {
         "a/2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Div.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Literal::new(2, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
@@ -96,9 +132,10 @@ fn check_numeric_operations() {
         "let myRegex = /=/;",
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
-                interner
-                    .get_or_intern_static("myRegex", utf16!("myRegex"))
-                    .into(),
+                Identifier::new(
+                    interner.get_or_intern_static("myRegex", utf16!("myRegex")),
+                    Span::new((1, 5), (1, 12)),
+                ),
                 Some(
                     RegExpLiteral::new(
                         interner.get_or_intern_static("=", utf16!("=")),
@@ -119,7 +156,11 @@ fn check_numeric_operations() {
     check_script_parser(
         "fn(/=/);",
         vec![Statement::Expression(Expression::from(Call::new(
-            Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("fn", utf16!("fn")),
+                Span::new((1, 1), (1, 3)),
+            )
+            .into(),
             vec![RegExpLiteral::new(
                 interner.get_or_intern_static("=", utf16!("=")),
                 Sym::EMPTY_STRING,
@@ -136,11 +177,23 @@ fn check_numeric_operations() {
     check_script_parser(
         "fn(a / b);",
         vec![Statement::Expression(Expression::from(Call::new(
-            Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("fn", utf16!("fn")),
+                Span::new((1, 1), (1, 3)),
+            )
+            .into(),
             vec![Expression::from(Binary::new(
                 ArithmeticOp::Div.into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 4), (1, 5)),
+                )
+                .into(),
+                Identifier::new(
+                    interner.get_or_intern_static("b", utf16!("b")),
+                    Span::new((1, 8), (1, 9)),
+                )
+                .into(),
             ))]
             .into(),
         )))
@@ -154,12 +207,24 @@ fn check_numeric_operations() {
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Div.into(),
             Call::new(
-                Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
-                vec![Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into()]
-                    .into(),
+                Identifier::new(
+                    interner.get_or_intern_static("fn", utf16!("fn")),
+                    Span::new((1, 1), (1, 3)),
+                )
+                .into(),
+                vec![Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 4), (1, 5)),
+                )
+                .into()]
+                .into(),
             )
             .into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 9), (1, 10)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -170,8 +235,16 @@ fn check_numeric_operations() {
         "a * b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mul.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -182,7 +255,11 @@ fn check_numeric_operations() {
         "a*2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mul.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Literal::new(2, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
@@ -194,8 +271,16 @@ fn check_numeric_operations() {
         "a ** b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Exp.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -206,7 +291,11 @@ fn check_numeric_operations() {
         "a**2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Exp.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Literal::new(2, Span::new((1, 4), (1, 5))).into(),
         )))
         .into()],
@@ -218,8 +307,16 @@ fn check_numeric_operations() {
         "a % b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mod.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -230,7 +327,11 @@ fn check_numeric_operations() {
         "a%2",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mod.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Literal::new(2, Span::new((1, 3), (1, 4))).into(),
         )))
         .into()],
@@ -248,14 +349,26 @@ fn check_complex_numeric_operations() {
             ArithmeticOp::Add.into(),
             Binary::new(
                 ArithmeticOp::Add.into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 1), (1, 2)),
+                )
+                .into(),
                 Binary::new(
                     ArithmeticOp::Mul.into(),
-                    Identifier::new(interner.get_or_intern_static("d", utf16!("d"))).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("d", utf16!("d")),
+                        Span::new((1, 5), (1, 6)),
+                    )
+                    .into(),
                     Parenthesized::new(
                         Binary::new(
                             ArithmeticOp::Sub.into(),
-                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("b", utf16!("b")),
+                                Span::new((1, 8), (1, 9)),
+                            )
+                            .into(),
                             Literal::new(3, Span::new((1, 10), (1, 11))).into(),
                         )
                         .into(),
@@ -281,8 +394,16 @@ fn check_bitwise_operations() {
         "a & b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::And.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -293,8 +414,16 @@ fn check_bitwise_operations() {
         "a&b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::And.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 3), (1, 4)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -305,8 +434,16 @@ fn check_bitwise_operations() {
         "a | b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Or.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -317,8 +454,16 @@ fn check_bitwise_operations() {
         "a|b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Or.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 3), (1, 4)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -329,8 +474,16 @@ fn check_bitwise_operations() {
         "a ^ b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Xor.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -341,8 +494,16 @@ fn check_bitwise_operations() {
         "a^b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Xor.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 3), (1, 4)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -353,8 +514,16 @@ fn check_bitwise_operations() {
         "a << b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shl.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -365,8 +534,16 @@ fn check_bitwise_operations() {
         "a<<b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shl.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 4), (1, 5)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -377,8 +554,16 @@ fn check_bitwise_operations() {
         "a >> b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shr.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -389,8 +574,16 @@ fn check_bitwise_operations() {
         "a>>b",
         vec![Statement::Expression(Expression::from(Binary::new(
             BitwiseOp::Shr.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 4), (1, 5)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -405,8 +598,16 @@ fn check_assign_operations() {
         "a += b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Add,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -417,8 +618,16 @@ fn check_assign_operations() {
         "a -= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Sub,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -429,8 +638,16 @@ fn check_assign_operations() {
         "a *= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Mul,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -441,8 +658,16 @@ fn check_assign_operations() {
         "a **= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Exp,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 7), (1, 8)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -453,8 +678,16 @@ fn check_assign_operations() {
         "a /= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Div,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -465,8 +698,16 @@ fn check_assign_operations() {
         "a %= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Mod,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -477,8 +718,16 @@ fn check_assign_operations() {
         "a &= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::And,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -489,8 +738,16 @@ fn check_assign_operations() {
         "a |= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Or,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -501,8 +758,16 @@ fn check_assign_operations() {
         "a ^= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Xor,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -513,8 +778,16 @@ fn check_assign_operations() {
         "a <<= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Shl,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 7), (1, 8)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -525,8 +798,16 @@ fn check_assign_operations() {
         "a >>= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Shr,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 7), (1, 8)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -537,8 +818,16 @@ fn check_assign_operations() {
         "a >>>= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Ushr,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 8), (1, 9)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -549,7 +838,11 @@ fn check_assign_operations() {
         "a %= 10 / 2",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Mod,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
             Binary::new(
                 ArithmeticOp::Div.into(),
                 Literal::new(10, Span::new((1, 6), (1, 8))).into(),
@@ -566,8 +859,16 @@ fn check_assign_operations() {
         "a ??= b",
         vec![Statement::Expression(Expression::from(Assign::new(
             AssignOp::Coalesce,
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 7), (1, 8)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -581,8 +882,16 @@ fn check_relational_operations() {
         "a < b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::LessThan.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -593,8 +902,16 @@ fn check_relational_operations() {
         "a > b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::GreaterThan.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 5), (1, 6)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -605,8 +922,16 @@ fn check_relational_operations() {
         "a <= b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::LessThanOrEqual.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -617,8 +942,16 @@ fn check_relational_operations() {
         "a >= b",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::GreaterThanOrEqual.into(),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -629,8 +962,16 @@ fn check_relational_operations() {
         "p in o",
         vec![Statement::Expression(Expression::from(Binary::new(
             RelationalOp::In.into(),
-            Identifier::new(interner.get_or_intern_static("p", utf16!("p"))).into(),
-            Identifier::new(interner.get_or_intern_static("o", utf16!("o"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("p", utf16!("p")),
+                Span::new((1, 1), (1, 2)),
+            )
+            .into(),
+            Identifier::new(
+                interner.get_or_intern_static("o", utf16!("o")),
+                Span::new((1, 6), (1, 7)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -646,19 +987,39 @@ fn check_logical_expressions() {
             LogicalOp::Or.into(),
             Binary::new(
                 LogicalOp::And.into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 1), (1, 2)),
+                )
+                .into(),
+                Identifier::new(
+                    interner.get_or_intern_static("b", utf16!("b")),
+                    Span::new((1, 6), (1, 7)),
+                )
+                .into(),
             )
             .into(),
             Binary::new(
                 LogicalOp::Or.into(),
                 Binary::new(
                     LogicalOp::And.into(),
-                    Identifier::new(interner.get_or_intern_static("c", utf16!("c"))).into(),
-                    Identifier::new(interner.get_or_intern_static("d", utf16!("d"))).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("c", utf16!("c")),
+                        Span::new((1, 11), (1, 12)),
+                    )
+                    .into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("d", utf16!("d")),
+                        Span::new((1, 16), (1, 17)),
+                    )
+                    .into(),
                 )
                 .into(),
-                Identifier::new(interner.get_or_intern_static("e", utf16!("e"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("e", utf16!("e")),
+                    Span::new((1, 21), (1, 22)),
+                )
+                .into(),
             )
             .into(),
         )))
@@ -673,11 +1034,23 @@ fn check_logical_expressions() {
             LogicalOp::Coalesce.into(),
             Binary::new(
                 LogicalOp::Coalesce.into(),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Identifier::new(
+                    interner.get_or_intern_static("a", utf16!("a")),
+                    Span::new((1, 1), (1, 2)),
+                )
+                .into(),
+                Identifier::new(
+                    interner.get_or_intern_static("b", utf16!("b")),
+                    Span::new((1, 6), (1, 7)),
+                )
+                .into(),
             )
             .into(),
-            Identifier::new(interner.get_or_intern_static("c", utf16!("c"))).into(),
+            Identifier::new(
+                interner.get_or_intern_static("c", utf16!("c")),
+                Span::new((1, 11), (1, 12)),
+            )
+            .into(),
         )))
         .into()],
         interner,
@@ -699,7 +1072,10 @@ fn parse_async_arrow_function_named_of() {
                 None,
                 FormalParameterList::from_parameters(vec![FormalParameter::new(
                     Variable::from_identifier(
-                        Identifier::new(interner.get_or_intern_static("of", utf16!("of"))),
+                        Identifier::new(
+                            interner.get_or_intern_static("of", utf16!("of")),
+                            Span::new((1, 7), (1, 9)),
+                        ),
                         None,
                     ),
                     false,
@@ -725,8 +1101,11 @@ macro_rules! check_non_reserved_identifier {
             input.as_str(),
             vec![Statement::Expression(
                 Parenthesized::new(
-                    Identifier::new(interner.get_or_intern_static($keyword, utf16!($keyword)))
-                        .into(),
+                    Identifier::new(
+                        interner.get_or_intern_static($keyword, utf16!($keyword)),
+                        Span::new((1, 2), (1, input_end - 1)),
+                    )
+                    .into(),
                     Span::new((1, 1), (1, input_end)),
                 )
                 .into(),

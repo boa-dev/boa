@@ -41,7 +41,7 @@ use boa_ast::{
     pattern::Pattern,
     property::MethodDefinitionKind,
     scope::{BindingLocator, BindingLocatorError, FunctionScopes, IdentifierReference, Scope},
-    Declaration, Expression, LinearSpan, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearSpan, Span, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
@@ -320,7 +320,11 @@ impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
 
         FunctionSpec {
             kind,
-            name: method.name().literal().map(Into::into),
+            // TODO: PropertyName::Literal should have a span.
+            name: method
+                .name()
+                .literal()
+                .map(|sym| Identifier::new(sym, Span::new((1234, 1234), (1234, 1234)))),
             parameters: method.parameters(),
             body: method.body(),
             scopes: method.scopes(),
@@ -447,7 +451,7 @@ pub struct ByteCompiler<'ctx> {
     handlers: ThinVec<Handler>,
     pub(crate) ic: Vec<InlineCache>,
     literals_map: FxHashMap<Literal, u32>,
-    names_map: FxHashMap<Identifier, u32>,
+    names_map: FxHashMap<Sym, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
 
@@ -467,7 +471,7 @@ pub struct ByteCompiler<'ctx> {
     spanned_source_text: SpannedSourceText,
 
     #[cfg(feature = "annex-b")]
-    pub(crate) annex_b_function_names: Vec<Identifier>,
+    pub(crate) annex_b_function_names: Vec<Sym>,
 }
 
 pub(crate) enum BindingKind {
@@ -606,7 +610,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         index
     }
 
-    fn get_or_insert_name(&mut self, name: Identifier) -> u32 {
+    fn get_or_insert_name(&mut self, name: Sym) -> u32 {
         if let Some(index) = self.names_map.get(&name) {
             return *index;
         }
@@ -624,7 +628,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     #[inline]
     fn get_or_insert_private_name(&mut self, name: PrivateName) -> u32 {
-        self.get_or_insert_name(Identifier::new(name.description()))
+        self.get_or_insert_name(name.description())
     }
 
     // TODO: Make this return `Option<BindingKind>` instead of making BindingKind::Local
@@ -856,7 +860,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         let ic_index = self.ic.len() as u32;
 
-        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let name_index = self.get_or_insert_name(ident);
         let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
             unreachable!("there should be a string at index")
         };
@@ -879,7 +883,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         let ic_index = self.ic.len() as u32;
 
-        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let name_index = self.get_or_insert_name(ident);
         let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
             unreachable!("there should be a string at index")
         };
@@ -1229,7 +1233,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
-                        let index = self.get_or_insert_name((*name).into());
+                        let index = self.get_or_insert_name(*name);
                         self.compile_expr(access.target(), dst);
                         self.bytecode
                             .emit_delete_property_by_name(dst.variable(), index.into());
@@ -1639,7 +1643,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             #[cfg(feature = "annex-b")]
             Declaration::FunctionDeclaration(function) if block => {
                 let name = function.name();
-                if self.annex_b_function_names.contains(&name) {
+                if self.annex_b_function_names.contains(&name.sym()) {
                     let name = name.to_js_string(self.interner());
                     let binding = self.lexical_scope.get_identifier_reference(name.clone());
                     let index = self.get_binding(&binding);

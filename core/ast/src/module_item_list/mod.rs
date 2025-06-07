@@ -11,7 +11,6 @@ use crate::{
         ImportKind, ImportName, IndirectExportEntry, LocalExportEntry, ModuleSpecifier,
         ReExportImportName, ReExportKind,
     },
-    expression::Identifier,
     operations::{bound_names, BoundNamesVisitor},
     visitor::{VisitWith, Visitor, VisitorMut},
     StatementListItem,
@@ -128,9 +127,9 @@ impl ModuleItemList {
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-exportedbindings
     #[inline]
     #[must_use]
-    pub fn exported_bindings(&self) -> FxHashSet<Identifier> {
+    pub fn exported_bindings(&self) -> FxHashSet<Sym> {
         #[derive(Debug)]
-        struct ExportedBindingsVisitor<'vec>(&'vec mut FxHashSet<Identifier>);
+        struct ExportedBindingsVisitor<'vec>(&'vec mut FxHashSet<Sym>);
 
         impl<'ast> Visitor<'ast> for ExportedBindingsVisitor<'_> {
             type BreakTy = Infallible;
@@ -151,7 +150,7 @@ impl ModuleItemList {
                 &mut self,
                 node: &'ast ExportSpecifier,
             ) -> ControlFlow<Self::BreakTy> {
-                self.0.insert(Identifier::new(node.private_name()));
+                self.0.insert(node.private_name());
                 ControlFlow::Continue(())
             }
             fn visit_export_declaration(
@@ -182,7 +181,7 @@ impl ModuleItemList {
                     ExportDeclaration::DefaultClassDeclaration(cl) => cl.name(),
                 };
 
-                self.0.insert(name);
+                self.0.insert(name.sym());
 
                 ControlFlow::Continue(())
             }
@@ -363,35 +362,29 @@ impl ModuleItemList {
                     ExportDeclaration::List(names) => {
                         for name in &**names {
                             self.0.push(
-                                LocalExportEntry::new(
-                                    Identifier::from(name.private_name()),
-                                    name.alias(),
-                                )
-                                .into(),
+                                LocalExportEntry::new(name.private_name(), name.alias()).into(),
                             );
                         }
                         return ControlFlow::Continue(());
                     }
                     ExportDeclaration::VarStatement(var) => {
                         for name in bound_names(var) {
-                            self.0.push(LocalExportEntry::new(name, name.sym()).into());
+                            self.0.push(LocalExportEntry::new(name, name).into());
                         }
                         return ControlFlow::Continue(());
                     }
                     ExportDeclaration::Declaration(decl) => {
                         for name in bound_names(decl) {
-                            self.0.push(LocalExportEntry::new(name, name.sym()).into());
+                            self.0.push(LocalExportEntry::new(name, name).into());
                         }
                         return ControlFlow::Continue(());
                     }
-                    ExportDeclaration::DefaultFunctionDeclaration(f) => f.name(),
-                    ExportDeclaration::DefaultGeneratorDeclaration(g) => g.name(),
-                    ExportDeclaration::DefaultAsyncFunctionDeclaration(af) => af.name(),
-                    ExportDeclaration::DefaultAsyncGeneratorDeclaration(ag) => ag.name(),
-                    ExportDeclaration::DefaultClassDeclaration(c) => c.name(),
-                    ExportDeclaration::DefaultAssignmentExpression(_) => {
-                        Identifier::from(Sym::DEFAULT_EXPORT)
-                    }
+                    ExportDeclaration::DefaultFunctionDeclaration(f) => f.name().sym(),
+                    ExportDeclaration::DefaultGeneratorDeclaration(g) => g.name().sym(),
+                    ExportDeclaration::DefaultAsyncFunctionDeclaration(af) => af.name().sym(),
+                    ExportDeclaration::DefaultAsyncGeneratorDeclaration(ag) => ag.name().sym(),
+                    ExportDeclaration::DefaultClassDeclaration(c) => c.name().sym(),
+                    ExportDeclaration::DefaultAssignmentExpression(_) => Sym::DEFAULT_EXPORT,
                 };
 
                 self.0

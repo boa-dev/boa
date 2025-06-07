@@ -76,7 +76,9 @@ where
     type Output = ClassDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        cursor.expect((Keyword::Class, false), "class declaration", interner)?;
+        let span = cursor
+            .expect((Keyword::Class, false), "class declaration", interner)?
+            .span();
         let strict = cursor.strict();
         cursor.set_strict(true);
 
@@ -87,7 +89,7 @@ where
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
-            _ if self.is_default.0 => Sym::DEFAULT.into(),
+            _ if self.is_default.0 => Identifier::new(Sym::DEFAULT, span),
             _ => {
                 return Err(Error::unexpected(
                     token.to_string(interner),
@@ -1081,7 +1083,10 @@ where
                                 .concat()
                                 .as_slice(),
                         );
-                        rhs.set_anonymous_function_definition_name(&Identifier::new(function_name));
+                        rhs.set_anonymous_function_definition_name(&Identifier::new(
+                            function_name,
+                            Span::new((1234, 1234), (1234, 1234)),
+                        ));
                         let field = PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs));
                         if r#static {
                             function::ClassElement::PrivateStaticFieldDefinition(field)
@@ -1162,7 +1167,10 @@ where
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         cursor.set_strict(strict);
                         if let Some(name) = name.literal() {
-                            rhs.set_anonymous_function_definition_name(&Identifier::new(name));
+                            rhs.set_anonymous_function_definition_name(&Identifier::new(
+                                name,
+                                Span::new((1234, 1234), (1234, 1234)),
+                            ));
                         }
                         let field = ClassFieldDefinition::new(name, Some(rhs));
                         if r#static {

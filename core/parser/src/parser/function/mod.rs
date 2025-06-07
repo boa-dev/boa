@@ -27,8 +27,8 @@ use ast::{
 use boa_ast::{
     self as ast,
     declaration::Variable,
-    function::FunctionBody as AstFunctionBody,
-    function::{FormalParameterList, FormalParameterListFlags},
+    expression::Identifier,
+    function::{FormalParameterList, FormalParameterListFlags, FunctionBody as AstFunctionBody},
     Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
@@ -306,7 +306,10 @@ where
             Ok(Self::Output::new(declaration, true))
         } else {
             Ok(Self::Output::new(
-                Variable::from_identifier(Sym::EMPTY_STRING.into(), None),
+                Variable::from_identifier(
+                    Identifier::new(Sym::EMPTY_STRING, Span::new((1234, 1234), (1234, 1234))),
+                    None,
+                ),
                 true,
             ))
         }
@@ -405,7 +408,10 @@ where
             Ok(Self::Output::new(declaration, false))
         } else {
             Ok(Self::Output::new(
-                Variable::from_identifier(Sym::EMPTY_STRING.into(), None),
+                Variable::from_identifier(
+                    Identifier::new(Sym::EMPTY_STRING, Span::new((1234, 1234), (1234, 1234))),
+                    None,
+                ),
                 false,
             ))
         }
