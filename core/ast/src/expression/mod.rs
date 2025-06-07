@@ -313,7 +313,7 @@ impl Expression {
             Self::Optional(opt) => span,
             Self::NewTarget => span,
             Self::ImportMeta => span,
-            Self::TaggedTemplate(tag) => span,
+            Self::TaggedTemplate(tag) => tag.span(),
             Self::Assign(assign) => span,
             Self::Unary(unary) => span,
             Self::Update(update) => span,
