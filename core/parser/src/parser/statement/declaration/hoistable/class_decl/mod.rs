@@ -587,9 +587,15 @@ where
 
                 let span = Some(start_linear_span.union(body.linear_pos_end()));
 
+                let function_span_end = body.span().end();
                 return Ok((
                     Some(FunctionExpression::new(
-                        self.name, parameters, body, span, false,
+                        self.name,
+                        parameters,
+                        body,
+                        span,
+                        false,
+                        Span::new(position, function_span_end),
                     )),
                     None,
                 ));

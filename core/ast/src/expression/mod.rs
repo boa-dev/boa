@@ -297,7 +297,7 @@ impl Expression {
             Self::ArrayLiteral(arr) => arr.span(),
             Self::ObjectLiteral(o) => o.span(),
             Self::Spread(sp) => span,
-            Self::FunctionExpression(f) => span,
+            Self::FunctionExpression(f) => f.span(),
             Self::AsyncArrowFunction(f) => span,
             Self::ArrowFunction(arrf) => span,
             Self::ClassExpression(cl) => span,

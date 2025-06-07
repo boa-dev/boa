@@ -135,6 +135,7 @@ fn check_new_target_with_property_access() {
         ),
         None,
         false,
+        Span::new((2, 5), (4, 6)),
     );
 
     let class = ClassDeclaration::new(

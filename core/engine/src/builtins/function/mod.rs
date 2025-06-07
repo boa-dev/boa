@@ -43,7 +43,7 @@ use boa_ast::{
         ContainsSymbol,
     },
     scope::BindingLocatorScope,
-    Span, StatementList,
+    Position, Span, StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
@@ -640,8 +640,16 @@ impl BuiltInFunctionObject {
 
         // TODO: create SourceText : "anonymous(" parameters \n ") {" body_parse "}"
 
-        let mut function =
-            boa_ast::function::FunctionExpression::new(None, parameters, body, None, false);
+        let function_span_start = Position::new(1, 1);
+        let function_span_end = body.span().end();
+        let mut function = boa_ast::function::FunctionExpression::new(
+            None,
+            parameters,
+            body,
+            None,
+            false,
+            Span::new(function_span_start, function_span_end),
+        );
         if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
             return Err(JsNativeError::syntax()
                 .with_message("failed to analyze function scope")

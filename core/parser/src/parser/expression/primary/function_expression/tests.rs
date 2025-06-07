@@ -44,6 +44,7 @@ fn check_function_expression() {
                         ),
                         None,
                         false,
+                        Span::new((1, 13), (3, 2)),
                     )
                     .into(),
                 ),
@@ -103,6 +104,7 @@ fn check_nested_function_expression() {
                                                 ),
                                                 None,
                                                 false,
+                                                Span::new((2, 15), (4, 6)),
                                             )
                                             .into(),
                                         ),
@@ -118,6 +120,7 @@ fn check_nested_function_expression() {
                         ),
                         None,
                         false,
+                        Span::new((1, 11), (5, 2)),
                     )
                     .into(),
                 ),
@@ -133,7 +136,7 @@ fn check_nested_function_expression() {
 #[test]
 fn check_function_non_reserved_keyword() {
     macro_rules! genast {
-        ($keyword:literal, $interner:expr, $body_span:expr, $literal_span:expr) => {
+        ($keyword:literal, $interner:expr, $function_span:expr, $body_span:expr, $literal_span:expr) => {
             vec![Declaration::Lexical(LexicalDeclaration::Const(
                 vec![Variable::from_identifier(
                     $interner.get_or_intern_static("add", utf16!("add")).into(),
@@ -157,6 +160,7 @@ fn check_function_non_reserved_keyword() {
                             ),
                             None,
                             true,
+                            $function_span,
                         )
                         .into(),
                     ),
@@ -171,6 +175,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "as",
         interner,
+        Span::new((1, 13), (1, 40)),
         Span::new((1, 27), (1, 40)),
         Span::new((1, 36), (1, 37))
     );
@@ -180,6 +185,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "async",
         interner,
+        Span::new((1, 13), (1, 43)),
         Span::new((1, 30), (1, 43)),
         Span::new((1, 39), (1, 40))
     );
@@ -189,6 +195,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "from",
         interner,
+        Span::new((1, 13), (1, 42)),
         Span::new((1, 29), (1, 42)),
         Span::new((1, 38), (1, 39))
     );
@@ -198,6 +205,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "get",
         interner,
+        Span::new((1, 13), (1, 41)),
         Span::new((1, 28), (1, 41)),
         Span::new((1, 37), (1, 38))
     );
@@ -207,6 +215,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "meta",
         interner,
+        Span::new((1, 13), (1, 42)),
         Span::new((1, 29), (1, 42)),
         Span::new((1, 38), (1, 39))
     );
@@ -216,6 +225,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "of",
         interner,
+        Span::new((1, 13), (1, 40)),
         Span::new((1, 27), (1, 40)),
         Span::new((1, 36), (1, 37))
     );
@@ -225,6 +235,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "set",
         interner,
+        Span::new((1, 13), (1, 41)),
         Span::new((1, 28), (1, 41)),
         Span::new((1, 37), (1, 38))
     );
@@ -234,6 +245,7 @@ fn check_function_non_reserved_keyword() {
     let ast = genast!(
         "target",
         interner,
+        Span::new((1, 13), (1, 44)),
         Span::new((1, 31), (1, 44)),
         Span::new((1, 40), (1, 41))
     );
