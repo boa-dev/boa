@@ -46,6 +46,7 @@ fn check_async_expression() {
                         ),
                         EMPTY_LINEAR_SPAN,
                         false,
+                        Span::new((1, 13), (3, 2)),
                     )
                     .into(),
                 ),
@@ -104,6 +105,7 @@ fn check_nested_async_expression() {
                                                 ),
                                                 EMPTY_LINEAR_SPAN,
                                                 false,
+                                                Span::new((2, 15), (4, 6)),
                                             )
                                             .into(),
                                         ),
@@ -119,6 +121,7 @@ fn check_nested_async_expression() {
                         ),
                         EMPTY_LINEAR_SPAN,
                         false,
+                        Span::new((1, 11), (5, 2)),
                     )
                     .into(),
                 ),
