@@ -4,10 +4,11 @@ use boa_ast::{
     expression::literal::Literal,
     function::{FormalParameterList, FunctionBody, FunctionExpression},
     statement::Return,
-    Declaration, Statement, StatementListItem,
+    Declaration, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 
@@ -17,10 +18,11 @@ fn check_function_expression() {
     let interner = &mut Interner::default();
     let add = interner.get_or_intern_static("add", utf16!("add"));
     check_script_parser(
-        "const add = function() {
-            return 1;
-        };
-        ",
+        indoc! {"
+            const add = function() {
+                return 1;
+            };
+        "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
                 add.into(),
@@ -29,14 +31,20 @@ fn check_function_expression() {
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            [StatementListItem::Statement(Statement::Return(
-                                Return::new(Some(Literal::from(1).into())),
-                            ))],
-                            PSEUDO_LINEAR_POS,
-                            false,
+                            StatementList::new(
+                                [StatementListItem::Statement(Statement::Return(
+                                    Return::new(Some(
+                                        Literal::new(1, Span::new((2, 12), (2, 13))).into(),
+                                    )),
+                                ))],
+                                PSEUDO_LINEAR_POS,
+                                false,
+                            ),
+                            Span::new((1, 24), (3, 2)),
                         ),
                         None,
                         false,
+                        Span::new((1, 13), (3, 2)),
                     )
                     .into(),
                 ),
@@ -55,12 +63,13 @@ fn check_nested_function_expression() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     let b = interner.get_or_intern_static("b", utf16!("b"));
     check_script_parser(
-        "const a = function() {
-            const b = function() {
-                return 1;
+        indoc! {"
+            const a = function() {
+                const b = function() {
+                    return 1;
+                };
             };
-        };
-        ",
+        "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
                 a.into(),
@@ -69,35 +78,49 @@ fn check_nested_function_expression() {
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            [Declaration::Lexical(LexicalDeclaration::Const(
-                                vec![Variable::from_identifier(
-                                    b.into(),
-                                    Some(
-                                        FunctionExpression::new(
-                                            Some(b.into()),
-                                            FormalParameterList::default(),
-                                            FunctionBody::new(
-                                                [StatementListItem::Statement(Statement::Return(
-                                                    Return::new(Some(Literal::from(1).into())),
-                                                ))],
-                                                PSEUDO_LINEAR_POS,
+                            StatementList::new(
+                                [Declaration::Lexical(LexicalDeclaration::Const(
+                                    vec![Variable::from_identifier(
+                                        b.into(),
+                                        Some(
+                                            FunctionExpression::new(
+                                                Some(b.into()),
+                                                FormalParameterList::default(),
+                                                FunctionBody::new(
+                                                    StatementList::new(
+                                                        [StatementListItem::Statement(
+                                                            Statement::Return(Return::new(Some(
+                                                                Literal::new(
+                                                                    1,
+                                                                    Span::new((3, 16), (3, 17)),
+                                                                )
+                                                                .into(),
+                                                            ))),
+                                                        )],
+                                                        PSEUDO_LINEAR_POS,
+                                                        false,
+                                                    ),
+                                                    Span::new((2, 26), (4, 6)),
+                                                ),
+                                                None,
                                                 false,
-                                            ),
-                                            None,
-                                            false,
-                                        )
-                                        .into(),
-                                    ),
-                                )]
-                                .try_into()
-                                .unwrap(),
-                            ))
-                            .into()],
-                            PSEUDO_LINEAR_POS,
-                            false,
+                                                Span::new((2, 15), (4, 6)),
+                                            )
+                                            .into(),
+                                        ),
+                                    )]
+                                    .try_into()
+                                    .unwrap(),
+                                ))
+                                .into()],
+                                PSEUDO_LINEAR_POS,
+                                false,
+                            ),
+                            Span::new((1, 22), (5, 2)),
                         ),
                         None,
                         false,
+                        Span::new((1, 11), (5, 2)),
                     )
                     .into(),
                 ),
@@ -113,7 +136,7 @@ fn check_nested_function_expression() {
 #[test]
 fn check_function_non_reserved_keyword() {
     macro_rules! genast {
-        ($keyword:literal, $interner:expr) => {
+        ($keyword:literal, $interner:expr, $function_span:expr, $body_span:expr, $literal_span:expr) => {
             vec![Declaration::Lexical(LexicalDeclaration::Const(
                 vec![Variable::from_identifier(
                     $interner.get_or_intern_static("add", utf16!("add")).into(),
@@ -122,18 +145,22 @@ fn check_function_non_reserved_keyword() {
                             Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
                             FormalParameterList::default(),
                             FunctionBody::new(
-                                [StatementListItem::Statement(
-                                    Statement::Return(
-                                        Return::new(
-                                            Some(Literal::from(1).into())
+                                StatementList::new(
+                                    [StatementListItem::Statement(
+                                        Statement::Return(
+                                            Return::new(
+                                                Some(Literal::new(1, $literal_span).into())
+                                            )
                                         )
-                                    )
-                                )],
-                                PSEUDO_LINEAR_POS,
-                                false,
+                                    )],
+                                    PSEUDO_LINEAR_POS,
+                                    false,
+                                ),
+                                $body_span,
                             ),
                             None,
                             true,
+                            $function_span,
                         )
                         .into(),
                     ),
@@ -145,35 +172,83 @@ fn check_function_non_reserved_keyword() {
     }
 
     let interner = &mut Interner::default();
-    let ast = genast!("as", interner);
+    let ast = genast!(
+        "as",
+        interner,
+        Span::new((1, 13), (1, 40)),
+        Span::new((1, 27), (1, 40)),
+        Span::new((1, 36), (1, 37))
+    );
     check_script_parser("const add = function as() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("async", interner);
+    let ast = genast!(
+        "async",
+        interner,
+        Span::new((1, 13), (1, 43)),
+        Span::new((1, 30), (1, 43)),
+        Span::new((1, 39), (1, 40))
+    );
     check_script_parser("const add = function async() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("from", interner);
+    let ast = genast!(
+        "from",
+        interner,
+        Span::new((1, 13), (1, 42)),
+        Span::new((1, 29), (1, 42)),
+        Span::new((1, 38), (1, 39))
+    );
     check_script_parser("const add = function from() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("get", interner);
+    let ast = genast!(
+        "get",
+        interner,
+        Span::new((1, 13), (1, 41)),
+        Span::new((1, 28), (1, 41)),
+        Span::new((1, 37), (1, 38))
+    );
     check_script_parser("const add = function get() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("meta", interner);
+    let ast = genast!(
+        "meta",
+        interner,
+        Span::new((1, 13), (1, 42)),
+        Span::new((1, 29), (1, 42)),
+        Span::new((1, 38), (1, 39))
+    );
     check_script_parser("const add = function meta() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("of", interner);
+    let ast = genast!(
+        "of",
+        interner,
+        Span::new((1, 13), (1, 40)),
+        Span::new((1, 27), (1, 40)),
+        Span::new((1, 36), (1, 37))
+    );
     check_script_parser("const add = function of() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("set", interner);
+    let ast = genast!(
+        "set",
+        interner,
+        Span::new((1, 13), (1, 41)),
+        Span::new((1, 28), (1, 41)),
+        Span::new((1, 37), (1, 38))
+    );
     check_script_parser("const add = function set() { return 1; };", ast, interner);
 
     let interner = &mut Interner::default();
-    let ast = genast!("target", interner);
+    let ast = genast!(
+        "target",
+        interner,
+        Span::new((1, 13), (1, 44)),
+        Span::new((1, 31), (1, 44)),
+        Span::new((1, 40), (1, 41))
+    );
     check_script_parser(
         "const add = function target() { return 1; };",
         ast,

@@ -35,7 +35,7 @@ use crate::{
 };
 use boa_ast::{
     expression::{ImportCall, SuperCall},
-    Expression, Keyword, Punctuator,
+    Expression, Keyword, Position, Punctuator, Span,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -88,9 +88,10 @@ where
             keyword: Keyword,
             cursor: &mut Cursor<R>,
             interner: &mut Interner,
-        ) -> ParseResult<bool> {
+        ) -> ParseResult<Option<Position>> {
             if let Some(next) = cursor.peek(0, interner)? {
                 if let TokenKind::Keyword((kw, escaped)) = next.kind() {
+                    let keyword_token_start = next.span().start();
                     if kw == &keyword {
                         if *escaped {
                             return Err(Error::general(
@@ -98,30 +99,30 @@ where
                                     "keyword `{}` cannot contain escaped characters",
                                     kw.as_str().0
                                 ),
-                                next.span().start(),
+                                keyword_token_start,
                             ));
                         }
                         if let Some(next) = cursor.peek(1, interner)? {
                             if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                                return Ok(true);
+                                return Ok(Some(keyword_token_start));
                             }
                         }
                     }
                 }
             }
-            Ok(false)
+            Ok(None)
         }
 
         let _timer = Profiler::global().start_event("LeftHandSideExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        let mut lhs = if is_keyword_call(Keyword::Super, cursor, interner)? {
+        let mut lhs = if let Some(start) = is_keyword_call(Keyword::Super, cursor, interner)? {
             cursor.advance(interner);
-            let args =
+            let (args, args_span) =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            SuperCall::new(args).into()
-        } else if is_keyword_call(Keyword::Import, cursor, interner)? {
+            SuperCall::new(args, Span::new(start, args_span.end())).into()
+        } else if let Some(start) = is_keyword_call(Keyword::Import, cursor, interner)? {
             // `import`
             cursor.advance(interner);
             // `(`
@@ -130,16 +131,19 @@ where
             let arg = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::CloseParen),
-                "import call",
-                interner,
-            )?;
+            let end = cursor
+                .expect(
+                    TokenKind::Punctuator(Punctuator::CloseParen),
+                    "import call",
+                    interner,
+                )?
+                .span()
+                .end();
 
             CallExpressionTail::new(
                 self.allow_yield,
                 self.allow_await,
-                ImportCall::new(arg).into(),
+                ImportCall::new(arg, Span::new(start, end)).into(),
             )
             .parse(cursor, interner)?
         } else {

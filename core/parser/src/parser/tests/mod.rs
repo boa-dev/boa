@@ -24,11 +24,12 @@ use boa_ast::{
     },
     scope::Scope,
     statement::{If, Return},
-    Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Statement,
-    StatementList, StatementListItem,
+    Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Span,
+    Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: LinearPosition = LinearPosition::new(0);
 const EMPTY_LINEAR_SPAN: LinearSpan = LinearSpan::new(PSEUDO_LINEAR_POS, PSEUDO_LINEAR_POS);
@@ -112,7 +113,7 @@ fn assign_operator_precedence() {
             Binary::new(
                 ArithmeticOp::Add.into(),
                 Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                Literal::from(1).into(),
+                Literal::new(1, Span::new((1, 9), (1, 10))).into(),
             )
             .into(),
         )))
@@ -127,11 +128,12 @@ fn hoisting() {
     let hello = interner.get_or_intern_static("hello", utf16!("hello"));
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
-        r"
+        indoc! {"
             var a = hello();
             a++;
 
-            function hello() { return 10 }",
+            function hello() { return 10 }
+        "},
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
@@ -151,9 +153,15 @@ fn hoisting() {
                 hello.into(),
                 FormalParameterList::default(),
                 FunctionBody::new(
-                    [Statement::Return(Return::new(Some(Literal::from(10).into()))).into()],
-                    PSEUDO_LINEAR_POS,
-                    false,
+                    StatementList::new(
+                        [Statement::Return(Return::new(Some(
+                            Literal::new(10, Span::new((4, 27), (4, 29))).into(),
+                        )))
+                        .into()],
+                        PSEUDO_LINEAR_POS,
+                        false,
+                    ),
+                    Span::new((4, 18), (4, 31)),
                 ),
                 EMPTY_LINEAR_SPAN,
             ))
@@ -165,16 +173,17 @@ fn hoisting() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
-        r"
+        indoc! {"
             a = 10;
             a++;
 
-            var a;",
+            var a;
+        "},
         vec![
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
                 Identifier::new(a).into(),
-                Literal::from(10).into(),
+                Literal::new(10, Span::new((1, 5), (1, 7))).into(),
             )))
             .into(),
             Statement::Expression(Expression::from(Update::new(
@@ -204,13 +213,13 @@ fn ambigous_regex_divide_expression() {
             RelationalOp::StrictEqual.into(),
             Binary::new(
                 ArithmeticOp::Div.into(),
-                Literal::Int(1).into(),
+                Literal::new(1, Span::new((1, 1), (1, 2))).into(),
                 Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
             )
             .into(),
             Binary::new(
                 ArithmeticOp::Div.into(),
-                Literal::Int(1).into(),
+                Literal::new(1, Span::new((1, 11), (1, 12))).into(),
                 Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
             )
             .into(),
@@ -233,20 +242,20 @@ fn two_divisions_in_expression() {
             Binary::new(
                 RelationalOp::StrictNotEqual.into(),
                 Identifier::new(a).into(),
-                Literal::Int(0).into(),
+                Literal::new(0, Span::new((1, 7), (1, 8))).into(),
             )
             .into(),
             Binary::new(
                 RelationalOp::StrictEqual.into(),
                 Binary::new(
                     ArithmeticOp::Div.into(),
-                    Literal::Int(1).into(),
+                    Literal::new(1, Span::new((1, 12), (1, 13))).into(),
                     Identifier::new(a).into(),
                 )
                 .into(),
                 Binary::new(
                     ArithmeticOp::Div.into(),
-                    Literal::Int(1).into(),
+                    Literal::new(1, Span::new((1, 22), (1, 23))).into(),
                     Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
                 )
                 .into(),
@@ -260,10 +269,10 @@ fn two_divisions_in_expression() {
 
 #[test]
 fn comment_semi_colon_insertion() {
-    let s = r#"
-    let a = 10 // Comment
-    let b = 20;
-    "#;
+    let s = indoc! {"
+        let a = 10 // Comment
+        let b = 20;
+    "};
 
     let interner = &mut Interner::default();
     check_script_parser(
@@ -272,7 +281,7 @@ fn comment_semi_colon_insertion() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("a", utf16!("a")).into(),
-                    Some(Literal::Int(10).into()),
+                    Some(Literal::new(10, Span::new((1, 9), (1, 11))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -281,7 +290,7 @@ fn comment_semi_colon_insertion() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("b", utf16!("b")).into(),
-                    Some(Literal::Int(20).into()),
+                    Some(Literal::new(20, Span::new((2, 9), (2, 11))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -294,12 +303,12 @@ fn comment_semi_colon_insertion() {
 
 #[test]
 fn multiline_comment_semi_colon_insertion() {
-    let s = r#"
-    let a = 10 /* Test
-    Multiline
-    Comment
-    */ let b = 20;
-    "#;
+    let s = indoc! {"
+        let a = 10 /* Test
+        Multiline
+        Comment
+        */ let b = 20;
+    "};
 
     let interner = &mut Interner::default();
     check_script_parser(
@@ -308,7 +317,7 @@ fn multiline_comment_semi_colon_insertion() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("a", utf16!("a")).into(),
-                    Some(Literal::Int(10).into()),
+                    Some(Literal::new(10, Span::new((1, 9), (1, 11))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -317,7 +326,7 @@ fn multiline_comment_semi_colon_insertion() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("b", utf16!("b")).into(),
-                    Some(Literal::Int(20).into()),
+                    Some(Literal::new(20, Span::new((4, 12), (4, 14))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -330,9 +339,9 @@ fn multiline_comment_semi_colon_insertion() {
 
 #[test]
 fn multiline_comment_no_lineterminator() {
-    let s = r#"
-    let a = 10; /* Test comment */ let b = 20;
-    "#;
+    let s = indoc! {"
+        let a = 10; /* Test comment */ let b = 20;
+    "};
 
     let interner = &mut Interner::default();
     check_script_parser(
@@ -341,7 +350,7 @@ fn multiline_comment_no_lineterminator() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("a", utf16!("a")).into(),
-                    Some(Literal::Int(10).into()),
+                    Some(Literal::new(10, Span::new((1, 9), (1, 11))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -350,7 +359,7 @@ fn multiline_comment_no_lineterminator() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("b", utf16!("b")).into(),
-                    Some(Literal::Int(20).into()),
+                    Some(Literal::new(20, Span::new((1, 40), (1, 42))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -363,12 +372,12 @@ fn multiline_comment_no_lineterminator() {
 
 #[test]
 fn assignment_line_terminator() {
-    let s = r#"
-    let a = 3;
+    let s = indoc! {"
+        let a = 3;
 
-    a =
-    5;
-    "#;
+        a =
+        5;
+    "};
 
     let interner = &mut Interner::default();
     check_script_parser(
@@ -377,7 +386,7 @@ fn assignment_line_terminator() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     interner.get_or_intern_static("a", utf16!("a")).into(),
-                    Some(Literal::Int(3).into()),
+                    Some(Literal::new(3, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -386,7 +395,7 @@ fn assignment_line_terminator() {
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
                 Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                Literal::from(5).into(),
+                Literal::new(5, Span::new((4, 1), (4, 2))).into(),
             )))
             .into(),
         ],
@@ -396,15 +405,15 @@ fn assignment_line_terminator() {
 
 #[test]
 fn assignment_multiline_terminator() {
-    let s = r#"
-    let a = 3;
+    let s = indoc! {"
+        let a = 3;
 
 
-    a =
+        a =
 
 
-    5;
-    "#;
+        5;
+    "};
 
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
@@ -414,7 +423,7 @@ fn assignment_multiline_terminator() {
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     a.into(),
-                    Some(Literal::Int(3).into()),
+                    Some(Literal::new(3, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -423,7 +432,7 @@ fn assignment_multiline_terminator() {
             Statement::Expression(Expression::from(Assign::new(
                 AssignOp::Assign,
                 Identifier::new(a).into(),
-                Literal::from(5).into(),
+                Literal::new(5, Span::new((7, 1), (7, 2))).into(),
             )))
             .into(),
         ],
@@ -433,7 +442,7 @@ fn assignment_multiline_terminator() {
 
 #[test]
 fn bracketed_expr() {
-    let s = r#"(b)"#;
+    let s = "(b)";
 
     let interner = &mut Interner::default();
     check_script_parser(
@@ -441,6 +450,7 @@ fn bracketed_expr() {
         vec![Statement::Expression(
             Parenthesized::new(
                 Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                Span::new((1, 1), (1, 4)),
             )
             .into(),
         )
@@ -451,7 +461,7 @@ fn bracketed_expr() {
 
 #[test]
 fn increment_in_comma_op() {
-    let s = r#"(b++, b)"#;
+    let s = "(b++, b)";
 
     let interner = &mut Interner::default();
     let b = interner.get_or_intern_static("b", utf16!("b"));
@@ -469,6 +479,7 @@ fn increment_in_comma_op() {
                     Identifier::new(b).into(),
                 )
                 .into(),
+                Span::new((1, 1), (1, 9)),
             )
             .into(),
         )
@@ -479,19 +490,19 @@ fn increment_in_comma_op() {
 
 #[test]
 fn spread_in_object() {
-    let s = r#"
-    let x = {
-      a: 1,
-      ...b,
-    }
-    "#;
+    let s = indoc! {"
+        let x = {
+            a: 1,
+            ...b,
+        }
+    "};
 
     let interner = &mut Interner::default();
 
     let object_properties = vec![
         PropertyDefinition::Property(
             interner.get_or_intern_static("a", utf16!("a")).into(),
-            Literal::from(1).into(),
+            Literal::new(1, Span::new((2, 8), (2, 9))).into(),
         ),
         PropertyDefinition::SpreadObject(
             Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
@@ -503,7 +514,7 @@ fn spread_in_object() {
         vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
-                Some(ObjectLiteral::from(object_properties).into()),
+                Some(ObjectLiteral::new(object_properties, Span::new((1, 9), (4, 2))).into()),
             )]
             .try_into()
             .unwrap(),
@@ -515,11 +526,11 @@ fn spread_in_object() {
 
 #[test]
 fn spread_in_arrow_function() {
-    let s = r#"
-    (...b) => {
-        b
-    }
-    "#;
+    let s = indoc! {r#"
+        (...b) => {
+            b
+        }
+    "#};
 
     let interner = &mut Interner::default();
     let b = interner.get_or_intern_static("b", utf16!("b"));
@@ -535,9 +546,12 @@ fn spread_in_arrow_function() {
             None,
             params,
             FunctionBody::new(
-                [Statement::Expression(Expression::from(Identifier::from(b))).into()],
-                PSEUDO_LINEAR_POS,
-                false,
+                StatementList::new(
+                    [Statement::Expression(Expression::from(Identifier::from(b))).into()],
+                    PSEUDO_LINEAR_POS,
+                    false,
+                ),
+                Span::new((1, 11), (3, 2)),
             ),
             EMPTY_LINEAR_SPAN,
         )))
@@ -551,17 +565,17 @@ fn empty_statement() {
     let interner = &mut Interner::default();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
-        r"
+        indoc! {"
             ;;var a = 10;
             if(a) ;
-        ",
+        "},
         vec![
             Statement::Empty.into(),
             Statement::Empty.into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
                     a.into(),
-                    Some(Literal::from(10).into()),
+                    Some(Literal::new(10, Span::new((1, 11), (1, 13))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -582,20 +596,21 @@ fn empty_statement_ends_directive_prologues() {
         .get_or_intern_static("public", utf16!("public"))
         .into();
     check_script_parser(
-        r#"
+        indoc! {r#"
             "a";
             ;
             "use strict";
             let public = 5;
-        "#,
+        "#},
         vec![
-            Statement::Expression(Expression::from(Literal::String(a))).into(),
+            Statement::Expression(Literal::new(a, Span::new((1, 1), (1, 4))).into()).into(),
             Statement::Empty.into(),
-            Statement::Expression(Expression::from(Literal::String(use_strict))).into(),
+            Statement::Expression(Literal::new(use_strict, Span::new((3, 1), (3, 13))).into())
+                .into(),
             Declaration::Lexical(LexicalDeclaration::Let(
                 vec![Variable::from_identifier(
                     public,
-                    Some(Literal::from(5).into()),
+                    Some(Literal::new(5, Span::new((4, 14), (4, 15))).into()),
                 )]
                 .try_into()
                 .unwrap(),

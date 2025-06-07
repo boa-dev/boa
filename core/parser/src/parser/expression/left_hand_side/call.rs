@@ -73,7 +73,7 @@ where
         let token = cursor.peek(0, interner).or_abrupt()?;
 
         let lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-            let args =
+            let (args, _) =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
             Call::new(self.first_member_expr, args).into()
         } else {
@@ -126,7 +126,7 @@ where
             let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let args = Arguments::new(self.allow_yield, self.allow_await)
+                    let (args, _) = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     lhs = ast::Expression::from(Call::new(lhs, args));
                 }

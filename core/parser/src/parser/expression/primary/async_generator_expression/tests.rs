@@ -4,10 +4,11 @@ use boa_ast::{
     expression::literal::Literal,
     function::{AsyncGeneratorExpression, FormalParameterList, FunctionBody},
     statement::Return,
-    Declaration, Statement, StatementListItem,
+    Declaration, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
@@ -20,10 +21,11 @@ fn check_async_generator_expr() {
     let interner = &mut Interner::default();
     let add = interner.get_or_intern_static("add", utf16!("add"));
     check_script_parser(
-        "const add = async function*(){
-            return 1;
-        };
-        ",
+        indoc! {"
+            const add = async function*(){
+                return 1;
+            };
+        "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
                 add.into(),
@@ -32,14 +34,20 @@ fn check_async_generator_expr() {
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            [StatementListItem::Statement(Statement::Return(
-                                Return::new(Some(Literal::from(1).into())),
-                            ))],
-                            PSEUDO_LINEAR_POS,
-                            false,
+                            StatementList::new(
+                                [StatementListItem::Statement(Statement::Return(
+                                    Return::new(Some(
+                                        Literal::new(1, Span::new((2, 12), (2, 13))).into(),
+                                    )),
+                                ))],
+                                PSEUDO_LINEAR_POS,
+                                false,
+                            ),
+                            Span::new((1, 30), (3, 2)),
                         ),
                         EMPTY_LINEAR_SPAN,
                         false,
+                        Span::new((1, 13), (3, 2)),
                     )
                     .into(),
                 ),
@@ -58,12 +66,13 @@ fn check_nested_async_generator_expr() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     let b = interner.get_or_intern_static("b", utf16!("b"));
     check_script_parser(
-        "const a = async function*() {
-            const b = async function*() {
-                return 1;
+        indoc! {"
+            const a = async function*() {
+                const b = async function*() {
+                    return 1;
+                };
             };
-        };
-        ",
+        "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
                 a.into(),
@@ -72,35 +81,49 @@ fn check_nested_async_generator_expr() {
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
-                            [Declaration::Lexical(LexicalDeclaration::Const(
-                                vec![Variable::from_identifier(
-                                    b.into(),
-                                    Some(
-                                        AsyncGeneratorExpression::new(
-                                            Some(b.into()),
-                                            FormalParameterList::default(),
-                                            FunctionBody::new(
-                                                [StatementListItem::Statement(Statement::Return(
-                                                    Return::new(Some(Literal::from(1).into())),
-                                                ))],
-                                                PSEUDO_LINEAR_POS,
+                            StatementList::new(
+                                [Declaration::Lexical(LexicalDeclaration::Const(
+                                    vec![Variable::from_identifier(
+                                        b.into(),
+                                        Some(
+                                            AsyncGeneratorExpression::new(
+                                                Some(b.into()),
+                                                FormalParameterList::default(),
+                                                FunctionBody::new(
+                                                    StatementList::new(
+                                                        [StatementListItem::Statement(
+                                                            Statement::Return(Return::new(Some(
+                                                                Literal::new(
+                                                                    1,
+                                                                    Span::new((3, 16), (3, 17)),
+                                                                )
+                                                                .into(),
+                                                            ))),
+                                                        )],
+                                                        PSEUDO_LINEAR_POS,
+                                                        false,
+                                                    ),
+                                                    Span::new((2, 33), (4, 6)),
+                                                ),
+                                                EMPTY_LINEAR_SPAN,
                                                 false,
-                                            ),
-                                            EMPTY_LINEAR_SPAN,
-                                            false,
-                                        )
-                                        .into(),
-                                    ),
-                                )]
-                                .try_into()
-                                .unwrap(),
-                            ))
-                            .into()],
-                            PSEUDO_LINEAR_POS,
-                            false,
+                                                Span::new((2, 15), (4, 6)),
+                                            )
+                                            .into(),
+                                        ),
+                                    )]
+                                    .try_into()
+                                    .unwrap(),
+                                ))
+                                .into()],
+                                PSEUDO_LINEAR_POS,
+                                false,
+                            ),
+                            Span::new((1, 29), (5, 2)),
                         ),
                         EMPTY_LINEAR_SPAN,
                         false,
+                        Span::new((1, 11), (5, 2)),
                     )
                     .into(),
                 ),

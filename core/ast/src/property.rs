@@ -1,6 +1,6 @@
 //! Property definition related types, used in object literals and class definitions.
 
-use super::{expression::literal::Literal, Expression};
+use super::Expression;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
@@ -57,9 +57,8 @@ impl PropertyName {
     #[must_use]
     pub const fn prop_name(&self) -> Option<Sym> {
         match self {
-            Self::Literal(sym) | Self::Computed(Expression::Literal(Literal::String(sym))) => {
-                Some(*sym)
-            }
+            Self::Literal(sym) => Some(*sym),
+            Self::Computed(Expression::Literal(lit)) => lit.as_string(),
             Self::Computed(_) => None,
         }
     }

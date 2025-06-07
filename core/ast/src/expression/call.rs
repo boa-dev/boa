@@ -1,5 +1,5 @@
-use crate::join_nodes;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{join_nodes, Span};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -33,7 +33,7 @@ impl Call {
     #[must_use]
     pub fn new(function: Expression, args: Box<[Expression]>) -> Self {
         Self {
-            function: function.into(),
+            function: Box::new(function),
             args,
         }
     }
@@ -50,6 +50,13 @@ impl Call {
     #[must_use]
     pub const fn args(&self) -> &[Expression] {
         &self.args
+    }
+
+    /// Retrieves span of the [`Call`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.function.span()
     }
 }
 
@@ -108,21 +115,32 @@ impl VisitWith for Call {
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperCall {
     args: Box<[Expression]>,
+    span: Span,
 }
 
 impl SuperCall {
     /// Creates a new `SuperCall` AST node.
-    pub fn new<A>(args: A) -> Self
+    pub fn new<A>(args: A, span: Span) -> Self
     where
         A: Into<Box<[Expression]>>,
     {
-        Self { args: args.into() }
+        Self {
+            args: args.into(),
+            span,
+        }
     }
 
     /// Retrieves the arguments of the super call.
     #[must_use]
     pub const fn arguments(&self) -> &[Expression] {
         &self.args
+    }
+
+    /// Get the [`Span`] of the [`SuperCall`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -177,16 +195,18 @@ impl VisitWith for SuperCall {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ImportCall {
     arg: Box<Expression>,
+    span: Span,
 }
 
 impl ImportCall {
     /// Creates a new `ImportCall` AST node.
-    pub fn new<A>(arg: A) -> Self
+    pub fn new<A>(arg: A, span: Span) -> Self
     where
         A: Into<Expression>,
     {
         Self {
             arg: Box::new(arg.into()),
+            span,
         }
     }
 
@@ -194,6 +214,13 @@ impl ImportCall {
     #[must_use]
     pub const fn argument(&self) -> &Expression {
         &self.arg
+    }
+
+    /// Get the [`Span`] of the [`ImportCall`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

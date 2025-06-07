@@ -135,7 +135,7 @@ where
 
             let item = match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let args = Arguments::new(self.allow_yield, self.allow_await)
+                    let (args, _) = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     OptionalOperationKind::Call { args }
                 }

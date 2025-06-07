@@ -8,7 +8,7 @@ use boa_ast::{
     function::{FormalParameter, FormalParameterList, FunctionBody, FunctionDeclaration},
     scope::Scope,
     statement::Block,
-    Declaration, Expression, LinearPosition, LinearSpan, Script, Statement, StatementList,
+    Declaration, Expression, LinearPosition, LinearSpan, Script, Span, Statement, StatementList,
     StatementListItem,
 };
 use boa_interner::Interner;
@@ -120,14 +120,17 @@ fn script_function_mapped_arguments_not_accessed() {
                 false,
             )]),
             FunctionBody::new(
-                [Declaration::Lexical(LexicalDeclaration::Let(
-                    vec![Variable::from_identifier(a.into(), None)]
-                        .try_into()
-                        .unwrap(),
-                ))
-                .into()],
-                LinearPosition::default(),
-                false,
+                StatementList::new(
+                    [Declaration::Lexical(LexicalDeclaration::Let(
+                        vec![Variable::from_identifier(a.into(), None)]
+                            .try_into()
+                            .unwrap(),
+                    ))
+                    .into()],
+                    LinearPosition::default(),
+                    false,
+                ),
+                Span::new((1, 1), (1, 1)),
             ),
             LinearSpan::default(),
         ))
@@ -190,18 +193,21 @@ fn script_function_mapped_arguments_accessed() {
                 false,
             )]),
             FunctionBody::new(
-                [
-                    Declaration::Lexical(LexicalDeclaration::Let(
-                        vec![Variable::from_identifier(a.into(), None)]
-                            .try_into()
-                            .unwrap(),
-                    ))
-                    .into(),
-                    Statement::Expression(Expression::Identifier(Identifier::new(arguments)))
+                StatementList::new(
+                    [
+                        Declaration::Lexical(LexicalDeclaration::Let(
+                            vec![Variable::from_identifier(a.into(), None)]
+                                .try_into()
+                                .unwrap(),
+                        ))
                         .into(),
-                ],
-                LinearPosition::default(),
-                false,
+                        Statement::Expression(Expression::Identifier(Identifier::new(arguments)))
+                            .into(),
+                    ],
+                    LinearPosition::default(),
+                    false,
+                ),
+                Span::new((1, 1), (1, 1)),
             ),
             LinearSpan::default(),
         ))

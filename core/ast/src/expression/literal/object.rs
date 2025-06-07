@@ -13,7 +13,7 @@ use crate::{
     property::{MethodDefinitionKind, PropertyName},
     scope::FunctionScopes,
     visitor::{VisitWith, Visitor, VisitorMut},
-    LinearPosition, LinearSpan, LinearSpanIgnoreEq,
+    LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -38,19 +38,39 @@ use core::{fmt::Write as _, ops::ControlFlow};
 /// [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ObjectLiteral {
     properties: Box<[PropertyDefinition]>,
+    span: Span,
 }
 
 impl ObjectLiteral {
+    /// Create a new [`ObjectLiteral`].
+    #[inline]
+    #[must_use]
+    pub fn new<T>(properties: T, span: Span) -> Self
+    where
+        T: Into<Box<[PropertyDefinition]>>,
+    {
+        Self {
+            properties: properties.into(),
+            span,
+        }
+    }
+
     /// Gets the object literal properties
     #[inline]
     #[must_use]
     pub const fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
+    }
+
+    /// Get the [`Span`] of the [`ObjectLiteral`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 
     /// Converts the object literal into an [`ObjectPattern`].
@@ -247,17 +267,6 @@ impl ToIndentedString for ObjectLiteral {
         let _ = write!(buf, "{}}}", "    ".repeat(indent_n));
 
         buf
-    }
-}
-
-impl<T> From<T> for ObjectLiteral
-where
-    T: Into<Box<[PropertyDefinition]>>,
-{
-    fn from(props: T) -> Self {
-        Self {
-            properties: props.into(),
-        }
     }
 }
 

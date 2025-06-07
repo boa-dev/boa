@@ -11,10 +11,11 @@ use boa_ast::{
         FormalParameterList, FunctionBody, FunctionExpression,
     },
     property::{MethodDefinitionKind, PropertyName},
-    Declaration, Expression, Statement, StatementListItem,
+    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
 
 #[test]
 fn check_async_ordinary_method() {
@@ -25,17 +26,18 @@ fn check_async_ordinary_method() {
             interner.get_or_intern_static("async", utf16!("async")),
         )),
         FormalParameterList::default(),
-        FunctionBody::default(),
+        FunctionBody::new(StatementList::default(), Span::new((2, 13), (2, 16))),
         MethodDefinitionKind::Ordinary,
         false,
         boa_ast::LinearPosition::default(),
     ))];
 
     check_script_parser(
-        "class A {
-            async() { }
-         }
-        ",
+        indoc! {r#"
+            class A {
+                async() { }
+            }
+        "#},
         [Declaration::ClassDeclaration(ClassDeclaration::new(
             interner.get_or_intern_static("A", utf16!("A")).into(),
             None,
@@ -53,15 +55,16 @@ fn check_async_field_initialization() {
 
     let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
         PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
-        Some(Literal::from(1).into()),
+        Some(Literal::new(1, Span::new((3, 7), (3, 8))).into()),
     ))];
 
     check_script_parser(
-        "class A {
-            async
-              = 1
-         }
-        ",
+        indoc! {"
+            class A {
+                async
+                = 1
+            }
+        "},
         [Declaration::ClassDeclaration(ClassDeclaration::new(
             interner.get_or_intern_static("A", utf16!("A")).into(),
             None,
@@ -123,12 +126,16 @@ fn check_new_target_with_property_access() {
         Some(interner.get_or_intern_static("A", utf16!("A")).into()),
         FormalParameterList::default(),
         FunctionBody::new(
-            [Statement::Expression(console).into()],
-            boa_ast::LinearPosition::new(0),
-            false,
+            StatementList::new(
+                [Statement::Expression(console).into()],
+                boa_ast::LinearPosition::new(0),
+                false,
+            ),
+            Span::new((2, 19), (4, 6)),
         ),
         None,
         false,
+        Span::new((2, 5), (4, 6)),
     );
 
     let class = ClassDeclaration::new(
@@ -163,14 +170,14 @@ fn check_new_target_with_property_access() {
     ];
 
     check_script_parser(
-        r#"
+        indoc! {r#"
             class A {
                 constructor() {
                     console.log(new.target.name);
                 }
             }
             const a = new A();
-        "#,
+        "#},
         script,
         interner,
     );
