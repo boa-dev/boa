@@ -23,7 +23,7 @@ use crate::{
 use boa_ast::{
     function::AsyncGeneratorExpression as AsyncGeneratorExpressionNode,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Keyword, Punctuator,
+    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -59,6 +59,7 @@ where
             interner,
         )?;
         let start_linear_span = token.linear_span();
+        let function_span_start = token.span().start();
 
         cursor.peek_expect_no_lineterminator(0, "async generator expression", interner)?;
         cursor.expect(
@@ -174,7 +175,15 @@ where
 
         let span = start_linear_span.union(body.linear_pos_end());
 
-        let function = AsyncGeneratorExpressionNode::new(name, params, body, span, name.is_some());
+        let function_span_end = body.span().end();
+        let function = AsyncGeneratorExpressionNode::new(
+            name,
+            params,
+            body,
+            span,
+            name.is_some(),
+            Span::new(function_span_start, function_span_end),
+        );
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(
