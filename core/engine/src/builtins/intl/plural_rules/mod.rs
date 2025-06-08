@@ -286,8 +286,7 @@ impl PluralRules {
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
         // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
-        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
-            .map(JsValue::from)
+        filter_locales::<Self>(requested_locales, options, context).map(JsValue::from)
     }
 
     /// [`Intl.PluralRules.prototype.resolvedOptions ( )`][spec].

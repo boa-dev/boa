@@ -1,6 +1,5 @@
 use icu_locale::{
     extensions::unicode::Value,
-    preferences::extensions::unicode::keywords::HourCycle,
     subtags::{Language, Region, Script},
 };
 
@@ -48,16 +47,5 @@ impl OptionType for Region {
             .to_std_string_escaped()
             .parse::<Self>()
             .map_err(|e| JsNativeError::range().with_message(e.to_string()).into())
-    }
-}
-
-impl OptionType for HourCycle {
-    fn from_value(value: crate::JsValue, context: &mut Context) -> crate::JsResult<Self> {
-        let value = Value::from_value(value, context)?;
-        HourCycle::try_from(&value).map_err(|_| {
-            JsNativeError::range()
-                .with_message("invalid keyword value for `hc`")
-                .into()
-        })
     }
 }

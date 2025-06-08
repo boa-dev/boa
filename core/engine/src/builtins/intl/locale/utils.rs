@@ -163,12 +163,12 @@ pub(crate) fn canonicalize_locale_list(
 ///
 /// [prefix]: https://tc39.es/ecma402/#sec-lookupmatchinglocalebyprefix
 /// [best]: https://tc39.es/ecma402/#sec-lookupmatchinglocalebybestfit
-pub(crate) fn lookup_matching_locale_by_prefix<M: DataMarker>(
+fn lookup_matching_locale_by_prefix<S: Service>(
     requested_locales: impl IntoIterator<Item = Locale>,
     provider: &IntlProvider,
 ) -> Option<Locale>
 where
-    IntlProvider: DryDataProvider<M>,
+    IntlProvider: DryDataProvider<S::LangMarker>,
 {
     // 1. For each element locale of requestedLocales, do
     for locale in requested_locales {
@@ -191,10 +191,13 @@ where
             // i. If availableLocales contains prefix, return the Record { [[locale]]: prefix, [[extension]]: extension }.
             // ICU4X requires doing data requests in order to check if a locale
             // is part of the set of supported locales.
-            let response = DryDataProvider::<M>::dry_load(
+            let response = DryDataProvider::dry_load(
                 provider,
                 DataRequest {
-                    id: DataIdentifierBorrowed::for_locale(&prefix),
+                    id: DataIdentifierBorrowed::for_marker_attributes_and_locale(
+                        S::ATTRIBUTES,
+                        &prefix,
+                    ),
                     metadata: {
                         let mut metadata = DataRequestMetadata::default();
                         metadata.silent = true;
@@ -251,12 +254,12 @@ where
 /// produced by the `LookupMatcher` abstract operation.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher
-fn lookup_matching_locale_by_best_fit<M: DataMarker>(
+fn lookup_matching_locale_by_best_fit<S: Service>(
     requested_locales: impl IntoIterator<Item = Locale>,
     provider: &IntlProvider,
 ) -> Option<Locale>
 where
-    IntlProvider: DryDataProvider<M>,
+    IntlProvider: DryDataProvider<S::LangMarker>,
 {
     for mut locale in requested_locales {
         let id = std::mem::replace(&mut locale.id, LanguageIdentifier::UNKNOWN);
@@ -267,10 +270,10 @@ where
 
         let dl = &DataLocale::from(&id);
 
-        let Ok(response) = DryDataProvider::<M>::dry_load(
+        let Ok(response) = DryDataProvider::dry_load(
             provider,
             DataRequest {
-                id: DataIdentifierBorrowed::for_locale(dl),
+                id: DataIdentifierBorrowed::for_marker_attributes_and_locale(S::ATTRIBUTES, dl),
                 metadata: {
                     let mut md = DataRequestMetadata::default();
                     md.silent = true;
@@ -325,9 +328,9 @@ where
     //     a. Let r be LookupMatchingLocaleByBestFit(availableLocales, requestedLocales).
     // 4. If r is undefined, set r to the Record { [[locale]]: DefaultLocale(), [[extension]]: empty }.
     let found_locale = if options.matcher == LocaleMatcher::Lookup {
-        lookup_matching_locale_by_prefix::<S::LangMarker>(requested_locales, provider)
+        lookup_matching_locale_by_prefix::<S>(requested_locales, provider)
     } else {
-        lookup_matching_locale_by_best_fit::<S::LangMarker>(requested_locales, provider)
+        lookup_matching_locale_by_best_fit::<S>(requested_locales, provider)
     };
 
     let mut found_locale = if let Some(loc) = found_locale {
@@ -402,16 +405,16 @@ where
 ///
 /// # Note
 ///
-/// Calling this function with a singleton `DataMarker` will always return `None`.
+/// Calling this function with a Service that has a singleton `LangMarker` will always return `None`.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-supportedlocales
-pub(in crate::builtins::intl) fn filter_locales<M: DataMarker>(
+pub(in crate::builtins::intl) fn filter_locales<S: Service>(
     requested_locales: Vec<Locale>,
     options: &JsValue,
     context: &mut Context,
 ) -> JsResult<JsObject>
 where
-    IntlProvider: DryDataProvider<M>,
+    IntlProvider: DryDataProvider<S::LangMarker>,
 {
     // 1. Set options to ? CoerceOptionsToObject(options).
     let options = coerce_options_to_object(options, context)?;
@@ -431,12 +434,12 @@ where
             // b. If matcher is "lookup", then
             //     i. Let match be LookupMatchingLocaleByPrefix(availableLocales, noExtensionsLocale).
             LocaleMatcher::Lookup => {
-                lookup_matching_locale_by_prefix([no_ext_loc], context.intl_provider())
+                lookup_matching_locale_by_prefix::<S>([no_ext_loc], context.intl_provider())
             }
             // c. Else,
             //     i. Let match be LookupMatchingLocaleByBestFit(availableLocales, noExtensionsLocale).
             LocaleMatcher::BestFit => {
-                lookup_matching_locale_by_best_fit([no_ext_loc], context.intl_provider())
+                lookup_matching_locale_by_best_fit::<S>([no_ext_loc], context.intl_provider())
             }
         };
 
@@ -486,9 +489,17 @@ mod tests {
     use icu_locale::{langid, locale, Locale};
     use icu_plurals::provider::PluralsCardinalV1;
 
+    struct TestService;
+
+    impl Service for TestService {
+        type LangMarker = PluralsCardinalV1;
+        type LocaleOptions = ();
+    }
+
     use crate::{
-        builtins::intl::locale::utils::{
-            lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix,
+        builtins::intl::{
+            locale::utils::{lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix},
+            Service,
         },
         context::icu::IntlProvider,
     };
@@ -498,17 +509,17 @@ mod tests {
         let icu = &IntlProvider::try_new_buffer(boa_icu_provider::buffer());
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<PluralsCardinalV1>([locale!("en")], icu),
+            lookup_matching_locale_by_best_fit::<TestService>([locale!("en")], icu),
             Some(locale!("en"))
         );
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<PluralsCardinalV1>([locale!("es-ES")], icu),
+            lookup_matching_locale_by_best_fit::<TestService>([locale!("es-ES")], icu),
             Some(locale!("es"))
         );
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<PluralsCardinalV1>([locale!("kr")], icu),
+            lookup_matching_locale_by_best_fit::<TestService>([locale!("kr")], icu),
             None
         );
     }
@@ -521,8 +532,7 @@ mod tests {
         let requested: Locale = "fr-FR-u-hc-h12".parse().unwrap();
 
         let result =
-            lookup_matching_locale_by_prefix::<PluralsCardinalV1>([requested.clone()], icu)
-                .unwrap();
+            lookup_matching_locale_by_prefix::<TestService>([requested.clone()], icu).unwrap();
         assert_eq!(result.id, langid!("fr"));
         assert_eq!(result.extensions, requested.extensions);
 
@@ -533,7 +543,7 @@ mod tests {
         let uz = locale!("uz-Cyrl");
         let requested = vec![kr, gr, es.clone(), uz];
 
-        let res = lookup_matching_locale_by_best_fit::<PluralsCardinalV1>(requested, icu).unwrap();
+        let res = lookup_matching_locale_by_best_fit::<TestService>(requested, icu).unwrap();
         assert_eq!(res.id, langid!("es"));
         assert_eq!(res.extensions, es.extensions);
     }

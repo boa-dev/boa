@@ -1,5 +1,8 @@
 use crate::{builtins::options::get_option, realm::Realm, string::StaticJsStrings};
 use boa_profiler::Profiler;
+use icu_calendar::preferences::CalendarAlgorithm;
+use icu_collator::preferences::CollationType;
+use icu_decimal::preferences::NumberingSystem;
 use icu_locale::{
     extensions::unicode::Value,
     extensions_unicode_key as key, extensions_unicode_value as value,
@@ -267,13 +270,13 @@ impl BuiltInConstructor for Locale {
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
         //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let ca = get_option(options, js_string!("calendar"), context)?;
+        let ca = get_option::<CalendarAlgorithm>(options, js_string!("calendar"), context)?;
 
         // 16. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let co = get_option(options, js_string!("collation"), context)?;
+        let co = get_option::<CollationType>(options, js_string!("collation"), context)?;
 
         // 19. Let hc be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
         // 20. Set opt.[[hc]] to hc.
@@ -286,29 +289,23 @@ impl BuiltInConstructor for Locale {
         // 23. Let kn be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 24. If kn is not undefined, set kn to ! ToString(kn).
         // 25. Set opt.[[kn]] to kn.
-        let kn = get_option(options, js_string!("numeric"), context)?.map(|b| {
-            if b {
-                value!("true")
-            } else {
-                value!("false")
-            }
-        });
+        let kn = get_option::<bool>(options, js_string!("numeric"), context)?;
 
         // 26. Let numberingSystem be ? GetOption(options, "numberingSystem", string, empty, undefined).
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
         //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let nu = get_option(options, js_string!("numberingSystem"), context)?;
+        let nu = get_option::<NumberingSystem>(options, js_string!("numberingSystem"), context)?;
 
         // 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].
         if let Some(ca) = ca {
             // 31. Set locale.[[Calendar]] to r.[[ca]].
-            tag.extensions.unicode.keywords.set(key!("ca"), ca);
+            tag.extensions.unicode.keywords.set(key!("ca"), ca.into());
         }
         if let Some(co) = co {
             // 32. Set locale.[[Collation]] to r.[[co]].
-            tag.extensions.unicode.keywords.set(key!("co"), co);
+            tag.extensions.unicode.keywords.set(key!("co"), co.into());
         }
         if let Some(hc) = hc {
             // 33. Set locale.[[HourCycle]] to r.[[hc]].
@@ -325,11 +322,14 @@ impl BuiltInConstructor for Locale {
             //         i. Set locale.[[Numeric]] to true.
             //     b. Else,
             //         i. Set locale.[[Numeric]] to false.
-            tag.extensions.unicode.keywords.set(key!("kn"), kn);
+            tag.extensions.unicode.keywords.set(
+                key!("kn"),
+                if kn { value!("true") } else { value!("false") },
+            );
         }
         if let Some(nu) = nu {
             // 36. Set locale.[[NumberingSystem]] to r.[[nu]].
-            tag.extensions.unicode.keywords.set(key!("nu"), nu);
+            tag.extensions.unicode.keywords.set(key!("nu"), nu.into());
         }
 
         context

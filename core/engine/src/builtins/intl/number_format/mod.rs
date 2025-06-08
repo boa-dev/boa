@@ -236,11 +236,14 @@ impl BuiltInConstructor for NumberFormat {
         // 7. If numberingSystem is not undefined, then
         //     a. If numberingSystem cannot be matched by the type Unicode locale nonterminal, throw a RangeError exception.
         // 8. Set opt.[[nu]] to numberingSystem.
-        let numbering_system = get_option(&options, js_string!("numberingSystem"), context)?;
+        let numbering_system =
+            get_option::<NumberingSystem>(&options, js_string!("numberingSystem"), context)?;
 
         let mut intl_options = IntlOptions {
             matcher,
-            service_options: NumberFormatLocaleOptions { numbering_system },
+            service_options: NumberFormatLocaleOptions {
+                numbering_system: numbering_system.map(Value::from),
+            },
         };
 
         // 9. Let localeData be %Intl.NumberFormat%.[[LocaleData]].
@@ -474,8 +477,7 @@ impl NumberFormat {
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
         // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
-        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
-            .map(JsValue::from)
+        filter_locales::<Self>(requested_locales, options, context).map(JsValue::from)
     }
 
     /// [`get Intl.NumberFormat.prototype.format`][spec].

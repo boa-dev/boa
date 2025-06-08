@@ -6,6 +6,8 @@ use fixed_decimal::{
 };
 
 use boa_macros::js_str;
+use icu_decimal::preferences::NumberingSystem;
+use icu_locale::extensions::unicode::Value;
 use tinystr::TinyAsciiStr;
 
 use crate::{
@@ -32,6 +34,21 @@ impl OptionType for SignedRoundingMode {
                 .with_message("provided string was not a valid rounding type")
                 .into()),
         }
+    }
+}
+
+impl OptionType for NumberingSystem {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let s = value.to_string(context)?.to_std_string_escaped();
+        Value::try_from_str(&s)
+            .ok()
+            .and_then(|v| NumberingSystem::try_from(v).ok())
+            .filter(|nu| nu.as_str().len() >= 3)
+            .ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message(format!("provided numbering system `{s}` is invalid"))
+                    .into()
+            })
     }
 }
 

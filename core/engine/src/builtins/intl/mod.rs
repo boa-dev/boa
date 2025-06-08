@@ -27,7 +27,7 @@ use crate::{
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use icu_provider::DataMarker;
+use icu_provider::{DataMarker, DataMarkerAttributes};
 use static_assertions::const_assert;
 
 pub(crate) mod collator;
@@ -189,6 +189,9 @@ trait Service {
     /// The data marker used by [`resolve_locale`][locale::resolve_locale] to decide
     /// which locales are supported by this service.
     type LangMarker: DataMarker;
+
+    /// The attributes used to resolve the locale.
+    const ATTRIBUTES: &'static DataMarkerAttributes = DataMarkerAttributes::empty();
 
     /// The set of options used in the [`Service::resolve`] method to resolve the provided
     /// locale.

@@ -9,7 +9,8 @@
 
 use crate::{
     builtins::{
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -22,6 +23,9 @@ use crate::{
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
+use icu_calendar::preferences::CalendarAlgorithm;
+use icu_datetime::preferences::HourCycle;
+use icu_locale::extensions::unicode::Value;
 
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -278,4 +282,31 @@ pub(crate) fn to_date_time_options(
 
     // 13. Return options.
     Ok(options)
+}
+
+impl OptionType for CalendarAlgorithm {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let s = value.to_string(context)?.to_std_string_escaped();
+        Value::try_from_str(&s)
+            .ok()
+            .and_then(|v| CalendarAlgorithm::try_from(&v).ok())
+            .ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message(format!("provided calendar `{s}` is invalid"))
+                    .into()
+            })
+    }
+}
+
+impl OptionType for HourCycle {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        match value.to_string(context)?.to_std_string_escaped().as_str() {
+            "h11" => Ok(HourCycle::H11),
+            "h12" => Ok(HourCycle::H12),
+            "h23" => Ok(HourCycle::H23),
+            _ => Err(JsNativeError::range()
+                .with_message("provided hour cycle was not `h11`, `h12` or `h23`")
+                .into()),
+        }
+    }
 }

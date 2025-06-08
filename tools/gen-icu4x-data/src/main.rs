@@ -59,12 +59,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let locales = provider
         .locales_for_coverage_levels([CoverageLevel::Modern])?
         .into_iter()
-        .map(DataLocaleFamily::with_descendants);
-    // .chain([langid!("en-US")]);
+        .map(DataLocaleFamily::with_descendants)
+        // Some test262 tests assume the en-US locale does not fallback.
+        .chain([DataLocaleFamily::single(locale!("en-US").into())]);
 
     let driver = ExportDriver::new(
         locales,
-        DeduplicationStrategy::RetainBaseLanguages.into(),
+        DeduplicationStrategy::None.into(),
         LocaleFallbacker::try_new_unstable(provider)?,
     )
     .with_additional_collations([String::from("search*")])
