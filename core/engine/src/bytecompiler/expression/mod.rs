@@ -412,7 +412,7 @@ impl ByteCompiler<'_> {
             Expression::NewTarget(_new_target) => {
                 self.bytecode.emit_new_target(dst.variable());
             }
-            Expression::ImportMeta => {
+            Expression::ImportMeta(_import_meta) => {
                 self.bytecode.emit_import_meta(dst.variable());
             }
             Expression::Optional(opt) => {

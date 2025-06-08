@@ -29,6 +29,7 @@ use literal::Literal;
 mod r#await;
 mod call;
 mod identifier;
+mod import_meta;
 mod new;
 mod new_target;
 mod optional;
@@ -45,6 +46,7 @@ use crate::{
 };
 pub use call::{Call, ImportCall, SuperCall};
 pub use identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
+pub use import_meta::ImportMeta;
 pub use new::New;
 pub use new_target::NewTarget;
 pub use optional::{Optional, OptionalOperation, OptionalOperationKind};
@@ -148,7 +150,7 @@ pub enum Expression {
     NewTarget(NewTarget),
 
     /// The `import.meta` pseudo-property expression.
-    ImportMeta,
+    ImportMeta(ImportMeta),
 
     /// See [`Assign`].
     Assign(Assign),
@@ -218,7 +220,7 @@ impl Expression {
             Self::ImportCall(impc) => impc.to_interned_string(interner),
             Self::Optional(opt) => opt.to_interned_string(interner),
             Self::NewTarget(new_target) => new_target.to_interned_string(interner),
-            Self::ImportMeta => "import.meta".to_owned(),
+            Self::ImportMeta(import_meta) => import_meta.to_interned_string(interner),
             Self::TaggedTemplate(tag) => tag.to_interned_string(interner),
             Self::Assign(assign) => assign.to_interned_string(interner),
             Self::Unary(unary) => unary.to_interned_string(interner),
@@ -316,7 +318,7 @@ impl Expression {
             Self::ImportCall(impc) => impc.span(),
             Self::Optional(opt) => span,
             Self::NewTarget(new_target) => new_target.span(),
-            Self::ImportMeta => span,
+            Self::ImportMeta(import_meta) => import_meta.span(),
             Self::TaggedTemplate(tag) => tag.span(),
             Self::Assign(assign) => span,
             Self::Unary(unary) => span,
@@ -387,7 +389,8 @@ impl VisitWith for Expression {
             Self::Parenthesized(e) => visitor.visit_parenthesized(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list(fpl),
             Self::NewTarget(new_target) => visitor.visit_new_target(new_target),
-            Self::ImportMeta | Self::Debugger => {
+            Self::ImportMeta(import_meta) => visitor.visit_import_meta(import_meta),
+            Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }
@@ -432,7 +435,8 @@ impl VisitWith for Expression {
             Self::Parenthesized(e) => visitor.visit_parenthesized_mut(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list_mut(fpl),
             Self::NewTarget(new_target) => visitor.visit_new_target_mut(new_target),
-            Self::ImportMeta | Self::Debugger => {
+            Self::ImportMeta(import_meta) => visitor.visit_import_meta_mut(import_meta),
+            Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }

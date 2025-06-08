@@ -24,7 +24,7 @@ use boa_ast::{
         access::{
             PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess, SuperPropertyAccess,
         },
-        Call, New, NewTarget,
+        Call, ImportMeta, New, NewTarget,
     },
     Keyword, Punctuator, Span,
 };
@@ -78,6 +78,7 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::Import, false)) => {
+                let import_span = token.span();
                 cursor.advance(interner);
 
                 cursor.expect(
@@ -114,7 +115,7 @@ where
                     ));
                 }
 
-                ast::Expression::ImportMeta
+                ImportMeta::new(Span::new(import_span.start(), token.span().end())).into()
             }
             TokenKind::Keyword((Keyword::New, false)) => {
                 let new_token_span = token.span();
