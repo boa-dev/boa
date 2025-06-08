@@ -298,6 +298,9 @@ impl OptionType for CalendarAlgorithm {
     }
 }
 
+// TODO: track https://github.com/unicode-org/icu4x/issues/6597 and
+// https://github.com/tc39/ecma402/issues/1002 for resolution on
+// `HourCycle::H24`.
 impl OptionType for HourCycle {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
