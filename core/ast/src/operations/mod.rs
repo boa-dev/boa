@@ -16,7 +16,7 @@ use crate::{
         access::{PrivatePropertyAccess, SuperPropertyAccess},
         literal::PropertyDefinition,
         operator::BinaryInPrivate,
-        Await, Call, Identifier, OptionalOperationKind, SuperCall, Yield,
+        Await, Call, Identifier, OptionalOperationKind, SuperCall, This, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -312,13 +312,17 @@ where
         }
 
         fn visit_expression(&mut self, node: &'ast Expression) -> ControlFlow<Self::BreakTy> {
-            if node == &Expression::This && self.0 == ContainsSymbol::This {
-                return ControlFlow::Break(());
-            }
             if node == &Expression::NewTarget && self.0 == ContainsSymbol::NewTarget {
                 return ControlFlow::Break(());
             }
             node.visit_with(self)
+        }
+
+        fn visit_this(&mut self, _node: &'ast This) -> ControlFlow<Self::BreakTy> {
+            if self.0 == ContainsSymbol::This {
+                return ControlFlow::Break(());
+            }
+            ControlFlow::Continue(())
         }
     }
 

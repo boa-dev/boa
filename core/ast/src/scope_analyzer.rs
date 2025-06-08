@@ -26,7 +26,7 @@ use crate::{
         iteration::{ForLoopInitializer, IterableLoopInitializer},
         Block, Catch, ForInLoop, ForLoop, ForOfLoop, Switch, With,
     },
-    visitor::{NodeRef, NodeRefMut, VisitWith, VisitorMut},
+    visitor::{NodeRef, NodeRefMut, VisitorMut},
     Declaration, Module, Script, StatementListItem, ToJsString,
 };
 use boa_interner::{Interner, Sym};
@@ -568,19 +568,15 @@ struct BindingCollectorVisitor<'interner> {
 impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     type BreakTy = &'static str;
 
-    fn visit_expression_mut(
+    fn visit_this_mut(
         &mut self,
-        node: &'ast mut crate::Expression,
+        _node: &'ast mut crate::expression::This,
     ) -> ControlFlow<Self::BreakTy> {
-        if *node == crate::Expression::This {
-            // NOTE: Arrow functions inherit 'this' from their enclosing scope, so we must escape it.
-            if self.in_arrow {
-                self.scope.escape_this_in_enclosing_function_scope();
-            }
-            return ControlFlow::Continue(());
+        // NOTE: Arrow functions inherit 'this' from their enclosing scope, so we must escape it.
+        if self.in_arrow {
+            self.scope.escape_this_in_enclosing_function_scope();
         }
-
-        node.visit_with_mut(self)
+        ControlFlow::Continue(())
     }
 
     fn visit_function_declaration_mut(

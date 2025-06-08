@@ -377,7 +377,7 @@ impl Access<'_> {
         match expr {
             Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
-            Expression::This => Some(Access::This),
+            Expression::This(_this) => Some(Access::This),
             Expression::Parenthesized(expr) => Self::from_expression(expr.expression()),
             _ => None,
         }

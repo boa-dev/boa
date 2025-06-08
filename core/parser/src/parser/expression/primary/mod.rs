@@ -49,7 +49,7 @@ use boa_ast::{
     expression::{
         literal::{self, Literal, LiteralKind, TemplateElement},
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Identifier, Parenthesized,
+        Identifier, Parenthesized, This,
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
@@ -111,8 +111,9 @@ where
                 tok_position,
             )),
             TokenKind::Keyword((Keyword::This, false)) => {
+                let span = tok.span();
                 cursor.advance(interner);
-                Ok(ast::Expression::This)
+                Ok(This::new(span).into())
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
                 let next_token = cursor.peek(1, interner).or_abrupt()?;

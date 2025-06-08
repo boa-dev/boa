@@ -35,6 +35,7 @@ mod parenthesized;
 mod regexp;
 mod spread;
 mod tagged_template;
+mod this;
 mod r#yield;
 
 use crate::{
@@ -51,6 +52,7 @@ pub use r#yield::Yield;
 pub use regexp::RegExpLiteral;
 pub use spread::Spread;
 pub use tagged_template::TaggedTemplate;
+pub use this::This;
 
 pub mod access;
 pub mod literal;
@@ -75,7 +77,7 @@ pub enum Expression {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-this-keyword
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
-    This,
+    This(This),
 
     /// See [`Identifier`].
     Identifier(Identifier),
@@ -191,7 +193,7 @@ impl Expression {
     /// indents, use [`to_indented_string()`](Self::to_indented_string).
     pub(crate) fn to_no_indent_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
-            Self::This => "this".to_owned(),
+            Self::This(this) => this.to_interned_string(interner),
             Self::Identifier(id) => id.to_interned_string(interner),
             Self::Literal(lit) => lit.to_interned_string(interner),
             Self::ArrayLiteral(arr) => arr.to_interned_string(interner),
@@ -291,7 +293,7 @@ impl Expression {
     pub fn span(&self) -> Span {
         let span = Span::new((1, 1), (1, 1));
         match self {
-            Self::This => span,
+            Self::This(this) => this.span(),
             Self::Identifier(id) => id.span(),
             Self::Literal(lit) => lit.span(),
             Self::ArrayLiteral(arr) => arr.span(),
@@ -350,6 +352,7 @@ impl VisitWith for Expression {
         V: Visitor<'a>,
     {
         match self {
+            Self::This(this) => visitor.visit_this(this),
             Self::Identifier(id) => visitor.visit_identifier(id),
             Self::Literal(lit) => visitor.visit_literal(lit),
             Self::RegExpLiteral(regexp) => visitor.visit_reg_exp_literal(regexp),
@@ -381,7 +384,7 @@ impl VisitWith for Expression {
             Self::Yield(y) => visitor.visit_yield(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list(fpl),
-            Self::This | Self::NewTarget | Self::ImportMeta | Self::Debugger => {
+            Self::NewTarget | Self::ImportMeta | Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }
@@ -393,6 +396,7 @@ impl VisitWith for Expression {
         V: VisitorMut<'a>,
     {
         match self {
+            Self::This(this) => visitor.visit_this_mut(this),
             Self::Identifier(id) => visitor.visit_identifier_mut(id),
             Self::Literal(lit) => visitor.visit_literal_mut(lit),
             Self::RegExpLiteral(regexp) => visitor.visit_reg_exp_literal_mut(regexp),
@@ -424,7 +428,7 @@ impl VisitWith for Expression {
             Self::Yield(y) => visitor.visit_yield_mut(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized_mut(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list_mut(fpl),
-            Self::This | Self::NewTarget | Self::ImportMeta | Self::Debugger => {
+            Self::NewTarget | Self::ImportMeta | Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }

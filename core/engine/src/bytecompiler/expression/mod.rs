@@ -121,7 +121,7 @@ impl ByteCompiler<'_> {
                 }
                 self.register_allocator.dealloc(value);
             }
-            Expression::This => self.access_get(Access::This, dst),
+            Expression::This(_this) => self.access_get(Access::This, dst),
             Expression::Spread(spread) => self.compile_expr(spread.target(), dst),
             Expression::FunctionExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, dst);

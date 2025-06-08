@@ -1,7 +1,7 @@
 use boa_interner::Interner;
 
 use crate::{
-    expression::{Call, Identifier},
+    expression::{Call, Identifier, This},
     operations::{contains, ContainsSymbol},
     statement::With,
     Expression, Span, Statement,
@@ -9,7 +9,10 @@ use crate::{
 
 #[test]
 fn check_contains_this_in_with_statment_expression() {
-    let node = With::new(Expression::This, Statement::Empty);
+    let node = With::new(
+        This::new(Span::new((1, 1), (1, 1))).into(),
+        Statement::Empty,
+    );
     assert!(contains(&node, ContainsSymbol::This));
 }
 
@@ -31,7 +34,7 @@ fn check_contains_this_in_call_argument_position() {
     let function_name = Identifier::new(interner.get_or_intern("func"), Span::new((1, 1), (1, 5)));
     let node = Call::new(
         function_name.into(),
-        vec![Expression::This].into_boxed_slice(),
+        vec![This::new(Span::new((1, 1), (1, 1))).into()].into_boxed_slice(),
     );
 
     assert!(contains(&node, ContainsSymbol::This));

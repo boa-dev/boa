@@ -26,7 +26,7 @@ use crate::{
         },
         Await, Call, Expression, Identifier, ImportCall, New, Optional, OptionalOperation,
         OptionalOperationKind, Parenthesized, RegExpLiteral, Spread, SuperCall, TaggedTemplate,
-        Yield,
+        This, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -257,6 +257,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_throw, Throw);
     define_visit!(visit_try, Try);
     define_visit!(visit_with, With);
+    define_visit!(visit_this, This);
     define_visit!(visit_identifier, Identifier);
     define_visit!(visit_formal_parameter_list, FormalParameterList);
     define_visit!(visit_class_element, ClassElement);
@@ -483,6 +484,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_throw_mut, Throw);
     define_visit_mut!(visit_try_mut, Try);
     define_visit_mut!(visit_with_mut, With);
+    define_visit_mut!(visit_this_mut, This);
     define_visit_mut!(visit_identifier_mut, Identifier);
     define_visit_mut!(visit_formal_parameter_list_mut, FormalParameterList);
     define_visit_mut!(visit_class_element_mut, ClassElement);
