@@ -1,7 +1,5 @@
 use crate::{builtins::options::get_option, realm::Realm, string::StaticJsStrings};
 use boa_profiler::Profiler;
-use icu_calendar::preferences::CalendarAlgorithm;
-use icu_collator::preferences::CollationType;
 use icu_decimal::preferences::NumberingSystem;
 use icu_locale::{
     extensions::unicode::Value,
@@ -270,13 +268,13 @@ impl BuiltInConstructor for Locale {
         // 14. If calendar is not undefined, then
         // 15. Set opt.[[ca]] to calendar.
         //     a. If calendar does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let ca = get_option::<CalendarAlgorithm>(options, js_string!("calendar"), context)?;
+        let ca = get_option(options, js_string!("calendar"), context)?;
 
         // 16. Let collation be ? GetOption(options, "collation", string, empty, undefined).
         // 17. If collation is not undefined, then
         // 18. Set opt.[[co]] to collation.
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let co = get_option::<CollationType>(options, js_string!("collation"), context)?;
+        let co = get_option(options, js_string!("collation"), context)?;
 
         // 19. Let hc be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
         // 20. Set opt.[[hc]] to hc.
@@ -301,11 +299,11 @@ impl BuiltInConstructor for Locale {
         // 30. Set locale.[[Locale]] to r.[[locale]].
         if let Some(ca) = ca {
             // 31. Set locale.[[Calendar]] to r.[[ca]].
-            tag.extensions.unicode.keywords.set(key!("ca"), ca.into());
+            tag.extensions.unicode.keywords.set(key!("ca"), ca);
         }
         if let Some(co) = co {
             // 32. Set locale.[[Collation]] to r.[[co]].
-            tag.extensions.unicode.keywords.set(key!("co"), co.into());
+            tag.extensions.unicode.keywords.set(key!("co"), co);
         }
         if let Some(hc) = hc {
             // 33. Set locale.[[HourCycle]] to r.[[hc]].
