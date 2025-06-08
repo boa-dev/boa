@@ -10,7 +10,7 @@ use boa_ast::{
         ClassDeclaration, ClassElement, ClassFieldDefinition, ClassMethodDefinition,
         FormalParameterList, FunctionBody, FunctionExpression,
     },
-    property::{MethodDefinitionKind, PropertyName},
+    property::MethodDefinitionKind,
     Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
@@ -22,9 +22,13 @@ fn check_async_ordinary_method() {
     let interner = &mut Interner::default();
 
     let elements = vec![ClassElement::MethodDefinition(ClassMethodDefinition::new(
-        boa_ast::function::ClassElementName::PropertyName(PropertyName::Literal(
-            interner.get_or_intern_static("async", utf16!("async")),
-        )),
+        boa_ast::function::ClassElementName::PropertyName(
+            Identifier::new(
+                interner.get_or_intern_static("async", utf16!("async")),
+                Span::new((2, 5), (2, 10)),
+            )
+            .into(),
+        ),
         FormalParameterList::default(),
         FunctionBody::new(StatementList::default(), Span::new((2, 13), (2, 16))),
         MethodDefinitionKind::Ordinary,
@@ -57,7 +61,11 @@ fn check_async_field_initialization() {
     let interner = &mut Interner::default();
 
     let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        Identifier::new(
+            interner.get_or_intern_static("async", utf16!("async")),
+            Span::new((2, 5), (2, 10)),
+        )
+        .into(),
         Some(Literal::new(1, Span::new((3, 7), (3, 8))).into()),
     ))];
 
@@ -87,15 +95,20 @@ fn check_async_field() {
     let interner = &mut Interner::default();
 
     let elements = vec![ClassElement::FieldDefinition(ClassFieldDefinition::new(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        Identifier::new(
+            interner.get_or_intern_static("async", utf16!("async")),
+            Span::new((2, 5), (2, 10)),
+        )
+        .into(),
         None,
     ))];
 
     check_script_parser(
-        "class A {
-            async
-         }
-        ",
+        indoc! {r#"
+            class A {
+                async
+            }
+        "#},
         [Declaration::ClassDeclaration(ClassDeclaration::new(
             Identifier::new(
                 interner.get_or_intern_static("A", utf16!("A")),

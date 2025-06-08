@@ -6,7 +6,7 @@ use boa_ast::{
         Identifier,
     },
     function::{FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionBody},
-    property::{MethodDefinitionKind, PropertyName},
+    property::MethodDefinitionKind,
     Declaration, Span, StatementList,
 };
 use boa_interner::{Interner, Sym};
@@ -22,11 +22,19 @@ fn check_object_literal() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((2, 5), (2, 6)),
+            )
+            .into(),
             Literal::new(true, Span::new((2, 8), (2, 12))).into(),
         ),
         PropertyDefinition::Property(
-            interner.get_or_intern_static("b", utf16!("b")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((3, 5), (3, 6)),
+            )
+            .into(),
             Literal::new(false, Span::new((3, 8), (3, 13))).into(),
         ),
     ];
@@ -61,11 +69,19 @@ fn check_object_short_function() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((2, 5), (2, 6)),
+            )
+            .into(),
             Literal::new(true, Span::new((2, 8), (2, 12))).into(),
         ),
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
-            interner.get_or_intern_static("b", utf16!("b")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((3, 5), (3, 6)),
+            )
+            .into(),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((3, 9), (3, 11))),
             MethodDefinitionKind::Ordinary,
@@ -117,11 +133,19 @@ fn check_object_short_function_arguments() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((2, 5), (2, 6)),
+            )
+            .into(),
             Literal::new(true, Span::new((2, 8), (2, 12))).into(),
         ),
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
-            interner.get_or_intern_static("b", utf16!("b")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((3, 5), (3, 6)),
+            )
+            .into(),
             parameters,
             FunctionBody::new(StatementList::default(), Span::new((3, 13), (3, 15))),
             MethodDefinitionKind::Ordinary,
@@ -158,11 +182,19 @@ fn check_object_getter() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((2, 5), (2, 6)),
+            )
+            .into(),
             Literal::new(true, Span::new((2, 8), (2, 12))).into(),
         ),
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
-            interner.get_or_intern_static("b", utf16!("b")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((3, 9), (3, 10)),
+            )
+            .into(),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((3, 13), (3, 15))),
             MethodDefinitionKind::Get,
@@ -213,11 +245,19 @@ fn check_object_setter() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((2, 5), (2, 6)),
+            )
+            .into(),
             Literal::new(true, Span::new((2, 8), (2, 12))).into(),
         ),
         PropertyDefinition::MethodDefinition(ObjectMethodDefinition::new(
-            interner.get_or_intern_static("b", utf16!("b")).into(),
+            Identifier::new(
+                interner.get_or_intern_static("b", utf16!("b")),
+                Span::new((3, 9), (3, 10)),
+            )
+            .into(),
             params,
             FunctionBody::new(StatementList::default(), Span::new((3, 17), (3, 19))),
             MethodDefinitionKind::Set,
@@ -254,7 +294,7 @@ fn check_object_short_function_get() {
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         ObjectMethodDefinition::new(
-            Sym::GET.into(),
+            Identifier::new(Sym::GET, Span::new((2, 5), (2, 8))).into(),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((2, 11), (2, 13))),
             MethodDefinitionKind::Ordinary,
@@ -290,7 +330,7 @@ fn check_object_short_function_set() {
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         ObjectMethodDefinition::new(
-            Sym::SET.into(),
+            Identifier::new(Sym::SET, Span::new((2, 5), (2, 8))).into(),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((2, 11), (2, 13))),
             MethodDefinitionKind::Ordinary,
@@ -433,7 +473,11 @@ fn check_object_spread() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((1, 13), (1, 14)),
+            )
+            .into(),
             Literal::new(1, Span::new((1, 16), (1, 17))).into(),
         ),
         PropertyDefinition::SpreadObject(
@@ -469,7 +513,11 @@ fn check_async_method() {
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         ObjectMethodDefinition::new(
-            PropertyName::Literal(interner.get_or_intern_static("dive", utf16!("dive"))),
+            Identifier::new(
+                interner.get_or_intern_static("dive", utf16!("dive")),
+                Span::new((2, 11), (2, 15)),
+            )
+            .into(),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((2, 18), (2, 20))),
             MethodDefinitionKind::Async,
@@ -505,7 +553,11 @@ fn check_async_generator_method() {
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         ObjectMethodDefinition::new(
-            PropertyName::Literal(interner.get_or_intern_static("vroom", utf16!("vroom"))),
+            Identifier::new(
+                interner.get_or_intern_static("vroom", utf16!("vroom")),
+                Span::new((2, 12), (2, 17)),
+            )
+            .into(),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((2, 20), (2, 22))),
             MethodDefinitionKind::AsyncGenerator,
@@ -563,7 +615,11 @@ fn check_async_ordinary_method() {
 
     let object_properties = vec![PropertyDefinition::MethodDefinition(
         ObjectMethodDefinition::new(
-            PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+            Identifier::new(
+                interner.get_or_intern_static("async", utf16!("async")),
+                Span::new((2, 5), (2, 10)),
+            )
+            .into(),
             FormalParameterList::default(),
             FunctionBody::new(StatementList::default(), Span::new((2, 13), (2, 15))),
             MethodDefinitionKind::Ordinary,
@@ -598,7 +654,11 @@ fn check_async_property() {
     let interner = &mut Interner::default();
 
     let object_properties = vec![PropertyDefinition::Property(
-        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        Identifier::new(
+            interner.get_or_intern_static("async", utf16!("async")),
+            Span::new((2, 5), (2, 10)),
+        )
+        .into(),
         Literal::new(true, Span::new((2, 12), (2, 16))).into(),
     )];
 

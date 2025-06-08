@@ -22,7 +22,6 @@ use boa_ast::{
         ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags,
         FunctionBody, FunctionDeclaration,
     },
-    property::PropertyName,
     scope::Scope,
     statement::{If, Return},
     Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Span,
@@ -563,7 +562,11 @@ fn spread_in_object() {
 
     let object_properties = vec![
         PropertyDefinition::Property(
-            PropertyName::Literal(interner.get_or_intern_static("a", utf16!("a"))),
+            Identifier::new(
+                interner.get_or_intern_static("a", utf16!("a")),
+                Span::new((2, 5), (2, 6)),
+            )
+            .into(),
             Literal::new(1, Span::new((2, 8), (2, 9))).into(),
         ),
         PropertyDefinition::SpreadObject(

@@ -663,14 +663,14 @@ where
                                 init.set_anonymous_function_definition_name(&name);
                                 patterns.push(ObjectPatternElement::SingleName {
                                     ident: name,
-                                    name: name.sym().into(),
+                                    name: name.into(),
                                     default_init: Some(init),
                                 });
                             }
                             _ => {
                                 patterns.push(ObjectPatternElement::SingleName {
                                     ident: name,
-                                    name: name.sym().into(),
+                                    name: name.into(),
                                     default_init: None,
                                 });
                             }

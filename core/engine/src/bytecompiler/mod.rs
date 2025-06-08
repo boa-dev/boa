@@ -41,7 +41,7 @@ use boa_ast::{
     pattern::Pattern,
     property::MethodDefinitionKind,
     scope::{BindingLocator, BindingLocatorError, FunctionScopes, IdentifierReference, Scope},
-    Declaration, Expression, LinearSpan, Span, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearSpan, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
@@ -320,11 +320,7 @@ impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
 
         FunctionSpec {
             kind,
-            // TODO: PropertyName::Literal should have a span.
-            name: method
-                .name()
-                .literal()
-                .map(|sym| Identifier::new(sym, Span::new((1234, 1234), (1234, 1234)))),
+            name: method.name().literal(),
             parameters: method.parameters(),
             body: method.body(),
             scopes: method.scopes(),

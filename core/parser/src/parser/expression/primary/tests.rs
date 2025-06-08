@@ -9,7 +9,6 @@ use boa_ast::{
         Identifier, Parenthesized,
     },
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
-    property::PropertyName,
     Expression, Span, Statement,
 };
 use boa_interner::{Interner, Sym};
@@ -55,7 +54,7 @@ fn check_destructuring_assignment_object_assignment_operator() {
                     AssignOp::Assign,
                     AssignTarget::Pattern(Pattern::Object(ObjectPattern::from(vec![
                         ObjectPatternElement::SingleName {
-                            name: PropertyName::from(a),
+                            name: Identifier::new(a, Span::new((1, 4), (1, 5))).into(),
                             ident: Identifier::new(a, Span::new((1, 7), (1, 8))),
                             default_init: Some(Literal::new(0, Span::new((1, 11), (1, 12))).into()),
                         },

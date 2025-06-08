@@ -75,6 +75,20 @@ impl Identifier {
         self.ident
     }
 
+    /// Retrieves the identifier's string symbol in the interner.
+    #[inline]
+    #[must_use]
+    pub const fn sym_ref(&self) -> &Sym {
+        &self.ident
+    }
+
+    /// Retrieves the identifier's string symbol in the interner.
+    #[inline]
+    #[must_use]
+    pub const fn sym_mut(&mut self) -> &mut Sym {
+        &mut self.ident
+    }
+
     /// Get the [`Span`] of the [`Identifier`] node.
     #[inline]
     #[must_use]

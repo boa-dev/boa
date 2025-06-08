@@ -89,18 +89,18 @@ impl ObjectLiteral {
 
                     bindings.push(ObjectPatternElement::SingleName {
                         ident: *ident,
-                        name: PropertyName::Literal(ident.sym()),
+                        name: PropertyName::Literal(*ident),
                         default_init: None,
                     });
                 }
                 PropertyDefinition::Property(name, expr) => match (name, expr) {
                     (PropertyName::Literal(name), Expression::Identifier(ident))
-                        if *name == *ident =>
+                        if name.sym() == ident.sym() =>
                     {
                         if strict && *name == Sym::EVAL {
                             return None;
                         }
-                        if strict && RESERVED_IDENTIFIERS_STRICT.contains(name) {
+                        if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name.sym()) {
                             return None;
                         }
 
@@ -140,11 +140,13 @@ impl ObjectLiteral {
                         match assign.lhs() {
                             AssignTarget::Identifier(ident) => {
                                 if let Some(name) = name.literal() {
-                                    if name == *ident {
+                                    if name.sym() == ident.sym() {
                                         if strict && name == Sym::EVAL {
                                             return None;
                                         }
-                                        if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name) {
+                                        if strict
+                                            && RESERVED_IDENTIFIERS_STRICT.contains(&name.sym())
+                                        {
                                             return None;
                                         }
                                     }
@@ -216,7 +218,7 @@ impl ObjectLiteral {
                     expr.set_anonymous_function_definition_name(ident);
                     bindings.push(ObjectPatternElement::SingleName {
                         ident: *ident,
-                        name: PropertyName::Literal(ident.sym()),
+                        name: PropertyName::Literal(*ident),
                         default_init: Some(expr),
                     });
                 }

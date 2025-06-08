@@ -99,14 +99,14 @@ where
             let property = PropertyDefinition::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
-            if matches!(
-                property,
-                PropertyDefinitionNode::Property(PropertyNameNode::Literal(Sym::__PROTO__), _)
-            ) {
-                if has_proto && duplicate_proto_position.is_none() {
-                    duplicate_proto_position = Some(position);
-                } else {
-                    has_proto = true;
+            if let PropertyDefinitionNode::Property(PropertyNameNode::Literal(ident), _) = property
+            {
+                if ident.sym() == Sym::__PROTO__ {
+                    if has_proto && duplicate_proto_position.is_none() {
+                        duplicate_proto_position = Some(position);
+                    } else {
+                        has_proto = true;
+                    }
                 }
             }
 
@@ -336,10 +336,7 @@ where
 
             if let Some(name) = property_name.literal() {
                 if name != Sym::__PROTO__ {
-                    value.set_anonymous_function_definition_name(&Identifier::new(
-                        name,
-                        Span::new((1234, 1234), (1234, 1234)),
-                    ));
+                    value.set_anonymous_function_definition_name(&name);
                 }
             }
 
@@ -580,7 +577,7 @@ where
         let _timer = Profiler::global().start_event("PropertyName", "Parsing");
 
         let token = cursor.peek(0, interner).or_abrupt()?;
-        let name = match token.kind() {
+        let name: PropertyNameNode = match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.advance(interner);
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
@@ -589,7 +586,7 @@ where
                 return Ok(node.into());
             }
             TokenKind::IdentifierName((name, _)) | TokenKind::StringLiteral((name, _)) => {
-                (*name).into()
+                Identifier::new(*name, token.span()).into()
             }
             TokenKind::NumericLiteral(num) => match num {
                 Numeric::Rational(num) => {
@@ -604,12 +601,13 @@ where
             },
             TokenKind::Keyword((word, _)) => {
                 let (utf8, utf16) = word.as_str();
-                interner.get_or_intern_static(utf8, utf16).into()
+                let sym = interner.get_or_intern_static(utf8, utf16);
+                Identifier::new(sym, token.span()).into()
             }
-            TokenKind::NullLiteral(_) => (Sym::NULL).into(),
+            TokenKind::NullLiteral(_) => Identifier::new(Sym::NULL, token.span()).into(),
             TokenKind::BooleanLiteral((bool, _)) => match bool {
-                true => Sym::TRUE.into(),
-                false => Sym::FALSE.into(),
+                true => Identifier::new(Sym::TRUE, token.span()).into(),
+                false => Identifier::new(Sym::FALSE, token.span()).into(),
             },
             _ => {
                 return Err(Error::expected(

@@ -32,7 +32,7 @@ impl ByteCompiler<'_> {
                             self.bytecode
                                 .emit_set_prototype(dst.variable(), value.variable());
                         } else {
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name(name.sym());
                             self.bytecode.emit_define_own_property_by_name(
                                 dst.variable(),
                                 value.variable(),
@@ -75,7 +75,7 @@ impl ByteCompiler<'_> {
                             let method = self.object_method(m.into(), kind);
                             self.bytecode
                                 .emit_set_home_object(method.variable(), dst.variable());
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name(name.sym());
                             match kind {
                                 MethodKind::Get => self.bytecode.emit_set_property_getter_by_name(
                                     dst.variable(),

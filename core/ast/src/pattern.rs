@@ -377,7 +377,7 @@ impl ToInternedString for ObjectPatternElement {
                     PropertyName::Literal(name) => {
                         format!(
                             " {} : {}",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.sym()),
                             interner.resolve_expect(ident.sym())
                         )
                     }
@@ -409,7 +409,7 @@ impl ToInternedString for ObjectPatternElement {
                     PropertyName::Literal(name) => {
                         format!(
                             " {} : {}",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.sym()),
                             access.to_interned_string(interner)
                         )
                     }
@@ -435,7 +435,7 @@ impl ToInternedString for ObjectPatternElement {
                     PropertyName::Literal(name) => {
                         format!(
                             " {} : {}",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.sym()),
                             pattern.to_interned_string(interner),
                         )
                     }

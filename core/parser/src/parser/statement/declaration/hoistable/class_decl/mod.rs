@@ -714,7 +714,7 @@ where
 
                 let name = match class_element_name {
                     ClassElementName::PropertyName(name) => {
-                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                        if r#static && name.literal().map(Identifier::sym) == Some(Sym::PROTOTYPE) {
                             return Err(Error::general(
                                 "class may not have static method definitions named 'prototype'",
                                 name_position,
@@ -779,7 +779,9 @@ where
 
                         let name = match class_element_name {
                             ClassElementName::PropertyName(name) => {
-                                if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                                if r#static
+                                    && name.literal().map(Identifier::sym) == Some(Sym::PROTOTYPE)
+                                {
                                     return Err(Error::general(
                                         "class may not have static method definitions named 'prototype'",
                                         name_position,
@@ -818,7 +820,9 @@ where
 
                         let name = match class_element_name {
                             ClassElementName::PropertyName(name) => {
-                                if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                                if r#static
+                                    && name.literal().map(Identifier::sym) == Some(Sym::PROTOTYPE)
+                                {
                                     return Err(Error::general(
                                         "class may not have static method definitions named 'prototype'",
                                         name_position,
@@ -927,7 +931,7 @@ where
                             .parse(cursor, interner)?;
                         cursor.set_strict(strict);
 
-                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                        if r#static && name.literal().map(Identifier::sym) == Some(Sym::PROTOTYPE) {
                             return Err(Error::general(
                                 "class may not have static method definitions named 'prototype'",
                                 name_position,
@@ -943,11 +947,10 @@ where
                         ))
                     }
                     _ => {
+                        let span = token.span();
                         cursor.expect_semicolon("expected semicolon", interner)?;
-                        let field = ClassFieldDefinition::new(
-                            ast::property::PropertyName::Literal(Sym::GET),
-                            None,
-                        );
+                        let field =
+                            ClassFieldDefinition::new(Identifier::new(Sym::GET, span).into(), None);
                         if r#static {
                             function::ClassElement::StaticFieldDefinition(field)
                         } else {
@@ -1028,7 +1031,7 @@ where
                         )));
                         }
                         cursor.set_strict(strict);
-                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                        if r#static && name.literal().map(Identifier::sym) == Some(Sym::PROTOTYPE) {
                             return Err(Error::general(
                                 "class may not have static method definitions named 'prototype'",
                                 start,
@@ -1044,11 +1047,10 @@ where
                         ))
                     }
                     _ => {
+                        let span = token.span();
                         cursor.expect_semicolon("expected semicolon", interner)?;
-                        let field = ClassFieldDefinition::new(
-                            ast::property::PropertyName::Literal(Sym::SET),
-                            None,
-                        );
+                        let field =
+                            ClassFieldDefinition::new(Identifier::new(Sym::SET, span).into(), None);
                         if r#static {
                             function::ClassElement::StaticFieldDefinition(field)
                         } else {
@@ -1145,7 +1147,7 @@ where
                     TokenKind::Punctuator(Punctuator::Assign) => {
                         if let Some(name) = name.literal() {
                             if r#static {
-                                if [Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(&name) {
+                                if [Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(&name.sym()) {
                                     return Err(Error::general(
                                         "class may not have static field definitions named 'constructor' or 'prototype'",
                                         start,
@@ -1167,10 +1169,7 @@ where
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         cursor.set_strict(strict);
                         if let Some(name) = name.literal() {
-                            rhs.set_anonymous_function_definition_name(&Identifier::new(
-                                name,
-                                Span::new((1234, 1234), (1234, 1234)),
-                            ));
+                            rhs.set_anonymous_function_definition_name(&name);
                         }
                         let field = ClassFieldDefinition::new(name, Some(rhs));
                         if r#static {
@@ -1180,7 +1179,7 @@ where
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
-                        if r#static && name.literal() == Some(Sym::PROTOTYPE) {
+                        if r#static && name.literal().map(Identifier::sym) == Some(Sym::PROTOTYPE) {
                             return Err(Error::general(
                                 "class may not have static method definitions named 'prototype'",
                                 start,
@@ -1216,7 +1215,7 @@ where
                     _ => {
                         if let Some(name) = name.literal() {
                             if r#static {
-                                if [Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(&name) {
+                                if [Sym::CONSTRUCTOR, Sym::PROTOTYPE].contains(&name.sym()) {
                                     return Err(Error::general(
                                         "class may not have static field definitions named 'constructor' or 'prototype'",
                                         start,

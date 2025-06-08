@@ -3,7 +3,6 @@ use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{literal::Literal, Identifier},
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
-    property::PropertyName,
     statement::{Block, Catch, ErrorHandler, Finally, Try},
     Span, Statement, StatementListItem,
 };
@@ -239,7 +238,7 @@ fn check_inline_with_binding_pattern_object() {
                     Pattern::from(vec![
                         ObjectPatternElement::SingleName {
                             ident: Identifier::new(a, Span::new((1, 17), (1, 18))),
-                            name: PropertyName::Literal(a),
+                            name: Identifier::new(a, Span::new((1, 17), (1, 18))).into(),
                             default_init: None,
                         },
                         ObjectPatternElement::SingleName {
@@ -247,9 +246,11 @@ fn check_inline_with_binding_pattern_object() {
                                 interner.get_or_intern_static("c", utf16!("c")),
                                 Span::new((1, 23), (1, 24)),
                             ),
-                            name: PropertyName::Literal(
+                            name: Identifier::new(
                                 interner.get_or_intern_static("b", utf16!("b")),
-                            ),
+                                Span::new((1, 20), (1, 21)),
+                            )
+                            .into(),
                             default_init: None,
                         },
                     ])
