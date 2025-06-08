@@ -1,6 +1,5 @@
 use crate::{builtins::options::get_option, realm::Realm, string::StaticJsStrings};
 use boa_profiler::Profiler;
-use icu_decimal::preferences::NumberingSystem;
 use icu_locale::{
     extensions::unicode::Value,
     extensions_unicode_key as key, extensions_unicode_value as value,
@@ -293,7 +292,7 @@ impl BuiltInConstructor for Locale {
         // 27. If numberingSystem is not undefined, then
         // 28. Set opt.[[nu]] to numberingSystem.
         //     a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
-        let nu = get_option::<NumberingSystem>(options, js_string!("numberingSystem"), context)?;
+        let nu = get_option(options, js_string!("numberingSystem"), context)?;
 
         // 29. Let r be ! ApplyUnicodeExtensionToTag(tag, opt, relevantExtensionKeys).
         // 30. Set locale.[[Locale]] to r.[[locale]].
@@ -327,7 +326,7 @@ impl BuiltInConstructor for Locale {
         }
         if let Some(nu) = nu {
             // 36. Set locale.[[NumberingSystem]] to r.[[nu]].
-            tag.extensions.unicode.keywords.set(key!("nu"), nu.into());
+            tag.extensions.unicode.keywords.set(key!("nu"), nu);
         }
 
         context
