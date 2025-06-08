@@ -4,7 +4,7 @@ use boa_ast::{
     expression::{
         access::{PropertyAccess, SimplePropertyAccess},
         literal::Literal,
-        Call, Identifier,
+        Call, Identifier, NewTarget,
     },
     function::{
         ClassDeclaration, ClassElement, ClassFieldDefinition, ClassMethodDefinition,
@@ -129,7 +129,7 @@ fn check_new_target_with_property_access() {
 
     let new_target = Expression::PropertyAccess(
         SimplePropertyAccess::new(
-            Expression::NewTarget,
+            NewTarget::new(Span::new((3, 21), (3, 31))).into(),
             interner.get_or_intern_static("name", utf16!("name")),
         )
         .into(),

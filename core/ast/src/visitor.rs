@@ -24,9 +24,9 @@ use crate::{
             assign::{Assign, AssignTarget},
             Binary, BinaryInPrivate, Conditional, Unary, Update,
         },
-        Await, Call, Expression, Identifier, ImportCall, New, Optional, OptionalOperation,
-        OptionalOperationKind, Parenthesized, RegExpLiteral, Spread, SuperCall, TaggedTemplate,
-        This, Yield,
+        Await, Call, Expression, Identifier, ImportCall, New, NewTarget, Optional,
+        OptionalOperation, OptionalOperationKind, Parenthesized, RegExpLiteral, Spread, SuperCall,
+        TaggedTemplate, This, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -148,6 +148,8 @@ node_ref! {
     With,
     Throw,
     Try,
+    This,
+    NewTarget,
     Identifier,
     FormalParameterList,
     ClassElement,
@@ -290,6 +292,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_await, Await);
     define_visit!(visit_yield, Yield);
     define_visit!(visit_parenthesized, Parenthesized);
+    define_visit!(visit_new_target, NewTarget);
     define_visit!(visit_for_loop_initializer, ForLoopInitializer);
     define_visit!(visit_iterable_loop_initializer, IterableLoopInitializer);
     define_visit!(visit_case, Case);
@@ -364,6 +367,8 @@ pub trait Visitor<'ast>: Sized {
             NodeRef::With(n) => self.visit_with(n),
             NodeRef::Throw(n) => self.visit_throw(n),
             NodeRef::Try(n) => self.visit_try(n),
+            NodeRef::This(n) => self.visit_this(n),
+            NodeRef::NewTarget(n) => self.visit_new_target(n),
             NodeRef::Identifier(n) => self.visit_identifier(n),
             NodeRef::FormalParameterList(n) => self.visit_formal_parameter_list(n),
             NodeRef::ClassElement(n) => self.visit_class_element(n),
@@ -517,6 +522,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_await_mut, Await);
     define_visit_mut!(visit_yield_mut, Yield);
     define_visit_mut!(visit_parenthesized_mut, Parenthesized);
+    define_visit_mut!(visit_new_target_mut, NewTarget);
     define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer);
     define_visit_mut!(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
     define_visit_mut!(visit_case_mut, Case);
@@ -593,6 +599,8 @@ pub trait VisitorMut<'ast>: Sized {
             NodeRefMut::With(n) => self.visit_with_mut(n),
             NodeRefMut::Throw(n) => self.visit_throw_mut(n),
             NodeRefMut::Try(n) => self.visit_try_mut(n),
+            NodeRefMut::This(n) => self.visit_this_mut(n),
+            NodeRefMut::NewTarget(n) => self.visit_new_target_mut(n),
             NodeRefMut::Identifier(n) => self.visit_identifier_mut(n),
             NodeRefMut::FormalParameterList(n) => self.visit_formal_parameter_list_mut(n),
             NodeRefMut::ClassElement(n) => self.visit_class_element_mut(n),

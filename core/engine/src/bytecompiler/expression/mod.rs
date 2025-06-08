@@ -409,7 +409,7 @@ impl ByteCompiler<'_> {
                 self.compile_expr(import.argument(), dst);
                 self.bytecode.emit_import_call(dst.variable());
             }
-            Expression::NewTarget => {
+            Expression::NewTarget(_new_target) => {
                 self.bytecode.emit_new_target(dst.variable());
             }
             Expression::ImportMeta => {

@@ -24,9 +24,9 @@ use boa_ast::{
         access::{
             PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess, SuperPropertyAccess,
         },
-        Call, New,
+        Call, New, NewTarget,
     },
-    Keyword, Punctuator,
+    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -117,6 +117,7 @@ where
                 ast::Expression::ImportMeta
             }
             TokenKind::Keyword((Keyword::New, false)) => {
+                let new_token_span = token.span();
                 cursor.advance(interner);
 
                 let lhs_new_target = if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
@@ -129,7 +130,8 @@ where
                             ));
                         }
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(false))) => {
-                            ast::Expression::NewTarget
+                            NewTarget::new(Span::new(new_token_span.start(), token.span().end()))
+                                .into()
                         }
                         _ => {
                             return Err(Error::general(
@@ -152,7 +154,7 @@ where
                     };
                     let call_node = Call::new(lhs_inner, args);
 
-                    ast::Expression::from(New::from(call_node))
+                    New::from(call_node).into()
                 };
                 lhs_new_target
             }
