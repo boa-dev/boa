@@ -215,8 +215,10 @@ where
                         tok.span().start(),
                     ));
                 };
-                let temp =
-                    literal::TemplateLiteral::new(Box::new([TemplateElement::String(cooked)]));
+                let temp = literal::TemplateLiteral::new(
+                    Box::new([TemplateElement::String(cooked)]),
+                    tok.span(),
+                );
                 cursor.advance(interner);
                 Ok(temp.into())
             }
