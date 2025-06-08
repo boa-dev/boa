@@ -36,6 +36,7 @@ fn check_generator_function_expression() {
                                     Expression::from(Yield::new(
                                         Some(Literal::new(1, Span::new((2, 11), (2, 12))).into()),
                                         false,
+                                        Span::new((2, 5), (2, 12)),
                                     )),
                                 ))],
                                 PSEUDO_LINEAR_POS,
@@ -81,6 +82,7 @@ fn check_generator_function_delegate_yield_expression() {
                                     Expression::from(Yield::new(
                                         Some(Literal::new(1, Span::new((2, 12), (2, 13))).into()),
                                         true,
+                                        Span::new((2, 5), (2, 13)),
                                     )),
                                 ))],
                                 PSEUDO_LINEAR_POS,

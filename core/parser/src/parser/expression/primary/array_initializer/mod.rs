@@ -107,10 +107,18 @@ where
                     ));
                 }
                 TokenKind::Punctuator(Punctuator::Spread) => {
+                    let spread_token_span_start = token.span().start();
+
                     cursor.advance(interner);
-                    let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
-                    elements.push(Some(Spread::new(node).into()));
+                    let target =
+                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    let target_span_end = target.span().end();
+
+                    elements.push(Some(
+                        Spread::new(target, Span::new(spread_token_span_start, target_span_end))
+                            .into(),
+                    ));
                     next_comma = true;
                     last_spread = true;
                 }

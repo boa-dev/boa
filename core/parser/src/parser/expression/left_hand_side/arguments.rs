@@ -101,11 +101,15 @@ where
                 }
             }
 
-            if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
+            if let Some(spread_token) = cursor.next_if(Punctuator::Spread, interner)? {
+                let target = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+                let target_span_end = target.span().end();
+
                 args.push(
                     Spread::new(
-                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                        target,
+                        Span::new(spread_token.span().start(), target_span_end),
                     )
                     .into(),
                 );
