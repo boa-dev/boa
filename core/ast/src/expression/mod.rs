@@ -326,7 +326,7 @@ impl Expression {
             Self::Binary(bin) => span,
             Self::BinaryInPrivate(bin) => span,
             Self::Conditional(cond) => span,
-            Self::Await(aw) => span,
+            Self::Await(aw) => aw.span(),
             Self::Yield(yi) => span,
             Self::Parenthesized(expr) => expr.span(),
             Self::RegExpLiteral(regexp) => regexp.span(),
