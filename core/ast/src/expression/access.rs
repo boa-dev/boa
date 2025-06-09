@@ -175,6 +175,13 @@ impl SimplePropertyAccess {
             field: field.into(),
         }
     }
+
+    /// Get the [`Span`] of the [`SimplePropertyAccess`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        Span::new(self.target.span().start(), self.field.span().end())
+    }
 }
 
 impl ToInternedString for SimplePropertyAccess {
