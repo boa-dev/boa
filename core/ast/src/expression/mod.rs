@@ -323,7 +323,7 @@ impl Expression {
             Self::Assign(assign) => span,
             Self::Unary(unary) => unary.span(),
             Self::Update(update) => update.span(),
-            Self::Binary(bin) => span,
+            Self::Binary(bin) => bin.span(),
             Self::BinaryInPrivate(bin) => span,
             Self::Conditional(cond) => span,
             Self::Await(aw) => aw.span(),
