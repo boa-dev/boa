@@ -321,7 +321,7 @@ impl Expression {
             Self::ImportMeta(import_meta) => import_meta.span(),
             Self::TaggedTemplate(tag) => tag.span(),
             Self::Assign(assign) => span,
-            Self::Unary(unary) => span,
+            Self::Unary(unary) => unary.span(),
             Self::Update(update) => span,
             Self::Binary(bin) => span,
             Self::BinaryInPrivate(bin) => span,
