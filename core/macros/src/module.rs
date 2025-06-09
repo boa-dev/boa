@@ -5,7 +5,10 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Item, ItemConst, ItemFn, ItemMod, ItemType};
+use syn::{
+    Item, ItemConst, ItemEnum, ItemExternCrate, ItemFn, ItemForeignMod, ItemImpl, ItemMacro,
+    ItemMod, ItemStatic, ItemStruct, ItemTrait, ItemTraitAlias, ItemType, ItemUnion, ItemUse,
+};
 
 #[derive(Debug)]
 struct ModuleArguments {}
@@ -82,24 +85,21 @@ fn type_item(ty: &mut ItemType, renaming: RenameScheme) -> SpannedResult<(String
 
 pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the attribute arguments.
-    let _args = syn::parse_macro_input!(attr as ModuleArguments);
+    let args = syn::parse_macro_input!(attr as ModuleArguments);
 
     // Parse the input.
-    let mut mod_ = syn::parse_macro_input!(input as ItemMod);
+    let mod_ = syn::parse_macro_input!(input as ItemMod);
 
-    let renaming = match RenameScheme::from_attrs(&mut mod_.attrs) {
-        Ok(r) => r,
-        Err((span, msg)) => {
-            return syn::Error::new(span, msg).to_compile_error().into();
-        }
-    };
+    match module_impl_impl(args, mod_) {
+        Ok(tokens) => tokens.into(),
+        Err((span, msg)) => syn::Error::new(span, msg).to_compile_error().into(),
+    }
+}
 
-    let class_renaming = match RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_class") {
-        Ok(r) => r.unwrap_or(renaming),
-        Err((span, msg)) => {
-            return syn::Error::new(span, msg).to_compile_error().into();
-        }
-    };
+fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<TokenStream2> {
+    let renaming = RenameScheme::from_attrs(&mut mod_.attrs)?;
+    let class_renaming =
+        RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_class")?.unwrap_or(renaming);
 
     // Iterate through all top-level content. If the module is empty, still
     // iterate to create an empty JS module.
@@ -108,6 +108,34 @@ pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream 
     let mut module_exports = quote! {};
 
     for item in mod_.content.map_or_else(Vec::new, |c| c.1).as_mut_slice() {
+        // Check for skip attributes.
+        match item {
+            Item::Const(ItemConst { attrs, .. })
+            | Item::Enum(ItemEnum { attrs, .. })
+            | Item::ExternCrate(ItemExternCrate { attrs, .. })
+            | Item::Fn(ItemFn { attrs, .. })
+            | Item::ForeignMod(ItemForeignMod { attrs, .. })
+            | Item::Impl(ItemImpl { attrs, .. })
+            | Item::Macro(ItemMacro { attrs, .. })
+            | Item::Mod(ItemMod { attrs, .. })
+            | Item::Static(ItemStatic { attrs, .. })
+            | Item::Struct(ItemStruct { attrs, .. })
+            | Item::Trait(ItemTrait { attrs, .. })
+            | Item::TraitAlias(ItemTraitAlias { attrs, .. })
+            | Item::Type(ItemType { attrs, .. })
+            | Item::Union(ItemUnion { attrs, .. })
+            | Item::Use(ItemUse { attrs, .. }) => {
+                if take_path_attr(attrs, "skip") {
+                    original_module_decl = quote! {
+                        #original_module_decl
+                        #item
+                    };
+                    continue;
+                }
+            }
+            _ => {}
+        }
+
         let result = match item {
             Item::Const(c) => const_item(c, renaming),
             Item::Fn(f) => fn_item(f, renaming),
@@ -125,12 +153,7 @@ pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream 
                 "Invalid boa_module top-level item.".to_string(),
             )),
         };
-        let (export_name, export_decl) = match result {
-            Ok(tuple) => tuple,
-            Err((span, msg)) => {
-                return syn::Error::new(span, msg).to_compile_error().into();
-            }
-        };
+        let (export_name, export_decl) = result?;
 
         module_fn = quote! {
             #module_fn
@@ -149,7 +172,6 @@ pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream 
     }
 
     let debug = take_path_attr(&mut mod_.attrs, "debug");
-
     let vis = mod_.vis;
     let name = mod_.ident;
     let attrs = mod_.attrs;
@@ -185,5 +207,5 @@ pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream 
         eprintln!("---------\n{tokens}\n---------\n");
     }
 
-    tokens.into()
+    Ok(tokens)
 }
