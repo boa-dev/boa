@@ -168,6 +168,13 @@ impl BinaryInPrivate {
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
     }
+
+    /// Get the [`Span`] of the [`BinaryInPrivate`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        Span::new(self.lhs.span().start(), self.rhs.span().end())
+    }
 }
 
 impl ToInternedString for BinaryInPrivate {
