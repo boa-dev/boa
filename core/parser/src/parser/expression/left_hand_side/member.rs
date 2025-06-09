@@ -227,6 +227,7 @@ where
 
                     let token = cursor.next(interner).or_abrupt()?;
 
+                    let lhs_span = lhs.span();
                     let access = match token.kind() {
                         TokenKind::IdentifierName((name, _)) => {
                             SimplePropertyAccess::new(lhs, Identifier::new(*name, token.span()))
@@ -250,10 +251,12 @@ where
                             SimplePropertyAccess::new(lhs, Identifier::new(Sym::NULL, token.span()))
                                 .into()
                         }
-                        TokenKind::PrivateIdentifier(name) => {
-                            PrivatePropertyAccess::new(lhs, PrivateName::new(*name, token.span()))
-                                .into()
-                        }
+                        TokenKind::PrivateIdentifier(name) => PrivatePropertyAccess::new(
+                            lhs,
+                            PrivateName::new(*name, token.span()),
+                            Span::new(lhs_span.start(), token.span().end()),
+                        )
+                        .into(),
                         _ => {
                             return Err(Error::expected(
                                 ["identifier".to_owned()],

@@ -24,7 +24,7 @@ use boa_ast::{
         access::{PrivatePropertyAccess, SimplePropertyAccess},
         Call, Identifier,
     },
-    Punctuator,
+    Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -131,6 +131,8 @@ where
                     lhs = ast::Expression::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
+                    let lhs_span_start = lhs.span().start();
+
                     cursor.advance(interner);
 
                     let token = cursor.next(interner).or_abrupt()?;
@@ -157,10 +159,12 @@ where
                             SimplePropertyAccess::new(lhs, Identifier::new(Sym::NULL, token.span()))
                                 .into()
                         }
-                        TokenKind::PrivateIdentifier(name) => {
-                            PrivatePropertyAccess::new(lhs, PrivateName::new(*name, token.span()))
-                                .into()
-                        }
+                        TokenKind::PrivateIdentifier(name) => PrivatePropertyAccess::new(
+                            lhs,
+                            PrivateName::new(*name, token.span()),
+                            Span::new(lhs_span_start, token.span().end()),
+                        )
+                        .into(),
                         _ => {
                             return Err(Error::expected(
                                 ["identifier".to_owned()],

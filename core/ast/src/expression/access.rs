@@ -233,16 +233,18 @@ impl VisitWith for SimplePropertyAccess {
 pub struct PrivatePropertyAccess {
     target: Box<Expression>,
     field: PrivateName,
+    span: Span,
 }
 
 impl PrivatePropertyAccess {
     /// Creates a `GetPrivateField` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(value: Expression, field: PrivateName) -> Self {
+    pub fn new(value: Expression, field: PrivateName, span: Span) -> Self {
         Self {
             target: value.into(),
             field,
+            span,
         }
     }
 
@@ -258,6 +260,13 @@ impl PrivatePropertyAccess {
     #[must_use]
     pub const fn field(&self) -> PrivateName {
         self.field
+    }
+
+    /// Get the [`Span`] of the [`PrivatePropertyAccess`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.span
     }
 }
 
