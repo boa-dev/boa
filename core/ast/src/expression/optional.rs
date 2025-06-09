@@ -109,7 +109,7 @@ impl ToInternedString for OptionalOperation {
                 field: PropertyAccessField::Const(name),
             } = &self.kind
             {
-                return format!(".{}", interner.resolve_expect(*name));
+                return format!(".{}", interner.resolve_expect(name.sym()));
             }
 
             if let OptionalOperationKind::PrivatePropertyAccess { field } = &self.kind {
@@ -121,7 +121,7 @@ impl ToInternedString for OptionalOperation {
         match &self.kind {
             OptionalOperationKind::SimplePropertyAccess { field } => match field {
                 PropertyAccessField::Const(name) => {
-                    buf.push_str(&interner.resolve_expect(*name).to_string());
+                    buf.push_str(&interner.resolve_expect(name.sym()).to_string());
                 }
                 PropertyAccessField::Expr(expr) => {
                     let _ = write!(buf, "[{}]", expr.to_interned_string(interner));

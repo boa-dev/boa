@@ -263,7 +263,12 @@ impl ByteCompiler<'_> {
                         self.compile_expr(access.target(), &this);
                         match access.field() {
                             PropertyAccessField::Const(ident) => {
-                                self.emit_get_property_by_name(&function, &this, &this, *ident);
+                                self.emit_get_property_by_name(
+                                    &function,
+                                    &this,
+                                    &this,
+                                    ident.sym(),
+                                );
                             }
                             PropertyAccessField::Expr(field) => {
                                 let key = self.register_allocator.alloc();

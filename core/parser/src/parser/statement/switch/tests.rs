@@ -179,7 +179,7 @@ fn check_separated_switch() {
                                         SimplePropertyAccess::new(
                                             Identifier::new(console, Span::new((15, 1), (15, 8)))
                                                 .into(),
-                                            log,
+                                            Identifier::new(log, Span::new((15, 9), (15, 12))),
                                         )
                                         .into(),
                                     ),
@@ -202,7 +202,7 @@ fn check_separated_switch() {
                                         SimplePropertyAccess::new(
                                             Identifier::new(console, Span::new((25, 1), (25, 8)))
                                                 .into(),
-                                            log,
+                                            Identifier::new(log, Span::new((25, 9), (25, 12))),
                                         )
                                         .into(),
                                     ),
@@ -223,7 +223,7 @@ fn check_separated_switch() {
                                     SimplePropertyAccess::new(
                                         Identifier::new(console, Span::new((33, 1), (33, 8)))
                                             .into(),
-                                        log,
+                                        Identifier::new(log, Span::new((33, 9), (33, 12))),
                                     )
                                     .into(),
                                 ),

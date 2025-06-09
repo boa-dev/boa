@@ -17,8 +17,11 @@
 use crate::expression::Expression;
 use crate::function::PrivateName;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use boa_interner::{Interner, Sym, ToInternedString};
+use crate::Span;
+use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
+
+use super::Identifier;
 
 /// A property access field.
 ///
@@ -28,14 +31,26 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyAccessField {
     /// A constant property field, such as `x.prop`.
-    Const(Sym),
+    Const(Identifier),
     /// An expression property field, such as `x["val"]`.
     Expr(Box<Expression>),
 }
 
-impl From<Sym> for PropertyAccessField {
+impl PropertyAccessField {
+    /// Get the [`Span`] of the [`PropertyAccessField`] node.
     #[inline]
-    fn from(id: Sym) -> Self {
+    #[must_use]
+    pub fn span(&self) -> Span {
+        match self {
+            Self::Const(identifier) => identifier.span(),
+            Self::Expr(expression) => expression.span(),
+        }
+    }
+}
+
+impl From<Identifier> for PropertyAccessField {
+    #[inline]
+    fn from(id: Identifier) -> Self {
         Self::Const(id)
     }
 }
@@ -53,7 +68,7 @@ impl VisitWith for PropertyAccessField {
         V: Visitor<'a>,
     {
         match self {
-            Self::Const(sym) => visitor.visit_sym(sym),
+            Self::Const(sym) => visitor.visit_sym(sym.sym_ref()),
             Self::Expr(expr) => visitor.visit_expression(expr),
         }
     }
@@ -63,7 +78,7 @@ impl VisitWith for PropertyAccessField {
         V: VisitorMut<'a>,
     {
         match self {
-            Self::Const(sym) => visitor.visit_sym_mut(sym),
+            Self::Const(sym) => visitor.visit_sym_mut(sym.sym_mut()),
             Self::Expr(expr) => visitor.visit_expression_mut(&mut *expr),
         }
     }
@@ -167,7 +182,9 @@ impl ToInternedString for SimplePropertyAccess {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let target = self.target.to_interned_string(interner);
         match self.field {
-            PropertyAccessField::Const(sym) => format!("{target}.{}", interner.resolve_expect(sym)),
+            PropertyAccessField::Const(ident) => {
+                format!("{target}.{}", interner.resolve_expect(ident.sym()))
+            }
             PropertyAccessField::Expr(ref expr) => {
                 format!("{target}[{}]", expr.to_interned_string(interner))
             }
@@ -314,7 +331,7 @@ impl ToInternedString for SuperPropertyAccess {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self.field {
             PropertyAccessField::Const(field) => {
-                format!("super.{}", interner.resolve_expect(*field))
+                format!("super.{}", interner.resolve_expect(field.sym()))
             }
             PropertyAccessField::Expr(field) => {
                 format!("super[{}]", field.to_interned_string(interner))

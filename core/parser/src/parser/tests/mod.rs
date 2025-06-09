@@ -94,7 +94,10 @@ fn check_construct_call_precedence() {
                         Box::default(),
                     ))
                     .into(),
-                    interner.get_or_intern_static("getTime", utf16!("getTime")),
+                    Identifier::new(
+                        interner.get_or_intern_static("getTime", utf16!("getTime")),
+                        Span::new((1, 12), (1, 19)),
+                    ),
                 )
                 .into(),
             ),

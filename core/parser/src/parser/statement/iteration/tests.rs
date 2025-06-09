@@ -91,7 +91,10 @@ fn check_do_while_semicolon_insertion() {
                                             Span::new((2, 5), (2, 12)),
                                         )
                                         .into(),
-                                        interner.get_or_intern_static("log", utf16!("log")),
+                                        Identifier::new(
+                                            interner.get_or_intern_static("log", utf16!("log")),
+                                            Span::new((2, 13), (2, 16)),
+                                        ),
                                     )
                                     .into(),
                                 ),
@@ -130,7 +133,10 @@ fn check_do_while_semicolon_insertion() {
                             Span::new((2, 44), (2, 51)),
                         )
                         .into(),
-                        interner.get_or_intern_static("log", utf16!("log")),
+                        Identifier::new(
+                            interner.get_or_intern_static("log", utf16!("log")),
+                            Span::new((2, 52), (2, 55)),
+                        ),
                     )
                     .into(),
                 ),
@@ -183,7 +189,10 @@ fn check_do_while_semicolon_insertion_no_space() {
                                             Span::new((2, 5), (2, 12)),
                                         )
                                         .into(),
-                                        interner.get_or_intern_static("log", utf16!("log")),
+                                        Identifier::new(
+                                            interner.get_or_intern_static("log", utf16!("log")),
+                                            Span::new((2, 13), (2, 16)),
+                                        ),
                                     )
                                     .into(),
                                 ),
@@ -222,7 +231,10 @@ fn check_do_while_semicolon_insertion_no_space() {
                             Span::new((2, 43), (2, 50)),
                         )
                         .into(),
-                        interner.get_or_intern_static("log", utf16!("log")),
+                        Identifier::new(
+                            interner.get_or_intern_static("log", utf16!("log")),
+                            Span::new((2, 51), (2, 54)),
+                        ),
                     )
                     .into(),
                 ),

@@ -130,7 +130,10 @@ fn check_new_target_with_property_access() {
     let new_target = Expression::PropertyAccess(
         SimplePropertyAccess::new(
             NewTarget::new(Span::new((3, 21), (3, 31))).into(),
-            interner.get_or_intern_static("name", utf16!("name")),
+            Identifier::new(
+                interner.get_or_intern_static("name", utf16!("name")),
+                Span::new((3, 32), (3, 36)),
+            ),
         )
         .into(),
     );
@@ -142,7 +145,10 @@ fn check_new_target_with_property_access() {
                 Span::new((3, 9), (3, 16)),
             )
             .into(),
-            interner.get_or_intern_static("log", utf16!("log")),
+            Identifier::new(
+                interner.get_or_intern_static("log", utf16!("log")),
+                Span::new((3, 17), (3, 20)),
+            ),
         ))
         .into(),
         [new_target].into(),

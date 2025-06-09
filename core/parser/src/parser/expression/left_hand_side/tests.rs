@@ -10,6 +10,8 @@ macro_rules! check_call_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
         let input = format!("a().{}", $property);
+        #[allow(clippy::cast_possible_truncation)]
+        let input_end = input.len() as u32 + 1;
         check_script_parser(
             input.as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
@@ -23,7 +25,10 @@ macro_rules! check_call_property_identifier {
                         Box::default(),
                     )
                     .into(),
-                    interner.get_or_intern_static($property, utf16!($property)),
+                    Identifier::new(
+                        interner.get_or_intern_static($property, utf16!($property)),
+                        Span::new((1, 5), (1, input_end)),
+                    ),
                 )
                 .into(),
             ))
@@ -46,6 +51,8 @@ macro_rules! check_member_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
         let input = format!("a.{}", $property);
+        #[allow(clippy::cast_possible_truncation)]
+        let input_end = input.len() as u32 + 1;
         check_script_parser(
             input.as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
@@ -55,7 +62,10 @@ macro_rules! check_member_property_identifier {
                         Span::new((1, 1), (1, 2)),
                     )
                     .into(),
-                    interner.get_or_intern_static($property, utf16!($property)),
+                    Identifier::new(
+                        interner.get_or_intern_static($property, utf16!($property)),
+                        Span::new((1, 3), (1, input_end)),
+                    ),
                 )
                 .into(),
             ))

@@ -1042,7 +1042,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &object, &object, *ident);
+                            self.emit_get_property_by_name(dst, &object, &object, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
                             let key = self.register_allocator.alloc();
@@ -1076,7 +1076,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.bytecode.emit_this(receiver.variable());
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &receiver, &value, *ident);
+                            self.emit_get_property_by_name(dst, &receiver, &value, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
                             let key = self.register_allocator.alloc();
@@ -1141,7 +1141,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                         let object = self.register_allocator.alloc();
                         self.compile_expr(access.target(), &object);
                         let value = expr_fn(self);
-                        self.emit_set_property_by_name(value, &object, &object, *name);
+                        self.emit_set_property_by_name(value, &object, &object, name.sym());
                         self.register_allocator.dealloc(object);
                     }
                     PropertyAccessField::Expr(expr) => {
@@ -1190,7 +1190,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                         let value = expr_fn(self);
 
-                        self.emit_set_property_by_name(value, &receiver, &object, *name);
+                        self.emit_set_property_by_name(value, &receiver, &object, name.sym());
 
                         self.register_allocator.dealloc(receiver);
                         self.register_allocator.dealloc(object);
@@ -1229,7 +1229,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
-                        let index = self.get_or_insert_name(*name);
+                        let index = self.get_or_insert_name(name.sym());
                         self.compile_expr(access.target(), dst);
                         self.bytecode
                             .emit_delete_property_by_name(dst.variable(), index.into());
@@ -1315,7 +1315,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {
-                        self.emit_get_property_by_name(dst, this, this, *ident);
+                        self.emit_get_property_by_name(dst, this, this, ident.sym());
                     }
                     PropertyAccessField::Expr(field) => {
                         let key = self.register_allocator.alloc();
@@ -1344,7 +1344,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {
-                        self.emit_get_property_by_name(dst, this, &object, *ident);
+                        self.emit_get_property_by_name(dst, this, &object, ident.sym());
                     }
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
@@ -1447,7 +1447,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.bytecode.emit_move(this.variable(), value.variable());
                 match field {
                     PropertyAccessField::Const(name) => {
-                        self.emit_get_property_by_name(value, value, value, *name);
+                        self.emit_get_property_by_name(value, value, value, name.sym());
                     }
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
@@ -1880,7 +1880,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             expr if kind == CallKind::Call => {
                 if let Expression::Identifier(ident) = expr {
-                    if *ident == Sym::EVAL {
+                    if ident.sym() == Sym::EVAL {
                         kind = CallKind::CallEval;
                     }
 

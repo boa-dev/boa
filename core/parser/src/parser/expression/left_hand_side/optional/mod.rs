@@ -13,7 +13,9 @@ use crate::{
 use ast::function::PrivateName;
 use boa_ast::{
     self as ast,
-    expression::{access::PropertyAccessField, Optional, OptionalOperation, OptionalOperationKind},
+    expression::{
+        access::PropertyAccessField, Identifier, Optional, OptionalOperation, OptionalOperationKind,
+    },
     Punctuator,
 };
 use boa_interner::{Interner, Sym};
@@ -67,24 +69,24 @@ where
             let item = match token.kind() {
                 TokenKind::IdentifierName((name, _)) => {
                     OptionalOperationKind::SimplePropertyAccess {
-                        field: PropertyAccessField::Const(*name),
+                        field: Identifier::new(*name, token.span()).into(),
                     }
                 }
                 TokenKind::Keyword((kw, _)) => OptionalOperationKind::SimplePropertyAccess {
-                    field: PropertyAccessField::Const(kw.to_sym()),
+                    field: Identifier::new(kw.to_sym(), token.span()).into(),
                 },
                 TokenKind::BooleanLiteral((true, _)) => {
                     OptionalOperationKind::SimplePropertyAccess {
-                        field: PropertyAccessField::Const(Sym::TRUE),
+                        field: Identifier::new(Sym::TRUE, token.span()).into(),
                     }
                 }
                 TokenKind::BooleanLiteral((false, _)) => {
                     OptionalOperationKind::SimplePropertyAccess {
-                        field: PropertyAccessField::Const(Sym::FALSE),
+                        field: Identifier::new(Sym::FALSE, token.span()).into(),
                     }
                 }
                 TokenKind::NullLiteral(_) => OptionalOperationKind::SimplePropertyAccess {
-                    field: PropertyAccessField::Const(Sym::NULL),
+                    field: Identifier::new(Sym::NULL, token.span()).into(),
                 },
                 TokenKind::PrivateIdentifier(name) => {
                     OptionalOperationKind::PrivatePropertyAccess {

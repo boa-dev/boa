@@ -21,9 +21,11 @@ fn simple() {
                 Literal::new(5, Span::new((1, 1), (1, 2))).into(),
                 vec![OptionalOperation::new(
                     OptionalOperationKind::SimplePropertyAccess {
-                        field: PropertyAccessField::Const(
+                        field: Identifier::new(
                             interner.get_or_intern_static("name", utf16!("name")),
-                        ),
+                            Span::new((1, 4), (1, 8)),
+                        )
+                        .into(),
                     },
                     true,
                 )]
@@ -52,9 +54,11 @@ fn complex_chain() {
                 vec![
                     OptionalOperation::new(
                         OptionalOperationKind::SimplePropertyAccess {
-                            field: PropertyAccessField::Const(
+                            field: Identifier::new(
                                 interner.get_or_intern_static("b", utf16!("b")),
-                            ),
+                                Span::new((1, 4), (1, 5)),
+                            )
+                            .into(),
                         },
                         true,
                     ),

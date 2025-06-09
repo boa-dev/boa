@@ -21,10 +21,8 @@ use ast::function::PrivateName;
 use boa_ast::{
     self as ast,
     expression::{
-        access::{
-            PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess, SuperPropertyAccess,
-        },
-        Call, ImportMeta, New, NewTarget,
+        access::{PrivatePropertyAccess, SimplePropertyAccess, SuperPropertyAccess},
+        Call, Identifier, ImportMeta, New, NewTarget,
     },
     Keyword, Punctuator, Span,
 };
@@ -166,19 +164,21 @@ where
                     TokenKind::Punctuator(Punctuator::Dot) => {
                         let token = cursor.next(interner).or_abrupt()?;
                         let field = match token.kind() {
-                            TokenKind::IdentifierName((name, _)) => {
-                                SuperPropertyAccess::new(PropertyAccessField::from(*name))
-                            }
-                            TokenKind::Keyword((kw, _)) => {
-                                SuperPropertyAccess::new(kw.to_sym().into())
-                            }
-                            TokenKind::BooleanLiteral((true, _)) => {
-                                SuperPropertyAccess::new(Sym::TRUE.into())
-                            }
-                            TokenKind::BooleanLiteral((false, _)) => {
-                                SuperPropertyAccess::new(Sym::FALSE.into())
-                            }
-                            TokenKind::NullLiteral(_) => SuperPropertyAccess::new(Sym::NULL.into()),
+                            TokenKind::IdentifierName((name, _)) => SuperPropertyAccess::new(
+                                Identifier::new(*name, token.span()).into(),
+                            ),
+                            TokenKind::Keyword((kw, _)) => SuperPropertyAccess::new(
+                                Identifier::new(kw.to_sym(), token.span()).into(),
+                            ),
+                            TokenKind::BooleanLiteral((true, _)) => SuperPropertyAccess::new(
+                                Identifier::new(Sym::TRUE, token.span()).into(),
+                            ),
+                            TokenKind::BooleanLiteral((false, _)) => SuperPropertyAccess::new(
+                                Identifier::new(Sym::FALSE, token.span()).into(),
+                            ),
+                            TokenKind::NullLiteral(_) => SuperPropertyAccess::new(
+                                Identifier::new(Sym::NULL, token.span()).into(),
+                            ),
                             TokenKind::PrivateIdentifier(_) => {
                                 return Err(Error::general(
                                     "unexpected private identifier",
@@ -229,19 +229,26 @@ where
 
                     let access = match token.kind() {
                         TokenKind::IdentifierName((name, _)) => {
-                            SimplePropertyAccess::new(lhs, *name).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(*name, token.span()))
+                                .into()
                         }
-                        TokenKind::Keyword((kw, _)) => {
-                            SimplePropertyAccess::new(lhs, kw.to_sym()).into()
-                        }
+                        TokenKind::Keyword((kw, _)) => SimplePropertyAccess::new(
+                            lhs,
+                            Identifier::new(kw.to_sym(), token.span()),
+                        )
+                        .into(),
                         TokenKind::BooleanLiteral((true, _)) => {
-                            SimplePropertyAccess::new(lhs, Sym::TRUE).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(Sym::TRUE, token.span()))
+                                .into()
                         }
-                        TokenKind::BooleanLiteral((false, _)) => {
-                            SimplePropertyAccess::new(lhs, Sym::FALSE).into()
-                        }
+                        TokenKind::BooleanLiteral((false, _)) => SimplePropertyAccess::new(
+                            lhs,
+                            Identifier::new(Sym::FALSE, token.span()),
+                        )
+                        .into(),
                         TokenKind::NullLiteral(_) => {
-                            SimplePropertyAccess::new(lhs, Sym::NULL).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(Sym::NULL, token.span()))
+                                .into()
                         }
                         TokenKind::PrivateIdentifier(name) => {
                             PrivatePropertyAccess::new(lhs, PrivateName::new(*name)).into()
