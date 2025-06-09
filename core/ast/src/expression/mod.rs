@@ -322,7 +322,7 @@ impl Expression {
             Self::TaggedTemplate(tag) => tag.span(),
             Self::Assign(assign) => span,
             Self::Unary(unary) => unary.span(),
-            Self::Update(update) => span,
+            Self::Update(update) => update.span(),
             Self::Binary(bin) => span,
             Self::BinaryInPrivate(bin) => span,
             Self::Conditional(cond) => span,

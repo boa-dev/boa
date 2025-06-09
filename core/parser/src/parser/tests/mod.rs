@@ -164,10 +164,14 @@ fn hoisting() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Update::new(
-                UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a, Span::new((2, 1), (2, 2)))),
-            )))
+            Statement::Expression(
+                Update::new(
+                    UpdateOp::IncrementPost,
+                    UpdateTarget::Identifier(Identifier::new(a, Span::new((2, 1), (2, 2)))),
+                    Span::new((2, 1), (2, 4)),
+                )
+                .into(),
+            )
             .into(),
             Declaration::FunctionDeclaration(FunctionDeclaration::new(
                 Identifier::new(hello, Span::new((4, 10), (4, 15))),
@@ -206,10 +210,14 @@ fn hoisting() {
                 Literal::new(10, Span::new((1, 5), (1, 7))).into(),
             )))
             .into(),
-            Statement::Expression(Expression::from(Update::new(
-                UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a, Span::new((2, 1), (2, 2)))),
-            )))
+            Statement::Expression(
+                Update::new(
+                    UpdateOp::IncrementPost,
+                    UpdateTarget::Identifier(Identifier::new(a, Span::new((2, 1), (2, 2)))),
+                    Span::new((2, 1), (2, 4)),
+                )
+                .into(),
+            )
             .into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
@@ -538,6 +546,7 @@ fn increment_in_comma_op() {
                     Update::new(
                         UpdateOp::IncrementPost,
                         UpdateTarget::Identifier(Identifier::new(b, Span::new((1, 2), (1, 3)))),
+                        Span::new((1, 2), (1, 5)),
                     )
                     .into(),
                     Identifier::new(b, Span::new((1, 7), (1, 8))).into(),

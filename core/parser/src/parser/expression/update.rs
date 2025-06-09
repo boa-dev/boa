@@ -22,7 +22,7 @@ use boa_ast::{
         update::{UpdateOp, UpdateTarget},
         Update,
     },
-    Expression, Position, Punctuator,
+    Expression, Position, Punctuator, Span,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -98,6 +98,7 @@ where
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
+                let target_span_end = target.span().end();
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                 return (as_simple(&target, position, cursor.strict())?).map_or_else(
@@ -107,7 +108,14 @@ where
                             position,
                         )))
                     },
-                    |target| Ok(Update::new(UpdateOp::IncrementPre, target).into()),
+                    |target| {
+                        Ok(Update::new(
+                            UpdateOp::IncrementPre,
+                            target,
+                            Span::new(position, target_span_end),
+                        )
+                        .into())
+                    },
                 );
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
@@ -117,6 +125,7 @@ where
 
                 let target = UnaryExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
+                let target_span_end = target.span().end();
 
                 // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                 return (as_simple(&target, position, cursor.strict())?).map_or_else(
@@ -126,7 +135,14 @@ where
                             position,
                         )))
                     },
-                    |target| Ok(Update::new(UpdateOp::DecrementPre, target).into()),
+                    |target| {
+                        Ok(Update::new(
+                            UpdateOp::DecrementPre,
+                            target,
+                            Span::new(position, target_span_end),
+                        )
+                        .into())
+                    },
                 );
             }
             _ => {}
@@ -134,6 +150,7 @@ where
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
+        let lhs_span_start = lhs.span().start();
 
         if cursor.peek_is_line_terminator(0, interner)?.unwrap_or(true) {
             return Ok(lhs);
@@ -141,6 +158,7 @@ where
 
         if let Some(tok) = cursor.peek(0, interner)? {
             let token_start = tok.span().start();
+            let token_end = tok.span().end();
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
                     cursor
@@ -155,7 +173,14 @@ where
                                 token_start,
                             )))
                         },
-                        |target| Ok(Update::new(UpdateOp::IncrementPost, target).into()),
+                        |target| {
+                            Ok(Update::new(
+                                UpdateOp::IncrementPost,
+                                target,
+                                Span::new(lhs_span_start, token_end),
+                            )
+                            .into())
+                        },
                     );
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
@@ -171,7 +196,14 @@ where
                                 token_start,
                             )))
                         },
-                        |target| Ok(Update::new(UpdateOp::DecrementPost, target).into()),
+                        |target| {
+                            Ok(Update::new(
+                                UpdateOp::DecrementPost,
+                                target,
+                                Span::new(lhs_span_start, token_end),
+                            )
+                            .into())
+                        },
                     );
                 }
                 _ => {}

@@ -63,10 +63,14 @@ fn non_empty() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Update::new(
-                UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
-            )))
+            Statement::Expression(
+                Update::new(
+                    UpdateOp::IncrementPost,
+                    UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
+                    Span::new((3, 5), (3, 8)),
+                )
+                .into(),
+            )
             .into(),
         ],
         interner,
@@ -118,10 +122,14 @@ fn non_empty() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Update::new(
-                UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a, Span::new((7, 5), (7, 6)))),
-            )))
+            Statement::Expression(
+                Update::new(
+                    UpdateOp::IncrementPost,
+                    UpdateTarget::Identifier(Identifier::new(a, Span::new((7, 5), (7, 6)))),
+                    Span::new((7, 5), (7, 8)),
+                )
+                .into(),
+            )
             .into(),
         ],
         interner,
@@ -158,10 +166,14 @@ fn hoisting() {
                 .unwrap(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Update::new(
-                UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
-            )))
+            Statement::Expression(
+                Update::new(
+                    UpdateOp::IncrementPost,
+                    UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
+                    Span::new((3, 5), (3, 8)),
+                )
+                .into(),
+            )
             .into(),
             Declaration::FunctionDeclaration(FunctionDeclaration::new(
                 Identifier::new(hello, Span::new((5, 14), (5, 19))),
@@ -201,10 +213,14 @@ fn hoisting() {
                 Literal::new(10, Span::new((2, 9), (2, 11))).into(),
             )))
             .into(),
-            Statement::Expression(Expression::from(Update::new(
-                UpdateOp::IncrementPost,
-                UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
-            )))
+            Statement::Expression(
+                Update::new(
+                    UpdateOp::IncrementPost,
+                    UpdateTarget::Identifier(Identifier::new(a, Span::new((3, 5), (3, 6)))),
+                    Span::new((3, 5), (3, 8)),
+                )
+                .into(),
+            )
             .into(),
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(

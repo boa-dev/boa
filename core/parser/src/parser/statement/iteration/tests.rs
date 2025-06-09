@@ -118,6 +118,7 @@ fn check_do_while_semicolon_insertion() {
                             interner.get_or_intern_static("i", utf16!("i")),
                             Span::new((2, 34), (2, 35)),
                         )),
+                        Span::new((2, 34), (2, 37)),
                     )
                     .into(),
                     Literal::new(10, Span::new((2, 40), (2, 42))).into(),
@@ -216,6 +217,7 @@ fn check_do_while_semicolon_insertion_no_space() {
                             interner.get_or_intern_static("i", utf16!("i")),
                             Span::new((2, 34), (2, 35)),
                         )),
+                        Span::new((2, 34), (2, 37)),
                     )
                     .into(),
                     Literal::new(10, Span::new((2, 40), (2, 42))).into(),
