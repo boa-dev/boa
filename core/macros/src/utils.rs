@@ -139,7 +139,7 @@ impl RenameScheme {
         }
     }
 
-    fn camel_case(s: &str) -> String {
+    fn camel_case(s: &str, is_pascal: bool) -> String {
         #[derive(PartialEq)]
         enum State {
             First,
@@ -159,79 +159,11 @@ impl RenameScheme {
             match (&state, is_upper, is_lower) {
                 (State::First, true, false) => {
                     state = State::NextOfUpper;
-                    result.push(ch.to_ascii_lowercase());
-                }
-                (State::First, false, true) => {
-                    state = State::Other;
-                    result.push(ch);
-                }
-                (State::First, false, false) => {}
-                (State::NextOfUpper, true, false) => {
-                    state = State::NextOfContinuedUpper(ch);
-                }
-                (State::NextOfUpper, false, true) => {
-                    state = State::First;
-                    result.push(ch);
-                }
-                (State::NextOfContinuedUpper(last), true, false) => {
-                    result.push(last.to_ascii_lowercase());
-                    state = State::NextOfContinuedUpper(ch);
-                }
-                (State::NextOfContinuedUpper(last), false, true) => {
-                    result.push(last.to_ascii_uppercase());
-                    state = State::First;
-                    result.push(ch);
-                }
-                (State::NextOfContinuedUpper(last), false, false) => {
-                    result.push(last.to_ascii_lowercase());
-                    state = State::NextOfSepMark;
-                }
-                (State::NextOfSepMark, true, false) => {
-                    state = State::NextOfUpper;
-                    result.push(ch);
-                }
-                (State::NextOfSepMark, false, true) | (State::Other, true, false) => {
-                    state = State::NextOfUpper;
-                    result.push(ch.to_ascii_uppercase());
-                }
-                (State::Other, false, true) => {
-                    result.push(ch);
-                }
-                (_, false, false) => {
-                    state = State::NextOfSepMark;
-                }
-                (_, _, _) => {}
-            }
-        }
-
-        if let State::NextOfContinuedUpper(last) = state {
-            result.push(last.to_ascii_lowercase());
-        }
-
-        result
-    }
-
-    fn pascal_case(s: &str) -> String {
-        #[derive(PartialEq)]
-        enum State {
-            First,
-            NextOfUpper,
-            NextOfContinuedUpper(char),
-            NextOfSepMark,
-            Other,
-        }
-
-        let mut result = String::with_capacity(s.len());
-        let mut state = State::First;
-
-        for ch in s.chars() {
-            let is_upper = ch.is_ascii_uppercase();
-            let is_lower = ch.is_ascii_lowercase();
-
-            match (&state, is_upper, is_lower) {
-                (State::First, true, false) => {
-                    state = State::NextOfUpper;
-                    result.push(ch.to_ascii_uppercase());
+                    if is_pascal {
+                        result.push(ch.to_ascii_uppercase());
+                    } else {
+                        result.push(ch.to_ascii_lowercase());
+                    }
                 }
                 (State::First, false, true) => {
                     state = State::Other;
@@ -286,8 +218,8 @@ impl RenameScheme {
     pub(crate) fn rename(self, s: String) -> String {
         match self {
             Self::None => s,
-            Self::CamelCase => Self::camel_case(&s),
-            Self::PascalCase => Self::pascal_case(&s),
+            Self::CamelCase => Self::camel_case(&s, false),
+            Self::PascalCase => Self::camel_case(&s, true),
         }
     }
 }
@@ -306,7 +238,7 @@ mod tests {
     #[test_case("helloWORLD", "helloWorld" ; "camel_case_6")]
     #[test_case("HELLO_WORLD", "helloWorld" ; "camel_case_7")]
     fn camel_case(input: &str, expected: &str) {
-        assert_eq!(RenameScheme::camel_case(input).as_str(), expected);
+        assert_eq!(RenameScheme::camel_case(input, false).as_str(), expected);
     }
 
     #[rustfmt::skip]
@@ -318,6 +250,6 @@ mod tests {
     #[test_case("helloWORLD", "HelloWorld" ; "pascal_case_6")]
     #[test_case("HELLO_WORLD", "HelloWorld" ; "pascal_case_7")]
     fn pascal_case(input: &str, expected: &str) {
-        assert_eq!(RenameScheme::pascal_case(input).as_str(), expected);
+        assert_eq!(RenameScheme::camel_case(input, true).as_str(), expected);
     }
 }

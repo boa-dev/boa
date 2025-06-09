@@ -1,7 +1,7 @@
 //! Test for the class proc-macro.
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{js_string, Context, JsObject, JsString, Module, Source};
+use boa_engine::{js_string, Context, JsString, Module, Source};
 use boa_macros::{boa_class, boa_module, Finalize, JsData, Trace};
 use std::rc::Rc;
 
