@@ -1067,8 +1067,8 @@ fn parse_async_arrow_function_named_of() {
     let interner = &mut Interner::default();
     check_script_parser(
         "async of => {}",
-        vec![
-            Statement::Expression(Expression::from(AsyncArrowFunction::new(
+        vec![Statement::Expression(
+            AsyncArrowFunction::new(
                 None,
                 FormalParameterList::from_parameters(vec![FormalParameter::new(
                     Variable::from_identifier(
@@ -1082,9 +1082,11 @@ fn parse_async_arrow_function_named_of() {
                 )]),
                 FunctionBody::new(StatementList::default(), Span::new((1, 13), (1, 15))),
                 LinearSpan::new(LinearPosition::default(), LinearPosition::default()),
-            )))
+                Span::new((1, 1), (1, 15)),
+            )
             .into(),
-        ],
+        )
+        .into()],
         interner,
     );
 }

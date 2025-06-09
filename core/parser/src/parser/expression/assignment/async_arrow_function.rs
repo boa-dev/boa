@@ -27,7 +27,7 @@ use boa_ast::{
     declaration::Variable,
     function::{FormalParameter, FormalParameterList},
     statement::Return,
-    Punctuator, StatementList,
+    Punctuator, Span, StatementList,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -72,6 +72,7 @@ where
         let async_token =
             cursor.expect((Keyword::Async, false), "async arrow function", interner)?;
         let start_linear_span = async_token.linear_span();
+        let async_token_span = async_token.span();
         cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
 
         let next_token = cursor.peek(0, interner).or_abrupt()?;
@@ -147,10 +148,15 @@ where
         )?;
 
         let linear_pos_end = body.linear_pos_end();
-        let span = start_linear_span.union(linear_pos_end);
+        let linear_span = start_linear_span.union(linear_pos_end);
 
+        let body_span_end = body.span().end();
         Ok(ast::function::AsyncArrowFunction::new(
-            None, params, body, span,
+            None,
+            params,
+            body,
+            linear_span,
+            Span::new(async_token_span.start(), body_span_end),
         ))
     }
 }
