@@ -311,7 +311,7 @@ impl Expression {
             Self::AsyncFunctionExpression(asf) => asf.span(),
             Self::AsyncGeneratorExpression(asgen) => asgen.span(),
             Self::TemplateLiteral(tem) => tem.span(),
-            Self::PropertyAccess(prop) => span,
+            Self::PropertyAccess(prop) => prop.span(),
             Self::New(new) => span,
             Self::Call(call) => call.span(),
             Self::SuperCall(supc) => supc.span(),

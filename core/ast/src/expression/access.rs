@@ -99,6 +99,19 @@ pub enum PropertyAccess {
     Super(SuperPropertyAccess),
 }
 
+impl PropertyAccess {
+    /// Get the [`Span`] of the [`PropertyAccess`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        match self {
+            Self::Simple(access) => access.span(),
+            Self::Private(access) => access.span(),
+            Self::Super(access) => access.span(),
+        }
+    }
+}
+
 impl ToInternedString for PropertyAccess {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
