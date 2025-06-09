@@ -26,7 +26,7 @@ use boa_ast::{
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
     statement::Return,
-    Expression, Punctuator, StatementList,
+    Expression, Punctuator, Span, StatementList,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -79,7 +79,7 @@ where
                 let params_start_position = cursor
                     .expect(Punctuator::OpenParen, "arrow function", interner)?
                     .span()
-                    .end();
+                    .start();
 
                 let params = FormalParameters::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
@@ -155,9 +155,16 @@ where
         )?;
 
         let linear_pos_end = body.linear_pos_end();
-        let span = start_linear_span.union(linear_pos_end);
+        let linear_span = start_linear_span.union(linear_pos_end);
 
-        Ok(ast::function::ArrowFunction::new(None, params, body, span))
+        let body_span_end = body.span().end();
+        Ok(ast::function::ArrowFunction::new(
+            None,
+            params,
+            body,
+            linear_span,
+            Span::new(params_start_position, body_span_end),
+        ))
     }
 }
 

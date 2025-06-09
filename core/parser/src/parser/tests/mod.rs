@@ -626,22 +626,26 @@ fn spread_in_arrow_function() {
     assert_eq!(params.length(), 0);
     check_script_parser(
         s,
-        vec![Statement::Expression(Expression::from(ArrowFunction::new(
-            None,
-            params,
-            FunctionBody::new(
-                StatementList::new(
-                    [
-                        Statement::Expression(Identifier::new(b, Span::new((2, 5), (2, 6))).into())
-                            .into(),
-                    ],
-                    PSEUDO_LINEAR_POS,
-                    false,
+        vec![Statement::Expression(
+            ArrowFunction::new(
+                None,
+                params,
+                FunctionBody::new(
+                    StatementList::new(
+                        [Statement::Expression(
+                            Identifier::new(b, Span::new((2, 5), (2, 6))).into(),
+                        )
+                        .into()],
+                        PSEUDO_LINEAR_POS,
+                        false,
+                    ),
+                    Span::new((1, 11), (3, 2)),
                 ),
-                Span::new((1, 11), (3, 2)),
-            ),
-            EMPTY_LINEAR_SPAN,
-        )))
+                EMPTY_LINEAR_SPAN,
+                Span::new((1, 1), (3, 2)),
+            )
+            .into(),
+        )
         .into()],
         interner,
     );
