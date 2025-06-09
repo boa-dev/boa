@@ -158,7 +158,8 @@ where
                                 .into()
                         }
                         TokenKind::PrivateIdentifier(name) => {
-                            PrivatePropertyAccess::new(lhs, PrivateName::new(*name)).into()
+                            PrivatePropertyAccess::new(lhs, PrivateName::new(*name, token.span()))
+                                .into()
                         }
                         _ => {
                             return Err(Error::expected(

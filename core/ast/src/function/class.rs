@@ -7,7 +7,7 @@ use crate::{
     property::{MethodDefinitionKind, PropertyName},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq,
+    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -850,14 +850,15 @@ impl ToInternedString for ClassElementName {
 pub struct PrivateName {
     /// The `[[Description]]` internal slot of the private name.
     description: Sym,
+    span: Span,
 }
 
 impl PrivateName {
     /// Create a new private name.
     #[inline]
     #[must_use]
-    pub const fn new(description: Sym) -> Self {
-        Self { description }
+    pub const fn new(description: Sym, span: Span) -> Self {
+        Self { description, span }
     }
 
     /// Get the description of the private name.
@@ -865,6 +866,13 @@ impl PrivateName {
     #[must_use]
     pub const fn description(&self) -> Sym {
         self.description
+    }
+
+    /// Get the [`Span`] of the [`PrivateName`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.span
     }
 }
 

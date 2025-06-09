@@ -872,6 +872,7 @@ where
                     }
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
+                        let name_span = token.span();
                         cursor.advance(interner);
                         let strict = cursor.strict();
                         cursor.set_strict(true);
@@ -891,7 +892,7 @@ where
                         }
                         cursor.set_strict(strict);
                         function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
-                            ClassElementName::PrivateName(PrivateName::new(name)),
+                            ClassElementName::PrivateName(PrivateName::new(name, name_span)),
                             params,
                             body,
                             MethodDefinitionKind::Get,
@@ -972,6 +973,7 @@ where
                     }
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
+                        let name_span = token.span();
                         cursor.advance(interner);
                         let strict = cursor.strict();
                         cursor.set_strict(true);
@@ -992,7 +994,7 @@ where
                         }
                         cursor.set_strict(strict);
                         function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
-                            ClassElementName::PrivateName(PrivateName::new(name)),
+                            ClassElementName::PrivateName(PrivateName::new(name, name_span)),
                             params,
                             body,
                             MethodDefinitionKind::Set,
@@ -1067,6 +1069,7 @@ where
             }
             TokenKind::PrivateIdentifier(name) => {
                 let name = *name;
+                let name_span = token.span();
                 cursor.advance(interner);
                 let token = cursor.peek(0, interner).or_abrupt()?;
                 let start = token.span().start();
@@ -1089,7 +1092,10 @@ where
                             function_name,
                             Span::new((1234, 1234), (1234, 1234)),
                         ));
-                        let field = PrivateFieldDefinition::new(PrivateName::new(name), Some(rhs));
+                        let field = PrivateFieldDefinition::new(
+                            PrivateName::new(name, name_span),
+                            Some(rhs),
+                        );
                         if r#static {
                             function::ClassElement::PrivateStaticFieldDefinition(field)
                         } else {
@@ -1114,7 +1120,7 @@ where
                         }
                         cursor.set_strict(strict);
                         function::ClassElement::MethodDefinition(ClassMethodDefinition::new(
-                            ClassElementName::PrivateName(PrivateName::new(name)),
+                            ClassElementName::PrivateName(PrivateName::new(name, name_span)),
                             params,
                             body,
                             MethodDefinitionKind::Ordinary,
@@ -1124,7 +1130,8 @@ where
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
-                        let field = PrivateFieldDefinition::new(PrivateName::new(name), None);
+                        let field =
+                            PrivateFieldDefinition::new(PrivateName::new(name, name_span), None);
                         if r#static {
                             function::ClassElement::PrivateStaticFieldDefinition(field)
                         } else {

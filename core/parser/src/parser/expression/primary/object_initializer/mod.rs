@@ -662,8 +662,11 @@ where
         match token.kind() {
             TokenKind::PrivateIdentifier(ident) => {
                 let ident = *ident;
+                let span = token.span();
                 cursor.advance(interner);
-                Ok(ClassElementNameNode::PrivateName(PrivateName::new(ident)))
+                Ok(ClassElementNameNode::PrivateName(PrivateName::new(
+                    ident, span,
+                )))
             }
             _ => Ok(ClassElementNameNode::PropertyName(
                 PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,

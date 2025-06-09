@@ -90,7 +90,7 @@ where
                 },
                 TokenKind::PrivateIdentifier(name) => {
                     OptionalOperationKind::PrivatePropertyAccess {
-                        field: PrivateName::new(*name),
+                        field: PrivateName::new(*name, token.span()),
                     }
                 }
                 _ => {
