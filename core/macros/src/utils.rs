@@ -139,7 +139,7 @@ impl RenameScheme {
         }
     }
 
-    fn camel_case(s: &str, is_pascal: bool) -> String {
+    fn camel_case(s: &str) -> String {
         #[derive(PartialEq)]
         enum State {
             First,
@@ -159,11 +159,7 @@ impl RenameScheme {
             match (&state, is_upper, is_lower) {
                 (State::First, true, false) => {
                     state = State::NextOfUpper;
-                    if is_pascal {
-                        result.push(ch.to_ascii_uppercase());
-                    } else {
-                        result.push(ch.to_ascii_lowercase());
-                    }
+                    result.push(ch.to_ascii_lowercase());
                 }
                 (State::First, false, true) => {
                     state = State::Other;
@@ -215,11 +211,19 @@ impl RenameScheme {
         result
     }
 
+    fn pascal_case(s: &str) -> String {
+        let mut result = Self::camel_case(s);
+        if let Some(ch) = result.get_mut(..1) {
+            ch.make_ascii_uppercase();
+        }
+        result
+    }
+
     pub(crate) fn rename(self, s: String) -> String {
         match self {
             Self::None => s,
-            Self::CamelCase => Self::camel_case(&s, false),
-            Self::PascalCase => Self::camel_case(&s, true),
+            Self::CamelCase => Self::camel_case(&s),
+            Self::PascalCase => Self::pascal_case(&s),
         }
     }
 }
@@ -238,7 +242,7 @@ mod tests {
     #[test_case("helloWORLD", "helloWorld" ; "camel_case_6")]
     #[test_case("HELLO_WORLD", "helloWorld" ; "camel_case_7")]
     fn camel_case(input: &str, expected: &str) {
-        assert_eq!(RenameScheme::camel_case(input, false).as_str(), expected);
+        assert_eq!(RenameScheme::camel_case(input).as_str(), expected);
     }
 
     #[rustfmt::skip]
@@ -250,6 +254,6 @@ mod tests {
     #[test_case("helloWORLD", "HelloWorld" ; "pascal_case_6")]
     #[test_case("HELLO_WORLD", "HelloWorld" ; "pascal_case_7")]
     fn pascal_case(input: &str, expected: &str) {
-        assert_eq!(RenameScheme::camel_case(input, true).as_str(), expected);
+        assert_eq!(RenameScheme::pascal_case(input).as_str(), expected);
     }
 }
