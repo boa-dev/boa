@@ -158,6 +158,7 @@ where
                 lhs_new_target
             }
             TokenKind::Keyword((Keyword::Super, _)) => {
+                let super_token_span = token.span();
                 cursor.advance(interner);
                 let token = cursor.next(interner).or_abrupt()?;
                 match token.kind() {
@@ -166,18 +167,23 @@ where
                         let field = match token.kind() {
                             TokenKind::IdentifierName((name, _)) => SuperPropertyAccess::new(
                                 Identifier::new(*name, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
                             ),
                             TokenKind::Keyword((kw, _)) => SuperPropertyAccess::new(
                                 Identifier::new(kw.to_sym(), token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
                             ),
                             TokenKind::BooleanLiteral((true, _)) => SuperPropertyAccess::new(
                                 Identifier::new(Sym::TRUE, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
                             ),
                             TokenKind::BooleanLiteral((false, _)) => SuperPropertyAccess::new(
                                 Identifier::new(Sym::FALSE, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
                             ),
                             TokenKind::NullLiteral(_) => SuperPropertyAccess::new(
                                 Identifier::new(Sym::NULL, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
                             ),
                             TokenKind::PrivateIdentifier(_) => {
                                 return Err(Error::general(
@@ -198,9 +204,16 @@ where
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let expr = Expression::new(true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                        cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
+                        let token_span = cursor
+                            .expect(Punctuator::CloseBracket, "super property", interner)?
+                            .span();
+
                         ast::Expression::PropertyAccess(
-                            SuperPropertyAccess::new(expr.into()).into(),
+                            SuperPropertyAccess::new(
+                                expr.into(),
+                                Span::new(super_token_span.start(), token_span.end()),
+                            )
+                            .into(),
                         )
                     }
                     _ => {

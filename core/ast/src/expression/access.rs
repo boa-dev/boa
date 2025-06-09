@@ -318,13 +318,14 @@ impl VisitWith for PrivatePropertyAccess {
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperPropertyAccess {
     field: PropertyAccessField,
+    span: Span,
 }
 
 impl SuperPropertyAccess {
     /// Creates a new property access field node.
     #[must_use]
-    pub const fn new(field: PropertyAccessField) -> Self {
-        Self { field }
+    pub const fn new(field: PropertyAccessField, span: Span) -> Self {
+        Self { field, span }
     }
 
     /// Gets the name of the field to retrieve.
@@ -332,6 +333,13 @@ impl SuperPropertyAccess {
     #[must_use]
     pub const fn field(&self) -> &PropertyAccessField {
         &self.field
+    }
+
+    /// Get the [`Span`] of the [`SuperPropertyAccess`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.span
     }
 }
 
