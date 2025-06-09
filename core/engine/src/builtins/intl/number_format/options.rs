@@ -1,17 +1,56 @@
 use std::fmt;
 
-use fixed_decimal::{FixedDecimal, FloatPrecision, RoundingIncrement as BaseMultiple, SignDisplay};
+use fixed_decimal::{
+    Decimal, FloatPrecision, RoundingIncrement as BaseMultiple, SignDisplay, SignedRoundingMode,
+    UnsignedRoundingMode,
+};
 
 use boa_macros::js_str;
+use icu_decimal::preferences::NumberingSystem;
+use icu_locale::extensions::unicode::Value;
 use tinystr::TinyAsciiStr;
 
 use crate::{
     builtins::{
         intl::options::{default_number_option, get_number_option},
-        options::{get_option, OptionType, ParsableOptionType, RoundingMode},
+        options::{get_option, OptionType, ParsableOptionType},
     },
-    js_string, Context, JsNativeError, JsObject, JsResult, JsStr, JsString,
+    js_string, Context, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
 };
+
+impl OptionType for SignedRoundingMode {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        match value.to_string(context)?.to_std_string_escaped().as_str() {
+            "expand" => Ok(Self::Unsigned(UnsignedRoundingMode::Expand)),
+            "trunc" => Ok(Self::Unsigned(UnsignedRoundingMode::Trunc)),
+            "halfExpand" => Ok(Self::Unsigned(UnsignedRoundingMode::HalfExpand)),
+            "halfTrunc" => Ok(Self::Unsigned(UnsignedRoundingMode::HalfTrunc)),
+            "halfEven" => Ok(Self::Unsigned(UnsignedRoundingMode::HalfEven)),
+            "ceil" => Ok(Self::Ceil),
+            "floor" => Ok(Self::Floor),
+            "halfCeil" => Ok(Self::HalfCeil),
+            "halfFloor" => Ok(Self::HalfFloor),
+            _ => Err(JsNativeError::range()
+                .with_message("provided string was not a valid rounding type")
+                .into()),
+        }
+    }
+}
+
+impl OptionType for NumberingSystem {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let s = value.to_string(context)?.to_std_string_escaped();
+        Value::try_from_str(&s)
+            .ok()
+            .and_then(|v| NumberingSystem::try_from(v).ok())
+            .filter(|nu| nu.as_str().len() >= 3)
+            .ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message(format!("provided numbering system `{s}` is invalid"))
+                    .into()
+            })
+    }
+}
 
 #[derive(Debug, Copy, Clone, Default, Eq, PartialEq)]
 pub(crate) enum Style {
@@ -471,7 +510,7 @@ impl UnitFormatOptions {
 pub(crate) struct DigitFormatOptions {
     pub(crate) minimum_integer_digits: u8,
     pub(crate) rounding_increment: RoundingIncrement,
-    pub(crate) rounding_mode: RoundingMode,
+    pub(crate) rounding_mode: SignedRoundingMode,
     pub(crate) trailing_zero_display: TrailingZeroDisplay,
     pub(crate) rounding_type: RoundingType,
     pub(crate) rounding_priority: RoundingPriority,
@@ -519,8 +558,9 @@ impl DigitFormatOptions {
             })?;
 
         // 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
-        let rounding_mode =
-            get_option(options, js_string!("roundingMode"), context)?.unwrap_or_default();
+        let rounding_mode = get_option(options, js_string!("roundingMode"), context)?.unwrap_or(
+            SignedRoundingMode::Unsigned(UnsignedRoundingMode::HalfExpand),
+        );
 
         // 11. Let trailingZeroDisplay be ? GetOption(options, "trailingZeroDisplay", string, « "auto", "stripIfInteger" », "auto").
         let trailing_zero_display =
@@ -722,32 +762,22 @@ impl DigitFormatOptions {
     /// Formats a `FixedDecimal` with the specified digit format options.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-formatnumberstring
-    pub(crate) fn format_fixed_decimal(&self, number: &mut FixedDecimal) {
+    pub(crate) fn format_fixed_decimal(&self, number: &mut Decimal) {
         fn round(
-            number: &mut FixedDecimal,
+            number: &mut Decimal,
             position: i16,
-            mode: RoundingMode,
+            mode: SignedRoundingMode,
             multiple: BaseMultiple,
         ) {
-            match mode {
-                RoundingMode::Ceil => number.ceil_to_increment(position, multiple),
-                RoundingMode::Floor => number.floor_to_increment(position, multiple),
-                RoundingMode::Expand => number.expand_to_increment(position, multiple),
-                RoundingMode::Trunc => number.trunc_to_increment(position, multiple),
-                RoundingMode::HalfCeil => number.half_ceil_to_increment(position, multiple),
-                RoundingMode::HalfFloor => number.half_floor_to_increment(position, multiple),
-                RoundingMode::HalfExpand => number.half_expand_to_increment(position, multiple),
-                RoundingMode::HalfTrunc => number.half_trunc_to_increment(position, multiple),
-                RoundingMode::HalfEven => number.half_even_to_increment(position, multiple),
-            }
+            number.round_with_mode_and_increment(position, mode, multiple);
         }
 
         // <https://tc39.es/ecma402/#sec-torawprecision>
         fn to_raw_precision(
-            number: &mut FixedDecimal,
+            number: &mut Decimal,
             min_precision: u8,
             max_precision: u8,
-            rounding_mode: RoundingMode,
+            rounding_mode: SignedRoundingMode,
         ) -> i16 {
             let msb = number.nonzero_magnitude_start();
             let min_msb = msb - i16::from(min_precision) + 1;
@@ -760,11 +790,11 @@ impl DigitFormatOptions {
 
         // <https://tc39.es/ecma402/#sec-torawfixed>
         fn to_raw_fixed(
-            number: &mut FixedDecimal,
+            number: &mut Decimal,
             min_fraction: u8,
             max_fraction: u8,
             rounding_increment: RoundingIncrement,
-            rounding_mode: RoundingMode,
+            rounding_mode: SignedRoundingMode,
         ) -> i16 {
             #[cfg(debug_assertions)]
             if rounding_increment.to_u16() != 1 {
@@ -877,7 +907,7 @@ impl DigitFormatOptions {
     /// Converts the input number to a `FixedDecimal` with the specified digit format options.
     ///
     /// [spec]: https://tc39.es/ecma402/#sec-formatnumberstring
-    pub(crate) fn format_f64(&self, number: f64) -> FixedDecimal {
+    pub(crate) fn format_f64(&self, number: f64) -> Decimal {
         // 1. If x is negative-zero, then
         //     a. Let isNegative be true.
         //     b. Set x to 0.
@@ -888,7 +918,7 @@ impl DigitFormatOptions {
         //         i. Set x to -x.
         // We can skip these steps, because `FixedDecimal` already provides support for
         // negative zeroes.
-        let mut number = FixedDecimal::try_from_f64(number, FloatPrecision::Floating)
+        let mut number = Decimal::try_from_f64(number, FloatPrecision::RoundTrip)
             .expect("`number` must be finite");
 
         self.format_fixed_decimal(&mut number);
@@ -1160,7 +1190,7 @@ impl std::str::FromStr for TrailingZeroDisplay {
 impl ParsableOptionType for TrailingZeroDisplay {}
 
 impl OptionType for SignDisplay {
-    fn from_value(value: crate::JsValue, context: &mut Context) -> JsResult<Self> {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
             "auto" => Ok(Self::Auto),
             "never" => Ok(Self::Never),

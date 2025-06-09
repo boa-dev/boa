@@ -1,9 +1,9 @@
 use crate::{builtins::options::get_option, realm::Realm, string::StaticJsStrings};
 use boa_profiler::Profiler;
-use icu_collator::CaseFirst;
-use icu_datetime::options::preferences::HourCycle;
-use icu_locid::{
-    extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
+use icu_locale::{
+    extensions::unicode::Value,
+    extensions_unicode_key as key, extensions_unicode_value as value,
+    preferences::extensions::unicode::keywords::{CollationCaseFirst, HourCycle},
 };
 
 #[cfg(all(test, feature = "intl_bundled"))]
@@ -194,32 +194,7 @@ impl BuiltInConstructor for Locale {
         //     a. Append [[Numeric]] as the last element of internalSlotsList.
 
         // 7. If Type(tag) is not String or Object, throw a TypeError exception.
-        if !(tag.is_object() || tag.is_string()) {
-            return Err(JsNativeError::typ()
-                .with_message("Intl.Locale: `tag` should be a String or Object")
-                .into());
-        }
-
-        // 8. If Type(tag) is Object and tag has an [[InitializedLocale]] internal slot, then
-
-        let mut tag = if let Some(tag) = tag
-            .as_object()
-            .and_then(|obj| obj.borrow().downcast_ref::<icu_locid::Locale>().cloned())
-        {
-            // a. Let tag be tag.[[Locale]].
-            tag
-        }
-        // 9. Else,
-        else {
-            // a. Let tag be ? ToString(tag).
-            tag.to_string(context)?
-                .to_std_string_escaped()
-                .parse()
-                .map_err(|_| {
-                    JsNativeError::range()
-                        .with_message("Intl.Locale: `tag` is not a structurally valid language tag")
-                })?
-        };
+        let mut tag = locale_from_value(tag, context)?;
 
         // 10. Set options to ? CoerceOptionsToObject(options).
         let options = &coerce_options_to_object(options, context)?;
@@ -252,8 +227,8 @@ impl BuiltInConstructor for Locale {
                 .locale_canonicalizer()?
                 .canonicalize(&mut tag);
 
-            // Skipping some boilerplate since this is easier to do using the `Locale` type, but putting the
-            // spec for completion.
+            // Skipping some boilerplate since this is easier to do using the `Locale` type, but leaving the
+            // spec here for completion.
             // 11. Assert: tag matches the unicode_locale_id production.
             // 12. Let languageId be the substring of tag corresponding to the unicode_language_id production.
             // 13. If language is not undefined, then
@@ -261,7 +236,7 @@ impl BuiltInConstructor for Locale {
             // 14. If script is not undefined, then
             //     a. If languageId does not contain a unicode_script_subtag production, then
             //         i. Set languageId to the string-concatenation of the unicode_language_subtag production of languageId, "-", script, and the rest of languageId.
-            //     b. Else,
+            //     b. Else,putting
             //         i. Set languageId to languageId with the substring corresponding to the unicode_script_subtag production replaced by the string script.
             // 15. If region is not undefined, then
             //     a. If languageId does not contain a unicode_region_subtag production, then
@@ -302,32 +277,16 @@ impl BuiltInConstructor for Locale {
 
         // 19. Let hc be ? GetOption(options, "hourCycle", string, « "h11", "h12", "h23", "h24" », undefined).
         // 20. Set opt.[[hc]] to hc.
-        let hc = get_option(options, js_string!("hourCycle"), context)?.map(|hc| match hc {
-            HourCycle::H24 => value!("h24"),
-            HourCycle::H23 => value!("h23"),
-            HourCycle::H12 => value!("h12"),
-            HourCycle::H11 => value!("h11"),
-        });
+        let hc = get_option::<HourCycle>(options, js_string!("hourCycle"), context)?;
 
         // 21. Let kf be ? GetOption(options, "caseFirst", string, « "upper", "lower", "false" », undefined).
         // 22. Set opt.[[kf]] to kf.
-        let kf = get_option(options, js_string!("caseFirst"), context)?.map(|kf| match kf {
-            CaseFirst::UpperFirst => value!("upper"),
-            CaseFirst::LowerFirst => value!("lower"),
-            CaseFirst::Off => value!("false"),
-            _ => unreachable!(),
-        });
+        let kf = get_option::<CollationCaseFirst>(options, js_string!("caseFirst"), context)?;
 
         // 23. Let kn be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 24. If kn is not undefined, set kn to ! ToString(kn).
         // 25. Set opt.[[kn]] to kn.
-        let kn = get_option(options, js_string!("numeric"), context)?.map(|b| {
-            if b {
-                value!("true")
-            } else {
-                value!("false")
-            }
-        });
+        let kn = get_option::<bool>(options, js_string!("numeric"), context)?;
 
         // 26. Let numberingSystem be ? GetOption(options, "numberingSystem", string, empty, undefined).
         // 27. If numberingSystem is not undefined, then
@@ -347,12 +306,12 @@ impl BuiltInConstructor for Locale {
         }
         if let Some(hc) = hc {
             // 33. Set locale.[[HourCycle]] to r.[[hc]].
-            tag.extensions.unicode.keywords.set(key!("hc"), hc);
+            tag.extensions.unicode.keywords.set(key!("hc"), hc.into());
         }
         if let Some(kf) = kf {
             // 34. If relevantExtensionKeys contains "kf", then
             //     a. Set locale.[[CaseFirst]] to r.[[kf]].
-            tag.extensions.unicode.keywords.set(key!("kf"), kf);
+            tag.extensions.unicode.keywords.set(key!("kf"), kf.into());
         }
         if let Some(kn) = kn {
             // 35. If relevantExtensionKeys contains "kn", then
@@ -360,7 +319,10 @@ impl BuiltInConstructor for Locale {
             //         i. Set locale.[[Numeric]] to true.
             //     b. Else,
             //         i. Set locale.[[Numeric]] to false.
-            tag.extensions.unicode.keywords.set(key!("kn"), kn);
+            tag.extensions.unicode.keywords.set(
+                key!("kn"),
+                if kn { value!("true") } else { value!("false") },
+            );
         }
         if let Some(nu) = nu {
             // 36. Set locale.[[NumberingSystem]] to r.[[nu]].
@@ -398,14 +360,12 @@ impl Locale {
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message("`maximize` can only be called on a `Locale` object")
-        })?;
-        let mut loc = loc
-            .downcast_ref::<icu_locid::Locale>()
+        let mut loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ()
-                    .with_message("`maximize` can only be called on a `Locale` object")
+                    .with_message("`Locale.maximize` can only be called on a `Locale` object")
             })?
             .clone();
 
@@ -413,7 +373,7 @@ impl Locale {
         context
             .intl_provider()
             .locale_expander()?
-            .maximize(&mut loc);
+            .maximize(&mut loc.id);
 
         // 4. Return ! Construct(%Locale%, maximal).
         let prototype = context.intrinsics().constructors().locale().prototype();
@@ -437,14 +397,13 @@ impl Locale {
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message("`minimize` can only be called on a `Locale` object")
-        })?;
-        let mut loc = loc
-            .downcast_ref::<icu_locid::Locale>()
+        let mut loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
-                JsNativeError::typ()
-                    .with_message("`minimize` can only be called on a `Locale` object")
+                JsNativeError::typ().with_message(
+                    "`Locale.prototype.minimize` can only be called on a `Locale` object",
+                )
             })?
             .clone();
 
@@ -452,7 +411,7 @@ impl Locale {
         context
             .intl_provider()
             .locale_expander()?
-            .minimize(&mut loc);
+            .minimize(&mut loc.id);
 
         // 4. Return ! Construct(%Locale%, minimal).
         let prototype = context.intrinsics().constructors().locale().prototype();
@@ -467,17 +426,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.toString
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/toString
+    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.toString
+    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/toString
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message("`toString` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ().with_message("`toString` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`Locale.prototype.toString` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Return loc.[[Locale]].
         Ok(js_string!(loc.to_string()).into())
@@ -488,19 +449,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/baseName
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.baseName
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/baseName
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.baseName
     pub(crate) fn base_name(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get baseName` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get baseName` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.baseName` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Let locale be loc.[[Locale]].
         // 4. Return the substring of locale corresponding to the unicode_language_id production.
@@ -512,19 +473,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/calendar
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.calendar
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/calendar
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.calendar
     pub(crate) fn calendar(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get calendar` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get calendar` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.calendar` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Return loc.[[Calendar]].
         Ok(loc
@@ -541,19 +502,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/calendar
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.calendar
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/calendar
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.calendar
     pub(crate) fn case_first(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get caseFirst` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get caseFirst` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.caseFirst` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Return loc.[[CaseFirst]].
         Ok(loc
@@ -570,19 +531,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/collation
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.collation
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/collation
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.collation
     pub(crate) fn collation(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get collation` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get collation` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.collation` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Return loc.[[Collation]].
         Ok(loc
@@ -599,19 +560,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/hourCycle
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.hourCycle
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/hourCycle
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.hourCycle
     pub(crate) fn hour_cycle(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get hourCycle` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get hourCycle` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.hourCycle` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Return loc.[[HourCycle]].
         Ok(loc
@@ -628,19 +589,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.numeric
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.numeric
     pub(crate) fn numeric(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get numeric` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get numeric` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.numeric` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Return loc.[[Numeric]].
         let kn = loc
@@ -648,12 +609,9 @@ impl Locale {
             .unicode
             .keywords
             .get(&key!("kn"))
-            .map(Value::as_tinystr_slice);
-        Ok(JsValue::new(match kn {
-            Some([]) => true,
-            Some([kn]) if kn == "true" => true,
-            _ => false,
-        }))
+            .is_some_and(Value::is_empty);
+
+        Ok(JsValue::from(kn))
     }
 
     /// [`get Intl.Locale.prototype.numberingSystem`][spec].
@@ -661,8 +619,8 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.numeric
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/numeric
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.numeric
     pub(crate) fn numbering_system(
         this: &JsValue,
         _: &[JsValue],
@@ -670,14 +628,14 @@ impl Locale {
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get numberingSystem` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get numberingSystem` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.numberingSystem` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Return loc.[[NumberingSystem]].
         Ok(loc
@@ -694,19 +652,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/language
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.language
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/language
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.language
     pub(crate) fn language(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get language` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get language` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.language` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Let locale be loc.[[Locale]].
         // 4. Assert: locale matches the unicode_locale_id production.
@@ -719,19 +677,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/script
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.script
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/script
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.script
     pub(crate) fn script(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get script` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get script` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.script` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Let locale be loc.[[Locale]].
         // 4. Assert: locale matches the unicode_locale_id production.
@@ -749,19 +707,19 @@ impl Locale {
     /// More information:
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/region
-    /// [mdn]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.region
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/region
+    /// [spec]: https://tc39.es/ecma402/#sec-Intl.Locale.prototype.region
     pub(crate) fn region(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get region` can only be called on a `Locale` object")
-        })?;
-        let loc = loc.downcast_ref::<icu_locid::Locale>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`get region` can only be called on a `Locale` object")
-        })?;
+        let loc = this
+            .as_object()
+            .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`get Locale.prototype.region` can only be called on a `Locale` object",
+                )
+            })?;
 
         // 3. Let locale be loc.[[Locale]].
         // 4. Assert: locale matches the unicode_locale_id production.
