@@ -32,7 +32,7 @@ use boa_ast::{
         StaticBlockBody,
     },
     operations::{contains, contains_arguments, ContainsSymbol},
-    Expression, Keyword, Punctuator, Span,
+    Expression, Keyword, Position, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -100,7 +100,7 @@ where
         };
         cursor.set_strict(strict);
 
-        let (super_ref, constructor, elements) =
+        let (super_ref, constructor, elements, _end) =
             ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         Ok(ClassDeclarationNode::new(
@@ -149,6 +149,7 @@ where
         Option<Expression>,
         Option<FunctionExpression>,
         Vec<function::ClassElement>,
+        Position,
     );
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
@@ -171,19 +172,23 @@ where
         // Temporarily disable strict mode because "strict" may be parsed as a keyword.
         let strict = cursor.strict();
         cursor.set_strict(false);
-        let is_close_block = cursor.peek(0, interner).or_abrupt()?.kind()
-            == &TokenKind::Punctuator(Punctuator::CloseBlock);
+        let token = cursor.peek(0, interner).or_abrupt()?;
+        let token_span_end = token.span().end();
+        let is_close_block = token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock);
         cursor.set_strict(strict);
 
         if is_close_block {
             cursor.advance(interner);
-            Ok((super_ref, None, Vec::new()))
+            Ok((super_ref, None, Vec::new(), token_span_end))
         } else {
             let body_start = cursor.peek(0, interner).or_abrupt()?.span().start();
             let (constructor, elements) =
                 ClassBody::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-            cursor.expect(Punctuator::CloseBlock, "class tail", interner)?;
+            let end = cursor
+                .expect(Punctuator::CloseBlock, "class tail", interner)?
+                .span()
+                .start();
 
             if super_ref.is_none() {
                 if let Some(constructor) = &constructor {
@@ -196,7 +201,7 @@ where
                 }
             }
 
-            Ok((super_ref, constructor, elements))
+            Ok((super_ref, constructor, elements, end))
         }
     }
 }

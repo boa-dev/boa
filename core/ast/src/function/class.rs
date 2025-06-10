@@ -176,6 +176,8 @@ pub struct ClassExpression {
     pub(crate) constructor: Option<FunctionExpression>,
     pub(crate) elements: Box<[ClassElement]>,
 
+    span: Span,
+
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) name_scope: Option<Scope>,
 }
@@ -190,6 +192,7 @@ impl ClassExpression {
         constructor: Option<FunctionExpression>,
         elements: Box<[ClassElement]>,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let name_scope = if has_binding_identifier {
             Some(Scope::default())
@@ -201,6 +204,7 @@ impl ClassExpression {
             super_ref,
             constructor,
             elements,
+            span,
             name_scope,
         }
     }
@@ -238,6 +242,13 @@ impl ClassExpression {
     #[must_use]
     pub const fn name_scope(&self) -> Option<&Scope> {
         self.name_scope.as_ref()
+    }
+
+    /// Get the [`Span`] of the [`ClassExpression`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

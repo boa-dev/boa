@@ -6,7 +6,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{function::ClassExpression as ClassExpressionNode, Keyword};
+use boa_ast::{function::ClassExpression as ClassExpressionNode, Keyword, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -44,6 +44,16 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassExpression", "Parsing");
+
+        let class_span_start = cursor
+            .expect(
+                TokenKind::Keyword((Keyword::Class, false)),
+                "class expression",
+                interner,
+            )?
+            .span()
+            .start();
+
         let strict = cursor.strict();
         cursor.set_strict(true);
 
@@ -59,7 +69,7 @@ where
         };
         cursor.set_strict(strict);
 
-        let (super_ref, constructor, elements) =
+        let (super_ref, constructor, elements, end) =
             ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         Ok(ClassExpressionNode::new(
@@ -68,6 +78,7 @@ where
             constructor,
             elements.into_boxed_slice(),
             name.is_some(),
+            Span::new(class_span_start, end),
         ))
     }
 }

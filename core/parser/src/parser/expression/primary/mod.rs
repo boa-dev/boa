@@ -128,7 +128,6 @@ where
                 }
             }
             TokenKind::Keyword((Keyword::Class, _)) => {
-                cursor.advance(interner);
                 ClassExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
