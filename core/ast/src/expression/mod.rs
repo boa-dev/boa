@@ -316,7 +316,7 @@ impl Expression {
             Self::Call(call) => call.span(),
             Self::SuperCall(supc) => supc.span(),
             Self::ImportCall(impc) => impc.span(),
-            Self::Optional(opt) => span,
+            Self::Optional(opt) => opt.span(),
             Self::NewTarget(new_target) => new_target.span(),
             Self::ImportMeta(import_meta) => import_meta.span(),
             Self::TaggedTemplate(tag) => tag.span(),

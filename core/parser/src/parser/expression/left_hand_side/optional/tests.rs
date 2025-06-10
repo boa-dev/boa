@@ -28,8 +28,10 @@ fn simple() {
                         .into(),
                     },
                     true,
+                    Span::new((1, 4), (1, 8)),
                 )]
                 .into(),
+                Span::new((1, 1), (1, 8)),
             )
             .into(),
         )
@@ -61,6 +63,7 @@ fn complex_chain() {
                             .into(),
                         },
                         true,
+                        Span::new((1, 4), (1, 5)),
                     ),
                     OptionalOperation::new(
                         OptionalOperationKind::Call {
@@ -68,6 +71,7 @@ fn complex_chain() {
                                 .into(),
                         },
                         false,
+                        Span::new((1, 5), (1, 11)),
                     ),
                     OptionalOperation::new(
                         OptionalOperationKind::SimplePropertyAccess {
@@ -80,9 +84,11 @@ fn complex_chain() {
                             )),
                         },
                         true,
+                        Span::new((1, 13), (1, 18)),
                     ),
                 ]
                 .into(),
+                Span::new((1, 1), (1, 18)),
             )
             .into(),
         )
