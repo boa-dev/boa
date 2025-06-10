@@ -320,7 +320,7 @@ impl Expression {
             Self::NewTarget(new_target) => new_target.span(),
             Self::ImportMeta(import_meta) => import_meta.span(),
             Self::TaggedTemplate(tag) => tag.span(),
-            Self::Assign(assign) => span,
+            Self::Assign(assign) => assign.span(),
             Self::Unary(unary) => unary.span(),
             Self::Update(update) => update.span(),
             Self::Binary(bin) => bin.span(),

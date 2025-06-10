@@ -166,7 +166,7 @@ impl ArrayLiteral {
                 _ => return None,
             }
         }
-        Some(ArrayPattern::new(bindings.into()))
+        Some(ArrayPattern::new(bindings.into(), self.span))
     }
 }
 

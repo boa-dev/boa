@@ -225,7 +225,7 @@ impl ObjectLiteral {
             }
         }
 
-        Some(ObjectPattern::new(bindings.into()))
+        Some(ObjectPattern::new(bindings.into(), self.span))
     }
 }
 

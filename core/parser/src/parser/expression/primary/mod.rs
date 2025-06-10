@@ -53,7 +53,7 @@ use boa_ast::{
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
-    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    pattern::{ArrayPattern, ObjectPattern, Pattern},
     Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
@@ -320,8 +320,8 @@ where
         #[derive(Debug)]
         enum InnerExpression {
             Expression(ast::Expression),
-            SpreadObject(Vec<ObjectPatternElement>),
-            SpreadArray(Vec<ArrayPatternElement>),
+            SpreadObject(ObjectPattern),
+            SpreadArray(ArrayPattern),
             SpreadBinding(Identifier),
         }
 
@@ -521,13 +521,13 @@ where
                         span_start,
                     )?;
                 }
-                InnerExpression::SpreadObject(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
+                InnerExpression::SpreadObject(pattern) => {
+                    let declaration = Variable::from_pattern(pattern.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
-                InnerExpression::SpreadArray(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
+                InnerExpression::SpreadArray(pattern) => {
+                    let declaration = Variable::from_pattern(pattern.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
@@ -601,19 +601,13 @@ fn expression_to_formal_parameters(
             AssignTarget::Pattern(pattern) => match pattern {
                 Pattern::Object(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Variable::from_pattern(
-                            pattern.bindings().to_vec().into(),
-                            Some(assign.rhs().clone()),
-                        ),
+                        Variable::from_pattern(pattern.clone().into(), Some(assign.rhs().clone())),
                         false,
                     ));
                 }
                 Pattern::Array(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Variable::from_pattern(
-                            pattern.bindings().to_vec().into(),
-                            Some(assign.rhs().clone()),
-                        ),
+                        Variable::from_pattern(pattern.clone().into(), Some(assign.rhs().clone())),
                         false,
                     ));
                 }

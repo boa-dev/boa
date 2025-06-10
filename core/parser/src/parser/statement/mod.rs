@@ -53,8 +53,8 @@ use ast::{
 };
 use boa_ast::{
     self as ast,
-    pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
-    Keyword, Punctuator,
+    pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement},
+    Keyword, Punctuator, Span,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -486,16 +486,19 @@ impl<R> TokenParser<R> for ObjectBindingPattern
 where
     R: ReadChar,
 {
-    type Output = Vec<ObjectPatternElement>;
+    type Output = ObjectPattern;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ObjectBindingPattern", "Parsing");
 
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::OpenBlock),
-            "object binding pattern",
-            interner,
-        )?;
+        let start = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "object binding pattern",
+                interner,
+            )?
+            .span()
+            .start();
 
         let mut patterns = Vec::new();
 
@@ -505,12 +508,18 @@ where
             let token = cursor.peek(0, interner).or_abrupt()?;
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBlock),
-                        "object binding pattern",
-                        interner,
-                    )?;
-                    return Ok(patterns);
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBlock),
+                            "object binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
+                    return Ok(ObjectPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 TokenKind::Punctuator(Punctuator::Spread) => {
                     cursor.expect(
@@ -520,13 +529,20 @@ where
                     )?;
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBlock),
-                        "object binding pattern",
-                        interner,
-                    )?;
                     patterns.push(ObjectPatternElement::RestProperty { ident });
-                    return Ok(patterns);
+
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBlock),
+                            "object binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
+                    return Ok(ObjectPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 _ => {
                     let is_property_name = match token.kind() {
@@ -601,16 +617,14 @@ where
                                                 .parse(cursor, interner)?;
                                                 patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
-                                                    pattern: ArrayPattern::new(bindings.into())
-                                                        .into(),
+                                                    pattern: bindings.into(),
                                                     default_init: Some(init),
                                                 });
                                             }
                                             _ => {
                                                 patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
-                                                    pattern: ArrayPattern::new(bindings.into())
-                                                        .into(),
+                                                    pattern: bindings.into(),
                                                     default_init: None,
                                                 });
                                             }
@@ -722,16 +736,19 @@ impl<R> TokenParser<R> for ArrayBindingPattern
 where
     R: ReadChar,
 {
-    type Output = Vec<ArrayPatternElement>;
+    type Output = ArrayPattern;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ArrayBindingPattern", "Parsing");
 
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::OpenBracket),
-            "array binding pattern",
-            interner,
-        )?;
+        let start = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenBracket),
+                "array binding pattern",
+                interner,
+            )?
+            .span()
+            .start();
 
         let mut patterns = Vec::new();
         let mut last_elision_or_first = true;
@@ -739,12 +756,18 @@ where
         loop {
             match cursor.peek(0, interner).or_abrupt()?.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBracket) => {
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBracket),
-                        "array binding pattern",
-                        interner,
-                    )?;
-                    return Ok(patterns);
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBracket),
+                            "array binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
+                    return Ok(ArrayPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
                     cursor.expect(
@@ -792,13 +815,19 @@ where
                         }
                     }
 
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBracket),
-                        "array binding pattern",
-                        interner,
-                    )?;
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBracket),
+                            "array binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
 
-                    return Ok(patterns);
+                    return Ok(ArrayPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     last_elision_or_first = false;

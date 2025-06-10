@@ -2,7 +2,7 @@ use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
     declaration::{VarDeclaration, Variable},
     expression::{literal::Literal, Identifier},
-    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
     statement::{Block, Catch, ErrorHandler, Finally, Try},
     Span, Statement, StatementListItem,
 };
@@ -235,25 +235,29 @@ fn check_inline_with_binding_pattern_object() {
             Block::default(),
             ErrorHandler::Catch(Catch::new(
                 Some(
-                    Pattern::from(vec![
-                        ObjectPatternElement::SingleName {
-                            ident: Identifier::new(a, Span::new((1, 17), (1, 18))),
-                            name: Identifier::new(a, Span::new((1, 17), (1, 18))).into(),
-                            default_init: None,
-                        },
-                        ObjectPatternElement::SingleName {
-                            ident: Identifier::new(
-                                interner.get_or_intern_static("c", utf16!("c")),
-                                Span::new((1, 23), (1, 24)),
-                            ),
-                            name: Identifier::new(
-                                interner.get_or_intern_static("b", utf16!("b")),
-                                Span::new((1, 20), (1, 21)),
-                            )
-                            .into(),
-                            default_init: None,
-                        },
-                    ])
+                    Pattern::from(ObjectPattern::new(
+                        vec![
+                            ObjectPatternElement::SingleName {
+                                ident: Identifier::new(a, Span::new((1, 17), (1, 18))),
+                                name: Identifier::new(a, Span::new((1, 17), (1, 18))).into(),
+                                default_init: None,
+                            },
+                            ObjectPatternElement::SingleName {
+                                ident: Identifier::new(
+                                    interner.get_or_intern_static("c", utf16!("c")),
+                                    Span::new((1, 23), (1, 24)),
+                                ),
+                                name: Identifier::new(
+                                    interner.get_or_intern_static("b", utf16!("b")),
+                                    Span::new((1, 20), (1, 21)),
+                                )
+                                .into(),
+                                default_init: None,
+                            },
+                        ]
+                        .into(),
+                        Span::new((1, 15), (1, 26)),
+                    ))
                     .into(),
                 ),
                 Block::default(),
@@ -273,22 +277,26 @@ fn check_inline_with_binding_pattern_array() {
             Block::from((vec![], PSEUDO_LINEAR_POS)),
             ErrorHandler::Catch(Catch::new(
                 Some(
-                    Pattern::from(vec![
-                        ArrayPatternElement::SingleName {
-                            ident: Identifier::new(
-                                interner.get_or_intern_static("a", utf16!("a")),
-                                Span::new((1, 16), (1, 17)),
-                            ),
-                            default_init: None,
-                        },
-                        ArrayPatternElement::SingleName {
-                            ident: Identifier::new(
-                                interner.get_or_intern_static("b", utf16!("b")),
-                                Span::new((1, 19), (1, 20)),
-                            ),
-                            default_init: None,
-                        },
-                    ])
+                    Pattern::from(ArrayPattern::new(
+                        vec![
+                            ArrayPatternElement::SingleName {
+                                ident: Identifier::new(
+                                    interner.get_or_intern_static("a", utf16!("a")),
+                                    Span::new((1, 16), (1, 17)),
+                                ),
+                                default_init: None,
+                            },
+                            ArrayPatternElement::SingleName {
+                                ident: Identifier::new(
+                                    interner.get_or_intern_static("b", utf16!("b")),
+                                    Span::new((1, 19), (1, 20)),
+                                ),
+                                default_init: None,
+                            },
+                        ]
+                        .into(),
+                        Span::new((1, 15), (1, 21)),
+                    ))
                     .into(),
                 ),
                 Block::default(),

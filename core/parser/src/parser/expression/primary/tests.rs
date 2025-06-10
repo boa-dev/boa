@@ -8,7 +8,7 @@ use boa_ast::{
         },
         Identifier, Parenthesized,
     },
-    pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
+    pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement},
     Expression, Span, Statement,
 };
 use boa_interner::{Interner, Sym};
@@ -52,13 +52,20 @@ fn check_destructuring_assignment_object_assignment_operator() {
             Parenthesized::new(
                 Expression::Assign(Assign::new(
                     AssignOp::Assign,
-                    AssignTarget::Pattern(Pattern::Object(ObjectPattern::from(vec![
-                        ObjectPatternElement::SingleName {
-                            name: Identifier::new(a, Span::new((1, 4), (1, 5))).into(),
-                            ident: Identifier::new(a, Span::new((1, 7), (1, 8))),
-                            default_init: Some(Literal::new(0, Span::new((1, 11), (1, 12))).into()),
-                        },
-                    ]))),
+                    AssignTarget::Pattern(
+                        ObjectPattern::new(
+                            vec![ObjectPatternElement::SingleName {
+                                name: Identifier::new(a, Span::new((1, 4), (1, 5))).into(),
+                                ident: Identifier::new(a, Span::new((1, 7), (1, 8))),
+                                default_init: Some(
+                                    Literal::new(0, Span::new((1, 11), (1, 12))).into(),
+                                ),
+                            }]
+                            .into(),
+                            Span::new((1, 2), (1, 14)),
+                        )
+                        .into(),
+                    ),
                     Literal::new(0, Span::new((1, 17), (1, 18))).into(),
                 )),
                 Span::new((1, 1), (1, 19)),
@@ -99,12 +106,19 @@ fn check_destructuring_assignment_array_assignment_operator() {
             Parenthesized::new(
                 Expression::Assign(Assign::new(
                     AssignOp::Assign,
-                    AssignTarget::Pattern(Pattern::Array(ArrayPattern::from(vec![
-                        ArrayPatternElement::SingleName {
-                            ident: Identifier::new(a, Span::new((1, 4), (1, 5))),
-                            default_init: Some(Literal::new(0, Span::new((1, 8), (1, 9))).into()),
-                        },
-                    ]))),
+                    AssignTarget::Pattern(
+                        ArrayPattern::new(
+                            vec![ArrayPatternElement::SingleName {
+                                ident: Identifier::new(a, Span::new((1, 4), (1, 5))),
+                                default_init: Some(
+                                    Literal::new(0, Span::new((1, 8), (1, 9))).into(),
+                                ),
+                            }]
+                            .into(),
+                            Span::new((1, 2), (1, 11)),
+                        )
+                        .into(),
+                    ),
                     ArrayLiteral::new([], false, Span::new((1, 14), (1, 16))).into(),
                 )),
                 Span::new((1, 1), (1, 17)),
