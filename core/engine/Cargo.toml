@@ -12,6 +12,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
+legacy-jsvalue = []
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
 either = ["dep:either"]
