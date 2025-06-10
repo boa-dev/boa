@@ -163,19 +163,18 @@ pub struct GeneratorExpression {
 }
 
 impl GeneratorExpression {
-    /// Creates a new generator expression.
-    #[inline]
+    /// Creates a new boxed generator expression.
     #[must_use]
-    pub fn new(
+    pub fn new_boxed(
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
-    ) -> Self {
+    ) -> Box<Self> {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
-        Self {
+        Box::new(Self {
             name,
             parameters,
             body,
@@ -184,7 +183,7 @@ impl GeneratorExpression {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
-        }
+        })
     }
 
     /// Gets the name of the generator expression.
@@ -263,9 +262,9 @@ impl ToIndentedString for GeneratorExpression {
     }
 }
 
-impl From<GeneratorExpression> for Expression {
+impl From<Box<GeneratorExpression>> for Expression {
     #[inline]
-    fn from(expr: GeneratorExpression) -> Self {
+    fn from(expr: Box<GeneratorExpression>) -> Self {
         Self::GeneratorExpression(expr)
     }
 }

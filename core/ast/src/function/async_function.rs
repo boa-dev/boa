@@ -166,18 +166,17 @@ pub struct AsyncFunctionExpression {
 
 impl AsyncFunctionExpression {
     /// Creates a new async function expression.
-    #[inline]
     #[must_use]
-    pub fn new(
+    pub fn new_boxed(
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
-    ) -> Self {
+    ) -> Box<Self> {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
-        Self {
+        Box::new(Self {
             name,
             parameters,
             body,
@@ -186,7 +185,7 @@ impl AsyncFunctionExpression {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
-        }
+        })
     }
 
     /// Gets the name of the async function expression.
@@ -269,9 +268,9 @@ impl ToIndentedString for AsyncFunctionExpression {
     }
 }
 
-impl From<AsyncFunctionExpression> for Expression {
+impl From<Box<AsyncFunctionExpression>> for Expression {
     #[inline]
-    fn from(expr: AsyncFunctionExpression) -> Self {
+    fn from(expr: Box<AsyncFunctionExpression>) -> Self {
         Self::AsyncFunctionExpression(expr)
     }
 }

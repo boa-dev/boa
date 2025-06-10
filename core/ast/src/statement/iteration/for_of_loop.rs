@@ -25,7 +25,7 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForOfLoop {
     pub(crate) init: IterableLoopInitializer,
-    pub(crate) iterable: Expression,
+    pub(crate) iterable: Box<Expression>,
     pub(crate) body: Box<Statement>,
     r#await: bool,
     pub(crate) iterable_contains_direct_eval: bool,
@@ -44,11 +44,11 @@ impl ForOfLoop {
     #[must_use]
     pub fn new(
         init: IterableLoopInitializer,
-        iterable: Expression,
+        iterable: Box<Expression>,
         body: Statement,
         r#await: bool,
     ) -> Self {
-        let iterable_contains_direct_eval = contains(&iterable, ContainsSymbol::DirectEval);
+        let iterable_contains_direct_eval = contains(iterable.as_ref(), ContainsSymbol::DirectEval);
         let contains_direct_eval = contains(&init, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {

@@ -38,6 +38,13 @@ impl Call {
         }
     }
 
+    /// Creates a new `Call` AST Expression from boxed function.
+    #[inline]
+    #[must_use]
+    pub fn new_boxed(function: Box<Expression>, args: Box<[Expression]>) -> Self {
+        Self { function, args }
+    }
+
     /// Gets the target function of this call expression.
     #[inline]
     #[must_use]
@@ -68,6 +75,12 @@ impl From<Call> for Expression {
     #[inline]
     fn from(call: Call) -> Self {
         Self::Call(call)
+    }
+}
+
+impl From<Call> for Box<Expression> {
+    fn from(call: Call) -> Self {
+        Box::new(Expression::Call(call))
     }
 }
 
@@ -140,6 +153,12 @@ impl From<SuperCall> for Expression {
     }
 }
 
+impl From<SuperCall> for Box<Expression> {
+    fn from(call: SuperCall) -> Self {
+        Box::new(Expression::SuperCall(call))
+    }
+}
+
 impl VisitWith for SuperCall {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
@@ -181,13 +200,9 @@ pub struct ImportCall {
 
 impl ImportCall {
     /// Creates a new `ImportCall` AST node.
-    pub fn new<A>(arg: A) -> Self
-    where
-        A: Into<Expression>,
-    {
-        Self {
-            arg: Box::new(arg.into()),
-        }
+    #[must_use]
+    pub fn new(arg: Box<Expression>) -> Self {
+        Self { arg }
     }
 
     /// Retrieves the single argument of the import call.
@@ -208,6 +223,12 @@ impl From<ImportCall> for Expression {
     #[inline]
     fn from(call: ImportCall) -> Self {
         Self::ImportCall(call)
+    }
+}
+
+impl From<ImportCall> for Box<Expression> {
+    fn from(call: ImportCall) -> Self {
+        Box::new(Expression::ImportCall(call))
     }
 }
 

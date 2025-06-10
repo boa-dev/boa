@@ -35,24 +35,23 @@ pub struct AsyncArrowFunction {
 
 impl AsyncArrowFunction {
     /// Creates a new `AsyncArrowFunction` AST Expression.
-    #[inline]
     #[must_use]
-    pub fn new(
+    pub fn new_boxed(
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
         linear_span: LinearSpan,
-    ) -> Self {
+    ) -> Box<Self> {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
-        Self {
+        Box::new(Self {
             name,
             parameters,
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
-        }
+        })
     }
 
     /// Gets the name of the async arrow function.
@@ -121,8 +120,8 @@ impl ToIndentedString for AsyncArrowFunction {
     }
 }
 
-impl From<AsyncArrowFunction> for Expression {
-    fn from(decl: AsyncArrowFunction) -> Self {
+impl From<Box<AsyncArrowFunction>> for Expression {
+    fn from(decl: Box<AsyncArrowFunction>) -> Self {
         Self::AsyncArrowFunction(decl)
     }
 }

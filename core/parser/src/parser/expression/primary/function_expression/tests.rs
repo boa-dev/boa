@@ -25,7 +25,7 @@ fn check_function_expression() {
             vec![Variable::from_identifier(
                 add.into(),
                 Some(
-                    FunctionExpression::new(
+                    FunctionExpression::new_boxed(
                         Some(add.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -65,7 +65,7 @@ fn check_nested_function_expression() {
             vec![Variable::from_identifier(
                 a.into(),
                 Some(
-                    FunctionExpression::new(
+                    FunctionExpression::new_boxed(
                         Some(a.into()),
                         FormalParameterList::default(),
                         FunctionBody::new(
@@ -73,7 +73,7 @@ fn check_nested_function_expression() {
                                 vec![Variable::from_identifier(
                                     b.into(),
                                     Some(
-                                        FunctionExpression::new(
+                                        FunctionExpression::new_boxed(
                                             Some(b.into()),
                                             FormalParameterList::default(),
                                             FunctionBody::new(
@@ -118,7 +118,7 @@ fn check_function_non_reserved_keyword() {
                 vec![Variable::from_identifier(
                     $interner.get_or_intern_static("add", utf16!("add")).into(),
                     Some(
-                        FunctionExpression::new(
+                        FunctionExpression::new_boxed(
                             Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
                             FormalParameterList::default(),
                             FunctionBody::new(

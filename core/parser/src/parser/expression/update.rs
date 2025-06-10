@@ -86,55 +86,95 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("UpdateExpression", "Parsing");
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
         let position = tok.span().start();
         match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
-                cursor
-                    .next(interner)?
-                    .expect("Punctuator::Inc token disappeared");
-
-                let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-
-                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                return (as_simple(&target, position, cursor.strict())?).map_or_else(
-                    || {
-                        Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            position,
-                        )))
-                    },
-                    |target| Ok(Update::new(UpdateOp::IncrementPre, target).into()),
-                );
+                return self.parse_initial_inc_dec_token(
+                    cursor,
+                    interner,
+                    position,
+                    UpdateOp::IncrementPre,
+                )
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
-                cursor
-                    .next(interner)?
-                    .expect("Punctuator::Dec token disappeared");
-
-                let target = UnaryExpression::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-
-                // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                return (as_simple(&target, position, cursor.strict())?).map_or_else(
-                    || {
-                        Err(Error::lex(LexError::Syntax(
-                            "Invalid left-hand side in assignment".into(),
-                            position,
-                        )))
-                    },
-                    |target| Ok(Update::new(UpdateOp::DecrementPre, target).into()),
-                );
+                return self.parse_initial_inc_dec_token(
+                    cursor,
+                    interner,
+                    position,
+                    UpdateOp::DecrementPre,
+                )
             }
             _ => {}
         }
 
         let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+            .parse_boxed(cursor, interner)?;
 
+        Self::parse_tail(cursor, interner, position, lhs)
+    }
+}
+
+#[allow(clippy::expect_fun_call)]
+impl UpdateExpression {
+    fn update_expr_ctor(
+        expr: &Expression,
+        pos: Position,
+        err_pos: Position,
+        op: UpdateOp,
+        strict: bool,
+    ) -> ParseResult<Box<Expression>> {
+        as_simple(expr, pos, strict)?.map_or_else(
+            || {
+                Err(Error::lex(LexError::Syntax(
+                    "Invalid left-hand side in assignment".into(),
+                    err_pos,
+                )))
+            },
+            |target| Ok(Box::new(Update::new(op, target).into())),
+        )
+    }
+
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_initial_inc_dec_token<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        position: Position,
+        op: UpdateOp,
+    ) -> ParseResult<Box<Expression>> {
+        cursor.next(interner)?.expect(disappeared_err(op.is_inc()));
+
+        let target = UnaryExpression::new(self.allow_yield, self.allow_await)
+            .parse_boxed(cursor, interner)?;
+
+        // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
+        Self::update_expr_ctor(&target, position, position, op, cursor.strict())
+    }
+
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse_boxed`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_tail<R: ReadChar>(
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        position: Position,
+        lhs: Box<Expression>,
+    ) -> ParseResult<Box<Expression>> {
         if cursor.peek_is_line_terminator(0, interner)?.unwrap_or(true) {
             return Ok(lhs);
         }
@@ -143,35 +183,27 @@ where
             let token_start = tok.span().start();
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {
-                    cursor
-                        .next(interner)?
-                        .expect("Punctuator::Inc token disappeared");
+                    cursor.next(interner)?.expect(disappeared_err(true));
 
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    return (as_simple(&lhs, position, cursor.strict())?).map_or_else(
-                        || {
-                            Err(Error::lex(LexError::Syntax(
-                                "Invalid left-hand side in assignment".into(),
-                                token_start,
-                            )))
-                        },
-                        |target| Ok(Update::new(UpdateOp::IncrementPost, target).into()),
+                    return Self::update_expr_ctor(
+                        &lhs,
+                        position,
+                        token_start,
+                        UpdateOp::IncrementPost,
+                        cursor.strict(),
                     );
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
-                    cursor
-                        .next(interner)?
-                        .expect("Punctuator::Dec token disappeared");
+                    cursor.next(interner)?.expect(disappeared_err(false));
 
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
-                    return (as_simple(&lhs, position, cursor.strict())?).map_or_else(
-                        || {
-                            Err(Error::lex(LexError::Syntax(
-                                "Invalid left-hand side in assignment".into(),
-                                token_start,
-                            )))
-                        },
-                        |target| Ok(Update::new(UpdateOp::DecrementPost, target).into()),
+                    return Self::update_expr_ctor(
+                        &lhs,
+                        position,
+                        token_start,
+                        UpdateOp::DecrementPost,
+                        cursor.strict(),
                     );
                 }
                 _ => {}
@@ -179,5 +211,13 @@ where
         }
 
         Ok(lhs)
+    }
+}
+
+const fn disappeared_err(is_inc: bool) -> &'static str {
+    if is_inc {
+        "Punctuator::Inc token disappeared"
+    } else {
+        "Punctuator::Dec token disappeared"
     }
 }

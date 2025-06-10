@@ -16,12 +16,12 @@ fn context() {
     assert_eq!(result.context(), Some("after"));
 
     let error = result.unwrap_err();
-    if let Error::Expected {
+    if let ErrorInner::Expected {
         expected,
         found,
         span,
         context,
-    } = error
+    } = error.into()
     {
         assert_eq!(expected.as_ref(), &["testing".to_owned()]);
         assert_eq!(found, "nottesting".into());
@@ -31,7 +31,7 @@ fn context() {
         unreachable!();
     }
 
-    let err = Error::AbruptEnd;
+    let err = Error::abrupt_end();
     assert!(err.context().is_none());
     let err = err.set_context("ignored");
     assert!(err.context().is_none());
@@ -40,20 +40,20 @@ fn context() {
 #[test]
 fn from_lex_error() {
     let lex_err = LexError::syntax("testing", Position::new(1, 1));
-    let parse_err: Error = lex_err.into();
+    let parse_err: ErrorInner = lex_err.into();
 
-    assert!(matches!(parse_err, Error::Lex { .. }));
+    assert!(matches!(parse_err, ErrorInner::Lex { .. }));
 
     let lex_err = LexError::syntax("testing", Position::new(1, 1));
-    let parse_err = Error::lex(lex_err);
+    let parse_err = ErrorInner::lex(lex_err);
 
-    assert!(matches!(parse_err, Error::Lex { .. }));
+    assert!(matches!(parse_err, ErrorInner::Lex { .. }));
 }
 
 #[test]
 fn misplaced_function_declaration() {
     let err = Error::misplaced_function_declaration(Position::new(1, 1), false);
-    if let Error::General { message, position } = err {
+    if let ErrorInner::General { message, position } = err.into() {
         assert_eq!(
             message.as_ref(),
             "functions can only be declared at the top level or inside a block."
@@ -64,7 +64,7 @@ fn misplaced_function_declaration() {
     }
 
     let err = Error::misplaced_function_declaration(Position::new(1, 1), true);
-    if let Error::General { message, position } = err {
+    if let ErrorInner::General { message, position } = err.into() {
         assert_eq!(
             message.as_ref(),
             "in strict mode code, functions can only be declared at the top level or inside a block."
@@ -78,7 +78,7 @@ fn misplaced_function_declaration() {
 #[test]
 fn wrong_labelled_function_declaration() {
     let err = Error::wrong_labelled_function_declaration(Position::new(1, 1));
-    if let Error::General { message, position } = err {
+    if let ErrorInner::General { message, position } = err.into() {
         assert_eq!(
             message.as_ref(),
             "labelled functions can only be declared at the top level or inside a block"
@@ -156,7 +156,7 @@ fn display() {
         "this is a general error message at line 1, col 1"
     );
 
-    let err = Error::AbruptEnd;
+    let err = Error::abrupt_end();
     assert_eq!(err.to_string(), "abrupt end");
 
     let lex_err = LexError::syntax("testing", Position::new(1, 1));

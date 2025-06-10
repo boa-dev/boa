@@ -93,7 +93,7 @@ pub(super) enum TestFlag {
 }
 
 /// Reads the Test262 defined bindings.
-pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
+pub(super) fn read_harness(test262_path: &Path) -> Result<Box<Harness>> {
     let mut includes: HashMap<Box<str>, HarnessFile, FxBuildHasher> = FxHashMap::default();
 
     let harness_path = &test262_path.join("harness");
@@ -110,12 +110,12 @@ pub(super) fn read_harness(test262_path: &Path) -> Result<Harness> {
         .remove("doneprintHandle.js")
         .ok_or_eyre("failed to load harness file `donePrintHandle.js`")?;
 
-    Ok(Harness {
+    Ok(Box::new(Harness {
         assert,
         sta,
         doneprint_handle,
         includes,
-    })
+    }))
 }
 
 fn read_harness_dir(
@@ -215,7 +215,7 @@ pub(super) fn read_suite(
         {
             test.set_ignored();
         }
-        tests.push(test);
+        tests.push(*test);
     }
 
     Ok(TestSuite {
@@ -227,7 +227,7 @@ pub(super) fn read_suite(
 }
 
 /// Reads information about a given test case.
-pub(super) fn read_test(path: &Path) -> Result<Test> {
+pub(super) fn read_test(path: &Path) -> Result<Box<Test>> {
     let name = path
         .file_stem()
         .and_then(OsStr::to_str)

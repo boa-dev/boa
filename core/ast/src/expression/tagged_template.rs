@@ -27,14 +27,14 @@ impl TaggedTemplate {
     #[inline]
     #[must_use]
     pub fn new(
-        tag: Expression,
+        tag: Box<Expression>,
         raws: Box<[Sym]>,
         cookeds: Box<[Option<Sym>]>,
         exprs: Box<[Expression]>,
         identifier: u64,
     ) -> Self {
         Self {
-            tag: tag.into(),
+            tag,
             raws,
             cookeds,
             exprs,
@@ -100,6 +100,12 @@ impl From<TaggedTemplate> for Expression {
     #[inline]
     fn from(template: TaggedTemplate) -> Self {
         Self::TaggedTemplate(template)
+    }
+}
+
+impl From<Box<TaggedTemplate>> for Box<Expression> {
+    fn from(boxed_template: Box<TaggedTemplate>) -> Self {
+        Box::new(Expression::TaggedTemplate(*boxed_template))
     }
 }
 

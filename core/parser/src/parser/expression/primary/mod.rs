@@ -118,11 +118,11 @@ where
                 let next_token = cursor.peek(1, interner).or_abrupt()?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new()
-                        .parse(cursor, interner)
+                        .parse_boxed(cursor, interner)
                         .map(Into::into)
                 } else {
                     FunctionExpression::new()
-                        .parse(cursor, interner)
+                        .parse_boxed(cursor, interner)
                         .map(Into::into)
                 }
             }
@@ -154,11 +154,11 @@ where
                         match cursor.peek(2, interner)?.map(Token::kind) {
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
                                 AsyncGeneratorExpression::new()
-                                    .parse(cursor, interner)
+                                    .parse_boxed(cursor, interner)
                                     .map(Into::into)
                             }
                             _ => AsyncFunctionExpression::new()
-                                .parse(cursor, interner)
+                                .parse_boxed(cursor, interner)
                                 .map(Into::into),
                         }
                     }
@@ -313,6 +313,22 @@ impl CoverParenthesizedExpressionAndArrowParameterList {
     }
 }
 
+#[derive(Debug)]
+enum InnerExpression {
+    Expression(Box<ast::Expression>),
+    SpreadObject(Vec<ObjectPatternElement>),
+    SpreadArray(Vec<ArrayPatternElement>),
+    SpreadBinding(Identifier),
+}
+impl InnerExpression {
+    #[allow(clippy::unnecessary_wraps)]
+    fn parenthesized(expression: &ast::Expression) -> ParseResult<ast::Expression> {
+        Ok(ast::Expression::Parenthesized(Parenthesized::new(
+            expression.clone(),
+        )))
+    }
+}
+
 impl<R> TokenParser<R> for CoverParenthesizedExpressionAndArrowParameterList
 where
     R: ReadChar,
@@ -320,14 +336,6 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        #[derive(Debug)]
-        enum InnerExpression {
-            Expression(ast::Expression),
-            SpreadObject(Vec<ObjectPatternElement>),
-            SpreadArray(Vec<ArrayPatternElement>),
-            SpreadBinding(Identifier),
-        }
-
         let _timer = Profiler::global().start_event(
             "CoverParenthesizedExpressionAndArrowParameterList",
             "Parsing",
@@ -338,8 +346,88 @@ where
         let mut expressions = Vec::new();
         let mut tailing_comma = None;
 
+        let span = if let Some(span) =
+            self.parse_special_initial_expr(cursor, interner, &mut expressions)?
+        {
+            span
+        } else {
+            let expression = Expression::new(true, self.allow_yield, self.allow_await)
+                .parse_boxed(cursor, interner)?;
+            expressions.push(InnerExpression::Expression(expression));
+
+            self.parse_non_special_expr_tail(
+                cursor,
+                interner,
+                &mut expressions,
+                &mut tailing_comma,
+            )?
+        };
+
+        let is_arrow = if cursor.peek(0, interner)?.map(Token::kind)
+            == Some(&TokenKind::Punctuator(Punctuator::Arrow))
+        {
+            !cursor.peek_is_line_terminator(0, interner).or_abrupt()?
+        } else {
+            false
+        };
+
+        // If the next token is not an arrow, we know that we must parse a parenthesized expression.
+        if !is_arrow {
+            if let Some(span) = tailing_comma {
+                return Err(Error::unexpected(
+                    Punctuator::Comma,
+                    span,
+                    "trailing comma in parenthesized expression",
+                ));
+            }
+            if expressions.is_empty() {
+                return Err(Error::unexpected(
+                    Punctuator::CloseParen,
+                    span,
+                    "empty parenthesized expression",
+                ));
+            }
+            if expressions.len() != 1 {
+                return Err(Error::unexpected(
+                    Punctuator::CloseParen,
+                    span,
+                    "multiple expressions in parenthesized expression",
+                ));
+            }
+            if let InnerExpression::Expression(expression) = &expressions[0] {
+                return InnerExpression::parenthesized(expression);
+            }
+            return Err(Error::unexpected(
+                Punctuator::CloseParen,
+                span,
+                "parenthesized expression with spread expressions",
+            ));
+        }
+
+        // We know that we must parse an arrow function.
+        // We parse the expressions in to a parameter list.
+        formal_parameter_list_ctor(expressions, start_span, tailing_comma, cursor.strict())
+    }
+}
+
+impl CoverParenthesizedExpressionAndArrowParameterList {
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse`,
+    /// and an often called function in recursion stays outside of this function.
+    ///
+    /// # Return
+    /// * `Err(_)` if error occurs;
+    /// * `Ok(Some(_))` if next expr is `TokenKind::Punctuator(CloseParen) || TokenKind::Punctuator(Spread)`;
+    /// * `Ok(None)` otherwise;
+    fn parse_special_initial_expr<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        expressions: &mut Vec<InnerExpression>,
+    ) -> ParseResult<Option<Span>> {
         let next = cursor.peek(0, interner).or_abrupt()?;
-        let span = match next.kind() {
+        Ok(Some(match next.kind() {
             TokenKind::Punctuator(Punctuator::CloseParen) => {
                 let span = next.span();
                 cursor.advance(interner);
@@ -375,79 +463,73 @@ where
                     )?
                     .span()
             }
-            _ => {
-                let expression = Expression::new(true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-                expressions.push(InnerExpression::Expression(expression));
+            _ => return Ok(None),
+        }))
+    }
 
+    /// This function was added to optimize the stack size.
+    /// It has an stack size optimization impact only for `profile.#.opt-level = 0`.
+    /// It allow to reduce stack size allocation in `parse`,
+    /// and an often called function in recursion stays outside of this function.
+    fn parse_non_special_expr_tail<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+        expressions: &mut Vec<InnerExpression>,
+        tailing_comma: &mut Option<Span>,
+    ) -> ParseResult<Span> {
+        let next = cursor.peek(0, interner).or_abrupt()?;
+        Ok(match next.kind() {
+            TokenKind::Punctuator(Punctuator::CloseParen) => {
+                let span = next.span();
+                cursor.advance(interner);
+                span
+            }
+            TokenKind::Punctuator(Punctuator::Comma) => {
+                cursor.advance(interner);
                 let next = cursor.peek(0, interner).or_abrupt()?;
                 match next.kind() {
                     TokenKind::Punctuator(Punctuator::CloseParen) => {
                         let span = next.span();
+                        *tailing_comma = Some(next.span());
                         cursor.advance(interner);
                         span
                     }
-                    TokenKind::Punctuator(Punctuator::Comma) => {
+                    TokenKind::Punctuator(Punctuator::Spread) => {
                         cursor.advance(interner);
                         let next = cursor.peek(0, interner).or_abrupt()?;
                         match next.kind() {
-                            TokenKind::Punctuator(Punctuator::CloseParen) => {
-                                let span = next.span();
-                                tailing_comma = Some(next.span());
-                                cursor.advance(interner);
-                                span
+                            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                                let bindings =
+                                    ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                                        .parse(cursor, interner)?;
+                                expressions.push(InnerExpression::SpreadObject(bindings));
                             }
-                            TokenKind::Punctuator(Punctuator::Spread) => {
-                                cursor.advance(interner);
-                                let next = cursor.peek(0, interner).or_abrupt()?;
-                                match next.kind() {
-                                    TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                                        let bindings = ObjectBindingPattern::new(
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
+                            TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                                let bindings =
+                                    ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                                         .parse(cursor, interner)?;
-                                        expressions.push(InnerExpression::SpreadObject(bindings));
-                                    }
-                                    TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                                        let bindings = ArrayBindingPattern::new(
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor, interner)?;
-                                        expressions.push(InnerExpression::SpreadArray(bindings));
-                                    }
-                                    _ => {
-                                        let binding = BindingIdentifier::new(
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor, interner)?;
-                                        expressions.push(InnerExpression::SpreadBinding(binding));
-                                    }
-                                }
-
-                                cursor
-                                    .expect(
-                                        Punctuator::CloseParen,
-                                        "CoverParenthesizedExpressionAndArrowParameterList",
-                                        interner,
-                                    )?
-                                    .span()
+                                expressions.push(InnerExpression::SpreadArray(bindings));
                             }
                             _ => {
-                                return Err(Error::expected(
-                                    vec![")".to_owned(), "...".to_owned()],
-                                    next.kind().to_string(interner),
-                                    next.span(),
-                                    "CoverParenthesizedExpressionAndArrowParameterList",
-                                ))
+                                let binding =
+                                    BindingIdentifier::new(self.allow_yield, self.allow_await)
+                                        .parse(cursor, interner)?;
+                                expressions.push(InnerExpression::SpreadBinding(binding));
                             }
                         }
+
+                        cursor
+                            .expect(
+                                Punctuator::CloseParen,
+                                "CoverParenthesizedExpressionAndArrowParameterList",
+                                interner,
+                            )?
+                            .span()
                     }
                     _ => {
                         return Err(Error::expected(
-                            vec![")".to_owned(), ",".to_owned()],
+                            vec![")".to_owned(), "...".to_owned()],
                             next.kind().to_string(interner),
                             next.span(),
                             "CoverParenthesizedExpressionAndArrowParameterList",
@@ -455,104 +537,68 @@ where
                     }
                 }
             }
-        };
-
-        let is_arrow = if cursor.peek(0, interner)?.map(Token::kind)
-            == Some(&TokenKind::Punctuator(Punctuator::Arrow))
-        {
-            !cursor.peek_is_line_terminator(0, interner).or_abrupt()?
-        } else {
-            false
-        };
-
-        // If the next token is not an arrow, we know that we must parse a parenthesized expression.
-        if !is_arrow {
-            if let Some(span) = tailing_comma {
-                return Err(Error::unexpected(
-                    Punctuator::Comma,
-                    span,
-                    "trailing comma in parenthesized expression",
-                ));
+            _ => {
+                return Err(Error::expected(
+                    vec![")".to_owned(), ",".to_owned()],
+                    next.kind().to_string(interner),
+                    next.span(),
+                    "CoverParenthesizedExpressionAndArrowParameterList",
+                ))
             }
-            if expressions.is_empty() {
-                return Err(Error::unexpected(
-                    Punctuator::CloseParen,
-                    span,
-                    "empty parenthesized expression",
-                ));
-            }
-            if expressions.len() != 1 {
-                return Err(Error::unexpected(
-                    Punctuator::CloseParen,
-                    span,
-                    "multiple expressions in parenthesized expression",
-                ));
-            }
-            if let InnerExpression::Expression(expression) = &expressions[0] {
-                return Ok(ast::Expression::Parenthesized(Parenthesized::new(
-                    expression.clone(),
-                )));
-            }
-            return Err(Error::unexpected(
-                Punctuator::CloseParen,
-                span,
-                "parenthesized expression with spread expressions",
-            ));
-        }
-
-        // We know that we must parse an arrow function.
-        // We parse the expressions in to a parameter list.
-
-        let mut parameters = Vec::new();
-
-        for expression in expressions {
-            match expression {
-                InnerExpression::Expression(node) => {
-                    expression_to_formal_parameters(
-                        &node,
-                        &mut parameters,
-                        cursor.strict(),
-                        start_span,
-                    )?;
-                }
-                InnerExpression::SpreadObject(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
-                    let parameter = FormalParameter::new(declaration, true);
-                    parameters.push(parameter);
-                }
-                InnerExpression::SpreadArray(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
-                    let parameter = FormalParameter::new(declaration, true);
-                    parameters.push(parameter);
-                }
-                InnerExpression::SpreadBinding(ident) => {
-                    let declaration = Variable::from_identifier(ident, None);
-                    let parameter = FormalParameter::new(declaration, true);
-                    parameters.push(parameter);
-                }
-            }
-        }
-
-        let parameters = FormalParameterList::from(parameters);
-
-        if let Some(span) = tailing_comma {
-            if parameters.has_rest_parameter() {
-                return Err(Error::general(
-                    "rest parameter must be last formal parameter",
-                    span.start(),
-                ));
-            }
-        }
-
-        if contains(&parameters, ContainsSymbol::YieldExpression) {
-            return Err(Error::general(
-                "yield expression is not allowed in formal parameter list of arrow function",
-                start_span.start(),
-            ));
-        }
-
-        Ok(ast::Expression::FormalParameterList(parameters))
+        })
     }
+}
+
+fn formal_parameter_list_ctor(
+    expressions: Vec<InnerExpression>,
+    start_span: Span,
+    tailing_comma: Option<Span>,
+    strict: bool,
+) -> ParseResult<ast::Expression> {
+    let mut parameters = Vec::new();
+
+    for expression in expressions {
+        match expression {
+            InnerExpression::Expression(node) => {
+                expression_to_formal_parameters(&node, &mut parameters, strict, start_span)?;
+            }
+            InnerExpression::SpreadObject(bindings) => {
+                let declaration = Variable::from_pattern(bindings.into(), None);
+                let parameter = FormalParameter::new(declaration, true);
+                parameters.push(parameter);
+            }
+            InnerExpression::SpreadArray(bindings) => {
+                let declaration = Variable::from_pattern(bindings.into(), None);
+                let parameter = FormalParameter::new(declaration, true);
+                parameters.push(parameter);
+            }
+            InnerExpression::SpreadBinding(ident) => {
+                let declaration = Variable::from_identifier(ident, None);
+                let parameter = FormalParameter::new(declaration, true);
+                parameters.push(parameter);
+            }
+        }
+    }
+
+    let parameters = FormalParameterList::from(parameters);
+
+    if let Some(span) = tailing_comma {
+        if parameters.has_rest_parameter() {
+            return Err(Error::general(
+                "rest parameter must be last formal parameter",
+                span.start(),
+            ));
+        }
+    }
+
+    if contains(&parameters, ContainsSymbol::YieldExpression) {
+        return Err(Error::general(
+            "yield expression is not allowed in formal parameter list of arrow function",
+            start_span.start(),
+        ));
+    }
+
+    Ok(ast::Expression::FormalParameterList(parameters))
 }
 
 /// Convert an expression to a formal parameter and append it to the given parameter list.

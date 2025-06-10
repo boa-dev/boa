@@ -61,6 +61,14 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        self.parse_boxed(cursor, interner).map(|ok| *ok)
+    }
+
+    fn parse_boxed(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Box<Self::Output>> {
         let _timer = Profiler::global().start_event("UnaryExpression", "Parsing");
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -72,7 +80,7 @@ where
             TokenKind::Keyword((Keyword::Delete, false)) => {
                 cursor.advance(interner);
                 let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-                let target = self.parse(cursor, interner)?;
+                let target = self.parse_boxed(cursor, interner)?;
 
                 match target.flatten() {
                     Expression::Identifier(_) if cursor.strict() => {
@@ -90,31 +98,31 @@ where
                     _ => {}
                 }
 
-                Ok(Unary::new(UnaryOp::Delete, target).into())
+                Ok(Unary::new_boxed(UnaryOp::Delete, target).into())
             }
             TokenKind::Keyword((Keyword::Void, false)) => {
                 cursor.advance(interner);
-                Ok(Unary::new(UnaryOp::Void, self.parse(cursor, interner)?).into())
+                Ok(Unary::new_boxed(UnaryOp::Void, self.parse_boxed(cursor, interner)?).into())
             }
             TokenKind::Keyword((Keyword::TypeOf, false)) => {
                 cursor.advance(interner);
-                Ok(Unary::new(UnaryOp::TypeOf, self.parse(cursor, interner)?).into())
+                Ok(Unary::new_boxed(UnaryOp::TypeOf, self.parse_boxed(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Add) => {
                 cursor.advance(interner);
-                Ok(Unary::new(UnaryOp::Plus, self.parse(cursor, interner)?).into())
+                Ok(Unary::new_boxed(UnaryOp::Plus, self.parse_boxed(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Sub) => {
                 cursor.advance(interner);
-                Ok(Unary::new(UnaryOp::Minus, self.parse(cursor, interner)?).into())
+                Ok(Unary::new_boxed(UnaryOp::Minus, self.parse_boxed(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Neg) => {
                 cursor.advance(interner);
-                Ok(Unary::new(UnaryOp::Tilde, self.parse(cursor, interner)?).into())
+                Ok(Unary::new_boxed(UnaryOp::Tilde, self.parse_boxed(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Not) => {
                 cursor.advance(interner);
-                Ok(Unary::new(UnaryOp::Not, self.parse(cursor, interner)?).into())
+                Ok(Unary::new_boxed(UnaryOp::Not, self.parse_boxed(cursor, interner)?).into())
             }
             TokenKind::Keyword((Keyword::Await, true)) if self.allow_await.0 => {
                 Err(Error::general(
@@ -122,10 +130,11 @@ where
                     token_start,
                 ))
             }
-            TokenKind::Keyword((Keyword::Await, false)) if self.allow_await.0 => {
-                Ok((AwaitExpression::new(self.allow_yield).parse(cursor, interner)?).into())
-            }
-            _ => UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner),
+            TokenKind::Keyword((Keyword::Await, false)) if self.allow_await.0 => Ok(Box::new(
+                (AwaitExpression::new(self.allow_yield).parse(cursor, interner)?).into(),
+            )),
+            _ => UpdateExpression::new(self.allow_yield, self.allow_await)
+                .parse_boxed(cursor, interner),
         }
     }
 }

@@ -47,6 +47,13 @@ impl Unary {
         }
     }
 
+    /// Creates a new `UnaryOp` AST Expression with boxed expression.
+    #[inline]
+    #[must_use]
+    pub fn new_boxed(op: UnaryOp, target: Box<Expression>) -> Self {
+        Self { op, target }
+    }
+
     /// Gets the unary operation of the Expression.
     #[inline]
     #[must_use]
@@ -80,6 +87,12 @@ impl From<Unary> for Expression {
     #[inline]
     fn from(op: Unary) -> Self {
         Self::Unary(op)
+    }
+}
+
+impl From<Unary> for Box<Expression> {
+    fn from(op: Unary) -> Self {
+        Box::new(Expression::Unary(op))
     }
 }
 

@@ -105,6 +105,12 @@ impl From<Identifier> for Expression {
     }
 }
 
+impl From<Identifier> for Box<Expression> {
+    fn from(local: Identifier) -> Self {
+        Box::new(Expression::Identifier(local))
+    }
+}
+
 impl VisitWith for Identifier {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
