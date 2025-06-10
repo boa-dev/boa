@@ -82,27 +82,32 @@ fn check_construct_call_precedence() {
     let interner = &mut Interner::default();
     check_script_parser(
         "new Date().getTime()",
-        vec![Statement::Expression(Expression::from(Call::new(
-            Expression::PropertyAccess(
-                SimplePropertyAccess::new(
-                    New::from(Call::new(
-                        Identifier::new(
-                            interner.get_or_intern_static("Date", utf16!("Date")),
-                            Span::new((1, 5), (1, 9)),
-                        )
+        vec![Statement::Expression(
+            Call::new(
+                Expression::PropertyAccess(
+                    SimplePropertyAccess::new(
+                        New::from(Call::new(
+                            Identifier::new(
+                                interner.get_or_intern_static("Date", utf16!("Date")),
+                                Span::new((1, 5), (1, 9)),
+                            )
+                            .into(),
+                            Box::default(),
+                            Span::new((1, 1), (1, 11)),
+                        ))
                         .into(),
-                        Box::default(),
-                    ))
+                        Identifier::new(
+                            interner.get_or_intern_static("getTime", utf16!("getTime")),
+                            Span::new((1, 12), (1, 19)),
+                        ),
+                    )
                     .into(),
-                    Identifier::new(
-                        interner.get_or_intern_static("getTime", utf16!("getTime")),
-                        Span::new((1, 12), (1, 19)),
-                    ),
-                )
-                .into(),
-            ),
-            Box::default(),
-        )))
+                ),
+                Box::default(),
+                Span::new((1, 19), (1, 21)),
+            )
+            .into(),
+        )
         .into()],
         interner,
     );
@@ -156,6 +161,7 @@ fn hoisting() {
                         Call::new(
                             Identifier::new(hello, Span::new((1, 9), (1, 14))).into(),
                             Box::default(),
+                            Span::new((1, 14), (1, 16)),
                         )
                         .into(),
                     ),

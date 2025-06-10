@@ -73,9 +73,10 @@ where
         let token = cursor.peek(0, interner).or_abrupt()?;
 
         let lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-            let (args, _) =
+            let (args, args_span) =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            Call::new(self.first_member_expr, args).into()
+
+            Call::new(self.first_member_expr, args, args_span).into()
         } else {
             let next_token = cursor.next(interner)?.expect("token vanished");
             return Err(Error::expected(
@@ -122,17 +123,15 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut lhs = self.call;
 
-        while let Some(tok) = cursor.peek(0, interner)? {
-            let token = tok.clone();
+        while let Some(token) = cursor.peek(0, interner)?.cloned() {
+            let lhs_span_start = lhs.span().start();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let (args, _) = Arguments::new(self.allow_yield, self.allow_await)
+                    let (args, args_span) = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    lhs = ast::Expression::from(Call::new(lhs, args));
+                    lhs = Call::new(lhs, args, args_span).into();
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    let lhs_span_start = lhs.span().start();
-
                     cursor.advance(interner);
 
                     let token = cursor.next(interner).or_abrupt()?;
@@ -189,7 +188,7 @@ where
                     lhs = TaggedTemplateLiteral::new(
                         self.allow_yield,
                         self.allow_await,
-                        tok.start_group(),
+                        token.start_group(),
                         lhs,
                     )
                     .parse(cursor, interner)?

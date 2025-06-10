@@ -114,6 +114,7 @@ fn non_empty() {
                         Call::new(
                             Identifier::new(hello, Span::new((6, 13), (6, 18))).into(),
                             Box::default(),
+                            Span::new((6, 18), (6, 20)),
                         )
                         .into(),
                     ),
@@ -158,6 +159,7 @@ fn hoisting() {
                         Call::new(
                             Identifier::new(hello, Span::new((2, 13), (2, 18))).into(),
                             Box::default(),
+                            Span::new((2, 18), (2, 20)),
                         )
                         .into(),
                     ),

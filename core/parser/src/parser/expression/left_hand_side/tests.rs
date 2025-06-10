@@ -23,6 +23,7 @@ macro_rules! check_call_property_identifier {
                         )
                         .into(),
                         Box::default(),
+                        Span::new((1, 2), (1, 4)),
                     )
                     .into(),
                     Identifier::new(

@@ -25,16 +25,18 @@ use super::Expression;
 pub struct Call {
     function: Box<Expression>,
     args: Box<[Expression]>,
+    span: Span,
 }
 
 impl Call {
     /// Creates a new `Call` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(function: Expression, args: Box<[Expression]>) -> Self {
+    pub fn new(function: Expression, args: Box<[Expression]>, span: Span) -> Self {
         Self {
             function: Box::new(function),
             args,
+            span,
         }
     }
 
@@ -52,11 +54,11 @@ impl Call {
         &self.args
     }
 
-    /// Retrieves span of the [`Call`] node.
+    /// Gets the [`Span`] of the [`Call`] node.
     #[inline]
     #[must_use]
     pub fn span(&self) -> Span {
-        self.function.span()
+        self.span
     }
 }
 

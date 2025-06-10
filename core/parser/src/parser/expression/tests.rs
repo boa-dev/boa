@@ -155,20 +155,24 @@ fn check_numeric_operations() {
     let interner = &mut Interner::default();
     check_script_parser(
         "fn(/=/);",
-        vec![Statement::Expression(Expression::from(Call::new(
-            Identifier::new(
-                interner.get_or_intern_static("fn", utf16!("fn")),
-                Span::new((1, 1), (1, 3)),
+        vec![Statement::Expression(
+            Call::new(
+                Identifier::new(
+                    interner.get_or_intern_static("fn", utf16!("fn")),
+                    Span::new((1, 1), (1, 3)),
+                )
+                .into(),
+                vec![RegExpLiteral::new(
+                    interner.get_or_intern_static("=", utf16!("=")),
+                    Sym::EMPTY_STRING,
+                    Span::new((1, 4), (1, 7)),
+                )
+                .into()]
+                .into(),
+                Span::new((1, 3), (1, 8)),
             )
             .into(),
-            vec![RegExpLiteral::new(
-                interner.get_or_intern_static("=", utf16!("=")),
-                Sym::EMPTY_STRING,
-                Span::new((1, 4), (1, 7)),
-            )
-            .into()]
-            .into(),
-        )))
+        )
         .into()],
         interner,
     );
@@ -176,27 +180,31 @@ fn check_numeric_operations() {
     let interner = &mut Interner::default();
     check_script_parser(
         "fn(a / b);",
-        vec![Statement::Expression(Expression::from(Call::new(
-            Identifier::new(
-                interner.get_or_intern_static("fn", utf16!("fn")),
-                Span::new((1, 1), (1, 3)),
+        vec![Statement::Expression(
+            Call::new(
+                Identifier::new(
+                    interner.get_or_intern_static("fn", utf16!("fn")),
+                    Span::new((1, 1), (1, 3)),
+                )
+                .into(),
+                vec![Expression::from(Binary::new(
+                    ArithmeticOp::Div.into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 4), (1, 5)),
+                    )
+                    .into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((1, 8), (1, 9)),
+                    )
+                    .into(),
+                ))]
+                .into(),
+                Span::new((1, 3), (1, 10)),
             )
             .into(),
-            vec![Expression::from(Binary::new(
-                ArithmeticOp::Div.into(),
-                Identifier::new(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Span::new((1, 4), (1, 5)),
-                )
-                .into(),
-                Identifier::new(
-                    interner.get_or_intern_static("b", utf16!("b")),
-                    Span::new((1, 8), (1, 9)),
-                )
-                .into(),
-            ))]
-            .into(),
-        )))
+        )
         .into()],
         interner,
     );
@@ -218,6 +226,7 @@ fn check_numeric_operations() {
                 )
                 .into()]
                 .into(),
+                Span::new((1, 3), (1, 6)),
             )
             .into(),
             Identifier::new(

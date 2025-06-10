@@ -141,17 +141,20 @@ where
                     }
                 } else {
                     let lhs_inner = self.parse(cursor, interner)?;
-                    let args = match cursor.peek(0, interner)? {
+                    let (args, args_span) = match cursor.peek(0, interner)? {
                         Some(next)
                             if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
                         {
                             Arguments::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?
-                                .0
                         }
-                        _ => Box::default(),
+                        _ => (Box::default(), lhs_inner.span()),
                     };
-                    let call_node = Call::new(lhs_inner, args);
+                    let call_node = Call::new(
+                        lhs_inner,
+                        args,
+                        Span::new(new_token_span.start(), args_span.end()),
+                    );
 
                     New::from(call_node).into()
                 };

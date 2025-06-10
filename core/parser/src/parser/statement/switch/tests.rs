@@ -174,18 +174,25 @@ fn check_separated_switch() {
                         Literal::new(5, Span::new((11, 1), (11, 2))).into(),
                         (
                             vec![
-                                Statement::Expression(Expression::from(Call::new(
-                                    Expression::PropertyAccess(
-                                        SimplePropertyAccess::new(
-                                            Identifier::new(console, Span::new((15, 1), (15, 8)))
+                                Statement::Expression(
+                                    Call::new(
+                                        Expression::PropertyAccess(
+                                            SimplePropertyAccess::new(
+                                                Identifier::new(
+                                                    console,
+                                                    Span::new((15, 1), (15, 8)),
+                                                )
                                                 .into(),
-                                            Identifier::new(log, Span::new((15, 9), (15, 12))),
-                                        )
-                                        .into(),
-                                    ),
-                                    vec![Literal::new(5, Span::new((15, 13), (15, 14))).into()]
-                                        .into(),
-                                )))
+                                                Identifier::new(log, Span::new((15, 9), (15, 12))),
+                                            )
+                                            .into(),
+                                        ),
+                                        vec![Literal::new(5, Span::new((15, 13), (15, 14))).into()]
+                                            .into(),
+                                        Span::new((15, 12), (15, 15)),
+                                    )
+                                    .into(),
+                                )
                                 .into(),
                                 Statement::Break(Break::new(None)).into(),
                             ],
@@ -197,7 +204,7 @@ fn check_separated_switch() {
                         Literal::new(10, Span::new((21, 1), (21, 3))).into(),
                         (
                             vec![
-                                Statement::Expression(Expression::from(Call::new(
+                                Statement::Expression(Call::new(
                                     Expression::PropertyAccess(
                                         SimplePropertyAccess::new(
                                             Identifier::new(console, Span::new((25, 1), (25, 8)))
@@ -208,7 +215,8 @@ fn check_separated_switch() {
                                     ),
                                     vec![Literal::new(10, Span::new((25, 13), (25, 15))).into()]
                                         .into(),
-                                )))
+                                    Span::new((25, 12), (25, 16)),
+                                ).into())
                                 .into(),
                                 Statement::Break(Break::new(None)).into(),
                             ],
@@ -218,22 +226,26 @@ fn check_separated_switch() {
                     ),
                     Case::default(
                         (
-                            vec![Statement::Expression(Expression::from(Call::new(
-                                Expression::PropertyAccess(
-                                    SimplePropertyAccess::new(
-                                        Identifier::new(console, Span::new((33, 1), (33, 8)))
-                                            .into(),
-                                        Identifier::new(log, Span::new((33, 9), (33, 12))),
+                            vec![Statement::Expression(
+                                Call::new(
+                                    Expression::PropertyAccess(
+                                        SimplePropertyAccess::new(
+                                            Identifier::new(console, Span::new((33, 1), (33, 8)))
+                                                .into(),
+                                            Identifier::new(log, Span::new((33, 9), (33, 12))),
+                                        )
+                                        .into(),
+                                    ),
+                                    vec![Literal::new(
+                                        interner.get_or_intern_static("Default", utf16!("Default")),
+                                        Span::new((33, 13), (33, 22)),
                                     )
+                                    .into()]
                                     .into(),
-                                ),
-                                vec![Literal::new(
-                                    interner.get_or_intern_static("Default", utf16!("Default")),
-                                    Span::new((33, 13), (33, 22)),
+                                    Span::new((33, 12), (33, 23)),
                                 )
-                                .into()]
                                 .into(),
-                            )))
+                            )
                             .into()],
                             PSEUDO_LINEAR_POS,
                         )

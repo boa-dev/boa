@@ -138,7 +138,7 @@ fn check_new_target_with_property_access() {
         .into(),
     );
 
-    let console = Expression::Call(Call::new(
+    let console = Call::new(
         PropertyAccess::Simple(SimplePropertyAccess::new(
             Identifier::new(
                 interner.get_or_intern_static("console", utf16!("console")),
@@ -152,7 +152,9 @@ fn check_new_target_with_property_access() {
         ))
         .into(),
         [new_target].into(),
-    ));
+        Span::new((3, 20), (3, 37)),
+    )
+    .into();
 
     let constructor = FunctionExpression::new(
         Some(Identifier::new(
@@ -184,6 +186,7 @@ fn check_new_target_with_property_access() {
         Call::new(
             Identifier::new(interner.get("A").unwrap(), Span::new((6, 15), (6, 16))).into(),
             Box::default(),
+            Span::new((6, 11), (6, 18)),
         )
         .into(),
     );
