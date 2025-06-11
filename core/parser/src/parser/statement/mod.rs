@@ -274,7 +274,7 @@ impl<R> TokenParser<R> for StatementList
 where
     R: ReadChar,
 {
-    type Output = ast::StatementList;
+    type Output = (ast::StatementList, Option<Position>);
 
     /// The function parses a `node::StatementList` using the `StatementList`'s
     /// `break_nodes` to know when to terminate.
@@ -295,11 +295,13 @@ where
         let mut strict = self.strict;
         let mut directives_stack = Vec::new();
         let mut linear_pos_end = cursor.linear_pos();
+        let mut end_position = None;
 
         loop {
             let peek_token = cursor.peek(0, interner)?;
             if let Some(peek_token) = peek_token {
                 linear_pos_end = peek_token.linear_span().end();
+                end_position = Some(peek_token.span().end());
             }
 
             match peek_token {
@@ -368,7 +370,10 @@ where
 
         cursor.set_strict(global_strict);
 
-        Ok(ast::StatementList::new(items, linear_pos_end, strict))
+        Ok((
+            ast::StatementList::new(items, linear_pos_end, strict),
+            end_position,
+        ))
     }
 }
 

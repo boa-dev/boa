@@ -387,7 +387,7 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let body = statement::StatementList::new(
+        let (body, _end) = statement::StatementList::new(
             false,
             false,
             false,

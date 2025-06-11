@@ -617,7 +617,7 @@ where
                     let strict = cursor.strict();
                     cursor.set_strict(true);
                     let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-                    let statement_list =
+                    let (statement_list, _end) =
                         StatementList::new(false, true, false, &FUNCTION_BREAK_TOKENS, false, true)
                             .parse(cursor, interner)?;
 

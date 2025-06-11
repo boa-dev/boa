@@ -489,7 +489,7 @@ where
                 .start()
         };
 
-        let body = StatementList::new(
+        let (body, end) = StatementList::new(
             self.allow_yield,
             self.allow_await,
             true,
@@ -514,8 +514,7 @@ where
         }
 
         let end = if self.parse_full_input {
-            // FIXME: This is very wrong should get span from StatementList
-            Position::new(1_000_000_000, 1)
+            end.unwrap_or(start)
         } else {
             cursor
                 .expect(Punctuator::CloseBlock, self.context, interner)?
