@@ -92,8 +92,7 @@ impl From<(u32, u32)> for Position {
 #[cfg(feature = "arbitrary")]
 impl<'a> arbitrary::Arbitrary<'a> for Span {
     fn arbitrary(_u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        // TODO: Does this make sense?
-        Ok(Span::new((1, 1), (1, 1)))
+        Ok(Span::EMPTY)
     }
 }
 
@@ -154,7 +153,6 @@ impl Debug for Span {
 }
 
 impl Span {
-    #[cfg(test)]
     pub(crate) const EMPTY: Span = Span {
         start: Position::new(1, 1),
         end: Position::new(1, 1),

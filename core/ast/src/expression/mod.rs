@@ -295,7 +295,6 @@ impl Expression {
     #[allow(clippy::match_same_arms)]
     #[allow(unused_variables)]
     pub fn span(&self) -> Span {
-        let span = Span::new((1, 1), (1, 1));
         match self {
             Self::This(this) => this.span(),
             Self::Identifier(id) => id.span(),
@@ -330,8 +329,8 @@ impl Expression {
             Self::Yield(yi) => yi.span(),
             Self::Parenthesized(expr) => expr.span(),
             Self::RegExpLiteral(regexp) => regexp.span(),
-            Self::FormalParameterList(_) => span,
-            Self::Debugger => span,
+            Self::FormalParameterList(_) => Span::EMPTY,
+            Self::Debugger => Span::EMPTY,
         }
     }
 }
