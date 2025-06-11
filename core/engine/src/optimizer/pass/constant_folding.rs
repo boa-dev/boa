@@ -90,14 +90,12 @@ impl ConstantFolding {
             (literal, UnaryOp::TypeOf) => Ok(JsValue::new(
                 literal_to_js_value(literal, context).js_type_of(),
             )),
-            (literal, UnaryOp::Delete) => {
-                // TODO: Span should include unary operator, should be unary.span(),
-                return PassAction::Replace(Literal::new(true, literal.span()).into());
+            (_, UnaryOp::Delete) => {
+                return PassAction::Replace(Literal::new(true, unary.span()).into());
             }
-            (literal, UnaryOp::Void) => {
-                // TODO: Span should include unary operator, should be unary.span(),
+            (_, UnaryOp::Void) => {
                 return PassAction::Replace(
-                    Literal::new(LiteralKind::Undefined, literal.span()).into(),
+                    Literal::new(LiteralKind::Undefined, unary.span()).into(),
                 );
             }
         };
@@ -109,8 +107,7 @@ impl ConstantFolding {
 
         PassAction::Replace(Expression::Literal(Literal::new(
             js_value_to_literal_kind(&value, context),
-            // TODO: Span should include unary operator, should be unary.span(),
-            literal.span(),
+            unary.span(),
         )))
     }
 
@@ -135,6 +132,7 @@ impl ConstantFolding {
         // (complex_pure_expression, eval)                     --> (undefined, eval)
         // (complex_pure_expression, Object.prototype.valueOf) --> (undefined, Object.prototype.valueOf)
         if binary.op() == BinaryOp::Comma {
+            let span = binary.span();
             if !matches!(binary.rhs(), Expression::Literal(_)) {
                 // If left-hand side is already undefined then just keep it,
                 // so we don't cause an infinite loop.
@@ -144,15 +142,11 @@ impl ConstantFolding {
                     }
                 }
 
-                let span = binary.lhs().span();
-
                 *binary.lhs_mut() = Literal::new(LiteralKind::Undefined, span).into();
                 return PassAction::Modified;
             }
 
             // We take rhs, by replacing with a dummy value.
-            // TODO: Use binary's span instead!
-            let span = binary.rhs().span();
             let rhs = std::mem::replace(
                 binary.rhs_mut(),
                 Literal::new(LiteralKind::Undefined, span).into(),
@@ -161,6 +155,8 @@ impl ConstantFolding {
         }
 
         let lhs = literal_to_js_value(lhs, context);
+
+        let span = binary.span();
 
         // Do the following optimizations if it's a logical binary expression:
         //
@@ -179,15 +175,11 @@ impl ConstantFolding {
             let expr = match op {
                 LogicalOp::And => {
                     if lhs.to_boolean() {
-                        // TODO: should be binary span.
-                        let span = binary.rhs().span();
                         std::mem::replace(
                             binary.rhs_mut(),
                             Literal::new(LiteralKind::Undefined, span).into(),
                         )
                     } else {
-                        // TODO: should be binary span.
-                        let span = binary.lhs().span();
                         std::mem::replace(
                             binary.lhs_mut(),
                             Literal::new(LiteralKind::Undefined, span).into(),
@@ -196,15 +188,11 @@ impl ConstantFolding {
                 }
                 LogicalOp::Or => {
                     if lhs.to_boolean() {
-                        // TODO: should be binary span.
-                        let span = binary.lhs().span();
                         std::mem::replace(
                             binary.lhs_mut(),
                             Literal::new(LiteralKind::Undefined, span).into(),
                         )
                     } else {
-                        // TODO: should be binary span.
-                        let span = binary.rhs().span();
                         std::mem::replace(
                             binary.rhs_mut(),
                             Literal::new(LiteralKind::Undefined, span).into(),
@@ -213,15 +201,11 @@ impl ConstantFolding {
                 }
                 LogicalOp::Coalesce => {
                     if lhs.is_null_or_undefined() {
-                        // TODO: should be binary span.
-                        let span = binary.rhs().span();
                         std::mem::replace(
                             binary.rhs_mut(),
                             Literal::new(LiteralKind::Undefined, span).into(),
                         )
                     } else {
-                        // TODO: should be binary span.
-                        let span = binary.lhs().span();
                         std::mem::replace(
                             binary.lhs_mut(),
                             Literal::new(LiteralKind::Undefined, span).into(),
@@ -278,12 +262,7 @@ impl ConstantFolding {
         };
 
         PassAction::Replace(
-            Literal::new(
-                js_value_to_literal_kind(&value, context),
-                // TODO: Span should include binary operator with lhs and rhs, should be binary.span(),
-                rhs_literal.span(),
-            )
-            .into(),
+            Literal::new(js_value_to_literal_kind(&value, context), binary.span()).into(),
         )
     }
 }

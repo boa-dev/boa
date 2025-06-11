@@ -291,9 +291,6 @@ impl Expression {
     /// Get [`Span`] of the [`Expression`].
     #[inline]
     #[must_use]
-    // TODO: Remove lint allows after implemenation is complete.
-    #[allow(clippy::match_same_arms)]
-    #[allow(unused_variables)]
     pub fn span(&self) -> Span {
         match self {
             Self::This(this) => this.span(),
@@ -329,8 +326,7 @@ impl Expression {
             Self::Yield(yi) => yi.span(),
             Self::Parenthesized(expr) => expr.span(),
             Self::RegExpLiteral(regexp) => regexp.span(),
-            Self::FormalParameterList(_) => Span::EMPTY,
-            Self::Debugger => Span::EMPTY,
+            Self::FormalParameterList(_) | Self::Debugger => Span::EMPTY,
         }
     }
 }
