@@ -155,7 +155,7 @@ impl VisitWith for ClassDeclaration {
 
 impl From<ClassDeclaration> for Declaration {
     fn from(f: ClassDeclaration) -> Self {
-        Self::ClassDeclaration(f)
+        Self::ClassDeclaration(Box::new(f))
     }
 }
 

@@ -42,15 +42,18 @@ fn check_async_ordinary_method() {
                 async() { }
             }
         "#},
-        [Declaration::ClassDeclaration(ClassDeclaration::new(
-            Identifier::new(
-                interner.get_or_intern_static("A", utf16!("A")),
-                Span::new((1, 7), (1, 8)),
-            ),
-            None,
-            None,
-            elements.into(),
-        ))
+        [Declaration::ClassDeclaration(
+            ClassDeclaration::new(
+                Identifier::new(
+                    interner.get_or_intern_static("A", utf16!("A")),
+                    Span::new((1, 7), (1, 8)),
+                ),
+                None,
+                None,
+                elements.into(),
+            )
+            .into(),
+        )
         .into()],
         interner,
     );
@@ -76,16 +79,18 @@ fn check_async_field_initialization() {
                 = 1
             }
         "},
-        [Declaration::ClassDeclaration(ClassDeclaration::new(
-            Identifier::new(
-                interner.get_or_intern_static("A", utf16!("A")),
-                Span::new((1, 7), (1, 8)),
-            ),
-            None,
-            None,
-            elements.into(),
-        ))
-        .into()],
+        [
+            Declaration::ClassDeclaration(Box::new(ClassDeclaration::new(
+                Identifier::new(
+                    interner.get_or_intern_static("A", utf16!("A")),
+                    Span::new((1, 7), (1, 8)),
+                ),
+                None,
+                None,
+                elements.into(),
+            )))
+            .into(),
+        ],
         interner,
     );
 }
@@ -109,16 +114,18 @@ fn check_async_field() {
                 async
             }
         "#},
-        [Declaration::ClassDeclaration(ClassDeclaration::new(
-            Identifier::new(
-                interner.get_or_intern_static("A", utf16!("A")),
-                Span::new((1, 7), (1, 8)),
-            ),
-            None,
-            None,
-            elements.into(),
-        ))
-        .into()],
+        [
+            Declaration::ClassDeclaration(Box::new(ClassDeclaration::new(
+                Identifier::new(
+                    interner.get_or_intern_static("A", utf16!("A")),
+                    Span::new((1, 7), (1, 8)),
+                ),
+                None,
+                None,
+                elements.into(),
+            )))
+            .into(),
+        ],
         interner,
     );
 }

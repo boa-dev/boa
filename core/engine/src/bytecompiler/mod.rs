@@ -1660,7 +1660,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.register_allocator.dealloc(value);
                 }
             }
-            Declaration::ClassDeclaration(class) => self.compile_class(class.into(), None),
+            Declaration::ClassDeclaration(class) => self.compile_class(class.as_ref().into(), None),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
             _ => {}
         }

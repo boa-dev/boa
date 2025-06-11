@@ -1729,7 +1729,7 @@ fn global_declaration_instantiation(
         if let StatementListItem::Declaration(declaration) = statement {
             match declaration {
                 Declaration::ClassDeclaration(class) => {
-                    for name in bound_names(class) {
+                    for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
                         drop(env.create_mutable_binding(name, false));
                     }
@@ -2109,7 +2109,7 @@ fn function_declaration_instantiation(
         if let StatementListItem::Declaration(declaration) = statement {
             match declaration {
                 Declaration::ClassDeclaration(class) => {
-                    for name in bound_names(class) {
+                    for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
                         drop(lex_env.create_mutable_binding(name, false));
                     }
@@ -2412,7 +2412,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
         if let StatementListItem::Declaration(declaration) = statement {
             match declaration {
                 Declaration::ClassDeclaration(class) => {
-                    for name in bound_names(class) {
+                    for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
                         drop(lex_env.create_mutable_binding(name, false));
                     }
