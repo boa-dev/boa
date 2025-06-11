@@ -326,6 +326,7 @@ impl Expression {
             Self::Yield(yi) => yi.span(),
             Self::Parenthesized(expr) => expr.span(),
             Self::RegExpLiteral(regexp) => regexp.span(),
+            // TODO: Remove `FormalParameterList` and `Debugger` nodes
             Self::FormalParameterList(_) | Self::Debugger => Span::EMPTY,
         }
     }
