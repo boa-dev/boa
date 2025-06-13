@@ -1,19 +1,48 @@
 //! Macros related to `JsValue`.
 
+/// Create a `JsObject` object from a simpler DSL that resembles JSON.
+///
+/// ```
+/// # use boa_engine::{js_string, js_object, Context};
+/// # let context = &mut Context::default();
+/// let value = js_object!({
+///   // Comments are allowed inside.
+///   "key": (js_string!("value"))
+/// }, context);
+/// ```
+#[macro_export]
+macro_rules! js_object {
+    ({ $( $k: literal: $v: tt ),* $(,)? }, $ctx: ident) => {
+        {
+            let o = $crate::JsObject::with_null_proto();
+            $(
+                o.set( $crate::js_string!($k), $crate::js_value!( $v, $ctx ), false, $ctx )
+                 .expect("Cannot set property of object.");
+            )*
+
+            o
+        }
+    };
+}
+
 /// Create a `JsValue` from a simple DSL that resembles JSON.
 ///
 /// ```
-/// # use boa_engine::{js_value, Context, JsValue};
+/// # use boa_engine::{js_string, js_value, Context, JsValue};
 /// # let context = &mut Context::default();
 /// assert_eq!(js_value!( 1 ), JsValue::from(1));
 /// assert_eq!(js_value!( false ), JsValue::from(false));
 /// // Objects and arrays cannot be compared with simple equality.
-/// // To create arrays and objects, the context need to be passed in.
-/// assert!(js_value!([ 1, 2, 3 ], context).to_string(context), "[1,2,3]");
+/// // To create arrays and objects, the context needs to be passed in.
+/// assert_eq!(js_value!([ 1, 2, 3 ], context).display().to_string(), "[ 1, 2, 3 ]");
 ///
-/// js_value!({
-///   //
-/// }, context);
+/// assert_eq!(
+///   js_value!({
+///     // Comments are allowed inside.
+///     "key": (js_string!("value"))
+///   }, context).display().to_string(),
+///   "{\n key: \"value\"\n}",
+/// );
 /// ```
 #[macro_export]
 macro_rules! js_value {
@@ -24,13 +53,14 @@ macro_rules! js_value {
 }
 
 /// Internal macro rules for js_value!.
+// TODO: move this to a proc_macro which can be distinguish between string and number literal.
 #[macro_export]
 #[doc(hidden)]
 macro_rules! js_value_internal {
     ([ $( $expr: tt ),* $(,)? ], $ctx: ident) => {
         $crate::JsValue::new(
             $crate::object::builtins::JsArray::from_iter(
-                vec![ $( js_value!( $expr, $ctx ) ),* ],
+                vec![ $( $crate::js_value!( $expr, $ctx ) ),* ],
                 $ctx,
             )
         )
@@ -38,13 +68,7 @@ macro_rules! js_value_internal {
 
     ({ $( $k: literal: $v: tt ),* $(,)? }, $ctx: ident) => {
         {
-            let o = $crate::JsObject::with_null_proto();
-            $(
-                o.set( $crate::js_string!($k), js_value!( $v, $ctx ), false, $ctx )
-                 .expect("Cannot set property of object.");
-            )*
-
-            $crate::JsValue::from(o)
+            $crate::JsValue::from( $crate::js_object!({ $( $k: $v ),* }, $ctx) )
         }
     };
 

@@ -1535,7 +1535,7 @@ mod js_value_macro {
                         &js_value!({ "hello": hello, "world": world }, context),
                         context,
                     )
-                    .unwrap()
+                    .expect("No error should happen.")
             },
         )]);
     }
@@ -1546,17 +1546,15 @@ mod js_value_macro {
             r#"({ "hello": [{ "foo": [1, []] }], "world": { "bar": false } })"#,
             |value, context| {
                 let bar = JsValue::from(false);
-
-                value
-                    .deep_strict_equals(
-                        &js_value!({
+                let other = js_value!({
                         "hello": [{ "foo": [1, []] }],
                         // Allow comments
                         "world": { "bar": bar },
-                    }, context),
-                        context,
-                    )
-                    .unwrap()
+                    }, context);
+
+                value
+                    .deep_strict_equals(&other, context)
+                    .expect("No error should happen here.")
             },
         )]);
     }

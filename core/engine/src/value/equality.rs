@@ -1,15 +1,26 @@
 use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
 use crate::{builtins::Number, Context, JsVariant};
+use std::collections::HashSet;
 
 impl JsValue {
-    /// Deep equality comparison, strict. If the value is an object/array, also compare
-    /// the key-values. Uses `strict_equals()` otherwise.
-    pub fn deep_strict_equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+    /// Inner loop of the deep equality comparison, strict.
+    pub(crate) fn deep_strict_equals_inner(
+        &self,
+        other: &Self,
+        encounters: &mut HashSet<usize>,
+        context: &mut Context,
+    ) -> JsResult<bool> {
         match (self.as_object(), other.as_object()) {
             (None, None) => Ok(self.strict_equals(other)),
-            (Some(x), Some(y)) => JsObject::deep_strict_equals(x, y, context),
+            (Some(x), Some(y)) => JsObject::deep_strict_equals_inner(x, y, encounters, context),
             _ => Ok(false),
         }
+    }
+
+    /// Deep equality comparison, strict. If the value is an object/array, also compare
+    /// the key-values. It uses `strict_equals()` for non-object values.
+    pub fn deep_strict_equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+        self.deep_strict_equals_inner(other, &mut HashSet::new(), context)
     }
 
     /// Strict equality comparison.
