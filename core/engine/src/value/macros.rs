@@ -15,7 +15,7 @@ macro_rules! js_value {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! js_value_internal {
-    ([ $( $expr: tt ),* ], $ctx: ident) => {
+    ([ $( $expr: tt ),* $(,)? ], $ctx: ident) => {
         $crate::JsValue::new(
             $crate::object::JsArray::from_iter(
                 vec![ $( js_value!( $expr, $ctx ) ),* ],
@@ -24,7 +24,7 @@ macro_rules! js_value_internal {
         )
     };
 
-    ({ $( $k: literal: $v: tt ),* }, $ctx: ident) => {
+    ({ $( $k: literal: $v: tt ),* $(,)? }, $ctx: ident) => {
         {
             let o = $crate::JsObject::with_null_proto();
             $(

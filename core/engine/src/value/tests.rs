@@ -1540,7 +1540,11 @@ mod js_value_macro {
                 let bar = JsValue::from(false);
 
                 value.deep_strict_equals(
-                    &js_value!({ "hello": [{ "foo": [1, []] }], "world": { "bar": bar } }, context),
+                    &js_value!({
+                        "hello": [{ "foo": [1, []] }],
+                        // Allow comments
+                        "world": { "bar": bar },
+                    }, context),
                     context,
                 )
             },
