@@ -1474,7 +1474,7 @@ mod abstract_relational_comparison {
 }
 
 mod js_value_macro {
-    use crate::{js_value, run_test_actions, TestAction};
+    use crate::{js_value, run_test_actions, JsValue, TestAction};
     use std::ops::Neg;
 
     #[test]
@@ -1512,6 +1512,37 @@ mod js_value_macro {
             r#"({ "hello": 1, "world": null })"#,
             |value, context| {
                 value.deep_strict_equals(&js_value!({ "hello": 1, "world": () }, context), context)
+            },
+        )]);
+    }
+
+    #[test]
+    fn vars() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": 1, "world": null })"#,
+            |value, context| {
+                let hello = JsValue::from(1);
+                let world = JsValue::null();
+
+                value.deep_strict_equals(
+                    &js_value!({ "hello": hello, "world": world }, context),
+                    context,
+                )
+            },
+        )]);
+    }
+
+    #[test]
+    fn complex() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": [{ "foo": [1, []] }], "world": { "bar": false } })"#,
+            |value, context| {
+                let bar = JsValue::from(false);
+
+                value.deep_strict_equals(
+                    &js_value!({ "hello": [{ "foo": [1, []] }], "world": { "bar": bar } }, context),
+                    context,
+                )
             },
         )]);
     }
