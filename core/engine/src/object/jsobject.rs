@@ -302,7 +302,7 @@ impl JsObject {
             return false;
         }
 
-        for key in l_keys.iter() {
+        for key in &l_keys {
             let Some(vl) = lhs.get_property(key) else {
                 return false;
             };
@@ -313,7 +313,7 @@ impl JsObject {
             match (vl.value(), vr.value()) {
                 (None, None) => {}
                 (Some(lv), Some(rv)) => {
-                    if lv.deep_strict_equals(rv, context) == false {
+                    if !lv.deep_strict_equals(rv, context) {
                         return false;
                     }
                 }
