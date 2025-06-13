@@ -119,10 +119,6 @@ impl FromStr for RenameScheme {
 }
 
 impl RenameScheme {
-    pub(crate) fn from_attrs(attrs: &mut Vec<Attribute>) -> SpannedResult<Self> {
-        Self::from_named_attrs(attrs, "rename").map(|rs| rs.unwrap_or(RenameScheme::None))
-    }
-
     pub(crate) fn from_named_attrs(
         attrs: &mut Vec<Attribute>,
         name: &str,
