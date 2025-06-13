@@ -2,7 +2,19 @@
 
 /// Create a `JsValue` from a simple DSL that resembles JSON.
 ///
+/// ```
+/// # use boa_engine::{js_value, Context, JsValue};
+/// # let context = &mut Context::default();
+/// assert_eq!(js_value!( 1 ), JsValue::from(1));
+/// assert_eq!(js_value!( false ), JsValue::from(false));
+/// // Objects and arrays cannot be compared with simple equality.
+/// // To create arrays and objects, the context need to be passed in.
+/// assert!(js_value!([ 1, 2, 3 ], context).to_string(context), "[1,2,3]");
 ///
+/// js_value!({
+///   //
+/// }, context);
+/// ```
 #[macro_export]
 macro_rules! js_value {
     // Single pattern to simplify documentation.
@@ -17,7 +29,7 @@ macro_rules! js_value {
 macro_rules! js_value_internal {
     ([ $( $expr: tt ),* $(,)? ], $ctx: ident) => {
         $crate::JsValue::new(
-            $crate::object::JsArray::from_iter(
+            $crate::object::builtins::JsArray::from_iter(
                 vec![ $( js_value!( $expr, $ctx ) ),* ],
                 $ctx,
             )

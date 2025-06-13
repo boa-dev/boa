@@ -288,39 +288,34 @@ impl JsObject {
     }
 
     /// Checks that all own property keys and values are equal (recursively).
-    #[must_use]
     #[inline]
-    pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &mut Context) -> bool {
-        let Ok(l_keys) = lhs.own_property_keys(context) else {
-            return false;
-        };
-        let Ok(r_keys) = lhs.own_property_keys(context) else {
-            return false;
-        };
+    pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &mut Context) -> JsResult<bool> {
+        let l_keys = lhs.own_property_keys(context)?;
+        let r_keys = lhs.own_property_keys(context)?;
 
         if l_keys.len() != r_keys.len() {
-            return false;
+            return Ok(false);
         }
 
         for key in &l_keys {
-            let Some(vl) = lhs.get_property(key) else {
-                return false;
-            };
-            let Some(vr) = rhs.get_property(key) else {
-                return false;
-            };
+            let vl = lhs.get_property(key);
+            let vr = rhs.get_property(key);
 
-            match (vl.value(), vr.value()) {
+            match (vl, vr) {
                 (None, None) => {}
-                (Some(lv), Some(rv)) => {
-                    if !lv.deep_strict_equals(rv, context) {
-                        return false;
+                (Some(vl), Some(vr)) => match (vl.value(), vr.value()) {
+                    (None, None) => {}
+                    (Some(lv), Some(rv)) => {
+                        if !lv.deep_strict_equals(rv, context)? {
+                            return Ok(false);
+                        }
                     }
-                }
-                _ => return false,
+                    _ => return Ok(false),
+                },
+                _ => return Ok(false),
             }
         }
-        true
+        Ok(true)
     }
 
     /// Converts an object to a primitive.

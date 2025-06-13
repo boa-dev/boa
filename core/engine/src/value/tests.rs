@@ -1495,13 +1495,17 @@ mod js_value_macro {
         run_test_actions([
             TestAction::assert_with_op("[1, 2, 3]", |value, context| {
                 let v = js_value!([1, 2, 3], context);
-                value.deep_strict_equals(&v, context)
+                value.deep_strict_equals(&v, context).unwrap()
             }),
             TestAction::assert_with_op("[1, [2], 3]", |value, context| {
-                value.deep_strict_equals(&js_value!([1, [2], 3], context), context)
+                value
+                    .deep_strict_equals(&js_value!([1, [2], 3], context), context)
+                    .unwrap()
             }),
             TestAction::assert_with_op("[1, [2], [], [[false]], 3]", |value, context| {
-                value.deep_strict_equals(&js_value!([1, [2], [], [[false]], 3], context), context)
+                value
+                    .deep_strict_equals(&js_value!([1, [2], [], [[false]], 3], context), context)
+                    .unwrap()
             }),
         ]);
     }
@@ -1511,7 +1515,9 @@ mod js_value_macro {
         run_test_actions([TestAction::assert_with_op(
             r#"({ "hello": 1, "world": null })"#,
             |value, context| {
-                value.deep_strict_equals(&js_value!({ "hello": 1, "world": () }, context), context)
+                value
+                    .deep_strict_equals(&js_value!({ "hello": 1, "world": () }, context), context)
+                    .unwrap()
             },
         )]);
     }
@@ -1524,10 +1530,12 @@ mod js_value_macro {
                 let hello = JsValue::from(1);
                 let world = JsValue::null();
 
-                value.deep_strict_equals(
-                    &js_value!({ "hello": hello, "world": world }, context),
-                    context,
-                )
+                value
+                    .deep_strict_equals(
+                        &js_value!({ "hello": hello, "world": world }, context),
+                        context,
+                    )
+                    .unwrap()
             },
         )]);
     }
@@ -1539,14 +1547,16 @@ mod js_value_macro {
             |value, context| {
                 let bar = JsValue::from(false);
 
-                value.deep_strict_equals(
-                    &js_value!({
+                value
+                    .deep_strict_equals(
+                        &js_value!({
                         "hello": [{ "foo": [1, []] }],
                         // Allow comments
                         "world": { "bar": bar },
                     }, context),
-                    context,
-                )
+                        context,
+                    )
+                    .unwrap()
             },
         )]);
     }

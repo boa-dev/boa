@@ -4,14 +4,12 @@ use crate::{builtins::Number, Context, JsVariant};
 impl JsValue {
     /// Deep equality comparison, strict. If the value is an object/array, also compare
     /// the key-values. Uses `strict_equals()` otherwise.
-    #[must_use]
-    pub fn deep_strict_equals(&self, other: &Self, context: &mut Context) -> bool {
-        if let Some(x) = self.as_object() {
-            if let Some(y) = other.as_object() {
-                return JsObject::deep_strict_equals(x, y, context);
-            }
+    pub fn deep_strict_equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
+        match (self.as_object(), other.as_object()) {
+            (None, None) => Ok(self.strict_equals(other)),
+            (Some(x), Some(y)) => JsObject::deep_strict_equals(x, y, context),
+            _ => Ok(false),
         }
-        self.strict_equals(other)
     }
 
     /// Strict equality comparison.
