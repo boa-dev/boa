@@ -102,9 +102,10 @@ fn script_block_let() {
     let ok = script.analyze_scope(&scope, &interner);
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
-    let StatementListItem::Statement(Statement::Block(block)) =
-        script.statements().first().unwrap()
-    else {
+    let StatementListItem::Statement(statement) = script.statements().first().unwrap() else {
+        panic!("Expected a block statement");
+    };
+    let Statement::Block(block) = statement.as_ref() else {
         panic!("Expected a block statement");
     };
     let scope = block.scope().unwrap();
@@ -153,11 +154,14 @@ fn script_function_mapped_arguments_not_accessed() {
     let ok = script.analyze_scope(&scope, &interner);
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
-    let StatementListItem::Declaration(Declaration::FunctionDeclaration(f)) =
-        script.statements().first().unwrap()
-    else {
+
+    let StatementListItem::Declaration(declaration) = script.statements().first().unwrap() else {
         panic!("Expected a block statement");
     };
+    let Declaration::FunctionDeclaration(f) = declaration.as_ref() else {
+        panic!("Expected a block statement");
+    };
+
     assert_eq!(f.scopes().function_scope().num_bindings(), 2);
     assert_eq!(f.scopes().parameters_eval_scope(), None);
     assert_eq!(f.scopes().parameters_scope(), None);
@@ -236,9 +240,10 @@ fn script_function_mapped_arguments_accessed() {
     let ok = script.analyze_scope(&scope, &interner);
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
-    let StatementListItem::Declaration(Declaration::FunctionDeclaration(f)) =
-        script.statements().first().unwrap()
-    else {
+    let StatementListItem::Declaration(declaration) = script.statements().first().unwrap() else {
+        panic!("Expected a block statement");
+    };
+    let Declaration::FunctionDeclaration(f) = declaration.as_ref() else {
         panic!("Expected a block statement");
     };
     assert!(f.scopes().arguments_object_accessed());

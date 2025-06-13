@@ -358,6 +358,7 @@ pub(crate) struct Label {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[allow(variant_size_differences)]
 enum Access<'a> {
     Variable { name: Identifier },
     Property { access: &'a PropertyAccess },
@@ -1264,16 +1265,13 @@ impl<'ctx> ByteCompiler<'ctx> {
             let mut use_expr_index = 0;
             for (i, statement) in list.statements().iter().enumerate() {
                 match statement {
-                    StatementListItem::Statement(Statement::Break(_) | Statement::Continue(_)) => {
-                        break;
-                    }
-                    StatementListItem::Statement(Statement::Empty | Statement::Var(_))
-                    | StatementListItem::Declaration(_) => {}
-                    StatementListItem::Statement(Statement::Block(block))
-                        if !returns_value(block) => {}
-                    StatementListItem::Statement(_) => {
-                        use_expr_index = i;
-                    }
+                    StatementListItem::Statement(statement) => match statement.as_ref() {
+                        Statement::Break(_) | Statement::Continue(_) => break,
+                        Statement::Empty | Statement::Var(_) => {}
+                        Statement::Block(block) if !returns_value(block) => {}
+                        _ => use_expr_index = i,
+                    },
+                    StatementListItem::Declaration(_) => {}
                 }
             }
 

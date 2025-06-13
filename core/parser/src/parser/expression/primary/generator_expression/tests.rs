@@ -32,13 +32,14 @@ fn check_generator_function_expression() {
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Expression(
-                                    Expression::from(Yield::new(
+                                [StatementListItem::Statement(
+                                    Statement::Expression(Expression::from(Yield::new(
                                         Some(Literal::new(1, Span::new((2, 11), (2, 12))).into()),
                                         false,
                                         Span::new((2, 5), (2, 12)),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -78,13 +79,14 @@ fn check_generator_function_delegate_yield_expression() {
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Expression(
-                                    Expression::from(Yield::new(
+                                [StatementListItem::Statement(
+                                    Statement::Expression(Expression::from(Yield::new(
                                         Some(Literal::new(1, Span::new((2, 12), (2, 13))).into()),
                                         true,
                                         Span::new((2, 5), (2, 13)),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),

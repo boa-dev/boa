@@ -32,11 +32,12 @@ fn check_function_expression() {
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Literal::new(1, Span::new((2, 12), (2, 13))).into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -98,7 +99,8 @@ fn check_nested_function_expression() {
                                                                     Span::new((3, 16), (3, 17)),
                                                                 )
                                                                 .into(),
-                                                            ))),
+                                                            )))
+                                                            .into(),
                                                         )],
                                                         PSEUDO_LINEAR_POS,
                                                         false,
@@ -154,7 +156,7 @@ fn check_function_non_reserved_keyword() {
                                             Return::new(
                                                 Some(Literal::new(1, $literal_span).into())
                                             )
-                                        )
+                                        ).into()
                                     )],
                                     PSEUDO_LINEAR_POS,
                                     false,

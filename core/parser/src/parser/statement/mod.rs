@@ -320,40 +320,44 @@ where
                     .parse(cursor, interner)?;
 
             if directive_prologues {
-                if let ast::StatementListItem::Statement(ast::Statement::Expression(
-                    ast::Expression::Literal(lit),
-                )) = &item
-                {
-                    if let Some(string) = lit.as_string() {
-                        if strict {
-                            // TODO: should store directives in some place
-                        } else if interner.resolve_expect(string).join(
-                            |s| s == "use strict",
-                            |g| g == utf16!("use strict"),
-                            true,
-                        ) && directives_stack.last().expect("token should exist").1
-                            == EscapeSequence::empty()
-                        {
-                            cursor.set_strict(true);
-                            strict = true;
+                if let ast::StatementListItem::Statement(statement) = &item {
+                    if let ast::Statement::Expression(ast::Expression::Literal(lit)) =
+                        statement.as_ref()
+                    {
+                        if let Some(string) = lit.as_string() {
+                            if strict {
+                                // TODO: should store directives in some place
+                            } else if interner.resolve_expect(string).join(
+                                |s| s == "use strict",
+                                |g| g == utf16!("use strict"),
+                                true,
+                            ) && directives_stack.last().expect("token should exist").1
+                                == EscapeSequence::empty()
+                            {
+                                cursor.set_strict(true);
+                                strict = true;
 
-                            directives_stack.pop();
+                                directives_stack.pop();
 
-                            for (position, escape) in std::mem::take(&mut directives_stack) {
-                                if escape.contains(EscapeSequence::LEGACY_OCTAL) {
-                                    return Err(Error::general(
+                                for (position, escape) in std::mem::take(&mut directives_stack) {
+                                    if escape.contains(EscapeSequence::LEGACY_OCTAL) {
+                                        return Err(Error::general(
                                 "legacy octal escape sequences are not allowed in strict mode",
                                 position,
                             ));
-                                }
+                                    }
 
-                                if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
-                                    return Err(Error::general(
+                                    if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
+                                        return Err(Error::general(
                                         "decimal escape sequences are not allowed in strict mode",
                                         position,
                                     ));
+                                    }
                                 }
                             }
+                        } else {
+                            directive_prologues = false;
+                            directives_stack.clear();
                         }
                     } else {
                         directive_prologues = false;
@@ -997,6 +1001,7 @@ where
         match tok.kind() {
             TokenKind::Keyword((Keyword::Export, false)) => ExportDeclaration
                 .parse(cursor, interner)
+                .map(Box::new)
                 .map(Self::Output::ExportDeclaration),
             TokenKind::Keyword((Keyword::Import, false)) => {
                 if ImportDeclaration::test(cursor, interner)? {

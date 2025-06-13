@@ -12,9 +12,9 @@ const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(
 
 fn stmt_block_continue_only(continue_stmt: Continue) -> Statement {
     Block::from((
-        vec![StatementListItem::Statement(Statement::Continue(
-            continue_stmt,
-        ))],
+        vec![StatementListItem::Statement(
+            Statement::Continue(continue_stmt).into(),
+        )],
         PSEUDO_LINEAR_POS,
     ))
     .into()

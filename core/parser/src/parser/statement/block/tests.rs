@@ -96,9 +96,12 @@ fn non_empty() {
                 FormalParameterList::default(),
                 FunctionBody::new(
                     StatementList::new(
-                        [StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(Literal::new(10, Span::new((3, 16), (3, 18))).into())),
-                        ))],
+                        [StatementListItem::Statement(
+                            Statement::Return(Return::new(Some(
+                                Literal::new(10, Span::new((3, 16), (3, 18))).into(),
+                            )))
+                            .into(),
+                        )],
                         PSEUDO_LINEAR_POS,
                         false,
                     ),
@@ -182,9 +185,12 @@ fn hoisting() {
                 FormalParameterList::default(),
                 FunctionBody::new(
                     StatementList::new(
-                        [StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(Literal::new(10, Span::new((5, 31), (5, 33))).into())),
-                        ))],
+                        [StatementListItem::Statement(
+                            Statement::Return(Return::new(Some(
+                                Literal::new(10, Span::new((5, 31), (5, 33))).into(),
+                            )))
+                            .into(),
+                        )],
                         PSEUDO_LINEAR_POS,
                         false,
                     ),

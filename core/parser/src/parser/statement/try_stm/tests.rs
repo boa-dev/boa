@@ -172,8 +172,8 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
         vec![Statement::Try(Try::new(
             Block::default(),
             ErrorHandler::Finally(Finally::from(Block::from((
-                vec![StatementListItem::Statement(Statement::Var(
-                    VarDeclaration(
+                vec![StatementListItem::Statement(
+                    Statement::Var(VarDeclaration(
                         vec![Variable::from_identifier(
                             Identifier::new(
                                 interner.get_or_intern_static("x", utf16!("x")),
@@ -183,8 +183,9 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
                         )]
                         .try_into()
                         .unwrap(),
-                    ),
-                ))],
+                    ))
+                    .into(),
+                )],
                 PSEUDO_LINEAR_POS,
             )))),
         ))

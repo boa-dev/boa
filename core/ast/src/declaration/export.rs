@@ -103,7 +103,7 @@ pub enum ExportDeclaration {
     /// Default async generator export.
     DefaultAsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
     /// Default class declaration export.
-    DefaultClassDeclaration(ClassDeclaration),
+    DefaultClassDeclaration(Box<ClassDeclaration>),
     /// Default assignment expression export.
     DefaultAssignmentExpression(Expression),
 }

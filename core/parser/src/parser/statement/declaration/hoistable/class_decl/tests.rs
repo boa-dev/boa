@@ -213,8 +213,8 @@ fn check_new_target_with_property_access() {
     );
 
     let script = [
-        StatementListItem::Declaration(class.into()),
-        StatementListItem::Declaration(const_decl.into()),
+        StatementListItem::Declaration(Declaration::ClassDeclaration(class.into()).into()),
+        StatementListItem::Declaration(Declaration::Lexical(const_decl).into()),
     ];
 
     check_script_parser(

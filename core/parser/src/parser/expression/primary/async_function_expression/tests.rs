@@ -34,11 +34,12 @@ fn check_async_expression() {
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Literal::new(1, Span::new((2, 12), (2, 13))).into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),

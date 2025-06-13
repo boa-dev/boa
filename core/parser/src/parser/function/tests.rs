@@ -46,15 +46,16 @@ fn check_basic() {
             params,
             FunctionBody::new(
                 StatementList::new(
-                    [StatementListItem::Statement(Statement::Return(
-                        Return::new(Some(
+                    [StatementListItem::Statement(
+                        Statement::Return(Return::new(Some(
                             Identifier::new(
                                 interner.get_or_intern_static("a", utf16!("a")),
                                 Span::new((1, 26), (1, 27)),
                             )
                             .into(),
-                        )),
-                    ))],
+                        )))
+                        .into(),
+                    )],
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
@@ -108,15 +109,16 @@ fn check_duplicates_strict_off() {
             params,
             FunctionBody::new(
                 StatementList::new(
-                    [StatementListItem::Statement(Statement::Return(
-                        Return::new(Some(
+                    [StatementListItem::Statement(
+                        Statement::Return(Return::new(Some(
                             Identifier::new(
                                 interner.get_or_intern_static("a", utf16!("a")),
                                 Span::new((1, 29), (1, 30)),
                             )
                             .into(),
-                        )),
-                    ))],
+                        )))
+                        .into(),
+                    )],
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
@@ -162,15 +164,16 @@ fn check_basic_semicolon_insertion() {
             params,
             FunctionBody::new(
                 StatementList::new(
-                    [StatementListItem::Statement(Statement::Return(
-                        Return::new(Some(
+                    [StatementListItem::Statement(
+                        Statement::Return(Return::new(Some(
                             Identifier::new(
                                 interner.get_or_intern_static("a", utf16!("a")),
                                 Span::new((1, 26), (1, 27)),
                             )
                             .into(),
-                        )),
-                    ))],
+                        )))
+                        .into(),
+                    )],
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
@@ -209,9 +212,9 @@ fn check_empty_return() {
             params,
             FunctionBody::new(
                 StatementList::new(
-                    [StatementListItem::Statement(Statement::Return(
-                        Return::new(None),
-                    ))],
+                    [StatementListItem::Statement(
+                        Statement::Return(Return::new(None)).into(),
+                    )],
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
@@ -250,9 +253,9 @@ fn check_empty_return_semicolon_insertion() {
             params,
             FunctionBody::new(
                 StatementList::new(
-                    [StatementListItem::Statement(Statement::Return(
-                        Return::new(None),
-                    ))],
+                    [StatementListItem::Statement(
+                        Statement::Return(Return::new(None)).into(),
+                    )],
                     PSEUDO_LINEAR_POS,
                     false,
                 ),
@@ -442,8 +445,8 @@ fn check_arrow() {
                 params,
                 FunctionBody::new(
                     StatementList::new(
-                        [StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
+                        [StatementListItem::Statement(
+                            Statement::Return(Return::new(Some(
                                 Binary::new(
                                     ArithmeticOp::Add.into(),
                                     Identifier::new(
@@ -458,8 +461,9 @@ fn check_arrow() {
                                     .into(),
                                 )
                                 .into(),
-                            )),
-                        ))],
+                            )))
+                            .into(),
+                        )],
                         PSEUDO_LINEAR_POS,
                         false,
                     ),
@@ -509,8 +513,8 @@ fn check_arrow_semicolon_insertion() {
                 params,
                 FunctionBody::new(
                     StatementList::new(
-                        [StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(
+                        [StatementListItem::Statement(
+                            Statement::Return(Return::new(Some(
                                 Binary::new(
                                     ArithmeticOp::Add.into(),
                                     Identifier::new(
@@ -525,8 +529,9 @@ fn check_arrow_semicolon_insertion() {
                                     .into(),
                                 )
                                 .into(),
-                            )),
-                        ))],
+                            )))
+                            .into(),
+                        )],
                         PSEUDO_LINEAR_POS,
                         false,
                     ),
@@ -576,9 +581,9 @@ fn check_arrow_epty_return() {
                 params,
                 FunctionBody::new(
                     StatementList::new(
-                        [StatementListItem::Statement(Statement::Return(
-                            Return::new(None),
-                        ))],
+                        [StatementListItem::Statement(
+                            Statement::Return(Return::new(None)).into(),
+                        )],
                         PSEUDO_LINEAR_POS,
                         false,
                     ),
@@ -628,9 +633,9 @@ fn check_arrow_empty_return_semicolon_insertion() {
                 params,
                 FunctionBody::new(
                     StatementList::new(
-                        [StatementListItem::Statement(Statement::Return(
-                            Return::new(None),
-                        ))],
+                        [StatementListItem::Statement(
+                            Statement::Return(Return::new(None)).into(),
+                        )],
                         PSEUDO_LINEAR_POS,
                         false,
                     ),
@@ -678,15 +683,16 @@ fn check_arrow_assignment() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 27), (1, 28)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -738,15 +744,16 @@ fn check_arrow_assignment_nobrackets() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 18), (1, 19)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -798,15 +805,16 @@ fn check_arrow_assignment_noparenthesis() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 25), (1, 26)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -858,15 +866,16 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 16), (1, 17)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -930,15 +939,16 @@ fn check_arrow_assignment_2arg() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 30), (1, 31)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -1002,15 +1012,16 @@ fn check_arrow_assignment_2arg_nobrackets() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 21), (1, 22)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -1084,15 +1095,16 @@ fn check_arrow_assignment_3arg() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 33), (1, 34)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),
@@ -1166,15 +1178,16 @@ fn check_arrow_assignment_3arg_nobrackets() {
                         params,
                         FunctionBody::new(
                             StatementList::new(
-                                [StatementListItem::Statement(Statement::Return(
-                                    Return::new(Some(
+                                [StatementListItem::Statement(
+                                    Statement::Return(Return::new(Some(
                                         Identifier::new(
                                             interner.get_or_intern_static("a", utf16!("a")),
                                             Span::new((1, 24), (1, 25)),
                                         )
                                         .into(),
-                                    )),
-                                ))],
+                                    )))
+                                    .into(),
+                                )],
                                 PSEUDO_LINEAR_POS,
                                 false,
                             ),

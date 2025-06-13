@@ -12,7 +12,9 @@ const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(
 
 fn stmt_block_break_only(break_stmt: Break) -> Statement {
     Block::from((
-        vec![StatementListItem::Statement(Statement::Break(break_stmt))],
+        vec![StatementListItem::Statement(
+            Statement::Break(break_stmt).into(),
+        )],
         PSEUDO_LINEAR_POS,
     ))
     .into()

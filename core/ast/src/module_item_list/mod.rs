@@ -454,7 +454,7 @@ pub enum ModuleItem {
     /// See [`ImportDeclaration`].
     ImportDeclaration(ImportDeclaration),
     /// See [`ExportDeclaration`].
-    ExportDeclaration(ExportDeclaration),
+    ExportDeclaration(Box<ExportDeclaration>),
     /// See [`StatementListItem`].
     StatementListItem(StatementListItem),
 }

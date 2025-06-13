@@ -437,14 +437,17 @@ fn module_export_reserved() {
                 ))
                 .into(),
             ),
-            ModuleItem::ExportDeclaration(ExportDeclaration::List(
-                vec![
-                    ExportSpecifier::new(Sym::NULL, val, false),
-                    ExportSpecifier::new(Sym::TRUE, val, false),
-                    ExportSpecifier::new(Sym::FALSE, val, false),
-                ]
+            ModuleItem::ExportDeclaration(
+                ExportDeclaration::List(
+                    vec![
+                        ExportSpecifier::new(Sym::NULL, val, false),
+                        ExportSpecifier::new(Sym::TRUE, val, false),
+                        ExportSpecifier::new(Sym::FALSE, val, false),
+                    ]
+                    .into(),
+                )
                 .into(),
-            )),
+            ),
         ],
         interner,
     );

@@ -1727,7 +1727,7 @@ fn global_declaration_instantiation(
         //     ii. Else,
         //         1. Perform ? env.CreateMutableBinding(dn, false).
         if let StatementListItem::Declaration(declaration) = statement {
-            match declaration {
+            match declaration.as_ref() {
                 Declaration::ClassDeclaration(class) => {
                     for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
@@ -2107,7 +2107,7 @@ fn function_declaration_instantiation(
     //             1. Perform ! lexEnv.CreateMutableBinding(dn, false).
     for statement in body.statements() {
         if let StatementListItem::Declaration(declaration) = statement {
-            match declaration {
+            match declaration.as_ref() {
                 Declaration::ClassDeclaration(class) => {
                     for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
@@ -2410,7 +2410,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
         //     ii. Else,
         //         1. Perform ? lexEnv.CreateMutableBinding(dn, false).
         if let StatementListItem::Declaration(declaration) = statement {
-            match declaration {
+            match declaration.as_ref() {
                 Declaration::ClassDeclaration(class) => {
                     for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
