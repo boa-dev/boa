@@ -18,7 +18,6 @@ struct Animal {
 }
 
 #[boa_class]
-#[boa(rename = "camelCase")]
 impl Animal {
     #[boa(constructor)]
     #[allow(clippy::needless_pass_by_value)]
