@@ -6,10 +6,8 @@ use crate::lexer::{
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use icu_properties::props::{IdContinue, IdStart};
 use icu_properties::{CodePointSetData, CodePointSetDataBorrowed};
-
 /// Identifier lexing.
 ///
 /// More information:
@@ -66,8 +64,6 @@ impl<R> Tokenizer<R> for Identifier {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Identifier", "Lexing");
-
         let (identifier_name, contains_escaped_chars) =
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
@@ -105,8 +101,6 @@ impl Identifier {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Identifier::take_identifier_name", "Lexing");
-
         let mut contains_escaped_chars = false;
         let mut identifier_name = if init == '\\' && cursor.next_if(0x75 /* u */)? {
             let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos.position())?;

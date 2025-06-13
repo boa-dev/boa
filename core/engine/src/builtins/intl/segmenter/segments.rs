@@ -1,5 +1,4 @@
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use itertools::Itertools;
 
 use crate::{
@@ -20,8 +19,6 @@ pub(crate) struct Segments {
 
 impl IntrinsicObject for Segments {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("%SegmentsPrototype%", "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::containing, js_string!("containing"), 1)
             .static_method(Self::iterator, JsSymbol::iterator(), 0)

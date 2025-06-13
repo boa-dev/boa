@@ -5,7 +5,6 @@ use crate::source::ReadChar;
 use bitflags::bitflags;
 use boa_ast::{Position, PositionGroup};
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
 use std::str::{self, FromStr};
@@ -46,8 +45,6 @@ impl<R> Tokenizer<R> for RegexLiteral {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("RegexLiteral", "Lexing");
-
         let mut body = Vec::new();
         if self.init_with_eq {
             body.push(u32::from(b'='));

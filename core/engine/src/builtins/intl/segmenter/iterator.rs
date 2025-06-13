@@ -1,5 +1,4 @@
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_segmenter::{
     iterators::{GraphemeClusterBreakIterator, SentenceBreakIterator, WordBreakIterator},
     scaffold::{Latin1, Utf16},
@@ -61,8 +60,6 @@ pub(crate) struct SegmentIterator {
 
 impl IntrinsicObject for SegmentIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("%SegmentIteratorPrototype%", "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),

@@ -36,7 +36,6 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
@@ -162,7 +161,6 @@ impl Module {
         realm: Option<Realm>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let _timer = Profiler::global().start_event("Module parsing", "Main");
         let path = src.path().map(Path::to_path_buf);
         let realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -537,8 +535,6 @@ impl Module {
     #[allow(dropping_copy_types)]
     #[inline]
     pub fn load_link_evaluate(&self, context: &mut Context) -> JsPromise {
-        let main_timer = Profiler::global().start_event("Module evaluation", "Main");
-
         let promise = self
             .load(context)
             .then(
@@ -566,10 +562,6 @@ impl Module {
                 None,
                 context,
             );
-
-        // The main_timer needs to be dropped before the Profiler is.
-        drop(main_timer);
-        Profiler::global().drop();
 
         promise
     }

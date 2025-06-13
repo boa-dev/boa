@@ -14,7 +14,6 @@ use rustc_hash::FxHashMap;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_parser::{source::ReadChar, Parser, Source};
-use boa_profiler::Profiler;
 
 use crate::{
     bytecompiler::{global_declaration_instantiation_context, ByteCompiler},
@@ -85,7 +84,6 @@ impl Script {
         realm: Option<Realm>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let _timer = Profiler::global().start_event("Script parsing", "Main");
         let path = src.path().map(Path::to_path_buf);
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
@@ -122,8 +120,6 @@ impl Script {
         if let Some(codeblock) = &*codeblock {
             return Ok(codeblock.clone());
         }
-
-        let _timer = Profiler::global().start_event("Script compilation", "Main");
 
         let mut annex_b_function_names = Vec::new();
 
@@ -171,8 +167,6 @@ impl Script {
     ///
     /// [`JobExecutor::run_jobs`]: crate::job::JobExecutor::run_jobs
     pub fn evaluate(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Execution", "Main");
-
         self.prepare_run(context)?;
         let record = context.run();
 
@@ -206,8 +200,6 @@ impl Script {
         context: &mut Context,
         budget: u32,
     ) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Async Execution", "Main");
-
         self.prepare_run(context)?;
 
         let record = context.run_async_with_budget(budget).await;

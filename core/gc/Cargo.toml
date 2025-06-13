@@ -19,7 +19,6 @@ icu = ["dep:icu_locale_core"]
 boa_string = ["dep:boa_string"]
 
 [dependencies]
-boa_profiler.workspace = true
 boa_macros.workspace = true
 hashbrown.workspace = true
 

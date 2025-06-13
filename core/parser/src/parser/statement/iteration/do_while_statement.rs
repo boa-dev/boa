@@ -18,7 +18,6 @@ use crate::{
 };
 use boa_ast::{statement::DoWhileLoop, Keyword, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Do...while statement parsing
 ///
@@ -62,8 +61,6 @@ where
     type Output = DoWhileLoop;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("DoWhileStatement", "Parsing");
-
         cursor.expect((Keyword::Do, false), "do while statement", interner)?;
 
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();

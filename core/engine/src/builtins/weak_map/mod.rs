@@ -22,7 +22,6 @@ use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 type NativeWeakMap = boa_gc::WeakMap<ErasedVTableObject, JsValue>;
 
@@ -35,7 +34,6 @@ impl IntrinsicObject for WeakMap {
     }
 
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(
                 JsSymbol::to_string_tag(),

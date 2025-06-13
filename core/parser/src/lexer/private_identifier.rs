@@ -4,7 +4,6 @@ use crate::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Toke
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Private Identifier lexing.
 ///
@@ -32,8 +31,6 @@ impl<R> Tokenizer<R> for PrivateIdentifier {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("PrivateIdentifier", "Lexing");
-
         if let Some(next_ch) = cursor.next_char()? {
             if let Ok(c) = char::try_from(next_ch) {
                 match c {

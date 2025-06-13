@@ -21,7 +21,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use temporal_rs::{
     options::{RoundingIncrement, RoundingMode, RoundingOptions, ToStringRoundingOptions, Unit},
     partial::PartialDuration,
@@ -54,8 +53,6 @@ impl BuiltInObject for Duration {
 
 impl IntrinsicObject for Duration {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_years = BuiltInBuilder::callable(realm, Self::get_years)
             .name(js_string!("get Years"))
             .build();

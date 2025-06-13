@@ -21,7 +21,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, RoundingMode, ToStringRoundingOptions, Unit},
     partial::PartialTime,
@@ -42,7 +41,6 @@ impl BuiltInObject for PlainTime {
 
 impl IntrinsicObject for PlainTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         let get_hour = BuiltInBuilder::callable(realm, Self::get_hour)
             .name(js_string!("get hour"))
             .build();

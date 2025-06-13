@@ -24,7 +24,6 @@ use boa_ast::{
     Punctuator,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses an array literal.
 ///
@@ -61,7 +60,6 @@ where
     type Output = literal::ArrayLiteral;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
         let mut has_trailing_comma_spread = false;
         let mut next_comma = false;

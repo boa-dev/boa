@@ -9,7 +9,6 @@ use crate::{
 };
 use boa_ast::{statement::Return, Keyword, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Return statement parsing
 ///
@@ -46,7 +45,6 @@ where
     type Output = Return;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect((Keyword::Return, false), "return statement", interner)?;
 
         if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {

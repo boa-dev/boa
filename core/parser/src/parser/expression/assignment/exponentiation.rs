@@ -20,7 +20,6 @@ use boa_ast::{
     Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses an exponentiation expression.
 ///
@@ -57,8 +56,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
-
         let next = cursor.peek(0, interner).or_abrupt()?;
         match next.kind() {
             TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, _))
