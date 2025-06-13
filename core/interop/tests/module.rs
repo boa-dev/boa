@@ -19,7 +19,6 @@ struct Animal {
 }
 
 #[boa_class]
-#[boa(rename = "camelCase")]
 impl Animal {
     #[boa(constructor)]
     #[allow(clippy::needless_pass_by_value)]
@@ -48,8 +47,6 @@ impl Animal {
 }
 
 #[boa_module]
-#[boa(rename = "camelCase")]
-#[boa(rename_class = "PascalCase")]
 mod hello {
     use boa_engine::{js_string, JsString};
 
@@ -60,6 +57,9 @@ mod hello {
     type Animal = super::Animal;
 
     const SOME_LITERAL_NUMBER: i32 = 1234;
+
+    #[boa(name = "this_is_different")]
+    const SOME_OTHER_LITERAL: i32 = 5678;
 }
 
 const ASSERT_DECL: &str = r"
@@ -90,6 +90,8 @@ fn boa_module() {
                 import * as m from '/hello.js';
 
                 assertEq(m.someLiteralNumber, 1234, "Const value");
+                assertEq(m.this_is_different, 5678, "Renamed const value");
+
                 assertEq(m.world(), "hello world", "Method call");
 
                 let pet = new m.Animal("dog", 8);

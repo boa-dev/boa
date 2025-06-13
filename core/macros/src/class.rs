@@ -640,8 +640,9 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the input.
     let mut impl_ = syn::parse_macro_input!(input as ItemImpl);
 
-    let renaming = match RenameScheme::from_attrs(&mut impl_.attrs) {
-        Ok(r) => r,
+    let renaming = match RenameScheme::from_named_attrs(&mut impl_.attrs, "rename") {
+        Ok(Some(r)) => r,
+        Ok(None) => RenameScheme::CamelCase,
         Err((span, msg)) => {
             return syn::Error::new(span, msg).to_compile_error().into();
         }
