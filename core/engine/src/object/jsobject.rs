@@ -287,6 +287,42 @@ impl JsObject {
         std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
     }
 
+    /// Checks that all own property keys and values are equal (recursively).
+    #[must_use]
+    #[inline]
+    pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &mut Context) -> bool {
+        let Ok(l_keys) = lhs.own_property_keys(context) else {
+            return false;
+        };
+        let Ok(r_keys) = lhs.own_property_keys(context) else {
+            return false;
+        };
+
+        if l_keys.len() != r_keys.len() {
+            return false;
+        }
+
+        for key in l_keys.iter() {
+            let Some(vl) = lhs.get_property(key) else {
+                return false;
+            };
+            let Some(vr) = rhs.get_property(key) else {
+                return false;
+            };
+
+            match (vl.value(), vr.value()) {
+                (None, None) => {}
+                (Some(lv), Some(rv)) => {
+                    if lv.deep_strict_equals(rv, context) == false {
+                        return false;
+                    }
+                }
+                _ => return false,
+            }
+        }
+        true
+    }
+
     /// Converts an object to a primitive.
     ///
     /// Diverges from the spec to prevent a stack overflow when the object is recursive.

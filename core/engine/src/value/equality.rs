@@ -2,6 +2,18 @@ use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
 use crate::{builtins::Number, Context, JsVariant};
 
 impl JsValue {
+    /// Deep equality comparison, strict. If the value is an object/array, also compare
+    /// the key-values. Uses `strict_equals()` otherwise.
+    #[must_use]
+    pub fn deep_strict_equals(&self, other: &Self, context: &mut Context) -> bool {
+        if let Some(x) = self.as_object() {
+            if let Some(y) = other.as_object() {
+                return JsObject::deep_strict_equals(x, y, context);
+            }
+        }
+        self.strict_equals(other)
+    }
+
     /// Strict equality comparison.
     ///
     /// This method is executed when doing strict equality comparisons with the `===` operator.

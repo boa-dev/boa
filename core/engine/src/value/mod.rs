@@ -49,6 +49,7 @@ mod equality;
 mod hash;
 mod inner;
 mod integer;
+mod macros;
 mod operations;
 mod r#type;
 mod variant;
