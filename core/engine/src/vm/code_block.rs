@@ -19,6 +19,7 @@ use thin_vec::ThinVec;
 
 use super::{
     opcode::{ByteCode, Instruction, InstructionIterator},
+    source_map::SourceMap,
     InlineCache,
 };
 
@@ -154,6 +155,9 @@ pub struct CodeBlock {
 
     /// source text of the code block
     pub(crate) source_text_spanned: SpannedSourceText,
+
+    /// Bytecode to source code mapping.
+    pub(crate) source_map: SourceMap,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -177,6 +181,7 @@ impl CodeBlock {
             handlers: ThinVec::default(),
             ic: Box::default(),
             source_text_spanned: SpannedSourceText::new_empty(),
+            source_map: SourceMap::default(),
         }
     }
 
@@ -994,6 +999,35 @@ impl Display for CodeBlock {
                     handler.handler(),
                     handler.environment_count,
                 )?;
+            }
+        }
+        f.write_str("Source Map:")?;
+        if self.source_map.entries().is_empty() {
+            f.write_str(" <empty>\n")?;
+        } else {
+            f.write_char('\n')?;
+
+            let bytecode_len = self.bytecode.bytecode.len() as u32;
+            for (i, handler) in self.source_map.entries().windows(2).enumerate() {
+                let current = handler[0];
+                let next = handler.get(1);
+
+                write!(
+                    f,
+                    "    {i:04}: {:?}: ",
+                    current.start_pc..next.map_or(bytecode_len, |entry| entry.start_pc),
+                )?;
+
+                if let Some(position) = current.position {
+                    writeln!(
+                        f,
+                        "({}, {})",
+                        position.line_number(),
+                        position.column_number()
+                    )?;
+                } else {
+                    f.write_str("unknown")?;
+                }
             }
         }
         Ok(())

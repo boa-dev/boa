@@ -19,6 +19,7 @@ use crate::{
     js_string,
     vm::{
         opcode::{BindingOpcode, ByteCodeEmitter},
+        source_map::SourceMapBuilder,
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
     },
     JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
@@ -41,7 +42,7 @@ use boa_ast::{
     pattern::Pattern,
     property::MethodDefinitionKind,
     scope::{BindingLocator, BindingLocatorError, FunctionScopes, IdentifierReference, Scope},
-    Declaration, Expression, LinearSpan, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearSpan, Position, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
@@ -430,6 +431,8 @@ pub struct ByteCompiler<'ctx> {
     /// Bytecode
     pub(crate) bytecode: ByteCodeEmitter,
 
+    pub(crate) source_map_builder: SourceMapBuilder,
+
     pub(crate) constants: ThinVec<Constant>,
 
     /// Locators for all bindings in the codeblock.
@@ -536,6 +539,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             function_name: name,
             length: 0,
             bytecode: ByteCodeEmitter::new(),
+            source_map_builder: SourceMapBuilder::default(),
             constants: ThinVec::default(),
             bindings: Vec::default(),
             local_binding_registers: FxHashMap::default(),
@@ -738,6 +742,20 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     fn next_opcode_location(&mut self) -> u32 {
         self.bytecode.next_opcode_location()
+    }
+
+    pub(crate) fn push_source_position<T>(&mut self, position: T)
+    where
+        T: Into<Option<Position>>,
+    {
+        let start_pc = self.next_opcode_location();
+        self.source_map_builder
+            .push_source_position(start_pc, position.into());
+    }
+
+    pub(crate) fn pop_source_position(&mut self) {
+        let start_pc = self.next_opcode_location();
+        self.source_map_builder.pop_source_position(start_pc);
     }
 
     pub(crate) fn emit_get_function(&mut self, dst: &Register, index: u32) {
@@ -1927,6 +1945,8 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
         }
 
+        self.push_source_position(call.span().start());
+
         let contains_spread = call
             .args()
             .iter()
@@ -1981,6 +2001,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             CallKind::New if contains_spread => self.bytecode.emit_new_spread(),
             CallKind::New => self.bytecode.emit_new((call.args().len() as u32).into()),
         }
+        self.pop_source_position();
         self.pop_into_register(dst);
     }
 
@@ -1994,6 +2015,8 @@ impl<'ctx> ByteCompiler<'ctx> {
             self.patch_handler(async_handler);
         }
         self.r#return(false);
+
+        let final_bytecode_len = self.next_opcode_location();
 
         let mapped_arguments_binding_indices = self
             .emitted_mapped_arguments_object_opcode
@@ -2018,6 +2041,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),
             source_text_spanned: self.spanned_source_text,
+            source_map: self.source_map_builder.build(final_bytecode_len),
         }
     }
 

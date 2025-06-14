@@ -657,9 +657,19 @@ impl From<JsNativeError> for JsError {
 impl fmt::Display for JsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
-            Repr::Native(e) => e.fmt(f),
-            Repr::Opaque(v) => v.display().fmt(f),
+            Repr::Native(e) => e.fmt(f)?,
+            Repr::Opaque(v) => v.display().fmt(f)?,
         }
+
+        if let Some(position) = self.position {
+            write!(
+                f,
+                ": <source>:{}:{}",
+                position.line_number(),
+                position.column_number()
+            )?;
+        }
+        Ok(())
     }
 }
 
