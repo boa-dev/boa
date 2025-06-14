@@ -1,4 +1,4 @@
-//! Local identifier Expression.
+//! `this` ECMAScript expression.
 
 use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},

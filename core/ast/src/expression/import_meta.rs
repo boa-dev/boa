@@ -1,4 +1,4 @@
-//! Local identifier Expression.
+//! `import.meta` ECMAScript expression.
 
 use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},

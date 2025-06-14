@@ -1,4 +1,4 @@
-//! Local identifier Expression.
+//! `target.new` ECMAScript expression.
 
 use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},
