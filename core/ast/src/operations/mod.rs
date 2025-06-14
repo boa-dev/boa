@@ -455,18 +455,6 @@ impl IdentList for Vec<Sym> {
     }
 }
 
-// impl IdentList for Vec<Identifier> {
-//     fn add(&mut self, value: Sym, _function: bool) {
-//         self.push(Identifier::new(value));
-//     }
-// }
-
-// impl IdentList for Vec<(Identifier, bool)> {
-//     fn add(&mut self, value: Sym, function: bool) {
-//         self.push((Identifier::new(value), function));
-//     }
-// }
-
 impl IdentList for Vec<(Sym, bool)> {
     fn add(&mut self, value: Sym, function: bool) {
         self.push((value, function));
