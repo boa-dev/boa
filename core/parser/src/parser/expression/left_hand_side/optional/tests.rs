@@ -28,7 +28,7 @@ fn simple() {
                         .into(),
                     },
                     true,
-                    Span::new((1, 4), (1, 8)),
+                    Span::new((1, 2), (1, 8)),
                 )]
                 .into(),
                 Span::new((1, 1), (1, 8)),
@@ -63,7 +63,7 @@ fn complex_chain() {
                             .into(),
                         },
                         true,
-                        Span::new((1, 4), (1, 5)),
+                        Span::new((1, 2), (1, 5)),
                     ),
                     OptionalOperation::new(
                         OptionalOperationKind::Call {
@@ -84,7 +84,7 @@ fn complex_chain() {
                             )),
                         },
                         true,
-                        Span::new((1, 13), (1, 18)),
+                        Span::new((1, 11), (1, 18)),
                     ),
                 ]
                 .into(),

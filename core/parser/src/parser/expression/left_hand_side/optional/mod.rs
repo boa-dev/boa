@@ -138,7 +138,6 @@ where
             };
 
             let token = cursor.peek(0, interner).or_abrupt()?;
-            let token_span_start = token.span().start();
             let (item, item_span) = match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let (args, args_span) = Arguments::new(self.allow_yield, self.allow_await)
@@ -159,18 +158,19 @@ where
                         OptionalOperationKind::SimplePropertyAccess {
                             field: PropertyAccessField::Expr(Box::new(idx)),
                         },
-                        Span::new(token_span_start, end),
+                        Span::new(token_span.start(), end),
                     )
                 }
                 TokenKind::TemplateMiddle(_) | TokenKind::TemplateNoSubstitution(_) => {
                     return Err(Error::general(
                         "Invalid tagged template on optional chain",
-                        token_span_start,
+                        token_span.start(),
                     ))
                 }
                 _ => {
                     let token = cursor.next(interner)?.expect("token disappeared");
-                    parse_const_access(&token, interner)?
+                    let (item, item_span) = parse_const_access(&token, interner)?;
+                    (item, Span::new(token_span.start(), item_span.end()))
                 }
             };
 
