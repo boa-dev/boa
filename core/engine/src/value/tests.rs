@@ -1472,3 +1472,90 @@ mod abstract_relational_comparison {
         ]);
     }
 }
+
+mod js_value_macro {
+    use crate::{js_value, run_test_actions, JsValue, TestAction};
+    use std::ops::Neg;
+
+    #[test]
+    fn primitive_values() {
+        run_test_actions([
+            TestAction::assert_eq("true", js_value!(true)),
+            TestAction::assert_eq("false", js_value!(false)),
+            TestAction::assert_eq("1", js_value!(1)),
+            TestAction::assert_eq("0xFFFF_FFFF", js_value!(4_294_967_295u32)),
+            TestAction::assert_eq("1.5", js_value!(1.5)),
+            TestAction::assert_eq("Infinity", js_value!(f32::INFINITY)),
+            TestAction::assert_eq("-Infinity", js_value!(f32::INFINITY.neg())),
+        ]);
+    }
+
+    #[test]
+    fn arrays() {
+        run_test_actions([
+            TestAction::assert_with_op("[1, 2, 3]", |value, context| {
+                let v = js_value!([1, 2, 3], context);
+                value.deep_strict_equals(&v, context).unwrap()
+            }),
+            TestAction::assert_with_op("[1, [2], 3]", |value, context| {
+                value
+                    .deep_strict_equals(&js_value!([1, [2], 3], context), context)
+                    .unwrap()
+            }),
+            TestAction::assert_with_op("[1, [2], [], [[false]], 3]", |value, context| {
+                value
+                    .deep_strict_equals(&js_value!([1, [2], [], [[false]], 3], context), context)
+                    .unwrap()
+            }),
+        ]);
+    }
+
+    #[test]
+    fn objects() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": 1, "world": null })"#,
+            |value, context| {
+                value
+                    .deep_strict_equals(&js_value!({ "hello": 1, "world": () }, context), context)
+                    .unwrap()
+            },
+        )]);
+    }
+
+    #[test]
+    fn vars() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": 1, "world": null })"#,
+            |value, context| {
+                let hello = JsValue::from(1);
+                let world = JsValue::null();
+
+                value
+                    .deep_strict_equals(
+                        &js_value!({ "hello": hello, "world": world }, context),
+                        context,
+                    )
+                    .expect("No error should happen.")
+            },
+        )]);
+    }
+
+    #[test]
+    fn complex() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": [{ "foo": [1, []] }], "world": { "bar": false } })"#,
+            |value, context| {
+                let bar = JsValue::from(false);
+                let other = js_value!({
+                        "hello": [{ "foo": [1, []] }],
+                        // Allow comments
+                        "world": { "bar": bar },
+                    }, context);
+
+                value
+                    .deep_strict_equals(&other, context)
+                    .expect("No error should happen here.")
+            },
+        )]);
+    }
+}
