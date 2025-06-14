@@ -16,7 +16,7 @@ use crate::{
         access::{PrivatePropertyAccess, SuperPropertyAccess},
         literal::PropertyDefinition,
         operator::BinaryInPrivate,
-        Await, Call, Identifier, OptionalOperationKind, SuperCall, Yield,
+        Await, Call, Identifier, NewTarget, OptionalOperationKind, SuperCall, This, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -311,14 +311,18 @@ where
             node.visit_with(self)
         }
 
-        fn visit_expression(&mut self, node: &'ast Expression) -> ControlFlow<Self::BreakTy> {
-            if node == &Expression::This && self.0 == ContainsSymbol::This {
+        fn visit_this(&mut self, _node: &'ast This) -> ControlFlow<Self::BreakTy> {
+            if self.0 == ContainsSymbol::This {
                 return ControlFlow::Break(());
             }
-            if node == &Expression::NewTarget && self.0 == ContainsSymbol::NewTarget {
+            ControlFlow::Continue(())
+        }
+
+        fn visit_new_target(&mut self, _node: &'ast NewTarget) -> ControlFlow<Self::BreakTy> {
+            if self.0 == ContainsSymbol::NewTarget {
                 return ControlFlow::Break(());
             }
-            node.visit_with(self)
+            ControlFlow::Continue(())
         }
     }
 
@@ -451,21 +455,15 @@ impl IdentList for Vec<Sym> {
     }
 }
 
-impl IdentList for Vec<Identifier> {
-    fn add(&mut self, value: Sym, _function: bool) {
-        self.push(Identifier::new(value));
-    }
-}
-
-impl IdentList for Vec<(Identifier, bool)> {
+impl IdentList for Vec<(Sym, bool)> {
     fn add(&mut self, value: Sym, function: bool) {
-        self.push((Identifier::new(value), function));
+        self.push((value, function));
     }
 }
 
-impl IdentList for FxHashSet<Identifier> {
+impl IdentList for FxHashSet<Sym> {
     fn add(&mut self, value: Sym, _function: bool) {
-        self.insert(Identifier::new(value));
+        self.insert(value);
     }
 }
 
@@ -613,7 +611,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for BoundNamesVisitor<'_, T> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
 #[must_use]
-pub fn bound_names<'a, N>(node: &'a N) -> Vec<Identifier>
+pub fn bound_names<'a, N>(node: &'a N) -> Vec<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -651,7 +649,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
             // ModuleItem : ExportDeclaration
             ModuleItem::ExportDeclaration(export) => {
                 // 1. If ExportDeclaration is export VariableStatement, return a new empty List.
-                if matches!(export, ExportDeclaration::VarStatement(_)) {
+                if matches!(export.as_ref(), ExportDeclaration::VarStatement(_)) {
                     ControlFlow::Continue(())
                 } else {
                     // 2. Return the BoundNames of ExportDeclaration.
@@ -789,7 +787,7 @@ impl<'ast, T: IdentList> Visitor<'ast> for LexicallyDeclaredNamesVisitor<'_, T> 
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 #[must_use]
-pub fn lexically_declared_names<'a, N>(node: &'a N) -> Vec<Identifier>
+pub fn lexically_declared_names<'a, N>(node: &'a N) -> Vec<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -806,7 +804,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
 /// [changes]: https://tc39.es/ecma262/#sec-block-duplicates-allowed-static-semantics
 #[must_use]
-pub fn lexically_declared_names_legacy<'a, N>(node: &'a N) -> Vec<(Identifier, bool)>
+pub fn lexically_declared_names_legacy<'a, N>(node: &'a N) -> Vec<(Sym, bool)>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -817,7 +815,7 @@ where
 
 /// The [`Visitor`] used to obtain the var declared names of a node.
 #[derive(Debug)]
-struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Identifier>);
+struct VarDeclaredNamesVisitor<'a>(&'a mut FxHashSet<Sym>);
 
 impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
     type BreakTy = Infallible;
@@ -843,7 +841,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
             // ModuleItem : ExportDeclaration
             ModuleItem::ExportDeclaration(export) => {
                 // 1. If ExportDeclaration is export VariableStatement, return BoundNames of ExportDeclaration.
-                if let ExportDeclaration::VarStatement(var) = export {
+                if let ExportDeclaration::VarStatement(var) = export.as_ref() {
                     BoundNamesVisitor(self.0).visit_var_declaration(var)
                 } else {
                     // 2. Return a new empty List.
@@ -1063,7 +1061,7 @@ impl<'ast> Visitor<'ast> for VarDeclaredNamesVisitor<'_> {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames
 #[must_use]
-pub fn var_declared_names<'a, N>(node: &'a N) -> FxHashSet<Identifier>
+pub fn var_declared_names<'a, N>(node: &'a N) -> FxHashSet<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -1080,7 +1078,7 @@ where
 fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
     for stmt in stmts.statements() {
         if let StatementListItem::Declaration(decl) = stmt {
-            match decl {
+            match decl.as_ref() {
                 // Note
                 // At the top level of a function, or script, function declarations are treated like
                 // var declarations rather than like lexical declarations.
@@ -1104,11 +1102,11 @@ fn top_level_lexicals<T: IdentList>(stmts: &StatementList, names: &mut T) {
 /// This is equivalent to the [`TopLevelVarDeclaredNames`][spec] syntax operation in the spec.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevelvardeclarednames
-fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
+fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Sym>) {
     for stmt in stmts.statements() {
         match stmt {
             StatementListItem::Declaration(decl) => {
-                match decl {
+                match decl.as_ref() {
                     // Note
                     // At the top level of a function, or script, function declarations are treated like
                     // var declarations rather than like lexical declarations.
@@ -1128,8 +1126,8 @@ fn top_level_vars(stmts: &StatementList, names: &mut FxHashSet<Identifier>) {
                 }
             }
             StatementListItem::Statement(stmt) => {
-                let mut stmt = Some(stmt);
-                while let Some(Statement::Labelled(labelled)) = stmt {
+                let mut stmt = Some(stmt.as_ref());
+                while let Some(Statement::Labelled(labelled)) = stmt.as_ref() {
                     match labelled.item() {
                         LabelledItem::FunctionDeclaration(f) => {
                             let _ = BoundNamesVisitor(names).visit_function_declaration(f);
@@ -1762,7 +1760,7 @@ pub enum LexicallyScopedDeclaration<'a> {
 impl LexicallyScopedDeclaration<'_> {
     /// Return the bound names of the declaration.
     #[must_use]
-    pub fn bound_names(&self) -> Vec<Identifier> {
+    pub fn bound_names(&self) -> Vec<Sym> {
         match *self {
             Self::LexicalDeclaration(v) => bound_names(v),
             Self::FunctionDeclaration(f) => bound_names(f),
@@ -1883,19 +1881,20 @@ impl<'ast> Visitor<'ast> for LexicallyScopedDeclarationsVisitor<'_, 'ast> {
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             // StatementListItem : Statement
-            StatementListItem::Statement(Statement::Labelled(labelled)) => {
+            StatementListItem::Statement(statement) => {
                 // 1. If Statement is Statement : LabelledStatement , return LexicallyScopedDeclarations of LabelledStatement.
-                self.visit_labelled(labelled)
-            }
-            StatementListItem::Statement(_) => {
-                // 2. Return a new empty List.
-                ControlFlow::Continue(())
+                if let Statement::Labelled(labelled) = statement.as_ref() {
+                    self.visit_labelled(labelled)
+                } else {
+                    // 2. Return a new empty List.
+                    ControlFlow::Continue(())
+                }
             }
 
             // StatementListItem : Declaration
             StatementListItem::Declaration(declaration) => {
                 // 1. Return a List whose sole element is DeclarationPart of Declaration.
-                self.0.push(declaration.into());
+                self.0.push(declaration.as_ref().into());
                 ControlFlow::Continue(())
             }
         }
@@ -1950,7 +1949,7 @@ impl<'ast> Visitor<'ast> for TopLevelLexicallyScopedDeclarationsVisitor<'_, 'ast
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             // StatementListItem : Declaration
-            StatementListItem::Declaration(d) => match d {
+            StatementListItem::Declaration(d) => match d.as_ref() {
                 // 1. If Declaration is Declaration : HoistableDeclaration , then
                 Declaration::FunctionDeclaration(_)
                 | Declaration::GeneratorDeclaration(_)
@@ -2002,7 +2001,7 @@ pub enum VarScopedDeclaration {
 impl VarScopedDeclaration {
     /// Return the bound names of the declaration.
     #[must_use]
-    pub fn bound_names(&self) -> Vec<Identifier> {
+    pub fn bound_names(&self) -> Vec<Sym> {
         match self {
             Self::VariableDeclaration(v) => bound_names(v),
             Self::FunctionDeclaration(f) => bound_names(f),
@@ -2087,7 +2086,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             StatementListItem::Declaration(_) => ControlFlow::Continue(()),
-            StatementListItem::Statement(s) => self.visit(s),
+            StatementListItem::Statement(s) => self.visit(s.as_ref()),
         }
     }
 
@@ -2194,7 +2193,7 @@ impl<'ast> Visitor<'ast> for VarScopedDeclarationsVisitor<'_> {
         match node {
             // ModuleItem : ExportDeclaration
             ModuleItem::ExportDeclaration(decl) => {
-                if let ExportDeclaration::VarStatement(var) = decl {
+                if let ExportDeclaration::VarStatement(var) = decl.as_ref() {
                     //     1. If ExportDeclaration is export VariableStatement, return VarScopedDeclarations of VariableStatement.
                     self.visit_var_declaration(var)?;
                 }
@@ -2229,7 +2228,7 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
     ) -> ControlFlow<Self::BreakTy> {
         match node {
             StatementListItem::Declaration(d) => {
-                match d {
+                match d.as_ref() {
                     Declaration::FunctionDeclaration(f) => {
                         self.0
                             .push(VarScopedDeclaration::FunctionDeclaration(f.clone()));
@@ -2250,10 +2249,12 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
                 }
                 ControlFlow::Continue(())
             }
-            StatementListItem::Statement(Statement::Labelled(s)) => self.visit(s),
-            StatementListItem::Statement(s) => {
-                VarScopedDeclarationsVisitor(self.0).visit(s)?;
-                ControlFlow::Continue(())
+            StatementListItem::Statement(statement) => {
+                if let Statement::Labelled(labelled) = statement.as_ref() {
+                    self.visit(labelled)
+                } else {
+                    VarScopedDeclarationsVisitor(self.0).visit(statement.as_ref())
+                }
             }
         }
     }
@@ -2287,7 +2288,7 @@ impl<'ast> Visitor<'ast> for TopLevelVarScopedDeclarationsVisitor<'_> {
 /// [spec1]: https://tc39.es/ecma262/#sec-web-compat-globaldeclarationinstantiation
 /// [spec2]: https://tc39.es/ecma262/#sec-web-compat-evaldeclarationinstantiation
 #[must_use]
-pub fn annex_b_function_declarations_names<'a, N>(node: &'a N) -> Vec<Identifier>
+pub fn annex_b_function_declarations_names<'a, N>(node: &'a N) -> Vec<Sym>
 where
     &'a N: Into<NodeRef<'a>>,
 {
@@ -2298,7 +2299,7 @@ where
 
 /// The [`Visitor`] used for [`annex_b_function_declarations_names`].
 #[derive(Debug)]
-struct AnnexBFunctionDeclarationNamesVisitor<'a>(&'a mut Vec<Identifier>);
+struct AnnexBFunctionDeclarationNamesVisitor<'a>(&'a mut Vec<Sym>);
 
 impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     type BreakTy = Infallible;
@@ -2308,7 +2309,7 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         node: &'ast StatementListItem,
     ) -> ControlFlow<Self::BreakTy> {
         match node {
-            StatementListItem::Statement(node) => self.visit(node),
+            StatementListItem::Statement(node) => self.visit(node.as_ref()),
             StatementListItem::Declaration(_) => ControlFlow::Continue(()),
         }
     }
@@ -2333,11 +2334,11 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement_list())?;
         for statement in node.statement_list().statements() {
-            if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
-                statement
-            {
-                let name = function.name();
-                self.0.push(name);
+            if let StatementListItem::Declaration(declaration) = statement {
+                if let Declaration::FunctionDeclaration(function) = declaration.as_ref() {
+                    let name = function.name();
+                    self.0.push(name.sym());
+                }
             }
         }
 
@@ -2353,22 +2354,22 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         for case in node.cases() {
             self.visit(case)?;
             for statement in case.body().statements() {
-                if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
-                    statement
-                {
-                    let name = function.name();
-                    self.0.push(name);
+                if let StatementListItem::Declaration(declaration) = statement {
+                    if let Declaration::FunctionDeclaration(function) = declaration.as_ref() {
+                        let name = function.name();
+                        self.0.push(name.sym());
+                    }
                 }
             }
         }
         if let Some(default) = node.default() {
             self.visit(default)?;
             for statement in default.statements() {
-                if let StatementListItem::Declaration(Declaration::FunctionDeclaration(function)) =
-                    statement
-                {
-                    let name = function.name();
-                    self.0.push(name);
+                if let StatementListItem::Declaration(declaration) = statement {
+                    if let Declaration::FunctionDeclaration(function) = declaration.as_ref() {
+                        let name = function.name();
+                        self.0.push(name.sym());
+                    }
                 }
             }
         }
@@ -2504,7 +2505,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         for statement in node.statement_list().statements() {
             match statement {
                 StatementListItem::Declaration(_) => {}
-                StatementListItem::Statement(node) => self.visit(node)?,
+                StatementListItem::Statement(node) => self.visit(node.as_ref())?,
             }
         }
         ControlFlow::Continue(())
@@ -2524,7 +2525,7 @@ impl<'ast> Visitor<'ast> for ReturnsValueVisitor {
         for statement in node.body().statements() {
             match statement {
                 StatementListItem::Declaration(_) => {}
-                StatementListItem::Statement(node) => self.visit(node)?,
+                StatementListItem::Statement(node) => self.visit(node.as_ref())?,
             }
         }
         ControlFlow::Continue(())

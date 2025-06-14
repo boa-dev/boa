@@ -528,6 +528,7 @@ where
             let token = cursor.peek(0, interner).or_abrupt()?;
             if let TokenKind::PrivateIdentifier(identifier) = token.kind() {
                 let identifier = *identifier;
+                let identifier_span = token.span();
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Keyword((Keyword::In, true)) => {
@@ -543,7 +544,11 @@ where
                         let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
 
-                        return Ok(BinaryInPrivate::new(PrivateName::new(identifier), rhs).into());
+                        return Ok(BinaryInPrivate::new(
+                            PrivateName::new(identifier, identifier_span),
+                            rhs,
+                        )
+                        .into());
                     }
                     _ => {}
                 }

@@ -6,7 +6,6 @@ use crate::{
 };
 use boa_ast::{
     declaration::Binding,
-    expression::Identifier,
     function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, bound_names, lexically_declared_names,
@@ -36,7 +35,7 @@ use boa_ast::operations::annex_b_function_declarations_names;
 #[allow(clippy::unnecessary_wraps)]
 #[allow(clippy::ptr_arg)]
 pub(crate) fn global_declaration_instantiation_context(
-    _annex_b_function_names: &mut Vec<Identifier>,
+    _annex_b_function_names: &mut Vec<Sym>,
     _script: &Script,
     _env: &Scope,
     _context: &mut Context,
@@ -55,7 +54,7 @@ pub(crate) fn global_declaration_instantiation_context(
 /// [spec]: https://tc39.es/ecma262/#sec-globaldeclarationinstantiation
 #[cfg(feature = "annex-b")]
 pub(crate) fn global_declaration_instantiation_context(
-    annex_b_function_names: &mut Vec<Identifier>,
+    annex_b_function_names: &mut Vec<Sym>,
     script: &Script,
     env: &Scope,
     context: &mut Context,
@@ -89,11 +88,11 @@ pub(crate) fn global_declaration_instantiation_context(
         };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
-        if !declared_function_names.contains(&name) {
+        if !declared_function_names.contains(&name.sym()) {
             // SKIP: 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
             // SKIP: 2. If fnDefinable is false, throw a TypeError exception.
             // 3. Append fn to declaredFunctionNames.
-            declared_function_names.push(name);
+            declared_function_names.push(name.sym());
 
             // SKIP: 4. Insert d as the first element of functionsToInitialize.
         }
@@ -197,7 +196,7 @@ pub(crate) fn global_declaration_instantiation_context(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-evaldeclarationinstantiation
 pub(crate) fn eval_declaration_instantiation_context(
-    #[allow(unused, clippy::ptr_arg)] annex_b_function_names: &mut Vec<Identifier>,
+    #[allow(unused, clippy::ptr_arg)] annex_b_function_names: &mut Vec<Sym>,
     body: &Script,
     #[allow(unused)] strict: bool,
     #[allow(unused)] var_env: &Scope,
@@ -259,11 +258,11 @@ pub(crate) fn eval_declaration_instantiation_context(
         };
 
         // a.iv. If declaredFunctionNames does not contain fn, then
-        if !declared_function_names.contains(&name) {
+        if !declared_function_names.contains(&name.sym()) {
             // SKIP: 1. If varEnv is a Global Environment Record, then
 
             // 2. Append fn to declaredFunctionNames.
-            declared_function_names.push(name);
+            declared_function_names.push(name.sym());
 
             // SKIP: 3. Insert d as the first element of functionsToInitialize.
         }
@@ -427,10 +426,10 @@ impl ByteCompiler<'_> {
             };
 
             // a.iv. If declaredFunctionNames does not contain fn, then
-            if !declared_function_names.contains(&name) {
+            if !declared_function_names.contains(&name.sym()) {
                 // 1. Let fnDefinable be ? env.CanDeclareGlobalFunction(fn).
                 let value = self.register_allocator.alloc();
-                let index = self.get_or_insert_name(name);
+                let index = self.get_or_insert_name(name.sym());
                 self.bytecode
                     .emit_can_declare_global_function(value.variable(), index.into());
 
@@ -441,7 +440,7 @@ impl ByteCompiler<'_> {
                 self.patch_jump(exit);
 
                 // 3. Append fn to declaredFunctionNames.
-                declared_function_names.push(name);
+                declared_function_names.push(name.sym());
 
                 // 4. Insert d as the first element of functionsToInitialize.
                 functions_to_initialize.push(declaration.clone());
@@ -556,7 +555,7 @@ impl ByteCompiler<'_> {
             self.emit_get_function(&dst, function_index);
 
             // c. Perform ? env.CreateGlobalFunctionBinding(fn, fo, false).
-            let name_index = self.get_or_insert_name(name);
+            let name_index = self.get_or_insert_name(name.sym());
             self.bytecode.emit_create_global_function_binding(
                 dst.variable(),
                 false.into(),
@@ -676,12 +675,12 @@ impl ByteCompiler<'_> {
                 VarScopedDeclaration::VariableDeclaration(_) => continue,
             };
             // a.iv. If declaredFunctionNames does not contain fn, then
-            if !declared_function_names.contains(&name) {
+            if !declared_function_names.contains(&name.sym()) {
                 // 1. If varEnv is a Global Environment Record, then
                 if var_env.is_global() {
                     // a. Let fnDefinable be ? varEnv.CanDeclareGlobalFunction(fn).
                     let value = self.register_allocator.alloc();
-                    let index = self.get_or_insert_name(name);
+                    let index = self.get_or_insert_name(name.sym());
                     self.bytecode
                         .emit_can_declare_global_function(value.variable(), index.into());
 
@@ -693,7 +692,7 @@ impl ByteCompiler<'_> {
                 }
 
                 // 2. Append fn to declaredFunctionNames.
-                declared_function_names.push(name);
+                declared_function_names.push(name.sym());
 
                 // 3. Insert d as the first element of functionsToInitialize.
                 functions_to_initialize.push(declaration.clone());
@@ -843,7 +842,7 @@ impl ByteCompiler<'_> {
                 self.emit_get_function(&dst, index);
 
                 // i. Perform ? varEnv.CreateGlobalFunctionBinding(fn, fo, true).
-                let name_index = self.get_or_insert_name(name);
+                let name_index = self.get_or_insert_name(name.sym());
                 self.bytecode.emit_create_global_function_binding(
                     dst.variable(),
                     true.into(),
@@ -974,9 +973,9 @@ impl ByteCompiler<'_> {
             };
 
             // a.iii. If functionNames does not contain fn, then
-            if !function_names.contains(&name) {
+            if !function_names.contains(&name.sym()) {
                 // 1. Insert fn as the first element of functionNames.
-                function_names.push(name);
+                function_names.push(name.sym());
 
                 // 2. NOTE: If there are multiple function declarations for the same name, the last declaration is used.
                 // 3. Insert d as the first element of functionsToInitialize.
@@ -990,7 +989,7 @@ impl ByteCompiler<'_> {
         // 15. Let argumentsObjectNeeded be true.
         let mut arguments_object_needed = true;
 
-        let arguments = Sym::ARGUMENTS.into();
+        let arguments = Sym::ARGUMENTS;
 
         // 16. If func.[[ThisMode]] is lexical, then
         // 17. Else if parameterNames contains "arguments", then

@@ -8,7 +8,7 @@ use boa_ast::{
     function::{FormalParameter, FormalParameterList, FunctionBody, FunctionDeclaration},
     scope::Scope,
     statement::Block,
-    Declaration, Expression, LinearPosition, LinearSpan, Script, Statement, StatementList,
+    Declaration, Expression, LinearPosition, LinearSpan, Script, Span, Statement, StatementList,
     StatementListItem,
 };
 use boa_interner::Interner;
@@ -30,9 +30,12 @@ fn script_global_let() {
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
         [Declaration::Lexical(LexicalDeclaration::Let(
-            vec![Variable::from_identifier(a.into(), None)]
-                .try_into()
-                .unwrap(),
+            vec![Variable::from_identifier(
+                Identifier::new(a, Span::new((1, 1), (1, 1))),
+                None,
+            )]
+            .try_into()
+            .unwrap(),
         ))
         .into()],
         LinearPosition::default(),
@@ -54,9 +57,12 @@ fn script_global_const() {
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
         [Declaration::Lexical(LexicalDeclaration::Const(
-            vec![Variable::from_identifier(a.into(), None)]
-                .try_into()
-                .unwrap(),
+            vec![Variable::from_identifier(
+                Identifier::new(a, Span::new((1, 1), (1, 1))),
+                None,
+            )]
+            .try_into()
+            .unwrap(),
         ))
         .into()],
         LinearPosition::default(),
@@ -79,9 +85,12 @@ fn script_block_let() {
     let mut script = Script::new(StatementList::new(
         [Statement::Block(Block::from((
             vec![Declaration::Lexical(LexicalDeclaration::Let(
-                vec![Variable::from_identifier(a.into(), None)]
-                    .try_into()
-                    .unwrap(),
+                vec![Variable::from_identifier(
+                    Identifier::new(a, Span::new((1, 1), (1, 1))),
+                    None,
+                )]
+                .try_into()
+                .unwrap(),
             ))
             .into()],
             LinearPosition::default(),
@@ -93,9 +102,10 @@ fn script_block_let() {
     let ok = script.analyze_scope(&scope, &interner);
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
-    let StatementListItem::Statement(Statement::Block(block)) =
-        script.statements().first().unwrap()
-    else {
+    let StatementListItem::Statement(statement) = script.statements().first().unwrap() else {
+        panic!("Expected a block statement");
+    };
+    let Statement::Block(block) = statement.as_ref() else {
         panic!("Expected a block statement");
     };
     let scope = block.scope().unwrap();
@@ -114,20 +124,26 @@ fn script_function_mapped_arguments_not_accessed() {
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
         [Declaration::FunctionDeclaration(FunctionDeclaration::new(
-            f.into(),
+            Identifier::new(f, Span::new((1, 1), (1, 1))),
             FormalParameterList::from_parameters(vec![FormalParameter::new(
-                Variable::from_identifier(a.into(), None),
+                Variable::from_identifier(Identifier::new(a, Span::new((1, 1), (1, 1))), None),
                 false,
             )]),
             FunctionBody::new(
-                [Declaration::Lexical(LexicalDeclaration::Let(
-                    vec![Variable::from_identifier(a.into(), None)]
+                StatementList::new(
+                    [Declaration::Lexical(LexicalDeclaration::Let(
+                        vec![Variable::from_identifier(
+                            Identifier::new(a, Span::new((1, 1), (1, 1))),
+                            None,
+                        )]
                         .try_into()
                         .unwrap(),
-                ))
-                .into()],
-                LinearPosition::default(),
-                false,
+                    ))
+                    .into()],
+                    LinearPosition::default(),
+                    false,
+                ),
+                Span::new((1, 1), (1, 1)),
             ),
             LinearSpan::default(),
         ))
@@ -138,11 +154,14 @@ fn script_function_mapped_arguments_not_accessed() {
     let ok = script.analyze_scope(&scope, &interner);
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
-    let StatementListItem::Declaration(Declaration::FunctionDeclaration(f)) =
-        script.statements().first().unwrap()
-    else {
+
+    let StatementListItem::Declaration(declaration) = script.statements().first().unwrap() else {
         panic!("Expected a block statement");
     };
+    let Declaration::FunctionDeclaration(f) = declaration.as_ref() else {
+        panic!("Expected a block statement");
+    };
+
     assert_eq!(f.scopes().function_scope().num_bindings(), 2);
     assert_eq!(f.scopes().parameters_eval_scope(), None);
     assert_eq!(f.scopes().parameters_scope(), None);
@@ -184,24 +203,33 @@ fn script_function_mapped_arguments_accessed() {
     let arguments = interner.get_or_intern("arguments");
     let mut script = Script::new(StatementList::new(
         [Declaration::FunctionDeclaration(FunctionDeclaration::new(
-            f.into(),
+            Identifier::new(f, Span::new((1, 1), (1, 1))),
             FormalParameterList::from_parameters(vec![FormalParameter::new(
-                Variable::from_identifier(a.into(), None),
+                Variable::from_identifier(Identifier::new(a, Span::new((1, 1), (1, 1))), None),
                 false,
             )]),
             FunctionBody::new(
-                [
-                    Declaration::Lexical(LexicalDeclaration::Let(
-                        vec![Variable::from_identifier(a.into(), None)]
+                StatementList::new(
+                    [
+                        Declaration::Lexical(LexicalDeclaration::Let(
+                            vec![Variable::from_identifier(
+                                Identifier::new(a, Span::new((1, 1), (1, 1))),
+                                None,
+                            )]
                             .try_into()
                             .unwrap(),
-                    ))
-                    .into(),
-                    Statement::Expression(Expression::Identifier(Identifier::new(arguments)))
+                        ))
                         .into(),
-                ],
-                LinearPosition::default(),
-                false,
+                        Statement::Expression(Expression::Identifier(Identifier::new(
+                            arguments,
+                            Span::new((1, 1), (1, 1)),
+                        )))
+                        .into(),
+                    ],
+                    LinearPosition::default(),
+                    false,
+                ),
+                Span::new((1, 1), (1, 1)),
             ),
             LinearSpan::default(),
         ))
@@ -212,9 +240,10 @@ fn script_function_mapped_arguments_accessed() {
     let ok = script.analyze_scope(&scope, &interner);
     assert!(ok);
     assert_eq!(scope.num_bindings(), 0);
-    let StatementListItem::Declaration(Declaration::FunctionDeclaration(f)) =
-        script.statements().first().unwrap()
-    else {
+    let StatementListItem::Declaration(declaration) = script.statements().first().unwrap() else {
+        panic!("Expected a block statement");
+    };
+    let Declaration::FunctionDeclaration(f) = declaration.as_ref() else {
         panic!("Expected a block statement");
     };
     assert!(f.scopes().arguments_object_accessed());

@@ -27,8 +27,9 @@ use ast::{
 use boa_ast::{
     self as ast,
     declaration::Variable,
-    function::{FormalParameterList, FormalParameterListFlags},
-    Punctuator,
+    expression::Identifier,
+    function::{FormalParameterList, FormalParameterListFlags, FunctionBody as AstFunctionBody},
+    Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -305,7 +306,10 @@ where
             Ok(Self::Output::new(declaration, true))
         } else {
             Ok(Self::Output::new(
-                Variable::from_identifier(Sym::EMPTY_STRING.into(), None),
+                Variable::from_identifier(
+                    Identifier::new(Sym::EMPTY_STRING, Span::new((1234, 1234), (1234, 1234))),
+                    None,
+                ),
                 true,
             ))
         }
@@ -404,7 +408,10 @@ where
             Ok(Self::Output::new(declaration, false))
         } else {
             Ok(Self::Output::new(
-                Variable::from_identifier(Sym::EMPTY_STRING.into(), None),
+                Variable::from_identifier(
+                    Identifier::new(Sym::EMPTY_STRING, Span::new((1234, 1234), (1234, 1234))),
+                    None,
+                ),
                 false,
             ))
         }
@@ -433,11 +440,17 @@ pub(in crate::parser) const FUNCTION_BREAK_TOKENS: [TokenKind; 1] =
 pub(in crate::parser) struct FunctionStatementList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    context: &'static str,
+    parse_full_input: bool,
 }
 
 impl FunctionStatementList {
     /// Creates a new `FunctionStatementList` parser.
-    pub(in crate::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::parser) fn new<Y, A>(
+        allow_yield: Y,
+        allow_await: A,
+        context: &'static str,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -445,7 +458,14 @@ impl FunctionStatementList {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            context,
+            parse_full_input: false,
         }
+    }
+
+    /// Try to consume the whole input, not expecting open/closing parentheses.
+    pub(in crate::parser) fn parse_full_input(&mut self, parse_full_input: bool) {
+        self.parse_full_input = parse_full_input;
     }
 }
 
@@ -453,12 +473,23 @@ impl<R> TokenParser<R> for FunctionStatementList
 where
     R: ReadChar,
 {
-    type Output = ast::function::FunctionBody;
+    type Output = AstFunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionStatementList", "Parsing");
 
-        let body = StatementList::new(
+        let start = if self.parse_full_input {
+            cursor
+                .peek(0, interner)?
+                .map_or_else(|| Position::new(1, 1), |token| token.span().start())
+        } else {
+            cursor
+                .expect(Punctuator::OpenBlock, self.context, interner)?
+                .span()
+                .start()
+        };
+
+        let (body, end) = StatementList::new(
             self.allow_yield,
             self.allow_await,
             true,
@@ -482,6 +513,15 @@ where
             )));
         }
 
-        Ok(body.into())
+        let end = if self.parse_full_input {
+            end.unwrap_or(start)
+        } else {
+            cursor
+                .expect(Punctuator::CloseBlock, self.context, interner)?
+                .span()
+                .end()
+        };
+
+        Ok(AstFunctionBody::new(body, Span::new(start, end)))
     }
 }

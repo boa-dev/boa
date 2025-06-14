@@ -12,7 +12,7 @@ mod op;
 use crate::{
     expression::{access::PropertyAccess, Identifier},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Expression,
+    Expression, Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
@@ -33,16 +33,18 @@ pub use op::*;
 pub struct Update {
     op: UpdateOp,
     target: Box<UpdateTarget>,
+    span: Span,
 }
 
 impl Update {
     /// Creates a new `Update` AST expression.
     #[inline]
     #[must_use]
-    pub fn new(op: UpdateOp, target: UpdateTarget) -> Self {
+    pub fn new(op: UpdateOp, target: UpdateTarget, span: Span) -> Self {
         Self {
             op,
             target: Box::new(target),
+            span,
         }
     }
 
@@ -58,6 +60,13 @@ impl Update {
     #[must_use]
     pub fn target(&self) -> &UpdateTarget {
         self.target.as_ref()
+    }
+
+    /// Get the [`Span`] of the [`Update`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

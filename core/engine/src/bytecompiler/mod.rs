@@ -320,7 +320,7 @@ impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
 
         FunctionSpec {
             kind,
-            name: method.name().literal().map(Into::into),
+            name: method.name().literal(),
             parameters: method.parameters(),
             body: method.body(),
             scopes: method.scopes(),
@@ -358,6 +358,7 @@ pub(crate) struct Label {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[allow(variant_size_differences)]
 enum Access<'a> {
     Variable { name: Identifier },
     Property { access: &'a PropertyAccess },
@@ -377,7 +378,7 @@ impl Access<'_> {
         match expr {
             Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
-            Expression::This => Some(Access::This),
+            Expression::This(_this) => Some(Access::This),
             Expression::Parenthesized(expr) => Self::from_expression(expr.expression()),
             _ => None,
         }
@@ -447,7 +448,7 @@ pub struct ByteCompiler<'ctx> {
     handlers: ThinVec<Handler>,
     pub(crate) ic: Vec<InlineCache>,
     literals_map: FxHashMap<Literal, u32>,
-    names_map: FxHashMap<Identifier, u32>,
+    names_map: FxHashMap<Sym, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
 
@@ -467,7 +468,7 @@ pub struct ByteCompiler<'ctx> {
     spanned_source_text: SpannedSourceText,
 
     #[cfg(feature = "annex-b")]
-    pub(crate) annex_b_function_names: Vec<Identifier>,
+    pub(crate) annex_b_function_names: Vec<Sym>,
 }
 
 pub(crate) enum BindingKind {
@@ -606,7 +607,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         index
     }
 
-    fn get_or_insert_name(&mut self, name: Identifier) -> u32 {
+    fn get_or_insert_name(&mut self, name: Sym) -> u32 {
         if let Some(index) = self.names_map.get(&name) {
             return *index;
         }
@@ -624,7 +625,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     #[inline]
     fn get_or_insert_private_name(&mut self, name: PrivateName) -> u32 {
-        self.get_or_insert_name(Identifier::new(name.description()))
+        self.get_or_insert_name(name.description())
     }
 
     // TODO: Make this return `Option<BindingKind>` instead of making BindingKind::Local
@@ -856,7 +857,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         let ic_index = self.ic.len() as u32;
 
-        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let name_index = self.get_or_insert_name(ident);
         let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
             unreachable!("there should be a string at index")
         };
@@ -879,7 +880,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         let ic_index = self.ic.len() as u32;
 
-        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let name_index = self.get_or_insert_name(ident);
         let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
             unreachable!("there should be a string at index")
         };
@@ -1042,7 +1043,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &object, &object, *ident);
+                            self.emit_get_property_by_name(dst, &object, &object, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
                             let key = self.register_allocator.alloc();
@@ -1076,7 +1077,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.bytecode.emit_this(receiver.variable());
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &receiver, &value, *ident);
+                            self.emit_get_property_by_name(dst, &receiver, &value, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
                             let key = self.register_allocator.alloc();
@@ -1141,7 +1142,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                         let object = self.register_allocator.alloc();
                         self.compile_expr(access.target(), &object);
                         let value = expr_fn(self);
-                        self.emit_set_property_by_name(value, &object, &object, *name);
+                        self.emit_set_property_by_name(value, &object, &object, name.sym());
                         self.register_allocator.dealloc(object);
                     }
                     PropertyAccessField::Expr(expr) => {
@@ -1190,7 +1191,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                         let value = expr_fn(self);
 
-                        self.emit_set_property_by_name(value, &receiver, &object, *name);
+                        self.emit_set_property_by_name(value, &receiver, &object, name.sym());
 
                         self.register_allocator.dealloc(receiver);
                         self.register_allocator.dealloc(object);
@@ -1229,7 +1230,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
-                        let index = self.get_or_insert_name((*name).into());
+                        let index = self.get_or_insert_name(name.sym());
                         self.compile_expr(access.target(), dst);
                         self.bytecode
                             .emit_delete_property_by_name(dst.variable(), index.into());
@@ -1264,16 +1265,13 @@ impl<'ctx> ByteCompiler<'ctx> {
             let mut use_expr_index = 0;
             for (i, statement) in list.statements().iter().enumerate() {
                 match statement {
-                    StatementListItem::Statement(Statement::Break(_) | Statement::Continue(_)) => {
-                        break;
-                    }
-                    StatementListItem::Statement(Statement::Empty | Statement::Var(_))
-                    | StatementListItem::Declaration(_) => {}
-                    StatementListItem::Statement(Statement::Block(block))
-                        if !returns_value(block) => {}
-                    StatementListItem::Statement(_) => {
-                        use_expr_index = i;
-                    }
+                    StatementListItem::Statement(statement) => match statement.as_ref() {
+                        Statement::Break(_) | Statement::Continue(_) => break,
+                        Statement::Empty | Statement::Var(_) => {}
+                        Statement::Block(block) if !returns_value(block) => {}
+                        _ => use_expr_index = i,
+                    },
+                    StatementListItem::Declaration(_) => {}
                 }
             }
 
@@ -1315,7 +1313,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {
-                        self.emit_get_property_by_name(dst, this, this, *ident);
+                        self.emit_get_property_by_name(dst, this, this, ident.sym());
                     }
                     PropertyAccessField::Expr(field) => {
                         let key = self.register_allocator.alloc();
@@ -1344,7 +1342,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {
-                        self.emit_get_property_by_name(dst, this, &object, *ident);
+                        self.emit_get_property_by_name(dst, this, &object, ident.sym());
                     }
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
@@ -1447,7 +1445,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.bytecode.emit_move(this.variable(), value.variable());
                 match field {
                     PropertyAccessField::Const(name) => {
-                        self.emit_get_property_by_name(value, value, value, *name);
+                        self.emit_get_property_by_name(value, value, value, name.sym());
                     }
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
@@ -1639,7 +1637,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             #[cfg(feature = "annex-b")]
             Declaration::FunctionDeclaration(function) if block => {
                 let name = function.name();
-                if self.annex_b_function_names.contains(&name) {
+                if self.annex_b_function_names.contains(&name.sym()) {
                     let name = name.to_js_string(self.interner());
                     let binding = self.lexical_scope.get_identifier_reference(name.clone());
                     let index = self.get_binding(&binding);
@@ -1660,7 +1658,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.register_allocator.dealloc(value);
                 }
             }
-            Declaration::ClassDeclaration(class) => self.compile_class(class.into(), None),
+            Declaration::ClassDeclaration(class) => self.compile_class(class.as_ref().into(), None),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
             _ => {}
         }
@@ -1880,7 +1878,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             expr if kind == CallKind::Call => {
                 if let Expression::Identifier(ident) = expr {
-                    if *ident == Sym::EVAL {
+                    if ident.sym() == Sym::EVAL {
                         kind = CallKind::CallEval;
                     }
 

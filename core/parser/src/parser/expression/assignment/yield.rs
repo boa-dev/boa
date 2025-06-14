@@ -13,7 +13,7 @@ use crate::{
     parser::{cursor::Cursor, AllowAwait, AllowIn, OrAbrupt, ParseResult, TokenParser},
     source::ReadChar,
 };
-use boa_ast::{expression::Yield, Expression, Keyword, Punctuator};
+use boa_ast::{expression::Yield, Expression, Keyword, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 
@@ -54,17 +54,19 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("YieldExpression", "Parsing");
 
-        cursor.expect(
-            TokenKind::Keyword((Keyword::Yield, false)),
-            "yield expression",
-            interner,
-        )?;
+        let yield_span = cursor
+            .expect(
+                TokenKind::Keyword((Keyword::Yield, false)),
+                "yield expression",
+                interner,
+            )?
+            .span();
 
         if matches!(
             cursor.peek_is_line_terminator(0, interner)?,
             Some(true) | None
         ) {
-            return Ok(Yield::new(None, false).into());
+            return Ok(Yield::new(None, false, yield_span).into());
         }
 
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -73,7 +75,14 @@ where
                 cursor.advance(interner);
                 let expr = AssignmentExpression::new(self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(Yield::new(Some(expr), true).into())
+                let expr_span_end = expr.span().end();
+
+                Ok(Yield::new(
+                    Some(expr),
+                    true,
+                    Span::new(yield_span.start(), expr_span_end),
+                )
+                .into())
             }
             TokenKind::IdentifierName(_)
             | TokenKind::Punctuator(
@@ -112,9 +121,16 @@ where
             | TokenKind::TemplateMiddle(_) => {
                 let expr = AssignmentExpression::new(self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(Yield::new(Some(expr), false).into())
+                let expr_span_end = expr.span().end();
+
+                Ok(Yield::new(
+                    Some(expr),
+                    false,
+                    Span::new(yield_span.start(), expr_span_end),
+                )
+                .into())
             }
-            _ => Ok(Yield::new(None, false).into()),
+            _ => Ok(Yield::new(None, false, yield_span).into()),
         }
     }
 }

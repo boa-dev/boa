@@ -88,7 +88,8 @@ where
                         Declaration::FunctionDeclaration(
                             FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
                                 .parse(cursor, interner)?,
-                        ),
+                        )
+                        .into(),
                     )],
                     cursor.linear_pos(),
                 ))
@@ -139,7 +140,8 @@ where
                                             false,
                                         )
                                         .parse(cursor, interner)?,
-                                    ),
+                                    )
+                                    .into(),
                                 )],
                                 cursor.linear_pos(),
                             ))

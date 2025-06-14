@@ -31,7 +31,7 @@ use crate::{
 use boa_ast::{
     expression::operator::assign::{Assign, AssignOp, AssignTarget},
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Expression, Keyword, Punctuator,
+    Expression, Keyword, Punctuator, Span,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -219,9 +219,17 @@ where
             )?;
 
             let linear_pos_end = body.linear_pos_end();
-            let span = start_linear_span.union(linear_pos_end);
+            let linear_span = start_linear_span.union(linear_pos_end);
 
-            return Ok(boa_ast::function::ArrowFunction::new(None, parameters, body, span).into());
+            let body_span_end = body.span().end();
+            return Ok(boa_ast::function::ArrowFunction::new(
+                None,
+                parameters,
+                body,
+                linear_span,
+                Span::new(position, body_span_end),
+            )
+            .into());
         }
 
         // Review if we are trying to assign to an invalid left hand side expression.

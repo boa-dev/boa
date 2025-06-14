@@ -11,7 +11,6 @@
 
 use super::{ModuleSpecifier, VarDeclaration};
 use crate::{
-    expression::Identifier,
     function::{
         AsyncFunctionDeclaration, AsyncGeneratorDeclaration, ClassDeclaration, FunctionDeclaration,
         GeneratorDeclaration,
@@ -104,7 +103,7 @@ pub enum ExportDeclaration {
     /// Default async generator export.
     DefaultAsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
     /// Default class declaration export.
-    DefaultClassDeclaration(ClassDeclaration),
+    DefaultClassDeclaration(Box<ClassDeclaration>),
     /// Default assignment expression export.
     DefaultAssignmentExpression(Expression),
 }
@@ -282,14 +281,14 @@ impl From<LocalExportEntry> for ExportEntry {
 /// A local export entry
 #[derive(Debug, Clone, Copy)]
 pub struct LocalExportEntry {
-    local_name: Identifier,
+    local_name: Sym,
     export_name: Sym,
 }
 
 impl LocalExportEntry {
     /// Creates a new `LocalExportEntry`.
     #[must_use]
-    pub const fn new(local_name: Identifier, export_name: Sym) -> Self {
+    pub const fn new(local_name: Sym, export_name: Sym) -> Self {
         Self {
             local_name,
             export_name,
@@ -298,7 +297,7 @@ impl LocalExportEntry {
 
     /// Gets the local name of this export entry.
     #[must_use]
-    pub const fn local_name(&self) -> Identifier {
+    pub const fn local_name(&self) -> Sym {
         self.local_name
     }
 

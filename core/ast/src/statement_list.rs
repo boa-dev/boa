@@ -21,9 +21,9 @@ use std::ops::Deref;
 #[derive(Clone, Debug, PartialEq)]
 pub enum StatementListItem {
     /// See [`Statement`].
-    Statement(Statement),
+    Statement(Box<Statement>),
     /// See [`Declaration`].
-    Declaration(Declaration),
+    Declaration(Box<Declaration>),
 }
 
 impl ToIndentedString for StatementListItem {
@@ -56,14 +56,14 @@ impl ToIndentedString for StatementListItem {
 impl From<Statement> for StatementListItem {
     #[inline]
     fn from(stmt: Statement) -> Self {
-        Self::Statement(stmt)
+        Self::Statement(Box::new(stmt))
     }
 }
 
 impl From<Declaration> for StatementListItem {
     #[inline]
     fn from(decl: Declaration) -> Self {
-        Self::Declaration(decl)
+        Self::Declaration(Box::new(decl))
     }
 }
 

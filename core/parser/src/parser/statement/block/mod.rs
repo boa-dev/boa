@@ -85,7 +85,7 @@ where
             }
         }
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-        let statement_list = StatementList::new(
+        let (statement_list, _end) = StatementList::new(
             self.allow_yield,
             self.allow_await,
             self.allow_return,
@@ -94,7 +94,7 @@ where
             false,
         )
         .parse(cursor, interner)
-        .map(statement::Block::from)?;
+        .map(|(statement_list, end)| (statement::Block::from(statement_list), end))?;
         cursor.expect(Punctuator::CloseBlock, "block", interner)?;
 
         // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate

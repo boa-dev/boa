@@ -175,11 +175,11 @@ impl ByteCompiler<'_> {
                             let object = self.register_allocator.alloc();
                             self.compile_expr(access.target(), &object);
 
-                            self.emit_get_property_by_name(dst, &object, &object, *name);
+                            self.emit_get_property_by_name(dst, &object, &object, name.sym());
 
                             early_exit = emit(self, dst, assign.rhs(), assign.op());
 
-                            self.emit_set_property_by_name(dst, &object, &object, *name);
+                            self.emit_set_property_by_name(dst, &object, &object, name.sym());
 
                             self.register_allocator.dealloc(object);
                         }
@@ -239,11 +239,11 @@ impl ByteCompiler<'_> {
                             self.bytecode.emit_super(object.variable());
                             self.bytecode.emit_this(receiver.variable());
 
-                            self.emit_get_property_by_name(dst, &receiver, &object, *name);
+                            self.emit_get_property_by_name(dst, &receiver, &object, name.sym());
 
                             early_exit = emit(self, dst, assign.rhs(), assign.op());
 
-                            self.emit_set_property_by_name(dst, &receiver, &object, *name);
+                            self.emit_set_property_by_name(dst, &receiver, &object, name.sym());
 
                             self.register_allocator.dealloc(receiver);
                             self.register_allocator.dealloc(object);

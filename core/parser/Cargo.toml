@@ -23,6 +23,9 @@ num-bigint.workspace = true
 regress.workspace = true
 icu_properties.workspace = true
 
+[dev-dependencies]
+indoc.workspace = true
+
 [features]
 annex-b = []
 

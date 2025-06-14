@@ -1,5 +1,8 @@
 use super::Expression;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
+};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
 
@@ -19,6 +22,7 @@ pub struct TaggedTemplate {
     cookeds: Box<[Option<Sym>]>,
     exprs: Box<[Expression]>,
     identifier: u64,
+    span: Span,
 }
 
 impl TaggedTemplate {
@@ -32,6 +36,7 @@ impl TaggedTemplate {
         cookeds: Box<[Option<Sym>]>,
         exprs: Box<[Expression]>,
         identifier: u64,
+        span: Span,
     ) -> Self {
         Self {
             tag: tag.into(),
@@ -39,6 +44,7 @@ impl TaggedTemplate {
             cookeds,
             exprs,
             identifier,
+            span,
         }
     }
 
@@ -75,6 +81,13 @@ impl TaggedTemplate {
     #[must_use]
     pub const fn identifier(&self) -> u64 {
         self.identifier
+    }
+
+    /// Get the [`Span`] of the [`TaggedTemplate`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

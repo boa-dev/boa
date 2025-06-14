@@ -1,7 +1,10 @@
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
+};
 
 use super::Expression;
 
@@ -19,9 +22,21 @@ use super::Expression;
 pub struct Yield {
     target: Option<Box<Expression>>,
     delegate: bool,
+    span: Span,
 }
 
 impl Yield {
+    /// Creates a [`Yield`] AST Expression.
+    #[inline]
+    #[must_use]
+    pub fn new(expr: Option<Expression>, delegate: bool, span: Span) -> Self {
+        Self {
+            target: expr.map(Box::new),
+            delegate,
+            span,
+        }
+    }
+
     /// Gets the target expression of this `Yield` statement.
     #[inline]
     pub fn target(&self) -> Option<&Expression> {
@@ -35,14 +50,11 @@ impl Yield {
         self.delegate
     }
 
-    /// Creates a `Yield` AST Expression.
+    /// Get the [`Span`] of the [`Yield`] node.
     #[inline]
     #[must_use]
-    pub fn new(expr: Option<Expression>, delegate: bool) -> Self {
-        Self {
-            target: expr.map(Box::new),
-            delegate,
-        }
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

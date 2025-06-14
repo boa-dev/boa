@@ -167,7 +167,7 @@ where
 
                     cursor.expect(Punctuator::Colon, "switch case block", interner)?;
 
-                    let statement_list = StatementList::new(
+                    let (statement_list, _) = StatementList::new(
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,
@@ -191,7 +191,7 @@ where
 
                     cursor.expect(Punctuator::Colon, "switch default block", interner)?;
 
-                    let statement_list = StatementList::new(
+                    let (statement_list, _) = StatementList::new(
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,

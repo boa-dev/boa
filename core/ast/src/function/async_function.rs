@@ -8,7 +8,7 @@ use crate::{
     operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan, LinearSpanIgnoreEq,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -162,6 +162,8 @@ pub struct AsyncFunctionExpression {
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
     linear_span: LinearSpanIgnoreEq,
+
+    span: Span,
 }
 
 impl AsyncFunctionExpression {
@@ -174,6 +176,7 @@ impl AsyncFunctionExpression {
         body: FunctionBody,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -186,6 +189,7 @@ impl AsyncFunctionExpression {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
+            span,
         }
     }
 
@@ -243,6 +247,13 @@ impl AsyncFunctionExpression {
     #[must_use]
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
+    }
+
+    /// Get the [`Span`] of the [`AsyncFunctionExpression`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

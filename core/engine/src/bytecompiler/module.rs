@@ -26,7 +26,7 @@ impl ByteCompiler<'_> {
             }
             ModuleItem::ExportDeclaration(export) => {
                 #[allow(clippy::match_same_arms)]
-                match export {
+                match export.as_ref() {
                     ExportDeclaration::ReExport { .. } | ExportDeclaration::List(_) => {
                         // ExportDeclaration :
                         //    export ExportFromClause FromClause ;
@@ -42,7 +42,7 @@ impl ByteCompiler<'_> {
                     ExportDeclaration::VarStatement(var) => self.compile_var_decl(var),
                     ExportDeclaration::Declaration(decl) => self.compile_decl(decl, false),
                     ExportDeclaration::DefaultClassDeclaration(cl) => {
-                        self.compile_class(cl.into(), None);
+                        self.compile_class(cl.as_ref().into(), None);
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
                         let function = self.register_allocator.alloc();

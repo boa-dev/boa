@@ -20,6 +20,7 @@ use crate::{
     expression::Expression,
     function::PrivateName,
     visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
@@ -83,6 +84,13 @@ impl Binary {
     #[must_use]
     pub fn rhs_mut(&mut self) -> &mut Expression {
         &mut self.rhs
+    }
+
+    /// Get the [`Span`] of the [`Binary`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
@@ -159,6 +167,13 @@ impl BinaryInPrivate {
     #[must_use]
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
+    }
+
+    /// Get the [`Span`] of the [`BinaryInPrivate`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 

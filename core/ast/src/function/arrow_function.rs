@@ -6,7 +6,7 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes,
 };
-use crate::{LinearSpan, LinearSpanIgnoreEq};
+use crate::{LinearSpan, LinearSpanIgnoreEq, Span};
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};
 
@@ -31,6 +31,7 @@ pub struct ArrowFunction {
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
     linear_span: LinearSpanIgnoreEq,
+    span: Span,
 }
 
 impl ArrowFunction {
@@ -42,6 +43,7 @@ impl ArrowFunction {
         parameters: FormalParameterList,
         body: FunctionBody,
         linear_span: LinearSpan,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -52,6 +54,7 @@ impl ArrowFunction {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
+            span,
         }
     }
 
@@ -101,6 +104,13 @@ impl ArrowFunction {
     #[must_use]
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
+    }
+
+    /// Get the [`Span`] of the [`ArrowFunction`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

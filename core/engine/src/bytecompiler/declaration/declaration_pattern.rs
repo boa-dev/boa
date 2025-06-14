@@ -40,12 +40,17 @@ impl ByteCompiler<'_> {
 
                             match name {
                                 PropertyName::Literal(ident) => {
-                                    self.emit_get_property_by_name(&dst, object, object, *ident);
+                                    self.emit_get_property_by_name(
+                                        &dst,
+                                        object,
+                                        object,
+                                        ident.sym(),
+                                    );
                                     let key = self.register_allocator.alloc();
                                     self.emit_push_literal(
                                         Literal::String(
                                             self.interner()
-                                                .resolve_expect(*ident)
+                                                .resolve_expect(ident.sym())
                                                 .into_common(false),
                                         ),
                                         &key,
@@ -135,7 +140,7 @@ impl ByteCompiler<'_> {
                                     self.emit_push_literal(
                                         Literal::String(
                                             self.interner()
-                                                .resolve_expect(*ident)
+                                                .resolve_expect(ident.sym())
                                                 .into_common(false),
                                         ),
                                         &key,
@@ -156,7 +161,10 @@ impl ByteCompiler<'_> {
                                     match name {
                                         PropertyName::Literal(ident) => {
                                             compiler.emit_get_property_by_name(
-                                                &dst, object, object, *ident,
+                                                &dst,
+                                                object,
+                                                object,
+                                                ident.sym(),
                                             );
                                             compiler.register_allocator.dealloc(key);
                                         }
@@ -201,7 +209,12 @@ impl ByteCompiler<'_> {
 
                             match name {
                                 PropertyName::Literal(ident) => {
-                                    self.emit_get_property_by_name(&dst, object, object, *ident);
+                                    self.emit_get_property_by_name(
+                                        &dst,
+                                        object,
+                                        object,
+                                        ident.sym(),
+                                    );
                                 }
                                 PropertyName::Computed(node) => {
                                     let key = self.register_allocator.alloc();
