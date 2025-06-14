@@ -1,5 +1,6 @@
 use crate::expression::Call;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::Span;
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -46,6 +47,13 @@ impl New {
     #[must_use]
     pub const fn call(&self) -> &Call {
         &self.call
+    }
+
+    /// Gets the [`Span`] of the [`New`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.call.span()
     }
 }
 

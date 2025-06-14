@@ -15,7 +15,7 @@ use crate::{
 };
 use boa_ast::{
     expression::literal::{self, TemplateElement},
-    PositionGroup, Punctuator,
+    PositionGroup, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -80,7 +80,8 @@ where
         )?;
 
         loop {
-            match cursor.lex_template(self.start, interner)?.kind() {
+            let token = cursor.lex_template(self.start, interner)?;
+            match token.kind() {
                 TokenKind::TemplateMiddle(template_string) => {
                     let Some(cooked) = template_string.cooked() else {
                         return Err(Error::general(
@@ -107,7 +108,10 @@ where
                         ));
                     };
                     elements.push(TemplateElement::String(cooked));
-                    return Ok(literal::TemplateLiteral::new(elements.into()));
+                    return Ok(literal::TemplateLiteral::new(
+                        elements.into(),
+                        Span::new(self.start.position(), token.span().end()),
+                    ));
                 }
                 _ => return Err(Error::general("cannot parse template literal", self.start)),
             }
