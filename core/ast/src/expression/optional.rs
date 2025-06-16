@@ -3,6 +3,7 @@ use crate::{
     function::PrivateName,
     join_nodes,
     visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -75,14 +76,19 @@ impl VisitWith for OptionalOperationKind {
 pub struct OptionalOperation {
     kind: OptionalOperationKind,
     shorted: bool,
+    span: Span,
 }
 
 impl OptionalOperation {
     /// Creates a new `OptionalOperation`.
     #[inline]
     #[must_use]
-    pub const fn new(kind: OptionalOperationKind, shorted: bool) -> Self {
-        Self { kind, shorted }
+    pub const fn new(kind: OptionalOperationKind, shorted: bool, span: Span) -> Self {
+        Self {
+            kind,
+            shorted,
+            span,
+        }
     }
     /// Gets the kind of operation.
     #[inline]
@@ -98,6 +104,13 @@ impl OptionalOperation {
     pub const fn shorted(&self) -> bool {
         self.shorted
     }
+
+    /// Get the [`Span`] of the [`OptionalOperation`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.span
+    }
 }
 
 impl ToInternedString for OptionalOperation {
@@ -109,7 +122,7 @@ impl ToInternedString for OptionalOperation {
                 field: PropertyAccessField::Const(name),
             } = &self.kind
             {
-                return format!(".{}", interner.resolve_expect(*name));
+                return format!(".{}", interner.resolve_expect(name.sym()));
             }
 
             if let OptionalOperationKind::PrivatePropertyAccess { field } = &self.kind {
@@ -121,7 +134,7 @@ impl ToInternedString for OptionalOperation {
         match &self.kind {
             OptionalOperationKind::SimplePropertyAccess { field } => match field {
                 PropertyAccessField::Const(name) => {
-                    buf.push_str(&interner.resolve_expect(*name).to_string());
+                    buf.push_str(&interner.resolve_expect(name.sym()).to_string());
                 }
                 PropertyAccessField::Expr(expr) => {
                     let _ = write!(buf, "[{}]", expr.to_interned_string(interner));
@@ -182,6 +195,59 @@ impl VisitWith for OptionalOperation {
 pub struct Optional {
     target: Box<Expression>,
     chain: Box<[OptionalOperation]>,
+    span: Span,
+}
+
+impl Optional {
+    /// Creates a new `Optional` expression.
+    #[inline]
+    #[must_use]
+    pub fn new(target: Expression, chain: Box<[OptionalOperation]>, span: Span) -> Self {
+        Self {
+            target: Box::new(target),
+            chain,
+            span,
+        }
+    }
+
+    /// Gets the target of this `Optional` expression.
+    #[inline]
+    #[must_use]
+    pub fn target(&self) -> &Expression {
+        self.target.as_ref()
+    }
+
+    /// Gets the chain of accesses and calls that will be applied to the target at runtime.
+    #[inline]
+    #[must_use]
+    pub fn chain(&self) -> &[OptionalOperation] {
+        self.chain.as_ref()
+    }
+
+    /// Get the [`Span`] of the [`Optional`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.span
+    }
+}
+
+impl From<Optional> for Expression {
+    fn from(opt: Optional) -> Self {
+        Self::Optional(opt)
+    }
+}
+
+impl ToInternedString for Optional {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = self.target.to_interned_string(interner);
+
+        for item in &*self.chain {
+            buf.push_str(&item.to_interned_string(interner));
+        }
+
+        buf
+    }
 }
 
 impl VisitWith for Optional {
@@ -205,49 +271,5 @@ impl VisitWith for Optional {
             visitor.visit_optional_operation_mut(op)?;
         }
         ControlFlow::Continue(())
-    }
-}
-
-impl Optional {
-    /// Creates a new `Optional` expression.
-    #[inline]
-    #[must_use]
-    pub fn new(target: Expression, chain: Box<[OptionalOperation]>) -> Self {
-        Self {
-            target: Box::new(target),
-            chain,
-        }
-    }
-
-    /// Gets the target of this `Optional` expression.
-    #[inline]
-    #[must_use]
-    pub fn target(&self) -> &Expression {
-        self.target.as_ref()
-    }
-
-    /// Gets the chain of accesses and calls that will be applied to the target at runtime.
-    #[inline]
-    #[must_use]
-    pub fn chain(&self) -> &[OptionalOperation] {
-        self.chain.as_ref()
-    }
-}
-
-impl From<Optional> for Expression {
-    fn from(opt: Optional) -> Self {
-        Self::Optional(opt)
-    }
-}
-
-impl ToInternedString for Optional {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        let mut buf = self.target.to_interned_string(interner);
-
-        for item in &*self.chain {
-            buf.push_str(&item.to_interned_string(interner));
-        }
-
-        buf
     }
 }

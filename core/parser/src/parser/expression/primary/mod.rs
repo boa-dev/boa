@@ -47,13 +47,13 @@ use boa_ast::{
     self as ast,
     declaration::Variable,
     expression::{
-        literal::{self, Literal, TemplateElement},
+        literal::{self, Literal, LiteralKind, TemplateElement},
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Identifier, Parenthesized,
+        Identifier, Parenthesized, This,
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
-    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    pattern::{ArrayPattern, ObjectPattern, Pattern},
     Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
@@ -111,8 +111,9 @@ where
                 tok_position,
             )),
             TokenKind::Keyword((Keyword::This, false)) => {
+                let span = tok.span();
                 cursor.advance(interner);
-                Ok(ast::Expression::This)
+                Ok(This::new(span).into())
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
                 let next_token = cursor.peek(1, interner).or_abrupt()?;
@@ -127,7 +128,6 @@ where
                 }
             }
             TokenKind::Keyword((Keyword::Class, _)) => {
-                cursor.advance(interner);
                 ClassExpression::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
@@ -168,8 +168,6 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
-                cursor.advance(interner);
-                cursor.set_goal(InputElement::RegExp);
                 let expr = CoverParenthesizedExpressionAndArrowParameterList::new(
                     self.allow_yield,
                     self.allow_await,
@@ -178,27 +176,24 @@ where
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                cursor.advance(interner);
-                cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.advance(interner);
-                cursor.set_goal(InputElement::RegExp);
                 ObjectLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Into::into)
             }
             TokenKind::BooleanLiteral((boolean, _)) => {
-                let node = Literal::from(*boolean).into();
+                let node = Literal::new(*boolean, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::NullLiteral(_) => {
+                let node = Literal::new(LiteralKind::Null, tok.span());
                 cursor.advance(interner);
-                Ok(Literal::Null.into())
+                Ok(node.into())
             }
             TokenKind::IdentifierName(_)
             | TokenKind::Keyword((
@@ -208,9 +203,9 @@ where
                 .parse(cursor, interner)
                 .map(Into::into),
             TokenKind::StringLiteral((lit, _)) => {
-                let node = Literal::from(*lit).into();
+                let node = Literal::new(*lit, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::TemplateNoSubstitution(template_string) => {
                 let Some(cooked) = template_string.cooked() else {
@@ -219,28 +214,30 @@ where
                         tok.span().start(),
                     ));
                 };
-                let temp =
-                    literal::TemplateLiteral::new(Box::new([TemplateElement::String(cooked)]));
+                let temp = literal::TemplateLiteral::new(
+                    Box::new([TemplateElement::String(cooked)]),
+                    tok.span(),
+                );
                 cursor.advance(interner);
                 Ok(temp.into())
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => {
-                let node = Literal::from(*num).into();
+                let node = Literal::new(*num, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::NumericLiteral(Numeric::Rational(num)) => {
-                let node = Literal::from(*num).into();
+                let node = Literal::new(*num, tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => {
-                let node = Literal::from(num.clone()).into();
+                let node = Literal::new(num.clone(), tok.span());
                 cursor.advance(interner);
-                Ok(node)
+                Ok(node.into())
             }
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                let node = AstRegExp::new(*body, *flags).into();
+                let node = AstRegExp::new(*body, *flags, tok.span()).into();
                 cursor.advance(interner);
                 Ok(node)
             }
@@ -252,7 +249,7 @@ where
                 let tok = cursor.lex_regex(start_pos_group, interner, init_with_eq)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
-                    Ok(AstRegExp::new(body, flags).into())
+                    Ok(AstRegExp::new(body, flags, tok.span()).into())
                 } else {
                     // A regex was expected and nothing else.
                     Err(Error::unexpected(
@@ -323,8 +320,8 @@ where
         #[derive(Debug)]
         enum InnerExpression {
             Expression(ast::Expression),
-            SpreadObject(Vec<ObjectPatternElement>),
-            SpreadArray(Vec<ArrayPatternElement>),
+            SpreadObject(ObjectPattern),
+            SpreadArray(ArrayPattern),
             SpreadBinding(Identifier),
         }
 
@@ -333,7 +330,15 @@ where
             "Parsing",
         );
 
-        let start_span = cursor.peek(0, interner).or_abrupt()?.span();
+        let span_start = cursor
+            .expect(
+                Punctuator::OpenParen,
+                "parenthesis expression or arrow function",
+                interner,
+            )?
+            .span();
+
+        cursor.set_goal(InputElement::RegExp);
 
         let mut expressions = Vec::new();
         let mut tailing_comma = None;
@@ -491,6 +496,7 @@ where
             if let InnerExpression::Expression(expression) = &expressions[0] {
                 return Ok(ast::Expression::Parenthesized(Parenthesized::new(
                     expression.clone(),
+                    Span::new(span_start.start(), span.end()),
                 )));
             }
             return Err(Error::unexpected(
@@ -512,16 +518,16 @@ where
                         &node,
                         &mut parameters,
                         cursor.strict(),
-                        start_span,
+                        span_start,
                     )?;
                 }
-                InnerExpression::SpreadObject(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
+                InnerExpression::SpreadObject(pattern) => {
+                    let declaration = Variable::from_pattern(pattern.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
-                InnerExpression::SpreadArray(bindings) => {
-                    let declaration = Variable::from_pattern(bindings.into(), None);
+                InnerExpression::SpreadArray(pattern) => {
+                    let declaration = Variable::from_pattern(pattern.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
@@ -547,7 +553,7 @@ where
         if contains(&parameters, ContainsSymbol::YieldExpression) {
             return Err(Error::general(
                 "yield expression is not allowed in formal parameter list of arrow function",
-                start_span.start(),
+                span_start.start(),
             ));
         }
 
@@ -595,19 +601,13 @@ fn expression_to_formal_parameters(
             AssignTarget::Pattern(pattern) => match pattern {
                 Pattern::Object(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Variable::from_pattern(
-                            pattern.bindings().to_vec().into(),
-                            Some(assign.rhs().clone()),
-                        ),
+                        Variable::from_pattern(pattern.clone().into(), Some(assign.rhs().clone())),
                         false,
                     ));
                 }
                 Pattern::Array(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Variable::from_pattern(
-                            pattern.bindings().to_vec().into(),
-                            Some(assign.rhs().clone()),
-                        ),
+                        Variable::from_pattern(pattern.clone().into(), Some(assign.rhs().clone())),
                         false,
                     ));
                 }

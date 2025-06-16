@@ -205,6 +205,6 @@ where
             ));
         }
 
-        Ok(AstIdentifier::new(ident))
+        Ok(AstIdentifier::new(ident, tok.span()))
     }
 }

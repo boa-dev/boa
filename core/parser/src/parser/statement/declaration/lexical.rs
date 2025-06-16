@@ -19,7 +19,7 @@ use crate::{
     Error,
 };
 use ast::operations::bound_names;
-use boa_ast::{self as ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
+use boa_ast::{self as ast, declaration::Variable, Keyword, Punctuator};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
@@ -105,7 +105,7 @@ where
         let bound_names = bound_names(&lexical_declaration);
         let mut names = FxHashSet::default();
         for name in bound_names {
-            if name.sym() == Sym::LET {
+            if name == Sym::LET {
                 return Err(Error::general(
                     "'let' is disallowed as a lexically bound name",
                     tok.span().start(),
@@ -319,9 +319,9 @@ where
                     None
                 };
 
-                let declaration = Pattern::Object(bindings.into());
+                let declaration = bindings.into();
 
-                if bound_names(&declaration).contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET) {
                     return Err(Error::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
@@ -347,9 +347,9 @@ where
                     None
                 };
 
-                let declaration = Pattern::Array(bindings.into());
+                let declaration = bindings.into();
 
-                if bound_names(&declaration).contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET) {
                     return Err(Error::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,

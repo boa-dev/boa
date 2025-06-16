@@ -26,7 +26,7 @@ use boa_ast::{
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
     statement::Return,
-    Expression, Punctuator,
+    Expression, Punctuator, Span, StatementList,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -79,7 +79,7 @@ where
                 let params_start_position = cursor
                     .expect(Punctuator::OpenParen, "arrow function", interner)?
                     .span()
-                    .end();
+                    .start();
 
                 let params = FormalParameters::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
@@ -155,9 +155,16 @@ where
         )?;
 
         let linear_pos_end = body.linear_pos_end();
-        let span = start_linear_span.union(linear_pos_end);
+        let linear_span = start_linear_span.union(linear_pos_end);
 
-        Ok(ast::function::ArrowFunction::new(None, params, body, span))
+        let body_span_end = body.span().end();
+        Ok(ast::function::ArrowFunction::new(
+            None,
+            params,
+            body,
+            linear_span,
+            Span::new(params_start_position, body_span_end),
+        ))
     }
 }
 
@@ -186,23 +193,21 @@ where
     type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let stmts = match cursor.peek(0, interner).or_abrupt()?.kind() {
-            TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.advance(interner);
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
-                body
-            }
-            _ => ast::function::FunctionBody::new(
-                [ast::Statement::Return(Return::new(
-                    ExpressionBody::new(self.allow_in, false)
-                        .parse(cursor, interner)?
-                        .into(),
-                ))
-                .into()],
-                cursor.linear_pos(),
-                false,
-            ),
+        let stmts = if let TokenKind::Punctuator(Punctuator::OpenBlock) =
+            cursor.peek(0, interner).or_abrupt()?.kind()
+        {
+            FunctionBody::new(false, false, "arrow function").parse(cursor, interner)?
+        } else {
+            let expression = ExpressionBody::new(self.allow_in, false).parse(cursor, interner)?;
+            let span = expression.span();
+            ast::function::FunctionBody::new(
+                StatementList::new(
+                    [ast::Statement::Return(Return::new(expression.into())).into()],
+                    cursor.linear_pos(),
+                    false,
+                ),
+                span,
+            )
         };
 
         Ok(stmts)
