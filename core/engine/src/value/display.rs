@@ -103,20 +103,20 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
         JsVariant::Object(v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
-            let v_bor = v.borrow();
-            if let Some(s) = v_bor.downcast_ref::<JsString>() {
+            if let Some(s) = v.downcast_ref::<JsString>() {
                 format!("String {{ \"{}\" }}", s.to_std_string_escaped())
-            } else if let Some(b) = v_bor.downcast_ref::<bool>() {
+            } else if let Some(b) = v.downcast_ref::<bool>() {
                 format!("Boolean {{ {b} }}")
-            } else if let Some(r) = v_bor.downcast_ref::<f64>() {
+            } else if let Some(r) = v.downcast_ref::<f64>() {
                 if r.is_sign_negative() && *r == 0.0 {
                     "Number { -0 }".to_string()
                 } else {
                     let mut buffer = ryu_js::Buffer::new();
                     format!("Number {{ {} }}", buffer.format(*r))
                 }
-            } else if v_bor.is::<Array>() {
-                let len = v_bor
+            } else if v.is::<Array>() {
+                let len = v
+                    .borrow()
                     .properties()
                     .get(&js_string!("length").into())
                     .expect("array object must have 'length' property")
@@ -137,7 +137,8 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                             // which are part of the Array
 
                             // FIXME: handle accessor descriptors
-                            if let Some(value) = v_bor
+                            if let Some(value) = v
+                                .borrow()
                                 .properties()
                                 .get(&i.into())
                                 .and_then(|x| x.value().cloned())
@@ -154,7 +155,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Array({len})")
                 }
-            } else if let Some(map) = v_bor.downcast_ref::<OrderedMap<JsValue>>() {
+            } else if let Some(map) = v.downcast_ref::<OrderedMap<JsValue>>() {
                 let size = map.len();
                 if size == 0 {
                     return String::from("Map(0)");
@@ -174,7 +175,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Map({size})")
                 }
-            } else if let Some(set) = v_bor.downcast_ref::<OrderedSet>() {
+            } else if let Some(set) = v.downcast_ref::<OrderedSet>() {
                 let size = set.len();
 
                 if size == 0 {
@@ -191,8 +192,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Set({size})")
                 }
-            } else if v_bor.is::<Error>() {
-                drop(v_bor);
+            } else if v.is::<Error>() {
                 let name: Cow<'static, str> = v
                     .get_property(&js_string!("name").into())
                     .as_ref()
@@ -226,7 +226,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("{name}: {message}")
                 }
-            } else if let Some(promise) = v_bor.downcast_ref::<Promise>() {
+            } else if let Some(promise) = v.downcast_ref::<Promise>() {
                 format!(
                     "Promise {{ {} }}",
                     match promise.state() {

@@ -88,7 +88,7 @@ impl JsSharedArrayBuffer {
     #[inline]
     #[must_use]
     pub fn inner(&self) -> SharedArrayBuffer {
-        self.borrow().data.clone()
+        self.borrow().data.as_ref().clone()
     }
 }
 

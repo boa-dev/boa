@@ -149,9 +149,9 @@ impl BufferObject {
         &self,
     ) -> BufferRef<GcRef<'_, ArrayBuffer>, GcRef<'_, SharedArrayBuffer>> {
         match self {
-            Self::Buffer(buf) => BufferRef::Buffer(GcRef::map(buf.borrow(), |o| &o.data)),
+            Self::Buffer(buf) => BufferRef::Buffer(GcRef::map(buf.borrow(), |o| o.data())),
             Self::SharedBuffer(buf) => {
-                BufferRef::SharedBuffer(GcRef::map(buf.borrow(), |o| &o.data))
+                BufferRef::SharedBuffer(GcRef::map(buf.borrow(), |o| o.data()))
             }
         }
     }
@@ -167,10 +167,10 @@ impl BufferObject {
     > {
         match self {
             Self::Buffer(buf) => {
-                BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+                BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| o.data_mut()))
             }
             Self::SharedBuffer(buf) => {
-                BufferRefMut::SharedBuffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+                BufferRefMut::SharedBuffer(GcRefMut::map(buf.borrow_mut(), |o| o.data_mut()))
             }
         }
     }

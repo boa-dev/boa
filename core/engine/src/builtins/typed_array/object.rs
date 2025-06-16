@@ -568,7 +568,6 @@ pub(crate) fn typed_array_exotic_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
-    let obj = obj.borrow();
     let inner = obj
         .downcast_ref::<TypedArray>()
         .expect("TypedArray exotic method should only be callable from TypedArray objects");
@@ -591,12 +590,13 @@ pub(crate) fn typed_array_exotic_own_property_keys(
         }
         _ => Vec::new(),
     };
+    drop(inner);
 
     // 4. For each own property key P of O such that P is a String and P is not an integer index, in ascending chronological order of property creation, do
     //     a. Append P to keys.
     // 5. For each own property key P of O such that P is a Symbol, in ascending chronological order of property creation, do
     //     a. Append P to keys.
-    keys.extend(obj.properties.shape.keys());
+    keys.extend(obj.borrow().properties.shape.keys());
 
     // 6. Return keys.
     Ok(keys)

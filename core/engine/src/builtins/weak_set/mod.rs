@@ -177,7 +177,7 @@ impl WeakSet {
 
     /// `WeakSet.prototype.delete( value )`
     ///
-    /// The `delete()` method removes the specified element from a `WeakSet` object.  
+    /// The `delete()` method removes the specified element from a `WeakSet` object.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

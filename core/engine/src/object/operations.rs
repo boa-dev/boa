@@ -791,8 +791,7 @@ impl JsObject {
         }
 
         // 3. If argument is a Proxy exotic object, then
-        let object = self.borrow();
-        if let Some(proxy) = object.downcast_ref::<Proxy>() {
+        if let Some(proxy) = self.downcast_ref::<Proxy>() {
             // a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
             // b. Let target be argument.[[ProxyTarget]].
             let (target, _) = proxy.try_data()?;
@@ -809,24 +808,21 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
     pub(crate) fn get_function_realm(&self, context: &mut Context) -> JsResult<Realm> {
-        let constructor = self.borrow();
-        if let Some(fun) = constructor.downcast_ref::<OrdinaryFunction>() {
+        if let Some(fun) = self.downcast_ref::<OrdinaryFunction>() {
             return Ok(fun.realm().clone());
         }
 
-        if let Some(f) = constructor.downcast_ref::<NativeFunctionObject>() {
+        if let Some(f) = self.downcast_ref::<NativeFunctionObject>() {
             return Ok(f.realm.clone().unwrap_or_else(|| context.realm().clone()));
         }
 
-        if let Some(bound) = constructor.downcast_ref::<BoundFunction>() {
+        if let Some(bound) = self.downcast_ref::<BoundFunction>() {
             let fun = bound.target_function().clone();
-            drop(constructor);
             return fun.get_function_realm(context);
         }
 
-        if let Some(proxy) = constructor.downcast_ref::<Proxy>() {
+        if let Some(proxy) = self.downcast_ref::<Proxy>() {
             let (fun, _) = proxy.try_data()?;
-            drop(constructor);
             return fun.get_function_realm(context);
         }
 
