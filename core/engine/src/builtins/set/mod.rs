@@ -1151,11 +1151,7 @@ impl Set {
     /// Helper function to get the size of the `Set` object.
     pub(crate) fn get_size(set: &JsValue) -> JsResult<usize> {
         set.as_object()
-            .and_then(|obj| {
-                obj.borrow()
-                    .downcast_ref::<OrderedSet>()
-                    .map(OrderedSet::len)
-            })
+            .and_then(|obj| obj.downcast_ref::<OrderedSet>().map(|o| o.len()))
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Set")
@@ -1166,11 +1162,7 @@ impl Set {
     /// Helper function to get the full size of the `Set` object.
     pub(crate) fn get_size_full(set: &JsValue) -> JsResult<usize> {
         set.as_object()
-            .and_then(|obj| {
-                obj.borrow()
-                    .downcast_ref::<OrderedSet>()
-                    .map(OrderedSet::full_len)
-            })
+            .and_then(|obj| obj.downcast_ref::<OrderedSet>().map(|o| o.full_len()))
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("'this' is not a Set")

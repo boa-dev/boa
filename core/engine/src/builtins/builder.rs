@@ -394,13 +394,17 @@ impl BuiltInConstructorWithPrototype<'_> {
             debug_assert_eq!(prototype_old_storage.len(), 0);
         }
 
+        {
+            let mut function = self
+                .object
+                .downcast_mut::<NativeFunctionObject>()
+                .expect("Builtin must be a function object");
+            function.f = NativeFunction::from_fn_ptr(self.function);
+            function.constructor = Some(ConstructorKind::Base);
+            function.realm = Some(self.realm.clone());
+        }
+
         let mut object = self.object.borrow_mut();
-        let function = object
-            .downcast_mut::<NativeFunctionObject>()
-            .expect("Builtin must be a function object");
-        function.f = NativeFunction::from_fn_ptr(self.function);
-        function.constructor = Some(ConstructorKind::Base);
-        function.realm = Some(self.realm.clone());
         object
             .properties_mut()
             .shape
@@ -420,13 +424,17 @@ impl BuiltInConstructorWithPrototype<'_> {
         self = self.static_property(js_string!("length"), length, Attribute::CONFIGURABLE);
         self = self.static_property(js_string!("name"), name, Attribute::CONFIGURABLE);
 
+        {
+            let mut function = self
+                .object
+                .downcast_mut::<NativeFunctionObject>()
+                .expect("Builtin must be a function object");
+            function.f = NativeFunction::from_fn_ptr(self.function);
+            function.constructor = Some(ConstructorKind::Base);
+            function.realm = Some(self.realm.clone());
+        }
+
         let mut object = self.object.borrow_mut();
-        let function = object
-            .downcast_mut::<NativeFunctionObject>()
-            .expect("Builtin must be a function object");
-        function.f = NativeFunction::from_fn_ptr(self.function);
-        function.constructor = Some(ConstructorKind::Base);
-        function.realm = Some(self.realm.clone());
         object
             .properties_mut()
             .shape

@@ -1441,17 +1441,16 @@ impl String {
 
                 let collator = collator
                     .as_object()
-                    .map(JsObject::borrow)
-                    .expect("constructor must return a JsObject");
-                let collator = collator
-                    .downcast_ref::<Collator>()
-                    .expect("constructor must return a `Collator` object")
-                    .collator();
+                    .and_then(|o| o.downcast_ref::<Collator>())
+                    .expect("constructor must return a `Collator` object");
 
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
 
-                collator.as_borrowed().compare_utf16(&s, &that_value) as i8
+                collator
+                    .collator()
+                    .as_borrowed()
+                    .compare_utf16(&s, &that_value) as i8
             }
 
             // Default to common comparison if the user doesn't have `Intl` enabled.

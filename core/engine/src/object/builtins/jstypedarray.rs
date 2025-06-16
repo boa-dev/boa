@@ -1,8 +1,10 @@
 //! Rust API wrappers for the `TypedArray` Builtin ECMAScript Objects
 use crate::{
     Context, JsResult, JsString, JsValue,
-    builtins::typed_array::BuiltinTypedArray,
-    builtins::{BuiltInConstructor, typed_array::TypedArray},
+    builtins::{
+        BuiltInConstructor,
+        typed_array::{BuiltinTypedArray, TypedArray, TypedArrayKind},
+    },
     error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject},
     value::{IntoOrUndefined, TryFromJs},
@@ -926,7 +928,7 @@ macro_rules! JsTypedArrayType {
     (
         $name:ident,
         $constructor_function:ident,
-        $checker_function:ident,
+        $kind:expr,
         $constructor_object:ident,
         $value_to_elem:ident,
         $element:ty
@@ -948,7 +950,12 @@ macro_rules! JsTypedArrayType {
             )]
             #[inline]
             pub fn from_object(object: JsObject) -> JsResult<Self> {
-                if object.borrow().$checker_function() {
+                let is_kind = if let Some(int) = object.downcast_ref::<TypedArray>() {
+                    int.kind() == $kind
+                } else {
+                    false
+                };
+                if is_kind {
                     Ok(Self {
                         inner: JsTypedArray {
                             inner: object.into(),
@@ -1082,7 +1089,7 @@ macro_rules! JsTypedArrayType {
 JsTypedArrayType!(
     JsUint8Array,
     Uint8Array,
-    is_typed_uint8_array,
+    TypedArrayKind::Uint8,
     typed_uint8_array,
     to_uint8,
     u8
@@ -1090,7 +1097,7 @@ JsTypedArrayType!(
 JsTypedArrayType!(
     JsInt8Array,
     Int8Array,
-    is_typed_int8_array,
+    TypedArrayKind::Int8,
     typed_int8_array,
     to_int8,
     i8
@@ -1098,7 +1105,7 @@ JsTypedArrayType!(
 JsTypedArrayType!(
     JsUint16Array,
     Uint16Array,
-    is_typed_uint16_array,
+    TypedArrayKind::Uint16,
     typed_uint16_array,
     to_uint16,
     u16
@@ -1106,7 +1113,7 @@ JsTypedArrayType!(
 JsTypedArrayType!(
     JsInt16Array,
     Int16Array,
-    is_typed_int16_array,
+    TypedArrayKind::Int16,
     typed_int16_array,
     to_int16,
     i16
@@ -1114,7 +1121,7 @@ JsTypedArrayType!(
 JsTypedArrayType!(
     JsUint32Array,
     Uint32Array,
-    is_typed_uint32_array,
+    TypedArrayKind::Uint32,
     typed_uint32_array,
     to_u32,
     u32
@@ -1122,7 +1129,7 @@ JsTypedArrayType!(
 JsTypedArrayType!(
     JsInt32Array,
     Int32Array,
-    is_typed_int32_array,
+    TypedArrayKind::Int32,
     typed_int32_array,
     to_i32,
     i32
@@ -1130,7 +1137,7 @@ JsTypedArrayType!(
 JsTypedArrayType!(
     JsFloat32Array,
     Float32Array,
-    is_typed_float32_array,
+    TypedArrayKind::Float32,
     typed_float32_array,
     to_f32,
     f32
@@ -1138,7 +1145,7 @@ JsTypedArrayType!(
 JsTypedArrayType!(
     JsFloat64Array,
     Float64Array,
-    is_typed_float64_array,
+    TypedArrayKind::Float64,
     typed_float64_array,
     to_number,
     f64

@@ -124,10 +124,9 @@ impl SetIterator {
                 ));
             }
 
-            let entries = m.as_object().map(JsObject::borrow);
-            let entries = entries
-                .as_ref()
-                .and_then(|obj| obj.downcast_ref::<OrderedSet>())
+            let entries = m
+                .as_object()
+                .and_then(|o| o.downcast_ref::<OrderedSet>())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
             let num_entries = entries.full_len();

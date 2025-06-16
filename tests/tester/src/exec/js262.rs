@@ -135,15 +135,11 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResu
         JsNativeError::typ().with_message("The provided object was not an ArrayBuffer")
     }
 
-    let array_buffer = args
+    // 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false.
+    let mut array_buffer = args
         .first()
         .and_then(JsValue::as_object)
-        .ok_or_else(type_err)?;
-    let mut array_buffer = array_buffer.borrow_mut();
-
-    // 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false.
-    let array_buffer = array_buffer
-        .downcast_mut::<ArrayBuffer>()
+        .and_then(|o| o.downcast_mut::<ArrayBuffer>())
         .ok_or_else(type_err)?;
 
     // 2. If key is not present, set key to undefined.
