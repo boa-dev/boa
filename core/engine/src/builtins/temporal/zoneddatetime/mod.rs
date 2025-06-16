@@ -913,7 +913,7 @@ impl ZonedDateTime {
         let overflow =
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
 
-        let result = zdt.inner.with(
+        let result = zdt.inner.with_with_provider(
             partial,
             disambiguation,
             offset,
@@ -941,13 +941,9 @@ impl ZonedDateTime {
             .map(|v| to_temporal_time(v, None, context))
             .transpose()?;
 
-        let inner = if let Some(pt) = time {
-            zdt.inner
-                .with_plain_time_and_provider(pt, context.tz_provider())?
-        } else {
-            zdt.inner
-                .start_of_day_with_provider(context.tz_provider())?
-        };
+        let inner = zdt
+            .inner
+            .with_plain_time_and_provider(time, context.tz_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
