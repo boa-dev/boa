@@ -1,5 +1,4 @@
 use thin_vec::ThinVec;
-
 use super::{VaryingOperand, VaryingOperandVariant};
 
 /// A trait for types that can be read from a byte slice.
@@ -14,7 +13,9 @@ unsafe impl Readable for i8 {}
 unsafe impl Readable for u16 {}
 unsafe impl Readable for i16 {}
 unsafe impl Readable for u32 {}
+unsafe impl Readable for i32 {}
 unsafe impl Readable for u64 {}
+unsafe impl Readable for f32 {}
 unsafe impl Readable for f64 {}
 unsafe impl Readable for (u8, u8) {}
 unsafe impl Readable for (u8, i8) {}
@@ -286,48 +287,177 @@ impl Argument for (VaryingOperand, i16) {
 
 impl Argument for (VaryingOperand, i32) {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_i32(bytes, self.1);
+      match self.0.variant() {
+            VaryingOperandVariant::U8(value) => {
+                write_format(bytes, Format::U8);
+                write_u8(bytes, value);
+                write_i32(bytes, self.1);
+            }
+            VaryingOperandVariant::U16(value) => {
+                write_format(bytes, Format::U16);
+                write_u16(bytes, value);
+                write_i32(bytes, self.1);
+            }
+            VaryingOperandVariant::U32(value) => {
+                write_format(bytes, Format::U32);
+                write_u32(bytes, value);
+                write_i32(bytes, self.1);
+            }
+        }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2), pos) = read::<(u32, i32)>(bytes, pos);
-        ((arg1.into(), arg2), pos)
+        let format = Format::from(bytes[pos]);
+        let pos = pos + 1;
+
+        match format {
+            Format::U8 => {
+                assert!(bytes.len() >= pos + 5, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u8>(bytes, pos),
+                        read_unchecked::<i32>(bytes, pos + 1),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 5)
+            }
+            Format::U16 => {
+                assert!(bytes.len() >= pos + 6, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u16>(bytes, pos),
+                        read_unchecked::<i32>(bytes, pos + 2),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 6)
+            }
+            Format::U32 => {
+                let ((arg1, arg2), pos) = read::<(u32, i32)>(bytes, pos);
+                ((arg1.into(), arg2), pos)
+            }
+        }
     }
 }
 
 impl Argument for (VaryingOperand, f32) {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_f32(bytes, self.1);
+        match self.0.variant() {
+            VaryingOperandVariant::U8(value) => {
+                write_format(bytes, Format::U8);
+                write_u8(bytes, value);
+                write_f32(bytes,self.1);
+            }
+            VaryingOperandVariant::U16(value) => {
+                write_format(bytes, Format::U16);
+                write_u16(bytes, value);
+                write_f32(bytes,self.1);
+            }
+            VaryingOperandVariant::U32(value) => {
+                write_format(bytes, Format::U32);
+                write_u32(bytes, value);
+                write_f32(bytes,self.1);
+            }
+        }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        let ((arg1, arg2), pos) = read::<(u32, u32)>(bytes, pos);
-        ((arg1.into(), f32::from_bits(arg2)), pos)
+
+        let format = Format::from(bytes[pos]);
+        let pos = pos + 1;
+
+        match format {
+            Format::U8 => {
+                assert!(bytes.len() >= pos + 5, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u8>(bytes, pos),
+                        read_unchecked::<f32>(bytes, pos + 1),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 5)
+            }
+            Format::U16 => {
+                assert!(bytes.len() >= pos + 6, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u16>(bytes, pos),
+                        read_unchecked::<f32>(bytes, pos + 2),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 6)
+            }
+            Format::U32 => {
+                assert!(bytes.len() >= pos + 8, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u32>(bytes, pos),
+                        read_unchecked::<f32>(bytes, pos + 4),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 8)
+            }
+        }
     }
 }
 
 impl Argument for (VaryingOperand, f64) {
     fn encode(self, bytes: &mut Vec<u8>) {
-        write_u32(bytes, self.0.value);
-        write_f64(bytes, self.1);
+        match self.0.variant() {
+            VaryingOperandVariant::U8(value) => {
+                write_format(bytes, Format::U8);
+                write_u8(bytes, value);
+                write_f64(bytes,self.1);
+            }
+            VaryingOperandVariant::U16(value) => {
+                write_format(bytes, Format::U16);
+                write_u16(bytes, value);
+                write_f64(bytes,self.1);
+            }
+            VaryingOperandVariant::U32(value) => {
+                write_format(bytes, Format::U32);
+                write_u32(bytes, value);
+                write_f64(bytes,self.1);
+            }
+        }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        assert!(
-            bytes.len() >= pos + 12,
-            "buffer too small to read arguments"
-        );
 
-        let (arg1, arg2) = unsafe {
-            (
-                read_unchecked::<u32>(bytes, pos),
-                read_unchecked::<f64>(bytes, pos + 4),
-            )
-        };
+        let format = Format::from(bytes[pos]);
+        let pos = pos + 1;
 
-        ((arg1.into(), arg2), pos + 12)
+        match format {
+            Format::U8 => {
+                assert!(bytes.len() >= pos + 9, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u8>(bytes, pos),
+                        read_unchecked::<f64>(bytes, pos + 1),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 9)
+            }
+            Format::U16 => {
+                assert!(bytes.len() >= pos + 10, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u16>(bytes, pos),
+                        read_unchecked::<f64>(bytes, pos + 2),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 10)
+            }
+            Format::U32 => {
+                assert!(bytes.len() >= pos + 12, "buffer too small to read arguments");
+                let (arg1, arg2) = unsafe {
+                    (
+                        read_unchecked::<u32>(bytes, pos),
+                        read_unchecked::<f64>(bytes, pos + 4),
+                    )
+                };
+                ((arg1.into(), arg2), pos + 12)
+            }
+        }
     }
 }
 
@@ -575,7 +705,7 @@ impl Argument for (u32, VaryingOperand, VaryingOperand) {
 
 impl Argument for (VaryingOperand, ThinVec<VaryingOperand>) {
     fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length of all arguments
+        // Write length of all arguments in ThinVec
         let total_len = self.1.len();
         write_u16(bytes, total_len as u16);
 
@@ -614,7 +744,7 @@ impl Argument for (VaryingOperand, ThinVec<VaryingOperand>) {
 
 impl Argument for (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>) {
     fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length of all arguments
+        // Write length of all arguments in ThinVec
         let total_len = self.2.len();
         write_u16(bytes, total_len as u16);
 
@@ -659,6 +789,8 @@ impl Argument for (u32, u64, VaryingOperand) {
     fn encode(self, bytes: &mut Vec<u8>) {
         write_u32(bytes, self.0);
         write_u64(bytes, self.1);
+        // Might want to add some formatting to this?
+        // Not sure what byte arrangment is good so I'll leave it alone for now.
         write_u32(bytes, self.2.value);
     }
 
@@ -806,4 +938,655 @@ impl Argument for (VaryingOperand, ThinVec<u32>) {
 
         ((first.into(), rest), pos + 6 + total_len * 4)
     }
+}
+
+#[cfg(test)]
+mod test {
+
+  use std::vec;
+  use thin_vec::thin_vec;
+  use super::*;
+
+  fn test_write_arg<T: Argument>(test_data: T) -> Vec<u8> {
+    let mut v: Vec<u8> = Vec::new();
+    test_data.encode(&mut v);
+    return v
+  }
+
+  // This can fail depending on Argument/opcode combination given (too short)
+  fn test_read_arg<T: Argument>(opcode: Box<[u8]>, pos: usize) -> (T, usize) {
+    let r: &[u8] = &opcode;
+    T::decode(r, pos)
+  }
+
+
+  //
+  // VariableOperand
+  //
+  #[test]
+  fn arg_vop_u8() {
+    test_write_arg(VaryingOperand{value: u8::MAX as u32});
+    test_read_arg::<VaryingOperand>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8() {
+    test_read_arg::<VaryingOperand>(Box::new([0]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16() {
+    test_write_arg(VaryingOperand{value: u16::MAX as u32});
+    test_read_arg::<VaryingOperand>(Box::new([1,0xFF,0xFF]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u16() {
+    test_read_arg::<VaryingOperand>(Box::new([1]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u32() {
+    let v = test_write_arg(VaryingOperand{value: u32::MAX});
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF], v);
+    test_read_arg::<VaryingOperand>(Box::new([2,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32() {
+    test_read_arg::<VaryingOperand>(Box::new([2,0xFF,0xFF,0xFF]), 0);
+  }
+
+  //
+  // u32
+  //
+  #[test]
+  fn arg_u32() {
+    let v = test_write_arg(u32::MAX);
+    assert_eq!(vec![0xFF,0xFF,0xFF,0xFF], v);
+    test_read_arg::<u32>(Box::new([0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_u32() {
+    test_read_arg::<u32>(Box::new([0xFF,0xFF,0xFF]), 0);
+  }
+
+  //
+  // (VariableOperarand, i8)
+  //
+  #[test]
+  fn arg_vop_u8_i8() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u8::MAX as u32},i8::MIN)
+    );
+    assert_eq!(vec![0,0xFF,0x80], v);
+    test_read_arg::<(VaryingOperand, i8)>(Box::new([0,0xFF,0x80]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_i8() {
+    test_read_arg::<(VaryingOperand, i8)>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_i8() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u16::MAX as u32},i8::MIN)
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0x80], v);
+    test_read_arg::<(VaryingOperand, i8)>(Box::new([1,0xFF,0xFF,0x80]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u16_i8() {
+    test_read_arg::<(VaryingOperand, i8)>(Box::new([1,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u32_i8() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u32::MAX},i8::MIN)
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF,0x80], v);
+    test_read_arg::<(VaryingOperand, i8)>(Box::new([2,0xFF,0xFF,0xFF,0xFF,0x80]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_i8() {
+    test_read_arg::<(VaryingOperand, i8)>(Box::new([2,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  //
+  // (VariableOperarand, i16)
+  //
+  #[test]
+  fn arg_vop_u8_i16() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u8::MAX as u32},i16::MIN)
+    );
+    assert_eq!(vec![0,0xFF,0x00,0x80], v);
+    test_read_arg::<(VaryingOperand,i16)>(Box::new([0,0xFF,0x00,0x80]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_i16() {
+    test_read_arg::<(VaryingOperand,i16)>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_i16() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u16::MAX as u32},i16::MIN)
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0x00,0x80], v);
+    test_read_arg::<(VaryingOperand,i16)>(Box::new([1,0xFF,0xFF,0x00,0x80]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u16_i16() {
+    test_read_arg::<(VaryingOperand,i16)>(Box::new([1,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u32_i16() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u32::MAX},i16::MIN)
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF,0x00,0x80], v);
+    test_read_arg::<(VaryingOperand,i16)>(Box::new([2,0xFF,0xFF,0xFF,0xFF,0x00,0x80]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_i16() {
+    test_read_arg::<(VaryingOperand,i16)>(Box::new([2,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  //
+  // (VariableOperarand, i32)
+  //
+  #[test]
+  fn arg_vop_u8_i32() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u8::MAX as u32},i32::MIN)
+    );
+    assert_eq!(vec![0,0xFF,0x00,0x00,0x00,0x80], v);
+    test_read_arg::<(VaryingOperand,i32)>(Box::new([0,0xFF,0x00,0x00,0x00,0x80]), 0);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_i32() {
+    test_read_arg::<(VaryingOperand,i32)>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_i32() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u16::MAX as u32},i32::MIN)
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0x00,0x00,0x00,0x80], v);
+    let a = test_read_arg::<(VaryingOperand,i32)>(Box::new([1,0xFF,0xFF,0x00,0x00,0x00,0x80]), 0);
+    assert_eq!(i32::MIN,a.0.1);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u16_i32() {
+    test_read_arg::<(VaryingOperand,i32)>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u32_i32() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u32::MAX},i32::MIN)
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x80], v);
+    let a = test_read_arg::<(VaryingOperand,i32)>(Box::new([2,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0x80]), 0);
+    assert_eq!(i32::MIN,a.0.1);
+  }
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_i32() {
+    test_read_arg::<(VaryingOperand,i32)>(Box::new([2,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  //
+  // (VaryingOperand, f32)
+  //
+  #[test]
+  fn arg_vop_u8_f32() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u8::MAX as u32},f32::MIN)
+    );
+    assert_eq!(vec![0,0xFF,0xFF,0xFF,0x7F,0xFF], v);
+    let a = test_read_arg::<(VaryingOperand,f32)>(Box::new([0,0xFF,0xFF,0xFF,0x7F,0xFF]), 0);
+    assert_eq!(f32::MIN,a.0.1);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_f32() {
+    test_read_arg::<(VaryingOperand,f32)>(Box::new([0]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_f32() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u16::MAX as u32},f32::MIN)
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0xFF,0xFF,0x7F,0xFF], v);
+    let a = test_read_arg::<(VaryingOperand,f32)>(Box::new([1,0xFF,0xFF,0xFF,0xFF,0x7F,0xFF]), 0);
+    assert_eq!(f32::MIN,a.0.1);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u16_f32() {
+    test_read_arg::<(VaryingOperand,f32)>(Box::new([1]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u32_f32() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u32::MAX},f32::MIN)
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x7F,0xFF], v);
+    let a = test_read_arg::<(VaryingOperand,f32)>(Box::new([2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x7F,0xFF]), 0);
+    assert_eq!(f32::MIN,a.0.1);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_f32() {
+    test_read_arg::<(VaryingOperand,f32)>(Box::new([2]), 0);
+  }
+
+  //
+  // (VaryingOperand, f64)
+  //
+  #[test]
+  fn arg_vop_u8_f64() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u8::MAX as u32},f64::MIN)
+    );
+    assert_eq!(vec![0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xEF,0xFF], v);
+    let a = test_read_arg::<(VaryingOperand,f64)>(Box::new([0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xEF,0xFF]), 0);
+    assert_eq!(f64::MIN,a.0.1);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_f64() {
+    test_read_arg::<(VaryingOperand,f64)>(Box::new([0]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_f64() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u16::MAX as u32},f64::MIN)
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xEF,0xFF], v);
+    let a = test_read_arg::<(VaryingOperand,f64)>(Box::new([1,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xEF,0xFF]), 0);
+    assert_eq!(f64::MIN,a.0.1);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u16_f64() {
+    test_read_arg::<(VaryingOperand,f64)>(Box::new([1]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u32_f64() {
+    let v = test_write_arg(
+      (VaryingOperand{value: u32::MAX},f64::MIN)
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xEF,0xFF], v);
+    let a = test_read_arg::<(VaryingOperand,f64)>(Box::new([2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xEF,0xFF]), 0);
+    assert_eq!(f64::MIN,a.0.1);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_f64() {
+    test_read_arg::<(VaryingOperand,f64)>(Box::new([2]), 0);
+  }
+
+
+  //
+  // (VaryingOperand, VaryingOperand)
+  //
+  #[test]
+  fn arg_vop_u8_vop_u8() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u8::MAX as u32}, VaryingOperand{value: u8::MAX as u32})
+    );
+    assert_eq!(vec![0,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand)>(Box::new([0,0xFF,0xFF]),0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_vop_u8() {
+   test_read_arg::<(VaryingOperand,VaryingOperand)>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u8_vop_u16() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u8::MAX as u32}, VaryingOperand{value: u16::MAX as u32})
+    );
+    assert_eq!(vec![1,0xFF,0x00,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand)>(Box::new([1,0xFF,0x00,0xFF,0xFF]),0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_vop_u16() {
+   test_read_arg::<(VaryingOperand,VaryingOperand)>(Box::new([1,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_vop_u8() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u16::MAX as u32}, VaryingOperand{value: u8::MAX as u32})
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0xFF,0x00],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand)>(Box::new([1,0xFF,0xFF,0xFF,0x00]),0);
+  }
+
+  #[test]
+  fn arg_vop_u16_vop_u16() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u16::MAX as u32}, VaryingOperand{value: u16::MAX as u32})
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand)>(Box::new([1,0xFF,0xFF,0xFF,0xFF]),0);
+  }
+
+  #[test]
+  fn arg_vop_u32_vop_u32() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u32::MAX}, VaryingOperand{value: u32::MAX})
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand)>(Box::new([2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]),0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_vop_u32() {
+   test_read_arg::<(VaryingOperand,VaryingOperand)>(Box::new([2,0xFF]), 0);
+  }
+
+  //
+  // (VaryingOperand, VaryingOperand, VaryingOperand)
+  //
+  #[test]
+  fn arg_vop_u8_vop_u8_vop_u8() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u8::MAX as u32})
+    );
+    assert_eq!(vec![0,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([0,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_vop_u8_vop_u8() {
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u8_vop_u8_vop_u16() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u16::MAX as u32})
+    );
+    assert_eq!(vec![1,0xFF,0x00,0xFF,0x00,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([1,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_vop_u8_vop_u16() {
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([1,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_vop_u16_vop_u16() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u16::MAX as u32},
+                    VaryingOperand{value: u16::MAX as u32},
+                    VaryingOperand{value: u16::MAX as u32})
+    );
+    assert_eq!(vec![1,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+  }
+
+  #[test]
+  fn arg_vop_u32_vop_u32_vop_u32() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u32::MAX},
+                    VaryingOperand{value: u32::MAX},
+                    VaryingOperand{value: u32::MAX})
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([2,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_vop_u32_vop_u32() {
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([2,0xFF]), 0);
+  }
+
+  //
+  // (VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)
+  //
+  #[test]
+  fn arg_vop_u8_vop_u8_vop_u8_vop_u8() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u8::MAX as u32})
+    );
+    assert_eq!(vec![0,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([0,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u8_vop_u8_vop_u8_vop_u8() {
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([0,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u16_vop_u16_vop_u16_vop_u16() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u8::MAX as u32},
+                    VaryingOperand{value: u16::MAX as u32},
+                    VaryingOperand{value: u16::MAX as u32},
+                    VaryingOperand{value: u16::MAX as u32})
+    );
+    assert_eq!(vec![1,0xFF,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([1,0xFF,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u16_vop_u16_vop_u16_vop_u16() {
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([1,0xFF]), 0);
+  }
+
+  #[test]
+  fn arg_vop_u32_vop_u32_vop_u32_vop_u32() {
+    let v = test_write_arg(
+        (VaryingOperand{value: u16::MAX as u32},
+                    VaryingOperand{value: u32::MAX},
+                    VaryingOperand{value: u32::MAX},
+                    VaryingOperand{value: u32::MAX})
+    );
+    assert_eq!(vec![2,0xFF,0xFF,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([2,0xFF,0xFF,0x00,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_u32_vop_u32_vop_u32_vop_u32() {
+    test_read_arg::<(VaryingOperand, VaryingOperand, VaryingOperand, VaryingOperand)>(Box::new([2,0xFF]), 0);
+  }
+
+  //
+  // (u32, VaryingOperand)
+  //
+  #[test]
+  fn arg_u32_vop() {
+    let v = test_write_arg((u32::MAX, VaryingOperand{value: u8::MAX as u32}));
+    assert_eq!(vec![0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00], v);
+    test_read_arg::<(u32,VaryingOperand)>(Box::new([0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_u32_vop() {
+    test_read_arg::<(u32,VaryingOperand)>(Box::new([0xFF]),0);
+  }
+
+  //
+  // (u32, VaryingOperand, VaryingOperand)
+  //
+  #[test]
+  fn arg_u32_vop_vop() {
+    let v = test_write_arg((u32::MAX, VaryingOperand{value: u8::MAX as u32}, VaryingOperand{value: u8::MAX as u32}));
+    assert_eq!(vec![0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0xFF,0x00,0x00,0x00],v);
+    test_read_arg::<(u32,VaryingOperand,VaryingOperand)>(Box::new([0xFF,0xFF,0xFF,0xFF,0xFF,0x00,0x00,0x00,0xFF,0x00,0x00,0x00]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_u32_vop_vop() {
+    test_read_arg::<(u32,VaryingOperand,VaryingOperand)>(Box::new([0xFF]),0);
+  }
+
+  //
+  // (VaryingOperand, ThinVec<VaryingOperand>)
+  //
+  #[test]
+  fn arg_vop_thin_vec_vop() {
+    let v1 = thin_vec![VaryingOperand{value: u32::MAX}];
+    let v = test_write_arg((VaryingOperand{value: u32::MAX},v1));
+    assert_eq!(vec![0x01,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand,ThinVec<VaryingOperand>)>(Box::new([0x01,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_thin_vec_vop() {
+    test_read_arg::<(VaryingOperand, ThinVec<VaryingOperand>)>(Box::new([0x00]),0);
+  }
+
+  //
+  // (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>)
+  //
+  #[test]
+  fn arg_vop_vop_thin_vec_vop() {
+    let v1 = thin_vec![VaryingOperand{value: u32::MAX}];
+    let v = test_write_arg((VaryingOperand{value: u32::MAX},VaryingOperand{value: u32::MAX},v1));
+    assert_eq!(vec![0x01,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand,VaryingOperand,ThinVec<VaryingOperand>)>(Box::new([0x01,0x00,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_vop_thin_vec_vop() {
+    test_read_arg::<(VaryingOperand, VaryingOperand,ThinVec<VaryingOperand>)>(Box::new([0x00]),0);
+  }
+
+  //
+  // (u32, u64, VaryingOperand)
+  //
+  #[test]
+  fn arg_u32_u64_vop() {
+    let v = test_write_arg((u32::MAX,u64::MAX,VaryingOperand{value: u32::MAX}));
+    assert_eq!(vec![0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(u32,u64,VaryingOperand)>(Box::new([0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_u32_u64_vop() {
+    test_read_arg::<(u32,u64,VaryingOperand)>(Box::new([0]), 0);
+  }
+
+  //
+  // (u32, u64, VaryingOperand)
+  //
+  #[test]
+  fn arg_u32_u64_vop_vop_vop() {
+    let v = test_write_arg((u32::MAX,u32::MAX,VaryingOperand{value: u32::MAX},VaryingOperand{value: u32::MAX},VaryingOperand{value: u32::MAX}));
+    assert_eq!(vec![0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(u32,u32,VaryingOperand,VaryingOperand,VaryingOperand)>(Box::new([0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_u32_u64_vop_vop_vop() {
+    test_read_arg::<(u32,u32,VaryingOperand,VaryingOperand,VaryingOperand)>(Box::new([0]), 0);
+  }
+
+  //
+  // (u32, ThinVec<u32>)
+  //
+  #[test]
+  fn arg_u32_thin_vec_u32() {
+    let v1 = thin_vec![u32::MAX,u32::MAX];
+    let v = test_write_arg((u32::MAX,v1));
+    assert_eq!(vec![2,0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(u32,ThinVec<u32>)>(Box::new([1,0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_u32_thin_vec_u32() {
+    test_read_arg::<(u32,ThinVec<u32>)>(Box::new([0xFF]),0);
+  }
+
+  //
+  // (u64,VaryingOperand,ThinVec<u32>)
+  //
+  #[test]
+  fn arg_u64_vop_thin_vec_u32() {
+    let v1 = thin_vec![u32::MAX];
+    let v = test_write_arg((u64::MAX,VaryingOperand{value: u32::MAX},v1));
+    assert_eq!(vec![1,0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(u64,VaryingOperand,ThinVec<u32>)>(Box::new([1,0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_u64_vop_thin_vec_u32() {
+    test_read_arg::<(u64,VaryingOperand,ThinVec<u32>)>(Box::new([0xFF]),0);
+  }
+
+  //
+  // (VaryingOperand, ThinVec<u32>)
+  //
+  #[test]
+  fn arg_vop_thin_vec_u32() {
+    let v1 = thin_vec![u32::MAX];
+    let v = test_write_arg((VaryingOperand{value: u32::MAX}, v1));
+    assert_eq!(vec![1,0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF],v);
+    test_read_arg::<(VaryingOperand,ThinVec<u32>)>(Box::new([1,0,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]), 0);
+  }
+
+  #[test]
+  #[should_panic]
+  fn fail_arg_vop_thin_vec_u32() {
+    test_read_arg::<(VaryingOperand,ThinVec<u32>)>(Box::new([0xFF]),0);
+  }
+
 }
