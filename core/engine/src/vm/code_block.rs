@@ -56,6 +56,14 @@ bitflags! {
     }
 }
 
+impl CodeBlockFlags {
+    /// Check if the [`CodeBlock`] has a function scope.
+    #[must_use]
+    pub(crate) fn has_function_scope(self) -> bool {
+        self.contains(Self::HAS_FUNCTION_SCOPE)
+    }
+}
+
 // SAFETY: Nothing in CodeBlockFlags needs tracing, so this is safe.
 unsafe impl Trace for CodeBlockFlags {
     empty_trace!();
@@ -137,8 +145,6 @@ pub struct CodeBlock {
     #[unsafe_ignore_trace]
     pub(crate) bindings: Box<[BindingLocator]>,
 
-    pub(crate) local_bindings_initialized: Box<[bool]>,
-
     /// Exception [`Handler`]s.
     #[unsafe_ignore_trace]
     pub(crate) handlers: ThinVec<Handler>,
@@ -161,7 +167,6 @@ impl CodeBlock {
             bytecode: ByteCode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
-            local_bindings_initialized: Box::default(),
             name,
             flags: Cell::new(flags),
             length,
@@ -259,9 +264,7 @@ impl CodeBlock {
 
     /// Returns true if this function requires a function scope.
     pub(crate) fn has_function_scope(&self) -> bool {
-        self.flags
-            .get()
-            .contains(CodeBlockFlags::HAS_FUNCTION_SCOPE)
+        self.flags.get().has_function_scope()
     }
 
     /// Find exception [`Handler`] in the code block given the current program counter (`pc`).
@@ -376,9 +379,7 @@ impl CodeBlock {
             Instruction::Inc { src, dst }
             | Instruction::Dec { src, dst }
             | Instruction::Move { src, dst }
-            | Instruction::ToPropertyKey { src, dst }
-            | Instruction::PopIntoLocal { src, dst }
-            | Instruction::PushFromLocal { src, dst } => {
+            | Instruction::ToPropertyKey { src, dst } => {
                 format!("src:{src}, dst:{dst}")
             }
             Instruction::SetFunctionName {
@@ -424,7 +425,8 @@ impl CodeBlock {
                 format!("index:{index}, dst:{dst}")
             }
             Instruction::ThrowNewTypeError { message }
-            | Instruction::ThrowNewSyntaxError { message } => format!("message:{message}"),
+            | Instruction::ThrowNewSyntaxError { message }
+            | Instruction::ThrowNewReferenceError { message } => format!("message:{message}"),
             Instruction::PushRegexp {
                 pattern_index,
                 flags_index,
@@ -623,7 +625,8 @@ impl CodeBlock {
             } => {
                 let ic = &self.ic[u32::from(*ic_index) as usize];
                 format!(
-                    "dst:{dst}, receiver:{receiver}, value:{value}, ic:shape:0x{:x}",
+                    "dst:{dst}, receiver:{receiver}, value:{value}, ic:[name:{}, shape:0x{:x}]",
+                    ic.name.to_std_string_escaped(),
                     ic.shape.borrow().to_addr_usize(),
                 )
             }
@@ -886,7 +889,8 @@ impl CodeBlock {
             | Instruction::Reserved59
             | Instruction::Reserved60
             | Instruction::Reserved61
-            | Instruction::Reserved62 => unreachable!("Reserved opcodes are unreachable"),
+            | Instruction::Reserved62
+            | Instruction::Reserved63 => unreachable!("Reserved opcodes are unreachable"),
         }
     }
 }
@@ -896,8 +900,12 @@ impl Display for CodeBlock {
         let name = self.name();
         writeln!(
             f,
-            "{:-^70}\nLocation  Count    Handler    Opcode                     Operands\n",
+            "{:-^70}",
             format!("Compiled Output: '{}'", name.to_std_string_escaped()),
+        )?;
+        writeln!(
+            f,
+            "Location  Count    Handler    Opcode                     Operands"
         )?;
         let mut iterator = InstructionIterator::new(&self.bytecode);
         let mut count = 0;
@@ -924,11 +932,12 @@ impl Display for CodeBlock {
             )?;
             count += 1;
         }
-        f.write_str("\nConstants:")?;
+        writeln!(f, "\nFlags: {:?}", self.flags.get())?;
+        f.write_str("Constants:")?;
         if self.constants.is_empty() {
             f.write_str(" <empty>\n")?;
         } else {
-            f.write_str("\n")?;
+            f.write_char('\n')?;
             for (i, value) in self.constants.iter().enumerate() {
                 write!(f, "    {i:04}: ")?;
                 match value {
@@ -942,7 +951,7 @@ impl Display for CodeBlock {
                     Constant::BigInt(v) => writeln!(f, "[BIGINT] {v}n")?,
                     Constant::Function(code) => writeln!(
                         f,
-                        "[FUNCTION] name: '{}' (length: {})\n",
+                        "[FUNCTION] name: '{}' (length: {})",
                         code.name().to_std_string_escaped(),
                         code.length
                     )?,
@@ -957,22 +966,25 @@ impl Display for CodeBlock {
                 }
             }
         }
-        f.write_str("\nBindings:\n")?;
+        f.write_str("Bindings:")?;
         if self.bindings.is_empty() {
-            f.write_str("    <empty>\n")?;
+            f.write_str(" <empty>\n")?;
         } else {
+            f.write_char('\n')?;
             for (i, binding_locator) in self.bindings.iter().enumerate() {
                 writeln!(
                     f,
-                    "    {i:04}: {}",
-                    binding_locator.name().to_std_string_escaped()
+                    "    {i:04}: {}, scope: {:?}",
+                    binding_locator.name().to_std_string_escaped(),
+                    binding_locator.scope()
                 )?;
             }
         }
-        f.write_str("\nHandlers:\n")?;
+        f.write_str("Handlers:")?;
         if self.handlers.is_empty() {
-            f.write_str("    <empty>\n")?;
+            f.write_str(" <empty>\n")?;
         } else {
+            f.write_char('\n')?;
             for (i, handler) in self.handlers.iter().enumerate() {
                 writeln!(
                     f,

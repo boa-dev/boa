@@ -43,6 +43,7 @@ use boa_ast::{
         ContainsSymbol,
     },
     scope::BindingLocatorScope,
+    Position, Span, StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
@@ -535,7 +536,7 @@ impl BuiltInFunctionObject {
         };
 
         let body = if body.is_empty() {
-            FunctionBody::default()
+            FunctionBody::new(StatementList::default(), Span::new((1, 1), (1, 1)))
         } else {
             // 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
             let mut body_parse = Vec::with_capacity(body.len());
@@ -627,7 +628,7 @@ impl BuiltInFunctionObject {
                         return Err(JsNativeError::syntax()
                             .with_message(format!(
                                 "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(name.sym())
+                                context.interner().resolve_expect(name)
                             ))
                             .into());
                     }
@@ -639,8 +640,16 @@ impl BuiltInFunctionObject {
 
         // TODO: create SourceText : "anonymous(" parameters \n ") {" body_parse "}"
 
-        let mut function =
-            boa_ast::function::FunctionExpression::new(None, parameters, body, None, false);
+        let function_span_start = Position::new(1, 1);
+        let function_span_end = body.span().end();
+        let mut function = boa_ast::function::FunctionExpression::new(
+            None,
+            parameters,
+            body,
+            None,
+            false,
+            Span::new(function_span_start, function_span_end),
+        );
         if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
             return Err(JsNativeError::syntax()
                 .with_message("failed to analyze function scope")
@@ -655,6 +664,7 @@ impl BuiltInFunctionObject {
             .generator(generator)
             .r#async(r#async)
             .in_with(in_with)
+            .force_function_scope(true)
             .compile(
                 function.parameters(),
                 function.body(),
@@ -1005,7 +1015,6 @@ pub(crate) fn function_call(
         .with_env_fp(env_fp);
 
     context.vm.push_frame(frame);
-
     let this = context.vm.stack.get_this(context.vm.frame());
 
     let lexical_this_mode = code.this_mode == ThisMode::Lexical;
@@ -1013,15 +1022,21 @@ pub(crate) fn function_call(
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else if code.strict() {
-        ThisBindingStatus::Initialized(this.clone())
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        ThisBindingStatus::Initialized(this)
     } else if this.is_null_or_undefined() {
-        ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        let this: JsValue = context.realm().global_this().clone().into();
+        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        ThisBindingStatus::Initialized(this)
     } else {
-        ThisBindingStatus::Initialized(
-            this.to_object(context)
-                .expect("conversion cannot fail")
-                .into(),
-        )
+        let this: JsValue = this
+            .to_object(context)
+            .expect("conversion cannot fail")
+            .into();
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        ThisBindingStatus::Initialized(this)
     };
 
     let mut last_env = 0;
@@ -1123,21 +1138,23 @@ fn function_construct(
         last_env += 1;
     }
 
-    context.vm.environments.push_function(
-        code.constant_scope(last_env),
-        FunctionSlots::new(
-            this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
-                ThisBindingStatus::Initialized(o.into())
-            }),
-            this_function_object.clone(),
-            Some(
-                new_target
-                    .as_object()
-                    .expect("new.target should be an object")
-                    .clone(),
+    if code.has_function_scope() {
+        context.vm.environments.push_function(
+            code.constant_scope(last_env),
+            FunctionSlots::new(
+                this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                    ThisBindingStatus::Initialized(o.into())
+                }),
+                this_function_object.clone(),
+                Some(
+                    new_target
+                        .as_object()
+                        .expect("new.target should be an object")
+                        .clone(),
+                ),
             ),
-        ),
-    );
+        );
+    }
 
     context.vm.stack.set_this(
         &context.vm.frame,

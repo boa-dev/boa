@@ -205,7 +205,7 @@ impl ByteCompiler<'_> {
 
         if let Some(scope) = class.name_scope {
             let binding = scope.get_identifier_reference(class_name.clone());
-            let index = self.get_or_insert_binding(binding);
+            let index = self.insert_binding(binding);
             self.emit_binding_access(
                 BindingAccessOpcode::PutLexicalValue,
                 &index,
@@ -217,7 +217,7 @@ impl ByteCompiler<'_> {
             match element {
                 ClassElement::MethodDefinition(m) => match m.name() {
                     ClassElementName::PropertyName(PropertyName::Literal(name)) => {
-                        let index = self.get_or_insert_name((*name).into());
+                        let index = self.get_or_insert_name(name.sym());
                         let method = self.method(m.into());
 
                         let object_register = if m.is_static() {
@@ -390,7 +390,9 @@ impl ByteCompiler<'_> {
                         PropertyName::Literal(ident) => {
                             self.emit_push_literal(
                                 Literal::String(
-                                    self.interner().resolve_expect(*ident).into_common(false),
+                                    self.interner()
+                                        .resolve_expect(ident.sym())
+                                        .into_common(false),
                                 ),
                                 &name,
                             );
@@ -492,7 +494,7 @@ impl ByteCompiler<'_> {
                 ClassElement::StaticFieldDefinition(field) => {
                     let name_index = match field.name() {
                         PropertyName::Literal(name) => {
-                            StaticFieldName::Index(self.get_or_insert_name((*name).into()))
+                            StaticFieldName::Index(self.get_or_insert_name(name.sym()))
                         }
                         PropertyName::Computed(name) => {
                             let name_register = self.register_allocator.alloc();

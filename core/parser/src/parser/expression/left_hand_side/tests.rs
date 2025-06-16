@@ -1,7 +1,7 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
     expression::{access::SimplePropertyAccess, Call, Identifier},
-    Expression, Statement,
+    Expression, Span, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -9,16 +9,27 @@ use boa_macros::utf16;
 macro_rules! check_call_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
+        let input = format!("a().{}", $property);
+        #[allow(clippy::cast_possible_truncation)]
+        let input_end = input.len() as u32 + 1;
         check_script_parser(
-            format!("a().{}", $property).as_str(),
+            input.as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(
                     Call::new(
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Identifier::new(
+                            interner.get_or_intern_static("a", utf16!("a")),
+                            Span::new((1, 1), (1, 2)),
+                        )
+                        .into(),
                         Box::default(),
+                        Span::new((1, 2), (1, 4)),
                     )
                     .into(),
-                    interner.get_or_intern_static($property, utf16!($property)),
+                    Identifier::new(
+                        interner.get_or_intern_static($property, utf16!($property)),
+                        Span::new((1, 5), (1, input_end)),
+                    ),
                 )
                 .into(),
             ))
@@ -40,12 +51,22 @@ fn check_call_properties() {
 macro_rules! check_member_property_identifier {
     ($property:literal) => {{
         let interner = &mut Interner::default();
+        let input = format!("a.{}", $property);
+        #[allow(clippy::cast_possible_truncation)]
+        let input_end = input.len() as u32 + 1;
         check_script_parser(
-            format!("a.{}", $property).as_str(),
+            input.as_str(),
             vec![Statement::Expression(Expression::PropertyAccess(
                 SimplePropertyAccess::new(
-                    Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                    interner.get_or_intern_static($property, utf16!($property)),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 1), (1, 2)),
+                    )
+                    .into(),
+                    Identifier::new(
+                        interner.get_or_intern_static($property, utf16!($property)),
+                        Span::new((1, 3), (1, input_end)),
+                    ),
                 )
                 .into(),
             ))

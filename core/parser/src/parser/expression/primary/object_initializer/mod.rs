@@ -13,7 +13,7 @@ mod tests;
 use crate::{
     lexer::{
         token::{ContainsEscapeSequence, Numeric},
-        Error as LexError, TokenKind,
+        Error as LexError, InputElement, TokenKind,
     },
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
@@ -39,7 +39,7 @@ use boa_ast::{
         bound_names, contains, has_direct_super_new, lexically_declared_names, ContainsSymbol,
     },
     property::{MethodDefinitionKind, PropertyName as PropertyNameNode},
-    Expression, Keyword, Punctuator,
+    Expression, Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -80,14 +80,18 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ObjectLiteral", "Parsing");
+
+        let open_block_token = cursor.expect(Punctuator::OpenBlock, "object parsing", interner)?;
+        cursor.set_goal(InputElement::RegExp);
+
         let mut elements = Vec::new();
 
         let mut has_proto = false;
         let mut duplicate_proto_position = None;
 
-        loop {
-            if cursor.next_if(Punctuator::CloseBlock, interner)?.is_some() {
-                break;
+        let end = loop {
+            if let Some(token) = cursor.next_if(Punctuator::CloseBlock, interner)? {
+                break token.span().end();
             }
 
             let position = cursor.peek(0, interner).or_abrupt()?.span().start();
@@ -95,21 +99,21 @@ where
             let property = PropertyDefinition::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
-            if matches!(
-                property,
-                PropertyDefinitionNode::Property(PropertyNameNode::Literal(Sym::__PROTO__), _)
-            ) {
-                if has_proto && duplicate_proto_position.is_none() {
-                    duplicate_proto_position = Some(position);
-                } else {
-                    has_proto = true;
+            if let PropertyDefinitionNode::Property(PropertyNameNode::Literal(ident), _) = property
+            {
+                if ident.sym() == Sym::__PROTO__ {
+                    if has_proto && duplicate_proto_position.is_none() {
+                        duplicate_proto_position = Some(position);
+                    } else {
+                        has_proto = true;
+                    }
                 }
             }
 
             elements.push(property);
 
-            if cursor.next_if(Punctuator::CloseBlock, interner)?.is_some() {
-                break;
+            if let Some(token) = cursor.next_if(Punctuator::CloseBlock, interner)? {
+                break token.span().end();
             }
 
             if cursor.next_if(Punctuator::Comma, interner)?.is_none() {
@@ -121,7 +125,7 @@ where
                     "object literal",
                 ));
             }
-        }
+        };
 
         if let Some(position) = duplicate_proto_position {
             if !cursor.json_parse()
@@ -136,7 +140,8 @@ where
             }
         }
 
-        Ok(literal::ObjectLiteral::from(elements))
+        let start = open_block_token.span().start();
+        Ok(literal::ObjectLiteral::new(elements, Span::new(start, end)))
     }
 }
 
@@ -331,7 +336,7 @@ where
 
             if let Some(name) = property_name.literal() {
                 if name != Sym::__PROTO__ {
-                    value.set_anonymous_function_definition_name(&Identifier::new(name));
+                    value.set_anonymous_function_definition_name(&name);
                 }
             }
 
@@ -367,17 +372,8 @@ where
                     interner,
                 )?;
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "get method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "get method definition",
-                    interner,
-                )?;
+                let body = FunctionBody::new(false, false, "get method definition")
+                    .parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 if has_direct_super_new(&FormalParameterList::default(), &body) {
@@ -426,17 +422,8 @@ where
                     interner,
                 )?;
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "set method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "set method definition",
-                    interner,
-                )?;
+                let body = FunctionBody::new(false, false, "set method definition")
+                    .parse(cursor, interner)?;
 
                 // Catch early error for BindingIdentifier.
                 if body.strict() && contains(&params, ContainsSymbol::EvalOrArguments) {
@@ -510,17 +497,8 @@ where
                     )));
                 }
 
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "method definition",
-                    interner,
-                )?;
+                let body =
+                    FunctionBody::new(false, false, "method definition").parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of UniqueFormalParameters is false.
@@ -599,7 +577,7 @@ where
         let _timer = Profiler::global().start_event("PropertyName", "Parsing");
 
         let token = cursor.peek(0, interner).or_abrupt()?;
-        let name = match token.kind() {
+        let name: PropertyNameNode = match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.advance(interner);
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
@@ -608,21 +586,28 @@ where
                 return Ok(node.into());
             }
             TokenKind::IdentifierName((name, _)) | TokenKind::StringLiteral((name, _)) => {
-                (*name).into()
+                Identifier::new(*name, token.span()).into()
             }
             TokenKind::NumericLiteral(num) => match num {
-                Numeric::Rational(num) => Expression::Literal(Literal::from(*num)).into(),
-                Numeric::Integer(num) => Expression::Literal(Literal::from(*num)).into(),
-                Numeric::BigInt(num) => Expression::Literal(Literal::from(num.clone())).into(),
+                Numeric::Rational(num) => {
+                    Expression::Literal(Literal::new(*num, token.span())).into()
+                }
+                Numeric::Integer(num) => {
+                    Expression::Literal(Literal::new(*num, token.span())).into()
+                }
+                Numeric::BigInt(num) => {
+                    Expression::Literal(Literal::new(num.clone(), token.span())).into()
+                }
             },
             TokenKind::Keyword((word, _)) => {
                 let (utf8, utf16) = word.as_str();
-                interner.get_or_intern_static(utf8, utf16).into()
+                let sym = interner.get_or_intern_static(utf8, utf16);
+                Identifier::new(sym, token.span()).into()
             }
-            TokenKind::NullLiteral(_) => (Sym::NULL).into(),
+            TokenKind::NullLiteral(_) => Identifier::new(Sym::NULL, token.span()).into(),
             TokenKind::BooleanLiteral((bool, _)) => match bool {
-                true => Sym::TRUE.into(),
-                false => Sym::FALSE.into(),
+                true => Identifier::new(Sym::TRUE, token.span()).into(),
+                false => Identifier::new(Sym::FALSE, token.span()).into(),
             },
             _ => {
                 return Err(Error::expected(
@@ -677,8 +662,11 @@ where
         match token.kind() {
             TokenKind::PrivateIdentifier(ident) => {
                 let ident = *ident;
+                let span = token.span();
                 cursor.advance(interner);
-                Ok(ClassElementNameNode::PrivateName(PrivateName::new(ident)))
+                Ok(ClassElementNameNode::PrivateName(PrivateName::new(
+                    ident, span,
+                )))
             }
             _ => Ok(ClassElementNameNode::PropertyName(
                 PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
@@ -782,20 +770,10 @@ where
             )));
         }
 
-        let body_start = cursor
-            .expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "generator method definition",
-                interner,
-            )?
-            .span()
-            .start();
-        let body = FunctionBody::new(true, false).parse(cursor, interner)?;
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::CloseBlock),
-            "generator method definition",
-            interner,
-        )?;
+        let body = FunctionBody::new(true, false, "generator method definition")
+            .parse(cursor, interner)?;
+
+        let body_start = body.span().start();
 
         // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
         // and IsSimpleParameterList of UniqueFormalParameters is false.
@@ -892,20 +870,10 @@ where
             )));
         }
 
-        let body_start = cursor
-            .expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "async generator method definition",
-                interner,
-            )?
-            .span()
-            .start();
-        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::CloseBlock),
-            "async generator method definition",
-            interner,
-        )?;
+        let body = FunctionBody::new(true, true, "async generator method definition")
+            .parse(cursor, interner)?;
+
+        let body_start = body.span().start();
 
         // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
         // and IsSimpleParameterList of UniqueFormalParameters is false.
@@ -979,20 +947,10 @@ where
 
         let params = UniqueFormalParameters::new(false, true).parse(cursor, interner)?;
 
-        let body_start = cursor
-            .expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "async method definition",
-                interner,
-            )?
-            .span()
-            .start();
-        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::CloseBlock),
-            "async method definition",
-            interner,
-        )?;
+        let body =
+            FunctionBody::new(true, true, "async method definition").parse(cursor, interner)?;
+
+        let body_start = body.span().start();
 
         // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of AsyncFunctionBody
         // is true and IsSimpleParameterList of UniqueFormalParameters is false.

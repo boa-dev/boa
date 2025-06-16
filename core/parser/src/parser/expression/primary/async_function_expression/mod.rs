@@ -14,7 +14,7 @@ use crate::{
 use boa_ast::{
     function::AsyncFunctionExpression as AsyncFunctionExpressionNode,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Keyword, Punctuator,
+    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -51,6 +51,7 @@ where
             interner,
         )?;
         let start_linear_span = token.linear_span();
+        let function_span_start = token.span().start();
 
         cursor.peek_expect_no_lineterminator(0, "async function expression", interner)?;
         cursor.expect(
@@ -86,15 +87,9 @@ where
             "async function expression",
             interner,
         )?;
-        cursor.expect(Punctuator::OpenBlock, "async function expression", interner)?;
 
-        let body = FunctionBody::new(false, true).parse(cursor, interner)?;
-
-        cursor.expect(
-            Punctuator::CloseBlock,
-            "async function expression",
-            interner,
-        )?;
+        let body =
+            FunctionBody::new(false, true, "async function expression").parse(cursor, interner)?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -148,7 +143,15 @@ where
 
         let span = start_linear_span.union(body.linear_pos_end());
 
-        let function = AsyncFunctionExpressionNode::new(name, params, body, span, name.is_some());
+        let function_span_end = body.span().end();
+        let function = AsyncFunctionExpressionNode::new(
+            name,
+            params,
+            body,
+            span,
+            name.is_some(),
+            Span::new(function_span_start, function_span_end),
+        );
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

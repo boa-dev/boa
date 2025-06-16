@@ -25,7 +25,6 @@ mod generator;
 mod get;
 mod global;
 mod iteration;
-mod locals;
 mod meta;
 mod new;
 mod nop;
@@ -66,8 +65,6 @@ pub(crate) use get::*;
 pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
-#[doc(inline)]
-pub(crate) use locals::*;
 #[doc(inline)]
 pub(crate) use meta::*;
 #[doc(inline)]
@@ -1594,6 +1591,12 @@ generate_opcodes! {
     ///   - message: `VaryingOperand`
     ThrowNewSyntaxError { message: VaryingOperand },
 
+    /// Throw a new `ReferenceError` exception
+    ///
+    /// - Operands:
+    ///   - message: `VaryingOperand`
+    ThrowNewReferenceError { message: VaryingOperand },
+
     /// Pushes `this` value
     ///
     /// - Registers:
@@ -1768,20 +1771,6 @@ generate_opcodes! {
     /// - Registers:
     ///   - Input: src
     PushFromRegister { src: VaryingOperand },
-
-    /// Pop value from the stack and push to a local binding register `dst`.
-    ///
-    /// - Registers:
-    ///   - Input: src
-    ///   - Output: dst
-    PopIntoLocal { src: VaryingOperand, dst: VaryingOperand },
-
-    /// Copy value at local binding register `src` and push it into the stack.
-    ///
-    /// - Registers:
-    ///   - Input: src
-    ///   - Output: dst
-    PushFromLocal { src: VaryingOperand, dst: VaryingOperand },
 
     /// Push a declarative environment.
     ///
@@ -2228,4 +2217,6 @@ generate_opcodes! {
     Reserved61 => Reserved,
     /// Reserved [`Opcode`].
     Reserved62 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved63 => Reserved,
 }

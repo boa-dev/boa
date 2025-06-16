@@ -194,3 +194,31 @@ impl Operation for ThrowNewSyntaxError {
     const INSTRUCTION: &'static str = "INST - ThrowNewSyntaxError";
     const COST: u8 = 2;
 }
+
+/// `ThrowNewReferenceError` implements the Opcode Operation for `Opcode::ThrowNewReferenceError`
+///
+/// Operation:
+///  - Throws a `ReferenceError` exception.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ThrowNewReferenceError;
+
+impl ThrowNewReferenceError {
+    #[inline(always)]
+    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+        let msg = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
+        let msg = msg
+            .to_std_string()
+            .expect("throw message must be an ASCII string");
+        JsNativeError::reference().with_message(msg).into()
+    }
+}
+
+impl Operation for ThrowNewReferenceError {
+    const NAME: &'static str = "ThrowNewReferenceError";
+    const INSTRUCTION: &'static str = "INST - ThrowNewReferenceError";
+    const COST: u8 = 2;
+}

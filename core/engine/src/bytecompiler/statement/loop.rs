@@ -57,7 +57,7 @@ impl ByteCompiler<'_> {
                                 .scope()
                                 .get_binding_reference(&name)
                                 .expect("binding must exist");
-                            let index = self.get_or_insert_binding(binding);
+                            let index = self.insert_binding(binding);
                             indices.push(index);
                         }
                         let_binding_indices = Some((indices, scope_index));
@@ -300,7 +300,7 @@ impl ByteCompiler<'_> {
                 let ident = ident.to_js_string(self.interner());
                 match self.lexical_scope.set_mutable_binding(ident.clone()) {
                     Ok(binding) => {
-                        let index = self.get_or_insert_binding(binding);
+                        let index = self.insert_binding(binding);
                         self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, &value);
                     }
                     Err(BindingLocatorError::MutateImmutable) => {

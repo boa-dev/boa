@@ -52,7 +52,7 @@ pub enum Declaration {
     AsyncGeneratorDeclaration(AsyncGeneratorDeclaration),
 
     /// See [`ClassDeclaration`]
-    ClassDeclaration(ClassDeclaration),
+    ClassDeclaration(Box<ClassDeclaration>),
 
     /// See [`LexicalDeclaration`]
     Lexical(LexicalDeclaration),

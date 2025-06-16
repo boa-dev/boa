@@ -1527,7 +1527,7 @@ impl SourceTextModule {
                         let binding = env
                             .get_binding_reference(&name)
                             .expect("binding must exist");
-                        let index = compiler.get_or_insert_binding(binding);
+                        let index = compiler.insert_binding(binding);
                         let value = compiler.register_allocator.alloc();
                         compiler.bytecode.emit_push_undefined(value.variable());
                         compiler.emit_binding_access(

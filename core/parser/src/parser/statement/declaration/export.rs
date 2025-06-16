@@ -200,7 +200,9 @@ where
                     }
                     TokenKind::Keyword((Keyword::Class, false)) => {
                         AstExportDeclaration::DefaultClassDeclaration(
-                            ClassDeclaration::new(false, true, true).parse(cursor, interner)?,
+                            ClassDeclaration::new(false, true, true)
+                                .parse(cursor, interner)?
+                                .into(),
                         )
                     }
                     _ => {

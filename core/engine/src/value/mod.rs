@@ -29,7 +29,7 @@ pub use self::{
     variant::JsVariant,
 };
 use crate::builtins::RegExp;
-use crate::object::{JsFunction, JsPromise, JsRegExp};
+use crate::object::{ErasedObject, JsFunction, JsPromise, JsRegExp};
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
@@ -167,6 +167,18 @@ impl JsValue {
     #[must_use]
     pub fn as_downcast_ref<T: NativeObject>(&self) -> Option<boa_engine::object::Ref<'_, T>> {
         self.as_object().and_then(|o| o.downcast_ref::<T>())
+    }
+
+    /// Returns a downcasted mut ref object if the type matches.
+    ///
+    /// This is a shorthand for `value.as_object().and_then(|o| o.downcast_ref<T>())`,
+    /// which at time can be contriving.
+    #[inline]
+    #[must_use]
+    pub fn as_downcast_mut<T: NativeObject>(
+        &self,
+    ) -> Option<boa_engine::object::RefMut<'_, ErasedObject, T>> {
+        self.as_object().and_then(JsObject::downcast_mut::<T>)
     }
 
     /// Consumes the value and return the inner object if it was an object.

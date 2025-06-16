@@ -320,7 +320,7 @@ impl<'a> From<&'a ObjectMethodDefinition> for FunctionSpec<'a> {
 
         FunctionSpec {
             kind,
-            name: method.name().literal().map(Into::into),
+            name: method.name().literal(),
             parameters: method.parameters(),
             body: method.body(),
             scopes: method.scopes(),
@@ -358,6 +358,7 @@ pub(crate) struct Label {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[allow(variant_size_differences)]
 enum Access<'a> {
     Variable { name: Identifier },
     Property { access: &'a PropertyAccess },
@@ -377,7 +378,7 @@ impl Access<'_> {
         match expr {
             Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
-            Expression::This => Some(Access::This),
+            Expression::This(_this) => Some(Access::This),
             Expression::Parenthesized(expr) => Self::from_expression(expr.expression()),
             _ => None,
         }
@@ -447,7 +448,7 @@ pub struct ByteCompiler<'ctx> {
     handlers: ThinVec<Handler>,
     pub(crate) ic: Vec<InlineCache>,
     literals_map: FxHashMap<Literal, u32>,
-    names_map: FxHashMap<Identifier, u32>,
+    names_map: FxHashMap<Sym, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
 
@@ -467,12 +468,12 @@ pub struct ByteCompiler<'ctx> {
     spanned_source_text: SpannedSourceText,
 
     #[cfg(feature = "annex-b")]
-    pub(crate) annex_b_function_names: Vec<Identifier>,
+    pub(crate) annex_b_function_names: Vec<Sym>,
 }
 
 pub(crate) enum BindingKind {
     Stack(u32),
-    Local(u32),
+    Local(Option<u32>),
     Global(u32),
 }
 
@@ -606,7 +607,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         index
     }
 
-    fn get_or_insert_name(&mut self, name: Identifier) -> u32 {
+    fn get_or_insert_name(&mut self, name: Sym) -> u32 {
         if let Some(index) = self.names_map.get(&name) {
             return *index;
         }
@@ -624,11 +625,13 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     #[inline]
     fn get_or_insert_private_name(&mut self, name: PrivateName) -> u32 {
-        self.get_or_insert_name(Identifier::new(name.description()))
+        self.get_or_insert_name(name.description())
     }
 
+    // TODO: Make this return `Option<BindingKind>` instead of making BindingKind::Local
+    //       inner field optional.
     #[inline]
-    pub(crate) fn get_or_insert_binding(&mut self, binding: IdentifierReference) -> BindingKind {
+    pub(crate) fn get_binding(&mut self, binding: &IdentifierReference) -> BindingKind {
         if binding.is_global_object() {
             if let Some(index) = self.bindings_map.get(&binding.locator()) {
                 return BindingKind::Global(*index);
@@ -641,12 +644,39 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
 
         if binding.local() {
-            return BindingKind::Local(
+            return BindingKind::Local(self.local_binding_registers.get(binding).copied());
+        }
+
+        if let Some(index) = self.bindings_map.get(&binding.locator()) {
+            return BindingKind::Stack(*index);
+        }
+
+        let index = self.bindings.len() as u32;
+        self.bindings.push(binding.locator().clone());
+        self.bindings_map.insert(binding.locator(), index);
+        BindingKind::Stack(index)
+    }
+
+    #[inline]
+    pub(crate) fn insert_binding(&mut self, binding: IdentifierReference) -> BindingKind {
+        if binding.is_global_object() {
+            if let Some(index) = self.bindings_map.get(&binding.locator()) {
+                return BindingKind::Global(*index);
+            }
+
+            let index = self.bindings.len() as u32;
+            self.bindings.push(binding.locator().clone());
+            self.bindings_map.insert(binding.locator(), index);
+            return BindingKind::Global(index);
+        }
+
+        if binding.local() {
+            return BindingKind::Local(Some(
                 *self
                     .local_binding_registers
                     .entry(binding)
                     .or_insert_with(|| self.register_allocator.alloc_persistent().index()),
-            );
+            ));
         }
 
         if let Some(index) = self.bindings_map.get(&binding.locator()) {
@@ -672,13 +702,13 @@ impl<'ctx> ByteCompiler<'ctx> {
             BindingOpcode::Var => {
                 let binding = self.variable_scope.get_identifier_reference(name);
                 if !binding.locator().is_global() {
-                    let index = self.get_or_insert_binding(binding);
+                    let index = self.insert_binding(binding);
                     self.emit_binding_access(BindingAccessOpcode::DefVar, &index, value);
                 }
             }
             BindingOpcode::InitVar => match self.lexical_scope.set_mutable_binding(name.clone()) {
                 Ok(binding) => {
-                    let index = self.get_or_insert_binding(binding);
+                    let index = self.insert_binding(binding);
                     self.emit_binding_access(BindingAccessOpcode::DefInitVar, &index, value);
                 }
                 Err(BindingLocatorError::MutateImmutable) => {
@@ -689,12 +719,12 @@ impl<'ctx> ByteCompiler<'ctx> {
             },
             BindingOpcode::InitLexical => {
                 let binding = self.lexical_scope.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let index = self.insert_binding(binding);
                 self.emit_binding_access(BindingAccessOpcode::PutLexicalValue, &index, value);
             }
             BindingOpcode::SetName => match self.lexical_scope.set_mutable_binding(name.clone()) {
                 Ok(binding) => {
-                    let index = self.get_or_insert_binding(binding);
+                    let index = self.insert_binding(binding);
                     self.emit_binding_access(BindingAccessOpcode::SetName, &index, value);
                 }
                 Err(BindingLocatorError::MutateImmutable) => {
@@ -793,19 +823,26 @@ impl<'ctx> ByteCompiler<'ctx> {
                     .bytecode
                     .emit_delete_name(value.variable(), (*index).into()),
             },
-            BindingKind::Local(index) => match opcode {
+            BindingKind::Local(None) => {
+                let error_msg = self.get_or_insert_literal(Literal::String(js_string!(
+                    "access of uninitialized binding"
+                )));
+                self.bytecode
+                    .emit_throw_new_reference_error(error_msg.into());
+            }
+            BindingKind::Local(Some(index)) => match opcode {
                 BindingAccessOpcode::GetName
                 | BindingAccessOpcode::GetNameOrUndefined
-                | BindingAccessOpcode::GetNameAndLocator => self
-                    .bytecode
-                    .emit_push_from_local((*index).into(), value.variable()),
+                | BindingAccessOpcode::GetNameAndLocator => {
+                    self.bytecode.emit_move(value.variable(), (*index).into());
+                }
                 BindingAccessOpcode::GetLocator | BindingAccessOpcode::DefVar => {}
                 BindingAccessOpcode::SetName
                 | BindingAccessOpcode::DefInitVar
                 | BindingAccessOpcode::PutLexicalValue
-                | BindingAccessOpcode::SetNameByLocator => self
-                    .bytecode
-                    .emit_pop_into_local(value.variable(), (*index).into()),
+                | BindingAccessOpcode::SetNameByLocator => {
+                    self.bytecode.emit_move((*index).into(), value.variable());
+                }
                 BindingAccessOpcode::DeleteName => self.bytecode.emit_push_false(value.variable()),
             },
         }
@@ -820,7 +857,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         let ic_index = self.ic.len() as u32;
 
-        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let name_index = self.get_or_insert_name(ident);
         let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
             unreachable!("there should be a string at index")
         };
@@ -843,7 +880,7 @@ impl<'ctx> ByteCompiler<'ctx> {
     ) {
         let ic_index = self.ic.len() as u32;
 
-        let name_index = self.get_or_insert_name(Identifier::new(ident));
+        let name_index = self.get_or_insert_name(ident);
         let Constant::String(ref name) = self.constants[name_index as usize].clone() else {
             unreachable!("there should be a string at index")
         };
@@ -996,7 +1033,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             Access::Variable { name } => {
                 let name = self.resolve_identifier_expect(name);
                 let binding = self.lexical_scope.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let index = self.get_binding(&binding);
                 self.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
             }
             Access::Property { access } => match access {
@@ -1006,7 +1043,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &object, &object, *ident);
+                            self.emit_get_property_by_name(dst, &object, &object, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
                             let key = self.register_allocator.alloc();
@@ -1040,7 +1077,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.bytecode.emit_this(receiver.variable());
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &receiver, &value, *ident);
+                            self.emit_get_property_by_name(dst, &receiver, &value, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
                             let key = self.register_allocator.alloc();
@@ -1073,7 +1110,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let name = self.resolve_identifier_expect(name);
                 let binding = self.lexical_scope.get_identifier_reference(name.clone());
                 let is_lexical = binding.is_lexical();
-                let index = self.get_or_insert_binding(binding);
+                let index = self.get_binding(&binding);
 
                 let value = self.register_allocator.alloc();
                 if !is_lexical {
@@ -1086,7 +1123,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 if is_lexical {
                     match self.lexical_scope.set_mutable_binding(name.clone()) {
                         Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
+                            let index = self.insert_binding(binding);
                             self.emit_binding_access(BindingAccessOpcode::SetName, &index, value);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
@@ -1105,7 +1142,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                         let object = self.register_allocator.alloc();
                         self.compile_expr(access.target(), &object);
                         let value = expr_fn(self);
-                        self.emit_set_property_by_name(value, &object, &object, *name);
+                        self.emit_set_property_by_name(value, &object, &object, name.sym());
                         self.register_allocator.dealloc(object);
                     }
                     PropertyAccessField::Expr(expr) => {
@@ -1154,7 +1191,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                         let value = expr_fn(self);
 
-                        self.emit_set_property_by_name(value, &receiver, &object, *name);
+                        self.emit_set_property_by_name(value, &receiver, &object, name.sym());
 
                         self.register_allocator.dealloc(receiver);
                         self.register_allocator.dealloc(object);
@@ -1193,7 +1230,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
-                        let index = self.get_or_insert_name((*name).into());
+                        let index = self.get_or_insert_name(name.sym());
                         self.compile_expr(access.target(), dst);
                         self.bytecode
                             .emit_delete_property_by_name(dst.variable(), index.into());
@@ -1215,7 +1252,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             Access::Variable { name } => {
                 let name = name.to_js_string(self.interner());
                 let binding = self.lexical_scope.get_identifier_reference(name);
-                let index = self.get_or_insert_binding(binding);
+                let index = self.get_binding(&binding);
                 self.emit_binding_access(BindingAccessOpcode::DeleteName, &index, dst);
             }
             Access::This => self.bytecode.emit_push_true(dst.variable()),
@@ -1228,16 +1265,13 @@ impl<'ctx> ByteCompiler<'ctx> {
             let mut use_expr_index = 0;
             for (i, statement) in list.statements().iter().enumerate() {
                 match statement {
-                    StatementListItem::Statement(Statement::Break(_) | Statement::Continue(_)) => {
-                        break;
-                    }
-                    StatementListItem::Statement(Statement::Empty | Statement::Var(_))
-                    | StatementListItem::Declaration(_) => {}
-                    StatementListItem::Statement(Statement::Block(block))
-                        if !returns_value(block) => {}
-                    StatementListItem::Statement(_) => {
-                        use_expr_index = i;
-                    }
+                    StatementListItem::Statement(statement) => match statement.as_ref() {
+                        Statement::Break(_) | Statement::Continue(_) => break,
+                        Statement::Empty | Statement::Var(_) => {}
+                        Statement::Block(block) if !returns_value(block) => {}
+                        _ => use_expr_index = i,
+                    },
+                    StatementListItem::Declaration(_) => {}
                 }
             }
 
@@ -1279,7 +1313,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {
-                        self.emit_get_property_by_name(dst, this, this, *ident);
+                        self.emit_get_property_by_name(dst, this, this, ident.sym());
                     }
                     PropertyAccessField::Expr(field) => {
                         let key = self.register_allocator.alloc();
@@ -1308,7 +1342,7 @@ impl<'ctx> ByteCompiler<'ctx> {
 
                 match access.field() {
                     PropertyAccessField::Const(ident) => {
-                        self.emit_get_property_by_name(dst, this, &object, *ident);
+                        self.emit_get_property_by_name(dst, this, &object, ident.sym());
                     }
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
@@ -1411,7 +1445,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                 self.bytecode.emit_move(this.variable(), value.variable());
                 match field {
                     PropertyAccessField::Const(name) => {
-                        self.emit_get_property_by_name(value, value, value, *name);
+                        self.emit_get_property_by_name(value, value, value, name.sym());
                     }
                     PropertyAccessField::Expr(expr) => {
                         let key = self.register_allocator.alloc();
@@ -1489,7 +1523,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     let ident = ident.to_js_string(self.interner());
                     if let Some(expr) = variable.init() {
                         let binding = self.lexical_scope.get_identifier_reference(ident.clone());
-                        let index = self.get_or_insert_binding(binding);
+                        let index = self.insert_binding(binding);
                         let value = self.register_allocator.alloc();
                         self.emit_binding_access(BindingAccessOpcode::GetLocator, &index, &value);
                         self.compile_expr(expr, &value);
@@ -1603,16 +1637,16 @@ impl<'ctx> ByteCompiler<'ctx> {
             #[cfg(feature = "annex-b")]
             Declaration::FunctionDeclaration(function) if block => {
                 let name = function.name();
-                if self.annex_b_function_names.contains(&name) {
+                if self.annex_b_function_names.contains(&name.sym()) {
                     let name = name.to_js_string(self.interner());
                     let binding = self.lexical_scope.get_identifier_reference(name.clone());
-                    let index = self.get_or_insert_binding(binding);
+                    let index = self.get_binding(&binding);
 
                     let value = self.register_allocator.alloc();
                     self.emit_binding_access(BindingAccessOpcode::GetName, &index, &value);
                     match self.variable_scope.set_mutable_binding_var(name.clone()) {
                         Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
+                            let index = self.get_binding(&binding);
                             self.emit_binding_access(BindingAccessOpcode::SetName, &index, &value);
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
@@ -1624,7 +1658,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     self.register_allocator.dealloc(value);
                 }
             }
-            Declaration::ClassDeclaration(class) => self.compile_class(class.into(), None),
+            Declaration::ClassDeclaration(class) => self.compile_class(class.as_ref().into(), None),
             Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
             _ => {}
         }
@@ -1844,14 +1878,14 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             expr if kind == CallKind::Call => {
                 if let Expression::Identifier(ident) = expr {
-                    if *ident == Sym::EVAL {
+                    if ident.sym() == Sym::EVAL {
                         kind = CallKind::CallEval;
                     }
 
                     if self.in_with {
                         let name = self.resolve_identifier_expect(*ident);
                         let binding = self.lexical_scope.get_identifier_reference(name);
-                        let index = self.get_or_insert_binding(binding);
+                        let index = self.get_binding(&binding);
                         let index = match index {
                             BindingKind::Global(index) | BindingKind::Stack(index) => index,
                             BindingKind::Local(_) => {
@@ -1968,11 +2002,6 @@ impl<'ctx> ByteCompiler<'ctx> {
             })
             .unwrap_or_default();
 
-        let max_local_binding_register_index =
-            self.local_binding_registers.values().max().unwrap_or(&0);
-        let local_bindings_initialized =
-            vec![false; (max_local_binding_register_index + 1) as usize].into_boxed_slice();
-
         let register_count = self.register_allocator.finish();
 
         CodeBlock {
@@ -1985,7 +2014,6 @@ impl<'ctx> ByteCompiler<'ctx> {
             bytecode: self.bytecode.into_bytecode(),
             constants: self.constants,
             bindings: self.bindings.into_boxed_slice(),
-            local_bindings_initialized,
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),

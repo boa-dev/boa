@@ -781,7 +781,7 @@ impl PlainDateTime {
                 .into());
         };
 
-        let date = to_partial_date_record(partial_object, context)?;
+        let date = to_partial_date_record(partial_object, dt.inner.calendar().clone(), context)?;
         let time = to_partial_time_record(partial_object, context)?;
 
         let partial_dt = PartialDateTime { date, time };
