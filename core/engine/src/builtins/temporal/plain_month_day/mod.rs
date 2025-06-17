@@ -241,8 +241,7 @@ impl PlainMonthDay {
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
-                .unwrap_or_default();
+            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
         // 10. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
         // 11. Return ! CreateTemporalMonthDay(isoDate, calendar).
         create_temporal_month_day(month_day.inner.with(partial, overflow)?, None, context)

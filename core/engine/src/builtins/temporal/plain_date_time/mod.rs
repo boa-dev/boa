@@ -806,7 +806,10 @@ impl PlainDateTime {
                 JsNativeError::typ().with_message("the this object must be a PlainDateTime object.")
             })?;
 
-        let time = to_temporal_time(args.get_or_undefined(0), None, context)?;
+        let time = args
+            .get_or_undefined(0)
+            .map(|v| to_temporal_time(v, None, context))
+            .transpose()?;
 
         create_temporal_datetime(dt.inner.with_time(time)?, None, context).map(Into::into)
     }
