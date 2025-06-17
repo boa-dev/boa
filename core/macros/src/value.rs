@@ -91,25 +91,32 @@ struct Object {
 
 impl Object {
     fn output(&self, context: Option<&Ident>) -> syn::Result<TokenStream> {
+        let Some(c_ident) = context else {
+            return Err(syn::Error::new(
+                Span::call_site(),
+                "Need to specify a context identifier.",
+            ));
+        };
+
         let fields: Vec<TokenStream> = self
             .fields
             .iter()
             .map(|field| match &field.key {
-                Key::Ident(ident) => (ident.to_string(), &field.value),
-                Key::StringLiteral(literal) => (literal.value(), &field.value),
+                Key::Ident(ident) => (
+                    quote! { ::boa_engine::property::PropertyKey::from( #ident ) },
+                    &field.value,
+                ),
+                Key::StringLiteral(literal) => (
+                    quote! { ::boa_engine::js_string!( #literal ) },
+                    &field.value,
+                ),
             })
             .map(|(key, value)| {
                 let value = value.output(context)?;
-                let Some(c_ident) = context else {
-                    return Err(syn::Error::new(
-                        Span::call_site(),
-                        "Need to specify a context identifier.",
-                    ));
-                };
 
                 Ok(quote! {
-                    o.set( ::boa_engine::js_string!( #key ), #value, false, #c_ident )
-                     .expect("Cannot set property of the object.");
+                    o.set( #key, #value, false, #c_ident )
+                     .expect("Cannot set property");
                 })
             })
             .collect::<syn::Result<_>>()?;
