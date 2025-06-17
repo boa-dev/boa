@@ -4,6 +4,12 @@ use boa_engine::{
     Context, JsResult, JsValue, Source,
 };
 
+#[derive(TryFromJs, TryIntoJs, Debug, PartialEq, Eq)]
+#[boa(rename = "camelCase")]
+struct InnerTest {
+    hello_world_how_are_you: u8,
+}
+
 #[derive(TryIntoJs)]
 struct Test {
     x: i32,
@@ -15,6 +21,8 @@ struct Test {
     #[boa(rename = "isReadable")]
     #[boa(into_js_with = "readable_into_js")]
     is_readable: i8,
+
+    inner: InnerTest,
 }
 
 #[derive(TryFromJs, Debug, PartialEq, Eq)]
@@ -23,16 +31,24 @@ struct ResultVerifier {
     y: i32,
     #[boa(rename = "isReadable")]
     is_readable: bool,
+
+    inner: InnerTest,
 }
 
 fn main() -> JsResult<()> {
     let js_code = r#"
     function pointShift(pointA, pointB) {
-        if (pointA.isReadable === true && pointB.isReadable === true) {
+        if (pointA.isReadable === true
+            && pointB.isReadable === true
+            && pointA.inner.helloWorldHowAreYou !== undefined)
+        {
             return {
                 x: pointA.x + pointB.x,
                 y: pointA.y + pointB.y,
                 isReadable: true,
+                inner: {
+                    helloWorldHowAreYou: pointA.inner.helloWorldHowAreYou + pointB.inner.helloWorldHowAreYou
+                }
             }
         }
         return undefined
@@ -54,18 +70,27 @@ fn main() -> JsResult<()> {
         y_point: 20,
         tuple: (30, 40, "no matter".into()),
         is_readable: 1,
+        inner: InnerTest {
+            hello_world_how_are_you: 1,
+        },
     };
     let b = Test {
         x: 2,
         y_point: 1,
         tuple: (30, 40, "no matter".into()),
         is_readable: 2,
+        inner: InnerTest {
+            hello_world_how_are_you: 2,
+        },
     };
     let c = Test {
         x: 2,
         y_point: 1,
         tuple: (30, 40, "no matter".into()),
         is_readable: 0,
+        inner: InnerTest {
+            hello_world_how_are_you: 3,
+        },
     };
 
     let result = point_shift.call(
@@ -78,6 +103,9 @@ fn main() -> JsResult<()> {
         x: 10 + 2,
         y: 20 + 1,
         is_readable: true,
+        inner: InnerTest {
+            hello_world_how_are_you: 3,
+        },
     };
     assert_eq!(verifier, expect);
 
