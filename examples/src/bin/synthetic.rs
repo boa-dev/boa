@@ -89,7 +89,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mix = namespace
         .get(js_string!("mix"), context)?
         .as_callable()
-        .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("mix export wasn't a function!"))?;
     let result = mix.call(&JsValue::undefined(), &[5.into(), 10.into()], context)?;
 

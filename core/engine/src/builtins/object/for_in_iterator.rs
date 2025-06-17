@@ -95,9 +95,10 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut iterator = this
-            .as_object()
-            .and_then(JsObject::downcast_mut::<Self>)
+        let object = this.as_object();
+        let mut iterator = object
+            .as_ref()
+            .and_then(|o| o.downcast_mut::<Self>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ForInIterator"))?;
         let mut object = iterator.object.to_object(context)?;
         loop {

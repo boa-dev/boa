@@ -1095,7 +1095,7 @@ impl JsObject {
             ClassFieldDefinition::Public(field_name, _, function_name) => {
                 if let Some(function_name) = function_name {
                     set_function_name(
-                        init_value
+                        &init_value
                             .as_object()
                             .expect("init value must be a function object"),
                         function_name,
@@ -1354,7 +1354,7 @@ impl JsValue {
             return object.instance_of(&bound_function.target_function().clone().into(), context);
         }
 
-        let Some(mut object) = object.as_object().cloned() else {
+        let Some(mut object) = object.as_object() else {
             // 3. If Type(O) is not Object, return false.
             return Ok(false);
         };
@@ -1378,7 +1378,7 @@ impl JsValue {
             };
 
             // c. If SameValue(P, O) is true, return true.
-            if JsObject::equals(&object, prototype) {
+            if JsObject::equals(&object, &prototype) {
                 return Ok(true);
             }
         }

@@ -127,8 +127,9 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let mut map = this
-            .as_object()
+        let object = this.as_object();
+        let mut map = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakMap>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.delete: called with non-object value")
@@ -164,8 +165,9 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = this
-            .as_object()
+        let object = this.as_object();
+        let map = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakMap>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.get: called with non-object value")
@@ -198,8 +200,9 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let map = this
-            .as_object()
+        let object = this.as_object();
+        let map = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakMap>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.has: called with non-object value")
@@ -232,8 +235,9 @@ impl WeakMap {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[WeakMapData]]).
-        let mut map = this
-            .as_object()
+        let object = this.as_object();
+        let mut map = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakMap>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakMap.set: called with non-object value")

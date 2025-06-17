@@ -458,7 +458,7 @@ impl OrdinaryObject {
             JsVariant::Object(_) | JsVariant::Null => {
                 JsObject::from_proto_and_data_with_shared_shape(
                     context.root_shape(),
-                    prototype.as_object().cloned(),
+                    prototype.as_object(),
                     OrdinaryObject,
                 )
             }
@@ -790,7 +790,7 @@ impl OrdinaryObject {
         let arg = args.get_or_undefined(0);
         if let Some(obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
-            object_define_properties(obj, props, context)?;
+            object_define_properties(&obj, props, context)?;
             Ok(arg.clone())
         } else {
             Err(JsNativeError::typ()

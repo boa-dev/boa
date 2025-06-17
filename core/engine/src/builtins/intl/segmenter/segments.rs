@@ -53,8 +53,9 @@ impl Segments {
     fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let segments = this
-            .as_object()
+        let object = this.as_object();
+        let segments = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -107,8 +108,9 @@ impl Segments {
     fn iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let segments = this
-            .as_object()
+        let object = this.as_object();
+        let segments = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ()

@@ -58,7 +58,7 @@ impl JsData for ErasedObjectData {}
 #[derive(Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 pub struct JsObject<T: NativeObject + ?Sized = ErasedObjectData> {
-    inner: Gc<VTableObject<T>>,
+    pub(crate) inner: Gc<VTableObject<T>>,
 }
 
 impl<T: NativeObject + ?Sized> Clone for JsObject<T> {
@@ -90,6 +90,16 @@ impl Default for JsObject {
 }
 
 impl JsObject {
+    pub(crate) fn from_raw(ptr: NonNull<GcBox<ErasedVTableObject>>) -> Self {
+        // SAFETY: The pointer is guaranteed to be valid because we just created it.
+        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
+        unsafe {
+            JsObject {
+                inner: Gc::from_raw(ptr),
+            }
+        }
+    }
+
     /// Creates a new `JsObject` from its inner object and its vtable.
     pub(crate) fn from_object_and_vtable<T: NativeObject>(
         object: Object<T>,

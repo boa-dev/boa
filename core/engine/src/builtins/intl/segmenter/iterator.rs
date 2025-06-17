@@ -106,8 +106,9 @@ impl SegmentIterator {
     fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
-        let mut iter = this
-            .as_object()
+        let object = this.as_object();
+        let mut iter = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()

@@ -226,8 +226,9 @@ impl ListFormat {
     fn format(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let lf = this
-            .as_object()
+        let object = this.as_object();
+        let lf = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -343,8 +344,9 @@ impl ListFormat {
 
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let lf = this
-            .as_object()
+        let object = this.as_object();
+        let lf = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -416,8 +418,9 @@ impl ListFormat {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let lf = this
-            .as_object()
+        let object = this.as_object();
+        let lf = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ()

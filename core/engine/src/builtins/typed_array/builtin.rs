@@ -234,7 +234,7 @@ impl BuiltinTypedArray {
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-            let target_obj = Self::create(constructor, &[values.len().into()], context)?.upcast();
+            let target_obj = Self::create(&constructor, &[values.len().into()], context)?.upcast();
 
             // d. Let k be 0.
             // e. Repeat, while k < len,
@@ -270,7 +270,7 @@ impl BuiltinTypedArray {
         let len = array_like.length_of_array_like(context)?;
 
         // 10. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let target_obj = Self::create(constructor, &[len.into()], context)?.upcast();
+        let target_obj = Self::create(&constructor, &[len.into()], context)?.upcast();
 
         // 11. Let k be 0.
         // 12. Repeat, while k < len,
@@ -332,7 +332,7 @@ impl BuiltinTypedArray {
         };
 
         // 4. Let newObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let new_obj = Self::create(constructor, &[args.len().into()], context)?.upcast();
+        let new_obj = Self::create(&constructor, &[args.len().into()], context)?.upcast();
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -408,8 +408,9 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let ta = this
-            .as_object()
+        let object = this.as_object();
+        let ta = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<TypedArray>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("`this` is not a typed array object")
@@ -430,8 +431,9 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let ta = this
-            .as_object()
+        let object = this.as_object();
+        let ta = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<TypedArray>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("`this` is not a typed array object")
@@ -460,8 +462,9 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let ta = this
-            .as_object()
+        let object = this.as_object();
+        let ta = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<TypedArray>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("Value is not a typed array object")
@@ -1319,8 +1322,9 @@ impl BuiltinTypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
-        let ta = this
-            .as_object()
+        let object = this.as_object();
+        let ta = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<TypedArray>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("`this` is not a typed array object")
@@ -2270,7 +2274,7 @@ impl BuiltinTypedArray {
         let sort_compare =
             |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<cmp::Ordering> {
                 // a. Return ? CompareTypedArrayElements(x, y, comparefn).
-                compare_typed_array_elements(x, y, compare_fn, context)
+                compare_typed_array_elements(x, y, compare_fn.as_ref(), context)
             };
 
         let ta = ta.upcast();
@@ -2325,7 +2329,7 @@ impl BuiltinTypedArray {
         let sort_compare =
             |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<cmp::Ordering> {
                 // a. Return ? CompareTypedArrayElements(x, y, comparefn).
-                compare_typed_array_elements(x, y, compare_fn, context)
+                compare_typed_array_elements(x, y, compare_fn.as_ref(), context)
             };
 
         let ta = ta.upcast();

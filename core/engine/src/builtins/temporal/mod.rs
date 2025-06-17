@@ -176,7 +176,7 @@ pub(crate) fn get_relative_to_option(
         }
         // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(value).
         // e. Let fields be ? PrepareCalendarFields(calendar, value, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », «»).
-        let partial = to_partial_zoneddatetime(object, context)?;
+        let partial = to_partial_zoneddatetime(&object, context)?;
         // f. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, constrain).
         // g. Let timeZone be fields.[[TimeZone]].
         // h. Let offsetString be fields.[[OffsetString]].
@@ -214,10 +214,10 @@ pub(crate) fn get_relative_to_option(
 }
 
 // 13.26 IsPartialTemporalObject ( object )
-pub(crate) fn is_partial_temporal_object<'value>(
-    value: &'value JsValue,
+pub(crate) fn is_partial_temporal_object(
+    value: &JsValue,
     context: &mut Context,
-) -> JsResult<Option<&'value JsObject>> {
+) -> JsResult<Option<JsObject>> {
     // 1. If value is not an Object, return false.
     let Some(obj) = value.as_object() else {
         return Ok(None);

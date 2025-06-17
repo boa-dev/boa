@@ -12,7 +12,7 @@ impl JsValue {
     ) -> JsResult<bool> {
         match (self.as_object(), other.as_object()) {
             (None, None) => Ok(self.strict_equals(other)),
-            (Some(x), Some(y)) => JsObject::deep_strict_equals_inner(x, y, encounters, context),
+            (Some(x), Some(y)) => JsObject::deep_strict_equals_inner(&x, &y, encounters, context),
             _ => Ok(false),
         }
     }
@@ -225,7 +225,7 @@ impl JsValue {
             }
             (JsVariant::String(x), JsVariant::String(y)) => x == y,
             (JsVariant::Boolean(x), JsVariant::Boolean(y)) => x == y,
-            (JsVariant::Object(x), JsVariant::Object(y)) => JsObject::equals(x, y),
+            (JsVariant::Object(x), JsVariant::Object(y)) => JsObject::equals(&x, &y),
             (JsVariant::Symbol(x), JsVariant::Symbol(y)) => x == y,
             _ => false,
         }

@@ -108,8 +108,9 @@ impl WeakRef {
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
-        let weak_ref = this
-            .as_object()
+        let object = this.as_object();
+        let weak_ref = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<WeakGc<ErasedVTableObject>>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(

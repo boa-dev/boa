@@ -136,9 +136,9 @@ fn detach_array_buffer(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResu
     }
 
     // 1. Assert: IsSharedArrayBuffer(arrayBuffer) is false.
-    let mut array_buffer = args
-        .first()
-        .and_then(JsValue::as_object)
+    let object = args.first().and_then(JsValue::as_object);
+    let mut array_buffer = object
+        .as_ref()
         .and_then(|o| o.downcast_mut::<ArrayBuffer>())
         .ok_or_else(type_err)?;
 

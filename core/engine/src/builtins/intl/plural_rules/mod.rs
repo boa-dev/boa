@@ -178,8 +178,9 @@ impl PluralRules {
     fn select(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let plural_rules = this
-            .as_object()
+        let object = this.as_object();
+        let plural_rules = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -204,8 +205,9 @@ impl PluralRules {
     fn select_range(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let plural_rules = this
-            .as_object()
+        let object = this.as_object();
+        let plural_rules = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -297,8 +299,9 @@ impl PluralRules {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let plural_rules = this
-            .as_object()
+        let object = this.as_object();
+        let plural_rules = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<Self>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
