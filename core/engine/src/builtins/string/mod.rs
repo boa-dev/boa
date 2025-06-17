@@ -1012,8 +1012,8 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // Helper enum.
-        enum CallableOrString<'a> {
-            FunctionalReplace(&'a JsObject),
+        enum CallableOrString {
+            FunctionalReplace(JsObject),
             ReplaceValue(JsString),
         }
 
@@ -1212,7 +1212,7 @@ impl String {
             // c. Else,
             let replacement = match replace {
                 // b. If functionalReplace is true, then
-                Ok(replace_fn) => {
+                Ok(ref replace_fn) => {
                     // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
                     replace_fn
                         .call(
@@ -1442,8 +1442,9 @@ impl String {
                     context,
                 )?;
 
-                let collator = collator
-                    .as_object()
+                let object = collator.as_object();
+                let collator = object
+                    .as_ref()
                     .and_then(|o| o.downcast_ref::<Collator>())
                     .expect("constructor must return a `Collator` object");
 

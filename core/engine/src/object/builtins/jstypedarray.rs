@@ -184,7 +184,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .cloned()
                 .expect("`copyWithin` must always return a `TypedArray` on success"),
         })
     }
@@ -300,7 +299,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: subarray
                 .as_object()
-                .cloned()
                 .expect("`subarray` must always return a `TypedArray` on success"),
         })
     }
@@ -337,7 +335,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .cloned()
                 .expect("`filter` must always return a `TypedArray` on success"),
         })
     }
@@ -359,7 +356,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .cloned()
                 .expect("`map` must always return a `TypedArray` on success"),
         })
     }
@@ -464,7 +460,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: object
                 .as_object()
-                .cloned()
                 .expect("`slice` must always return a `TypedArray` on success"),
         })
     }
@@ -824,7 +819,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .cloned()
                 .expect("`to_reversed` must always return a `TypedArray` on success"),
         })
     }
@@ -845,7 +839,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .cloned()
                 .expect("`to_sorted` must always return a `TypedArray` on success"),
         })
     }
@@ -859,7 +852,6 @@ impl JsTypedArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .cloned()
                 .expect("`with` must always return a `TypedArray` on success"),
         })
     }

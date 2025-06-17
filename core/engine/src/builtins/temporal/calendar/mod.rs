@@ -46,7 +46,7 @@ pub(crate) fn to_temporal_calendar_slot_value(calendar_like: &JsValue) -> JsResu
         // a. If temporalCalendarLike has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
         // i. Return temporalCalendarLike.[[Calendar]].
         if let Some(calendar) = extract_from_temporal_type(
-            calendar_like,
+            &calendar_like,
             |d| Ok(Some(d.borrow().data().inner.calendar().clone())),
             |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
             |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),

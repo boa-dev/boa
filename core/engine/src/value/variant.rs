@@ -24,7 +24,7 @@ pub enum JsVariant<'a> {
     /// `BigInt` - holds any arbitrary large signed integer.
     BigInt(&'a JsBigInt),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
-    Object(&'a JsObject),
+    Object(JsObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(&'a JsSymbol),
 }

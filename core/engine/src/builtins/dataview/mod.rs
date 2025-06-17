@@ -324,8 +324,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let view = this
-            .as_object()
+        let object = this.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -353,8 +354,9 @@ impl DataView {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let view = this
-            .as_object()
+        let object = this.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 
@@ -395,8 +397,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let view = this
-            .as_object()
+        let object = this.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 
@@ -438,8 +441,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view
-            .as_object()
+        let object = view.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 
@@ -755,8 +759,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view
-            .as_object()
+        let object = view.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 

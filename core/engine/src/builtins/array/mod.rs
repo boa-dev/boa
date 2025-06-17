@@ -484,7 +484,7 @@ impl Array {
 
             // c. If thisRealm and realmC are not the same Realm Record, then
             if this_realm != realm_c
-                && *c == realm_c.intrinsics().constructors().array().constructor()
+                && c == realm_c.intrinsics().constructors().array().constructor()
             {
                 // i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
                 // Note: fast path to step 6.
@@ -513,7 +513,7 @@ impl Array {
 
         if let Some(c) = c.as_constructor() {
             // 8. Return ? Construct(C, « 𝔽(length) »).
-            return c.construct(&[JsValue::new(length)], Some(c), context);
+            return c.construct(&[JsValue::new(length)], Some(&c), context);
         }
 
         // 7. If IsConstructor(C) is false, throw a TypeError exception.
@@ -587,7 +587,7 @@ impl Array {
                 // b. Let kValue be ? Get(arrayLike, Pk).
                 let k_value = array_like.get(k, context)?;
 
-                let mapped_value = if let Some(mapfn) = mapping {
+                let mapped_value = if let Some(ref mapfn) = mapping {
                     // c. If mapping is true, then
                     //     i. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
                     mapfn.call(this_arg, &[k_value, k.into()], context)?
@@ -637,7 +637,7 @@ impl Array {
             };
 
             // v. If mapping is true, then
-            let mapped_value = if let Some(mapfn) = mapping {
+            let mapped_value = if let Some(ref mapfn) = mapping {
                 // 1. Let mappedValue be Completion(Call(mapper, thisArg, « next, 𝔽(k) »)).
                 let mapped_value = mapfn.call(this_arg, &[next, k.into()], context);
 
@@ -1840,7 +1840,7 @@ impl Array {
             source_len,
             0,
             1,
-            Some(mapper_function),
+            Some(&mapper_function),
             args.get_or_undefined(1),
             context,
         )?;
@@ -1927,7 +1927,7 @@ impl Array {
                     // 4. Set targetIndex to ? FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
                         target,
-                        element,
+                        &element,
                         element_len,
                         target_index,
                         new_depth,
@@ -2694,7 +2694,7 @@ impl Array {
         let sort_compare =
             |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<Ordering> {
                 // a. Return ? CompareArrayElements(x, y, comparefn).
-                compare_array_elements(x, y, comparefn, context)
+                compare_array_elements(x, y, comparefn.as_ref(), context)
             };
 
         // 5. Let sortedList be ? SortIndexedProperties(obj, len, SortCompare, skip-holes).
@@ -2760,7 +2760,7 @@ impl Array {
         let sort_compare =
             |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<Ordering> {
                 // a. Return ? CompareArrayElements(x, y, comparefn).
-                compare_array_elements(x, y, comparefn, context)
+                compare_array_elements(x, y, comparefn.as_ref(), context)
             };
 
         // 6. Let sortedList be ? SortIndexedProperties(O, len, SortCompare, read-through-holes).

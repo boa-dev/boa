@@ -47,7 +47,7 @@ impl Array {
             } else {
                 // b. Else,
                 //     i. If IsCallable(mapfn) is false, throw a TypeError exception.
-                let Some(callable) = mapfn.as_callable().cloned() else {
+                let Some(callable) = mapfn.as_callable() else {
                     return Err(JsNativeError::typ()
                         .with_message("Array.fromAsync: mapping function must be callable")
                         .into());

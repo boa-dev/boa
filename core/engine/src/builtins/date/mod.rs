@@ -225,34 +225,34 @@ impl BuiltInConstructor for Date {
             // a. Let value be values[0].
             [value] => {
                 // b. If value is an Object and value has a [[DateValue]] internal slot, then
-                let tv = if let Some(date) =
-                    value.as_object().and_then(JsObject::downcast_ref::<Self>)
-                {
-                    // i. Let tv be value.[[DateValue]].
-                    date.0
-                }
-                // c. Else,
-                else {
-                    // i. Let v be ? ToPrimitive(value).
-                    let v = value.to_primitive(context, PreferredType::Default)?;
-
-                    // ii. If v is a String, then
-                    if let Some(v) = v.as_string() {
-                        // 1. Assert: The next step never returns an abrupt completion because v is a String.
-                        // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the parse method (21.4.3.2).
-                        let tv = parse_date(v, context.host_hooks().as_ref());
-                        if let Some(tv) = tv {
-                            tv as f64
-                        } else {
-                            f64::NAN
-                        }
+                let object = value.as_object();
+                let tv =
+                    if let Some(date) = object.as_ref().and_then(JsObject::downcast_ref::<Self>) {
+                        // i. Let tv be value.[[DateValue]].
+                        date.0
                     }
-                    // iii. Else,
+                    // c. Else,
                     else {
-                        // 1. Let tv be ? ToNumber(v).
-                        v.to_number(context)?
-                    }
-                };
+                        // i. Let v be ? ToPrimitive(value).
+                        let v = value.to_primitive(context, PreferredType::Default)?;
+
+                        // ii. If v is a String, then
+                        if let Some(v) = v.as_string() {
+                            // 1. Assert: The next step never returns an abrupt completion because v is a String.
+                            // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the parse method (21.4.3.2).
+                            let tv = parse_date(v, context.host_hooks().as_ref());
+                            if let Some(tv) = tv {
+                                tv as f64
+                            } else {
+                                f64::NAN
+                            }
+                        }
+                        // iii. Else,
+                        else {
+                            // 1. Let tv be ? ToNumber(v).
+                            v.to_number(context)?
+                        }
+                    };
 
                 // d. Let dv be TimeClip(tv).
                 Self(time_clip(tv))
@@ -817,8 +817,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -858,8 +859,9 @@ impl Date {
             time_clip(new_date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -885,8 +887,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -943,8 +946,9 @@ impl Date {
             time_clip(new_date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -972,8 +976,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1028,8 +1033,9 @@ impl Date {
             time_clip(date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1054,8 +1060,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1100,8 +1107,9 @@ impl Date {
             time_clip(make_date(day(t), time))
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1126,8 +1134,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1176,8 +1185,9 @@ impl Date {
             time_clip(date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1203,8 +1213,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1250,8 +1261,9 @@ impl Date {
             time_clip(new_date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1276,8 +1288,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1323,8 +1336,9 @@ impl Date {
             time_clip(date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1356,8 +1370,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1392,8 +1407,9 @@ impl Date {
         // 9. Let u be TimeClip(UTC(date)).
         let u = time_clip(utc_t(date, context.host_hooks().as_ref()));
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1421,8 +1437,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1438,8 +1455,9 @@ impl Date {
         // 4. Let v be TimeClip(t).
         let v = time_clip(t);
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 

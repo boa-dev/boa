@@ -308,8 +308,9 @@ impl BuiltInConstructor for PlainDate {
 impl PlainDate {
     /// 3.3.3 get `Temporal.PlainDate.prototype.calendarId`
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -556,7 +557,8 @@ impl PlainDate {
         let item = args.get_or_undefined(0);
         let options = args.get(1);
 
-        if let Some(date) = item.as_object().and_then(JsObject::downcast_ref::<Self>) {
+        let object = item.as_object();
+        if let Some(date) = object.as_ref().and_then(JsObject::downcast_ref::<Self>) {
             let options = get_options_object(options.unwrap_or(&JsValue::undefined()))?;
             let _ = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             return create_temporal_date(date.inner.clone(), None, context).map(Into::into);
@@ -585,8 +587,9 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -603,8 +606,9 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -617,8 +621,9 @@ impl PlainDate {
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -641,8 +646,9 @@ impl PlainDate {
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -666,8 +672,9 @@ impl PlainDate {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -690,7 +697,7 @@ impl PlainDate {
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let partial =
-            to_partial_date_record(partial_object, date.inner.calendar().clone(), context)?;
+            to_partial_date_record(&partial_object, date.inner.calendar().clone(), context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
@@ -702,8 +709,9 @@ impl PlainDate {
 
     /// 3.3.26 Temporal.PlainDate.prototype.withCalendar ( calendarLike )
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -717,8 +725,9 @@ impl PlainDate {
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -736,8 +745,9 @@ impl PlainDate {
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -754,8 +764,9 @@ impl PlainDate {
 
     /// 3.3.27 `Temporal.PlainDate.prototype.equals ( other )`
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -774,8 +785,9 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -799,8 +811,9 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -848,8 +861,9 @@ impl PlainDate {
 
     /// 3.3.30 `Temporal.PlainDate.prototype.toString ( [ options ] )`
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -865,8 +879,9 @@ impl PlainDate {
     /// 3.3.31 `Temporal.PlainDate.prototype.toLocaleString ( [ locales [ , options ] ] )`
     fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -877,8 +892,9 @@ impl PlainDate {
 
     /// 3.3.32 `Temporal.PlainDate.prototype.toJSON ( )`
     fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainDate object.")
@@ -983,9 +999,9 @@ pub(crate) fn to_temporal_date(
             return Ok(date);
         }
         // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
-        let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
+        let calendar = get_temporal_calendar_slot_value_with_default(&object, context)?;
         // e. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », «», «»).
-        let partial = to_partial_date_record(object, calendar, context)?;
+        let partial = to_partial_date_record(&object, calendar, context)?;
         // f. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(&options)?;
         // g. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).

@@ -123,8 +123,11 @@ const_assert!(align_of::<*mut ()>() >= 4);
 /// All bit magic is done here.
 mod bits {
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
+    use boa_gc::GcBox;
     use boa_string::JsString;
     use std::ptr::NonNull;
+
+    use crate::object::ErasedVTableObject;
 
     /// The mask for the bits that indicate if the value is a NaN-value.
     const MASK_NAN: u64 = 0x7FF0_0000_0000_0000;
@@ -295,8 +298,8 @@ mod bits {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline(always)]
-    pub(super) unsafe fn tag_object(value: Box<JsObject>) -> u64 {
-        let value = Box::into_raw(value) as u64;
+    pub(super) unsafe fn tag_object(value: JsObject) -> u64 {
+        let value = boa_gc::Gc::into_raw(value.inner).as_ptr() as u64;
         let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
@@ -309,6 +312,20 @@ mod bits {
 
         // Simply cast for bits.
         value_masked | MASK_OBJECT
+    }
+
+    /// Returns an owned `JsObject` from a tagged value.
+    ///
+    /// # Safety
+    /// * The pointer must be a valid pointer to a `GcBox<ErasedVTableObject>`.
+    #[allow(clippy::unnecessary_box_returns)]
+    pub(super) unsafe fn untag_object_owned(value: u64) -> JsObject {
+        // This is safe since we already checked the pointer is not null as this point.
+        unsafe {
+            JsObject::from_raw(NonNull::new_unchecked(
+                (value & MASK_POINTER_VALUE) as *mut GcBox<ErasedVTableObject>,
+            ))
+        }
     }
 
     /// Returns a tagged u64 of a boxed `[JsSymbol]`.
@@ -428,7 +445,7 @@ impl Finalize for NanBoxedValue {
 unsafe impl Trace for NanBoxedValue {
     custom_trace! {this, mark, {
         if let Some(o) = this.as_object() {
-            mark(o);
+            mark(&o);
         }
     }}
 }
@@ -506,7 +523,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn object(value: JsObject) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_object(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_object(value) })
     }
 
     /// Returns a `InnerValue` from a boxed `[JsSymbol]`.
@@ -633,9 +650,12 @@ impl NanBoxedValue {
     /// Returns the value as a boxed `[JsObject]`.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_object(&self) -> Option<&JsObject> {
+    pub(crate) fn as_object(&self) -> Option<JsObject> {
         if self.is_object() {
-            Some(unsafe { bits::untag_pointer::<'_, JsObject>(self.0) })
+            let obj = unsafe { bits::untag_object_owned(self.0) };
+            let o = obj.clone();
+            core::mem::forget(obj); // Prevent double drop.
+            Some(o)
         } else {
             None
         }
@@ -666,9 +686,14 @@ impl NanBoxedValue {
     /// Returns the `[JsVariant]` of this inner value.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_variant(&self) -> JsVariant<'_> {
+    pub(crate) fn as_variant(&self) -> JsVariant<'_> {
         match self.0 & bits::MASK_KIND {
-            bits::MASK_OBJECT => JsVariant::Object(unsafe { bits::untag_pointer(self.0) }),
+            bits::MASK_OBJECT => {
+                let obj = unsafe { bits::untag_object_owned(self.0) };
+                let o = obj.clone();
+                core::mem::forget(obj); // Prevent double drop.
+                JsVariant::Object(o)
+            }
             bits::MASK_STRING => JsVariant::String(unsafe { bits::untag_pointer(self.0) }),
             bits::MASK_SYMBOL => JsVariant::Symbol(unsafe { bits::untag_pointer(self.0) }),
             bits::MASK_BIGINT => JsVariant::BigInt(unsafe { bits::untag_pointer(self.0) }),
@@ -687,7 +712,7 @@ impl Drop for NanBoxedValue {
     #[inline(always)]
     fn drop(&mut self) {
         match self.0 & bits::MASK_KIND {
-            bits::MASK_OBJECT => drop(unsafe { bits::untag_pointer_owned::<JsObject>(self.0) }),
+            bits::MASK_OBJECT => drop(unsafe { bits::untag_object_owned(self.0) }),
             bits::MASK_STRING => drop(unsafe { bits::untag_pointer_owned::<JsString>(self.0) }),
             bits::MASK_SYMBOL => drop(unsafe { bits::untag_pointer_owned::<JsSymbol>(self.0) }),
             bits::MASK_BIGINT => drop(unsafe { bits::untag_pointer_owned::<JsBigInt>(self.0) }),
@@ -779,8 +804,8 @@ macro_rules! assert_type {
     ($value: ident is object($scalar: ident)) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 0, 1, 0);
         assert_type!(@@as $value, 0, 0, 0, 0, 0, 0, 0, 1, 0);
-        assert_eq!(Some(&$scalar), $value.as_object());
-        assert_eq!($value.as_variant(), JsVariant::Object(&$scalar));
+        assert_eq!(Some(&$scalar), $value.as_object().as_ref());
+        assert_eq!($value.as_variant(), JsVariant::Object($scalar));
     };
     ($value: ident is symbol($scalar: ident)) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 0, 0, 1);

@@ -133,7 +133,7 @@ impl JsValue {
                 .with_message("cannot convert bigint to JSON")
                 .into()),
             JsVariant::Object(obj) => {
-                if seen_objects.contains(obj) {
+                if seen_objects.contains(&obj) {
                     return Err(JsNativeError::typ()
                         .with_message("cyclic object value")
                         .into());
@@ -165,7 +165,7 @@ impl JsValue {
                     }
                     // Passing the object rather than its clone that was inserted to the set should be fine
                     // as they hash to the same value and therefore HashSet can still remove the clone
-                    seen_objects.remove(obj);
+                    seen_objects.remove(&obj);
                     Ok(Some(Value::Array(arr)))
                 } else {
                     let mut map = Map::new();
@@ -193,7 +193,7 @@ impl JsValue {
                             map.insert(key, value);
                         }
                     }
-                    seen_objects.remove(obj);
+                    seen_objects.remove(&obj);
                     Ok(Some(Value::Object(map)))
                 }
             }

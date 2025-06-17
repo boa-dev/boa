@@ -235,7 +235,7 @@ impl JsPromise {
     /// let promise = context.eval(Source::from_bytes(
     ///     "new Promise((resolve, reject) => resolve())",
     /// ))?;
-    /// let promise = promise.as_object().cloned().unwrap();
+    /// let promise = promise.as_object().unwrap();
     ///
     /// let promise = JsPromise::from_object(promise)?;
     ///
