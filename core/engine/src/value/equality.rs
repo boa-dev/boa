@@ -17,8 +17,10 @@ impl JsValue {
         }
     }
 
-    /// Deep equality comparison, strict. If the value is an object/array, also compare
-    /// the key-values. It uses `strict_equals()` for non-object values.
+    /// Deep strict equality.
+    ///
+    /// If the value is an object/array, also compare the key-values.
+    /// It uses `strict_equals()` for non-object values.
     pub fn deep_strict_equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
         self.deep_strict_equals_inner(other, &mut HashSet::new(), context)
     }
