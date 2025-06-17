@@ -159,7 +159,7 @@ impl Array {
 
         Ok(quote! {
             ::boa_engine::JsValue::from(
-                ::boa_engine::object::builtins::JsArray::from_iter( vec![ #(#items),* ], #c_ident )
+                ::boa_engine::object::builtins::JsArray::from_iter( [ #(#items),* ], #c_ident )
             )
         })
     }
