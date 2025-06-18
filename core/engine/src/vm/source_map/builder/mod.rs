@@ -2,7 +2,7 @@ use std::{cmp::Ordering, ops::Range};
 
 use boa_ast::Position;
 
-use crate::vm::source_map::{Entry, SourceMap};
+use crate::vm::source_map::Entry;
 
 #[cfg(test)]
 mod tests;
@@ -31,7 +31,7 @@ pub(crate) struct SourceMapBuilder {
 }
 
 impl SourceMapBuilder {
-    pub(crate) fn build(self, final_pc: u32) -> SourceMap {
+    pub(crate) fn build(self, final_pc: u32) -> Box<[Entry]> {
         assert!(self.stack.is_empty(), "forgot to pop source scope");
         let end_entry = self
             .entries
@@ -44,8 +44,7 @@ impl SourceMapBuilder {
             })
             .unwrap_or_default();
 
-        let entries = self
-            .entries
+        self.entries
             .into_iter()
             .chain(std::iter::once(end_entry))
             .filter(|entry| !entry.is_empty())
@@ -53,9 +52,7 @@ impl SourceMapBuilder {
                 start_pc: entry.start,
                 position: entry.position,
             })
-            .collect::<Box<[_]>>();
-
-        SourceMap::new(entries)
+            .collect::<Box<[_]>>()
     }
 
     pub(crate) fn push_source_position(&mut self, start_pc: u32, position: Option<Position>) {

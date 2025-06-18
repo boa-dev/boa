@@ -218,11 +218,12 @@ fn finish_does_not_insert_none_position_if_len_is_equal() {
     builder.pop_source_position(10);
 
     assert_eq!(
-        builder.build(10).entries(),
+        builder.build(10),
         vec![Entry {
             start_pc: 0,
             position: Some((1, 1).into()),
         }]
+        .into()
     );
 }
 
@@ -233,7 +234,7 @@ fn finish_inserts_none_position_if_len_is_not_equal() {
     builder.pop_source_position(10);
 
     assert_eq!(
-        builder.build(20).entries(),
+        builder.build(20),
         vec![
             Entry {
                 start_pc: 0,
@@ -244,5 +245,6 @@ fn finish_inserts_none_position_if_len_is_not_equal() {
                 position: None,
             }
         ]
+        .into()
     );
 }
