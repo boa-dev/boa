@@ -1591,7 +1591,7 @@ mod js_value_macro {
         impl TryIntoJs for Test {
             fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
                 Ok(js_value!({
-                    "field1": self.field_1.clone(),
+                    "fOne": self.field_1.clone(),
                     "field2": self.field_2
                 }, context))
             }
@@ -1608,7 +1608,7 @@ mod js_value_macro {
 
         assert_eq!(
             format!("{}", o.display()),
-            "{\nfield1: \"Hello\",\nfield2: 42\n}"
+            "{\nfOne: \"Hello\",\nfield2: 42\n}"
         );
     }
 }

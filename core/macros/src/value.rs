@@ -8,13 +8,18 @@ use syn::{braced, bracketed, parse2, Expr, Ident, LitStr, Token};
 /// The key can be an identifier (which will be stringified), or an actual string
 /// literal.
 enum Key {
+    Bracketed(Expr),
     Ident(Ident),
     StringLiteral(LitStr),
 }
 
 impl Parse for Key {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        if input.peek(Ident) {
+        if input.peek(Bracket) {
+            let content;
+            let _bracket = bracketed!(content in input);
+            Ok(Key::Bracketed(content.parse()?))
+        } else if input.peek(Ident) {
             Ok(Key::Ident(input.parse()?))
         } else if input.peek(LitStr) {
             Ok(Key::StringLiteral(input.parse()?))
@@ -102,10 +107,16 @@ impl Object {
             .fields
             .iter()
             .map(|field| match &field.key {
-                Key::Ident(ident) => (
-                    quote! { ::boa_engine::property::PropertyKey::from( #ident ) },
+                Key::Bracketed(expr) => (
+                    quote! {
+                        ::boa_engine::property::PropertyKey::from( #expr )
+                    },
                     &field.value,
                 ),
+                Key::Ident(ident) => {
+                    let ident = ident.to_string();
+                    (quote! { ::boa_engine::js_string!( #ident ) }, &field.value)
+                }
                 Key::StringLiteral(literal) => (
                     quote! { ::boa_engine::js_string!( #literal ) },
                     &field.value,
