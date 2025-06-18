@@ -16,7 +16,7 @@ pub(crate) struct Entry {
 }
 
 impl Entry {
-    pub(crate) fn position(&self) -> Option<Position> {
+    pub(crate) const fn position(&self) -> Option<Position> {
         self.position
     }
 }
@@ -46,10 +46,12 @@ impl SourceMap {
     }
 
     pub(crate) fn find(&self, pc: u32) -> Option<Position> {
-        // TODO: Optimized the search, maybe using binary-search?
-        self.entries()
-            .iter()
-            .find(|entry| entry.start_pc >= pc)
-            .and_then(Entry::position)
+        for entry in self.entries().iter().rev() {
+            if entry.start_pc + 1 < pc {
+                return entry.position();
+            }
+        }
+
+        None
     }
 }

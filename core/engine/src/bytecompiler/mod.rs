@@ -1054,65 +1054,71 @@ impl<'ctx> ByteCompiler<'ctx> {
                 let index = self.get_binding(&binding);
                 self.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
             }
-            Access::Property { access } => match access {
-                PropertyAccess::Simple(access) => {
-                    let object = self.register_allocator.alloc();
-                    self.compile_expr(access.target(), &object);
+            Access::Property { access } => {
+                match access {
+                    PropertyAccess::Simple(access) => {
+                        self.push_source_position(access.field().span().start());
+                        let object = self.register_allocator.alloc();
+                        self.compile_expr(access.target(), &object);
 
-                    match access.field() {
-                        PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &object, &object, ident.sym());
+                        match access.field() {
+                            PropertyAccessField::Const(ident) => {
+                                self.emit_get_property_by_name(dst, &object, &object, ident.sym());
+                            }
+                            PropertyAccessField::Expr(expr) => {
+                                let key = self.register_allocator.alloc();
+                                self.compile_expr(expr, &key);
+                                self.bytecode.emit_get_property_by_value(
+                                    dst.variable(),
+                                    key.variable(),
+                                    object.variable(),
+                                    object.variable(),
+                                );
+                                self.register_allocator.dealloc(key);
+                            }
                         }
-                        PropertyAccessField::Expr(expr) => {
-                            let key = self.register_allocator.alloc();
-                            self.compile_expr(expr, &key);
-                            self.bytecode.emit_get_property_by_value(
-                                dst.variable(),
-                                key.variable(),
-                                object.variable(),
-                                object.variable(),
-                            );
-                            self.register_allocator.dealloc(key);
-                        }
+                        self.register_allocator.dealloc(object);
                     }
-                    self.register_allocator.dealloc(object);
-                }
-                PropertyAccess::Private(access) => {
-                    let index = self.get_or_insert_private_name(access.field());
-                    let object = self.register_allocator.alloc();
-                    self.compile_expr(access.target(), &object);
-                    self.bytecode.emit_get_private_field(
-                        dst.variable(),
-                        object.variable(),
-                        index.into(),
-                    );
-                    self.register_allocator.dealloc(object);
-                }
-                PropertyAccess::Super(access) => {
-                    let value = self.register_allocator.alloc();
-                    let receiver = self.register_allocator.alloc();
-                    self.bytecode.emit_super(value.variable());
-                    self.bytecode.emit_this(receiver.variable());
-                    match access.field() {
-                        PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &receiver, &value, ident.sym());
-                        }
-                        PropertyAccessField::Expr(expr) => {
-                            let key = self.register_allocator.alloc();
-                            self.compile_expr(expr, &key);
-                            self.bytecode.emit_get_property_by_value(
-                                dst.variable(),
-                                key.variable(),
-                                receiver.variable(),
-                                value.variable(),
-                            );
-                            self.register_allocator.dealloc(key);
-                        }
+                    PropertyAccess::Private(access) => {
+                        self.push_source_position(access.field().span().start());
+                        let index = self.get_or_insert_private_name(access.field());
+                        let object = self.register_allocator.alloc();
+                        self.compile_expr(access.target(), &object);
+                        self.bytecode.emit_get_private_field(
+                            dst.variable(),
+                            object.variable(),
+                            index.into(),
+                        );
+                        self.register_allocator.dealloc(object);
                     }
-                    self.register_allocator.dealloc(receiver);
-                    self.register_allocator.dealloc(value);
+                    PropertyAccess::Super(access) => {
+                        self.push_source_position(access.field().span().start());
+                        let value = self.register_allocator.alloc();
+                        let receiver = self.register_allocator.alloc();
+                        self.bytecode.emit_super(value.variable());
+                        self.bytecode.emit_this(receiver.variable());
+                        match access.field() {
+                            PropertyAccessField::Const(ident) => {
+                                self.emit_get_property_by_name(dst, &receiver, &value, ident.sym());
+                            }
+                            PropertyAccessField::Expr(expr) => {
+                                let key = self.register_allocator.alloc();
+                                self.compile_expr(expr, &key);
+                                self.bytecode.emit_get_property_by_value(
+                                    dst.variable(),
+                                    key.variable(),
+                                    receiver.variable(),
+                                    value.variable(),
+                                );
+                                self.register_allocator.dealloc(key);
+                            }
+                        }
+                        self.register_allocator.dealloc(receiver);
+                        self.register_allocator.dealloc(value);
+                    }
                 }
-            },
+                self.pop_source_position();
+            }
             Access::This => {
                 self.bytecode.emit_this(dst.variable());
             }
