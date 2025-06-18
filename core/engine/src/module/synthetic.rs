@@ -320,6 +320,7 @@ impl SyntheticModule {
             false,
             // A synthetic module does not contain `SourceText`
             SpannedSourceText::new_empty(),
+            None,
         );
 
         // 4. For each String exportName in module.[[ExportNames]], do

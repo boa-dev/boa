@@ -13,7 +13,7 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use std::{borrow::Cow, iter::once};
+use std::{borrow::Cow, iter::once, path::Path};
 
 use boa_ast::scope::Scope;
 use boa_macros::utf16;
@@ -110,7 +110,10 @@ impl Json {
         // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
-        let mut parser = Parser::new(Source::from_bytes(&script_string));
+        let source = Source::from_bytes(&script_string);
+        let file_path = source.path().map(Path::to_path_buf);
+
+        let mut parser = Parser::new(source);
         parser.set_json_parse();
         // In json we don't need the source: there no way to pass an object that needs a source text
         // But if it's incorrect, just call `parser.parse_script_with_source` here
@@ -130,6 +133,7 @@ impl Json {
                 context.interner_mut(),
                 in_with,
                 spanned_source_text,
+                file_path,
             );
             compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())

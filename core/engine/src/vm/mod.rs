@@ -670,12 +670,12 @@ impl Context {
     }
 
     fn handle_error(&mut self, mut err: JsError) -> ControlFlow<CompletionRecord> {
-        let position = self.vm.frame.code_block().source_map.find(self.vm.frame.pc);
-        err.set_position(position);
-
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
+            err.source_map = Some(self.vm.frame.code_block().source_map.clone());
+            err.pc = self.vm.frame.pc;
+
             let mut frame = None;
             let mut env_fp = self.vm.environments.len();
             loop {
@@ -737,6 +737,11 @@ impl Context {
     }
 
     fn handle_throw(&mut self) -> ControlFlow<CompletionRecord> {
+        if let Some(err) = &mut self.vm.pending_exception {
+            err.source_map = Some(self.vm.frame.code_block().source_map.clone());
+            err.pc = self.vm.frame.pc;
+        }
+
         let mut env_fp = self.vm.frame().env_fp;
         if self.vm.frame().exit_early() {
             self.vm.environments.truncate(env_fp as usize);

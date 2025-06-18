@@ -9,6 +9,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-eval-x
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
+use std::path::Path;
+
 use crate::{
     builtins::{function::OrdinaryFunction, BuiltInObject},
     bytecompiler::{eval_declaration_instantiation_context, ByteCompiler},
@@ -126,7 +128,10 @@ impl Eval {
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
         let x = x.to_vec();
-        let mut parser = Parser::new(Source::from_utf16(&x));
+        let source = Source::from_utf16(&x);
+        let file_path = source.path().map(Path::to_path_buf);
+
+        let mut parser = Parser::new(source);
         parser.set_identifier(context.next_parser_identifier());
         if strict {
             parser.set_strict();
@@ -276,6 +281,7 @@ impl Eval {
             context.interner_mut(),
             in_with,
             spanned_source_text,
+            file_path,
         );
 
         compiler.current_open_environments_count += 1;

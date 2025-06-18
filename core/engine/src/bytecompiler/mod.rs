@@ -12,7 +12,7 @@ mod register;
 mod statement;
 mod utils;
 
-use std::cell::Cell;
+use std::{cell::Cell, path::PathBuf};
 
 use crate::{
     builtins::function::{arguments::MappedArguments, ThisMode},
@@ -432,6 +432,7 @@ pub struct ByteCompiler<'ctx> {
     pub(crate) bytecode: ByteCodeEmitter,
 
     pub(crate) source_map_builder: SourceMapBuilder,
+    pub(crate) file_path: Option<PathBuf>,
 
     pub(crate) constants: ThinVec<Constant>,
 
@@ -500,6 +501,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         interner: &'ctx mut Interner,
         in_with: bool,
         spanned_source_text: SpannedSourceText,
+        file_path: Option<PathBuf>,
     ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
@@ -563,6 +565,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             lexical_scope,
             interner,
             spanned_source_text,
+            file_path,
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
@@ -1723,6 +1726,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .arrow(arrow)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
+            .file_path(self.file_path.clone())
             .compile(
                 parameters,
                 body,
@@ -1803,6 +1807,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
+            .file_path(self.file_path.clone())
             .compile(
                 parameters,
                 body,
@@ -1852,6 +1857,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(function.name_scope.cloned())
+            .file_path(self.file_path.clone())
             .compile(
                 parameters,
                 body,
@@ -2034,7 +2040,6 @@ impl<'ctx> ByteCompiler<'ctx> {
         let register_count = self.register_allocator.finish();
 
         let source_map_entries = self.source_map_builder.build(final_bytecode_len);
-        let source_map = SourceMap::new(source_map_entries);
 
         CodeBlock {
             name: self.function_name,
@@ -2050,7 +2055,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),
             source_text_spanned: self.spanned_source_text,
-            source_map,
+            source_map: SourceMap::new(self.file_path, source_map_entries),
         }
     }
 

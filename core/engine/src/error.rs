@@ -6,9 +6,9 @@ use crate::{
     object::JsObject,
     property::PropertyDescriptor,
     realm::Realm,
+    vm::source_map::SourceMap,
     Context, JsString, JsValue,
 };
-use boa_ast::Position;
 use boa_gc::{custom_trace, Finalize, Trace};
 use std::{borrow::Cow, error, fmt};
 use thiserror::Error;
@@ -192,8 +192,8 @@ macro_rules! js_error {
 #[boa_gc(unsafe_no_drop)]
 pub struct JsError {
     inner: Repr,
-    #[unsafe_ignore_trace]
-    position: Option<Position>,
+    pub(crate) source_map: Option<SourceMap>,
+    pub(crate) pc: u32,
 }
 
 /// Internal representation of a [`JsError`].
@@ -284,7 +284,8 @@ impl JsError {
     pub const fn from_native(err: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(err),
-            position: None,
+            source_map: None,
+            pc: 0,
         }
     }
 
@@ -325,7 +326,8 @@ impl JsError {
     pub const fn from_opaque(value: JsValue) -> Self {
         Self {
             inner: Repr::Opaque(value),
-            position: None,
+            source_map: None,
+            pc: 0,
         }
     }
 
@@ -626,17 +628,6 @@ impl JsError {
     pub(crate) fn is_catchable(&self) -> bool {
         self.as_native().is_none_or(JsNativeError::is_catchable)
     }
-
-    /// Get the position of the [`JsError`] in the source code.
-    #[must_use]
-    pub fn position(&self) -> Option<Position> {
-        self.position
-    }
-
-    /// Set the position of the [`JsError`] in the source code.
-    pub fn set_position(&mut self, position: Option<Position>) {
-        self.position = position;
-    }
 }
 
 impl From<boa_parser::Error> for JsError {
@@ -649,7 +640,8 @@ impl From<JsNativeError> for JsError {
     fn from(error: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(error),
-            position: None,
+            source_map: None,
+            pc: 0,
         }
     }
 }
@@ -661,13 +653,28 @@ impl fmt::Display for JsError {
             Repr::Opaque(v) => v.display().fmt(f)?,
         }
 
-        if let Some(position) = self.position {
+        if let Some(source_map) = &self.source_map {
             write!(
                 f,
-                ": <source>:{}:{}",
-                position.line_number(),
-                position.column_number()
+                "\n    at {}",
+                source_map
+                    .file_path()
+                    .map_or(Cow::Borrowed("<unknown>"), |file_path| file_path
+                        .display()
+                        .to_string()
+                        .into()),
             )?;
+
+            if let Some(position) = source_map.find(self.pc) {
+                write!(
+                    f,
+                    ":{}:{}",
+                    position.line_number(),
+                    position.column_number()
+                )?;
+            } else {
+                f.write_str(":?:?")?;
+            }
         }
         Ok(())
     }

@@ -1,4 +1,7 @@
-use std::rc::Rc;
+use std::{
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 use boa_ast::Position;
 
@@ -24,6 +27,7 @@ impl Entry {
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 struct Inner {
     entries: Box<[Entry]>,
+    file_path: Option<PathBuf>,
 }
 
 /// Bytecode to source code mapping.
@@ -35,9 +39,9 @@ pub(crate) struct SourceMap {
 }
 
 impl SourceMap {
-    pub(crate) fn new(entries: Box<[Entry]>) -> Self {
+    pub(crate) fn new(file_path: Option<PathBuf>, entries: Box<[Entry]>) -> Self {
         Self {
-            inner: Rc::new(Inner { entries }),
+            inner: Rc::new(Inner { entries, file_path }),
         }
     }
 
@@ -53,5 +57,9 @@ impl SourceMap {
         }
 
         None
+    }
+
+    pub(crate) fn file_path(&self) -> Option<&Path> {
+        self.inner.file_path.as_deref()
     }
 }

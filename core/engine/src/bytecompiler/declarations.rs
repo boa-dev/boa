@@ -537,6 +537,7 @@ impl ByteCompiler<'_> {
                 .r#async(r#async)
                 .strict(self.strict())
                 .in_with(self.in_with)
+                .file_path(self.file_path.clone())
                 .compile(
                     parameters,
                     body,
