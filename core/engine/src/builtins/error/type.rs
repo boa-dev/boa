@@ -29,7 +29,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
-use super::Error;
+use super::{Error, ErrorData};
 
 /// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -92,7 +92,7 @@ impl BuiltInConstructor for TypeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Type,
+            ErrorData::from_last_frame(Error::Type, context),
         );
 
         // 3. If message is not undefined, then
