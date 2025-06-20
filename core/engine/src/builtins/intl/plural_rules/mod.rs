@@ -37,6 +37,7 @@ pub(crate) struct PluralRules {
     locale: Locale,
     native: PluralRulesWithRanges<NativePluralRules>,
     rule_type: PluralRuleType,
+    notation: NotationKind,
     format_options: DigitFormatOptions,
 }
 
@@ -95,47 +96,30 @@ impl BuiltInConstructor for PluralRules {
                 .with_message("cannot call `Intl.PluralRules` constructor without `new`")
                 .into());
         }
-        let proto = get_prototype_from_constructor(
-            new_target,
-            StandardConstructors::plural_rules,
-            context,
-        )?;
 
         // 2. Let pluralRules be ? OrdinaryCreateFromConstructor(NewTarget, "%PluralRules.prototype%",
         //    « [[InitializedPluralRules]], [[Locale]], [[Type]], [[MinimumIntegerDigits]],
         //    [[MinimumFractionDigits]], [[MaximumFractionDigits]], [[MinimumSignificantDigits]],
         //    [[MaximumSignificantDigits]], [[RoundingType]], [[RoundingIncrement]], [[RoundingMode]],
         //    [[ComputedRoundingPriority]], [[TrailingZeroDisplay]] »).
-        // 3. Return ? InitializePluralRules(pluralRules, locales, options).
-
-        // <https://tc39.es/ecma402/#sec-initializepluralrules>
+        let proto = get_prototype_from_constructor(
+            new_target,
+            StandardConstructors::plural_rules,
+            context,
+        )?;
 
         let locales = args.get_or_undefined(0);
         let options = args.get_or_undefined(1);
 
-        // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
+        // 3. Let optionsResolution be ? ResolveOptions(%Intl.PluralRules%, %Intl.PluralRules%.[[LocaleData]], locales, options, « coerce-options »).
+        // 4. Set options to optionsResolution.[[Options]].
+        // 5. Let r be optionsResolution.[[ResolvedLocale]].
+        // 6. Set pluralRules.[[Locale]] to r.[[Locale]].
+        // Inlined steps since every constructor needs its own handling.
         let requested_locales = canonicalize_locale_list(locales, context)?;
-        // 2. Set options to ? CoerceOptionsToObject(options).
         let options = coerce_options_to_object(options, context)?;
-
-        // 3. Let opt be a new Record.
-        // 4. Let matcher be ? GetOption(options, "localeMatcher", string, « "lookup", "best fit" », "best fit").
-        // 5. Set opt.[[localeMatcher]] to matcher.
         let matcher =
             get_option(&options, js_string!("localeMatcher"), context)?.unwrap_or_default();
-
-        // 6. Let t be ? GetOption(options, "type", string, « "cardinal", "ordinal" », "cardinal").
-        // 7. Set pluralRules.[[Type]] to t.
-        let rule_type =
-            get_option(&options, js_string!("type"), context)?.unwrap_or(PluralRuleType::Cardinal);
-
-        // 8. Perform ? SetNumberFormatDigitOptions(pluralRules, options, +0𝔽, 3𝔽, "standard").
-        let format_options =
-            DigitFormatOptions::from_options(&options, 0, 3, NotationKind::Standard, context)?;
-
-        // 9. Let localeData be %PluralRules%.[[LocaleData]].
-        // 10. Let r be ResolveLocale(%PluralRules%.[[AvailableLocales]], requestedLocales, opt, %PluralRules%.[[RelevantExtensionKeys]], localeData).
-        // 11. Set pluralRules.[[Locale]] to r.[[locale]].
         let locale = resolve_locale::<Self>(
             requested_locales,
             &mut IntlOptions {
@@ -144,6 +128,19 @@ impl BuiltInConstructor for PluralRules {
             },
             context.intl_provider(),
         )?;
+
+        // 7. Let t be ? GetOption(options, "type", string, « "cardinal", "ordinal" », "cardinal").
+        // 8. Set pluralRules.[[Type]] to t.
+        let rule_type =
+            get_option(&options, js_string!("type"), context)?.unwrap_or(PluralRuleType::Cardinal);
+
+        // 9. Let notation be ? GetOption(options, "notation", string, « "standard", "scientific", "engineering", "compact" », "standard").
+        // 10. Set pluralRules.[[Notation]] to notation.
+        let notation = get_option(&options, js_string!("notation"), context)?
+            .unwrap_or(NotationKind::Standard);
+
+        // 11. Perform ? SetNumberFormatDigitOptions(pluralRules, options, 0, 3, notation).
+        let format_options = DigitFormatOptions::from_options(&options, 0, 3, notation, context)?;
 
         let prefs = PluralRulesPreferences::from(&locale);
         let opts = PluralRulesOptions::from(rule_type);
@@ -163,6 +160,7 @@ impl BuiltInConstructor for PluralRules {
                 locale,
                 native,
                 rule_type,
+                notation,
                 format_options,
             },
         )
@@ -333,6 +331,11 @@ impl PluralRules {
                     PluralRuleType::Ordinal => js_string!("ordinal"),
                     _ => js_string!("unknown"),
                 },
+                Attribute::all(),
+            )
+            .property(
+                js_string!("notation"),
+                plural_rules.notation.to_js_string(),
                 Attribute::all(),
             )
             .property(
