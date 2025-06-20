@@ -95,8 +95,8 @@ impl Super {
                 .downcast_ref::<OrdinaryFunction>()
                 .expect("must be function object")
                 .get_home_object()
-                .or(this.as_object())
                 .cloned()
+                .or(this.as_object())
         };
 
         let value = home_object

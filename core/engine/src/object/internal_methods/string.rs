@@ -86,8 +86,6 @@ pub(crate) fn string_exotic_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
-    let obj = obj.borrow();
-
     // 2. Let str be O.[[StringData]].
     // 3. Assert: Type(str) is String.
     let string = obj
@@ -108,6 +106,7 @@ pub(crate) fn string_exotic_own_property_keys(
     // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do
     //      a. Add P as the last element of keys.
     let mut remaining_indices: Vec<_> = obj
+        .borrow()
         .properties
         .index_property_keys()
         .filter(|idx| (*idx as usize) >= len)
@@ -122,7 +121,7 @@ pub(crate) fn string_exotic_own_property_keys(
     // 8. For each own property key P of O such that Type(P) is Symbol, in ascending
     // chronological order of property creation, do
     //      a. Add P as the last element of keys.
-    keys.extend(obj.properties.shape.keys());
+    keys.extend(obj.borrow().properties.shape.keys());
 
     // 9. Return keys.
     Ok(keys)

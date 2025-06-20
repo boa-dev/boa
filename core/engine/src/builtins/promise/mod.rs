@@ -296,7 +296,6 @@ impl PromiseCapability {
         // 7. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
         let resolve = resolve
             .as_object()
-            .cloned()
             .and_then(JsFunction::from_object)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("promiseCapability.[[Resolve]] is not callable")
@@ -305,7 +304,6 @@ impl PromiseCapability {
         // 8. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
         let reject = reject
             .as_object()
-            .cloned()
             .and_then(JsFunction::from_object)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("promiseCapability.[[Reject]] is not callable")
@@ -489,7 +487,7 @@ impl Promise {
         })?;
 
         // 3. Let promiseCapability be ? NewPromiseCapability(C).
-        let promise_capability = PromiseCapability::new(c, context)?;
+        let promise_capability = PromiseCapability::new(&c, context)?;
 
         // 4. Let status be Completion(Call(callbackfn, undefined, args)).
         let status = callback.call(&JsValue::undefined(), callback_args, context);
@@ -543,7 +541,7 @@ impl Promise {
         let PromiseCapability {
             promise,
             functions: ResolvingFunctions { resolve, reject },
-        } = PromiseCapability::new(c, context)?;
+        } = PromiseCapability::new(&c, context)?;
 
         // 3. Let obj be OrdinaryObjectCreate(%Object.prototype%).
         // 4. Perform ! CreateDataPropertyOrThrow(obj, "promise", promiseCapability.[[Promise]]).
@@ -577,10 +575,10 @@ impl Promise {
         })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
-        let promise_capability = PromiseCapability::new(c, context)?;
+        let promise_capability = PromiseCapability::new(&c, context)?;
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
-        let promise_resolve = Self::get_promise_resolve(c, context);
+        let promise_resolve = Self::get_promise_resolve(&c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
         let promise_resolve =
@@ -598,7 +596,7 @@ impl Promise {
         // 7. Let result be Completion(PerformPromiseAll(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_all(
             &mut iterator_record,
-            c,
+            &c,
             &promise_capability,
             &promise_resolve,
             context,
@@ -792,10 +790,10 @@ impl Promise {
         })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
-        let promise_capability = PromiseCapability::new(c, context)?;
+        let promise_capability = PromiseCapability::new(&c, context)?;
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
-        let promise_resolve = Self::get_promise_resolve(c, context);
+        let promise_resolve = Self::get_promise_resolve(&c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
         let promise_resolve =
@@ -813,7 +811,7 @@ impl Promise {
         // 7. Let result be Completion(PerformPromiseAllSettled(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_all_settled(
             &mut iterator_record,
-            c,
+            &c,
             &promise_capability,
             &promise_resolve,
             context,
@@ -1115,10 +1113,10 @@ impl Promise {
         })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
-        let promise_capability = PromiseCapability::new(c, context)?;
+        let promise_capability = PromiseCapability::new(&c, context)?;
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
-        let promise_resolve = Self::get_promise_resolve(c, context);
+        let promise_resolve = Self::get_promise_resolve(&c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
         let promise_resolve =
@@ -1136,7 +1134,7 @@ impl Promise {
         // 7. Let result be Completion(PerformPromiseAny(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_any(
             &mut iterator_record,
-            c,
+            &c,
             &promise_capability,
             &promise_resolve,
             context,
@@ -1347,10 +1345,10 @@ impl Promise {
         })?;
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
-        let promise_capability = PromiseCapability::new(c, context)?;
+        let promise_capability = PromiseCapability::new(&c, context)?;
 
         // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
-        let promise_resolve = Self::get_promise_resolve(c, context);
+        let promise_resolve = Self::get_promise_resolve(&c, context);
 
         // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
         let promise_resolve =
@@ -1366,7 +1364,7 @@ impl Promise {
         // 7. Let result be Completion(PerformPromiseRace(iteratorRecord, C, promiseCapability, promiseResolve)).
         let mut result = Self::perform_promise_race(
             &mut iterator_record,
-            c,
+            &c,
             &promise_capability,
             &promise_resolve,
             context,
@@ -1451,7 +1449,7 @@ impl Promise {
             JsNativeError::typ().with_message("Promise.reject() called on a non-object")
         })?;
 
-        Self::promise_reject(c, &JsError::from_opaque(r), context).map(JsValue::from)
+        Self::promise_reject(&c, &JsError::from_opaque(r), context).map(JsValue::from)
     }
 
     /// Utility function to create a rejected promise.
@@ -1497,7 +1495,7 @@ impl Promise {
         })?;
 
         // 3. Return ? PromiseResolve(C, x).
-        Self::promise_resolve(c, x.clone(), context).map(JsValue::from)
+        Self::promise_resolve(&c, x.clone(), context).map(JsValue::from)
     }
 
     /// `PromiseResolve ( C, x )`
@@ -1522,7 +1520,7 @@ impl Promise {
             // b. If SameValue(xConstructor, C) is true, return x.
             if x_constructor
                 .as_object()
-                .is_some_and(|o| JsObject::equals(o, c))
+                .is_some_and(|o| JsObject::equals(&o, c))
             {
                 return Ok(x.clone());
             }
@@ -1613,11 +1611,7 @@ impl Promise {
 
         let on_finally = args.get_or_undefined(0);
 
-        let Some(on_finally) = on_finally
-            .as_object()
-            .cloned()
-            .and_then(JsFunction::from_object)
-        else {
+        let Some(on_finally) = on_finally.as_object().and_then(JsFunction::from_object) else {
             // 5. If IsCallable(onFinally) is false, then
             //    a. Let thenFinally be onFinally.
             //    b. Let catchFinally be onFinally.
@@ -1772,16 +1766,14 @@ impl Promise {
         let on_fulfilled = args
             .get_or_undefined(0)
             .as_object()
-            .cloned()
             .and_then(JsFunction::from_object);
         let on_rejected = args
             .get_or_undefined(1)
             .as_object()
-            .cloned()
             .and_then(JsFunction::from_object);
 
         // continues in `Promise::inner_then`
-        Self::inner_then(promise, on_fulfilled, on_rejected, context).map(JsValue::from)
+        Self::inner_then(&promise, on_fulfilled, on_rejected, context).map(JsValue::from)
     }
 
     /// Schedules callback functions for the eventual completion of `promise` — either fulfillment
@@ -1946,7 +1938,7 @@ impl Promise {
         let promise_resolve = promise_constructor.get(js_string!("resolve"), context)?;
 
         // 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
-        promise_resolve.as_callable().cloned().ok_or_else(|| {
+        promise_resolve.as_callable().ok_or_else(|| {
             JsNativeError::typ()
                 .with_message("retrieving a non-callable promise resolver")
                 .into()
@@ -2155,10 +2147,8 @@ impl Promise {
                     };
 
                     // 12. If IsCallable(thenAction) is false, then
-                    let Some(then_action) = then_action
-                        .as_object()
-                        .cloned()
-                        .and_then(JsFunction::from_object)
+                    let Some(then_action) =
+                        then_action.as_object().and_then(JsFunction::from_object)
                     else {
                         // a. Perform FulfillPromise(promise, resolution).
                         fulfill_promise(&promise, resolution.clone(), context);

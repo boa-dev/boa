@@ -34,7 +34,7 @@ impl DefineClassStaticSetterByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context);
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -92,7 +92,7 @@ impl DefineClassSetterByName {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context);
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -149,7 +149,7 @@ impl DefineClassStaticSetterByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context);
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")
@@ -206,7 +206,7 @@ impl DefineClassSetterByValue {
             let function_object = function
                 .as_object()
                 .expect("method must be function object");
-            set_function_name(function_object, &key, Some(js_str!("set")), context);
+            set_function_name(&function_object, &key, Some(js_str!("set")), context);
             function_object
                 .downcast_mut::<OrdinaryFunction>()
                 .expect("method must be function object")

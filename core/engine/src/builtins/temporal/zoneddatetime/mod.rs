@@ -455,8 +455,9 @@ impl BuiltInConstructor for ZonedDateTime {
 impl ZonedDateTime {
     /// 6.3.3 get `Temporal.ZonedDateTime.prototype.calendarId`
     fn get_calendar_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -467,8 +468,9 @@ impl ZonedDateTime {
 
     /// 6.3.4 get `Temporal.ZonedDateTime.prototype.timeZoneId`
     fn get_timezone_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -480,8 +482,9 @@ impl ZonedDateTime {
 
     /// 6.3.5 get `Temporal.ZonedDateTime.prototype.era`
     fn get_era(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -495,8 +498,9 @@ impl ZonedDateTime {
 
     /// 6.3.6 get `Temporal.ZonedDateTime.prototype.eraYear`
     fn get_era_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -510,8 +514,9 @@ impl ZonedDateTime {
 
     /// 6.3.7 get `Temporal.ZonedDateTime.prototype.year`
     fn get_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -522,8 +527,9 @@ impl ZonedDateTime {
 
     /// 6.3.8 get `Temporal.ZonedDateTime.prototype.month`
     fn get_month(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -534,8 +540,9 @@ impl ZonedDateTime {
 
     /// 6.3.9 get `Temporal.ZonedDateTime.prototype.monthCode`
     fn get_month_code(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -551,8 +558,9 @@ impl ZonedDateTime {
 
     /// 6.3.10 get `Temporal.ZonedDateTime.prototype.day`
     fn get_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -563,8 +571,9 @@ impl ZonedDateTime {
 
     /// 6.3.11 get `Temporal.ZonedDateTime.prototype.hour`
     fn get_hour(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -575,8 +584,9 @@ impl ZonedDateTime {
 
     /// 6.3.12 get `Temporal.ZonedDateTime.prototype.minute`
     fn get_minute(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -590,8 +600,9 @@ impl ZonedDateTime {
 
     /// 6.3.13 get `Temporal.ZonedDateTime.prototype.second`
     fn get_second(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -605,8 +616,9 @@ impl ZonedDateTime {
 
     /// 6.3.14 get `Temporal.ZonedDateTime.prototype.millisecond`
     fn get_millisecond(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -620,8 +632,9 @@ impl ZonedDateTime {
 
     /// 6.3.15 get `Temporal.ZonedDateTime.prototype.microsecond`
     fn get_microsecond(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -635,8 +648,9 @@ impl ZonedDateTime {
 
     /// 6.3.16 get `Temporal.ZonedDateTime.prototype.nanosecond`
     fn get_nanosecond(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -650,8 +664,9 @@ impl ZonedDateTime {
 
     /// 6.3.17 get `Temporal.ZonedDateTime.prototype.epochMilliseconds`
     fn get_epoch_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -662,8 +677,9 @@ impl ZonedDateTime {
 
     /// 6.3.18 get `Temporal.ZonedDateTime.prototype.epochNanosecond`
     fn get_epoch_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -674,8 +690,9 @@ impl ZonedDateTime {
 
     /// 6.3.19 get `Temporal.ZonedDateTime.prototype.dayOfWeek`
     fn get_day_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -689,8 +706,9 @@ impl ZonedDateTime {
 
     /// 6.3.20 get `Temporal.ZonedDateTime.prototype.dayOfYear`
     fn get_day_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -704,8 +722,9 @@ impl ZonedDateTime {
 
     /// 6.3.21 get `Temporal.ZonedDateTime.prototype.weekOfYear`
     fn get_week_of_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -719,8 +738,9 @@ impl ZonedDateTime {
 
     /// 6.3.22 get `Temporal.ZonedDateTime.prototype.yearOfWeek`
     fn get_year_of_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -734,8 +754,9 @@ impl ZonedDateTime {
 
     /// 6.3.23 get `Temporal.ZonedDateTime.prototype.hoursInDay`
     fn get_hours_in_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -749,8 +770,9 @@ impl ZonedDateTime {
 
     /// 6.3.24 get `Temporal.ZonedDateTime.prototype.daysInWeek`
     fn get_days_in_week(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -768,8 +790,9 @@ impl ZonedDateTime {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -783,8 +806,9 @@ impl ZonedDateTime {
 
     /// 6.3.26 get `Temporal.ZonedDateTime.prototype.daysInYear`
     fn get_days_in_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -802,8 +826,9 @@ impl ZonedDateTime {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -817,8 +842,9 @@ impl ZonedDateTime {
 
     /// 6.3.28 get `Temporal.ZonedDateTime.prototype.inLeapYear`
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -836,8 +862,9 @@ impl ZonedDateTime {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -851,8 +878,9 @@ impl ZonedDateTime {
 
     /// 6.3.30 get Temporal.ZonedDateTime.prototype.offset
     fn get_offset(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -886,8 +914,9 @@ impl ZonedDateTime {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let zonedDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -899,7 +928,7 @@ impl ZonedDateTime {
                 .into());
         };
 
-        let partial = to_partial_zoneddatetime(obj, context)?;
+        let partial = to_partial_zoneddatetime(&obj, context)?;
 
         // 19. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
@@ -929,8 +958,9 @@ impl ZonedDateTime {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -949,8 +979,9 @@ impl ZonedDateTime {
 
     /// 6.3.33 `Temporal.ZonedDateTime.prototype.withTimeZone ( timeZoneLike )`
     fn with_timezone(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -964,8 +995,9 @@ impl ZonedDateTime {
 
     /// 6.3.34 `Temporal.ZonedDateTime.prototype.withCalendar ( calendarLike )`
     fn with_calendar(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -979,8 +1011,9 @@ impl ZonedDateTime {
 
     /// 6.3.35 `Temporal.ZonedDateTime.prototype.add ( temporalDurationLike [ , options ] )`
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -999,8 +1032,9 @@ impl ZonedDateTime {
 
     /// 6.3.36 `Temporal.ZonedDateTime.prototype.subtract ( temporalDurationLike [ , options ] )`
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1018,8 +1052,9 @@ impl ZonedDateTime {
     }
 
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1037,8 +1072,9 @@ impl ZonedDateTime {
     }
 
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1059,8 +1095,9 @@ impl ZonedDateTime {
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let zonedDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1125,8 +1162,9 @@ impl ZonedDateTime {
 
     /// 6.3.40 `Temporal.ZonedDateTime.prototype.equals ( other )`
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1137,8 +1175,9 @@ impl ZonedDateTime {
     }
 
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1179,8 +1218,9 @@ impl ZonedDateTime {
     /// 6.3.42 `Temporal.ZonedDateTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
     fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1199,8 +1239,9 @@ impl ZonedDateTime {
 
     /// 6.3.43 `Temporal.ZonedDateTime.prototype.toJSON ( )`
     fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1226,8 +1267,9 @@ impl ZonedDateTime {
 
     /// 6.3.45 `Temporal.ZonedDateTime.prototype.startOfDay ( )`
     fn start_of_day(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1248,8 +1290,9 @@ impl ZonedDateTime {
         // 1. Let zonedDateTime be the this value.
         // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
         // 3. Let timeZone be zonedDateTime.[[TimeZone]].
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1301,8 +1344,9 @@ impl ZonedDateTime {
 
     /// 6.3.47 `Temporal.ZonedDateTime.prototype.toInstant ( )`
     fn to_instant(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1313,8 +1357,9 @@ impl ZonedDateTime {
 
     /// 6.3.48 `Temporal.ZonedDateTime.prototype.toPlainDate ( )`
     fn to_plain_date(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1328,8 +1373,9 @@ impl ZonedDateTime {
 
     /// 6.3.49 `Temporal.ZonedDateTime.prototype.toPlainTime ( )`
     fn to_plain_time(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1347,8 +1393,9 @@ impl ZonedDateTime {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let zdt = this
-            .as_object()
+        let object = this.as_object();
+        let zdt = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
@@ -1428,7 +1475,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                 // vi. Return ! CreateTemporalZonedDateTime(item.[[EpochNanoseconds]], item.[[TimeZone]], item.[[Calendar]]).
                 return Ok(zdt.inner.clone());
             }
-            let partial = to_partial_zoneddatetime(object, context)?;
+            let partial = to_partial_zoneddatetime(&object, context)?;
             // f. If offsetString is unset, the
             // i. Set offsetBehaviour to wall.
             // g. Let resolvedOptions be ? GetOptionsObject(options).

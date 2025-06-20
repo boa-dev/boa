@@ -173,7 +173,6 @@ fn main() -> Result<(), JsError> {
     let result = context.eval(Source::from_bytes("enumerate()"))?;
     let object = result
         .as_object()
-        .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
     let array = JsArray::from_object(object)?;
 
@@ -184,7 +183,6 @@ fn main() -> Result<(), JsError> {
     let result = context.eval(Source::from_bytes("enumerate()"))?;
     let object = result
         .as_object()
-        .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
     let array = JsArray::from_object(object)?;
 

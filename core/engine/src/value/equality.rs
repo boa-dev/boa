@@ -202,7 +202,7 @@ impl JsValue {
             }
             (JsVariant::String(x), JsVariant::String(y)) => x == y,
             (JsVariant::Boolean(x), JsVariant::Boolean(y)) => x == y,
-            (JsVariant::Object(x), JsVariant::Object(y)) => JsObject::equals(x, y),
+            (JsVariant::Object(x), JsVariant::Object(y)) => JsObject::equals(&x, &y),
             (JsVariant::Symbol(x), JsVariant::Symbol(y)) => x == y,
             _ => false,
         }

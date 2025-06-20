@@ -384,7 +384,7 @@ impl SetFunctionName {
         };
 
         set_function_name(
-            function.as_object().expect("function is not an object"),
+            &function.as_object().expect("function is not an object"),
             &name,
             prefix,
             context,

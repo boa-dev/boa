@@ -58,12 +58,14 @@ impl Function {
         // `&mut self`
         let downcast = if receiver.mutability.is_some() {
             quote! {
-                let self_ = &mut *this.as_downcast_mut::< #class_ty >()
+                let object = this.as_object();
+                let self_ = &mut *object.as_ref().and_then(|o| o.downcast_mut::< #class_ty >())
                     .ok_or( boa_engine::js_error!( #err ))?;
             }
         } else {
             quote! {
-                let self_ = &*this.as_downcast_ref::< #class_ty >()
+                let object = this.as_object();
+                let self_ = &*object.as_ref().and_then(|o| o.downcast_ref::< #class_ty >())
                     .ok_or( boa_engine::js_error!( #err ))?;
             }
         };
