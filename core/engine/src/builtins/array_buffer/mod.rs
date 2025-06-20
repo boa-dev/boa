@@ -177,6 +177,7 @@ impl BufferObject {
 
     /// Returns `true` if the buffer objects point to the same buffer.
     #[inline]
+    #[track_caller]
     pub(crate) fn equals(lhs: &Self, rhs: &Self) -> bool {
         match (lhs, rhs) {
             (BufferObject::Buffer(lhs), BufferObject::Buffer(rhs)) => JsObject::equals(lhs, rhs),
