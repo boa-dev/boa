@@ -2,6 +2,7 @@ use crate::BOA_GC;
 
 mod allocation;
 mod cell;
+mod erased;
 mod weak;
 mod weak_map;
 
