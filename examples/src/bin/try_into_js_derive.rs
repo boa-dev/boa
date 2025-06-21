@@ -5,7 +5,7 @@ use boa_engine::{
 };
 
 #[derive(TryFromJs, TryIntoJs, Debug, PartialEq, Eq)]
-#[boa(rename = "camelCase")]
+#[boa(rename_all = "camelCase")]
 struct InnerTest {
     hello_world_how_are_you: u8,
 }

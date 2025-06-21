@@ -57,7 +57,7 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 ///
 /// To change this behaviour, you can use the following attributes on the function
 /// declarations:
-/// 1. `#[boa(name = "...")]` renames the function in JavaScript with the string.
+/// 1. `#[boa(rename = "...")]` renames the function in JavaScript with the string.
 /// 2. `#[boa(getter)]` will declare a getter accessor.
 /// 2. `#[boa(setter)]` will declare a setter accessor.
 /// 3. `#[boa(static)]` will declare a static method.
@@ -69,8 +69,8 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 /// Multiple of those attributes can be added to a single method.
 ///
 /// The top level `boa_class` supports the following:
-/// 1. `#[boa_class(name = "...")]` sets the name of the class in JavaScript.
-/// 2. `#[boa(rename = "camelCase")]` will change the naming scheme of verbatim
+/// 1. `#[boa_class(rename = "...")]` sets the name of the class in JavaScript.
+/// 2. `#[boa(rename_all = "camelCase")]` will change the naming scheme of verbatim
 ///    to using "camelCase" or "none".
 ///
 /// # Warning
@@ -451,7 +451,7 @@ pub fn derive_try_from_js(input: TokenStream) -> TokenStream {
         panic!("you can only derive TryFromJs for named-field structs")
     };
 
-    let renaming = match RenameScheme::from_named_attrs(&mut input.attrs.clone(), "rename") {
+    let renaming = match RenameScheme::from_named_attrs(&mut input.attrs.clone(), "rename_all") {
         Ok(renaming) => renaming.unwrap_or(RenameScheme::None),
         Err((span, msg)) => return syn::Error::new(span, msg).to_compile_error().into(),
     };
@@ -581,7 +581,7 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
         panic!("you can only derive TryFromJs for named-field structs")
     };
 
-    let renaming = match RenameScheme::from_named_attrs(&mut input.attrs.clone(), "rename") {
+    let renaming = match RenameScheme::from_named_attrs(&mut input.attrs.clone(), "rename_all") {
         Ok(renaming) => renaming.unwrap_or(RenameScheme::None),
         Err((span, msg)) => return syn::Error::new(span, msg).to_compile_error().into(),
     };

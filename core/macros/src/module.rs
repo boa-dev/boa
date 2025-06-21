@@ -97,9 +97,9 @@ pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream 
 }
 
 fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<TokenStream2> {
-    let renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename")?
+    let renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_all")?
         .unwrap_or(RenameScheme::CamelCase);
-    let class_renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_class")?
+    let class_renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_all_class")?
         .unwrap_or(RenameScheme::PascalCase);
 
     // Iterate through all top-level content. If the module is empty, still

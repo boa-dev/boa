@@ -30,7 +30,7 @@ pub(crate) fn take_path_attr(attrs: &mut Vec<Attribute>, name: &str) -> bool {
     }
 }
 
-/// Look (and remove from AST) for a `#[boa(name = ...)]` attribute, where `...`
+/// Look (and remove from AST) for a `#[boa(rename = ...)]` attribute, where `...`
 /// is a literal. The validation of the literal's type should be done separately.
 pub(crate) fn take_name_value_attr(attrs: &mut Vec<Attribute>, name: &str) -> Option<Lit> {
     if let Some((i, lit)) = attrs
