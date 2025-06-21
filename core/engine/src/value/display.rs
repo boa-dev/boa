@@ -1,14 +1,14 @@
 use super::{fmt, Display, HashSet, JsValue, JsVariant};
 use crate::{
     builtins::{
-        error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
+        error::ErrorData, map::ordered_map::OrderedMap, promise::PromiseState,
         set::ordered_set::OrderedSet, Array, Promise,
     },
     js_string,
     property::PropertyDescriptor,
     JsError, JsString,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Write};
 
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
@@ -191,7 +191,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Set({size})")
                 }
-            } else if v_bor.is::<Error>() {
+            } else if v_bor.is::<ErrorData>() {
                 drop(v_bor);
                 let name: Cow<'static, str> = v
                     .get_property(&js_string!("name").into())
@@ -219,13 +219,29 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         )
                     })
                     .unwrap_or_default();
-                if name.is_empty() {
+                let mut result = if name.is_empty() {
                     message
                 } else if message.is_empty() {
                     name.to_string()
                 } else {
                     format!("{name}: {message}")
+                };
+                let data = v
+                    .downcast_ref::<ErrorData>()
+                    .expect("already checked object type");
+                if let Some((path, position)) = &data.position {
+                    let path = path.as_deref().map_or(Cow::Borrowed("<unknown>"), |error| {
+                        error.display().to_string().into()
+                    });
+                    write!(
+                        &mut result,
+                        " {path}:{}:{}",
+                        position.line_number(),
+                        position.column_number()
+                    )
+                    .expect("should not fail");
                 }
+                result
             } else if let Some(promise) = v_bor.downcast_ref::<Promise>() {
                 format!(
                     "Promise {{ {} }}",

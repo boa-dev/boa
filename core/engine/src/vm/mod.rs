@@ -47,6 +47,7 @@ mod inline_cache;
 mod runtime_limits;
 
 pub(crate) mod opcode;
+pub(crate) mod source_map;
 
 #[cfg(feature = "flowgraph")]
 pub mod flowgraph;
@@ -668,10 +669,13 @@ impl Context {
         self.execute_instruction(f, opcode)
     }
 
-    fn handle_error(&mut self, err: JsError) -> ControlFlow<CompletionRecord> {
+    fn handle_error(&mut self, mut err: JsError) -> ControlFlow<CompletionRecord> {
         // If we hit the execution step limit, bubble up the error to the
         // (Rust) caller instead of trying to handle as an exception.
         if !err.is_catchable() {
+            err.source_map = Some(self.vm.frame.code_block().source_map.clone());
+            err.pc = self.vm.frame.pc;
+
             let mut frame = None;
             let mut env_fp = self.vm.environments.len();
             loop {
@@ -704,7 +708,7 @@ impl Context {
         let err = err.inject_realm(self.realm().clone());
 
         self.vm.pending_exception = Some(err);
-        self.handle_thow()
+        self.handle_throw()
     }
 
     fn handle_return(&mut self) -> ControlFlow<CompletionRecord> {
@@ -732,7 +736,12 @@ impl Context {
         ControlFlow::Continue(())
     }
 
-    fn handle_thow(&mut self) -> ControlFlow<CompletionRecord> {
+    fn handle_throw(&mut self) -> ControlFlow<CompletionRecord> {
+        if let Some(err) = &mut self.vm.pending_exception {
+            err.source_map = Some(self.vm.frame.code_block().source_map.clone());
+            err.pc = self.vm.frame.pc;
+        }
+
         let mut env_fp = self.vm.frame().env_fp;
         if self.vm.frame().exit_early() {
             self.vm.environments.truncate(env_fp as usize);

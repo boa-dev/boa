@@ -105,6 +105,7 @@ impl ByteCompiler<'_> {
             self.interner,
             self.in_with,
             spanned_source_text,
+            self.file_path.clone(),
         );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
@@ -412,6 +413,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.file_path.clone(),
                     );
 
                     // Function environment
@@ -462,6 +464,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.file_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -513,6 +516,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.file_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -556,6 +560,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.file_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -598,6 +603,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.file_path.clone(),
                     );
                     compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = compiler.push_scope(block.scopes().function_scope());

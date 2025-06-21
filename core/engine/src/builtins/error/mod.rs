@@ -10,6 +10,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-error-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
+use std::path::{Path, PathBuf};
+
 use crate::{
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -21,6 +23,7 @@ use crate::{
     string::StaticJsStrings,
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
+use boa_ast::Position;
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 use boa_profiler::Profiler;
@@ -127,6 +130,38 @@ pub enum Error {
     Uri,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
+pub(crate) struct ErrorData {
+    pub(crate) error: Error,
+    #[unsafe_ignore_trace]
+    pub(crate) position: Option<(Option<PathBuf>, Position)>,
+}
+
+impl ErrorData {
+    pub(crate) fn from_last_frame(error: Error, context: &Context) -> Self {
+        let pc = context.vm.frame.pc;
+        let position = context
+            .vm
+            .frame
+            .code_block()
+            .source_map
+            .find(pc)
+            .map(|position| {
+                (
+                    context
+                        .vm
+                        .frame
+                        .code_block()
+                        .source_map
+                        .file_path()
+                        .map(Path::to_path_buf),
+                    position,
+                )
+            });
+        Self { error, position }
+    }
+}
+
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
         let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
@@ -184,7 +219,7 @@ impl BuiltInConstructor for Error {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Error,
+            ErrorData::from_last_frame(Error::Error, context),
         );
 
         // 3. If message is not undefined, then
@@ -299,7 +334,7 @@ impl Error {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .is_some_and(|o| o.is::<Self>())
+            .is_some_and(|o| o.is::<ErrorData>())
             .into())
     }
 }

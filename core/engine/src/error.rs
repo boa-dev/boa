@@ -6,6 +6,7 @@ use crate::{
     object::JsObject,
     property::PropertyDescriptor,
     realm::Realm,
+    vm::source_map::SourceMap,
     Context, JsString, JsValue,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
@@ -191,6 +192,8 @@ macro_rules! js_error {
 #[boa_gc(unsafe_no_drop)]
 pub struct JsError {
     inner: Repr,
+    pub(crate) source_map: Option<SourceMap>,
+    pub(crate) pc: u32,
 }
 
 /// Internal representation of a [`JsError`].
@@ -281,6 +284,8 @@ impl JsError {
     pub const fn from_native(err: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(err),
+            source_map: None,
+            pc: 0,
         }
     }
 
@@ -321,6 +326,8 @@ impl JsError {
     pub const fn from_opaque(value: JsValue) -> Self {
         Self {
             inner: Repr::Opaque(value),
+            source_map: None,
+            pc: 0,
         }
     }
 
@@ -633,6 +640,8 @@ impl From<JsNativeError> for JsError {
     fn from(error: JsNativeError) -> Self {
         Self {
             inner: Repr::Native(error),
+            source_map: None,
+            pc: 0,
         }
     }
 }
@@ -640,9 +649,35 @@ impl From<JsNativeError> for JsError {
 impl fmt::Display for JsError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner {
-            Repr::Native(e) => e.fmt(f),
-            Repr::Opaque(v) => v.display().fmt(f),
+            Repr::Native(e) => e.fmt(f)?,
+            Repr::Opaque(v) => v.display().fmt(f)?,
         }
+
+        if let Some(source_map) = &self.source_map {
+            write!(
+                f,
+                "\n    at {} {}",
+                source_map.function_name().to_std_string_escaped(),
+                source_map
+                    .file_path()
+                    .map_or(Cow::Borrowed("<unknown>"), |file_path| file_path
+                        .display()
+                        .to_string()
+                        .into()),
+            )?;
+
+            if let Some(position) = source_map.find(self.pc) {
+                write!(
+                    f,
+                    ":{}:{}",
+                    position.line_number(),
+                    position.column_number()
+                )?;
+            } else {
+                f.write_str(":?:?")?;
+            }
+        }
+        Ok(())
     }
 }
 

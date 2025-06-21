@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
@@ -26,6 +28,7 @@ pub(crate) struct FunctionCompiler {
     force_function_scope: bool,
     name_scope: Option<Scope>,
     spanned_source_text: SpannedSourceText,
+    file_path: Option<PathBuf>,
 }
 
 impl FunctionCompiler {
@@ -42,6 +45,7 @@ impl FunctionCompiler {
             force_function_scope: false,
             name_scope: None,
             spanned_source_text,
+            file_path: None,
         }
     }
 
@@ -103,6 +107,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Set source map file path.
+    pub(crate) fn file_path(mut self, file_path: Option<PathBuf>) -> Self {
+        self.file_path = file_path;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
@@ -130,6 +140,7 @@ impl FunctionCompiler {
             interner,
             self.in_with,
             self.spanned_source_text,
+            self.file_path,
         );
 
         compiler.length = length;
