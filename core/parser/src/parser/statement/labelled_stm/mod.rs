@@ -11,7 +11,6 @@ use crate::{
 };
 use boa_ast::{self as ast, Keyword, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Labelled Statement Parsing
 ///
@@ -50,8 +49,6 @@ where
     type Output = ast::statement::Labelled;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Label", "Parsing");
-
         let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
             .parse(cursor, interner)?
             .sym();

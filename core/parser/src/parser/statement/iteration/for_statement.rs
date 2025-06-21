@@ -34,7 +34,6 @@ use boa_ast::{
     Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 
 /// For statement parsing
@@ -79,7 +78,6 @@ where
     type Output = ast::Statement;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ForStatement", "Parsing");
         cursor.expect((Keyword::For, false), "for statement", interner)?;
 
         let mut r#await = false;

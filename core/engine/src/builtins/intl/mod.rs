@@ -26,7 +26,6 @@ use crate::{
 };
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_provider::{DataMarker, DataMarkerAttributes};
 use static_assertions::const_assert;
 
@@ -76,8 +75,6 @@ impl Intl {
 
 impl IntrinsicObject for Intl {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),

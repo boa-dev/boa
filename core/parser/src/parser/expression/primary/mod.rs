@@ -57,7 +57,6 @@ use boa_ast::{
     Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 pub(in crate::parser) use object_initializer::Initializer;
 
@@ -96,8 +95,6 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("PrimaryExpression", "Parsing");
-
         // TODO: tok currently consumes the token instead of peeking, so the token
         // isn't passed and consumed by parsers according to spec (EX: GeneratorExpression)
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -324,12 +321,6 @@ where
             SpreadArray(ArrayPattern),
             SpreadBinding(Identifier),
         }
-
-        let _timer = Profiler::global().start_event(
-            "CoverParenthesizedExpressionAndArrowParameterList",
-            "Parsing",
-        );
-
         let span_start = cursor
             .expect(
                 Punctuator::OpenParen,

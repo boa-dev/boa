@@ -32,7 +32,6 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_engine::value::IntegerOrInfinity;
-use boa_profiler::Profiler;
 use num_traits::Zero;
 pub(crate) use set_iterator::SetIterator;
 
@@ -140,8 +139,6 @@ impl IntrinsicObject for Set {
         Self::STANDARD_CONSTRUCTOR(intrinsics.constructors()).constructor()
     }
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name(js_string!("get [Symbol.species]"))
             .build();

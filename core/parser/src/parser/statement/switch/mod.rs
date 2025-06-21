@@ -13,7 +13,6 @@ use crate::{
 use ast::operations::{lexically_declared_names_legacy, var_declared_names};
 use boa_ast::{self as ast, statement, statement::Switch, Keyword, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
 /// The possible `TokenKind` which indicate the end of a case statement.
@@ -61,7 +60,6 @@ where
     type Output = Switch;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect((Keyword::Switch, false), "switch statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "switch statement", interner)?;
 

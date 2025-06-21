@@ -22,7 +22,6 @@ use crate::{
     string::StaticJsStrings,
     Context, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -32,8 +31,6 @@ pub(crate) struct Boolean;
 
 impl IntrinsicObject for Boolean {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(Self::to_string, js_string!("toString"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)

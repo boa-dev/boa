@@ -33,7 +33,6 @@ use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -87,8 +86,6 @@ impl JsData for Proxy {
 
 impl IntrinsicObject for Proxy {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::revocable, js_string!("revocable"), 2)
             .build_without_prototype();

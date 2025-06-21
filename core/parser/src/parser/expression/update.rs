@@ -25,7 +25,6 @@ use boa_ast::{
     Expression, Position, Punctuator, Span,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses an update expression.
 ///
@@ -86,8 +85,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("UpdateExpression", "Parsing");
-
         let tok = cursor.peek(0, interner).or_abrupt()?;
         let position = tok.span().start();
         match tok.kind() {

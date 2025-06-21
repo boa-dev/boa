@@ -1,7 +1,6 @@
 mod options;
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use fixed_decimal::{Decimal, SignedRoundingMode, UnsignedRoundingMode};
 use icu_locale::Locale;
 use icu_plurals::{
@@ -49,8 +48,6 @@ impl Service for PluralRules {
 
 impl IntrinsicObject for PluralRules {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(
                 Self::supported_locales_of,

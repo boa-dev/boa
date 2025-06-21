@@ -34,7 +34,6 @@ use boa_ast::{
     Expression, Keyword, Punctuator, Span,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 pub(super) use exponentiation::ExponentiationExpression;
 
@@ -86,7 +85,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Expression> {
-        let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
         match cursor.peek(0, interner).or_abrupt()?.kind() {

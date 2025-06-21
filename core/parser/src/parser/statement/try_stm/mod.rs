@@ -17,7 +17,6 @@ use boa_ast::{
     Keyword,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Try...catch statement parsing
 ///
@@ -57,7 +56,6 @@ where
     type Output = Try;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("TryStatement", "Parsing");
         // TRY
         cursor.expect((Keyword::Try, false), "try statement", interner)?;
 

@@ -4,7 +4,6 @@ use crate::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use num_bigint::BigInt;
 use num_traits::{ToPrimitive, Zero};
 use std::str;
@@ -191,8 +190,6 @@ impl<R> Tokenizer<R> for NumberLiteral {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("NumberLiteral", "Lexing");
-
         let mut buf = vec![self.init];
 
         // Default assume the number is a base 10 integer.

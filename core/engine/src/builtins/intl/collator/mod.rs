@@ -1,5 +1,4 @@
 use boa_gc::{custom_trace, Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_collator::{
     options::{AlternateHandling, MaxVariable},
     preferences::{CollationCaseFirst, CollationNumericOrdering, CollationType},
@@ -157,8 +156,6 @@ impl Service for Collator {
 
 impl IntrinsicObject for Collator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let compare = BuiltInBuilder::callable(realm, Self::compare)
             .name(js_string!("get compare"))
             .build();

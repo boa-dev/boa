@@ -17,7 +17,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
@@ -50,8 +49,6 @@ impl BuiltInObject for PlainYearMonth {
 
 impl IntrinsicObject for PlainYearMonth {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name(js_string!("get calendarId"))
             .build();

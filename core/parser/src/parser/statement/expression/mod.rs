@@ -8,7 +8,6 @@ use crate::{
 };
 use boa_ast::{Keyword, Punctuator, Statement};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Expression statement parsing.
 ///
@@ -43,8 +42,6 @@ where
     type Output = Statement;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ExpressionStatement", "Parsing");
-
         let next_token = cursor.peek(0, interner).or_abrupt()?;
         match next_token.kind() {
             TokenKind::Keyword((Keyword::Function | Keyword::Class, true)) => {

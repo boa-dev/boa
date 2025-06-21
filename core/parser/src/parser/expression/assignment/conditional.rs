@@ -17,7 +17,6 @@ use crate::{
 };
 use boa_ast::{expression::operator::Conditional, Expression, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Conditional expression parsing.
 ///
@@ -61,7 +60,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ConditionalExpression", "Parsing");
         let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 

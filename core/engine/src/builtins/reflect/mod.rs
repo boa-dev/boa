@@ -24,7 +24,6 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;
@@ -35,8 +34,6 @@ pub(crate) struct Reflect;
 
 impl IntrinsicObject for Reflect {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_string_tag = JsSymbol::to_string_tag();
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)

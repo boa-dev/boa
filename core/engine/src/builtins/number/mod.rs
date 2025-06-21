@@ -25,7 +25,6 @@ use crate::{
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult, JsString,
 };
-use boa_profiler::Profiler;
 use cow_utils::CowUtils;
 use num_traits::float::FloatCore;
 
@@ -49,8 +48,6 @@ pub(crate) struct Number;
 
 impl IntrinsicObject for Number {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)

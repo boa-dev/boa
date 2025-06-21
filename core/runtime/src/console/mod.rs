@@ -314,7 +314,6 @@ impl Console {
                 })
             }
         }
-        // let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let state = Rc::new(RefCell::new(Self::default()));
         let logger = Rc::new(logger);

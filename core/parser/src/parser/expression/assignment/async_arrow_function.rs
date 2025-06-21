@@ -30,7 +30,6 @@ use boa_ast::{
     Punctuator, Span, StatementList,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Async arrow function parsing.
 ///
@@ -67,8 +66,6 @@ where
     type Output = ast::function::AsyncArrowFunction;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("AsyncArrowFunction", "Parsing");
-
         let async_token =
             cursor.expect((Keyword::Async, false), "async arrow function", interner)?;
         let start_linear_span = async_token.linear_span();

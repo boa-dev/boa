@@ -353,7 +353,6 @@ dependencies = [
  "boa_interner",
  "boa_macros",
  "boa_parser",
- "boa_profiler",
  "boa_string",
  "bytemuck",
  "cfg-if",
@@ -436,7 +435,6 @@ name = "boa_gc"
 version = "0.20.0"
 dependencies = [
  "boa_macros",
- "boa_profiler",
  "boa_string",
  "hashbrown 0.15.4",
  "icu_locale_core",
@@ -520,7 +518,6 @@ dependencies = [
  "boa_ast",
  "boa_interner",
  "boa_macros",
- "boa_profiler",
  "fast-float2",
  "icu_properties",
  "indoc",

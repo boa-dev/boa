@@ -15,7 +15,6 @@ use crate::{
 };
 use boa_ast::{expression::Yield, Expression, Keyword, Punctuator, Span};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// `YieldExpression` parsing.
 ///
@@ -52,8 +51,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("YieldExpression", "Parsing");
-
         let yield_span = cursor
             .expect(
                 TokenKind::Keyword((Keyword::Yield, false)),
