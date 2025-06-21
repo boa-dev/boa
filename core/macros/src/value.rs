@@ -126,17 +126,20 @@ impl Object {
                 let value = value.output(context)?;
 
                 Ok(quote! {
-                    o.set( #key, #value, false, #c_ident )
-                     .expect("Cannot set property");
+                    let boa_value = {
+                        let #c_ident = obj.context();
+                        #value
+                    };
+                    let mut obj = obj.property( #key, boa_value, boa_engine::property::Attribute::all() );
                 })
             })
             .collect::<syn::Result<_>>()?;
 
         Ok(quote! {
             {
-                let o = ::boa_engine::JsObject::with_null_proto();
+                let mut obj = ::boa_engine::object::ObjectInitializer::new( #c_ident );
                 #(#fields)*
-                o
+                obj.build()
             }
         })
     }
