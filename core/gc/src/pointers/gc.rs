@@ -1,9 +1,10 @@
 use crate::{
-    Allocator, Ephemeron, GcErasedPointer, Tracer, WeakGc, finalizer_safe,
-    internals::{EphemeronBox, GcBox},
+    Allocator, Ephemeron, GcErasedPointer, Tracer, WeakGc, custom_trace, finalizer_safe,
+    internals::{EphemeronBox, GcBox, VTable},
     trace::{Finalize, Trace},
 };
 use std::{
+    any::TypeId,
     cmp::Ordering,
     fmt::{self, Debug, Display},
     hash::{Hash, Hasher},
@@ -12,8 +13,6 @@ use std::{
     ptr::NonNull,
     rc::Rc,
 };
-
-use super::addr_eq;
 
 /// Zero sized struct that is used to ensure that we do not call trace methods,
 /// call its finalization method or drop it.
@@ -45,6 +44,92 @@ unsafe impl Trace for NonTraceable {
 impl Drop for NonTraceable {
     fn drop(&mut self) {
         unreachable!()
+    }
+}
+
+/// A type erased [`Gc<T>`] pointer type.
+#[repr(transparent)]
+pub struct GcErased {
+    inner: Gc<NonTraceable>,
+}
+
+impl GcErased {
+    /// Convert a [`Gc<T>`] into a type erased [`GcErased`].
+    #[inline]
+    #[must_use]
+    pub fn new<T: Trace>(gc: Gc<T>) -> Self {
+        let inner_ptr = gc.inner_ptr;
+        std::mem::forget(gc);
+
+        Self {
+            inner: Gc {
+                inner_ptr: inner_ptr.cast(),
+                marker: PhantomData,
+            },
+        }
+    }
+
+    /// Returns the [`TypeId`] of the inner type.
+    #[inline]
+    #[must_use]
+    pub fn type_id(&self) -> TypeId {
+        Gc::type_id(&self.inner)
+    }
+
+    /// Returns true if the inner type is the same as `T`.
+    #[inline]
+    #[must_use]
+    pub fn is<T: Trace + 'static>(&self) -> bool {
+        Gc::is::<T>(&self.inner)
+    }
+
+    /// Returns [`Some`] reference to the inner value if it is of type `T`, or [`None`] if it isn’t.
+    #[inline]
+    #[must_use]
+    pub fn downcast<T: Trace + 'static>(&self) -> Option<&Gc<T>> {
+        Gc::downcast::<T>(&self.inner)
+    }
+
+    /// Returns reference to the inner value of type `T`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the cast is valid.
+    #[inline]
+    #[must_use]
+    pub unsafe fn downcast_unchecked<T: Trace + 'static>(&self) -> &Gc<T> {
+        // SEFETY: It's the callers responisbility to make sure this is valid.
+        unsafe { Gc::cast_unchecked::<T>(&self.inner) }
+    }
+}
+
+impl Debug for GcErased {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GcErased")
+            .field("inner", &self.inner.inner_ptr)
+            .finish()
+    }
+}
+
+impl Finalize for GcErased {
+    fn finalize(&self) {}
+}
+
+// SAFETY: We only have one transparent field in GcErased that needs trace,
+//         so this is safe.
+unsafe impl Trace for GcErased {
+    custom_trace!(this, mark, {
+        mark(&this.inner);
+    });
+}
+
+impl Clone for GcErased {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
     }
 }
 
@@ -114,8 +199,8 @@ impl<T: Trace + ?Sized> Gc<T> {
 
     /// Returns `true` if the two `Gc`s point to the same allocation.
     #[must_use]
-    pub fn ptr_eq(this: &Self, other: &Self) -> bool {
-        addr_eq(this.inner(), other.inner())
+    pub fn ptr_eq<U: Trace + ?Sized>(this: &Self, other: &Gc<U>) -> bool {
+        std::ptr::addr_eq(this.inner(), other.inner())
     }
 
     /// Constructs a `Gc<T>` from a raw pointer.
@@ -135,12 +220,56 @@ impl<T: Trace + ?Sized> Gc<T> {
         }
     }
 
-    pub(crate) fn as_erased(&self) -> GcErasedPointer {
+    pub(crate) fn as_erased_pointer(&self) -> GcErasedPointer {
         self.inner_ptr.cast()
+    }
+
+    /// Return the [`TypeId`] of the `T`.
+    #[inline]
+    #[must_use]
+    pub fn type_id(this: &Self) -> TypeId {
+        this.vtable().type_id()
+    }
+
+    /// Returns true if the inner type is the same as `T`.
+    #[inline]
+    #[must_use]
+    pub fn is<U: Trace + 'static>(this: &Self) -> bool {
+        Gc::type_id(this) == TypeId::of::<U>()
+    }
+
+    /// Returns [`Some`] reference to the inner value if it is of type `T`, or [`None`] if it isn’t.
+    #[inline]
+    #[must_use]
+    pub fn downcast<U: Trace + 'static>(this: &Self) -> Option<&Gc<U>> {
+        if !Gc::is::<U>(this) {
+            return None;
+        }
+
+        // SAFETY: We check that the type is correct above, so this is safe.
+        Some(unsafe { Gc::cast_unchecked::<U>(this) })
+    }
+
+    /// Returns reference to the inner value of type `T`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the cast is valid.
+    #[inline]
+    #[must_use]
+    pub unsafe fn cast_unchecked<U: Trace + 'static>(this: &Self) -> &Gc<U> {
+        // SAFETY: Casting a Gc<T> to a Gc<U> of any type is safe, as long as you don’t actually access it as a U.
+        //         The correct functions for T will still be called during tracing, finalization, and dropping.
+        unsafe { &*(&raw const *this).cast::<Gc<U>>() }
     }
 }
 
 impl<T: Trace + ?Sized> Gc<T> {
+    pub(crate) fn vtable(&self) -> &'static VTable {
+        // SAFETY: The inner pointer is valid at all times.
+        unsafe { self.inner_ptr.as_ref() }.vtable
+    }
+
     pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
         assert!(finalizer_safe());
         self.inner_ptr
@@ -166,7 +295,7 @@ impl<T: Trace + ?Sized> Finalize for Gc<T> {
 // Trace. It is not possible to root an already rooted `Gc` and vice versa.
 unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     unsafe fn trace(&self, tracer: &mut Tracer) {
-        tracer.enqueue(self.as_erased());
+        tracer.enqueue(self.as_erased_pointer());
     }
 
     unsafe fn trace_non_roots(&self) {

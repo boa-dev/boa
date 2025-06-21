@@ -35,7 +35,7 @@ pub use crate::trace::{Finalize, Trace, Tracer};
 pub use boa_macros::{Finalize, Trace};
 pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
-pub use pointers::{Ephemeron, Gc, WeakGc, WeakMap};
+pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
 
 type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
