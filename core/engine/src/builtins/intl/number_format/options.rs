@@ -882,12 +882,10 @@ impl DigitFormatOptions {
         // 7. Set x to result.[[RoundedNumber]].
         // 8. Let string be result.[[FormattedString]].
         // 9. If intlObject.[[TrailingZeroDisplay]] is "stripIfInteger" and x modulo 1 = 0, then
-        if self.trailing_zero_display == TrailingZeroDisplay::StripIfInteger
-            && number.nonzero_magnitude_end() >= 0
-        {
+        if self.trailing_zero_display == TrailingZeroDisplay::StripIfInteger {
             // a. Let i be StringIndexOf(string, ".", 0).
             // b. If i ≠ -1, set string to the substring of string from 0 to i.
-            number.trim_end();
+            number.trim_end_if_integer();
         }
 
         // 10. Let int be result.[[IntegerDigitsCount]].

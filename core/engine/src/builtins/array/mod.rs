@@ -10,7 +10,6 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use crate::{
@@ -78,8 +77,6 @@ impl JsData for Array {
 
 impl IntrinsicObject for Array {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let symbol_iterator = JsSymbol::iterator();
         let symbol_unscopables = JsSymbol::unscopables();
 

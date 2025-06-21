@@ -27,7 +27,6 @@ use crate::{
 };
 use boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
 use boa_macros::JsData;
-use boa_profiler::Profiler;
 use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};
 
@@ -337,8 +336,6 @@ impl PromiseCapability {
 
 impl IntrinsicObject for Promise {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name(js_string!("get [Symbol.species]"))
             .build();

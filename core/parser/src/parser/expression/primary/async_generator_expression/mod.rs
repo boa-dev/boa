@@ -26,7 +26,6 @@ use boa_ast::{
     Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Async Generator Expression Parsing
 ///
@@ -52,7 +51,6 @@ where
     type Output = AsyncGeneratorExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("AsyncGeneratorExpression", "Parsing");
         let token = cursor.expect(
             (Keyword::Async, false),
             "async function expression",

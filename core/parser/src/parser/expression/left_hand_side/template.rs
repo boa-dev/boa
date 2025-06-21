@@ -9,7 +9,6 @@ use crate::{
 };
 use boa_ast::{self as ast, expression::TaggedTemplate, PositionGroup, Punctuator, Span};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses a tagged template.
 ///
@@ -53,8 +52,6 @@ where
     type Output = TaggedTemplate;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("TaggedTemplateLiteral", "Parsing");
-
         let mut raws = Vec::new();
         let mut cookeds = Vec::new();
         let mut exprs = Vec::new();

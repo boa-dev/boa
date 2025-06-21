@@ -49,7 +49,6 @@ use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_macros::js_str;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use super::Proxy;
@@ -307,8 +306,6 @@ pub struct BuiltInFunctionObject;
 
 impl IntrinsicObject for BuiltInFunctionObject {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
             .name(js_string!("[Symbol.hasInstance]"))
             .length(1)

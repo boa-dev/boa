@@ -35,7 +35,6 @@ use boa_ast::{
     Declaration, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 pub(in crate::parser) use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
@@ -79,7 +78,6 @@ where
     type Output = Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("HoistableDeclaration", "Parsing");
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {

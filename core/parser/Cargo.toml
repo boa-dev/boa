@@ -14,7 +14,6 @@ rust-version.workspace = true
 boa_interner.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
-boa_profiler.workspace = true
 rustc-hash = { workspace = true, features = ["std"] }
 fast-float2.workspace = true
 num-traits.workspace = true

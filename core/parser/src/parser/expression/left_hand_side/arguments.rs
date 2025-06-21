@@ -18,7 +18,6 @@ use crate::{
 };
 use boa_ast::{expression::Spread, Expression, Punctuator, Span};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses a list of arguments.
 ///
@@ -55,8 +54,6 @@ where
     type Output = (Box<[Expression]>, Span);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Arguments", "Parsing");
-
         let start = cursor
             .expect(Punctuator::OpenParen, "arguments", interner)?
             .span()
