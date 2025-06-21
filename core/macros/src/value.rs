@@ -127,6 +127,7 @@ impl Object {
 
                 Ok(quote! {
                     let boa_value = {
+                        #[allow(unused)]
                         let #c_ident = obj.context();
                         #value
                     };
@@ -138,8 +139,10 @@ impl Object {
         Ok(quote! {
             {
                 let mut obj = ::boa_engine::object::ObjectInitializer::new( #c_ident );
-                #(#fields)*
-                obj.build()
+                {
+                    #(#fields)*
+                    obj.build()
+                }
             }
         })
     }
