@@ -13,7 +13,6 @@ use crate::{
 };
 use boa_ast::expression::Identifier as AstIdentifier;
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Identifier reference parsing.
 ///
@@ -49,8 +48,6 @@ where
     type Output = AstIdentifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("IdentifierReference", "Parsing");
-
         let span = cursor.peek(0, interner).or_abrupt()?.span();
         let ident = Identifier.parse(cursor, interner)?;
         match ident.sym() {
@@ -104,8 +101,6 @@ where
 
     /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("BindingIdentifier", "Parsing");
-
         let span = cursor.peek(0, interner).or_abrupt()?.span();
         let ident = Identifier.parse(cursor, interner)?;
         match ident.sym() {
@@ -158,8 +153,6 @@ where
     type Output = AstIdentifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Identifier", "Parsing");
-
         let tok = cursor.next(interner).or_abrupt()?;
 
         let ident = match tok.kind() {

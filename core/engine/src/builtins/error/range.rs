@@ -19,7 +19,6 @@ use crate::{
     string::StaticJsStrings,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 
 use super::Error;
 
@@ -29,8 +28,6 @@ pub(crate) struct RangeError;
 
 impl IntrinsicObject for RangeError {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())

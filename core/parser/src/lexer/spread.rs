@@ -4,7 +4,6 @@ use crate::lexer::{Cursor, Error, Token, Tokenizer};
 use crate::source::ReadChar;
 use boa_ast::{PositionGroup, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Spread literal lexing.
 ///
@@ -36,8 +35,6 @@ impl<R> Tokenizer<R> for SpreadLiteral {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("SpreadLiteral", "Lexing");
-
         // . or ...
         if cursor.next_if(0x2E /* . */)? {
             if cursor.next_if(0x2E /* . */)? {

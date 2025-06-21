@@ -29,7 +29,6 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -38,8 +37,6 @@ pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
             .name(Self::NAME)
             .length(1)

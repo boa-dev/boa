@@ -209,6 +209,7 @@ impl SliceRefMut<'_> {
     }
 
     /// Gets a subslice of this `SliceRefMut`.
+    #[expect(unused, reason = "could still be useful in the future")]
     pub(crate) fn subslice<I>(&self, index: I) -> SliceRef<'_>
     where
         I: SliceIndex<[u8], Output = [u8]> + SliceIndex<[AtomicU8], Output = [AtomicU8]>,

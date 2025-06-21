@@ -31,7 +31,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use boa_profiler::Profiler;
 
 pub(crate) mod utils;
 
@@ -57,8 +56,6 @@ impl Date {
 
 impl IntrinsicObject for Date {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_utc_string = BuiltInBuilder::callable(realm, Self::to_utc_string)
             .name(js_string!("toUTCString"))
             .length(0)

@@ -2,7 +2,6 @@
 
 use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{LinearPosition, Position, PositionGroup, SourceText};
-use boa_profiler::Profiler;
 use std::io::{self, Error, ErrorKind};
 
 /// Cursor over the source code.
@@ -90,8 +89,6 @@ impl<R: ReadChar> Cursor<R> {
 
     /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
     pub(super) fn peek_n(&mut self, n: u8) -> Result<&[Option<u32>; 4], Error> {
-        let _timer = Profiler::global().start_event("cursor::peek_n()", "Lexing");
-
         let peeked = self.peeked.iter().filter(|c| c.is_some()).count();
         let needs_peek = n as usize - peeked;
 
@@ -105,8 +102,6 @@ impl<R: ReadChar> Cursor<R> {
 
     /// Peeks the next UTF-8 character in u32 code point.
     pub(super) fn peek_char(&mut self) -> Result<Option<u32>, Error> {
-        let _timer = Profiler::global().start_event("cursor::peek_char()", "Lexing");
-
         if let Some(c) = self.peeked[0] {
             return Ok(Some(c));
         }
@@ -117,8 +112,6 @@ impl<R: ReadChar> Cursor<R> {
     }
 
     pub(super) fn next_if(&mut self, c: u32) -> io::Result<bool> {
-        let _timer = Profiler::global().start_event("cursor::next_if()", "Lexing");
-
         if self.peek_char()? == Some(c) {
             self.next_char()?;
             Ok(true)
@@ -136,8 +129,6 @@ impl<R: ReadChar> Cursor<R> {
     where
         F: Fn(char) -> bool,
     {
-        let _timer = Profiler::global().start_event("cursor::next_is_pred()", "Lexing");
-
         Ok(match self.peek_char()? {
             Some(byte) if (0..=0x7F).contains(&byte) =>
             {
@@ -153,8 +144,6 @@ impl<R: ReadChar> Cursor<R> {
     ///
     /// Note that all bytes up until the stop byte are added to the buffer, including the byte right before.
     pub(super) fn take_until(&mut self, stop: u32, buf: &mut Vec<u32>) -> io::Result<()> {
-        let _timer = Profiler::global().start_event("cursor::take_until()", "Lexing");
-
         loop {
             if self.next_if(stop)? {
                 return Ok(());
@@ -177,8 +166,6 @@ impl<R: ReadChar> Cursor<R> {
     where
         F: Fn(char) -> bool,
     {
-        let _timer = Profiler::global().start_event("cursor::take_while_ascii_pred()", "Lexing");
-
         loop {
             if !self.next_is_ascii_pred(pred)? {
                 return Ok(());
@@ -194,8 +181,6 @@ impl<R: ReadChar> Cursor<R> {
 
     /// Retrieves the next UTF-8 character.
     pub(crate) fn next_char(&mut self) -> Result<Option<u32>, Error> {
-        let _timer = Profiler::global().start_event("cursor::next_char()", "Lexing");
-
         let ch = if let Some(c) = self.peeked[0] {
             self.peeked[0] = None;
             self.peeked.rotate_left(1);

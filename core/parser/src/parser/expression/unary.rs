@@ -24,7 +24,6 @@ use boa_ast::{
     Expression, Keyword, Punctuator, Span,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses a unary expression.
 ///
@@ -61,8 +60,6 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("UnaryExpression", "Parsing");
-
         let tok = cursor.peek(0, interner).or_abrupt()?;
         let token_start = tok.span().start();
         match tok.kind() {

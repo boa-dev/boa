@@ -20,7 +20,6 @@ use crate::{
     Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 /// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
 ///
@@ -39,8 +38,6 @@ pub(crate) struct ArrayIterator {
 
 impl IntrinsicObject for ArrayIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm

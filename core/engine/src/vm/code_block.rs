@@ -13,7 +13,6 @@ use crate::{
 use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{empty_trace, Finalize, Gc, Trace};
-use boa_profiler::Profiler;
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
@@ -1014,8 +1013,6 @@ pub(crate) fn create_function_object(
     prototype: JsObject,
     context: &mut Context,
 ) -> JsObject {
-    let _timer = Profiler::global().start_event("create_function_object", "vm");
-
     let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 
@@ -1084,8 +1081,6 @@ pub(crate) fn create_function_object(
 /// because it constructs the function from a pre-initialized object template,
 /// with all the properties and prototype set.
 pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
-    let _timer = Profiler::global().start_event("create_function_object_fast", "vm");
-
     let name: JsValue = code.name().clone().into();
     let length: JsValue = code.length.into();
 

@@ -13,7 +13,6 @@ use crate::{
     Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
 };
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
-use boa_profiler::Profiler;
 use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
@@ -411,7 +410,6 @@ unsafe impl Trace for ActiveRunnable {
 impl Vm {
     /// Creates a new virtual machine.
     pub(crate) fn new(realm: Realm) -> Self {
-        let _timer = Profiler::global().start_event("VM::new", "VM");
         Self {
             frames: Vec::with_capacity(16),
             frame: CallFrame::new(
@@ -779,8 +777,6 @@ impl Context {
     /// "clock cycles" have passed.
     #[allow(clippy::future_not_send)]
     pub(crate) async fn run_async_with_budget(&mut self, budget: u32) -> CompletionRecord {
-        let _timer = Profiler::global().start_event("run_async_with_budget", "vm");
-
         #[cfg(feature = "trace")]
         if self.vm.trace {
             self.trace_call_frame();
@@ -818,8 +814,6 @@ impl Context {
     }
 
     pub(crate) fn run(&mut self) -> CompletionRecord {
-        let _timer = Profiler::global().start_event("run", "vm");
-
         #[cfg(feature = "trace")]
         if self.vm.trace {
             self.trace_call_frame();
