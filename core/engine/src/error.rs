@@ -656,7 +656,8 @@ impl fmt::Display for JsError {
         if let Some(source_map) = &self.source_map {
             write!(
                 f,
-                "\n    at {}",
+                "\n    at {} {}",
+                source_map.function_name().to_std_string_escaped(),
                 source_map
                     .file_path()
                     .map_or(Cow::Borrowed("<unknown>"), |file_path| file_path

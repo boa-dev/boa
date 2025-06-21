@@ -8,6 +8,7 @@ use boa_ast::Position;
 mod builder;
 
 use boa_gc::{Finalize, Trace};
+use boa_string::JsString;
 pub(crate) use builder::SourceMapBuilder;
 
 // TODO: The line number increments slower than column,
@@ -28,6 +29,7 @@ impl Entry {
 struct Inner {
     entries: Box<[Entry]>,
     file_path: Option<PathBuf>,
+    function_name: JsString,
 }
 
 /// Bytecode to source code mapping.
@@ -39,9 +41,17 @@ pub(crate) struct SourceMap {
 }
 
 impl SourceMap {
-    pub(crate) fn new(file_path: Option<PathBuf>, entries: Box<[Entry]>) -> Self {
+    pub(crate) fn new(
+        file_path: Option<PathBuf>,
+        entries: Box<[Entry]>,
+        function_name: JsString,
+    ) -> Self {
         Self {
-            inner: Rc::new(Inner { entries, file_path }),
+            inner: Rc::new(Inner {
+                entries,
+                file_path,
+                function_name,
+            }),
         }
     }
 
@@ -61,5 +71,9 @@ impl SourceMap {
 
     pub(crate) fn file_path(&self) -> Option<&Path> {
         self.inner.file_path.as_deref()
+    }
+
+    pub(crate) fn function_name(&self) -> &JsString {
+        &self.inner.function_name
     }
 }

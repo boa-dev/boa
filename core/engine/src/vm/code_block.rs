@@ -115,10 +115,6 @@ pub(crate) enum Constant {
 /// attributes of the function.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
-    /// Name of this function
-    #[unsafe_ignore_trace]
-    pub(crate) name: JsString,
-
     #[unsafe_ignore_trace]
     pub(crate) flags: Cell<CodeBlockFlags>,
 
@@ -171,7 +167,6 @@ impl CodeBlock {
             bytecode: ByteCode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
-            name,
             flags: Cell::new(flags),
             length,
             register_count: 0,
@@ -181,14 +176,14 @@ impl CodeBlock {
             handlers: ThinVec::default(),
             ic: Box::default(),
             source_text_spanned: SpannedSourceText::new_empty(),
-            source_map: SourceMap::default(),
+            source_map: SourceMap::new(None, Box::default(), name),
         }
     }
 
     /// Retrieves the name associated with this code block.
     #[must_use]
-    pub const fn name(&self) -> &JsString {
-        &self.name
+    pub fn name(&self) -> &JsString {
+        self.source_map.function_name()
     }
 
     /// Check if the function is traced.

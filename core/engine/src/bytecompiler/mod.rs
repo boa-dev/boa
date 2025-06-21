@@ -2042,7 +2042,6 @@ impl<'ctx> ByteCompiler<'ctx> {
         let source_map_entries = self.source_map_builder.build(final_bytecode_len);
 
         CodeBlock {
-            name: self.function_name,
             length: self.length,
             register_count,
             this_mode: self.this_mode,
@@ -2055,7 +2054,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),
             source_text_spanned: self.spanned_source_text,
-            source_map: SourceMap::new(self.file_path, source_map_entries),
+            source_map: SourceMap::new(self.file_path, source_map_entries, self.function_name),
         }
     }
 
