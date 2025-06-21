@@ -1,9 +1,9 @@
-use boa_ast::LinearSpan;
-use boa_gc::{Finalize, Gc, Trace};
+use std::rc::Rc;
 
-#[derive(Trace, Finalize)]
+use boa_ast::LinearSpan;
+use boa_gc::{Finalize, Trace};
+
 struct Inner {
-    #[unsafe_ignore_trace]
     source_text: boa_ast::SourceText,
 }
 impl Inner {
@@ -14,14 +14,15 @@ impl Inner {
 
 #[derive(Trace, Finalize, Clone)]
 pub(crate) struct SourceText {
-    source_text: Option<Gc<Inner>>,
+    #[unsafe_ignore_trace]
+    source_text: Option<Rc<Inner>>,
 }
 
 impl SourceText {
     #[must_use]
     pub(crate) fn new(source_text: boa_ast::SourceText) -> Self {
         Self {
-            source_text: Some(Gc::new(Inner::new(source_text))),
+            source_text: Some(Rc::new(Inner::new(source_text))),
         }
     }
 
