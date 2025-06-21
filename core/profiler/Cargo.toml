@@ -1,9 +1,9 @@
 [package]
 name = "boa_profiler"
-description = "Profiler for the Boa JavaScript engine."
+description = "DEPRECATED. Use flamegraph or valgrind instead."
 keywords = ["javascript", "js", "compiler", "profiler"]
 categories = ["development-tools::profiling"]
-version.workspace = true
+version = "0.20.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true

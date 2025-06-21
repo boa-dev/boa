@@ -58,7 +58,6 @@ use boa_ast::{
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
-use boa_profiler::Profiler;
 
 pub(in crate::parser) use declaration::ClassTail;
 
@@ -118,7 +117,6 @@ where
     type Output = ast::Statement;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
@@ -287,7 +285,6 @@ where
     /// Note that the last token which causes the parse to finish is not
     /// consumed.
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
         let global_strict = cursor.strict();
@@ -421,7 +418,6 @@ where
     type Output = ast::StatementListItem;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind().clone() {
@@ -498,8 +494,6 @@ where
     type Output = ObjectPattern;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ObjectBindingPattern", "Parsing");
-
         let start = cursor
             .expect(
                 TokenKind::Punctuator(Punctuator::OpenBlock),
@@ -748,8 +742,6 @@ where
     type Output = ArrayPattern;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ArrayBindingPattern", "Parsing");
-
         let start = cursor
             .expect(
                 TokenKind::Punctuator(Punctuator::OpenBracket),

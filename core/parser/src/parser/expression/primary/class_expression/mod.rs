@@ -8,7 +8,6 @@ use crate::{
 };
 use boa_ast::{function::ClassExpression as ClassExpressionNode, Keyword, Span};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Class expression parsing.
 ///
@@ -43,8 +42,6 @@ where
     type Output = ClassExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ClassExpression", "Parsing");
-
         let class_span_start = cursor
             .expect(
                 TokenKind::Keyword((Keyword::Class, false)),

@@ -26,7 +26,6 @@ use boa_ast::{
     Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Generator expression parsing.
 ///
@@ -53,8 +52,6 @@ where
     type Output = GeneratorExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("GeneratorExpression", "Parsing");
-
         let token = cursor.expect((Keyword::Function, false), "generator expression", interner)?;
         let start_linear_span = token.linear_span();
         let function_span_start = token.span().start();

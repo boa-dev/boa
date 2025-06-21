@@ -18,7 +18,6 @@ use boa_ast::{
     PositionGroup, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses a template literal.
 ///
@@ -64,8 +63,6 @@ where
     type Output = literal::TemplateLiteral;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("TemplateLiteral", "Parsing");
-
         let mut elements = vec![
             TemplateElement::String(self.first),
             TemplateElement::Expr(

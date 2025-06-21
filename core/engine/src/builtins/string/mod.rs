@@ -24,7 +24,6 @@ use crate::{
 };
 use boa_macros::utf16;
 
-use boa_profiler::Profiler;
 use cow_utils::CowUtils;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::{
@@ -84,8 +83,6 @@ pub(crate) struct String;
 
 impl IntrinsicObject for String {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let trim_start = BuiltInBuilder::callable(realm, Self::trim_start)
             .length(0)
             .name(js_string!("trimStart"))

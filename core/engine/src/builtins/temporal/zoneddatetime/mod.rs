@@ -17,7 +17,6 @@ use crate::{
     JsSymbol, JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use cow_utils::CowUtils;
 use temporal_rs::{
     options::{
@@ -57,8 +56,6 @@ impl BuiltInObject for ZonedDateTime {
 
 impl IntrinsicObject for ZonedDateTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name(js_string!("get calendarId"))
             .build();

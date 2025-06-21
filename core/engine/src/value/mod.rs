@@ -17,7 +17,6 @@ use boa_gc::{Finalize, Trace};
 #[doc(inline)]
 pub use boa_macros::TryFromJs;
 pub use boa_macros::TryIntoJs;
-use boa_profiler::Profiler;
 #[doc(inline)]
 pub use conversions::convert::Convert;
 

@@ -34,7 +34,6 @@ use crate::{
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
-use boa_profiler::Profiler;
 
 use self::utils::{SliceRef, SliceRefMut};
 
@@ -320,8 +319,6 @@ impl ArrayBuffer {
 
 impl IntrinsicObject for ArrayBuffer {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)

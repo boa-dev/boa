@@ -4,7 +4,6 @@ use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
 use boa_ast::{PositionGroup, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 const CHAR_ASSIGN: u32 = '=' as u32;
 
@@ -87,8 +86,6 @@ impl<R> Tokenizer<R> for Operator {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Operator", "Lexing");
-
         Ok(match self.init {
             b'*' => op!(cursor, start_pos, Punctuator::AssignMul, Punctuator::Mul, {
                 Some(0x2A /* * */) => vop!(cursor, Punctuator::AssignPow, Punctuator::Exp)

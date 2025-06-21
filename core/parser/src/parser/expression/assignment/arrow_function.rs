@@ -29,7 +29,6 @@ use boa_ast::{
     Expression, Punctuator, Span, StatementList,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Arrow function parsing.
 ///
@@ -69,7 +68,6 @@ where
     type Output = ast::function::ArrowFunction;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0, interner).or_abrupt()?;
         let start_linear_span = next_token.linear_span();
 
