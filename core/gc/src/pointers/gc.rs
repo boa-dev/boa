@@ -69,6 +69,12 @@ impl GcErased {
         }
     }
 
+    /// Returns `true` if the two [`GcErased`]s point to the same allocation.
+    #[must_use]
+    pub fn ptr_eq(this: &Self, other: &Self) -> bool {
+        Gc::ptr_eq(&this.inner, &other.inner)
+    }
+
     /// Returns the [`TypeId`] of the inner type.
     #[inline]
     #[must_use]
