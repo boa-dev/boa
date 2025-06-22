@@ -65,7 +65,49 @@ static TWO_E_63: LazyLock<BigInt> = LazyLock::new(|| {
     BigInt::from(TWO_E_63)
 });
 
-/// A generic Javascript value. This can be any ECMAScript language valid value.
+/// The `js_value!` macro creates a `JsValue` instance based on a JSON-like DSL.
+///
+/// ```
+/// # use boa_engine::{js_string, js_value, Context, JsValue};
+/// # let context = &mut Context::default();
+/// assert_eq!(js_value!( 1 ), JsValue::from(1));
+/// assert_eq!(js_value!( false ), JsValue::from(false));
+/// // Objects and arrays cannot be compared with simple equality.
+/// // To create arrays and objects, the context needs to be passed in.
+/// assert_eq!(js_value!([ 1, 2, 3 ], context).display().to_string(), "[ 1, 2, 3 ]");
+/// assert_eq!(
+///   js_value!({
+///     // Comments are allowed inside.
+///     "key": (js_string!("value"))
+///   }, context).display().to_string(),
+///   "{\n key: \"value\"\n}",
+/// );
+/// ```
+pub use boa_macros::js_object;
+
+/// Create a `JsObject` object from a simpler DSL that resembles JSON.
+///
+/// ```
+/// # use boa_engine::{js_string, js_object, Context, JsValue};
+/// # let context = &mut Context::default();
+/// let value = js_object!({
+///   // Comments are allowed inside. String literals will always be transformed to `JsString`.
+///   "key": "value",
+///   // Identifiers will be used as keys, like in JavaScript.
+///   alsoKey: 1,
+///   // Expressions surrounded by brackets will be expressed, like in JavaScript.
+///   // Note that in this case, the unit value is represented by `null`.
+///   [1 + 2]: (),
+/// }, context);
+///
+/// assert_eq!(
+///     JsValue::from(value).display().to_string(),
+///     "{\n   3: null,\n key: \"value\",\nalsoKey: 1\n}"
+/// );
+/// ```
+pub use boa_macros::js_value;
+
+/// A generic JavaScript value. This can be any ECMAScript language valid value.
 ///
 /// This is a wrapper around the actual value, which is stored in an opaque type.
 /// This allows for internal changes to the value without affecting the public API.

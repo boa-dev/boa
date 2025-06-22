@@ -24,6 +24,19 @@ mod embedded_module_loader;
 mod class;
 mod module;
 mod utils;
+mod value;
+
+/// The `js_value!` macro creates a `JsValue` instance based on a JSON-like DSL.
+#[proc_macro]
+pub fn js_value(input: TokenStream) -> TokenStream {
+    value::js_value_impl(proc_macro2::TokenStream::from(input)).into()
+}
+
+/// Create a `JsObject` object from a simpler DSL that resembles JSON.
+#[proc_macro]
+pub fn js_object(input: TokenStream) -> TokenStream {
+    value::js_object_impl(proc_macro2::TokenStream::from(input)).into()
+}
 
 /// Implementation of the inner iterator of the `embed_module!` macro. All
 /// arguments are required.
