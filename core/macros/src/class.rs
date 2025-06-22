@@ -22,7 +22,7 @@ use syn::{
 ///
 /// This is not an enum for simplicity. The body is dependent on how this was created.
 pub(crate) struct Function {
-    /// The name of the function. Can be overridden with `#[boa(name = "...")]`.
+    /// The name of the function. Can be overridden with `#[boa(rename = "...")]`.
     name: String,
 
     /// The length of the function in JavaScript. Can be overridden with `#[boa(length = ...)]`.
@@ -409,7 +409,7 @@ impl ClassVisitor {
     }
 
     fn name_of(&self, fn_: &mut ImplItemFn) -> SpannedResult<String> {
-        take_name_value_attr(&mut fn_.attrs, "name").map_or_else(
+        take_name_value_attr(&mut fn_.attrs, "rename").map_or_else(
             || Ok(self.renaming.rename(fn_.sig.ident.to_string())),
             |nv| match &nv {
                 Lit::Str(s) => Ok(s.value()),
@@ -619,7 +619,7 @@ impl Parse for ClassArguments {
                     path,
                     value: Expr::Lit(lit),
                     ..
-                }) if path.is_ident("name") => {
+                }) if path.is_ident("rename") => {
                     name = Some(match &lit.lit {
                         Lit::Str(s) => Ok(s.value()),
                         _ => Err(syn::Error::new(lit.span(), "Expected a string literal")),
@@ -640,7 +640,7 @@ pub(crate) fn class_impl(attr: TokenStream, input: TokenStream) -> TokenStream {
     // Parse the input.
     let mut impl_ = syn::parse_macro_input!(input as ItemImpl);
 
-    let renaming = match RenameScheme::from_named_attrs(&mut impl_.attrs, "rename") {
+    let renaming = match RenameScheme::from_named_attrs(&mut impl_.attrs, "rename_all") {
         Ok(Some(r)) => r,
         Ok(None) => RenameScheme::CamelCase,
         Err((span, msg)) => {

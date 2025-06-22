@@ -58,7 +58,7 @@ mod hello {
 
     const SOME_LITERAL_NUMBER: i32 = 1234;
 
-    #[boa(name = "this_is_different")]
+    #[boa(rename = "this_is_different")]
     const SOME_OTHER_LITERAL: i32 = 5678;
 }
 
