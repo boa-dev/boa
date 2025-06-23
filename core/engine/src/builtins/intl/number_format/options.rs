@@ -542,25 +542,24 @@ impl DigitFormatOptions {
         // 5. Let mxsd be ? Get(options, "maximumSignificantDigits").
         let max_sig_digits = options.get(js_string!("maximumSignificantDigits"), context)?;
 
-        // 7. Let roundingPriority be ? GetOption(options, "roundingPriority", string, « "auto", "morePrecision", "lessPrecision" », "auto").
-        let mut rounding_priority =
-            get_option(options, js_string!("roundingPriority"), context)?.unwrap_or_default();
-
-        // 8. Let roundingIncrement be ? GetNumberOption(options, "roundingIncrement", 1, 5000, 1).
-        // 9. If roundingIncrement is not in « 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 », throw a RangeError exception.
+        // 7. Let roundingIncrement be ? GetNumberOption(options, "roundingIncrement", 1, 5000, 1).
+        // 8. If roundingIncrement is not in « 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 », throw a RangeError exception.
         let rounding_increment =
             get_number_option(options, js_string!("roundingIncrement"), 1, 5000, context)?
                 .unwrap_or(1);
-
         let rounding_increment =
             RoundingIncrement::from_u16(rounding_increment).ok_or_else(|| {
                 JsNativeError::range().with_message("invalid value for option `roundingIncrement`")
             })?;
 
-        // 10. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
+        // 9. Let roundingMode be ? GetOption(options, "roundingMode", string, « "ceil", "floor", "expand", "trunc", "halfCeil", "halfFloor", "halfExpand", "halfTrunc", "halfEven" », "halfExpand").
         let rounding_mode = get_option(options, js_string!("roundingMode"), context)?.unwrap_or(
             SignedRoundingMode::Unsigned(UnsignedRoundingMode::HalfExpand),
         );
+
+        // 10. Let roundingPriority be ? GetOption(options, "roundingPriority", string, « "auto", "morePrecision", "lessPrecision" », "auto").
+        let mut rounding_priority =
+            get_option(options, js_string!("roundingPriority"), context)?.unwrap_or_default();
 
         // 11. Let trailingZeroDisplay be ? GetOption(options, "trailingZeroDisplay", string, « "auto", "stripIfInteger" », "auto").
         let trailing_zero_display =

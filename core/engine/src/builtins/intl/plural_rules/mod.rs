@@ -233,8 +233,8 @@ impl PluralRules {
 
         // 1. If x is NaN or y is NaN, throw a RangeError exception.
         if x.is_nan() || y.is_nan() {
-            return Err(JsNativeError::typ()
-                .with_message("extremum of range cannot be NaN")
+            return Err(JsNativeError::range()
+                .with_message("arguments of selectRange cannot be NaN")
                 .into());
         }
 
@@ -309,11 +309,26 @@ impl PluralRules {
         })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
-        // 4. For each row of Table 16, except the header row, in table order, do
-        //     a. Let p be the Property value of the current row.
-        //     b. Let v be the value of pr's internal slot whose name is the Internal Slot value of the current row.
-        //     c. If v is not undefined, then
-        //         i. Perform ! CreateDataPropertyOrThrow(options, p, v).
+        // 4. Let pluralCategories be a List of Strings containing all possible results of
+        //    PluralRuleSelect for the selected locale pr.[[Locale]], sorted according to the following
+        //    order: "zero", "one", "two", "few", "many", "other".
+        let plural_categories = plural_rules
+            .native
+            .rules()
+            .categories()
+            .map(|category| plural_category_to_js_string(category).into());
+
+        // 5. For each row of Table 30, except the header row, in table order, do
+        //        a. Let p be the Property value of the current row.
+        //        b. If p is "pluralCategories", then
+        //               i. Let v be CreateArrayFromList(pluralCategories).
+        //        c. Else,
+        //               i. Let v be the value of pr's internal slot whose name is the Internal Slot value of the current row.
+        //        d. If v is not undefined, then
+        //               i. If there is a Conversion value in the current row, then
+        //                      1. Assert: The Conversion value of the current row is number.
+        //                      2. Set v to 𝔽(v).
+        //               ii. Perform ! CreateDataPropertyOrThrow(options, p, v).
         let mut options = ObjectInitializer::new(context);
         options
             .property(
@@ -375,7 +390,18 @@ impl PluralRules {
                 );
         }
 
+        let plural_categories = Array::create_array_from_list(plural_categories, options.context());
         options
+            .property(
+                js_string!("pluralCategories"),
+                plural_categories,
+                Attribute::all(),
+            )
+            .property(
+                js_string!("roundingIncrement"),
+                plural_rules.format_options.rounding_increment.to_u16(),
+                Attribute::all(),
+            )
             .property(
                 js_string!("roundingMode"),
                 match plural_rules.format_options.rounding_mode {
@@ -403,8 +429,8 @@ impl PluralRules {
                 Attribute::all(),
             )
             .property(
-                js_string!("roundingIncrement"),
-                plural_rules.format_options.rounding_increment.to_u16(),
+                js_string!("roundingPriority"),
+                js_string!(plural_rules.format_options.rounding_priority.to_js_string()),
                 Attribute::all(),
             )
             .property(
@@ -416,37 +442,7 @@ impl PluralRules {
                 Attribute::all(),
             );
 
-        // 5. Let pluralCategories be a List of Strings containing all possible results of PluralRuleSelect
-        //    for the selected locale pr.[[Locale]].
-        let plural_categories = Array::create_array_from_list(
-            plural_rules
-                .native
-                .rules()
-                .categories()
-                .map(|category| plural_category_to_js_string(category).into()),
-            options.context(),
-        );
-
-        // 6. Perform ! CreateDataProperty(options, "pluralCategories", CreateArrayFromList(pluralCategories)).
-        options.property(
-            js_string!("pluralCategories"),
-            plural_categories,
-            Attribute::all(),
-        );
-
-        // 7. If pr.[[RoundingType]] is morePrecision, then
-        //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "morePrecision").
-        // 8. Else if pr.[[RoundingType]] is lessPrecision, then
-        //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "lessPrecision").
-        // 9. Else,
-        //     a. Perform ! CreateDataPropertyOrThrow(options, "roundingPriority", "auto").
-        options.property(
-            js_string!("roundingPriority"),
-            js_string!(plural_rules.format_options.rounding_priority.to_js_string()),
-            Attribute::all(),
-        );
-
-        // 10. Return options.
+        // 6. Return options.
         Ok(options.build().into())
     }
 }
