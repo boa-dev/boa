@@ -59,7 +59,7 @@ indexmap = { version = "2.9.0", default-features = false }
 indoc = "2.0.6"
 itoa = "1.0.15"
 jemallocator = "0.5.4"
-lz4_flex = "0.11.4"
+lz4_flex = "0.11.5"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }
@@ -100,7 +100,7 @@ isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.40"
-syn = { version = "2.0.103", default-features = false }
+syn = { version = "2.0.104", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.1"
@@ -111,7 +111,7 @@ ryu-js = "1.0.2"
 tap = "1.0.1"
 thiserror = { version = "2.0.12", default-features = false }
 dashmap = "6.1.0"
-num_enum = "0.7.3"
+num_enum = "0.7.4"
 itertools = { version = "0.14.0", default-features = false }
 portable-atomic = "1.11.0"
 bytemuck = { version = "1.23.1", default-features = false }
@@ -146,7 +146,7 @@ icu_list = { version = "~2.0.0", default-features = false }
 icu_casemap = { version = "~2.0.0", default-features = false }
 icu_segmenter = { version = "~2.0.0", default-features = false }
 icu_provider_export = { version = "~2.0.0", default-features = false }
-icu_provider_source = { version = "~2.0.0", default-features = false }
+icu_provider_source = { version = "~2.0.1", default-features = false }
 icu_provider_adapters = { version = "~2.0.0", default-features = false }
 icu_provider_blob = { version = "~2.0.0", default-features = false }
 icu_properties = { version = "~2.0.0", default-features = true }
