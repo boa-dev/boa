@@ -63,7 +63,7 @@ lz4_flex = "0.11.5"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }
-phf = { version = "0.11.2", default-features = false }
+phf = { version = "0.12.1", default-features = false }
 pollster = "0.4.0"
 regex = "1.11.1"
 regress = { version = "0.10.3", features = ["utf16"] }
