@@ -83,6 +83,8 @@ impl JsValue {
             // Fast path:
             (JsVariant::Integer32(x), JsVariant::Integer32(y)) => x
                 .checked_mul(y)
+                // Check for the special case of `0 * -N` which must produce `-0.0`
+                .filter(|v| *v != 0 || i32::min(x, y) >= 0)
                 .map_or_else(|| Self::new(f64::from(x) * f64::from(y)), Self::new),
             (JsVariant::Float64(x), JsVariant::Float64(y)) => Self::new(x * y),
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) * y),
