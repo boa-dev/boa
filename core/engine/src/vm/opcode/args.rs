@@ -1872,7 +1872,7 @@ mod test {
     fn arg_u32_vop_u32() {
         let arg = (u32::MAX, VaryingOperand::from(u32::MAX));
         let v = test_write_arg(arg.clone());
-        assert_eq!(vec![2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,0xFF,0xFF,0xFF], v);
+        assert_eq!(vec![2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], v);
         assert_eq!(test_read_arg::<(u32, VaryingOperand), _>(v), (arg, 9));
     }
 
@@ -1923,7 +1923,10 @@ mod test {
             VaryingOperand::from(u32::MAX),
         );
         let v = test_write_arg(arg.clone());
-        assert_eq!(vec![2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF], v);
+        assert_eq!(
+            vec![2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF],
+            v
+        );
         assert_eq!(
             test_read_arg::<(u32, VaryingOperand, VaryingOperand), _>(v),
             (arg, 13)
