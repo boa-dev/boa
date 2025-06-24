@@ -39,7 +39,6 @@ Boa currently publishes and actively maintains the following crates:
 - **`boa_gc`** - Boa's garbage collector
 - **`boa_interner`** - Boa's string interner
 - **`boa_parser`** - Boa's lexer and parser
-- **`boa_profiler`** - Boa's code profiler
 - **`boa_icu_provider`** - Boa's ICU4X data provider
 - **`boa_runtime`** - Boa's WebAPI features
 - **`boa_string`** - Boa's ECMAScript string implementation.

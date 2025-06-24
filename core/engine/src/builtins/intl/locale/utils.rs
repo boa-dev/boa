@@ -54,6 +54,7 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
         .and_then(|obj| obj.borrow().downcast_ref::<Locale>().cloned())
     {
         // 1. Let tag be kValue.[[Locale]].
+        // No need to canonicalize since all `Locale` objects should already be canonicalized.
         return Ok(tag);
     }
 
@@ -66,13 +67,21 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
             .into());
     }
 
-    tag.parse()
+    let mut tag = tag
+        .parse()
         // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
         .map_err(|_| {
-            JsNativeError::range()
-                .with_message("locale is not a structurally valid language tag")
-                .into()
-        })
+            JsNativeError::range().with_message("locale is not a structurally valid language tag")
+        })?;
+
+    // All callers of `locale_from_value` canonicalize the result immediately after, so
+    // we canonicalize here instead.
+    context
+        .intl_provider()
+        .locale_canonicalizer()?
+        .canonicalize(&mut tag);
+
+    Ok(tag)
 }
 
 /// Abstract operation `CanonicalizeLocaleList ( locales )`
@@ -128,13 +137,7 @@ pub(crate) fn canonicalize_locale_list(
         // c. If kPresent is true, then
         // c.i. Let kValue be ? Get(O, Pk).
         if let Some(k_value) = o.try_get(k, context)? {
-            let mut tag = locale_from_value(&k_value, context)?;
-
-            // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
-            context
-                .intl_provider()
-                .locale_canonicalizer()?
-                .canonicalize(&mut tag);
+            let tag = locale_from_value(&k_value, context)?;
 
             // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
             seen.insert(tag);

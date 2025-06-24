@@ -21,7 +21,7 @@ impl Parse for ModuleArguments {
 
 fn const_item(c: &mut ItemConst, renaming: RenameScheme) -> SpannedResult<(String, TokenStream2)> {
     let ident = &c.ident;
-    let name = take_name_value_string(&mut c.attrs, "name")?
+    let name = take_name_value_string(&mut c.attrs, "rename")?
         .unwrap_or_else(|| renaming.rename(ident.to_string()));
 
     Ok((
@@ -34,7 +34,7 @@ fn const_item(c: &mut ItemConst, renaming: RenameScheme) -> SpannedResult<(Strin
 
 fn fn_item(fn_: &mut ItemFn, renaming: RenameScheme) -> SpannedResult<(String, TokenStream2)> {
     let ident = &fn_.sig.ident;
-    let name = take_name_value_string(&mut fn_.attrs, "name")?
+    let name = take_name_value_string(&mut fn_.attrs, "rename")?
         .unwrap_or_else(|| renaming.rename(ident.to_string()));
 
     if fn_.sig.asyncness.is_some() {
@@ -71,7 +71,7 @@ fn fn_item(fn_: &mut ItemFn, renaming: RenameScheme) -> SpannedResult<(String, T
 
 fn type_item(ty: &mut ItemType, renaming: RenameScheme) -> SpannedResult<(String, TokenStream2)> {
     let ident = &ty.ident;
-    let name = take_name_value_string(&mut ty.attrs, "name")?
+    let name = take_name_value_string(&mut ty.attrs, "rename")?
         .unwrap_or_else(|| renaming.rename(ident.to_string()));
     let path = ty.ty.as_ref();
 
@@ -97,9 +97,9 @@ pub(crate) fn module_impl(attr: TokenStream, input: TokenStream) -> TokenStream 
 }
 
 fn module_impl_impl(_args: ModuleArguments, mut mod_: ItemMod) -> SpannedResult<TokenStream2> {
-    let renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename")?
+    let renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_all")?
         .unwrap_or(RenameScheme::CamelCase);
-    let class_renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_class")?
+    let class_renaming = RenameScheme::from_named_attrs(&mut mod_.attrs, "rename_all_class")?
         .unwrap_or(RenameScheme::PascalCase);
 
     // Iterate through all top-level content. If the module is empty, still

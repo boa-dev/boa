@@ -19,7 +19,6 @@ use boa_ast::{
     Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses an optional expression.
 ///
@@ -104,7 +103,6 @@ where
             };
             Ok((item, token.span()))
         }
-        let _timer = Profiler::global().start_event("OptionalExpression", "Parsing");
 
         let mut items = Vec::new();
 

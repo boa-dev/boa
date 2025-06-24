@@ -1472,3 +1472,143 @@ mod abstract_relational_comparison {
         ]);
     }
 }
+
+mod js_value_macro {
+    use crate::value::TryIntoJs;
+    use crate::{js_string, run_test_actions, JsValue, TestAction};
+    use boa_engine::{js_value, Context, JsResult};
+    use boa_string::JsString;
+    use std::ops::Neg;
+
+    #[test]
+    fn primitive_values() {
+        run_test_actions([
+            TestAction::assert_eq("true", js_value!(true)),
+            TestAction::assert_eq("false", js_value!(false)),
+            TestAction::assert_eq("1", js_value!(1)),
+            TestAction::assert_eq("0xFFFF_FFFF", js_value!(4_294_967_295u32)),
+            TestAction::assert_eq("1.5", js_value!(1.5)),
+            TestAction::assert_eq("Infinity", js_value!(f32::INFINITY)),
+            TestAction::assert_eq("-Infinity", js_value!(f32::INFINITY.neg())),
+        ]);
+    }
+
+    #[test]
+    fn arrays() {
+        run_test_actions([
+            TestAction::assert_with_op("[1, 2, 3]", |value, context| {
+                let v = js_value!([1, 2, 3], context);
+                value.deep_strict_equals(&v, context).unwrap()
+            }),
+            TestAction::assert_with_op("[1, [2], 3]", |value, context| {
+                value
+                    .deep_strict_equals(&js_value!([1, [2], 3], context), context)
+                    .unwrap()
+            }),
+            TestAction::assert_with_op("[1, [2], [], [[false]], 3]", |value, context| {
+                value
+                    .deep_strict_equals(&js_value!([1, [2], [], [[false]], 3], context), context)
+                    .unwrap()
+            }),
+        ]);
+    }
+
+    #[test]
+    fn objects() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": 1, "world": null })"#,
+            |value, context| {
+                value
+                    .deep_strict_equals(&js_value!({ "hello": 1, "world": () }, context), context)
+                    .unwrap()
+            },
+        )]);
+    }
+
+    #[test]
+    fn vars() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": 1, "world": null })"#,
+            |value, context| {
+                let hello = JsValue::from(1);
+                let world = JsValue::null();
+
+                value
+                    .deep_strict_equals(
+                        &js_value!({ "hello": hello, "world": world }, context),
+                        context,
+                    )
+                    .expect("No error should happen.")
+            },
+        )]);
+    }
+
+    #[test]
+    fn complex() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": [{ "foo": [1, []] }], "world": { "bar": false } })"#,
+            |value, context| {
+                let bar = false;
+                let other = js_value!({
+                    "hello": [{ "foo": [1, []] }],
+                    // Allow comments
+                    "world": { "bar": bar },
+                }, context);
+
+                value
+                    .deep_strict_equals(&other, context)
+                    .expect("No error should happen here.")
+            },
+        )]);
+    }
+
+    #[test]
+    fn context() {
+        run_test_actions([TestAction::assert_with_op(
+            r#"({ "hello": [{ "foo": [1, []] }], "world": { "bar": false } })"#,
+            |value, ctx| {
+                let bar = JsValue::from(false);
+                let other = js_value!({
+                    "hello": [{ "foo": [1, []] }],
+                    // Allow comments
+                    "world": { "bar": bar },
+                }, ctx);
+
+                value
+                    .deep_strict_equals(&other, ctx)
+                    .expect("No error should happen here.")
+            },
+        )]);
+    }
+
+    #[test]
+    fn into_jsvalue() {
+        struct Test {
+            field_1: JsString,
+            field_2: u32,
+        }
+
+        impl TryIntoJs for Test {
+            fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+                Ok(js_value!({
+                    "fOne": self.field_1.clone(),
+                    "field2": self.field_2
+                }, context))
+            }
+        }
+
+        let t = Test {
+            field_1: js_string!("Hello"),
+            field_2: 42,
+        };
+        let context = &mut Context::default();
+        let o = t
+            .try_into_js(context)
+            .expect("Failed to convert value to js.");
+
+        assert_eq!(
+            format!("{}", o.display()),
+            "{\nfOne: \"Hello\",\nfield2: 42\n}"
+        );
+    }
+}

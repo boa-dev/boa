@@ -13,10 +13,6 @@ use crate::read::{MetaData, TestFlag};
 static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Proposed language features
 
-    // Error.isError
-    // https://github.com/tc39/proposal-is-error
-    "Error.isError" => SpecEdition::ESNext,
-
     // Intl.Locale Info
     // https://github.com/tc39/proposal-intl-locale-info
     "Intl.Locale-info"  => SpecEdition::ESNext,
@@ -25,37 +21,25 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-cleanup-some
     "FinalizationRegistry.prototype.cleanupSome" => SpecEdition::ESNext,
 
-    // Intl.NumberFormat V3
-    // https://github.com/tc39/proposal-intl-numberformat-v3
-    "Intl.NumberFormat-v3" => SpecEdition::ESNext,
-
     // Legacy RegExp features
     // https://github.com/tc39/proposal-regexp-legacy-features
     "legacy-regexp"  => SpecEdition::ESNext,
-
-    // Import Attributes
-    // https://github.com/tc39/proposal-import-attributes/
-    "import-attributes" => SpecEdition::ESNext,
 
     // Import Defer
     // https://tc39.es/proposal-defer-import-eval
     "import-defer" => SpecEdition::ESNext,
 
-    // Import Assertions
-    // https://github.com/tc39/proposal-import-assertions/
-    "import-assertions"  => SpecEdition::ESNext,
-
     // Iterator sequencing
     // https://github.com/tc39/proposal-iterator-sequencing
     "iterator-sequencing" => SpecEdition::ESNext,
 
-    // JSON modules
-    // https://github.com/tc39/proposal-json-modules
-    "json-modules"  => SpecEdition::ESNext,
+    // Time Zone Canonicalization
+    // https://github.com/tc39/proposal-canonical-tz
+    "canonical-tz" => SpecEdition::ESNext,
 
-    // ArrayBuffer transfer
-    // https://github.com/tc39/proposal-arraybuffer-transfer
-    "arraybuffer-transfer" => SpecEdition::ESNext,
+    // Upsert
+    // https://github.com/tc39/proposal-upsert
+    "upsert" => SpecEdition::ESNext,
 
     // Temporal
     // https://github.com/tc39/proposal-temporal
@@ -65,17 +49,9 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-realms
     "ShadowRealm" => SpecEdition::ESNext,
 
-    // Intl.DurationFormat
-    // https://github.com/tc39/proposal-intl-duration-format
-    "Intl.DurationFormat" => SpecEdition::ESNext,
-
     // Decorators
     // https://github.com/tc39/proposal-decorators
     "decorators" => SpecEdition::ESNext,
-
-    // Duplicate named capturing groups
-    // https://github.com/tc39/proposal-duplicate-named-capturing-groups
-    "regexp-duplicate-named-groups" => SpecEdition::ESNext,
 
     // Array.fromAsync
     // https://github.com/tc39/proposal-array-from-async
@@ -85,29 +61,13 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // https://github.com/tc39/proposal-json-parse-with-source
     "json-parse-with-source" => SpecEdition::ESNext,
 
-    // RegExp.escape
-    // https://github.com/tc39/proposal-regex-escaping
-    "RegExp.escape" => SpecEdition::ESNext,
-
     // Regular expression modifiers
     // https://github.com/tc39/proposal-regexp-modifiers
     "regexp-modifiers" => SpecEdition::ESNext,
 
-    // Iterator Helpers
-    // https://github.com/tc39/proposal-iterator-helpers
-    "iterator-helpers" => SpecEdition::ESNext,
-
-    // Promise.try
-    // https://github.com/tc39/proposal-promise-try
-    "promise-try" => SpecEdition::ESNext,
-
     // Explicit Resource Management
     // https://github.com/tc39/proposal-explicit-resource-management
     "explicit-resource-management" => SpecEdition::ESNext,
-
-    // Float16Array + Math.f16round
-    // https://github.com/tc39/proposal-float16array
-    "Float16Array" => SpecEdition::ESNext,
 
     // Math.sumPrecise
     // https://github.com/tc39/proposal-math-sum
@@ -126,6 +86,48 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     // Atomics.pause
     // https://github.com/tc39/proposal-atomics-microwait
     "Atomics.pause" => SpecEdition::ESNext,
+
+    // ===== Next ES version =====
+
+    // Error.isError
+    // https://github.com/tc39/proposal-is-error
+    "Error.isError" => SpecEdition::ESNext,
+
+    // Import Attributes
+    // https://github.com/tc39/proposal-import-attributes/
+    "import-attributes" => SpecEdition::ESNext,
+
+    // JSON modules
+    // https://github.com/tc39/proposal-json-modules
+    "json-modules"  => SpecEdition::ESNext,
+
+    // ArrayBuffer transfer
+    // https://github.com/tc39/proposal-arraybuffer-transfer
+    "arraybuffer-transfer" => SpecEdition::ESNext,
+
+    // Intl.DurationFormat
+    // https://github.com/tc39/proposal-intl-duration-format
+    "Intl.DurationFormat" => SpecEdition::ESNext,
+
+    // Duplicate named capturing groups
+    // https://github.com/tc39/proposal-duplicate-named-capturing-groups
+    "regexp-duplicate-named-groups" => SpecEdition::ESNext,
+
+    // RegExp.escape
+    // https://github.com/tc39/proposal-regex-escaping
+    "RegExp.escape" => SpecEdition::ESNext,
+
+    // Iterator Helpers
+    // https://github.com/tc39/proposal-iterator-helpers
+    "iterator-helpers" => SpecEdition::ESNext,
+
+    // Promise.try
+    // https://github.com/tc39/proposal-promise-try
+    "promise-try" => SpecEdition::ESNext,
+
+    // Float16Array + Math.f16round
+    // https://github.com/tc39/proposal-float16array
+    "Float16Array" => SpecEdition::ESNext,
 
     // Standard language features
     "AggregateError" => SpecEdition::ES12,
@@ -200,6 +202,7 @@ static FEATURE_EDITION: phf::Map<&'static str, SpecEdition> = phf::phf_map! {
     "Intl.ListFormat" => SpecEdition::ES12,
     "Intl.Locale" => SpecEdition::ES12,
     "Intl.NumberFormat-unified" => SpecEdition::ES11,
+    "Intl.NumberFormat-v3" => SpecEdition::ES14,
     "Intl.RelativeTimeFormat" => SpecEdition::ES11,
     "Intl.Segmenter" => SpecEdition::ES13,
     "json-superset" => SpecEdition::ES10,

@@ -30,7 +30,6 @@ use crate::{
 };
 use boa_ast::{self as ast, Keyword};
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses a declaration.
 ///
@@ -66,7 +65,6 @@ where
     type Output = ast::Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Declaration", "Parsing");
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
@@ -121,8 +119,6 @@ where
     type Output = ast::declaration::ModuleSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("FromClause", "Parsing");
-
         cursor.expect(TokenKind::identifier(Sym::FROM), self.context, interner)?;
 
         let tok = cursor.next(interner).or_abrupt()?;

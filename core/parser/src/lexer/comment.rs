@@ -4,7 +4,6 @@ use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Lexes a single line comment.
 ///
@@ -28,8 +27,6 @@ impl<R> Tokenizer<R> for SingleLineComment {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("SingleLineComment", "Lexing");
-
         // Skip either to the end of the line or to the end of the input
         while let Some(ch) = cursor.peek_char()? {
             let tried_ch = char::try_from(ch);
@@ -69,8 +66,6 @@ impl<R> Tokenizer<R> for MultiLineComment {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("MultiLineComment", "Lexing");
-
         let mut new_line = false;
         while let Some(ch) = cursor.next_char()? {
             let tried_ch = char::try_from(ch);
@@ -118,8 +113,6 @@ impl<R> Tokenizer<R> for HashbangComment {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Hashbang", "Lexing");
-
         while let Some(ch) = cursor.next_char()? {
             let tried_ch = char::try_from(ch);
             match tried_ch {

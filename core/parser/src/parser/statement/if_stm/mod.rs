@@ -16,7 +16,6 @@ use boa_ast::{
     Declaration, Keyword, Punctuator, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// If statement parsing.
 ///
@@ -58,8 +57,6 @@ where
     type Output = If;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("IfStatement", "Parsing");
-
         cursor.expect((Keyword::If, false), "if statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "if statement", interner)?;
 

@@ -36,7 +36,6 @@ pub mod weak_set;
 
 mod builder;
 
-use boa_profiler::Profiler;
 use builder::BuiltInBuilder;
 
 #[cfg(feature = "annex-b")]
@@ -309,8 +308,6 @@ impl Realm {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-setdefaultglobalbindings
 pub(crate) fn set_default_global_bindings(context: &mut Context) -> JsResult<()> {
-    let _timer =
-        Profiler::global().start_event("Builtins::set_default_global_bindings", "Builtins");
     let global_object = context.global_object();
 
     global_object.define_property_or_throw(

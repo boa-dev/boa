@@ -6,6 +6,7 @@
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 
+use crate::utils::RenameScheme;
 use cow_utils::CowUtils;
 use proc_macro::TokenStream;
 use proc_macro2::Literal;
@@ -23,6 +24,19 @@ mod embedded_module_loader;
 mod class;
 mod module;
 mod utils;
+mod value;
+
+/// The `js_value!` macro creates a `JsValue` instance based on a JSON-like DSL.
+#[proc_macro]
+pub fn js_value(input: TokenStream) -> TokenStream {
+    value::js_value_impl(proc_macro2::TokenStream::from(input)).into()
+}
+
+/// Create a `JsObject` object from a simpler DSL that resembles JSON.
+#[proc_macro]
+pub fn js_object(input: TokenStream) -> TokenStream {
+    value::js_object_impl(proc_macro2::TokenStream::from(input)).into()
+}
 
 /// Implementation of the inner iterator of the `embed_module!` macro. All
 /// arguments are required.
@@ -56,7 +70,7 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 ///
 /// To change this behaviour, you can use the following attributes on the function
 /// declarations:
-/// 1. `#[boa(name = "...")]` renames the function in JavaScript with the string.
+/// 1. `#[boa(rename = "...")]` renames the function in JavaScript with the string.
 /// 2. `#[boa(getter)]` will declare a getter accessor.
 /// 2. `#[boa(setter)]` will declare a setter accessor.
 /// 3. `#[boa(static)]` will declare a static method.
@@ -68,8 +82,8 @@ pub fn embed_module_inner(input: TokenStream) -> TokenStream {
 /// Multiple of those attributes can be added to a single method.
 ///
 /// The top level `boa_class` supports the following:
-/// 1. `#[boa_class(name = "...")]` sets the name of the class in JavaScript.
-/// 2. `#[boa(rename = "camelCase")]` will change the naming scheme of verbatim
+/// 1. `#[boa_class(rename = "...")]` sets the name of the class in JavaScript.
+/// 2. `#[boa(rename_all = "camelCase")]` will change the naming scheme of verbatim
 ///    to using "camelCase" or "none".
 ///
 /// # Warning
@@ -450,7 +464,12 @@ pub fn derive_try_from_js(input: TokenStream) -> TokenStream {
         panic!("you can only derive TryFromJs for named-field structs")
     };
 
-    let conv = generate_conversion(fields).unwrap_or_else(to_compile_errors);
+    let renaming = match RenameScheme::from_named_attrs(&mut input.attrs.clone(), "rename_all") {
+        Ok(renaming) => renaming.unwrap_or(RenameScheme::None),
+        Err((span, msg)) => return syn::Error::new(span, msg).to_compile_error().into(),
+    };
+
+    let conv = generate_conversion(fields, renaming).unwrap_or_else(to_compile_errors);
 
     let type_name = input.ident;
 
@@ -473,7 +492,10 @@ pub fn derive_try_from_js(input: TokenStream) -> TokenStream {
 }
 
 /// Generates the conversion field by field.
-fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, Vec<syn::Error>> {
+fn generate_conversion(
+    fields: FieldsNamed,
+    rename: RenameScheme,
+) -> Result<proc_macro2::TokenStream, Vec<syn::Error>> {
     use syn::spanned::Spanned;
 
     let mut field_list = Vec::with_capacity(fields.named.len());
@@ -491,7 +513,7 @@ fn generate_conversion(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, 
         field_list.push(name.clone());
 
         let mut from_js_with = None;
-        let mut field_name = format!("{name}");
+        let mut field_name = rename.rename(format!("{name}"));
         if let Some(attr) = field
             .attrs
             .into_iter()
@@ -572,7 +594,12 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
         panic!("you can only derive TryFromJs for named-field structs")
     };
 
-    let props = generate_obj_properties(fields)
+    let renaming = match RenameScheme::from_named_attrs(&mut input.attrs.clone(), "rename_all") {
+        Ok(renaming) => renaming.unwrap_or(RenameScheme::None),
+        Err((span, msg)) => return syn::Error::new(span, msg).to_compile_error().into(),
+    };
+
+    let props = generate_obj_properties(fields, renaming)
         .map_err(|err| vec![err])
         .unwrap_or_else(to_compile_errors);
 
@@ -594,7 +621,10 @@ pub fn derive_try_into_js(input: TokenStream) -> TokenStream {
 }
 
 /// Generates property creation for object.
-fn generate_obj_properties(fields: FieldsNamed) -> Result<proc_macro2::TokenStream, syn::Error> {
+fn generate_obj_properties(
+    fields: FieldsNamed,
+    renaming: RenameScheme,
+) -> Result<proc_macro2::TokenStream, syn::Error> {
     use syn::spanned::Spanned;
 
     let mut prop_ctors = Vec::with_capacity(fields.named.len());
@@ -609,7 +639,7 @@ fn generate_obj_properties(fields: FieldsNamed) -> Result<proc_macro2::TokenStre
         })?;
 
         let mut into_js_with = None;
-        let mut prop_key = format!("{name}");
+        let mut prop_key = renaming.rename(format!("{name}"));
         let mut skip = false;
 
         for attr in field

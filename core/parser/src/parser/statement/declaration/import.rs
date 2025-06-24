@@ -27,7 +27,6 @@ use boa_ast::{
     Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses an import declaration.
 ///
@@ -76,8 +75,6 @@ where
     type Output = AstImportDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ImportDeclaration", "Parsing");
-
         cursor.expect((Keyword::Import, false), "import declaration", interner)?;
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
