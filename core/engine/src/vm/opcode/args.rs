@@ -805,83 +805,199 @@ impl Argument for (u32, VaryingOperand, VaryingOperand) {
 
 impl Argument for (VaryingOperand, ThinVec<VaryingOperand>) {
     fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length of all arguments in ThinVec
+        let variants: Vec<VaryingOperandVariant> = self.1.iter().map(|op| op.variant()).collect();
+        let has_u32 = variants
+            .iter()
+            .any(|variant| matches!(variant, VaryingOperandVariant::U32(_)));
+        let has_u16 = variants
+            .iter()
+            .any(|variant| matches!(variant, VaryingOperandVariant::U16(_)));
+
+        let fmt0 = match self.0.variant() {
+            VaryingOperandVariant::U8(_) => Format::U8,
+            VaryingOperandVariant::U16(_) => Format::U16,
+            VaryingOperandVariant::U32(_) => Format::U32,
+        };
+
+        let format = if has_u32 || fmt0 == Format::U32 {
+            Format::U32
+        } else if has_u16 || fmt0 == Format::U16 {
+            Format::U16
+        } else {
+            Format::U8
+        };
+
         let total_len = self.1.len();
-        write_u16(bytes, total_len as u16);
 
-        // Write first argument
-        write_u32(bytes, self.0.value);
-
-        // Write remaining arguments
-        for arg in self.1 {
-            write_u32(bytes, arg.value);
+        match format {
+            Format::U8 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u8(bytes, self.0.value as u8);
+                for arg in self.1 {
+                    write_u8(bytes, arg.value as u8);
+                }
+            }
+            Format::U16 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u16(bytes, self.0.value as u16);
+                for arg in self.1 {
+                    write_u16(bytes, arg.value as u16);
+                }
+            }
+            Format::U32 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u32(bytes, self.0.value);
+                for arg in self.1 {
+                    write_u32(bytes, arg.value);
+                }
+            }
         }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the length
+        let format = Format::from(bytes[pos]);
+        let pos = pos + 1;
         let (total_len, _) = read::<u16>(bytes, pos);
         let total_len = total_len as usize;
+        let pos = pos + 2;
 
-        assert!(
-            bytes.len() >= pos + 6 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read the first argument
-        let first = unsafe { read_unchecked::<u32>(bytes, pos + 2) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 6 + i * 4) };
-            rest.push(value.into());
+        match format {
+            Format::U8 => {
+                let fst = read::<u8>(bytes, pos).0;
+                let mut rest: ThinVec<VaryingOperand> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u8>(bytes, pos + 1 + i);
+                    rest.push(val.0.into())
+                }
+                ((fst.into(), rest), pos + 1 + total_len)
+            }
+            Format::U16 => {
+                let fst = read::<u16>(bytes, pos).0;
+                let mut rest: ThinVec<VaryingOperand> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u16>(bytes, pos + 2 + i * 2);
+                    rest.push(val.0.into())
+                }
+                ((fst.into(), rest), pos + 2 + total_len * 2)
+            }
+            Format::U32 => {
+                let fst = read::<u32>(bytes, pos).0;
+                let mut rest: ThinVec<VaryingOperand> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u32>(bytes, pos + 4 + i * 4);
+                    rest.push(val.0.into())
+                }
+                ((fst.into(), rest), pos + 4 + total_len * 4)
+            }
         }
-
-        ((first.into(), rest), pos + 6 + total_len * 4)
     }
 }
 
 impl Argument for (VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>) {
     fn encode(self, bytes: &mut Vec<u8>) {
-        // Write length of all arguments in ThinVec
+        let variants: Vec<VaryingOperandVariant> = self.2.iter().map(|op| op.variant()).collect();
+        let has_u32 = variants
+            .iter()
+            .any(|variant| matches!(variant, VaryingOperandVariant::U32(_)));
+        let has_u16 = variants
+            .iter()
+            .any(|variant| matches!(variant, VaryingOperandVariant::U16(_)));
+
+        let fmt0 = match self.0.variant() {
+            VaryingOperandVariant::U8(_) => Format::U8,
+            VaryingOperandVariant::U16(_) => Format::U16,
+            VaryingOperandVariant::U32(_) => Format::U32,
+        };
+
+        let fmt1 = match self.1.variant() {
+            VaryingOperandVariant::U8(_) => Format::U8,
+            VaryingOperandVariant::U16(_) => Format::U16,
+            VaryingOperandVariant::U32(_) => Format::U32,
+        };
+
+        let format = if has_u32 || fmt0 == Format::U32 || fmt1 == Format::U32 {
+            Format::U32
+        } else if has_u16 || fmt0 == Format::U16 || fmt1 == Format::U16 {
+            Format::U16
+        } else {
+            Format::U8
+        };
+
         let total_len = self.2.len();
-        write_u16(bytes, total_len as u16);
 
-        // Write first two arguments
-        write_u32(bytes, self.0.value);
-        write_u32(bytes, self.1.value);
-
-        // Write remaining arguments
-        for arg in self.2 {
-            write_u32(bytes, arg.value);
+        match format {
+            Format::U8 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u8(bytes, self.0.value as u8);
+                write_u8(bytes, self.1.value as u8);
+                for arg in self.2 {
+                    write_u8(bytes, arg.value as u8);
+                }
+            }
+            Format::U16 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u16(bytes, self.0.value as u16);
+                write_u16(bytes, self.1.value as u16);
+                for arg in self.2 {
+                    write_u16(bytes, arg.value as u16);
+                }
+            }
+            Format::U32 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u32(bytes, self.0.value);
+                write_u32(bytes, self.1.value);
+                for arg in self.2 {
+                    write_u32(bytes, arg.value);
+                }
+            }
         }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
-        // Read the length
+        let format = Format::from(bytes[pos]);
+        let pos = pos + 1;
         let (total_len, _) = read::<u16>(bytes, pos);
         let total_len = total_len as usize;
+        let pos = pos + 2;
 
-        assert!(
-            bytes.len() >= pos + 10 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read the first two arguments
-        let (first, second) = unsafe { read_unchecked::<(u32, u32)>(bytes, pos + 2) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 10 + i * 4) };
-            rest.push(value.into());
+        match format {
+            Format::U8 => {
+                let fst = read::<u8>(bytes, pos).0;
+                let snd = read::<u8>(bytes, pos + 1).0;
+                let mut rest: ThinVec<VaryingOperand> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u8>(bytes, pos + 2 + i);
+                    rest.push(val.0.into())
+                }
+                ((fst.into(), snd.into(), rest), pos + 2 + total_len)
+            }
+            Format::U16 => {
+                let fst = read::<u16>(bytes, pos).0;
+                let snd = read::<u16>(bytes, pos + 2).0;
+                let mut rest: ThinVec<VaryingOperand> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u16>(bytes, pos + 4 + i * 2);
+                    rest.push(val.0.into())
+                }
+                ((fst.into(), snd.into(), rest), pos + 4 + total_len * 2)
+            }
+            Format::U32 => {
+                let fst = read::<u32>(bytes, pos).0;
+                let snd = read::<u32>(bytes, pos + 4).0;
+                let mut rest: ThinVec<VaryingOperand> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u32>(bytes, pos + 8 + i * 4);
+                    rest.push(val.0.into())
+                }
+                ((fst.into(), snd.into(), rest), pos + 8 + total_len * 4)
+            }
         }
-
-        (
-            (first.into(), second.into(), rest),
-            pos + 10 + total_len * 4,
-        )
     }
 }
 
@@ -990,41 +1106,86 @@ impl Argument for (u32, ThinVec<u32>) {
 impl Argument for (u64, VaryingOperand, ThinVec<u32>) {
     fn encode(self, bytes: &mut Vec<u8>) {
         // Write length
+
+        let format = match self.1.variant() {
+            VaryingOperandVariant::U8(_) => Format::U8,
+            VaryingOperandVariant::U16(_) => Format::U16,
+            VaryingOperandVariant::U32(_) => Format::U32,
+        };
+
         let total_len = self.2.len();
-        write_u16(bytes, total_len as u16);
 
-        // Write arguments
-        write_u64(bytes, self.0);
-        write_u32(bytes, self.1.value);
-
-        // Write remaining arguments
-        for arg in &self.2 {
-            write_u32(bytes, *arg);
+        match format {
+            Format::U8 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u64(bytes, self.0);
+                write_u8(bytes, self.1.value as u8);
+                for arg in &self.2 {
+                    write_u32(bytes, *arg);
+                }
+            }
+            Format::U16 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u64(bytes, self.0);
+                write_u16(bytes, self.1.value as u16);
+                for arg in &self.2 {
+                    write_u32(bytes, *arg);
+                }
+            }
+            Format::U32 => {
+                write_format(bytes, format);
+                write_u16(bytes, total_len as u16);
+                write_u64(bytes, self.0);
+                write_u32(bytes, self.1.value);
+                for arg in &self.2 {
+                    write_u32(bytes, *arg);
+                }
+            }
         }
     }
 
     fn decode(bytes: &[u8], pos: usize) -> (Self, usize) {
         // Read the length
+        let format = Format::from(bytes[pos]);
+        let pos = pos + 1;
         let (total_len, _) = read::<u16>(bytes, pos);
         let total_len = total_len as usize;
+        let pos = pos + 2;
 
-        assert!(
-            bytes.len() >= pos + 14 + total_len * 4,
-            "buffer too small to read arguments"
-        );
-
-        // Read first two arguments
-        let first = unsafe { read_unchecked::<u64>(bytes, pos + 2) };
-        let second = unsafe { read_unchecked::<u32>(bytes, pos + 10) };
-
-        // Read remaining arguments
-        let mut rest = ThinVec::with_capacity(total_len);
-        for i in 0..total_len {
-            let value = unsafe { read_unchecked::<u32>(bytes, pos + 14 + i * 4) };
-            rest.push(value);
+        match format {
+            Format::U8 => {
+                let fst = read::<u64>(bytes, pos).0;
+                let snd = read::<u8>(bytes, pos + 8).0;
+                let mut rest: ThinVec<u32> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u32>(bytes, pos + 9 + i * 4).0;
+                    rest.push(val);
+                }
+                ((fst, snd.into(), rest), pos + 9 + total_len * 4)
+            }
+            Format::U16 => {
+                let fst = read::<u64>(bytes, pos).0;
+                let snd = read::<u16>(bytes, pos + 8).0;
+                let mut rest: ThinVec<u32> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u32>(bytes, pos + 10 + i * 4).0;
+                    rest.push(val);
+                }
+                ((fst, snd.into(), rest), pos + 10 + total_len * 4)
+            }
+            Format::U32 => {
+                let fst = read::<u64>(bytes, pos).0;
+                let snd = read::<u32>(bytes, pos + 8).0;
+                let mut rest: ThinVec<u32> = ThinVec::with_capacity(total_len);
+                for i in 0..total_len {
+                    let val = read::<u32>(bytes, pos + 12 + i * 4).0;
+                    rest.push(val);
+                }
+                ((fst, snd.into(), rest), pos + 12 + total_len * 4)
+            }
         }
-
-        ((first, second.into(), rest), pos + 14 + total_len * 4)
     }
 }
 
@@ -1684,8 +1845,9 @@ mod test {
     //
     // (u32, VaryingOperand)
     //
+
     #[test]
-    fn arg_u32_vop() {
+    fn arg_u32_vop_u8() {
         let arg = (u32::MAX, VaryingOperand::from(u8::MAX));
         let v = test_write_arg(arg.clone());
         assert_eq!(vec![0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], v);
@@ -1698,11 +1860,27 @@ mod test {
         test_read_arg::<(u32, VaryingOperand), _>([0xFF]);
     }
 
+    #[test]
+    fn arg_u32_vop_u16() {
+        let arg = (u32::MAX, VaryingOperand::from(u16::MAX));
+        let v = test_write_arg(arg.clone());
+        assert_eq!(vec![1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], v);
+        assert_eq!(test_read_arg::<(u32, VaryingOperand), _>(v), (arg, 7));
+    }
+
+    #[test]
+    fn arg_u32_vop_u32() {
+        let arg = (u32::MAX, VaryingOperand::from(u32::MAX));
+        let v = test_write_arg(arg.clone());
+        assert_eq!(vec![2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,0xFF,0xFF,0xFF], v);
+        assert_eq!(test_read_arg::<(u32, VaryingOperand), _>(v), (arg, 9));
+    }
+
     //
     // (u32, VaryingOperand, VaryingOperand)
     //
     #[test]
-    fn arg_u32_vop_vop() {
+    fn arg_u32_vop_u8_vop_u8() {
         let arg = (
             u32::MAX,
             VaryingOperand::from(u8::MAX),
@@ -1722,6 +1900,35 @@ mod test {
         test_read_arg::<(u32, VaryingOperand, VaryingOperand), _>([0xFF]);
     }
 
+    #[test]
+    fn arg_u32_vop_u8_vop_u16() {
+        let arg = (
+            u32::MAX,
+            VaryingOperand::from(u8::MAX),
+            VaryingOperand::from(u16::MAX),
+        );
+        let v = test_write_arg(arg.clone());
+        assert_eq!(vec![1, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF], v);
+        assert_eq!(
+            test_read_arg::<(u32, VaryingOperand, VaryingOperand), _>(v),
+            (arg, 9)
+        );
+    }
+
+    #[test]
+    fn arg_u32_vop_u8_vop_u32() {
+        let arg = (
+            u32::MAX,
+            VaryingOperand::from(u8::MAX),
+            VaryingOperand::from(u32::MAX),
+        );
+        let v = test_write_arg(arg.clone());
+        assert_eq!(vec![2, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,0x00,0x00,0x00,0xFF,0xFF,0xFF,0xFF], v);
+        assert_eq!(
+            test_read_arg::<(u32, VaryingOperand, VaryingOperand), _>(v),
+            (arg, 13)
+        );
+    }
     //
     // (VaryingOperand, ThinVec<VaryingOperand>)
     //
@@ -1731,12 +1938,12 @@ mod test {
         let arg = (VaryingOperand::from(u32::MAX), v1);
         let v = test_write_arg(arg.clone());
         assert_eq!(
-            vec![0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
+            vec![2, 0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
             v
         );
         assert_eq!(
             test_read_arg::<(VaryingOperand, ThinVec<VaryingOperand>), _>(v),
-            (arg, 10)
+            (arg, 11)
         );
     }
 
@@ -1760,15 +1967,14 @@ mod test {
         let v = test_write_arg(arg.clone());
         assert_eq!(
             vec![
-                0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+                2, 0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF
             ],
             v
         );
         assert_eq!(
-            test_read_arg::<(VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>), _>([
-                0x01, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            ]),
-            (arg, 14)
+            test_read_arg::<(VaryingOperand, VaryingOperand, ThinVec<VaryingOperand>), _>(v),
+            (arg, 15)
         );
     }
 
@@ -1869,17 +2075,14 @@ mod test {
         let v = test_write_arg(arg.clone());
         assert_eq!(
             vec![
-                1, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                0xFF, 0xFF, 0xFF
+                2, 1, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                0xFF, 0xFF, 0xFF, 0xFF
             ],
             v
         );
         assert_eq!(
-            test_read_arg::<(u64, VaryingOperand, ThinVec<u32>), _>([
-                1, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                0xFF, 0xFF, 0xFF,
-            ]),
-            (arg, 18)
+            test_read_arg::<(u64, VaryingOperand, ThinVec<u32>), _>(v),
+            (arg, 19)
         );
     }
 
