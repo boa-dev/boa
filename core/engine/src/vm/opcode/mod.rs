@@ -208,7 +208,7 @@ enum VaryingOperandVariant {
     U32(u32),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 /// A varying operand is a value that can be either a u8, u16 or u32.
 pub(crate) struct VaryingOperand {
     value: u32,
