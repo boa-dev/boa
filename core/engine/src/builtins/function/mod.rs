@@ -43,12 +43,12 @@ use boa_ast::{
         ContainsSymbol,
     },
     scope::BindingLocatorScope,
+    Position, Span, StatementList,
 };
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_macros::js_str;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use super::Proxy;
@@ -306,8 +306,6 @@ pub struct BuiltInFunctionObject;
 
 impl IntrinsicObject for BuiltInFunctionObject {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
             .name(js_string!("[Symbol.hasInstance]"))
             .length(1)
@@ -535,7 +533,7 @@ impl BuiltInFunctionObject {
         };
 
         let body = if body.is_empty() {
-            FunctionBody::default()
+            FunctionBody::new(StatementList::default(), Span::new((1, 1), (1, 1)))
         } else {
             // 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
             let mut body_parse = Vec::with_capacity(body.len());
@@ -627,7 +625,7 @@ impl BuiltInFunctionObject {
                         return Err(JsNativeError::syntax()
                             .with_message(format!(
                                 "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(name.sym())
+                                context.interner().resolve_expect(name)
                             ))
                             .into());
                     }
@@ -639,8 +637,16 @@ impl BuiltInFunctionObject {
 
         // TODO: create SourceText : "anonymous(" parameters \n ") {" body_parse "}"
 
-        let mut function =
-            boa_ast::function::FunctionExpression::new(None, parameters, body, None, false);
+        let function_span_start = Position::new(1, 1);
+        let function_span_end = body.span().end();
+        let mut function = boa_ast::function::FunctionExpression::new(
+            None,
+            parameters,
+            body,
+            None,
+            false,
+            Span::new(function_span_start, function_span_end),
+        );
         if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
             return Err(JsNativeError::syntax()
                 .with_message("failed to analyze function scope")

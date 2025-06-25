@@ -14,9 +14,10 @@ use crate::{
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        literal::{Literal as AstLiteral, TemplateElement, TemplateLiteral},
+        literal::{
+            Literal as AstLiteral, LiteralKind as AstLiteralKind, TemplateElement, TemplateLiteral,
+        },
         operator::Conditional,
-        Identifier,
     },
     Expression,
 };
@@ -24,19 +25,19 @@ use thin_vec::ThinVec;
 
 impl ByteCompiler<'_> {
     fn compile_literal(&mut self, lit: &AstLiteral, dst: &Register) {
-        match lit {
-            AstLiteral::String(v) => {
+        match lit.kind() {
+            AstLiteralKind::String(v) => {
                 self.emit_push_literal(Literal::String(v.to_js_string(self.interner())), dst);
             }
-            AstLiteral::Int(v) => self.emit_push_integer(*v, dst),
-            AstLiteral::Num(v) => self.emit_push_rational(*v, dst),
-            AstLiteral::BigInt(v) => {
+            AstLiteralKind::Int(v) => self.emit_push_integer(*v, dst),
+            AstLiteralKind::Num(v) => self.emit_push_rational(*v, dst),
+            AstLiteralKind::BigInt(v) => {
                 self.emit_push_literal(Literal::BigInt(v.clone().into()), dst);
             }
-            AstLiteral::Bool(true) => self.bytecode.emit_push_true(dst.variable()),
-            AstLiteral::Bool(false) => self.bytecode.emit_push_false(dst.variable()),
-            AstLiteral::Null => self.bytecode.emit_push_null(dst.variable()),
-            AstLiteral::Undefined => self.bytecode.emit_push_undefined(dst.variable()),
+            AstLiteralKind::Bool(true) => self.bytecode.emit_push_true(dst.variable()),
+            AstLiteralKind::Bool(false) => self.bytecode.emit_push_false(dst.variable()),
+            AstLiteralKind::Null => self.bytecode.emit_push_null(dst.variable()),
+            AstLiteralKind::Undefined => self.bytecode.emit_push_undefined(dst.variable()),
         }
     }
 
@@ -82,8 +83,8 @@ impl ByteCompiler<'_> {
         match expr {
             Expression::Literal(lit) => self.compile_literal(lit, dst),
             Expression::RegExpLiteral(regexp) => {
-                let pattern_index = self.get_or_insert_name(Identifier::new(regexp.pattern()));
-                let flags_index = self.get_or_insert_name(Identifier::new(regexp.flags()));
+                let pattern_index = self.get_or_insert_name(regexp.pattern());
+                let flags_index = self.get_or_insert_name(regexp.flags());
                 self.bytecode.emit_push_regexp(
                     dst.variable(),
                     pattern_index.into(),
@@ -120,7 +121,7 @@ impl ByteCompiler<'_> {
                 }
                 self.register_allocator.dealloc(value);
             }
-            Expression::This => self.access_get(Access::This, dst),
+            Expression::This(_this) => self.access_get(Access::This, dst),
             Expression::Spread(spread) => self.compile_expr(spread.target(), dst),
             Expression::FunctionExpression(function) => {
                 self.function_with_binding(function.into(), NodeKind::Expression, dst);
@@ -262,7 +263,12 @@ impl ByteCompiler<'_> {
                         self.compile_expr(access.target(), &this);
                         match access.field() {
                             PropertyAccessField::Const(ident) => {
-                                self.emit_get_property_by_name(&function, &this, &this, *ident);
+                                self.emit_get_property_by_name(
+                                    &function,
+                                    &this,
+                                    &this,
+                                    ident.sym(),
+                                );
                             }
                             PropertyAccessField::Expr(field) => {
                                 let key = self.register_allocator.alloc();
@@ -408,10 +414,10 @@ impl ByteCompiler<'_> {
                 self.compile_expr(import.argument(), dst);
                 self.bytecode.emit_import_call(dst.variable());
             }
-            Expression::NewTarget => {
+            Expression::NewTarget(_new_target) => {
                 self.bytecode.emit_new_target(dst.variable());
             }
-            Expression::ImportMeta => {
+            Expression::ImportMeta(_import_meta) => {
                 self.bytecode.emit_import_meta(dst.variable());
             }
             Expression::Optional(opt) => {

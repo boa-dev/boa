@@ -6,7 +6,6 @@ use crate::{
 };
 use boa_ast::PositionGroup;
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 use std::io::{self, ErrorKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -191,8 +190,6 @@ impl<R> Tokenizer<R> for TemplateLiteral {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("TemplateLiteral", "Lexing");
-
         let mut buf = Vec::new();
         loop {
             let ch = cursor.next_char()?.ok_or_else(|| {

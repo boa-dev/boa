@@ -198,23 +198,20 @@ impl ByteCompiler<'_> {
     fn compile_catch_finally_block(&mut self, block: &Block, use_expr: bool) {
         let mut b = block;
 
-        loop {
-            match b.statement_list().first() {
-                Some(StatementListItem::Statement(
-                    Statement::Break(_) | Statement::Continue(_),
-                )) => {
-                    let value = self.register_allocator.alloc();
-                    self.bytecode.emit_push_undefined(value.variable());
-                    self.bytecode.emit_set_accumulator(value.variable());
-                    self.register_allocator.dealloc(value);
-                    break;
-                }
-                Some(StatementListItem::Statement(Statement::Block(block))) => {
-                    b = block;
-                }
-                _ => {
-                    break;
-                }
+        while let Some(statement) = b.statement_list().first() {
+            match statement {
+                StatementListItem::Statement(statement) => match statement.as_ref() {
+                    Statement::Break(_) | Statement::Continue(_) => {
+                        let value = self.register_allocator.alloc();
+                        self.bytecode.emit_push_undefined(value.variable());
+                        self.bytecode.emit_set_accumulator(value.variable());
+                        self.register_allocator.dealloc(value);
+                        break;
+                    }
+                    Statement::Block(block) => b = block,
+                    _ => break,
+                },
+                StatementListItem::Declaration(_) => break,
             }
         }
 

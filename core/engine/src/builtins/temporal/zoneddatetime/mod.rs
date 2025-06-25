@@ -17,7 +17,6 @@ use crate::{
     JsSymbol, JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use cow_utils::CowUtils;
 use temporal_rs::{
     options::{
@@ -57,8 +56,6 @@ impl BuiltInObject for ZonedDateTime {
 
 impl IntrinsicObject for ZonedDateTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name(js_string!("get calendarId"))
             .build();
@@ -913,7 +910,7 @@ impl ZonedDateTime {
         let overflow =
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
 
-        let result = zdt.inner.with(
+        let result = zdt.inner.with_with_provider(
             partial,
             disambiguation,
             offset,
@@ -941,13 +938,9 @@ impl ZonedDateTime {
             .map(|v| to_temporal_time(v, None, context))
             .transpose()?;
 
-        let inner = if let Some(pt) = time {
-            zdt.inner
-                .with_plain_time_and_provider(pt, context.tz_provider())?
-        } else {
-            zdt.inner
-                .start_of_day_with_provider(context.tz_provider())?
-        };
+        let inner = zdt
+            .inner
+            .with_plain_time_and_provider(time, context.tz_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 

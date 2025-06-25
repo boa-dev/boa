@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
     options::{DecimalFormatterOptions, GroupingStrategy},
@@ -137,8 +136,6 @@ impl Service for NumberFormat {
 
 impl IntrinsicObject for NumberFormat {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_format = BuiltInBuilder::callable(realm, Self::get_format)
             .name(js_string!("get format"))
             .build();

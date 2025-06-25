@@ -13,7 +13,6 @@ rust-version.workspace = true
 
 [features]
 legacy-jsvalue = []
-profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
 either = ["dep:either"]
 
@@ -70,7 +69,6 @@ js = ["dep:web-time", "dep:getrandom"]
 tag_ptr.workspace = true
 boa_interner.workspace = true
 boa_gc = { workspace = true, features = ["thin-vec", "boa_string"] }
-boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true

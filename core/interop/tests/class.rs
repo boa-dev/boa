@@ -18,7 +18,6 @@ struct Animal {
 }
 
 #[boa_class]
-#[boa(rename = "camelCase")]
 impl Animal {
     #[boa(constructor)]
     #[allow(clippy::needless_pass_by_value)]
@@ -58,7 +57,7 @@ impl Animal {
 
     #[boa(setter)]
     #[boa(method)]
-    #[boa(name = "age")]
+    #[boa(rename = "age")]
     fn set_age(&mut self, age: i32) {
         self.age = age;
     }

@@ -66,7 +66,7 @@ impl ByteCompiler<'_> {
 
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &object, &object, *ident);
+                            self.emit_get_property_by_name(dst, &object, &object, ident.sym());
                             let value = self.register_allocator.alloc();
                             if increment {
                                 self.bytecode.emit_inc(value.variable(), dst.variable());
@@ -74,7 +74,7 @@ impl ByteCompiler<'_> {
                                 self.bytecode.emit_dec(value.variable(), dst.variable());
                             }
 
-                            self.emit_set_property_by_name(&value, &object, &object, *ident);
+                            self.emit_set_property_by_name(&value, &object, &object, ident.sym());
 
                             if !post {
                                 self.bytecode.emit_move(dst.variable(), value.variable());
@@ -156,7 +156,7 @@ impl ByteCompiler<'_> {
                         self.bytecode.emit_super(object.variable());
                         self.bytecode.emit_this(receiver.variable());
 
-                        self.emit_get_property_by_name(dst, &receiver, &object, *ident);
+                        self.emit_get_property_by_name(dst, &receiver, &object, ident.sym());
 
                         let value = self.register_allocator.alloc();
                         if increment {
@@ -165,7 +165,7 @@ impl ByteCompiler<'_> {
                             self.bytecode.emit_dec(value.variable(), dst.variable());
                         }
 
-                        self.emit_set_property_by_name(&value, &receiver, &object, *ident);
+                        self.emit_set_property_by_name(&value, &receiver, &object, ident.sym());
                         if !post {
                             self.bytecode.emit_move(dst.variable(), value.variable());
                         }

@@ -1,4 +1,8 @@
-use std::{cmp::Ordering, fmt, num::NonZeroU32};
+use std::{
+    cmp::Ordering,
+    fmt::{self, Debug},
+    num::NonZeroU32,
+};
 
 /// A position in the ECMAScript source code.
 ///
@@ -15,6 +19,14 @@ pub struct Position {
     column_number: NonZeroU32,
 }
 
+impl Default for Position {
+    /// Creates a new [`Position`] with line and column set to `1`.
+    #[inline]
+    fn default() -> Self {
+        Self::new(1, 1)
+    }
+}
+
 impl Position {
     /// Creates a new `Position` from Non-Zero values.
     ///
@@ -24,7 +36,7 @@ impl Position {
     #[inline]
     #[track_caller]
     #[must_use]
-    pub fn new(line_number: u32, column_number: u32) -> Self {
+    pub const fn new(line_number: u32, column_number: u32) -> Self {
         Self {
             line_number: NonZeroU32::new(line_number).expect("line number cannot be 0"),
             column_number: NonZeroU32::new(column_number).expect("column number cannot be 0"),
@@ -53,8 +65,34 @@ impl fmt::Display for Position {
 }
 
 impl From<PositionGroup> for Position {
+    #[inline]
     fn from(value: PositionGroup) -> Self {
         value.pos
+    }
+}
+
+impl From<(NonZeroU32, NonZeroU32)> for Position {
+    #[inline]
+    fn from(value: (NonZeroU32, NonZeroU32)) -> Self {
+        Position {
+            line_number: value.0,
+            column_number: value.1,
+        }
+    }
+}
+
+impl From<(u32, u32)> for Position {
+    #[inline]
+    #[track_caller]
+    fn from(value: (u32, u32)) -> Self {
+        Position::new(value.0, value.1)
+    }
+}
+
+#[cfg(feature = "arbitrary")]
+impl<'a> arbitrary::Arbitrary<'a> for Span {
+    fn arbitrary(_u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        Ok(Span::EMPTY)
     }
 }
 
@@ -95,13 +133,31 @@ impl fmt::Display for LinearPosition {
 /// Note that spans are of the form [start, end) i.e. that the start position is inclusive
 /// and the end position is exclusive.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Span {
     start: Position,
     end: Position,
 }
 
+impl Debug for Span {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Span(({}, {}), ({}, {}))",
+            self.start.line_number,
+            self.start.column_number,
+            self.end.line_number,
+            self.end.column_number,
+        )
+    }
+}
+
 impl Span {
+    pub(crate) const EMPTY: Span = Span {
+        start: Position::new(1, 1),
+        end: Position::new(1, 1),
+    };
+
     /// Creates a new `Span`.
     ///
     /// # Panics
@@ -110,7 +166,14 @@ impl Span {
     #[inline]
     #[track_caller]
     #[must_use]
-    pub fn new(start: Position, end: Position) -> Self {
+    pub fn new<T, U>(start: T, end: U) -> Self
+    where
+        T: Into<Position>,
+        U: Into<Position>,
+    {
+        let start = start.into();
+        let end = end.into();
+
         assert!(start <= end, "a span cannot start after its end");
 
         Self { start, end }

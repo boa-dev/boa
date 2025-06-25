@@ -24,7 +24,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
 use temporal_rs::options::{ToStringRoundingOptions, Unit};
 use temporal_rs::{
@@ -46,8 +45,6 @@ impl BuiltInObject for Instant {
 
 impl IntrinsicObject for Instant {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_millis = BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds)
             .name(js_string!("get epochMilliseconds"))
             .build();

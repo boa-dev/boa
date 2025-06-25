@@ -9,7 +9,7 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes, Declaration,
 };
-use crate::{LinearSpan, LinearSpanIgnoreEq};
+use crate::{LinearSpan, LinearSpanIgnoreEq, Span};
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};
 
@@ -162,6 +162,8 @@ pub struct AsyncGeneratorExpression {
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
     linear_span: LinearSpanIgnoreEq,
+
+    span: Span,
 }
 
 impl AsyncGeneratorExpression {
@@ -174,6 +176,7 @@ impl AsyncGeneratorExpression {
         body: FunctionBody,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -186,6 +189,7 @@ impl AsyncGeneratorExpression {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
+            span,
         }
     }
 
@@ -243,6 +247,13 @@ impl AsyncGeneratorExpression {
     #[must_use]
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
+    }
+
+    /// Get the [`Span`] of the [`AsyncGeneratorExpression`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

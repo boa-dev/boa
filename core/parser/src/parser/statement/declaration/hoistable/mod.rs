@@ -35,7 +35,6 @@ use boa_ast::{
     Declaration, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 pub(in crate::parser) use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
@@ -79,7 +78,6 @@ where
     type Output = Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("HoistableDeclaration", "Parsing");
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
@@ -161,7 +159,7 @@ fn parse_callable_declaration<R: ReadChar, C: CallableDeclaration>(
                     c.error_context(),
                 ));
             }
-            Sym::DEFAULT.into()
+            Identifier::new(Sym::DEFAULT, name_span)
         }
         _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
             .parse(cursor, interner)?,
@@ -176,12 +174,13 @@ fn parse_callable_declaration<R: ReadChar, C: CallableDeclaration>(
         .parse(cursor, interner)?;
 
     cursor.expect(Punctuator::CloseParen, c.error_context(), interner)?;
-    cursor.expect(Punctuator::OpenBlock, c.error_context(), interner)?;
 
-    let body =
-        FunctionBody::new(c.body_allow_yield(), c.body_allow_await()).parse(cursor, interner)?;
-
-    cursor.expect(Punctuator::CloseBlock, c.error_context(), interner)?;
+    let body = FunctionBody::new(
+        c.body_allow_yield(),
+        c.body_allow_await(),
+        c.error_context(),
+    )
+    .parse(cursor, interner)?;
 
     // If the source text matched by FormalParameters is strict mode code,
     // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.

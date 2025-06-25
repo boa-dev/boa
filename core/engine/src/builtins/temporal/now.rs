@@ -9,7 +9,6 @@ use crate::{
     string::StaticJsStrings,
     Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_profiler::Profiler;
 use temporal_rs::{
     now::{Now as NowInner, NowBuilder},
     unix_time::EpochNanoseconds,
@@ -28,8 +27,6 @@ pub struct Now;
 impl IntrinsicObject for Now {
     /// Initializes the `Temporal.Now` object.
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         // is an ordinary object.
         // has a [[Prototype]] internal slot whose value is %Object.prototype%.
         // is not a function object.

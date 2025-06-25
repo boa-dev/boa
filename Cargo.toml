@@ -41,7 +41,6 @@ boa_interner = { version = "~0.20.0", path = "core/interner" }
 boa_interop = { version = "~0.20.0", path = "core/interop" }
 boa_macros = { version = "~0.20.0", path = "core/macros" }
 boa_parser = { version = "~0.20.0", path = "core/parser" }
-boa_profiler = { version = "~0.20.0", path = "core/profiler" }
 boa_runtime = { version = "~0.20.0", path = "core/runtime" }
 boa_string = { version = "~0.20.0", path = "core/string" }
 
@@ -51,7 +50,7 @@ tag_ptr = { path = "utils/tag_ptr" }
 # Shared deps
 arbitrary = "1"
 bitflags = "2.9.1"
-clap = "4.5.39"
+clap = "4.5.40"
 colored = "3.0.0"
 cow-utils = "0.1.3"
 fast-float2 = "0.2.3"
@@ -60,11 +59,11 @@ indexmap = { version = "2.9.0", default-features = false }
 indoc = "2.0.6"
 itoa = "1.0.15"
 jemallocator = "0.5.4"
-lz4_flex = "0.11.3"
+lz4_flex = "0.11.5"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
 once_cell = { version = "1.21.3", default-features = false }
-phf = { version = "0.11.2", default-features = false }
+phf = { version = "0.12.1", default-features = false }
 pollster = "0.4.0"
 regex = "1.11.1"
 regress = { version = "0.10.3", features = ["utf16"] }
@@ -101,7 +100,7 @@ isahc = "1.7.2"
 rustyline = { version = "15.0.0", default-features = false }
 dhat = "0.3.3"
 quote = "1.0.40"
-syn = { version = "2.0.101", default-features = false }
+syn = { version = "2.0.104", default-features = false }
 proc-macro2 = "1.0"
 synstructure = "0.13"
 measureme = "12.0.1"
@@ -112,16 +111,16 @@ ryu-js = "1.0.2"
 tap = "1.0.1"
 thiserror = { version = "2.0.12", default-features = false }
 dashmap = "6.1.0"
-num_enum = "0.7.3"
+num_enum = "0.7.4"
 itertools = { version = "0.14.0", default-features = false }
 portable-atomic = "1.11.0"
 bytemuck = { version = "1.23.1", default-features = false }
 arrayvec = "0.7.6"
 intrusive-collections = "0.9.7"
-cfg-if = "1.0.0"
+cfg-if = "1.0.1"
 either = "1.15.0"
 sys-locale = "0.3.2"
-temporal_rs = { version = "0.0.8", default-features = false, features = [
+temporal_rs = { version = "0.0.9", default-features = false, features = [
     "tzdb",
 ] }
 web-time = "1.1.0"
@@ -147,7 +146,7 @@ icu_list = { version = "~2.0.0", default-features = false }
 icu_casemap = { version = "~2.0.0", default-features = false }
 icu_segmenter = { version = "~2.0.0", default-features = false }
 icu_provider_export = { version = "~2.0.0", default-features = false }
-icu_provider_source = { version = "~2.0.0", default-features = false }
+icu_provider_source = { version = "~2.0.1", default-features = false }
 icu_provider_adapters = { version = "~2.0.0", default-features = false }
 icu_provider_blob = { version = "~2.0.0", default-features = false }
 icu_properties = { version = "~2.0.0", default-features = true }

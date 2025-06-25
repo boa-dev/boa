@@ -22,7 +22,6 @@ use crate::{
     symbol::JsSymbol,
     Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 use num_traits::Zero;
 
 use super::{
@@ -44,8 +43,6 @@ pub(crate) struct Map;
 
 impl IntrinsicObject for Map {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
             .name(js_string!("get [Symbol.species]"))
             .build();
