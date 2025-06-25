@@ -12,6 +12,7 @@
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
 use crate::value::JsVariant;
+use crate::vm::source_info::NativeSourceInfo;
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{BuiltInObject, array},
@@ -1144,6 +1145,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
 fn proxy_exotic_call(
     obj: &JsObject,
     argument_count: usize,
+    _native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
@@ -1192,6 +1194,7 @@ fn proxy_exotic_call(
 fn proxy_exotic_construct(
     obj: &JsObject,
     argument_count: usize,
+    _native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].

@@ -17,6 +17,7 @@ use crate::{
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
+    vm::source_info::NativeSourceInfo,
 };
 
 pub(crate) mod immutable_prototype;
@@ -273,6 +274,7 @@ impl JsObject {
             func: self.vtable().__call__,
             object: self.clone(),
             argument_count,
+            source_info: NativeSourceInfo::caller(),
         }
     }
 
@@ -292,6 +294,7 @@ impl JsObject {
             func: self.vtable().__construct__,
             object: self.clone(),
             argument_count,
+            source_info: NativeSourceInfo::caller(),
         }
     }
 }
@@ -370,10 +373,18 @@ pub struct InternalObjectMethods {
         fn(&JsObject, &PropertyKey, &mut InternalMethodContext<'_>) -> JsResult<bool>,
     pub(crate) __own_property_keys__:
         fn(&JsObject, context: &mut Context) -> JsResult<Vec<PropertyKey>>,
-    pub(crate) __call__:
-        fn(&JsObject, argument_count: usize, context: &mut Context) -> JsResult<CallValue>,
-    pub(crate) __construct__:
-        fn(&JsObject, argument_count: usize, context: &mut Context) -> JsResult<CallValue>,
+    pub(crate) __call__: fn(
+        &JsObject,
+        argument_count: usize,
+        native_source_info: NativeSourceInfo,
+        context: &mut Context,
+    ) -> JsResult<CallValue>,
+    pub(crate) __construct__: fn(
+        &JsObject,
+        argument_count: usize,
+        native_source_info: NativeSourceInfo,
+        context: &mut Context,
+    ) -> JsResult<CallValue>,
 }
 
 /// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
@@ -388,9 +399,15 @@ pub(crate) enum CallValue {
 
     /// Further processing is needed.
     Pending {
-        func: fn(&JsObject, argument_count: usize, &mut Context) -> JsResult<CallValue>,
+        func: fn(
+            &JsObject,
+            argument_count: usize,
+            native_source_info: NativeSourceInfo,
+            &mut Context,
+        ) -> JsResult<CallValue>,
         object: JsObject,
         argument_count: usize,
+        source_info: NativeSourceInfo,
     },
 
     /// The value has been computed and is the first element on the stack.
@@ -399,14 +416,16 @@ pub(crate) enum CallValue {
 
 impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
         while let Self::Pending {
             func,
             object,
             argument_count,
+            source_info,
         } = self
         {
-            self = func(&object, argument_count, context)?;
+            self = func(&object, argument_count, source_info, context)?;
         }
 
         match self {
@@ -1094,6 +1113,7 @@ where
 fn non_existant_call(
     _obj: &JsObject,
     _argument_count: usize,
+    _native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
@@ -1105,6 +1125,7 @@ fn non_existant_call(
 fn non_existant_construct(
     _obj: &JsObject,
     _argument_count: usize,
+    _native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()

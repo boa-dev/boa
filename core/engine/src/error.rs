@@ -670,8 +670,22 @@ impl fmt::Display for JsError {
             for entry in shadow_stack.iter().rev() {
                 write!(f, "\n    at ")?;
                 match entry {
-                    ShadowEntry::Native { function_name } => {
-                        write!(f, "{} (native)", function_name.to_std_string_escaped())?;
+                    ShadowEntry::Native {
+                        function_name,
+                        source_info,
+                    } => {
+                        if let Some(loc) = source_info.as_location() {
+                            write!(
+                                f,
+                                "{} (native at {}:{}:{})",
+                                function_name.to_std_string_escaped(),
+                                loc.file(),
+                                loc.line(),
+                                loc.column()
+                            )?;
+                        } else {
+                            write!(f, "{} (native)", function_name.to_std_string_escaped())?;
+                        }
                     }
                     ShadowEntry::Bytecode { pc, source_info } => {
                         let has_function_name = !source_info.function_name().is_empty();

@@ -10,6 +10,7 @@ use boa_string::JsString;
 
 use crate::job::NativeAsyncJob;
 use crate::value::JsVariant;
+use crate::vm::source_info::NativeSourceInfo;
 use crate::{
     Context, JsNativeError, JsObject, JsResult, JsValue,
     builtins::{OrdinaryObject, function::ConstructorKind},
@@ -412,6 +413,7 @@ impl NativeFunction {
 pub(crate) fn native_function_call(
     obj: &JsObject,
     argument_count: usize,
+    native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     let args = context
@@ -439,7 +441,7 @@ pub(crate) fn native_function_call(
     context
         .vm
         .shadow_stack
-        .push_native(context.vm.frame.pc, name);
+        .push_native(context.vm.frame.pc, name, native_source_info);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -472,6 +474,7 @@ pub(crate) fn native_function_call(
 fn native_function_construct(
     obj: &JsObject,
     argument_count: usize,
+    native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     // We technically don't need this since native functions don't push any new frames to the
@@ -492,7 +495,7 @@ fn native_function_construct(
     context
         .vm
         .shadow_stack
-        .push_native(context.vm.frame.pc, name);
+        .push_native(context.vm.frame.pc, name, native_source_info);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 

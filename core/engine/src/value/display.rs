@@ -234,13 +234,20 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
 
                 if let Some(position) = &data.position {
                     match position {
-                        ShadowEntry::Native { function_name } => {
+                        ShadowEntry::Native {
+                            function_name,
+                            source_info,
+                        } => {
                             write!(
                                 &mut result,
-                                " (native at {})",
+                                " (native {}",
                                 function_name.to_std_string_escaped()
                             )
                             .expect("should not fail");
+                            if let Some(location) = source_info.as_location() {
+                                write!(&mut result, " at {location}").expect("should not fail");
+                            }
+                            result.push(')');
                         }
                         ShadowEntry::Bytecode { pc, source_info } => {
                             write!(&mut result, " ({}", source_info.map().path())
