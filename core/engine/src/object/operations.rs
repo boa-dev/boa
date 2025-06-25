@@ -1,3 +1,5 @@
+use std::panic::Location;
+
 use super::internal_methods::InternalMethodContext;
 use crate::value::JsVariant;
 use crate::{
@@ -403,9 +405,11 @@ impl JsObject {
         let argument_count = args.len();
         context.vm.stack.calling_convention_push_arguments(args);
 
+        let loc = Some(Location::caller());
+
         // 3. Return ? F.[[Call]](V, argumentsList).
         let frame_index = context.vm.frames.len();
-        if self.__call__(argument_count).resolve(context)? {
+        if self.__call__(argument_count).resolve(loc, context)? {
             return Ok(context.vm.stack.pop());
         }
 
@@ -455,7 +459,10 @@ impl JsObject {
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
         let frame_index = context.vm.frames.len();
 
-        if self.__construct__(argument_count).resolve(context)? {
+        if self
+            .__construct__(argument_count)
+            .resolve(Some(Location::caller()), context)?
+        {
             let result = context.vm.stack.pop();
             return Ok(result
                 .as_object()

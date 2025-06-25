@@ -4,6 +4,7 @@
 //! from native Rust functions and closures.
 
 use std::cell::RefCell;
+use std::panic::Location;
 
 use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_string::JsString;
@@ -414,6 +415,7 @@ impl NativeFunction {
 pub(crate) fn native_function_call(
     obj: &JsObject,
     argument_count: usize,
+    loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     let args = context
@@ -441,7 +443,7 @@ pub(crate) fn native_function_call(
     context
         .vm
         .shadow_stack
-        .push_native(context.vm.frame.pc, name);
+        .push_native(context.vm.frame.pc, name, loc);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -474,6 +476,7 @@ pub(crate) fn native_function_call(
 fn native_function_construct(
     obj: &JsObject,
     argument_count: usize,
+    loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     // We technically don't need this since native functions don't push any new frames to the
@@ -494,7 +497,7 @@ fn native_function_construct(
     context
         .vm
         .shadow_stack
-        .push_native(context.vm.frame.pc, name);
+        .push_native(context.vm.frame.pc, name, loc);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 

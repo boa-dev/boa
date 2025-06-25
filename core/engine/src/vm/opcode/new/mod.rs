@@ -23,7 +23,8 @@ impl New {
 
         context.vm.stack.push(cons.clone()); // Push new.target
 
-        cons.__construct__(argument_count.into()).resolve(context)?;
+        cons.__construct__(argument_count.into())
+            .resolve(None, context)?;
         Ok(())
     }
 }
@@ -70,7 +71,7 @@ impl NewSpread {
             .calling_convention_push_arguments(&arguments);
         context.vm.stack.push(cons.clone()); // Push new.target
 
-        cons.__construct__(argument_count).resolve(context)?;
+        cons.__construct__(argument_count).resolve(None, context)?;
         Ok(())
     }
 }

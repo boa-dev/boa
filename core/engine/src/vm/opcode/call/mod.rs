@@ -76,7 +76,9 @@ impl CallEval {
             return Ok(());
         }
 
-        object.__call__(argument_count.into()).resolve(context)?;
+        object
+            .__call__(argument_count.into())
+            .resolve(None, context)?;
         Ok(())
     }
 }
@@ -157,7 +159,7 @@ impl CallEvalSpread {
             .stack
             .calling_convention_push_arguments(&arguments);
 
-        object.__call__(argument_count).resolve(context)?;
+        object.__call__(argument_count).resolve(None, context)?;
         Ok(())
     }
 }
@@ -189,7 +191,9 @@ impl Call {
                 .into());
         };
 
-        object.__call__(argument_count.into()).resolve(context)?;
+        object
+            .__call__(argument_count.into())
+            .resolve(None, context)?;
 
         Ok(())
     }
@@ -235,7 +239,7 @@ impl CallSpread {
                 .into());
         };
 
-        object.__call__(argument_count).resolve(context)?;
+        object.__call__(argument_count).resolve(None, context)?;
         Ok(())
     }
 }

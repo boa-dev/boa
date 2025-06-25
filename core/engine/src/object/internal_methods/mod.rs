@@ -5,7 +5,10 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
-use std::ops::{Deref, DerefMut};
+use std::{
+    ops::{Deref, DerefMut},
+    panic::Location,
+};
 
 use super::{
     shape::slot::{Slot, SlotAttributes},
@@ -370,10 +373,18 @@ pub struct InternalObjectMethods {
         fn(&JsObject, &PropertyKey, &mut InternalMethodContext<'_>) -> JsResult<bool>,
     pub(crate) __own_property_keys__:
         fn(&JsObject, context: &mut Context) -> JsResult<Vec<PropertyKey>>,
-    pub(crate) __call__:
-        fn(&JsObject, argument_count: usize, context: &mut Context) -> JsResult<CallValue>,
-    pub(crate) __construct__:
-        fn(&JsObject, argument_count: usize, context: &mut Context) -> JsResult<CallValue>,
+    pub(crate) __call__: fn(
+        &JsObject,
+        argument_count: usize,
+        loc: Option<&'static Location<'static>>,
+        context: &mut Context,
+    ) -> JsResult<CallValue>,
+    pub(crate) __construct__: fn(
+        &JsObject,
+        argument_count: usize,
+        loc: Option<&'static Location<'static>>,
+        context: &mut Context,
+    ) -> JsResult<CallValue>,
 }
 
 /// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
@@ -388,7 +399,12 @@ pub(crate) enum CallValue {
 
     /// Further processing is needed.
     Pending {
-        func: fn(&JsObject, argument_count: usize, &mut Context) -> JsResult<CallValue>,
+        func: fn(
+            &JsObject,
+            argument_count: usize,
+            loc: Option<&'static Location<'static>>,
+            &mut Context,
+        ) -> JsResult<CallValue>,
         object: JsObject,
         argument_count: usize,
     },
@@ -399,14 +415,18 @@ pub(crate) enum CallValue {
 
 impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
-    pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn resolve(
+        mut self,
+        loc: Option<&'static Location<'static>>,
+        context: &mut Context,
+    ) -> JsResult<bool> {
         while let Self::Pending {
             func,
             object,
             argument_count,
         } = self
         {
-            self = func(&object, argument_count, context)?;
+            self = func(&object, argument_count, loc, context)?;
         }
 
         match self {
@@ -1094,6 +1114,7 @@ where
 fn non_existant_call(
     _obj: &JsObject,
     _argument_count: usize,
+    _loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
@@ -1105,6 +1126,7 @@ fn non_existant_call(
 fn non_existant_construct(
     _obj: &JsObject,
     _argument_count: usize,
+    _loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()

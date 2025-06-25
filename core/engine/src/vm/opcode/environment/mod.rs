@@ -188,7 +188,7 @@ impl SuperCall {
 
         super_constructor
             .__construct__(argument_count.into())
-            .resolve(context)?;
+            .resolve(None, context)?;
         Ok(())
     }
 }
@@ -252,7 +252,7 @@ impl SuperCallSpread {
 
         super_constructor
             .__construct__(arguments.len())
-            .resolve(context)?;
+            .resolve(None, context)?;
         Ok(())
     }
 }
@@ -305,7 +305,7 @@ impl SuperCallDerived {
 
         super_constructor
             .__construct__(context.vm.frame().argument_count as usize)
-            .resolve(context)?;
+            .resolve(None, context)?;
         Ok(())
     }
 }
