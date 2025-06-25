@@ -2,9 +2,8 @@ use std::str::FromStr;
 
 use icu_collator::{
     options::{CaseLevel, Strength},
-    preferences::{CollationCaseFirst, CollationType},
+    preferences::CollationCaseFirst,
 };
-use icu_locale::extensions::unicode::Value;
 
 use crate::{
     builtins::options::{OptionType, ParsableOptionType},
@@ -96,19 +95,5 @@ impl OptionType for CollationCaseFirst {
                 .with_message("provided string was not `upper`, `lower` or `false`")
                 .into()),
         }
-    }
-}
-
-impl OptionType for CollationType {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
-        let s = value.to_string(context)?.to_std_string_escaped();
-        Value::try_from_str(&s)
-            .ok()
-            .and_then(|v| CollationType::try_from(&v).ok())
-            .ok_or_else(|| {
-                JsNativeError::range()
-                    .with_message(format!("provided collation type `{s}` is invalid"))
-                    .into()
-            })
     }
 }
