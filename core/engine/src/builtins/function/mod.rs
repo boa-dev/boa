@@ -11,6 +11,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-function-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
+use std::panic::Location;
+
 use crate::{
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
@@ -979,6 +981,7 @@ pub(crate) fn set_function_name(
 pub(crate) fn function_call(
     function_object: &JsObject,
     argument_count: usize,
+    loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
@@ -1010,6 +1013,8 @@ pub(crate) fn function_call(
     let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp);
+
+    context.vm.shadow_stack.patch_last_native(loc);
 
     context.vm.push_frame(frame);
     let this = context.vm.stack.get_this(context.vm.frame());
@@ -1067,6 +1072,7 @@ pub(crate) fn function_call(
 fn function_construct(
     this_function_object: &JsObject,
     argument_count: usize,
+    _loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;

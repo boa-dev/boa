@@ -10,6 +10,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-proxy-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
+use std::panic::Location;
+
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
 use crate::value::JsVariant;
 use crate::{
@@ -1144,6 +1146,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
 fn proxy_exotic_call(
     obj: &JsObject,
     argument_count: usize,
+    _loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
@@ -1192,6 +1195,7 @@ fn proxy_exotic_call(
 fn proxy_exotic_construct(
     obj: &JsObject,
     argument_count: usize,
+    _loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].

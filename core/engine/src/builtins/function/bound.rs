@@ -1,3 +1,5 @@
+use std::panic::Location;
+
 use boa_gc::{Finalize, Trace};
 
 use crate::{
@@ -103,6 +105,7 @@ impl BoundFunction {
 fn bound_function_exotic_call(
     obj: &JsObject,
     argument_count: usize,
+    _loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     let bound_function = obj
@@ -146,6 +149,7 @@ fn bound_function_exotic_call(
 fn bound_function_exotic_construct(
     function_object: &JsObject,
     argument_count: usize,
+    _loc: Option<&'static Location<'static>>,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     let new_target = context.vm.stack.pop();
