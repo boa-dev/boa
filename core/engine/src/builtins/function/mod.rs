@@ -34,7 +34,7 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock, source_info::NativeSourceInfo},
 };
 use boa_ast::{
     Position, Span, Spanned, StatementList,
@@ -978,6 +978,7 @@ pub(crate) fn set_function_name(
 pub(crate) fn function_call(
     function_object: &JsObject,
     argument_count: usize,
+    native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
@@ -1009,6 +1010,12 @@ pub(crate) fn function_call(
     let frame = CallFrame::new(code.clone(), script_or_module, environments, realm)
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp);
+
+    // TODO: Move in to push_frame
+    context
+        .vm
+        .shadow_stack
+        .patch_last_native(native_source_info);
 
     context.vm.push_frame(frame);
     let this = context.vm.stack.get_this(context.vm.frame());
@@ -1066,6 +1073,7 @@ pub(crate) fn function_call(
 fn function_construct(
     this_function_object: &JsObject,
     argument_count: usize,
+    _native_source_info: NativeSourceInfo,
     context: &mut Context,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;

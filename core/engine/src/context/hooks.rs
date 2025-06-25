@@ -76,6 +76,7 @@ pub trait HostHooks {
     /// - It must perform and return the result of `Call(jobCallback.[[Callback]], V, argumentsList)`.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostcalljobcallback
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn call_job_callback(
         &self,
         job: JobCallback,
