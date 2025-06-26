@@ -7,6 +7,7 @@
 use crate::{
     builtins::promise::{PromiseCapability, ResolvingFunctions},
     environments::EnvironmentStack,
+    native_function::AsyncCallState,
     object::JsFunction,
     realm::Realm,
     script::Script,
@@ -819,7 +820,15 @@ impl Context {
 
             if runtime_budget == 0 {
                 runtime_budget = budget;
-                yield_now().await;
+                match &mut self.async_call {
+                    AsyncCallState::None | AsyncCallState::Finished(_) => {
+                        yield_now().await;
+                    }
+                    AsyncCallState::Calling { f } => {
+                        let result = f.await;
+                        self.async_call = AsyncCallState::Finished(result);
+                    }
+                }
             }
         }
 
@@ -846,6 +855,7 @@ impl Context {
                 ControlFlow::Continue(_) => {}
                 ControlFlow::Break(value) => return value,
             }
+            debug_assert!(matches!(self.async_call, AsyncCallState::None));
         }
 
         CompletionRecord::Throw(JsError::from_native(JsNativeError::error()))

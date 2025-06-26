@@ -197,8 +197,7 @@ impl Call {
             .__call__(argument_count.into())
             .async_resolve(context)?
         {
-            ResolvedCallValue::Ready => Ok(OpStatus::Finished),
-            ResolvedCallValue::Complete => Ok(OpStatus::Finished),
+            ResolvedCallValue::Ready | ResolvedCallValue::Complete => Ok(OpStatus::Finished),
             ResolvedCallValue::Pending => {
                 //println!("Pending call");
                 Ok(OpStatus::Pending)
