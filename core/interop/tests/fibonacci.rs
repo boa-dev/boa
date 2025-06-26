@@ -80,18 +80,16 @@ fn fibonacci_test() {
     let fibonacci_throw = fibonacci_throw
         .into_js_function_copied(context)
         .to_js_function(context.realm());
-    assert_eq!(
-        fibonacci_js
-            .call(
-                context,
-                (
-                    10,
-                    fibonacci_throw.clone(),
-                    fibonacci_js.as_js_function().clone()
-                )
+    assert!(fibonacci_js
+        .call(
+            context,
+            (
+                10,
+                fibonacci_throw.clone(),
+                fibonacci_js.as_js_function().clone()
             )
-            .unwrap_err()
-            .to_string(),
-        "\"a is too small\""
-    );
+        )
+        .unwrap_err()
+        .to_string()
+        .contains("\"a is too small\""),);
 }

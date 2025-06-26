@@ -19,8 +19,10 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+    vm::source_map::SourcePath,
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
+use boa_ast::Position;
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
@@ -45,22 +47,13 @@ pub(crate) use self::uri::UriError;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-/// A built-in `Error` object, per the [ECMAScript spec][spec].
-///
-/// This is used internally to convert between [`JsObject`] and
-/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
-/// objects. However, the recommended way to create them is to construct a
-/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
-/// which will assign its prototype, properties and kind automatically.
-///
-/// For a description of every error kind and its usage, see
-/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+/// A tag of built-in `Error` object, [ECMAScript spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
 #[non_exhaustive]
-pub enum Error {
+pub enum ErrorKind {
     /// The `AggregateError` object type.
     ///
     /// More information:
@@ -126,6 +119,62 @@ pub enum Error {
     Uri,
 }
 
+/// A built-in `Error` object, per the [ECMAScript spec][spec].
+///
+/// This is used internally to convert between [`JsObject`] and
+/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
+/// objects. However, the recommended way to create them is to construct a
+/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
+/// which will assign its prototype, properties and kind automatically.
+///
+/// For a description of every error kind and its usage, see
+/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-error-objects
+#[derive(Debug, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
+pub struct Error {
+    pub(crate) tag: ErrorKind,
+    #[unsafe_ignore_trace]
+    pub(crate) position: Option<(SourcePath, Position)>,
+}
+
+impl Error {
+    /// Create a new [`Error`].
+    #[inline]
+    #[must_use]
+    pub fn new(tag: ErrorKind) -> Self {
+        Self {
+            tag,
+            position: None,
+        }
+    }
+
+    /// Get the position from the last called bytecode function.
+    pub(crate) fn from_last_frame(tag: ErrorKind, context: &Context) -> Self {
+        // NOTE: pc point to the next opcode, so we offset by 1.
+        let pc = context.vm.frame.pc.saturating_sub(1);
+        let position = context
+            .vm
+            .frame
+            .code_block()
+            .source_map
+            .find(pc)
+            .map(|position| {
+                (
+                    context
+                        .vm
+                        .frame
+                        .code_block()
+                        .source_map
+                        .source_path()
+                        .clone(),
+                    position,
+                )
+            });
+        Self { tag, position }
+    }
+}
+
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
@@ -181,7 +230,7 @@ impl BuiltInConstructor for Error {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Error,
+            Error::from_last_frame(ErrorKind::Error, context),
         );
 
         // 3. If message is not undefined, then
@@ -296,7 +345,7 @@ impl Error {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .is_some_and(|o| o.is::<Self>())
+            .is_some_and(|o| o.is::<Error>())
             .into())
     }
 }

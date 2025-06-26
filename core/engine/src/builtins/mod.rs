@@ -37,6 +37,7 @@ pub mod weak_set;
 mod builder;
 
 use builder::BuiltInBuilder;
+use error::Error;
 
 #[cfg(feature = "annex-b")]
 pub mod escape;
@@ -59,8 +60,7 @@ pub(crate) use self::{
     dataview::DataView,
     date::Date,
     error::{
-        AggregateError, Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError,
-        UriError,
+        AggregateError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError,
     },
     eval::Eval,
     function::BuiltInFunctionObject,
