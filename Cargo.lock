@@ -543,6 +543,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "boa_interop",
+ "either",
  "indoc",
  "rustc-hash 2.1.1",
  "textwrap",

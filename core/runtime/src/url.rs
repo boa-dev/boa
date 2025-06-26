@@ -14,6 +14,7 @@
 #[cfg(test)]
 mod tests;
 
+use boa_engine::module::Referrer::Realm;
 use boa_engine::value::Convert;
 use boa_engine::{
     js_error, js_string, Context, Finalize, JsData, JsResult, JsString, JsValue, Trace,
@@ -31,7 +32,7 @@ impl Url {
     ///
     /// # Errors
     /// This will error if the context or realm cannot register the class.
-    pub fn register(context: &mut Context) -> JsResult<()> {
+    pub fn register(realm: Option<Realm>, context: &mut Context) -> JsResult<()> {
         context.register_global_class::<Self>()?;
         Ok(())
     }
