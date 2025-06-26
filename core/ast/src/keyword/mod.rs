@@ -555,12 +555,41 @@ impl Keyword {
     pub const fn is_reserved_keyword(self) -> bool {
         matches!(
             self,
-            Self::Await | Self::Break | Self::Case | Self::Catch | Self::Class | Self::Const
-            | Self::Continue | Self::Debugger | Self::Default | Self::Delete | Self::Do | Self::Else
-            | Self::Enum | Self::Export | Self::Extends | Self::Finally | Self::For | Self::Function
-            | Self::If | Self::Import | Self::In | Self::InstanceOf | Self::New | Self::Return
-            | Self::Super | Self::Switch | Self::This | Self::Throw | Self::Try | Self::TypeOf
-            | Self::Var | Self::Void | Self::While | Self::With | Self::Yield
+            Self::Await
+                | Self::Break
+                | Self::Case
+                | Self::Catch
+                | Self::Class
+                | Self::Const
+                | Self::Continue
+                | Self::Debugger
+                | Self::Default
+                | Self::Delete
+                | Self::Do
+                | Self::Else
+                | Self::Enum
+                | Self::Export
+                | Self::Extends
+                | Self::Finally
+                | Self::For
+                | Self::Function
+                | Self::If
+                | Self::Import
+                | Self::In
+                | Self::InstanceOf
+                | Self::New
+                | Self::Return
+                | Self::Super
+                | Self::Switch
+                | Self::This
+                | Self::Throw
+                | Self::Try
+                | Self::TypeOf
+                | Self::Var
+                | Self::Void
+                | Self::While
+                | Self::With
+                | Self::Yield
         )
     }
 }
