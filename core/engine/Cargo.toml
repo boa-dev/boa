@@ -12,7 +12,14 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-legacy-jsvalue = []
+# Replace the NaN-boxing implementation of `JsValueInner` with an
+# enum-based implementation. This implementation is less performant
+# but compatible with more platforms.
+# If you encounter the "assertion left == right failed: Pointer is
+# not 4-bits aligned or over 51-bits." error, try this feature.
+# For more details, see https://github.com/boa-dev/boa/issues/4275
+# Disabled by default.
+jsvalue-enum = []
 deser = ["boa_interner/serde", "boa_ast/serde"]
 either = ["dep:either"]
 

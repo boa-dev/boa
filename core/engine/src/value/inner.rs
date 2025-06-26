@@ -1,10 +1,12 @@
 //! Module implementing the operations for the inner value of a `[super::JsValue]`.
-#[cfg(not(feature = "legacy-jsvalue"))]
-mod nan_boxed;
-#[cfg(not(feature = "legacy-jsvalue"))]
-pub(crate) use nan_boxed::NanBoxedValue as InnerValue;
+use cfg_if::cfg_if;
 
-#[cfg(feature = "legacy-jsvalue")]
-mod legacy;
-#[cfg(feature = "legacy-jsvalue")]
-pub(crate) use legacy::EnumBasedValue as InnerValue;
+cfg_if!(
+    if #[cfg(feature = "jsvalue-enum")] {
+        mod legacy;
+        pub(crate) use legacy::EnumBasedValue as InnerValue;
+    } else {
+        mod nan_boxed;
+        pub(crate) use nan_boxed::NanBoxedValue as InnerValue;
+    }
+);
