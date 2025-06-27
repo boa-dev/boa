@@ -6,7 +6,7 @@
 use super::HttpRequest;
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{js_error, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace};
-use boa_interop::js_class;
+use boa_interop::boa_macros::boa_class;
 use either::Either;
 use std::collections::BTreeMap;
 use std::mem;
@@ -102,7 +102,7 @@ impl RequestInit {
 /// The `Request` interface of the [Fetch API][mdn] represents a resource request.
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
-#[derive(Debug, Clone, JsData, Trace, Finalize)]
+#[derive(Clone, Debug, JsData, Trace, Finalize)]
 pub struct JsRequest {
     #[unsafe_ignore_trace]
     inner: HttpRequest<Option<Vec<u8>>>,
@@ -157,24 +157,30 @@ impl JsRequest {
     }
 }
 
-js_class! {
-    class JsRequest as "Request" {
-        constructor(
-            input: Either<JsString, JsObject>,
-            options: Option<RequestInit>
-        ) {
-            let input = match input {
-                Either::Left(i) => Either::Left(i),
-                Either::Right(r) => {
-                    if let Ok(request) = r.clone().downcast::<JsRequest>() {
-                        // TODO: why do we need to clone? We can just drop the `JsObject`.
-                        Either::Right(request.borrow().data().clone())
-                    } else {
-                        return Err(js_error!(TypeError: "invalid input argument"));
-                    }
+#[boa_class(rename = "Request")]
+#[boa(rename_all = "camelCase")]
+impl JsRequest {
+    /// # Errors
+    /// Will return an error if the URL or any underlying error occured in the
+    /// context.
+    #[boa(constructor)]
+    pub fn constructor(
+        input: Either<JsString, JsObject>,
+        options: Option<RequestInit>,
+    ) -> JsResult<Self> {
+        // Need to use a match as `Either::map_right` does not have an equivalent
+        // `Either::map_right_ok`.
+        let input = match input {
+            Either::Right(r) => {
+                if let Ok(request) = r.clone().downcast::<JsRequest>() {
+                    // TODO: why do we need to clone? We can just drop the `JsObject`.
+                    Either::Right(request.borrow().data().clone())
+                } else {
+                    return Err(js_error!(TypeError: "invalid input argument"));
                 }
-            };
-            JsRequest::create_from_js(input, options)
-        }
+            }
+            Either::Left(i) => Either::Left(i),
+        };
+        JsRequest::create_from_js(input, options)
     }
 }

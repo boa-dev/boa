@@ -12,13 +12,15 @@ pub mod tests;
 
 use crate::fetch::headers::JsHeaders;
 use crate::fetch::request::{JsRequest, RequestInit};
+use crate::fetch::response::JsResponse;
+use boa_engine::class::{Class, ClassBuilder};
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::property::Attribute;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    js_error, js_string, Context, JsData, JsError, JsObject, JsResult, JsString, NativeObject,
+    js_error, js_string, Context, JsError, JsObject, JsResult, JsString, NativeObject,
 };
-use boa_gc::{Finalize, Gc, Trace};
+use boa_gc::Gc;
 use boa_interop::IntoJsFunctionCopied;
 use either::Either;
 use http::{Request as HttpRequest, Request, Response as HttpResponse};
@@ -27,6 +29,8 @@ pub mod headers;
 pub mod request;
 pub mod response;
 
+pub mod fetchers;
+
 /// A trait for backend implementation of an HTTP fetcher.
 // TODO: consider implementing an async version of this.
 pub trait Fetcher: NativeObject + Sized {
@@ -34,26 +38,12 @@ pub trait Fetcher: NativeObject + Sized {
     ///
     /// # Errors
     /// Any errors returned by the HTTP implementation must conform to
-    /// [`boa_engine::JsError`].
+    /// [`JsError`].
     fn fetch_blocking(
         &self,
-        request: &HttpRequest<Vec<u8>>,
+        request: HttpRequest<Option<Vec<u8>>>,
         context: &mut Context,
-    ) -> JsResult<HttpResponse<Vec<u8>>>;
-}
-
-/// An invalid implementation of `Fetcher`. This will panic if used.
-#[derive(Copy, Clone, Trace, JsData)]
-pub(crate) struct ErrorFetcher;
-
-impl Fetcher for ErrorFetcher {
-    fn fetch_blocking(
-        &self,
-        _request: &HttpRequest<Vec<u8>>,
-        _context: &mut Context,
-    ) -> JsResult<HttpResponse<Vec<u8>>> {
-        Err(js_error!(ReferenceError: "Invalid Fetcher used in fetch API."))
-    }
+    ) -> JsResult<HttpResponse<Option<Vec<u8>>>>;
 }
 
 /// The `fetch` function.
@@ -77,7 +67,7 @@ pub fn fetch<T: Fetcher>(
         .or_else(|| context.realm().host_defined().get::<Gc<T>>().cloned())
     else {
         return Err(
-            js_error!(Error: "implementation of fetch requires a fetcher registered in the context"),
+            js_error!(Error: "Implementation of fetch requires a fetcher registered in the context"),
         );
     };
 
@@ -93,13 +83,13 @@ pub fn fetch<T: Fetcher>(
         Either::Right(request) => {
             // This can be a [`JsRequest`] object.
             let Ok(request) = request.downcast::<JsRequest>() else {
-                return Err(js_error!(TypeError: "resource must be a URL or Request object"));
+                return Err(js_error!(TypeError: "Resource must be a URL or Request object"));
             };
             let Ok(request_ref) = request.try_borrow() else {
                 return Err(js_error!(TypeError: "Request object is already in use"));
             };
 
-            request_ref.data().inner().clone().map(|_| Some(Vec::new()))
+            request_ref.data().inner().clone()
         }
     };
 
@@ -108,36 +98,53 @@ pub fn fetch<T: Fetcher>(
     } else {
         request
     };
+    let url = JsString::from(request.uri().to_string());
 
-    let request = request.map(Option::unwrap_or_default);
-    let response = fetcher.fetch_blocking(&request, context)?;
+    let response = fetcher.fetch_blocking(request, context)?;
 
-    eprintln!("Response: {response:?}");
-    todo!()
+    let result = Class::from_data(JsResponse::new(url, response), context)?;
+    Ok(JsPromise::resolve(result, context))
 }
 
-/// Register the `fetch` function in the context, as well as ALL supporting classes.
+/// Register the `fetch` function in the realm, as well as ALL supporting classes.
+/// Pass `None` as the realm to register globally.
 ///
 /// # Errors
 /// If any of the classes fail to register, an error is returned.
 pub fn register<F: Fetcher>(
     fetcher: F,
-    realm: Option<&Realm>,
+    realm: Option<Realm>,
     context: &mut Context,
 ) -> JsResult<()> {
-    context.register_global_class::<JsHeaders>()?;
-    context.register_global_class::<JsRequest>()?;
-
-    let fetch_fn = fetch::<F>
-        .into_js_function_copied(context)
-        .to_js_function(realm.unwrap_or_else(|| context.realm()));
-
     if let Some(realm) = realm {
         realm.host_defined_mut().insert(Gc::new(fetcher));
+
+        let mut class_builder = ClassBuilder::new::<JsHeaders>(context);
+        JsHeaders::init(&mut class_builder)?;
+        let class = class_builder.build();
+        realm.register_class::<JsHeaders>(class);
+
+        let mut class_builder = ClassBuilder::new::<JsRequest>(context);
+        JsRequest::init(&mut class_builder)?;
+        let class = class_builder.build();
+        realm.register_class::<JsRequest>(class);
+
+        let mut class_builder = ClassBuilder::new::<JsResponse>(context);
+        JsResponse::init(&mut class_builder)?;
+        let class = class_builder.build();
+        realm.register_class::<JsResponse>(class);
     } else {
+        context.register_global_class::<JsHeaders>()?;
+        context.register_global_class::<JsRequest>()?;
+        context.register_global_class::<JsResponse>()?;
+
+        let fetch_fn = fetch::<F>
+            .into_js_function_copied(context)
+            .to_js_function(&realm.unwrap_or_else(|| context.realm().clone()));
+
         context.insert_data(Gc::new(fetcher));
+        context.register_global_property(js_string!("fetch"), fetch_fn, Attribute::all())?;
     }
-    context.register_global_property(js_string!("fetch"), fetch_fn, Attribute::all())?;
 
     Ok(())
 }

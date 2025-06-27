@@ -1,6 +1,6 @@
 use boa_engine::object::Object;
 use boa_engine::value::TryFromJs;
-use boa_engine::{Context, JsNativeError, JsResult, JsValue, NativeObject};
+use boa_engine::{Context, JsNativeError, JsObject, JsResult, JsValue, NativeObject};
 use boa_gc::{GcRef, GcRefMut};
 use std::ops::Deref;
 
@@ -236,10 +236,16 @@ impl<T: TryFromJs> Deref for JsThis<T> {
 /// [`JsThis`] capture instead.
 #[derive(Debug, Clone)]
 pub struct JsClass<T: NativeObject> {
-    inner: boa_engine::JsObject<T>,
+    inner: JsObject<T>,
 }
 
 impl<T: NativeObject> JsClass<T> {
+    /// Returns the inner object directly.
+    #[must_use]
+    pub fn inner(&self) -> JsObject<T> {
+        self.inner.clone()
+    }
+
     /// Borrow a reference to the class instance of type `T`.
     ///
     /// # Panics

@@ -59,13 +59,14 @@ pub use console::{Console, ConsoleState, Logger};
 
 mod text;
 
-use crate::fetch::ErrorFetcher;
 #[doc(inline)]
 pub use text::{TextDecoder, TextEncoder};
 
 pub mod fetch;
 pub mod interval;
 pub mod url;
+
+use crate::fetch::fetchers::ErrorFetcher;
 
 /// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
 #[derive(Debug)]
@@ -128,11 +129,11 @@ pub fn register(
     TextEncoder::register(ctx)?;
 
     #[cfg(feature = "url")]
-    url::Url::register(ctx)?;
+    url::Url::register(options.realm.clone(), ctx)?;
 
     #[cfg(feature = "fetch")]
     if let Some(fetcher) = options.fetcher {
-        fetch::register(fetcher, ctx.realm())?;
+        fetch::register(fetcher, options.realm.clone(), ctx)?;
     }
 
     interval::register(ctx)?;

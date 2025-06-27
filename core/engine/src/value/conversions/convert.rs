@@ -52,6 +52,12 @@ impl<T: TryFromJs> From<T> for Convert<T> {
     }
 }
 
+impl<T: TryFromJs> AsRef<T> for Convert<T> {
+    fn as_ref(&self) -> &T {
+        &self.0
+    }
+}
+
 macro_rules! decl_convert_to_int {
     ($($ty:ty),*) => {
         $(

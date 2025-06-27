@@ -28,7 +28,7 @@ color-eyre.workspace = true
 cow-utils.workspace = true
 
 [features]
-default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl_bundled"]
+default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl_bundled", "boa_runtime/all"]
 dhat = ["dep:dhat"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]

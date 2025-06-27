@@ -1,8 +1,8 @@
 #![cfg(test)]
 
 use crate::fetch::request::JsRequest;
+use crate::fetch::response::JsResponse;
 use crate::test::{run_test_actions, TestAction};
-use crate::{register_fetch, Fetcher};
 use boa_engine::{js_error, js_str, js_string, Context, Finalize, JsData, JsResult, Trace};
 use either::Either;
 use http::{Request, Response, Uri};
@@ -17,24 +17,24 @@ use std::collections::HashMap;
 #[derive(Default, Debug, Trace, Finalize, JsData)]
 pub struct TestFetcher {
     #[unsafe_ignore_trace]
-    requests_received: RefCell<Vec<Request<Vec<u8>>>>,
+    requests_received: RefCell<Vec<Request<Option<Vec<u8>>>>>,
     #[unsafe_ignore_trace]
-    request_mapper: HashMap<Uri, Response<Vec<u8>>>,
+    request_mapper: HashMap<Uri, Response<Option<Vec<u8>>>>,
 }
 
 impl TestFetcher {
     /// Add a response mapping for a URL.
-    pub fn add_response(&mut self, url: Uri, response: Response<Vec<u8>>) {
+    pub fn add_response(&mut self, url: Uri, response: Response<Option<Vec<u8>>>) {
         self.request_mapper.insert(url, response);
     }
 }
 
-impl Fetcher for TestFetcher {
+impl crate::fetch::Fetcher for TestFetcher {
     fn fetch_blocking(
         &self,
-        request: &Request<Vec<u8>>,
+        request: Request<Option<Vec<u8>>>,
         context: &mut Context,
-    ) -> JsResult<Response<Vec<u8>>> {
+    ) -> JsResult<Response<Option<Vec<u8>>>> {
         self.requests_received.borrow_mut().push(request.clone());
         let url = request.uri();
         self.request_mapper
@@ -51,9 +51,9 @@ fn request_constructor() {
             let mut fetcher = TestFetcher::default();
             fetcher.add_response(
                 Uri::from_static("http://example.com"),
-                Response::new("Hello World".as_bytes().to_vec()),
+                Response::new(Some("Hello World".as_bytes().to_vec())),
             );
-            register_fetch(fetcher, None, ctx).expect("failed to register fetch");
+            crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
         }),
         TestAction::run(
             r#"
@@ -65,7 +65,11 @@ fn request_constructor() {
             let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
             let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
 
-            eprintln!("Response: {response:?}");
+            let js = response.as_downcast_ref::<JsResponse>().unwrap();
+            assert_eq!(
+                js.inner().borrow().body().as_ref().map(Vec::as_slice),
+                Some("Hello World".as_bytes())
+            );
         }),
         TestAction::inspect_context(|_ctx| {
             let request =

@@ -207,14 +207,16 @@ impl Realm {
         self.inner.template_map.borrow().get(&site).cloned()
     }
 
-    pub(crate) fn register_class<C: Class>(&self, spec: StandardConstructor) {
+    /// Register a class `C` in this realm.
+    pub fn register_class<C: Class>(&self, spec: StandardConstructor) {
         self.inner
             .host_classes
             .borrow_mut()
             .insert(TypeId::of::<C>(), spec);
     }
 
-    pub(crate) fn unregister_class<C: Class>(&self) -> Option<StandardConstructor> {
+    /// Unregister a class `C` in this realm.
+    pub fn unregister_class<C: Class>(&self) -> Option<StandardConstructor> {
         self.inner
             .host_classes
             .borrow_mut()
