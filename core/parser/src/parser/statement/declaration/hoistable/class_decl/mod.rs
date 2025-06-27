@@ -89,7 +89,15 @@ where
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
-            TokenKind::Keyword((k, _)) if !k.is_reserved_keyword() => {
+            TokenKind::Keyword((k, _)) => {
+                let sym = k.to_sym();
+                if sym.is_reserved_identifier() {
+                    return Err(Error::general(
+                        format!("reserved keyword `{k}` cannot be used as a class name"),
+                        span.start(),
+                    ));
+                }
+
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
