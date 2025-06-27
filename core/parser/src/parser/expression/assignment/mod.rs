@@ -143,6 +143,13 @@ where
                         .into());
                 }
             }
+            TokenKind::RegularExpressionLiteral(body, flags) => {
+                let node =
+                    RegExpLiteral::new(*body, *flags, cursor.peek(0, interner).or_abrupt()?.span())
+                        .into();
+                cursor.advance(interner);
+                return Ok(node);
+            }
             _ => {}
         }
 
