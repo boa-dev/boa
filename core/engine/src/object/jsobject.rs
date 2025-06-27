@@ -285,7 +285,7 @@ impl JsObject {
     #[must_use]
     #[track_caller]
     pub fn is_array(&self) -> bool {
-        std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
+        std::ptr::eq(self.vtable(), &raw const ARRAY_EXOTIC_INTERNAL_METHODS)
     }
 
     /// The inner implementation of `deep_strict_equals`, which keeps a list of values we've
