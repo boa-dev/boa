@@ -1,3 +1,4 @@
+//! Module containing various implementations of the [`super::Fetcher`] trait.
 use crate::fetch::Fetcher;
 use boa_engine::{js_error, Context, Finalize, JsData, JsError, JsResult, Trace};
 
@@ -56,11 +57,7 @@ impl Fetcher for ReqwestFetcher {
         }
 
         builder
-            .body(if bytes.len() == 0 {
-                None
-            } else {
-                Some(bytes.to_vec())
-            })
+            .body(bytes.is_empty().then(|| bytes.to_vec()))
             .map_err(JsError::from_rust)
     }
 }

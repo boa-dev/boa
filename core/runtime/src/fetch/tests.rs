@@ -1,4 +1,4 @@
-#![cfg(test)]
+//! Test types and methods to help with testing the Fetch API.
 
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;

@@ -1,3 +1,4 @@
+//! Module containing the `Response` JavaScript class and its helpers.
 use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{TryFromJs, TryIntoJs};
