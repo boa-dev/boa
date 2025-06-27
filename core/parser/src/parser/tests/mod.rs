@@ -23,7 +23,7 @@ use boa_ast::{
         FunctionBody, FunctionDeclaration,
     },
     scope::Scope,
-    statement::{If, Return},
+    statement::{Block, If, Return, With},
     Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Span,
     Statement, StatementList, StatementListItem,
 };
@@ -732,14 +732,17 @@ fn hashbang_use_strict_no_with() {
 }
 
 #[test]
-#[ignore]
 fn hashbang_use_strict_with_with_statement() {
     check_script_parser(
-        r#"#!\"use strict"
-
-        with({}) {}
-        "#,
-        vec![],
+        indoc! {r#"
+            #!\"use strict"
+            with({}) {}
+        "#},
+        vec![Statement::With(With::new(
+            ObjectLiteral::new([], Span::new((2, 6), (2, 8))).into(),
+            Block::from(StatementList::new([], LinearPosition::new(27), false)).into(),
+        ))
+        .into()],
         &mut Interner::default(),
     );
 }

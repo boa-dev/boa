@@ -960,11 +960,11 @@ fn string_codepoint_with_no_braces() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "Need to assert if this test is valid"]
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
-    let mut lexer = Lexer::from(&br"17.4\u{2764}"[..]);
+    let mut lexer = Lexer::from("17.4\u{2764}".as_bytes());
     let interner = &mut Interner::default();
 
     assert!(

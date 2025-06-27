@@ -225,7 +225,7 @@ impl Realm {
     }
 
     pub(crate) fn addr(&self) -> *const () {
-        let ptr: *const _ = &*self.inner;
+        let ptr: *const _ = &raw const *self.inner;
         ptr.cast()
     }
 }
