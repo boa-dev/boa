@@ -216,6 +216,7 @@ impl Realm {
     }
 
     /// Unregister a class `C` in this realm.
+    #[must_use]
     pub fn unregister_class<C: Class>(&self) -> Option<StandardConstructor> {
         self.inner
             .host_classes

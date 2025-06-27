@@ -96,6 +96,13 @@ impl RegisterOptions<ErrorFetcher, console::DefaultLogger> {
 
 impl<F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
     /// Set the realm to which we should register the APIs.
+    #[must_use]
+    pub fn with_realm(self, realm: Realm) -> Self {
+        Self {
+            realm: Some(realm),
+            ..self
+        }
+    }
 
     /// Set the logger for the console object.
     pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptions<F, L2> {

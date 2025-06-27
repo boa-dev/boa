@@ -259,6 +259,7 @@ impl<'ctx> ClassBuilder<'ctx> {
     }
 
     /// Create the [`StandardConstructor`] from this class builder.
+    #[must_use]
     pub fn build(self) -> StandardConstructor {
         self.builder.build()
     }
