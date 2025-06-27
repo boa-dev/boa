@@ -60,8 +60,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .locales_for_coverage_levels([CoverageLevel::Modern])?
         .into_iter()
         .map(DataLocaleFamily::with_descendants)
-        // Some test262 tests assume the en-US locale does not fallback.
-        .chain([DataLocaleFamily::single(locale!("en-US").into())]);
+        .chain([
+            // test262 assumes the en-US locale does not fallback.
+            // Required by https://github.com/tc39/test262/blob/a073f479f80b336256b7fc4e04700c827293e2fe/test/intl402/ListFormat/prototype/resolvedOptions/type.js
+            DataLocaleFamily::single(locale!("en-US").into()),
+            // test262 uses the Manx locale.
+            // Required by https://github.com/tc39/test262/blob/a073f479f80b336256b7fc4e04700c827293e2fe/test/intl402/PluralRules/prototype/resolvedOptions/plural-categories-order.js
+            DataLocaleFamily::with_descendants(locale!("gv").into()),
+        ]);
 
     let driver = ExportDriver::new(
         locales,

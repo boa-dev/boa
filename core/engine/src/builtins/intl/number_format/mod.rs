@@ -70,7 +70,7 @@ impl NumberFormat {
     ///
     /// [full]: https://tc39.es/ecma402/#sec-formatnumber
     /// [parts]: https://tc39.es/ecma402/#sec-formatnumbertoparts
-    fn format<'a>(&'a self, value: &'a mut Decimal) -> FormattedDecimal<'a> {
+    pub(crate) fn format<'a>(&'a self, value: &'a mut Decimal) -> FormattedDecimal<'a> {
         // TODO: Missing support from ICU4X for Percent/Currency/Unit formatting.
         // TODO: Missing support from ICU4X for Scientific/Engineering/Compact notation.
 
@@ -212,6 +212,71 @@ impl BuiltInConstructor for NumberFormat {
             context,
         )?;
 
+        let number_format = Self::new(locales, options, context)?;
+
+        let number_format = JsObject::from_proto_and_data_with_shared_shape(
+            context.root_shape(),
+            prototype,
+            number_format,
+        );
+
+        // 31. Return unused.
+
+        // 4. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
+        //     a. Let this be the this value.
+        //     b. Return ? ChainNumberFormat(numberFormat, NewTarget, this).
+        // ChainNumberFormat ( numberFormat, newTarget, this )
+        // <https://tc39.es/ecma402/#sec-chainnumberformat>
+
+        let this = context.vm.stack.get_this(context.vm.frame());
+        let Some(this_obj) = this.as_object() else {
+            return Ok(number_format.into());
+        };
+
+        let constructor = context
+            .intrinsics()
+            .constructors()
+            .number_format()
+            .constructor();
+
+        // 1. If newTarget is undefined and ? OrdinaryHasInstance(%Intl.NumberFormat%, this) is true, then
+        if new_target.is_undefined()
+            && JsValue::ordinary_has_instance(&constructor.into(), &this, context)?
+        {
+            let fallback_symbol = context
+                .intrinsics()
+                .objects()
+                .intl()
+                .borrow()
+                .data
+                .fallback_symbol();
+
+            // a. Perform ? DefinePropertyOrThrow(this, %Intl%.[[FallbackSymbol]], PropertyDescriptor{ [[Value]]: numberFormat, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
+            this_obj.define_property_or_throw(
+                fallback_symbol,
+                PropertyDescriptor::builder()
+                    .value(number_format)
+                    .writable(false)
+                    .enumerable(false)
+                    .configurable(false),
+                context,
+            )?;
+            // b. Return this.
+            Ok(this)
+        } else {
+            // 2. Return numberFormat.
+            Ok(number_format.into())
+        }
+    }
+}
+
+impl NumberFormat {
+    /// Creates a new instance of `NumberFormat`.
+    pub(crate) fn new(
+        locales: &JsValue,
+        options: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<Self> {
         // 3. Perform ? InitializeNumberFormat(numberFormat, locales, options).
 
         // `InitializeNumberFormat ( numberFormat, locales, options )`
@@ -384,73 +449,19 @@ impl BuiltInConstructor for NumberFormat {
         )
         .map_err(|err| JsNativeError::typ().with_message(err.to_string()))?;
 
-        let number_format = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            NumberFormat {
-                locale,
-                numbering_system: intl_options.service_options.numbering_system,
-                formatter,
-                unit_options,
-                digit_options,
-                notation,
-                use_grouping,
-                sign_display,
-                bound_format: None,
-            },
-        );
-
-        // 31. Return unused.
-
-        // 4. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
-        //     a. Let this be the this value.
-        //     b. Return ? ChainNumberFormat(numberFormat, NewTarget, this).
-        // ChainNumberFormat ( numberFormat, newTarget, this )
-        // <https://tc39.es/ecma402/#sec-chainnumberformat>
-
-        let this = context.vm.stack.get_this(context.vm.frame());
-        let Some(this_obj) = this.as_object() else {
-            return Ok(number_format.into());
-        };
-
-        let constructor = context
-            .intrinsics()
-            .constructors()
-            .number_format()
-            .constructor();
-
-        // 1. If newTarget is undefined and ? OrdinaryHasInstance(%Intl.NumberFormat%, this) is true, then
-        if new_target.is_undefined()
-            && JsValue::ordinary_has_instance(&constructor.into(), &this, context)?
-        {
-            let fallback_symbol = context
-                .intrinsics()
-                .objects()
-                .intl()
-                .borrow()
-                .data
-                .fallback_symbol();
-
-            // a. Perform ? DefinePropertyOrThrow(this, %Intl%.[[FallbackSymbol]], PropertyDescriptor{ [[Value]]: numberFormat, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
-            this_obj.define_property_or_throw(
-                fallback_symbol,
-                PropertyDescriptor::builder()
-                    .value(number_format)
-                    .writable(false)
-                    .enumerable(false)
-                    .configurable(false),
-                context,
-            )?;
-            // b. Return this.
-            Ok(this)
-        } else {
-            // 2. Return numberFormat.
-            Ok(number_format.into())
-        }
+        Ok(NumberFormat {
+            locale,
+            numbering_system: intl_options.service_options.numbering_system,
+            formatter,
+            unit_options,
+            digit_options,
+            notation,
+            use_grouping,
+            sign_display,
+            bound_format: None,
+        })
     }
-}
 
-impl NumberFormat {
     /// [`Intl.NumberFormat.supportedLocalesOf ( locales [ , options ] )`][spec].
     ///
     /// Returns an array containing those of the provided locales that are supported in number format

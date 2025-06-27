@@ -1995,12 +1995,11 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
-        let mapped_arguments_binding_indices = self
-            .emitted_mapped_arguments_object_opcode
-            .then(|| {
-                MappedArguments::binding_indices(&self.params, &self.parameter_scope, self.interner)
-            })
-            .unwrap_or_default();
+        let mapped_arguments_binding_indices = if self.emitted_mapped_arguments_object_opcode {
+            MappedArguments::binding_indices(&self.params, &self.parameter_scope, self.interner)
+        } else {
+            ThinVec::default()
+        };
 
         let register_count = self.register_allocator.finish();
 

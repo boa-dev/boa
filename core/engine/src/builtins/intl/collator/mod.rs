@@ -7,8 +7,8 @@ use icu_collator::{
 };
 
 use icu_locale::{
-    extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
-    Locale,
+    extensions::unicode, extensions_unicode_key as key, preferences::PreferenceKey,
+    subtags::subtag, Locale,
 };
 use icu_provider::DataMarkerAttributes;
 
@@ -47,7 +47,7 @@ pub(crate) use options::*;
 #[allow(clippy::struct_field_names)]
 pub(crate) struct Collator {
     locale: Locale,
-    collation: Value,
+    collation: Option<CollationType>,
     numeric: bool,
     case_first: Option<CollationCaseFirst>,
     usage: Usage,
@@ -69,88 +69,97 @@ impl Collator {
     }
 }
 
-#[derive(Debug, Clone)]
-pub(super) struct CollatorLocaleOptions {
-    collation: Option<Value>,
-    numeric: Option<bool>,
-    case_first: Option<CollationCaseFirst>,
-}
-
 impl Service for Collator {
     type LangMarker = CollationMetadataV1;
 
-    type LocaleOptions = CollatorLocaleOptions;
+    type LocaleOptions = CollatorPreferences;
 
     fn resolve(locale: &mut Locale, options: &mut Self::LocaleOptions, provider: &IntlProvider) {
-        let collation = options
-            .collation
-            .take()
-            .filter(|co| {
-                CollationType::try_from(co).is_ok_and(|co| {
-                    let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
-                    validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
-                })
-            })
-            .or_else(|| {
-                locale
-                    .extensions
-                    .unicode
-                    .keywords
-                    .get(&key!("co"))
-                    .cloned()
-                    .filter(|co| {
-                        CollationType::try_from(co).is_ok_and(|co| {
-                            let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
-                            validate_extension::<Self::LangMarker>(
-                                locale.id.clone(),
-                                attr,
-                                provider,
-                            )
-                        })
-                    })
-            })
-            .filter(|co| co != &value!("search"));
-
-        let numeric =
-            options.numeric.or_else(
-                || match locale.extensions.unicode.keywords.get(&key!("kn")) {
-                    Some(a) if a == &value!("true") => Some(true),
-                    Some(_) => Some(false),
-                    _ => None,
-                },
-            );
-
-        let case_first = options.case_first.or_else(|| {
-            match locale.extensions.unicode.keywords.get(&key!("kf")) {
-                Some(a) if a == &value!("upper") => Some(CollationCaseFirst::Upper),
-                Some(a) if a == &value!("lower") => Some(CollationCaseFirst::Lower),
-                Some(_) => Some(CollationCaseFirst::False),
-                _ => None,
-            }
+        let mut locale_preferences = CollatorPreferences::from(&*locale);
+        locale_preferences.collation_type = locale_preferences.collation_type.take().filter(|co| {
+            let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
+            co != &CollationType::Search
+                && validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
         });
-
         locale.extensions.unicode.clear();
 
-        if let Some(co) = collation.clone() {
-            locale.extensions.unicode.keywords.set(key!("co"), co);
-        }
+        options.locale_preferences = (&*locale).into();
 
-        if let Some(kn) = numeric.map(|kn| if kn { value!("true") } else { value!("false") }) {
-            locale.extensions.unicode.keywords.set(key!("kn"), kn);
-        }
+        options.collation_type = options
+            .collation_type
+            .take()
+            .filter(|co| {
+                let attr = DataMarkerAttributes::from_str_or_panic(co.as_str());
+                co != &CollationType::Search
+                    && validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
+            })
+            .inspect(|co| {
+                if Some(co) == locale_preferences.collation_type.as_ref() {
+                    if let Some(co) = co.unicode_extension_value() {
+                        locale.extensions.unicode.keywords.set(key!("co"), co);
+                    }
+                }
+            })
+            .or_else(|| {
+                if let Some(co) = locale_preferences
+                    .collation_type
+                    .as_ref()
+                    .and_then(CollationType::unicode_extension_value)
+                {
+                    locale.extensions.unicode.keywords.set(key!("co"), co);
+                }
+                locale_preferences.collation_type
+            });
 
-        if let Some(kf) = case_first.map(|kf| match kf {
-            CollationCaseFirst::False => value!("false"),
-            CollationCaseFirst::Lower => value!("lower"),
-            CollationCaseFirst::Upper => value!("upper"),
-            _ => unreachable!(),
-        }) {
-            locale.extensions.unicode.keywords.set(key!("kf"), kf);
-        }
+        options.numeric_ordering = options
+            .numeric_ordering
+            .take()
+            .inspect(|kn| {
+                if Some(kn) == locale_preferences.numeric_ordering.as_ref() {
+                    if let Some(mut kn) = kn.unicode_extension_value() {
+                        if kn.as_single_subtag() == Some(&subtag!("true")) {
+                            kn = unicode::Value::new_empty();
+                        }
+                        locale.extensions.unicode.keywords.set(key!("kn"), kn);
+                    }
+                }
+            })
+            .or_else(|| {
+                if let Some(mut kn) = locale_preferences
+                    .numeric_ordering
+                    .as_ref()
+                    .and_then(CollationNumericOrdering::unicode_extension_value)
+                {
+                    if kn.as_single_subtag() == Some(&subtag!("true")) {
+                        kn = unicode::Value::new_empty();
+                    }
+                    locale.extensions.unicode.keywords.set(key!("kn"), kn);
+                }
 
-        options.collation = collation;
-        options.numeric = numeric;
-        options.case_first = case_first;
+                locale_preferences.numeric_ordering
+            });
+
+        options.case_first = options
+            .case_first
+            .take()
+            .inspect(|kf| {
+                if Some(kf) == locale_preferences.case_first.as_ref() {
+                    if let Some(kn) = kf.unicode_extension_value() {
+                        locale.extensions.unicode.keywords.set(key!("kf"), kn);
+                    }
+                }
+            })
+            .or_else(|| {
+                if let Some(kf) = locale_preferences
+                    .case_first
+                    .as_ref()
+                    .and_then(CollationCaseFirst::unicode_extension_value)
+                {
+                    locale.extensions.unicode.keywords.set(key!("kf"), kf);
+                }
+
+                locale_preferences.case_first
+            });
     }
 }
 
@@ -259,7 +268,10 @@ impl BuiltInConstructor for Collator {
         // 11. If collation is not undefined, then
         //     a. If collation does not match the Unicode Locale Identifier type nonterminal, throw a RangeError exception.
         // 12. Set opt.[[co]] to collation.
-        let collation = get_option(&options, js_string!("collation"), context)?;
+        // unicode `type`s that are not valid collation types are considered
+        // "unsupported" instead of invalid.
+        let collation = get_option::<unicode::Value>(&options, js_string!("collation"), context)?
+            .and_then(|val| CollationType::try_from(&val).ok());
 
         // 13. Let numeric be ? GetOption(options, "numeric", boolean, empty, undefined).
         // 14. If numeric is not undefined, then
@@ -273,10 +285,18 @@ impl BuiltInConstructor for Collator {
 
         let mut intl_options = IntlOptions {
             matcher,
-            service_options: CollatorLocaleOptions {
-                collation,
-                numeric,
-                case_first,
+            service_options: {
+                let mut prefs = CollatorPreferences::default();
+                prefs.collation_type = collation;
+                prefs.numeric_ordering = numeric.map(|kn| {
+                    if kn {
+                        CollationNumericOrdering::True
+                    } else {
+                        CollationNumericOrdering::False
+                    }
+                });
+                prefs.case_first = case_first;
+                prefs
             },
         };
 
@@ -288,21 +308,16 @@ impl BuiltInConstructor for Collator {
             context.intl_provider(),
         )?;
 
-        let mut locale_prefs = CollatorPreferences::from(&locale);
-
         // 20. Set collator.[[Locale]] to r.[[locale]].
-
         // 21. Let collation be r.[[co]].
         // 22. If collation is null, let collation be "default".
         // 23. Set collator.[[Collation]] to collation.
-        let collation = intl_options
-            .service_options
-            .collation
-            .unwrap_or(value!("default"));
+        let collation = intl_options.service_options.collation_type;
 
         // 24. If relevantExtensionKeys contains "kn", then
         //     a. Set collator.[[Numeric]] to SameValue(r.[[kn]], "true").
-        let numeric = intl_options.service_options.numeric.unwrap_or_default();
+        let numeric =
+            intl_options.service_options.numeric_ordering == Some(CollationNumericOrdering::True);
 
         // 25. If relevantExtensionKeys contains "kf", then
         //     a. Set collator.[[CaseFirst]] to r.[[kf]].
@@ -322,14 +337,15 @@ impl BuiltInConstructor for Collator {
 
         // 29. Let ignorePunctuation be ? GetOption(options, "ignorePunctuation", boolean, empty, false).
         // 30. Set collator.[[IgnorePunctuation]] to ignorePunctuation.
-        let ignore_punctuation: bool =
-            get_option(&options, js_string!("ignorePunctuation"), context)?.unwrap_or_default();
+        let ignore_punctuation = get_option(&options, js_string!("ignorePunctuation"), context)?;
 
         let (strength, case_level) = sensitivity.map(Sensitivity::to_collator_options).unzip();
 
-        let (alternate_handling, max_variable) = ignore_punctuation
-            .then_some((AlternateHandling::Shifted, MaxVariable::Punctuation))
-            .unzip();
+        let (alternate_handling, max_variable) = match ignore_punctuation {
+            Some(true) => Some((AlternateHandling::Shifted, MaxVariable::Punctuation)).unzip(),
+            Some(false) => (Some(AlternateHandling::NonIgnorable), None),
+            None => None.unzip(),
+        };
 
         let mut options = icu_collator::options::CollatorOptions::default();
         options.strength = strength;
@@ -337,24 +353,18 @@ impl BuiltInConstructor for Collator {
         options.alternate_handling = alternate_handling;
         options.max_variable = max_variable;
 
-        let mut prefs = CollatorPreferences::default();
-        prefs.case_first = case_first;
-        prefs.numeric_ordering = Some(if numeric {
-            CollationNumericOrdering::True
-        } else {
-            CollationNumericOrdering::False
-        });
         if usage == Usage::Search {
-            prefs.collation_type = Some(CollationType::Search);
+            intl_options.service_options.collation_type = Some(CollationType::Search);
         }
-        locale_prefs.extend(prefs);
 
         let collator = icu_collator::Collator::try_new_with_buffer_provider(
             context.intl_provider().erased_provider(),
-            locale_prefs,
+            intl_options.service_options,
             options,
         )
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
+
+        let resolved_options = collator.as_borrowed().resolved_options();
 
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::collator, context)?;
@@ -368,7 +378,9 @@ impl BuiltInConstructor for Collator {
                 case_first,
                 usage,
                 sensitivity: sensitivity.unwrap_or(Sensitivity::Variant),
-                ignore_punctuation,
+                ignore_punctuation: resolved_options.alternate_handling
+                    == AlternateHandling::Shifted
+                    && resolved_options.max_variable != MaxVariable::Space,
                 collator,
                 bound_compare: None,
             },
@@ -560,7 +572,10 @@ impl Collator {
         options
             .create_data_property_or_throw(
                 js_string!("collation"),
-                js_string!(collator.collation.to_string()),
+                collator
+                    .collation
+                    .map(|co| js_string!(co.as_str()))
+                    .unwrap_or(js_string!("default")),
                 context,
             )
             .expect("operation must not fail per the spec");
@@ -571,12 +586,7 @@ impl Collator {
             options
                 .create_data_property_or_throw(
                     js_string!("caseFirst"),
-                    match kf {
-                        CollationCaseFirst::False => js_string!("false"),
-                        CollationCaseFirst::Lower => js_string!("lower"),
-                        CollationCaseFirst::Upper => js_string!("upper"),
-                        _ => unreachable!(),
-                    },
+                    js_string!(kf.as_str()),
                     context,
                 )
                 .expect("operation must not fail per the spec");

@@ -2169,6 +2169,9 @@ impl Array {
         // 2. Let len be ? ToLength(? Get(array, "length")).
         let len = array.length_of_array_like(context)?;
 
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
         // 3. Let separator be the implementation-defined list-separator String value appropriate for the host environment's current locale (such as ", ").
         let separator = {
             #[cfg(feature = "intl")]
@@ -2202,7 +2205,11 @@ impl Array {
             if !next.is_null_or_undefined() {
                 // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
                 let s = next
-                    .invoke(js_string!("toLocaleString"), args, context)?
+                    .invoke(
+                        js_string!("toLocaleString"),
+                        &[locales.clone(), options.clone()],
+                        context,
+                    )?
                     .to_string(context)?;
 
                 // ii. Set R to the string-concatenation of R and S.

@@ -339,7 +339,10 @@ where
     let mut found_locale = if let Some(loc) = found_locale {
         loc
     } else {
-        default_locale(provider.locale_canonicalizer()?)
+        let default = default_locale(provider.locale_canonicalizer()?);
+        lookup_matching_locale_by_best_fit::<S>([default], provider).ok_or_else(|| {
+            JsNativeError::typ().with_message("could not find i18n data for Intl service")
+        })?
     };
 
     // From here, the spec differs significantly from the implementation,
@@ -482,9 +485,7 @@ pub(in crate::builtins::intl) fn validate_extension<M: DataMarker>(
         },
     };
 
-    provider
-        .dry_load(req)
-        .is_ok_and(|md| md.locale.is_none_or(|loc| loc == locale))
+    provider.dry_load(req).is_ok()
 }
 
 #[cfg(all(test, feature = "intl_bundled"))]
