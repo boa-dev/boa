@@ -1,3 +1,5 @@
+use boa_string::StaticJsStrings;
+
 use crate::{
     Context, JsResult,
     object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
@@ -25,9 +27,19 @@ impl GetPropertyByName {
     ) -> JsResult<()> {
         let receiver = context.vm.get_register(receiver.into()).clone();
         let object = context.vm.get_register(value.into()).clone();
-        let object = object.to_object(context)?;
 
         let ic = &context.vm.frame().code_block().ic[usize::from(index)];
+
+        if ic.name == StaticJsStrings::LENGTH {
+            if let Some(string) = object.as_string() {
+                context
+                    .vm
+                    .set_register(dst.into(), (string.len() as u32).into());
+                return Ok(());
+            }
+        }
+
+        let object = object.base_class(context)?;
         let object_borrowed = object.borrow();
         if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
             let mut result = if slot.attributes.contains(SlotAttributes::PROTOTYPE) {
