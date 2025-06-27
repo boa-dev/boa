@@ -29,7 +29,10 @@ use crate::{
     Error,
 };
 use boa_ast::{
-    expression::operator::assign::{Assign, AssignOp, AssignTarget},
+    expression::{
+        operator::assign::{Assign, AssignOp, AssignTarget},
+        RegExpLiteral,
+    },
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Expression, Keyword, Punctuator, Span,
 };
@@ -146,6 +149,13 @@ where
                         .parse(cursor, interner)?
                         .into());
                 }
+            }
+            TokenKind::RegularExpressionLiteral(body, flags) => {
+                let node =
+                    RegExpLiteral::new(*body, *flags, cursor.peek(0, interner).or_abrupt()?.span())
+                        .into();
+                cursor.advance(interner);
+                return Ok(node);
             }
             _ => {}
         }
