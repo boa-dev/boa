@@ -8,16 +8,14 @@
 //! ```
 //! use boa_engine::{js_string, property::Attribute, Context, Source};
 //! use boa_runtime::Console;
+//! use boa_runtime::console::DefaultLogger;
 //!
 //! // Create the context.
 //! let mut context = Context::default();
 //!
-//! // Initialize the Console object.
-//! let console = Console::init(&mut context);
-//!
-//! // Register the console as a global property to the context.
-//! context
-//!     .register_global_property(js_string!(Console::NAME), console, Attribute::all())
+//! // Register the Console object to the context. The DefaultLogger simply
+//! // write errors to STDERR and all other logs to STDOUT.
+//! Console::register_with_logger(&mut context, DefaultLogger)
 //!     .expect("the console object shouldn't exist yet");
 //!
 //! // JavaScript source for parsing.
