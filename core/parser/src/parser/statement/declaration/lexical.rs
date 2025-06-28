@@ -18,6 +18,7 @@ use crate::{
     source::ReadChar,
     Error,
 };
+use crate::{parse_cmd, parser::{ControlFlow, TokenLoopParser, parse_loop::ParseState}};
 use ast::operations::bound_names;
 use boa_ast::{self as ast, declaration::Variable, Keyword, Punctuator};
 use boa_interner::{Interner, Sym};
@@ -118,6 +119,14 @@ where
         }
 
         Ok(lexical_declaration)
+    }
+}
+
+impl<R: ReadChar> TokenLoopParser<R> for LexicalDeclaration {
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, _continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        let (cursor, interner) = state.mut_inner();
+        let ok = self.parse(cursor, interner)?;
+        parse_cmd!([DONE]: state <= Declaration(ok.into()))
     }
 }
 

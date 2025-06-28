@@ -91,10 +91,39 @@ where
 }
 
 impl<R: ReadChar> TokenLoopParser<R> for Declaration {
-    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, _continue_point: usize) -> ParseResult<ControlFlow<R>> {
-        let (cursor, interner) = state.mut_inner();
-        let ok = self.parse(cursor, interner)?;
-        parse_cmd!([DONE]: state <= Declaration(ok))
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        if continue_point == 1 {
+            parse_cmd![[POP LOCAL]: state => Empty];
+            parse_cmd![[PEEK NODE]: state match Declaration]; // pass value up
+            return Ok(ControlFlow::Done)
+        } else if continue_point > 1 {
+            return state.continue_point_error(continue_point)
+        }
+
+        let tok = state.cursor.peek(0, state.interner).or_abrupt()?;
+
+        match tok.kind() {
+            TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, _)) => {
+                let node = HoistableDeclaration::new(self.allow_yield, self.allow_await, false);
+                parse_cmd![[SUB PARSE]: node; state <= Empty (1)];
+            }
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, _)) => {
+                let node = LexicalDeclaration::new(true, self.allow_yield, self.allow_await, false);
+                parse_cmd![[SUB PARSE]: node; state <= Empty (1)];
+            }
+            _ => return Err(Error::expected(
+                [
+                    Keyword::Function.to_string(),
+                    Keyword::Async.to_string(),
+                    Keyword::Class.to_string(),
+                    Keyword::Const.to_string(),
+                    Keyword::Let.to_string(),
+                ],
+                tok.to_string(state.interner),
+                tok.span(),
+                "export declaration",
+            )),
+        }
     }
 }
 

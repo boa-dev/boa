@@ -410,10 +410,6 @@ impl StatementListLocal {
             strict: stmt_list.strict,
         }
     }
-
-    pub(super) fn new_point_list_item<R: ReadChar>(state: &mut ParseState<'_, R>) -> ParseResult<Self> {
-        return Ok(parse_cmd![[POP LOCAL]: state => StatementList])
-    }
 }
 
 impl<R> TokenLoopParser<R> for StatementList
@@ -424,7 +420,7 @@ where
         let mut local = match continue_point {
             0 => StatementListLocal::new(&self, state),
             1 => {
-                let mut local = StatementListLocal::new_point_list_item(state)?;
+                let mut local = parse_cmd![[POP LOCAL]: state => StatementList];
                 Self::continue_point_list_item(&mut local, state)?;
                 local
             }

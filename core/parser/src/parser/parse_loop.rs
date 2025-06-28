@@ -1,3 +1,4 @@
+use boa_ast::declaration::LexicalDeclaration;
 use boa_ast::Position;
 use boa_interner::Interner;
 
@@ -30,6 +31,13 @@ macro_rules! parse_cmd {
             return Err($state.general_error(concat!("expect `", stringify!($variant) ,"` node")))
         };
         ret
+    }};
+
+    // or move into `peek_node!`
+    [[PEEK NODE]: $state:ident match $($variants:ident)+] => {{
+        if !matches!($state.peek_node(), Some($(| $crate::parser::ParsedNode::$variants(_))+)) {
+            return Err($state.general_error(concat!("expect `", $(stringify!($variants), "` | `",)+ "` node")))
+        }
     }};
 
     // or move into `sub_parse!`
@@ -123,8 +131,8 @@ where R: ReadChar,
 pub(super) struct ParseState<'a, R> {
     nodes: Vec<ParsedNode>,
     saved_state: Vec<SavedState>,
-    cursor: &'a mut Cursor<R>,
-    interner: &'a mut Interner,
+    pub cursor: &'a mut Cursor<R>,
+    pub interner: &'a mut Interner,
 }
 impl<'a, R: ReadChar> ParseState<'a, R> {
     pub(super) fn new(cursor: &'a mut Cursor<R>, interner: &'a mut Interner) -> Self {
@@ -161,6 +169,9 @@ impl<'a, R: ReadChar> ParseState<'a, R> {
 
     pub(super) fn pop_node(&mut self) -> ParseResult<ParsedNode> {
         self.nodes.pop().ok_or_else(||self.general_error("expect parsed node"))
+    }
+    pub(super) fn peek_node(&mut self) -> Option<&ParsedNode> {
+        self.nodes.last()
     }
 
     pub(super) fn pop_local_state(&mut self) -> ParseResult<SavedState> {
