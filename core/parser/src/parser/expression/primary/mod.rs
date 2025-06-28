@@ -42,6 +42,7 @@ use crate::{
     },
     source::ReadChar,
 };
+use ast::expression::RegExpLiteral as AstRegExp;
 use boa_ast::{
     self as ast, Keyword, Punctuator, Span,
     declaration::Variable,
