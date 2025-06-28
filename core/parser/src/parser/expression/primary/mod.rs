@@ -42,13 +42,14 @@ use crate::{
     source::ReadChar,
     Error,
 };
+use ast::expression::RegExpLiteral as AstRegExp;
 use boa_ast::{
     self as ast,
     declaration::Variable,
     expression::{
         literal::{self, Literal, LiteralKind, TemplateElement},
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Identifier, Parenthesized, RegExpLiteral as AstRegExp, This,
+        Identifier, Parenthesized, This,
     },
     function::{FormalParameter, FormalParameterList},
     operations::{contains, ContainsSymbol},
