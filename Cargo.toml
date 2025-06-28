@@ -131,6 +131,7 @@ test-case = "3.3.1"
 url = "2.5.4"
 tokio = { version = "1.45.1", default-features = false }
 futures-concurrency = "7.6.3"
+stacker = "0.1.21"
 
 
 # ICU4X

@@ -777,3 +777,20 @@ fn stress_test_operations() {
         .parse_script(&Scope::new_global(), &mut Interner::default())
         .is_ok());
 }
+
+#[test]
+fn should_not_stack_overflow() {
+    let mut should_ok = String::new();
+    let n = 32;
+    (0..n).for_each(|_| should_ok += "(function(){ ");
+    (0..n).for_each(|_| should_ok += " })()");
+    let should_err = "+[4446<4444^/ /g/  /g[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[44444   ]";
+
+    assert!(Parser::new(Source::from_bytes(&should_ok))
+        .parse_script(&Scope::new_global(), &mut Interner::default())
+        .is_ok());
+
+    assert!(Parser::new(Source::from_bytes(&should_err))
+        .parse_script(&Scope::new_global(), &mut Interner::default())
+        .is_err());
+}
