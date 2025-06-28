@@ -359,7 +359,7 @@ impl ToInternedString for Binding {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Identifier(id) => id.to_interned_string(interner),
-            Self::Pattern(ref pattern) => pattern.to_interned_string(interner),
+            Self::Pattern(pattern) => pattern.to_interned_string(interner),
         }
     }
 }

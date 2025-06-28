@@ -398,7 +398,7 @@ impl ToInternedString for ObjectPatternElement {
                         )
                     }
                 };
-                if let Some(ref init) = default_init {
+                if let Some(init) = default_init {
                     let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
@@ -456,7 +456,7 @@ impl ToInternedString for ObjectPatternElement {
                         )
                     }
                 };
-                if let Some(ref init) = default_init {
+                if let Some(init) = default_init {
                     let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
@@ -680,7 +680,7 @@ impl ToInternedString for ArrayPatternElement {
                 default_init,
             } => {
                 let mut buf = format!(" {}", interner.resolve_expect(ident.sym()));
-                if let Some(ref init) = default_init {
+                if let Some(init) = default_init {
                     let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf

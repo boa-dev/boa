@@ -207,7 +207,7 @@ impl Expression {
             Self::AsyncArrowFunction(f) => f.to_indented_string(interner, indentation),
             Self::ArrowFunction(arrf) => arrf.to_indented_string(interner, indentation),
             Self::ClassExpression(cl) => cl.to_indented_string(interner, indentation),
-            Self::GeneratorExpression(gen) => gen.to_indented_string(interner, indentation),
+            Self::GeneratorExpression(r#gen) => r#gen.to_indented_string(interner, indentation),
             Self::AsyncFunctionExpression(asf) => asf.to_indented_string(interner, indentation),
             Self::AsyncGeneratorExpression(asgen) => {
                 asgen.to_indented_string(interner, indentation)
@@ -303,7 +303,7 @@ impl Expression {
             Self::AsyncArrowFunction(f) => f.span(),
             Self::ArrowFunction(arrf) => arrf.span(),
             Self::ClassExpression(cl) => cl.span(),
-            Self::GeneratorExpression(gen) => gen.span(),
+            Self::GeneratorExpression(r#gen) => r#gen.span(),
             Self::AsyncFunctionExpression(asf) => asf.span(),
             Self::AsyncGeneratorExpression(asgen) => asgen.span(),
             Self::TemplateLiteral(tem) => tem.span(),
