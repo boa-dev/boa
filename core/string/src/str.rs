@@ -415,7 +415,7 @@ impl<'a> JsStr<'a> {
     /// Gets an iterator of all the Unicode codepoints of a [`JsStr`].
     // TODO: optimize for Latin1 strings.
     #[inline]
-    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + 'a {
+    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + Clone + use<'a> {
         char::decode_utf16(self.iter()).map(|res| match res {
             Ok(c) => CodePoint::Unicode(c),
             Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
@@ -444,7 +444,7 @@ impl<'a> JsStr<'a> {
     /// errors.
     #[inline]
     #[allow(clippy::missing_panics_doc)]
-    pub fn to_std_string_with_surrogates(&self) -> impl Iterator<Item = Result<String, u16>> + 'a {
+    pub fn to_std_string_with_surrogates(&self) -> impl Iterator<Item = Result<String, u16>> + use<'a> {
         let mut iter = self.code_points().peekable();
 
         std::iter::from_fn(move || {
