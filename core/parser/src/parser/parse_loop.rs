@@ -11,6 +11,12 @@ use crate::parser::statement::{StatementList, StatementListLocal, StatementListN
 #[macro_export]
 macro_rules! parse_cmd {
     // or move into `pop_local_state!`
+    [[POP LOCAL]: $state:ident => Empty] => {{
+        let Ok($crate::parser::SavedState::Empty) = $state.pop_local_state() else {
+            return Err($state.general_error(concat!("expect `Empty` saved state")))
+        };
+    }};
+    // or move into `pop_local_state!`
     [[POP LOCAL]: $state:ident => $variant:ident] => {{
         let Ok($crate::parser::SavedState::$variant(ret)) = $state.pop_local_state() else {
             return Err($state.general_error(concat!("expect `", stringify!($variant) ,"Local` saved state")))
@@ -18,10 +24,10 @@ macro_rules! parse_cmd {
         ret
     }};
 
-    // or move into `pop_last_node!`
+    // or move into `pop_node!`
     [[POP NODE]: $state:ident => $variant:ident] => {{
         let Ok($crate::parser::ParsedNode::$variant(ret)) = $state.pop_node() else {
-            return Err($state.general_error(concat!("expect `", stringify!($variant) ,"Local` saved state")))
+            return Err($state.general_error(concat!("expect `", stringify!($variant) ,"` node")))
         };
         ret
     }};
@@ -29,6 +35,11 @@ macro_rules! parse_cmd {
     // or move into `sub_parse!`
     [[SUB PARSE]: $item:expr; $state:ident <= $local:ident as $variant:ident ($point:literal)] => {{
         $state.push_local($crate::parser::SavedState::$variant($local));
+        return ParseResult::Ok($crate::parser::ControlFlow::SubParse { node: Box::new($item), point: $point });
+    }};
+    // or move into `sub_parse!`
+    [[SUB PARSE]: $item:expr; $state:ident <= Empty ($point:literal)] => {{
+        $state.push_local($crate::parser::SavedState::Empty);
         return ParseResult::Ok($crate::parser::ControlFlow::SubParse { node: Box::new($item), point: $point });
     }};
 
@@ -56,6 +67,9 @@ impl ParseLoop {
             debug_assert!(!parse_stack.is_empty());
             debug_assert_eq!(continue_points.len(), parse_stack.len());
 
+            // SAFETY:
+            // we push (entry, 0) on first iteration & it will pop only on
+            // last `ControlFlow::Done` after which this fuction returns
             let continue_point = continue_points.pop().unwrap();
             let parser = parse_stack.last_mut().unwrap();
 
@@ -170,14 +184,23 @@ impl<'a, R: ReadChar> ParseState<'a, R> {
     pub(super) fn peek(&mut self, skip_n: usize) -> ParseResult<Option<&Token>> {
         self.cursor.peek(skip_n, &mut self.interner)
     }
+
+    /// Check if the peeked token is a line terminator.
+    pub(super) fn peek_is_line_terminator(&mut self, skip_n: usize) -> ParseResult<Option<bool>> {
+        self.cursor.peek_is_line_terminator(skip_n, &mut self.interner)
+    }
+
 }
 
 pub(super) enum ParsedNode {
     Empty,
     StatementListItem(ast::StatementListItem),
     StatementList(StatementListNode),
+    Declaration(ast::Declaration),
+    Statement(ast::Statement),
 }
 
 pub(super) enum SavedState {
+    Empty,
     StatementList(StatementListLocal),
 }

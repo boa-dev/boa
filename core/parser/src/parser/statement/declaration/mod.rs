@@ -23,10 +23,7 @@ pub(in crate::parser) use self::{
     lexical::{allowed_token_after_let, LexicalDeclaration},
 };
 use crate::{
-    lexer::TokenKind,
-    parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
-    source::ReadChar,
-    Error,
+    lexer::TokenKind, parse_cmd, parser::{parse_loop::ParseState, AllowAwait, AllowYield, ControlFlow, Cursor, OrAbrupt, ParseResult, TokenLoopParser, TokenParser}, source::ReadChar, Error
 };
 use boa_ast::{self as ast, Keyword};
 use boa_interner::{Interner, Sym};
@@ -90,6 +87,14 @@ where
                 "export declaration",
             )),
         }
+    }
+}
+
+impl<R: ReadChar> TokenLoopParser<R> for Declaration {
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, _continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        let (cursor, interner) = state.mut_inner();
+        let ok = self.parse(cursor, interner)?;
+        parse_cmd!([DONE]: state <= Declaration(ok))
     }
 }
 

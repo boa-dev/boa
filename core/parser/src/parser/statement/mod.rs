@@ -40,7 +40,7 @@ use self::{
 };
 use crate::{
     lexer::{token::EscapeSequence, Error as LexError, InputElement, Token, TokenKind}, parse_cmd, parser::{
-        expression::{BindingIdentifier, Initializer, PropertyName}, parse_loop::ParseState, AllowAwait, AllowReturn, AllowYield, ControlFlow, Cursor, OrAbrupt, ParseResult, TokenLoopParser, TokenParser
+        expression::{BindingIdentifier, Initializer, PropertyName}, parse_loop::ParseState, AllowAwait, AllowReturn, AllowYield, ControlFlow, Cursor, OrAbrupt, ParseResult, ParsedNode, TokenLoopParser, TokenParser
     }, source::ReadChar, Error
 };
 use ast::{
@@ -219,6 +219,14 @@ where
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)
             }
         }
+    }
+}
+
+impl<R: ReadChar> TokenLoopParser<R> for Statement {
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, _continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        let (cursor, interner) = state.mut_inner();
+        let ok = self.parse(cursor, interner)?;
+        parse_cmd!([DONE]: state <= Statement(ok))
     }
 }
 
@@ -603,10 +611,52 @@ impl<R> TokenLoopParser<R> for StatementListItem
 where
     R: ReadChar,
 {
-    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, _continue_point: usize) -> ParseResult<ControlFlow<R>> {
-        let (cursor, interner) = state.mut_inner();
-        let ok = self.parse(cursor, interner)?;
-        parse_cmd!([DONE]: state <= StatementListItem(ok))
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        if continue_point == 1 {
+            parse_cmd![[POP LOCAL]: state => Empty];
+            match state.pop_node()? {
+                ParsedNode::Declaration(decl) => {
+                    parse_cmd![[DONE]: state <= StatementListItem(ast::StatementListItem::from(decl))]
+                }
+                ParsedNode::Statement(stmt) => {
+                    parse_cmd![[DONE]: state <= StatementListItem(ast::StatementListItem::from(stmt))]
+                }
+                _ => return Err(state.general_error(concat!("expect `Declaration` or `Statement` node")))
+            }
+        } else if continue_point > 1 {
+            return state.continue_point_error(continue_point)
+        }
+
+        let tok = state.peek(0).or_abrupt()?;
+
+        let decl = Declaration::new(self.allow_yield, self.allow_await);
+        let stmt = Statement::new(self.allow_yield, self.allow_await, self.allow_return);
+
+        match tok.kind().clone() {
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, _)) => {
+                parse_cmd![[SUB PARSE]: decl; state <= Empty (1)]
+            }
+            TokenKind::Keyword((Keyword::Let, false)) if allowed_token_after_let(state.peek(1)?) => {
+                    parse_cmd![[SUB PARSE]: decl; state <= Empty (1)]
+            }
+            TokenKind::Keyword((Keyword::Async, false)) => {
+                let skip_n = if state.peek_is_line_terminator(0).or_abrupt()? {
+                    2
+                } else {
+                    1
+                };
+
+                let is_line_terminator = state.peek_is_line_terminator(skip_n)?.unwrap_or(true);
+
+                match state.peek(1)?.map(Token::kind) {
+                    Some(TokenKind::Keyword((Keyword::Function, _))) if !is_line_terminator => {
+                        parse_cmd![[SUB PARSE]: decl; state <= Empty (1)]
+                    }
+                    _ => parse_cmd![[SUB PARSE]: stmt; state <= Empty (1)]
+                }
+            }
+            _ => parse_cmd![[SUB PARSE]: stmt; state <= Empty (1)]
+        }
     }
 }
 
