@@ -116,9 +116,10 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         let mut flags: [u8; 8] = [0; 8];
         let flags_start = cursor.pos();
-        cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
+        let flags_slice = cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
 
-        let flags_string = match RegExpFlags::from_bytes(flags) {
+        // TODO: Change this to if err() then convert flags_slice to str
+        let flags_string = match RegExpFlags::from_bytes(flags_slice) {
             Err(message) => return Err(Error::Syntax(message.into(), flags_start)),
             Ok(regex_flags) => regex_flags.to_string(),
         };
@@ -193,7 +194,7 @@ bitflags! {
 }
 
 impl RegExpFlags {
-    fn from_bytes(bytes: [u8; 8]) -> Result<Self, String> {
+    fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
         let mut flags = Self::default();
         for c in bytes {
             let new_flag = match c {
@@ -206,13 +207,18 @@ impl RegExpFlags {
                 b'd' => Self::HAS_INDICES,
                 b'v' => Self::UNICODE_SETS,
                 0x00 => continue,
-                _ => return Err(format!("invalid regular expression flag {}", char::from(c))),
+                _ => {
+                    return Err(format!(
+                        "invalid regular expression flag {}",
+                        char::from(c.to_owned())
+                    ))
+                }
             };
 
             if flags.contains(new_flag) {
                 return Err(format!(
                     "repeated regular expression flag {}",
-                    char::from(c)
+                    char::from(c.to_owned())
                 ));
             }
             flags.insert(new_flag);
