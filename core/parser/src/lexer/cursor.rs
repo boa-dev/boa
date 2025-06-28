@@ -164,14 +164,18 @@ impl<R: ReadChar> Cursor<R> {
     /// Note that all characters up until the stop character are added to the buffer, including the character right before.
     #[allow(clippy::cast_possible_truncation)]
     #[inline]
-    pub(super) fn take_while_ascii_pred<F>(&mut self, buf: &mut [u8], pred: &F) -> io::Result<()>
+    pub(super) fn take_while_ascii_pred<'a, F>(
+        &mut self,
+        buf: &'a mut [u8],
+        pred: &F,
+    ) -> io::Result<&'a [u8]>
     where
         F: Fn(char) -> bool,
     {
         let mut count = 0;
         loop {
             if !self.next_is_ascii_pred(pred)? {
-                return Ok(());
+                return Ok(&buf[..count]);
             } else if let Some(byte) = self.next_char()? {
                 buf[count] = byte as u8;
                 count += 1;
