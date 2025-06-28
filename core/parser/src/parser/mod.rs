@@ -6,6 +6,8 @@ mod statement;
 
 pub(crate) mod function;
 
+mod parse_loop;
+
 #[cfg(test)]
 mod tests;
 
@@ -15,6 +17,7 @@ use crate::{
     parser::{
         cursor::Cursor,
         function::{FormalParameters, FunctionStatementList},
+        parse_loop::{ControlFlow, ParseLoop, ParsedNode, SavedState, TokenLoopParser},
     },
     source::ReadChar,
     Error, Source,
@@ -387,15 +390,17 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let (body, _end) = statement::StatementList::new(
+        let entry = statement::StatementList::new(
             false,
             false,
             false,
             &[],
             self.directive_prologues,
             self.strict,
-        )
-        .parse(cursor, interner)?;
+        );
+        let stmt_list_node = ParseLoop::parse_loop(cursor, interner, entry)?;
+        let (body, _end) = (stmt_list_node.list, stmt_list_node.pos);
+        // let (body, _end) = entry.parse(cursor, interner)?;
 
         if !self.direct_eval {
             // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
