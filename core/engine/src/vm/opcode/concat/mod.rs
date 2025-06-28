@@ -1,5 +1,5 @@
 use super::VaryingOperand;
-use crate::{vm::opcode::Operation, Context, JsResult, JsString};
+use crate::{Context, JsResult, JsString, vm::opcode::Operation};
 use thin_vec::ThinVec;
 
 /// `ConcatToString` implements the Opcode Operation for `Opcode::ConcatToString`

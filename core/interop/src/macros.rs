@@ -397,7 +397,7 @@ fn js_class_test() {
     use crate::{js_class, loaders};
     use boa_engine::interop::JsClass;
     use boa_engine::property::Attribute;
-    use boa_engine::{js_string, Context, JsData, JsError, JsResult, Module, Source};
+    use boa_engine::{Context, JsData, JsError, JsResult, Module, Source, js_string};
     use boa_gc::{Finalize, Trace};
     use std::rc::Rc;
 

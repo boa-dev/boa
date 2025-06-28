@@ -6,9 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 
 use crate::{
+    Context, JsData, JsResult,
     builtins::{
-        iterable::create_iter_result_object, typed_array::TypedArray, Array, BuiltInBuilder,
-        IntrinsicObject, JsValue,
+        Array, BuiltInBuilder, IntrinsicObject, JsValue, iterable::create_iter_result_object,
+        typed_array::TypedArray,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -17,7 +18,6 @@ use crate::{
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
 

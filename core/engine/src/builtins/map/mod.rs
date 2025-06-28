@@ -11,21 +11,21 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
 use crate::{
-    builtins::{iterable::IteratorHint, BuiltInObject},
+    Context, JsArgs, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, iterable::IteratorHint},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsFunction, JsObject},
+    object::{JsFunction, JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use num_traits::Zero;
 
 use super::{
-    iterable::if_abrupt_close_iterator, BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
+    BuiltInBuilder, BuiltInConstructor, IntrinsicObject, iterable::if_abrupt_close_iterator,
 };
 
 mod map_iterator;
@@ -578,7 +578,7 @@ impl Map {
         use indexmap::IndexMap;
         use rustc_hash::FxHasher;
 
-        use crate::builtins::{iterable::if_abrupt_close_iterator, Array, Number};
+        use crate::builtins::{Array, Number, iterable::if_abrupt_close_iterator};
 
         let items = args.get_or_undefined(0);
         let callback = args.get_or_undefined(1);

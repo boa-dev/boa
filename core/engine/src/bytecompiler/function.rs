@@ -1,9 +1,9 @@
 use crate::{
+    JsString, SpannedSourceText,
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     js_string,
     vm::{CodeBlock, CodeBlockFlags},
-    JsString, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},

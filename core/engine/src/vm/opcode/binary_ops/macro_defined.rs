@@ -1,6 +1,6 @@
 use crate::{
-    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 macro_rules! implement_bin_ops {

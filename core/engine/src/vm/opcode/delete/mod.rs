@@ -1,6 +1,6 @@
 use crate::{
-    error::JsNativeError, object::internal_methods::InternalMethodContext, vm::opcode::Operation,
-    Context, JsError, JsResult,
+    Context, JsError, JsResult, error::JsNativeError,
+    object::internal_methods::InternalMethodContext, vm::opcode::Operation,
 };
 
 use super::VaryingOperand;

@@ -1,19 +1,19 @@
 use crate::value::JsVariant;
 use crate::{
-    builtins::Number, bytecompiler::ToJsString, optimizer::PassAction, value::Numeric, Context,
-    JsBigInt, JsValue,
+    Context, JsBigInt, JsValue, builtins::Number, bytecompiler::ToJsString, optimizer::PassAction,
+    value::Numeric,
 };
 use boa_ast::expression::literal::Literal;
 use boa_ast::{
+    Expression,
     expression::{
         literal::LiteralKind,
         operator::{
+            Binary, Unary,
             binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
             unary::UnaryOp,
-            Binary, Unary,
         },
     },
-    Expression,
 };
 use boa_interner::JStrRef;
 

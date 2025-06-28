@@ -17,8 +17,8 @@ pub use object::{ObjectLiteral, ObjectMethodDefinition, PropertyDefinition};
 pub use template::{TemplateElement, TemplateLiteral};
 
 use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
     Span,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 use num_bigint::BigInt;

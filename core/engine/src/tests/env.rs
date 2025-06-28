@@ -1,7 +1,7 @@
 use boa_macros::js_str;
 use indoc::indoc;
 
-use crate::{run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{JsNativeErrorKind, TestAction, run_test_actions};
 
 #[test]
 // https://github.com/boa-dev/boa/issues/2317

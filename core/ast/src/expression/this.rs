@@ -1,8 +1,8 @@
 //! `this` ECMAScript expression.
 
 use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
     Span,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;

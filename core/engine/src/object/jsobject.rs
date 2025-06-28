@@ -7,11 +7,12 @@
 )]
 
 use super::{
+    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
     internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
-    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::{
         array::ARRAY_EXOTIC_INTERNAL_METHODS,
         array_buffer::{ArrayBuffer, BufferObject, SharedArrayBuffer},
@@ -22,7 +23,6 @@ use crate::{
     js_string,
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
-    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace};
 use std::collections::HashSet;

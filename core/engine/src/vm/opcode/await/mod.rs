@@ -1,14 +1,14 @@
 use super::VaryingOperand;
 use crate::{
+    Context, JsArgs, JsValue,
     builtins::{
-        async_generator::AsyncGenerator, generator::GeneratorContext, promise::PromiseCapability,
-        Promise,
+        Promise, async_generator::AsyncGenerator, generator::GeneratorContext,
+        promise::PromiseCapability,
     },
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind},
-    Context, JsArgs, JsValue,
+    vm::{CompletionRecord, GeneratorResumeKind, opcode::Operation},
 };
 use boa_gc::Gc;
 use std::{cell::Cell, ops::ControlFlow};

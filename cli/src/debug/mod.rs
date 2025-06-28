@@ -1,7 +1,7 @@
 // Allow lint so it, doesn't warn about `JsResult<>` unneeded return on functions.
 #![allow(clippy::unnecessary_wraps)]
 
-use boa_engine::{js_string, object::ObjectInitializer, property::Attribute, Context, JsObject};
+use boa_engine::{Context, JsObject, js_string, object::ObjectInitializer, property::Attribute};
 
 mod function;
 mod gc;

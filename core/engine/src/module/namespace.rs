@@ -7,13 +7,13 @@ use boa_gc::{Finalize, Trace};
 
 use crate::object::internal_methods::immutable_prototype::immutable_prototype_exotic_set_prototype_of;
 use crate::object::internal_methods::{
+    InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
     ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-    ordinary_has_property, ordinary_own_property_keys, ordinary_try_get, InternalMethodContext,
-    InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+    ordinary_has_property, ordinary_own_property_keys, ordinary_try_get,
 };
 use crate::object::{JsData, JsPrototype};
 use crate::property::{PropertyDescriptor, PropertyKey};
-use crate::{js_string, object::JsObject, Context, JsResult, JsString, JsValue};
+use crate::{Context, JsResult, JsString, JsValue, js_string, object::JsObject};
 use crate::{JsNativeError, Module};
 
 use super::BindingName;

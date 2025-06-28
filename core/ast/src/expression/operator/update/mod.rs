@@ -10,9 +10,9 @@
 mod op;
 
 use crate::{
-    expression::{access::PropertyAccess, Identifier},
-    visitor::{VisitWith, Visitor, VisitorMut},
     Expression, Span,
+    expression::{Identifier, access::PropertyAccess},
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;

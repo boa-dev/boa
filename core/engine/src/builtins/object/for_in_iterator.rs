@@ -9,14 +9,14 @@
 // Opportunity to optimize this for iteration speed.
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    Context, JsData, JsResult, JsString, JsValue,
+    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{internal_methods::InternalMethodContext, JsObject},
+    object::{JsObject, internal_methods::InternalMethodContext},
     property::PropertyKey,
     realm::Realm,
-    Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashSet;
@@ -140,7 +140,7 @@ impl ForInIterator {
                         JsValue::undefined(),
                         true,
                         context,
-                    ))
+                    ));
                 }
             }
             iterator.object = JsValue::new(object.clone());

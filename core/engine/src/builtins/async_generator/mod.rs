@@ -6,24 +6,24 @@
 //! [spec]: https://tc39.es/ecma262/#sec-asyncgenerator-objects
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsResult, JsString,
     builtins::{
+        Promise,
         generator::GeneratorContext,
         iterable::create_iter_result_object,
-        promise::{if_abrupt_reject_promise, PromiseCapability},
-        Promise,
+        promise::{PromiseCapability, if_abrupt_reject_promise},
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
-    object::{FunctionObjectBuilder, JsObject, CONSTRUCTOR},
+    object::{CONSTRUCTOR, FunctionObjectBuilder, JsObject},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     vm::{CompletionRecord, GeneratorResumeKind},
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use std::collections::VecDeque;

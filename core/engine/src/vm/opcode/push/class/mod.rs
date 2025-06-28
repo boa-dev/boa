@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult, JsValue,
     error::JsNativeError,
     object::PROTOTYPE,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult, JsValue,
 };
 
 pub(crate) mod field;

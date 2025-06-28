@@ -2,10 +2,10 @@
 mod buffered_lexer;
 
 use crate::{
+    Error,
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::{OrAbrupt, ParseResult},
     source::ReadChar,
-    Error,
 };
 use boa_ast::{LinearPosition, PositionGroup, Punctuator};
 use boa_interner::Interner;

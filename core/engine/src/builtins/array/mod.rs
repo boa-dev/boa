@@ -13,26 +13,26 @@ use boa_gc::{Finalize, Trace};
 use thin_vec::ThinVec;
 
 use crate::{
-    builtins::{iterable::if_abrupt_close_iterator, BuiltInObject, Number},
+    Context, JsArgs, JsResult, JsString,
+    builtins::{BuiltInObject, Number, iterable::if_abrupt_close_iterator},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     object::{
+        CONSTRUCTOR, IndexedProperties, JsData, JsObject,
         internal_methods::{
+            InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             get_prototype_from_constructor, ordinary_define_own_property,
-            ordinary_get_own_property, InternalMethodContext, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
+            ordinary_get_own_property,
         },
-        IndexedProperties, JsData, JsObject, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsArgs, JsResult, JsString,
 };
-use std::cmp::{min, Ordering};
+use std::cmp::{Ordering, min};
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -549,7 +549,7 @@ impl Array {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message(format!("`{}` is not callable", mapfn.type_of()))
-                    .into())
+                    .into());
             }
         };
 
@@ -2684,7 +2684,7 @@ impl Array {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
-                    .into())
+                    .into());
             }
         };
 
@@ -2747,7 +2747,7 @@ impl Array {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
-                    .into())
+                    .into());
             }
         };
 

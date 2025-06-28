@@ -17,10 +17,10 @@
 mod op;
 
 use crate::{
+    Span,
     expression::Expression,
     function::PrivateName,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;

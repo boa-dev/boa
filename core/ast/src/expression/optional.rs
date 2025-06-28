@@ -1,9 +1,9 @@
-use super::{access::PropertyAccessField, Expression};
+use super::{Expression, access::PropertyAccessField};
 use crate::{
+    Span,
     function::PrivateName,
     join_nodes,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};

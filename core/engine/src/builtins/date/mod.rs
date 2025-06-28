@@ -8,26 +8,26 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsResult, JsString,
     builtins::{
-        date::utils::{
-            date_from_time, date_string, day, hour_from_time, local_time, make_date, make_day,
-            make_full_year, make_time, min_from_time, month_from_time, ms_from_time, pad_five,
-            pad_four, pad_six, pad_three, pad_two, parse_date, sec_from_time, time_clip,
-            time_string, time_within_day, time_zone_string, to_date_string_t, utc_t, week_day,
-            year_from_time, MS_PER_MINUTE,
-        },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        date::utils::{
+            MS_PER_MINUTE, date_from_time, date_string, day, hour_from_time, local_time, make_date,
+            make_day, make_full_year, make_time, min_from_time, month_from_time, ms_from_time,
+            pad_five, pad_four, pad_six, pad_three, pad_two, parse_date, sec_from_time, time_clip,
+            time_string, time_within_day, time_zone_string, to_date_string_t, utc_t, week_day,
+            year_from_time,
+        },
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{JsValue, PreferredType},
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -905,11 +905,7 @@ impl Date {
             }
         } else {
             // 4. If t is NaN, set t to +0𝔽.
-            if t.is_nan() {
-                0.0
-            } else {
-                t
-            }
+            if t.is_nan() { 0.0 } else { t }
         };
 
         // 4. Let y be ? ToNumber(year).
@@ -1876,7 +1872,7 @@ impl Date {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("Date.prototype[@@toPrimitive] called with invalid hint")
-                    .into())
+                    .into());
             }
         };
 

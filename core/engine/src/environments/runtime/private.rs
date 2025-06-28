@@ -1,4 +1,4 @@
-use boa_gc::{empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, empty_trace};
 
 use crate::JsString;
 

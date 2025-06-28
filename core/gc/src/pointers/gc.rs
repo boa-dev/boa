@@ -1,8 +1,7 @@
 use crate::{
-    finalizer_safe,
+    Allocator, Ephemeron, GcErasedPointer, Tracer, WeakGc, finalizer_safe,
     internals::{EphemeronBox, GcBox},
     trace::{Finalize, Trace},
-    Allocator, Ephemeron, GcErasedPointer, Tracer, WeakGc,
 };
 use std::{
     cmp::Ordering,

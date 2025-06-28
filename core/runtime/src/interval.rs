@@ -4,7 +4,7 @@
 use boa_engine::job::{NativeJob, TimeoutJob};
 use boa_engine::object::builtins::JsFunction;
 use boa_engine::value::IntegerOrInfinity;
-use boa_engine::{js_error, js_string, Context, Finalize, JsData, JsResult, JsValue, Trace};
+use boa_engine::{Context, Finalize, JsData, JsResult, JsValue, Trace, js_error, js_string};
 use boa_gc::{Gc, GcRefCell};
 use boa_interop::{IntoJsFunctionCopied, JsRest};
 use std::collections::HashSet;

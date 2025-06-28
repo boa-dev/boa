@@ -9,13 +9,14 @@ use thin_vec::ThinVec;
 
 use self::{internal_methods::ORDINARY_INTERNAL_METHODS, shape::Shape};
 use crate::{
+    Context, JsString, JsSymbol, JsValue,
     builtins::{
+        OrdinaryObject,
         function::{
-            arguments::{MappedArguments, UnmappedArguments},
             ConstructorKind,
+            arguments::{MappedArguments, UnmappedArguments},
         },
         typed_array::{TypedArray, TypedArrayKind},
-        OrdinaryObject,
     },
     context::intrinsics::StandardConstructor,
     js_string,
@@ -23,7 +24,6 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsString, JsSymbol, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};

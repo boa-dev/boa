@@ -20,19 +20,19 @@ use boa_macros::utf16;
 use itertools::Itertools;
 
 use crate::{
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::BuiltInObject,
     bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{internal_methods::InternalMethodContext, JsObject},
+    object::{JsObject, internal_methods::InternalMethodContext},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags},
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};

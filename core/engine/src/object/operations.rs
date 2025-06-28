@@ -1,19 +1,19 @@
 use super::internal_methods::InternalMethodContext;
 use crate::value::JsVariant;
 use crate::{
+    Context, JsResult, JsSymbol, JsValue,
     builtins::{
-        function::{set_function_name, BoundFunction, ClassFieldDefinition, OrdinaryFunction},
         Array, Proxy,
+        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunctionObject,
-    object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
+    object::{CONSTRUCTOR, JsObject, PROTOTYPE, PrivateElement, PrivateName},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsResult, JsSymbol, JsValue,
 };
 
 /// Object integrity level.
@@ -1026,7 +1026,7 @@ impl JsObject {
             None => {
                 return Err(JsNativeError::typ()
                     .with_message("Private element does not exist on object")
-                    .into())
+                    .into());
             }
 
             // 3. If entry.[[Kind]] is field, then
@@ -1040,7 +1040,7 @@ impl JsObject {
             Some(PrivateElement::Method(_)) => {
                 return Err(JsNativeError::typ()
                     .with_message("private method is not writable")
-                    .into())
+                    .into());
             }
 
             // 5. Else,

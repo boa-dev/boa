@@ -14,16 +14,16 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use crate::{
+    Context, JsArgs, JsResult, JsString,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
-    Context, JsArgs, JsResult, JsString,
 };
 use cow_utils::CowUtils;
 use num_traits::float::FloatCore;
@@ -243,7 +243,7 @@ impl Number {
             _ => {
                 return Err(JsNativeError::range()
                     .with_message("toExponential() argument must be between 0 and 100")
-                    .into())
+                    .into());
             }
         };
         Ok(JsValue::new(this_str_num))

@@ -1,12 +1,12 @@
-use super::{fmt, Display, HashSet, JsValue, JsVariant};
+use super::{Display, HashSet, JsValue, JsVariant, fmt};
 use crate::{
+    JsError, JsString,
     builtins::{
-        error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
-        set::ordered_set::OrderedSet, Array, Promise,
+        Array, Promise, error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
+        set::ordered_set::OrderedSet,
     },
     js_string,
     property::PropertyDescriptor,
-    JsError, JsString,
 };
 use std::borrow::Cow;
 

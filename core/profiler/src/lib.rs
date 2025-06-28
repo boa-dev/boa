@@ -29,7 +29,7 @@ use std::sync::RwLock;
 #[cfg(feature = "profiler")]
 use std::{
     path::Path,
-    thread::{current, ThreadId},
+    thread::{ThreadId, current},
 };
 
 /// Profiler for the Boa JavaScript engine.

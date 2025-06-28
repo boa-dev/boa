@@ -2,16 +2,16 @@ use boa_gc::Gc;
 use boa_parser::Source;
 
 use crate::{
-    builtins::{function::OrdinaryFunction, OrdinaryObject},
+    Context, JsObject, JsResult, JsValue,
+    builtins::{OrdinaryObject, function::OrdinaryFunction},
     js_string,
     object::{
-        internal_methods::InternalMethodContext,
-        shape::{slot::SlotAttributes, WeakShape},
         ObjectInitializer,
+        internal_methods::InternalMethodContext,
+        shape::{WeakShape, slot::SlotAttributes},
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     vm::CodeBlock,
-    Context, JsObject, JsResult, JsValue,
 };
 
 #[test]

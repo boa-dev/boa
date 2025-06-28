@@ -1,6 +1,6 @@
 use crate::utils::{
-    error, take_error_from_attrs, take_length_from_attrs, take_name_value_attr, take_path_attr,
-    RenameScheme, SpannedResult,
+    RenameScheme, SpannedResult, error, take_error_from_attrs, take_length_from_attrs,
+    take_name_value_attr, take_path_attr,
 };
 use proc_macro::TokenStream;
 use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
@@ -256,7 +256,10 @@ impl Function {
                     } else if t.ident == "JsResult" {
                         quote! { result.into() }
                     } else {
-                        return error(&fn_.sig.output, "Invalid return type: constructors should return Self or JsResult<Self>.");
+                        return error(
+                            &fn_.sig.output,
+                            "Invalid return type: constructors should return Self or JsResult<Self>.",
+                        );
                     }
                 } else {
                     quote! { Ok(result) }

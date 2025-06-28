@@ -20,13 +20,13 @@ pub mod iteration;
 
 pub use self::{
     block::Block,
+    r#if::If,
     iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
     labelled::{Labelled, LabelledItem},
-    r#if::If,
     r#return::Return,
-    r#try::{Catch, ErrorHandler, Finally, Try},
     switch::{Case, Switch},
     throw::Throw,
+    r#try::{Catch, ErrorHandler, Finally, Try},
     with::With,
 };
 use core::ops::ControlFlow;
@@ -121,7 +121,7 @@ impl Statement {
             Self::If(if_smt) => return if_smt.to_indented_string(interner, indentation),
             Self::DoWhileLoop(do_while) => do_while.to_indented_string(interner, indentation),
             Self::WhileLoop(while_loop) => {
-                return while_loop.to_indented_string(interner, indentation)
+                return while_loop.to_indented_string(interner, indentation);
             }
             Self::ForLoop(for_loop) => return for_loop.to_indented_string(interner, indentation),
             Self::ForInLoop(for_in) => return for_in.to_indented_string(interner, indentation),

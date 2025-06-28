@@ -1,11 +1,11 @@
 // NOTE: this example requires the `console` feature to run correctly.
 use boa_engine::{
+    Context, JsArgs, JsData, JsResult, JsString, JsValue, Source,
     class::{Class, ClassBuilder},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     property::Attribute,
-    Context, JsArgs, JsData, JsResult, JsString, JsValue, Source,
 };
 use boa_gc::{Finalize, Trace};
 use boa_runtime::Console;

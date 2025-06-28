@@ -3,8 +3,8 @@ use boa_ast::{
     operations::bound_names,
     scope::BindingLocatorError,
     statement::{
-        iteration::{ForLoopInitializer, IterableLoopInitializer},
         DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop,
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
     },
 };
 use boa_interner::Sym;

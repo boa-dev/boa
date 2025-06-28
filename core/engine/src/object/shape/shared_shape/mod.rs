@@ -7,16 +7,16 @@ mod tests;
 use std::{collections::hash_map::RandomState, hash::Hash};
 
 use bitflags::bitflags;
-use boa_gc::{empty_trace, Finalize, Gc, Trace, WeakGc};
+use boa_gc::{Finalize, Gc, Trace, WeakGc, empty_trace};
 use indexmap::IndexMap;
 
-use crate::{object::JsPrototype, property::PropertyKey, JsObject};
+use crate::{JsObject, object::JsPrototype, property::PropertyKey};
 
 use self::forward_transition::ForwardTransition;
 
 use super::{
-    property_table::PropertyTable, slot::SlotAttributes, ChangeTransition, ChangeTransitionAction,
-    Slot, UniqueShape,
+    ChangeTransition, ChangeTransitionAction, Slot, UniqueShape, property_table::PropertyTable,
+    slot::SlotAttributes,
 };
 
 /// Represent a [`SharedShape`] property transition.

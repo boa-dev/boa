@@ -7,17 +7,17 @@ use boa_macros::utf16;
 use num_traits::Zero;
 
 use super::{
-    object::typed_array_set_element, ContentType, TypedArray, TypedArrayKind, TypedArrayMarker,
+    ContentType, TypedArray, TypedArrayKind, TypedArrayMarker, object::typed_array_set_element,
 };
-use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 use crate::{
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
-        array::{find_via_predicate, ArrayIterator, Direction},
-        array_buffer::{
-            utils::{memcpy, memmove, SliceRefMut},
-            ArrayBuffer, BufferObject,
-        },
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        array::{ArrayIterator, Direction, find_via_predicate},
+        array_buffer::{
+            ArrayBuffer, BufferObject,
+            utils::{SliceRefMut, memcpy, memmove},
+        },
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -26,8 +26,8 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::IntegerOrInfinity,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 
 /// The JavaScript `%TypedArray%` object.
 ///
@@ -201,7 +201,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.from called on non-constructable value")
-                    .into())
+                    .into());
             }
         };
 
@@ -327,7 +327,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.of called on non-constructable value")
-                    .into())
+                    .into());
             }
         };
 
@@ -379,7 +379,7 @@ impl BuiltinTypedArray {
         let k = match relative_index {
             // Note: Early undefined return on infinity.
             IntegerOrInfinity::PositiveInfinity | IntegerOrInfinity::NegativeInfinity => {
-                return Ok(JsValue::undefined())
+                return Ok(JsValue::undefined());
             }
             // 5. If relativeIndex ≥ 0, then
             // a. Let k be relativeIndex.
@@ -660,7 +660,7 @@ impl BuiltinTypedArray {
                     .with_message(
                         "TypedArray.prototype.every called with non-callable callback function",
                     )
-                    .into())
+                    .into());
             }
         };
 
@@ -1369,7 +1369,7 @@ impl BuiltinTypedArray {
                     .with_message(
                         "TypedArray.prototype.map called with non-callable callback function",
                     )
-                    .into())
+                    .into());
             }
         };
 
@@ -1671,12 +1671,12 @@ impl BuiltinTypedArray {
             IntegerOrInfinity::Integer(i) if i < 0 => {
                 return Err(JsNativeError::range()
                     .with_message("TypedArray.set called with negative offset")
-                    .into())
+                    .into());
             }
             IntegerOrInfinity::NegativeInfinity => {
                 return Err(JsNativeError::range()
                     .with_message("TypedArray.set called with negative offset")
-                    .into())
+                    .into());
             }
             IntegerOrInfinity::PositiveInfinity => U64OrPositiveInfinity::PositiveInfinity,
             IntegerOrInfinity::Integer(i) => U64OrPositiveInfinity::U64(i as u64),
@@ -1961,7 +1961,7 @@ impl BuiltinTypedArray {
             U64OrPositiveInfinity::PositiveInfinity => {
                 return Err(JsNativeError::range()
                     .with_message("Target offset cannot be positive infinity")
-                    .into())
+                    .into());
             }
         };
 
@@ -2206,7 +2206,7 @@ impl BuiltinTypedArray {
                     .with_message(
                         "TypedArray.prototype.some called with non-callable callback function",
                     )
-                    .into())
+                    .into());
             }
         };
 
@@ -2254,7 +2254,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
-                    .into())
+                    .into());
             }
         };
 
@@ -2306,7 +2306,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
-                    .into())
+                    .into());
             }
         };
 

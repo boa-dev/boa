@@ -6,8 +6,8 @@ use std::{
     path::Path,
 };
 
-pub use utf16::UTF16Input;
 pub use utf8::UTF8Input;
+pub use utf16::UTF16Input;
 
 mod utf16;
 mod utf8;

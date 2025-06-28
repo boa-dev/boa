@@ -1,7 +1,7 @@
 //! Implements a map type that preserves insertion order.
 
-use crate::{object::JsObject, JsData, JsValue};
-use boa_gc::{custom_trace, Finalize, Trace};
+use crate::{JsData, JsValue, object::JsObject};
+use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::{Equivalent, IndexMap};
 use std::{
     fmt::Debug,

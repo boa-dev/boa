@@ -9,8 +9,9 @@
 // https://github.com/tc39/proposal-temporal/blob/main/polyfill/index.d.ts
 
 use crate::{
-    builtins::options::{get_option, OptionType, ParsableOptionType},
-    js_string, Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
+    Context, JsNativeError, JsObject, JsResult, JsString, JsValue,
+    builtins::options::{OptionType, ParsableOptionType, get_option},
+    js_string,
 };
 use temporal_rs::{
     options::{

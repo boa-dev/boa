@@ -7,8 +7,9 @@
 #[cfg(feature = "annex-b")]
 use crate::operations::annex_b_function_declarations_names;
 use crate::{
+    Declaration, Module, Script, StatementListItem, ToJsString,
     declaration::{Binding, ExportDeclaration, LexicalDeclaration, VariableList},
-    expression::{literal::ObjectMethodDefinition, Identifier},
+    expression::{Identifier, literal::ObjectMethodDefinition},
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
         AsyncGeneratorDeclaration, AsyncGeneratorExpression, ClassDeclaration, ClassElement,
@@ -16,18 +17,17 @@ use crate::{
         FunctionExpression, GeneratorDeclaration, GeneratorExpression,
     },
     operations::{
-        bound_names, contains, lexically_declared_names, lexically_scoped_declarations,
-        var_declared_names, var_scoped_declarations, ContainsSymbol, LexicallyScopedDeclaration,
-        VarScopedDeclaration,
+        ContainsSymbol, LexicallyScopedDeclaration, VarScopedDeclaration, bound_names, contains,
+        lexically_declared_names, lexically_scoped_declarations, var_declared_names,
+        var_scoped_declarations,
     },
     property::PropertyName,
     scope::{FunctionScopes, IdentifierReference, Scope},
     statement::{
-        iteration::{ForLoopInitializer, IterableLoopInitializer},
         Block, Catch, ForInLoop, ForLoop, ForOfLoop, Switch, With,
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
     },
     visitor::{NodeRef, NodeRefMut, VisitorMut},
-    Declaration, Module, Script, StatementListItem, ToJsString,
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
@@ -2288,7 +2288,10 @@ pub(crate) fn eval_declaration_instantiation_scope(
                 if this_env.has_binding(&name) {
                     // i. Throw a SyntaxError exception.
                     // ii. NOTE: Annex B.3.4 defines alternate semantics for the above step.
-                    return Err(format!("variable declaration {} in eval function already exists as a lexical variable", name.to_std_string_escaped()));
+                    return Err(format!(
+                        "variable declaration {} in eval function already exists as a lexical variable",
+                        name.to_std_string_escaped()
+                    ));
                 }
                 // b. NOTE: A direct eval will not hoist var declaration over a like-named lexical declaration.
             }

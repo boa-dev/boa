@@ -1,12 +1,12 @@
 use super::{FormalParameterList, FunctionBody};
-use crate::operations::{contains, ContainsSymbol};
+use crate::operations::{ContainsSymbol, contains};
 use crate::scope::FunctionScopes;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{LinearSpan, LinearSpanIgnoreEq, Span};
 use crate::{
     expression::{Expression, Identifier},
     join_nodes,
 };
-use crate::{LinearSpan, LinearSpanIgnoreEq, Span};
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};
 

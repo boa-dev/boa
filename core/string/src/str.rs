@@ -1,6 +1,7 @@
 use crate::{
+    CodePoint, Iter,
     display::{JsStrDisplayEscaped, JsStrDisplayLossy},
-    is_trimmable_whitespace, is_trimmable_whitespace_latin1, CodePoint, Iter,
+    is_trimmable_whitespace, is_trimmable_whitespace_latin1,
 };
 use std::{
     hash::{Hash, Hasher},
@@ -444,7 +445,9 @@ impl<'a> JsStr<'a> {
     /// errors.
     #[inline]
     #[allow(clippy::missing_panics_doc)]
-    pub fn to_std_string_with_surrogates(&self) -> impl Iterator<Item = Result<String, u16>> + use<'a> {
+    pub fn to_std_string_with_surrogates(
+        &self,
+    ) -> impl Iterator<Item = Result<String, u16>> + use<'a> {
         let mut iter = self.code_points().peekable();
 
         std::iter::from_fn(move || {

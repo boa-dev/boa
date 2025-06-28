@@ -107,7 +107,7 @@
 #![allow(clippy::inline_always)]
 
 use crate::{JsBigInt, JsObject, JsSymbol, JsVariant};
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use boa_string::JsString;
 use core::fmt;
 use static_assertions::const_assert;

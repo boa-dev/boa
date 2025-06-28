@@ -1,7 +1,8 @@
 use icu_decimal::provider::DecimalSymbolsV1;
 use icu_locale::{
-    extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
-    locale, preferences::extensions::unicode::keywords::NumberingSystem, Locale,
+    Locale, extensions::unicode::Value, extensions_unicode_key as key,
+    extensions_unicode_value as value, locale,
+    preferences::extensions::unicode::keywords::NumberingSystem,
 };
 use icu_plurals::provider::PluralsCardinalV1;
 use icu_provider::{
@@ -10,9 +11,9 @@ use icu_provider::{
 
 use crate::{
     builtins::intl::{
+        Service,
         locale::{default_locale, resolve_locale},
         options::{IntlOptions, LocaleMatcher},
-        Service,
     },
     context::icu::IntlProvider,
 };

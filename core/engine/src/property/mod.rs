@@ -19,7 +19,7 @@ mod attribute;
 mod nonmaxu32;
 
 use crate::{
-    js_string, object::shape::slot::SlotAttributes, string::JsStr, JsString, JsSymbol, JsValue,
+    JsString, JsSymbol, JsValue, js_string, object::shape::slot::SlotAttributes, string::JsStr,
 };
 use boa_gc::{Finalize, Trace};
 use std::{fmt, iter::FusedIterator};

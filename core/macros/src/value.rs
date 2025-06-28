@@ -3,7 +3,7 @@ use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
 use syn::token::{Brace, Bracket};
-use syn::{braced, bracketed, parse2, Expr, Ident, LitStr, Token};
+use syn::{Expr, Ident, LitStr, Token, braced, bracketed, parse2};
 
 /// The key can be an identifier (which will be stringified), or an actual string
 /// literal.

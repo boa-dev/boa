@@ -1,6 +1,6 @@
 use crate::bytecompiler::{
-    jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind},
     ByteCompiler,
+    jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind},
 };
 use boa_ast::statement::Break;
 

@@ -9,14 +9,16 @@ use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
 
 use crate::{
+    Declaration, Expression, LinearSpan, ModuleItem, Script, Statement, StatementList,
+    StatementListItem,
     declaration::{
         Binding, ExportDeclaration, ImportDeclaration, LexicalDeclaration, VarDeclaration, Variable,
     },
     expression::{
+        Await, Call, Identifier, NewTarget, OptionalOperationKind, SuperCall, This, Yield,
         access::{PrivatePropertyAccess, SuperPropertyAccess},
         literal::PropertyDefinition,
         operator::BinaryInPrivate,
-        Await, Call, Identifier, NewTarget, OptionalOperationKind, SuperCall, This, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -25,12 +27,10 @@ use crate::{
         FunctionExpression, GeneratorDeclaration, GeneratorExpression, PrivateFieldDefinition,
     },
     statement::{
-        iteration::{ForLoopInitializer, IterableLoopInitializer},
         LabelledItem, With,
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
     },
     visitor::{NodeRef, VisitWith, Visitor},
-    Declaration, Expression, LinearSpan, ModuleItem, Script, Statement, StatementList,
-    StatementListItem,
 };
 
 #[cfg(test)]

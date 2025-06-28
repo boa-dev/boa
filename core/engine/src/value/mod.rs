@@ -30,16 +30,16 @@ pub use self::{
 use crate::builtins::RegExp;
 use crate::object::{ErasedObject, JsFunction, JsPromise, JsRegExp};
 use crate::{
+    Context, JsBigInt, JsResult, JsString, NativeObject,
     builtins::{
-        number::{f64_to_int32, f64_to_uint32},
         Number, Promise,
+        number::{f64_to_int32, f64_to_uint32},
     },
     error::JsNativeError,
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
-    Context, JsBigInt, JsResult, JsString, NativeObject,
 };
 
 mod conversions;

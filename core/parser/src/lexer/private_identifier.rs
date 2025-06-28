@@ -1,6 +1,6 @@
 //! Boa's lexing for ECMAScript private identifiers (#foo, #myvar, etc.).
 
-use crate::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer, identifier::Identifier};
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;

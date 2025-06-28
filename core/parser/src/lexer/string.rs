@@ -1,6 +1,6 @@
 //! Boa's lexing for ECMAScript string literals.
 
-use crate::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer, token::EscapeSequence};
 use crate::source::ReadChar;
 use boa_ast::{LinearSpan, Position, PositionGroup, Span};
 use boa_interner::Interner;

@@ -10,12 +10,12 @@
 use crate::{
     lexer::TokenKind,
     parser::{
-        expression::{AssignmentExpression, ShortCircuitExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+        expression::{AssignmentExpression, ShortCircuitExpression},
     },
     source::ReadChar,
 };
-use boa_ast::{expression::operator::Conditional, Expression, Punctuator};
+use boa_ast::{Expression, Punctuator, expression::operator::Conditional};
 use boa_interner::Interner;
 
 /// Conditional expression parsing.

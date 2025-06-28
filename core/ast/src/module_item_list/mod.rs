@@ -6,14 +6,14 @@
 //! [spec]: https://tc39.es/ecma262/#sec-modules
 
 use crate::{
+    StatementListItem,
     declaration::{
         ExportDeclaration, ExportEntry, ExportSpecifier, ImportDeclaration, ImportEntry,
         ImportKind, ImportName, IndirectExportEntry, LocalExportEntry, ModuleSpecifier,
         ReExportImportName, ReExportKind,
     },
-    operations::{bound_names, BoundNamesVisitor},
+    operations::{BoundNamesVisitor, bound_names},
     visitor::{VisitWith, Visitor, VisitorMut},
-    StatementListItem,
 };
 use boa_interner::Sym;
 use indexmap::IndexSet;

@@ -6,7 +6,7 @@
 
 // You can execute this example with `cargo run --example gcd`
 
-use boa_engine::{js_string, Context, Module};
+use boa_engine::{Context, Module, js_string};
 use boa_parser::Source;
 use std::path::PathBuf;
 

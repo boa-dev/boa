@@ -44,12 +44,12 @@ pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 use crate::object::TypedJsFunction;
 use crate::spanned_source_text::SourceText;
 use crate::{
+    Context, HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeFunction,
     builtins,
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
     object::{JsObject, JsPromise},
     realm::Realm,
-    Context, HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeFunction,
 };
 
 mod loader;

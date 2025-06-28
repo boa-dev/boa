@@ -6,8 +6,8 @@ use icu_collator::{
 };
 
 use crate::{
-    builtins::options::{OptionType, ParsableOptionType},
     Context, JsNativeError, JsResult, JsValue,
+    builtins::options::{OptionType, ParsableOptionType},
 };
 
 #[derive(Debug, Clone, Copy)]

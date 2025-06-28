@@ -22,14 +22,14 @@ use std::{
 use bitflags::bitflags;
 use clap::{ArgAction, Parser, ValueHint};
 use color_eyre::{
-    eyre::{bail, eyre, WrapErr},
     Result,
+    eyre::{WrapErr, bail, eyre},
 };
 use colored::Colorize;
 use rustc_hash::{FxHashMap, FxHashSet};
 use serde::{
-    de::{Unexpected, Visitor},
     Deserialize, Deserializer, Serialize,
+    de::{Unexpected, Visitor},
 };
 
 use boa_engine::optimizer::OptimizerOptions;
@@ -37,7 +37,7 @@ use edition::SpecEdition;
 use read::ErrorType;
 
 use self::{
-    read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
+    read::{MetaData, Negative, TestFlag, read_harness, read_suite, read_test},
     results::{compare_results, write_json},
 };
 
@@ -362,7 +362,9 @@ fn clone_test262(commit: Option<&str>, verbose: u8) -> Result<()> {
             if update {
                 println!("Updating Test262 repository:");
             } else {
-                println!("Warning Test262 repository is not in sync, use '--test262-commit latest' to automatically update it:");
+                println!(
+                    "Warning Test262 repository is not in sync, use '--test262-commit latest' to automatically update it:"
+                );
             }
 
             println!("    Current commit: {current_commit_hash} {current_commit_message}");

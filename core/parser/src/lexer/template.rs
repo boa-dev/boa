@@ -1,7 +1,7 @@
 //! Boa's lexing for ECMAScript template literals.
 
 use crate::{
-    lexer::{string::UTF16CodeUnitsBuffer, Cursor, Error, Token, TokenKind, Tokenizer},
+    lexer::{Cursor, Error, Token, TokenKind, Tokenizer, string::UTF16CodeUnitsBuffer},
     source::ReadChar,
 };
 use boa_ast::PositionGroup;

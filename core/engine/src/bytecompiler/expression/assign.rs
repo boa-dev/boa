@@ -3,12 +3,12 @@ use crate::{
     vm::opcode::BindingOpcode,
 };
 use boa_ast::{
+    Expression,
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::{assign::AssignOp, Assign},
+        operator::{Assign, assign::AssignOp},
     },
     scope::BindingLocatorError,
-    Expression,
 };
 
 impl ByteCompiler<'_> {

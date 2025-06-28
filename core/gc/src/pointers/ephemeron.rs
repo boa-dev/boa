@@ -1,10 +1,9 @@
 #![allow(clippy::doc_link_with_quotes)]
 
 use crate::{
-    finalizer_safe,
+    Allocator, Gc, Tracer, finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
-    Allocator, Gc, Tracer,
 };
 use std::ptr::NonNull;
 

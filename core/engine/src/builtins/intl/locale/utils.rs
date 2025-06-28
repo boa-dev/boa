@@ -1,16 +1,16 @@
 use crate::{
+    Context, JsNativeError, JsResult, JsValue,
     builtins::{
+        Array,
         intl::{
-            options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
             Service,
+            options::{IntlOptions, LocaleMatcher, coerce_options_to_object},
         },
         options::get_option,
-        Array,
     },
     context::icu::IntlProvider,
     js_string,
     object::JsObject,
-    Context, JsNativeError, JsResult, JsValue,
 };
 
 use icu_locale::{LanguageIdentifier, Locale, LocaleCanonicalizer};
@@ -490,7 +490,7 @@ pub(in crate::builtins::intl) fn validate_extension<M: DataMarker>(
 
 #[cfg(all(test, feature = "intl_bundled"))]
 mod tests {
-    use icu_locale::{langid, locale, Locale};
+    use icu_locale::{Locale, langid, locale};
     use icu_plurals::provider::PluralsCardinalV1;
 
     struct TestService;
@@ -502,8 +502,8 @@ mod tests {
 
     use crate::{
         builtins::intl::{
-            locale::utils::{lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix},
             Service,
+            locale::utils::{lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix},
         },
         context::icu::IntlProvider,
     };

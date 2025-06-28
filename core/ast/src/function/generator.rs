@@ -1,12 +1,11 @@
 use super::{FormalParameterList, FunctionBody};
 use crate::{
-    block_to_string,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};

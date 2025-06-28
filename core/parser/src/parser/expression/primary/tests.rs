@@ -1,15 +1,15 @@
 use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
+    Expression, Span, Statement,
     expression::{
+        Identifier, Parenthesized,
         literal::{ArrayLiteral, Literal},
         operator::{
-            assign::{AssignOp, AssignTarget},
             Assign,
+            assign::{AssignOp, AssignTarget},
         },
-        Identifier, Parenthesized,
     },
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement},
-    Expression, Span, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -19,10 +19,12 @@ fn check_string() {
     // Check empty string
     check_script_parser(
         "\"\"",
-        vec![Statement::Expression(
-            Literal::new(Sym::EMPTY_STRING, Span::new((1, 1), (1, 3))).into(),
-        )
-        .into()],
+        vec![
+            Statement::Expression(
+                Literal::new(Sym::EMPTY_STRING, Span::new((1, 1), (1, 3))).into(),
+            )
+            .into(),
+        ],
         &mut Interner::default(),
     );
 
@@ -30,14 +32,16 @@ fn check_string() {
     let interner = &mut Interner::default();
     check_script_parser(
         "\"hello\"",
-        vec![Statement::Expression(
-            Literal::new(
-                interner.get_or_intern_static("hello", utf16!("hello")),
-                Span::new((1, 1), (1, 8)),
+        vec![
+            Statement::Expression(
+                Literal::new(
+                    interner.get_or_intern_static("hello", utf16!("hello")),
+                    Span::new((1, 1), (1, 8)),
+                )
+                .into(),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }
@@ -48,31 +52,33 @@ fn check_destructuring_assignment_object_assignment_operator() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
         "({ a: a = 0 } = 0);",
-        vec![Statement::Expression(
-            Parenthesized::new(
-                Expression::Assign(Assign::new(
-                    AssignOp::Assign,
-                    AssignTarget::Pattern(
-                        ObjectPattern::new(
-                            vec![ObjectPatternElement::SingleName {
-                                name: Identifier::new(a, Span::new((1, 4), (1, 5))).into(),
-                                ident: Identifier::new(a, Span::new((1, 7), (1, 8))),
-                                default_init: Some(
-                                    Literal::new(0, Span::new((1, 11), (1, 12))).into(),
-                                ),
-                            }]
+        vec![
+            Statement::Expression(
+                Parenthesized::new(
+                    Expression::Assign(Assign::new(
+                        AssignOp::Assign,
+                        AssignTarget::Pattern(
+                            ObjectPattern::new(
+                                vec![ObjectPatternElement::SingleName {
+                                    name: Identifier::new(a, Span::new((1, 4), (1, 5))).into(),
+                                    ident: Identifier::new(a, Span::new((1, 7), (1, 8))),
+                                    default_init: Some(
+                                        Literal::new(0, Span::new((1, 11), (1, 12))).into(),
+                                    ),
+                                }]
+                                .into(),
+                                Span::new((1, 2), (1, 14)),
+                            )
                             .into(),
-                            Span::new((1, 2), (1, 14)),
-                        )
-                        .into(),
-                    ),
-                    Literal::new(0, Span::new((1, 17), (1, 18))).into(),
-                )),
-                Span::new((1, 1), (1, 19)),
+                        ),
+                        Literal::new(0, Span::new((1, 17), (1, 18))).into(),
+                    )),
+                    Span::new((1, 1), (1, 19)),
+                )
+                .into(),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }
@@ -102,30 +108,32 @@ fn check_destructuring_assignment_array_assignment_operator() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
         "([ a = 0 ] = []);",
-        vec![Statement::Expression(
-            Parenthesized::new(
-                Expression::Assign(Assign::new(
-                    AssignOp::Assign,
-                    AssignTarget::Pattern(
-                        ArrayPattern::new(
-                            vec![ArrayPatternElement::SingleName {
-                                ident: Identifier::new(a, Span::new((1, 4), (1, 5))),
-                                default_init: Some(
-                                    Literal::new(0, Span::new((1, 8), (1, 9))).into(),
-                                ),
-                            }]
+        vec![
+            Statement::Expression(
+                Parenthesized::new(
+                    Expression::Assign(Assign::new(
+                        AssignOp::Assign,
+                        AssignTarget::Pattern(
+                            ArrayPattern::new(
+                                vec![ArrayPatternElement::SingleName {
+                                    ident: Identifier::new(a, Span::new((1, 4), (1, 5))),
+                                    default_init: Some(
+                                        Literal::new(0, Span::new((1, 8), (1, 9))).into(),
+                                    ),
+                                }]
+                                .into(),
+                                Span::new((1, 2), (1, 11)),
+                            )
                             .into(),
-                            Span::new((1, 2), (1, 11)),
-                        )
-                        .into(),
-                    ),
-                    ArrayLiteral::new([], false, Span::new((1, 14), (1, 16))).into(),
-                )),
-                Span::new((1, 1), (1, 17)),
+                        ),
+                        ArrayLiteral::new([], false, Span::new((1, 14), (1, 16))).into(),
+                    )),
+                    Span::new((1, 1), (1, 17)),
+                )
+                .into(),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }

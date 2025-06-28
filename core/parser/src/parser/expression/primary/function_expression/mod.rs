@@ -11,19 +11,20 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{Error as LexError, TokenKind},
     parser::{
+        Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseResult, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    function::FunctionExpression as FunctionExpressionNode,
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword, Punctuator, Span,
+    function::FunctionExpression as FunctionExpressionNode,
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_interner::{Interner, Sym};
 

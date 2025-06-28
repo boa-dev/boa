@@ -1,11 +1,11 @@
 use super::VaryingOperand;
 use crate::{
-    builtins::{promise::PromiseCapability, Promise},
+    Context, JsObject, JsResult, JsValue, NativeFunction,
+    builtins::{Promise, promise::PromiseCapability},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
     vm::opcode::Operation,
-    Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`

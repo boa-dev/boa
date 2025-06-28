@@ -1,7 +1,7 @@
 use boa_ast::scope::Scope;
-use boa_gc::{custom_trace, Finalize, GcRefCell, Trace};
+use boa_gc::{Finalize, GcRefCell, Trace, custom_trace};
 
-use crate::{builtins::function::OrdinaryFunction, JsNativeError, JsObject, JsResult, JsValue};
+use crate::{JsNativeError, JsObject, JsResult, JsValue, builtins::function::OrdinaryFunction};
 
 use super::PoisonableEnvironment;
 

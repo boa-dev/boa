@@ -109,8 +109,8 @@ impl SubGraph {
             }
         );
 
-        let _ =
-            writeln!(result,
+        let _ = writeln!(
+            result,
             "\t\t{prefix}_{label}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]"
         );
         if !self.nodes.is_empty() {

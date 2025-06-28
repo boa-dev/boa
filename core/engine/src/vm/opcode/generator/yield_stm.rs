@@ -1,12 +1,12 @@
 use std::ops::ControlFlow;
 
 use crate::{
+    Context, JsValue,
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{
-        opcode::{Operation, VaryingOperand},
         CompletionRecord, GeneratorResumeKind,
+        opcode::{Operation, VaryingOperand},
     },
-    Context, JsValue,
 };
 
 /// `GeneratorYield` implements the Opcode Operation for `Opcode::GeneratorYield`

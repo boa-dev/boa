@@ -1,6 +1,6 @@
 use crate::{
-    object::{JsObject, PrivateName},
     Context, JsResult, JsString, JsSymbol, JsValue,
+    object::{JsObject, PrivateName},
 };
 use boa_ast::scope::{BindingLocator, BindingLocatorScope, Scope};
 use boa_gc::{Finalize, Gc, Trace};

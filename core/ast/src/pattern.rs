@@ -23,10 +23,10 @@
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
 use crate::{
-    expression::{access::PropertyAccess, Identifier},
+    Expression, Span,
+    expression::{Identifier, access::PropertyAccess},
     property::PropertyName,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Expression, Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};

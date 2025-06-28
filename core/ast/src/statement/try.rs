@@ -1,6 +1,6 @@
 //! Error handling statements
 
-use crate::operations::{contains, ContainsSymbol};
+use crate::operations::{ContainsSymbol, contains};
 use crate::scope::Scope;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{

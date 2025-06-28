@@ -10,20 +10,20 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsResult, JsString,
     builtins::iterable::create_iter_result_object,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, CONSTRUCTOR},
+    object::{CONSTRUCTOR, JsObject},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
     vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind, Stack},
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 
 use super::{BuiltInBuilder, IntrinsicObject};
 

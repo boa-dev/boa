@@ -1,7 +1,8 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
 use crate::{
+    Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
     builtins::function::ConstructorKind, native_function::NativeFunctionObject, object::JsObject,
-    value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
+    value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::marker::PhantomData;

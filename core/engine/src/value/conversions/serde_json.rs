@@ -2,12 +2,12 @@
 
 use super::JsValue;
 use crate::{
+    Context, JsResult, JsVariant,
     builtins::Array,
     error::JsNativeError,
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsVariant,
 };
 use serde_json::{Map, Value};
 use std::collections::HashSet;
@@ -185,7 +185,7 @@ impl JsValue {
                             PropertyKey::Symbol(_sym) => {
                                 return Err(JsNativeError::typ()
                                     .with_message("cannot convert Symbol to JSON")
-                                    .into())
+                                    .into());
                             }
                         };
                         let value = value_by_prop_key(property_key, context)?;
@@ -211,7 +211,7 @@ mod tests {
     use serde_json::json;
 
     use crate::{
-        js_string, object::JsArray, run_test_actions, Context, JsObject, JsValue, TestAction,
+        Context, JsObject, JsValue, TestAction, js_string, object::JsArray, run_test_actions,
     };
 
     #[test]

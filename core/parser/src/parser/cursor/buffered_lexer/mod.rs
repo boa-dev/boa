@@ -1,8 +1,8 @@
 use crate::{
+    Error,
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::ParseResult,
     source::{ReadChar, UTF8Input},
-    Error,
 };
 use boa_ast::{LinearPosition, PositionGroup};
 use boa_interner::Interner;

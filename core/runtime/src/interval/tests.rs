@@ -1,8 +1,8 @@
 use crate::interval;
-use crate::test::{run_test_actions_with, TestAction};
+use crate::test::{TestAction, run_test_actions_with};
 use boa_engine::context::time::FixedClock;
 use boa_engine::context::{Clock, ContextBuilder};
-use boa_engine::{js_str, Context};
+use boa_engine::{Context, js_str};
 use std::rc::Rc;
 
 fn create_context(clock: Rc<impl Clock + 'static>) -> Context {

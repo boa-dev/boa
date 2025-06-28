@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{run_test_actions, TestAction};
+use crate::{TestAction, run_test_actions};
 
 #[test]
 fn iterator_close_in_continue_before_jobs() {

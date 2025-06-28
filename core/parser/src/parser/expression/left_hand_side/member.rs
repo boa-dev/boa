@@ -7,24 +7,23 @@
 
 use super::arguments::Arguments;
 use crate::{
-    lexer::{token::ContainsEscapeSequence, InputElement, TokenKind},
+    Error,
+    lexer::{InputElement, TokenKind, token::ContainsEscapeSequence},
     parser::{
-        expression::{
-            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
-        },
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{
+            Expression, left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
+        },
     },
     source::ReadChar,
-    Error,
 };
 use ast::function::PrivateName;
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Punctuator, Span,
     expression::{
-        access::{PrivatePropertyAccess, SimplePropertyAccess, SuperPropertyAccess},
         Call, Identifier, ImportMeta, New, NewTarget,
+        access::{PrivatePropertyAccess, SimplePropertyAccess, SuperPropertyAccess},
     },
-    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 
@@ -221,7 +220,7 @@ where
                             token.to_string(interner),
                             token.span(),
                             "expected super property",
-                        ))
+                        ));
                     }
                 }
             }

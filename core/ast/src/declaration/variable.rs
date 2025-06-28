@@ -2,11 +2,11 @@
 
 use super::Declaration;
 use crate::{
+    Statement,
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Statement,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::{convert::TryFrom, fmt::Write as _, ops::ControlFlow};

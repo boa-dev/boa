@@ -4,14 +4,14 @@ use std::{future::Future, pin::Pin, task};
 
 use super::{JsArray, JsFunction};
 use crate::{
+    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
     builtins::{
-        promise::{PromiseState, ResolvingFunctions},
         Promise,
+        promise::{PromiseState, ResolvingFunctions},
     },
     job::NativeAsyncJob,
     object::JsObject,
     value::TryFromJs,
-    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
@@ -288,7 +288,7 @@ impl JsPromise {
     /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
     pub fn from_future<Fut>(future: Fut, context: &mut Context) -> Self
     where
-        Fut: std::future::IntoFuture<Output = JsResult<JsValue>> + 'static,
+        Fut: IntoFuture<Output = JsResult<JsValue>> + 'static,
     {
         let (promise, resolvers) = Self::new_pending(context);
 

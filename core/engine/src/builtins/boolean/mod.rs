@@ -13,14 +13,14 @@
 mod tests;
 
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsResult, JsString, JsValue,
 };
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};

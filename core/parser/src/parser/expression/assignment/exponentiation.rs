@@ -10,14 +10,14 @@
 use crate::{
     lexer::TokenKind,
     parser::{
-        expression::{unary::UnaryExpression, update::UpdateExpression},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{unary::UnaryExpression, update::UpdateExpression},
     },
     source::ReadChar,
 };
 use boa_ast::{
-    expression::operator::{binary::ArithmeticOp, Binary},
     Expression, Keyword, Punctuator,
+    expression::operator::{Binary, binary::ArithmeticOp},
 };
 use boa_interner::Interner;
 

@@ -6,7 +6,7 @@ pub(crate) mod walker;
 use self::{pass::ConstantFolding, walker::Walker};
 use crate::Context;
 use bitflags::bitflags;
-use boa_ast::{visitor::VisitorMut, Expression, StatementList};
+use boa_ast::{Expression, StatementList, visitor::VisitorMut};
 use std::{fmt, ops::ControlFlow};
 
 bitflags! {

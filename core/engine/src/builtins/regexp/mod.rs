@@ -10,17 +10,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
 
 use crate::{
-    builtins::{array::Array, string, BuiltInObject},
+    Context, JsArgs, JsData, JsResult, JsString,
+    builtins::{BuiltInObject, array::Array, string},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, CONSTRUCTOR},
+    object::{CONSTRUCTOR, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::{CodePoint, JsStrVariant, StaticJsStrings},
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::{js_str, utf16};

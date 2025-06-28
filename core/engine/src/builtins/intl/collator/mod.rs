@@ -1,21 +1,22 @@
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use icu_collator::{
+    CollatorPreferences,
     options::{AlternateHandling, MaxVariable},
     preferences::{CollationCaseFirst, CollationNumericOrdering, CollationType},
     provider::CollationMetadataV1,
-    CollatorPreferences,
 };
 
 use icu_locale::{
-    extensions::unicode, extensions_unicode_key as key, preferences::PreferenceKey,
-    subtags::subtag, Locale,
+    Locale, extensions::unicode, extensions_unicode_key as key, preferences::PreferenceKey,
+    subtags::subtag,
 };
 use icu_provider::DataMarkerAttributes;
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
-        options::get_option, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        OrdinaryObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        options::get_option,
     },
     context::{
         icu::IntlProvider,
@@ -24,20 +25,19 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        JsObject,
+        FunctionObjectBuilder, JsFunction, JsObject,
+        internal_methods::get_prototype_from_constructor,
     },
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
-    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
-    options::{coerce_options_to_object, IntlOptions},
     Service,
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
+    options::{IntlOptions, coerce_options_to_object},
 };
 
 mod options;

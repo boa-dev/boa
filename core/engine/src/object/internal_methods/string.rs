@@ -1,7 +1,7 @@
 use crate::{
+    Context, JsResult, JsString,
     object::{JsData, JsObject},
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsString,
 };
 
 use super::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};

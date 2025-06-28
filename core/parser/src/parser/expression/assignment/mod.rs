@@ -14,24 +14,24 @@ mod exponentiation;
 mod r#yield;
 
 use crate::{
+    Error,
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
+        AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::assignment::{
             arrow_function::{ArrowFunction, ConciseBody},
             async_arrow_function::AsyncArrowFunction,
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    expression::operator::assign::{Assign, AssignOp, AssignTarget},
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Expression, Keyword, Punctuator, Span,
+    expression::operator::assign::{Assign, AssignOp, AssignTarget},
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_interner::Interner;
 
@@ -91,7 +91,7 @@ where
             // [+Yield]YieldExpression[?In, ?Await]
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 return YieldExpression::new(self.allow_in, self.allow_await)
-                    .parse(cursor, interner)
+                    .parse(cursor, interner);
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::IdentifierName(_)

@@ -8,17 +8,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{
-        iterable::IteratorHint, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
-        IntrinsicObject,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        iterable::IteratorHint,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyDescriptorBuilder},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 
 use super::Error;

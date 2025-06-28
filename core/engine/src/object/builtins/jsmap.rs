@@ -1,15 +1,15 @@
 //! A Rust API wrapper for Boa's `Map` Builtin ECMAScript Object
 use crate::{
+    Context, JsResult, JsValue,
     builtins::{
+        Map,
         iterable::IteratorHint,
         map::{add_entries_from_iterable, ordered_map::OrderedMap},
-        Map,
     },
     error::JsNativeError,
     js_string,
     object::{JsFunction, JsMapIterator, JsObject},
     value::TryFromJs,
-    Context, JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};

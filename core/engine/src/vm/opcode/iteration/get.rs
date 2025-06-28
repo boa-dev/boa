@@ -1,7 +1,7 @@
 use crate::{
+    Context, JsResult,
     builtins::iterable::IteratorHint,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult,
 };
 
 /// `GetIterator` implements the Opcode Operation for `Opcode::GetIterator`

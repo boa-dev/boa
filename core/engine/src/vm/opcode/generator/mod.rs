@@ -2,6 +2,7 @@ pub(crate) mod yield_stm;
 
 use super::VaryingOperand;
 use crate::{
+    Context, JsError, JsObject, JsResult,
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         generator::{GeneratorContext, GeneratorState},
@@ -9,11 +10,10 @@ use crate::{
     js_string,
     object::PROTOTYPE,
     vm::{
+        CompletionRecord,
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CompletionRecord,
     },
-    Context, JsError, JsObject, JsResult,
 };
 use std::{collections::VecDeque, ops::ControlFlow};
 

@@ -17,25 +17,25 @@ mod optional;
 mod template;
 
 use crate::{
+    Error,
     lexer::{InputElement, TokenKind},
     parser::{
+        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
         expression::{
+            AssignmentExpression,
             left_hand_side::{
                 arguments::Arguments,
                 call::{CallExpression, CallExpressionTail},
                 member::MemberExpression,
                 optional::OptionalExpression,
             },
-            AssignmentExpression,
         },
-        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    expression::{ImportCall, SuperCall},
     Expression, Keyword, Position, Punctuator, Span,
+    expression::{ImportCall, SuperCall},
 };
 use boa_interner::Interner;
 

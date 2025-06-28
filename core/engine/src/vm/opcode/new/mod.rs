@@ -1,5 +1,5 @@
 use super::VaryingOperand;
-use crate::{error::JsNativeError, vm::opcode::Operation, Context, JsResult};
+use crate::{Context, JsResult, error::JsNativeError, vm::opcode::Operation};
 
 /// `New` implements the Opcode Operation for `Opcode::New`
 ///

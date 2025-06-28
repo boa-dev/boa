@@ -32,9 +32,9 @@
 
 use crate::context::time::{JsDuration, JsInstant};
 use crate::{
+    Context, JsResult, JsValue,
     object::{JsFunction, NativeObject},
     realm::Realm,
-    Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::collections::BTreeMap;

@@ -13,24 +13,24 @@
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
 use crate::value::JsVariant;
 use crate::{
-    builtins::{array, BuiltInObject},
+    Context, JsArgs, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, array},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{
+        JsData, JsFunction, JsObject, JsPrototype,
         internal_methods::{
-            is_compatible_property_descriptor, CallValue, InternalMethodContext,
-            InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            CallValue, InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            is_compatible_property_descriptor,
         },
         shape::slot::SlotAttributes,
-        JsData, JsFunction, JsObject, JsPrototype,
     },
     property::{PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
 use rustc_hash::FxHashSet;
@@ -282,7 +282,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Proxy trap result is neither object nor null")
-                .into())
+                .into());
         }
     };
 
@@ -570,7 +570,7 @@ pub(crate) fn proxy_exotic_get_own_property(
                     .with_message(
                         "Proxy trap result is not configurable and target result is undefined",
                     )
-                    .into())
+                    .into());
             }
         }
     }

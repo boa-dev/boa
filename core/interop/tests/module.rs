@@ -1,8 +1,8 @@
 //! Test for the class proc-macro.
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{js_string, Context, JsString, Module, Source};
-use boa_macros::{boa_class, boa_module, Finalize, JsData, Trace};
+use boa_engine::{Context, JsString, Module, Source, js_string};
+use boa_macros::{Finalize, JsData, Trace, boa_class, boa_module};
 use std::rc::Rc;
 
 #[derive(Clone, Trace, Finalize, JsData)]
@@ -48,7 +48,7 @@ impl Animal {
 
 #[boa_module]
 mod hello {
-    use boa_engine::{js_string, JsString};
+    use boa_engine::{JsString, js_string};
 
     fn world() -> JsString {
         js_string!("hello world")

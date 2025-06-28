@@ -3,7 +3,7 @@ use icu_locale::{
     subtags::{Language, Region, Script, Variant, Variants},
 };
 
-use crate::{builtins::options::OptionType, Context, JsNativeError};
+use crate::{Context, JsNativeError, builtins::options::OptionType};
 
 impl OptionType for Value {
     fn from_value(value: crate::JsValue, context: &mut Context) -> crate::JsResult<Self> {

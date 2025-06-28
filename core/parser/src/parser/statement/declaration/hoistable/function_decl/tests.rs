@@ -1,8 +1,8 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    Declaration, Span, StatementList,
     expression::Identifier,
     function::{FormalParameterList, FunctionBody, FunctionDeclaration},
-    Declaration, Span, StatementList,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -17,16 +17,18 @@ fn function_declaration() {
     let interner = &mut Interner::default();
     check_script_parser(
         "function hello() {}",
-        vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
-            Identifier::new(
-                interner.get_or_intern_static("hello", utf16!("hello")),
-                Span::new((1, 10), (1, 15)),
-            ),
-            FormalParameterList::default(),
-            FunctionBody::new(StatementList::default(), Span::new((1, 18), (1, 20))),
-            EMPTY_LINEAR_SPAN,
-        ))
-        .into()],
+        vec![
+            Declaration::FunctionDeclaration(FunctionDeclaration::new(
+                Identifier::new(
+                    interner.get_or_intern_static("hello", utf16!("hello")),
+                    Span::new((1, 10), (1, 15)),
+                ),
+                FormalParameterList::default(),
+                FunctionBody::new(StatementList::default(), Span::new((1, 18), (1, 20))),
+                EMPTY_LINEAR_SPAN,
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -36,18 +38,20 @@ fn function_declaration() {
 fn function_declaration_keywords() {
     macro_rules! genast {
         ($keyword:literal, $interner:expr, $name_span:expr, $body_span:expr) => {
-            vec![Declaration::FunctionDeclaration(FunctionDeclaration::new(
-                Identifier::new(
-                    $interner
-                        .get_or_intern_static($keyword, utf16!($keyword))
-                        .into(),
-                    $name_span,
-                ),
-                FormalParameterList::default(),
-                FunctionBody::new(StatementList::default(), $body_span),
-                EMPTY_LINEAR_SPAN,
-            ))
-            .into()]
+            vec![
+                Declaration::FunctionDeclaration(FunctionDeclaration::new(
+                    Identifier::new(
+                        $interner
+                            .get_or_intern_static($keyword, utf16!($keyword))
+                            .into(),
+                        $name_span,
+                    ),
+                    FormalParameterList::default(),
+                    FunctionBody::new(StatementList::default(), $body_span),
+                    EMPTY_LINEAR_SPAN,
+                ))
+                .into(),
+            ]
         };
     }
 

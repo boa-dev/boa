@@ -1,7 +1,7 @@
 use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
 use boa_ast::{
-    expression::operator::{unary::UnaryOp, Unary},
     Expression,
+    expression::operator::{Unary, unary::UnaryOp},
 };
 
 impl ByteCompiler<'_> {

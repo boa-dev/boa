@@ -2,10 +2,10 @@
 mod tests;
 
 use crate::{
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser, expression::Expression},
     source::ReadChar,
 };
-use boa_ast::{statement::Throw, Keyword};
+use boa_ast::{Keyword, statement::Throw};
 use boa_interner::Interner;
 
 /// For statement parsing

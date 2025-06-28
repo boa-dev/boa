@@ -1,6 +1,6 @@
+use crate::Span;
 use crate::expression::Call;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::Span;
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 

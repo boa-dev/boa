@@ -13,16 +13,16 @@
 use super::{Array, BuiltInBuilder, IntrinsicObject};
 use crate::value::JsVariant;
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{self, BuiltInObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{internal_methods::InternalMethodContext, JsObject},
+    object::{JsObject, internal_methods::InternalMethodContext},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 
 #[cfg(test)]
@@ -421,7 +421,7 @@ impl Reflect {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("proto must be an object or null")
-                    .into())
+                    .into());
             }
         };
         Ok(target

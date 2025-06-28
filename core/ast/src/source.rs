@@ -3,13 +3,13 @@ use std::ops::ControlFlow;
 use boa_interner::{Interner, Sym, ToIndentedString};
 
 use crate::{
+    ModuleItemList, StatementList,
     scope::Scope,
     scope_analyzer::{
-        analyze_binding_escapes, collect_bindings, eval_declaration_instantiation_scope,
-        optimize_scope_indicies, EvalDeclarationBindings,
+        EvalDeclarationBindings, analyze_binding_escapes, collect_bindings,
+        eval_declaration_instantiation_scope, optimize_scope_indicies,
     },
     visitor::{VisitWith, Visitor, VisitorMut},
-    ModuleItemList, StatementList,
 };
 
 /// A Script source.

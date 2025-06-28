@@ -15,16 +15,16 @@ mod futex;
 use std::sync::atomic::Ordering;
 
 use crate::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
-    property::Attribute, realm::Realm, string::StaticJsStrings, symbol::JsSymbol,
-    sys::time::Duration, value::IntegerOrInfinity, Context, JsArgs, JsNativeError, JsResult,
-    JsString, JsValue,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue, builtins::BuiltInObject,
+    context::intrinsics::Intrinsics, js_string, object::JsObject, property::Attribute,
+    realm::Realm, string::StaticJsStrings, symbol::JsSymbol, sys::time::Duration,
+    value::IntegerOrInfinity,
 };
 
 use super::{
+    BuiltInBuilder, IntrinsicObject,
     array_buffer::{BufferObject, BufferRef},
     typed_array::{Atomic, ContentType, Element, TypedArray, TypedArrayElement, TypedArrayKind},
-    BuiltInBuilder, IntrinsicObject,
 };
 
 /// Javascript `Atomics` object.
@@ -403,7 +403,7 @@ impl Atomics {
             BufferObject::Buffer(_) => {
                 return Err(JsNativeError::typ()
                     .with_message("cannot use `ArrayBuffer` for an atomic wait")
-                    .into())
+                    .into());
             }
         };
 

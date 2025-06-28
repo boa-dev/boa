@@ -1,6 +1,6 @@
 use std::{
     alloc,
-    sync::{atomic::Ordering, Arc},
+    sync::{Arc, atomic::Ordering},
 };
 
 use portable_atomic::{AtomicU8, AtomicUsize};
@@ -8,6 +8,7 @@ use portable_atomic::{AtomicU8, AtomicUsize};
 use boa_gc::{Finalize, Trace};
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -15,7 +16,6 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{get_max_byte_len, utils::copy_shared_to_shared};

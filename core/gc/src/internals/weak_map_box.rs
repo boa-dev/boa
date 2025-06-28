@@ -1,4 +1,4 @@
-use crate::{pointers::RawWeakMap, GcRefCell, Trace, Tracer, WeakGc};
+use crate::{GcRefCell, Trace, Tracer, WeakGc, pointers::RawWeakMap};
 
 /// A box that is used to track [`WeakMap`][`crate::WeakMap`]s.
 pub(crate) struct WeakMapBox<K: Trace + ?Sized + 'static, V: Trace + Sized + 'static> {

@@ -6,10 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-identifiers
 
 use crate::{
-    lexer::TokenKind,
-    parser::{cursor::Cursor, AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser},
-    source::ReadChar,
     Error,
+    lexer::TokenKind,
+    parser::{AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser, cursor::Cursor},
+    source::ReadChar,
 };
 use boa_ast::expression::Identifier as AstIdentifier;
 use boa_interner::{Interner, Sym};
@@ -164,7 +164,7 @@ where
                     tok.to_string(interner),
                     tok.span(),
                     "identifier parsing",
-                ))
+                ));
             }
         };
 

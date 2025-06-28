@@ -48,8 +48,8 @@ pub use ordinary_function::{FunctionDeclaration, FunctionExpression};
 pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
 use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
     LinearPosition, Span, StatementList, StatementListItem,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 
 /// A Function body.

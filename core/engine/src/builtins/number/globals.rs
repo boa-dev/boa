@@ -1,10 +1,10 @@
 use crate::{
-    builtins::{string::is_trimmable_whitespace, BuiltInBuilder, BuiltInObject, IntrinsicObject},
+    Context, JsArgs, JsResult, JsStr, JsString, JsValue,
+    builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject, string::is_trimmable_whitespace},
     context::intrinsics::Intrinsics,
     object::JsObject,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsResult, JsStr, JsString, JsValue,
 };
 
 use boa_macros::js_str;
@@ -115,11 +115,7 @@ fn from_js_str_radix(src: JsStr<'_>, radix: u8) -> Option<f64> {
             digit = (input | 0b10_0000).wrapping_sub(b'a').saturating_add(10);
         }
         // FIXME: once then_some is const fn, use it here
-        if digit < radix {
-            Some(digit)
-        } else {
-            None
-        }
+        if digit < radix { Some(digit) } else { None }
     }
 
     let src = src

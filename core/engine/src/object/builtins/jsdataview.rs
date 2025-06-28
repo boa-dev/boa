@@ -1,9 +1,9 @@
 //! A Rust API wrapper for Boa's `DataView` Builtin ECMAScript Object
 use crate::{
-    builtins::{array_buffer::BufferObject, DataView},
+    Context, JsNativeError, JsResult, JsValue,
+    builtins::{DataView, array_buffer::BufferObject},
     object::{JsArrayBuffer, JsObject},
     value::TryFromJs,
-    Context, JsNativeError, JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};

@@ -1,9 +1,9 @@
-use crate::operations::{contains, ContainsSymbol};
+use crate::operations::{ContainsSymbol, contains};
 use crate::scope::Scope;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::Expression,
-    statement::{iteration::IterableLoopInitializer, Statement},
+    statement::{Statement, iteration::IterableLoopInitializer},
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;

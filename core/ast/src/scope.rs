@@ -379,7 +379,7 @@ impl Scope {
                     binding.escapes,
                 ),
                 Some(binding) if binding.strict => {
-                    return Err(BindingLocatorError::MutateImmutable)
+                    return Err(BindingLocatorError::MutateImmutable);
                 }
                 Some(_) => return Err(BindingLocatorError::Silent),
                 None => self.inner.outer.as_ref().map_or_else(
@@ -431,7 +431,7 @@ impl Scope {
                     binding.escapes,
                 ),
                 Some(binding) if binding.strict => {
-                    return Err(BindingLocatorError::MutateImmutable)
+                    return Err(BindingLocatorError::MutateImmutable);
                 }
                 Some(_) => return Err(BindingLocatorError::Silent),
                 None => self.inner.outer.as_ref().map_or_else(

@@ -1,22 +1,22 @@
 use crate::{
+    Context, JsData, JsResult, JsValue,
     bytecompiler::ToJsString,
     environments::DeclarativeEnvironment,
     object::{
-        internal_methods::{
-            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_set, ordinary_try_get, InternalMethodContext, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
-        },
         JsObject,
+        internal_methods::{
+            InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
+            ordinary_set, ordinary_try_get,
+        },
     },
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
-    Context, JsData, JsResult, JsValue,
 };
 use boa_ast::{function::FormalParameterList, operations::bound_names, scope::Scope};
 use boa_gc::{Finalize, Gc, Trace};
 use boa_interner::Interner;
 use rustc_hash::FxHashMap;
-use thin_vec::{thin_vec, ThinVec};
+use thin_vec::{ThinVec, thin_vec};
 
 #[derive(Debug, Copy, Clone, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
