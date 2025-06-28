@@ -49,7 +49,7 @@
     clippy::let_unit_value
 )]
 
-mod console;
+pub mod console;
 
 use boa_engine::realm::Realm;
 #[doc(inline)]
@@ -60,6 +60,7 @@ mod text;
 #[doc(inline)]
 pub use text::{TextDecoder, TextEncoder};
 
+#[cfg(feature = "fetch")]
 pub mod fetch;
 pub mod interval;
 pub mod url;

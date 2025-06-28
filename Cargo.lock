@@ -548,6 +548,7 @@ dependencies = [
  "indoc",
  "reqwest",
  "rustc-hash 2.1.1",
+ "serde_json",
  "textwrap",
  "url",
 ]

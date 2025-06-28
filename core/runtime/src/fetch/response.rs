@@ -2,7 +2,7 @@
 use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{TryFromJs, TryIntoJs};
-use boa_engine::{js_string, Context, JsData, JsString, JsValue};
+use boa_engine::{js_string, Context, JsData, JsNativeError, JsResult, JsString, JsValue};
 use boa_gc::{Finalize, Trace};
 use boa_interop::boa_macros::boa_class;
 use std::borrow::Cow;
@@ -76,7 +76,6 @@ impl JsResponse {
         self.url.clone()
     }
 
-    #[boa(getter)]
     fn text(&self, context: &mut Context) -> JsPromise {
         let body = JsString::from(
             self.inner
@@ -87,5 +86,18 @@ impl JsResponse {
         );
 
         JsPromise::resolve(body, context)
+    }
+
+    fn json(&self, context: &mut Context) -> JsResult<JsPromise> {
+        let resp = self.inner.borrow();
+        let json_string = resp
+            .body()
+            .as_ref()
+            .map_or_else(|| Cow::Borrowed(""), |body| String::from_utf8_lossy(body));
+
+        let json = serde_json::from_str::<serde_json::Value>(&json_string)
+            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
+
+        JsValue::from_json(&json, context).map(|v| JsPromise::resolve(v, context))
     }
 }

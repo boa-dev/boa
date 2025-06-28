@@ -33,7 +33,7 @@ impl crate::fetch::Fetcher for TestFetcher {
     fn fetch_blocking(
         &self,
         request: Request<Option<Vec<u8>>>,
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<Response<Option<Vec<u8>>>> {
         self.requests_received.borrow_mut().push(request.clone());
         let url = request.uri();
