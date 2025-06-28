@@ -489,7 +489,7 @@ where
     T::Owned: Trace,
 {
     custom_trace!(this, mark, {
-        if let Cow::Owned(ref v) = this {
+        if let Cow::Owned(v) = this {
             mark(v);
         }
     });
