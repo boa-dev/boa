@@ -715,8 +715,8 @@ impl fmt::Display for PropertyKey {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::String(ref string) => string.to_std_string_escaped().fmt(f),
-            Self::Symbol(ref symbol) => symbol.descriptive_string().to_std_string_escaped().fmt(f),
+            Self::String(string) => string.to_std_string_escaped().fmt(f),
+            Self::Symbol(symbol) => symbol.descriptive_string().to_std_string_escaped().fmt(f),
             Self::Index(index) => index.get().fmt(f),
         }
     }
@@ -726,8 +726,8 @@ impl From<&PropertyKey> for JsValue {
     #[inline]
     fn from(property_key: &PropertyKey) -> Self {
         match property_key {
-            PropertyKey::String(ref string) => string.clone().into(),
-            PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
+            PropertyKey::String(string) => string.clone().into(),
+            PropertyKey::Symbol(symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
                 i32::try_from(index.get()).map_or_else(|_| Self::new(index.get()), Self::new)
             }
@@ -825,7 +825,7 @@ impl From<f64> for PropertyKey {
 impl PartialEq<[u16]> for PropertyKey {
     fn eq(&self, other: &[u16]) -> bool {
         match self {
-            Self::String(ref string) => string == other,
+            Self::String(string) => string == other,
             _ => false,
         }
     }

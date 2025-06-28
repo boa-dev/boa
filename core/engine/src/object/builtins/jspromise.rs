@@ -1184,13 +1184,13 @@ impl JsPromise {
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
                     let continuation = &captures.0;
-                    let mut gen = captures.1.take().expect("should only run once");
+                    let mut r#gen = captures.1.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object();
 
-                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
-                    let frame = gen.call_frame.take().expect("should have a call frame");
+                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
                     context.vm.push_frame(frame);
                     context.vm.frame_mut().set_register_pointer(rp);
@@ -1202,15 +1202,15 @@ impl JsPromise {
                             .await_native(continuation.clone(), context);
                     }
 
-                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
-                    gen.call_frame = context.vm.pop_frame();
-                    assert!(gen.call_frame.is_some());
+                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    r#gen.call_frame = context.vm.pop_frame();
+                    assert!(r#gen.call_frame.is_some());
 
                     if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
-                            .context = Some(gen);
+                            .context = Some(r#gen);
                     }
 
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
@@ -1241,13 +1241,13 @@ impl JsPromise {
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
                     let continuation = &captures.0;
-                    let mut gen = captures.1.take().expect("should only run once");
+                    let mut r#gen = captures.1.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object();
 
-                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
-                    let frame = gen.call_frame.take().expect("should have a call frame");
+                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    let frame = r#gen.call_frame.take().expect("should have a call frame");
                     let rp = frame.rp;
                     context.vm.push_frame(frame);
                     context.vm.frame_mut().set_register_pointer(rp);
@@ -1262,15 +1262,15 @@ impl JsPromise {
                             .await_native(continuation.clone(), context);
                     }
 
-                    std::mem::swap(&mut context.vm.stack, &mut gen.stack);
-                    gen.call_frame = context.vm.pop_frame();
-                    assert!(gen.call_frame.is_some());
+                    std::mem::swap(&mut context.vm.stack, &mut r#gen.stack);
+                    r#gen.call_frame = context.vm.pop_frame();
+                    assert!(r#gen.call_frame.is_some());
 
                     if let Some(async_generator) = async_generator {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
-                            .context = Some(gen);
+                            .context = Some(r#gen);
                     }
 
                     Ok(JsValue::undefined())

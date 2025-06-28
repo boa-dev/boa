@@ -296,7 +296,7 @@ impl ByteCompiler<'_> {
         let handler_index = self.push_handler();
 
         match for_of_loop.initializer() {
-            IterableLoopInitializer::Identifier(ref ident) => {
+            IterableLoopInitializer::Identifier(ident) => {
                 let ident = ident.to_js_string(self.interner());
                 match self.lexical_scope.set_mutable_binding(ident.clone()) {
                     Ok(binding) => {

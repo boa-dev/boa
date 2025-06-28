@@ -280,22 +280,22 @@ impl AsyncGenerator {
                 .into()
         });
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
-        let mut gen = generator.borrow_mut();
+        let mut r#gen = generator.borrow_mut();
 
         // 5. Let state be generator.[[AsyncGeneratorState]].
-        let mut state = gen.data.state;
+        let mut state = r#gen.data.state;
 
         // 6. If state is suspendedStart, then
         if state == AsyncGeneratorState::SuspendedStart {
             // a. Set generator.[[AsyncGeneratorState]] to completed.
-            gen.data.state = AsyncGeneratorState::Completed;
-            gen.data.context = None;
+            r#gen.data.state = AsyncGeneratorState::Completed;
+            r#gen.data.context = None;
 
             // b. Set state to completed.
             state = AsyncGeneratorState::Completed;
         }
 
-        drop(gen);
+        drop(r#gen);
 
         // 7. If state is completed, then
         if state == AsyncGeneratorState::Completed {
@@ -344,7 +344,7 @@ impl AsyncGenerator {
         completion: CompletionRecord,
         promise_capability: PromiseCapability,
     ) {
-        let mut gen = generator.borrow_mut();
+        let mut r#gen = generator.borrow_mut();
         // 1. Let request be AsyncGeneratorRequest { [[Completion]]: completion, [[Capability]]: promiseCapability }.
         let request = AsyncGeneratorRequest {
             completion,
@@ -352,7 +352,7 @@ impl AsyncGenerator {
         };
 
         // 2. Append request to the end of generator.[[AsyncGeneratorQueue]].
-        gen.data.queue.push_back(request);
+        r#gen.data.queue.push_back(request);
     }
 
     /// `AsyncGeneratorCompleteStep ( generator, completion, done [ , realm ] )`

@@ -73,13 +73,13 @@ impl AsyncGeneratorYield {
         // 9. Perform AsyncGeneratorCompleteStep(generator, completion, false, previousRealm).
         AsyncGenerator::complete_step(&async_generator_object, completion, false, None, context);
 
-        let mut gen = async_generator_object.borrow_mut();
+        let mut r#gen = async_generator_object.borrow_mut();
 
         // 10. Let queue be generator.[[AsyncGeneratorQueue]].
         // 11. If queue is not empty, then
         //     a. NOTE: Execution continues without suspending the generator.
         //     b. Let toYield be the first element of queue.
-        if let Some(next) = gen.data.queue.front() {
+        if let Some(next) = r#gen.data.queue.front() {
             // c. Let resumptionValue be Completion(toYield.[[Completion]]).
             let resume_kind = match next.completion.clone() {
                 CompletionRecord::Normal(val) => {
@@ -106,7 +106,7 @@ impl AsyncGeneratorYield {
         // 12. Else,
 
         //     a. Set generator.[[AsyncGeneratorState]] to suspended-yield.
-        gen.data.state = AsyncGeneratorState::SuspendedYield;
+        r#gen.data.state = AsyncGeneratorState::SuspendedYield;
 
         //     TODO: b. Remove genContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
         //     TODO: c. Let callerContext be the running execution context.

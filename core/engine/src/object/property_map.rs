@@ -86,10 +86,10 @@ impl IndexedProperties {
     /// Get a property descriptor if it exists.
     fn get(&self, key: u32) -> Option<PropertyDescriptor> {
         let value = match self {
-            Self::DenseI32(ref vec) => vec.get(key as usize).copied()?.into(),
-            Self::DenseF64(ref vec) => vec.get(key as usize).copied()?.into(),
-            Self::DenseElement(ref vec) => vec.get(key as usize)?.clone(),
-            Self::Sparse(ref map) => return map.get(&key).cloned(),
+            Self::DenseI32(vec) => vec.get(key as usize).copied()?.into(),
+            Self::DenseF64(vec) => vec.get(key as usize).copied()?.into(),
+            Self::DenseElement(vec) => vec.get(key as usize)?.clone(),
+            Self::Sparse(map) => return map.get(&key).cloned(),
         };
 
         Some(
