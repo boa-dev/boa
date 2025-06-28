@@ -230,3 +230,28 @@ fn check_new_target_with_property_access() {
         interner,
     );
 }
+
+#[test]
+fn check_non_reserved_keyword_as_identifier() {
+    let interner = &mut Interner::default();
+
+    check_script_parser(
+        indoc! {r#"
+            class of {}
+        "#},
+        [Declaration::ClassDeclaration(
+            ClassDeclaration::new(
+                Identifier::new(
+                    interner.get_or_intern_static("of", utf16!("of")),
+                    Span::new((1, 7), (1, 9)),
+                ),
+                None,
+                None,
+                vec![].into(),
+            )
+            .into(),
+        )
+        .into()],
+        interner,
+    );
+}

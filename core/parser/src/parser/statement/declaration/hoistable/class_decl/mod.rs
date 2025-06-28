@@ -89,6 +89,10 @@ where
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
+            TokenKind::Keyword((k, _)) if !k.to_sym().is_reserved_identifier() => {
+                BindingIdentifier::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?
+            }
             _ if self.is_default.0 => Identifier::new(Sym::DEFAULT, span),
             _ => {
                 return Err(Error::unexpected(
