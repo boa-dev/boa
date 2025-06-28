@@ -16,7 +16,7 @@ const EMPTY_LINEAR_SPAN: boa_ast::LinearSpan =
 #[test]
 fn check_generator_function_expression() {
     let interner = &mut Interner::default();
-    let gen = interner.get_or_intern_static("gen", utf16!("gen"));
+    let r#gen = interner.get_or_intern_static("gen", utf16!("gen"));
     check_script_parser(
         indoc! {"
             const gen = function*() {
@@ -25,10 +25,10 @@ fn check_generator_function_expression() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                Identifier::new(gen, Span::new((1, 7), (1, 10))),
+                Identifier::new(r#gen, Span::new((1, 7), (1, 10))),
                 Some(
                     GeneratorExpression::new(
-                        Some(Identifier::new(gen, Span::new((1, 7), (1, 10)))),
+                        Some(Identifier::new(r#gen, Span::new((1, 7), (1, 10)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
@@ -63,7 +63,7 @@ fn check_generator_function_expression() {
 #[test]
 fn check_generator_function_delegate_yield_expression() {
     let interner = &mut Interner::default();
-    let gen = interner.get_or_intern_static("gen", utf16!("gen"));
+    let r#gen = interner.get_or_intern_static("gen", utf16!("gen"));
     check_script_parser(
         indoc! {"
             const gen = function*() {
@@ -72,10 +72,10 @@ fn check_generator_function_delegate_yield_expression() {
         "},
         vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![Variable::from_identifier(
-                Identifier::new(gen, Span::new((1, 7), (1, 10))),
+                Identifier::new(r#gen, Span::new((1, 7), (1, 10))),
                 Some(
                     GeneratorExpression::new(
-                        Some(Identifier::new(gen, Span::new((1, 7), (1, 10)))),
+                        Some(Identifier::new(r#gen, Span::new((1, 7), (1, 10)))),
                         FormalParameterList::default(),
                         FunctionBody::new(
                             StatementList::new(
