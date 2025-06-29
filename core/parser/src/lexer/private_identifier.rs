@@ -2,9 +2,8 @@
 
 use crate::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
-use boa_ast::{Position, Span};
+use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Private Identifier lexing.
 ///
@@ -26,29 +25,29 @@ impl<R> Tokenizer<R> for PrivateIdentifier {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("PrivateIdentifier", "Lexing");
-
         if let Some(next_ch) = cursor.next_char()? {
             if let Ok(c) = char::try_from(next_ch) {
                 match c {
                     '\\' if cursor.peek_char()? == Some(0x0075 /* u */) => {
                         let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
-                        Ok(Token::new(
+                        Ok(Token::new_by_position_group(
                             TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
-                            Span::new(start_pos, cursor.pos()),
+                            start_pos,
+                            cursor.pos_group(),
                         ))
                     }
                     _ if Identifier::is_identifier_start(c as u32) => {
                         let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
-                        Ok(Token::new(
+                        Ok(Token::new_by_position_group(
                             TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
-                            Span::new(start_pos, cursor.pos()),
+                            start_pos,
+                            cursor.pos_group(),
                         ))
                     }
                     _ => Err(Error::syntax(

@@ -1,4 +1,5 @@
-use super::{InnerValue, JsValue};
+use super::JsValue;
+use crate::JsVariant;
 
 /// Possible types of values as defined at <https://tc39.es/ecma262/#sec-typeof-operator>.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -37,15 +38,15 @@ impl JsValue {
     /// Check [`JsValue::type_of`] if you need to call the `typeof` operator.
     #[must_use]
     pub const fn get_type(&self) -> Type {
-        match self.inner {
-            InnerValue::Float64(_) | InnerValue::Integer32(_) => Type::Number,
-            InnerValue::String(_) => Type::String,
-            InnerValue::Boolean(_) => Type::Boolean,
-            InnerValue::Symbol(_) => Type::Symbol,
-            InnerValue::Null => Type::Null,
-            InnerValue::Undefined => Type::Undefined,
-            InnerValue::BigInt(_) => Type::BigInt,
-            InnerValue::Object(_) => Type::Object,
+        match self.variant() {
+            JsVariant::Float64(_) | JsVariant::Integer32(_) => Type::Number,
+            JsVariant::String(_) => Type::String,
+            JsVariant::Boolean(_) => Type::Boolean,
+            JsVariant::Symbol(_) => Type::Symbol,
+            JsVariant::Null => Type::Null,
+            JsVariant::Undefined => Type::Undefined,
+            JsVariant::BigInt(_) => Type::BigInt,
+            JsVariant::Object(_) => Type::Object,
         }
     }
 }

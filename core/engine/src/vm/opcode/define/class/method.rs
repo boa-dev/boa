@@ -2,7 +2,7 @@ use crate::{
     builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType},
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -14,15 +14,19 @@ use crate::{
 pub(crate) struct DefineClassStaticMethodByName;
 
 impl DefineClassStaticMethodByName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let class = context.vm.pop();
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let class = context.vm.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
         {
             let function_object = function
@@ -38,14 +42,14 @@ impl DefineClassStaticMethodByName {
         class.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
-                .value(function)
+                .value(function.clone())
                 .writable(true)
                 .enumerable(false)
                 .configurable(true)
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -53,21 +57,6 @@ impl Operation for DefineClassStaticMethodByName {
     const NAME: &'static str = "DefineClassStaticMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
     const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `DefineClassMethodByName` implements the Opcode Operation for `Opcode::DefineClassMethodByName`
@@ -78,15 +67,19 @@ impl Operation for DefineClassStaticMethodByName {
 pub(crate) struct DefineClassMethodByName;
 
 impl DefineClassMethodByName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let class_proto = context.vm.pop();
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let class_proto = context.vm.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
         {
             let function_object = function
@@ -102,14 +95,14 @@ impl DefineClassMethodByName {
         class_proto.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
-                .value(function)
+                .value(function.clone())
                 .writable(true)
                 .enumerable(false)
                 .configurable(true)
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -117,21 +110,6 @@ impl Operation for DefineClassMethodByName {
     const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
     const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `DefineClassStaticMethodByValue` implements the Opcode Operation for `Opcode::DefineClassStaticMethodByValue`
@@ -141,15 +119,15 @@ impl Operation for DefineClassMethodByName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassStaticMethodByValue;
 
-impl Operation for DefineClassStaticMethodByValue {
-    const NAME: &'static str = "DefineClassStaticMethodByValue";
-    const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let key = context.vm.pop();
-        let class = context.vm.pop();
+impl DefineClassStaticMethodByValue {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let class = context.vm.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -168,15 +146,21 @@ impl Operation for DefineClassStaticMethodByValue {
         class.define_property_or_throw(
             key,
             PropertyDescriptor::builder()
-                .value(function)
+                .value(function.clone())
                 .writable(true)
                 .enumerable(false)
                 .configurable(true)
                 .build(),
             context,
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for DefineClassStaticMethodByValue {
+    const NAME: &'static str = "DefineClassStaticMethodByValue";
+    const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
+    const COST: u8 = 6;
 }
 
 /// `DefineClassMethodByValue` implements the Opcode Operation for `Opcode::DefineClassMethodByValue`
@@ -186,15 +170,15 @@ impl Operation for DefineClassStaticMethodByValue {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassMethodByValue;
 
-impl Operation for DefineClassMethodByValue {
-    const NAME: &'static str = "DefineClassMethodByValue";
-    const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let key = context.vm.pop();
-        let class_proto = context.vm.pop();
+impl DefineClassMethodByValue {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let class_proto = context.vm.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -213,13 +197,19 @@ impl Operation for DefineClassMethodByValue {
         class_proto.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
-                .value(function)
+                .value(function.clone())
                 .writable(true)
                 .enumerable(false)
                 .configurable(true)
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for DefineClassMethodByValue {
+    const NAME: &'static str = "DefineClassMethodByValue";
+    const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
+    const COST: u8 = 6;
 }

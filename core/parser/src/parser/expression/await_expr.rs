@@ -13,7 +13,7 @@ use crate::{
     parser::{AllowYield, Cursor, ParseResult, TokenParser},
     source::ReadChar,
 };
-use boa_ast::{expression::Await, Keyword};
+use boa_ast::{expression::Await, Keyword, Span};
 use boa_interner::Interner;
 
 /// Parses an await expression.
@@ -48,12 +48,21 @@ where
     type Output = Await;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        cursor.expect(
-            TokenKind::Keyword((Keyword::Await, false)),
-            "Await expression parsing",
-            interner,
-        )?;
+        let await_span_start = cursor
+            .expect(
+                TokenKind::Keyword((Keyword::Await, false)),
+                "Await expression parsing",
+                interner,
+            )?
+            .span()
+            .start();
+
         let expr = UnaryExpression::new(self.allow_yield, true).parse(cursor, interner)?;
-        Ok(expr.into())
+        let expr_span_end = expr.span().end();
+
+        Ok(Await::new(
+            expr.into(),
+            Span::new(await_span_start, expr_span_end),
+        ))
     }
 }

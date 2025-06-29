@@ -1,7 +1,7 @@
 use crate::{
     builtins::function::OrdinaryFunction,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
+    Context,
 };
 
 /// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`
@@ -11,14 +11,14 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetHomeObject;
 
-impl Operation for SetHomeObject {
-    const NAME: &'static str = "SetHomeObject";
-    const INSTRUCTION: &'static str = "INST - SetHomeObject";
-    const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.pop();
-        let home = context.vm.pop();
+impl SetHomeObject {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, home): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
+        let function = context.vm.get_register(function.into());
+        let home = context.vm.get_register(home.into());
 
         function
             .as_object()
@@ -26,9 +26,11 @@ impl Operation for SetHomeObject {
             .downcast_mut::<OrdinaryFunction>()
             .expect("must be function object")
             .set_home_object(home.as_object().expect("must be object").clone());
-
-        context.vm.push(home);
-        context.vm.push(function);
-        Ok(CompletionType::Normal)
     }
+}
+
+impl Operation for SetHomeObject {
+    const NAME: &'static str = "SetHomeObject";
+    const INSTRUCTION: &'static str = "INST - SetHomeObject";
+    const COST: u8 = 4;
 }

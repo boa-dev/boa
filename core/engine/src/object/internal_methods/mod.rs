@@ -18,7 +18,6 @@ use crate::{
     value::JsValue,
     Context, JsNativeError, JsResult,
 };
-use boa_profiler::Profiler;
 
 pub(crate) mod immutable_prototype;
 pub(crate) mod string;
@@ -80,7 +79,6 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getprototypeof
     #[track_caller]
     pub(crate) fn __get_prototype_of__(&self, context: &mut Context) -> JsResult<JsPrototype> {
-        let _timer = Profiler::global().start_event("Object::__get_prototype_of__", "object");
         (self.vtable().__get_prototype_of__)(self, context)
     }
 
@@ -97,7 +95,6 @@ impl JsObject {
         val: JsPrototype,
         context: &mut Context,
     ) -> JsResult<bool> {
-        let _timer = Profiler::global().start_event("Object::__set_prototype_of__", "object");
         (self.vtable().__set_prototype_of__)(self, val, context)
     }
 
@@ -110,7 +107,6 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-isextensible
     pub(crate) fn __is_extensible__(&self, context: &mut Context) -> JsResult<bool> {
-        let _timer = Profiler::global().start_event("Object::__is_extensible__", "object");
         (self.vtable().__is_extensible__)(self, context)
     }
 
@@ -123,7 +119,6 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     pub(crate) fn __prevent_extensions__(&self, context: &mut Context) -> JsResult<bool> {
-        let _timer = Profiler::global().start_event("Object::__prevent_extensions__", "object");
         (self.vtable().__prevent_extensions__)(self, context)
     }
 
@@ -140,7 +135,6 @@ impl JsObject {
         key: &PropertyKey,
         context: &mut InternalMethodContext<'_>,
     ) -> JsResult<Option<PropertyDescriptor>> {
-        let _timer = Profiler::global().start_event("Object::__get_own_property__", "object");
         (self.vtable().__get_own_property__)(self, key, context)
     }
 
@@ -158,7 +152,6 @@ impl JsObject {
         desc: PropertyDescriptor,
         context: &mut InternalMethodContext<'_>,
     ) -> JsResult<bool> {
-        let _timer = Profiler::global().start_event("Object::__define_own_property__", "object");
         (self.vtable().__define_own_property__)(self, key, desc, context)
     }
 
@@ -175,7 +168,6 @@ impl JsObject {
         key: &PropertyKey,
         context: &mut InternalMethodContext<'_>,
     ) -> JsResult<bool> {
-        let _timer = Profiler::global().start_event("Object::__has_property__", "object");
         (self.vtable().__has_property__)(self, key, context)
     }
 
@@ -195,7 +187,6 @@ impl JsObject {
         receiver: JsValue,
         context: &mut InternalMethodContext<'_>,
     ) -> JsResult<Option<JsValue>> {
-        let _timer = Profiler::global().start_event("Object::__try_get__", "object");
         (self.vtable().__try_get__)(self, key, receiver, context)
     }
 
@@ -213,7 +204,6 @@ impl JsObject {
         receiver: JsValue,
         context: &mut InternalMethodContext<'_>,
     ) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Object::__get__", "object");
         (self.vtable().__get__)(self, key, receiver, context)
     }
 
@@ -232,7 +222,6 @@ impl JsObject {
         receiver: JsValue,
         context: &mut InternalMethodContext<'_>,
     ) -> JsResult<bool> {
-        let _timer = Profiler::global().start_event("Object::__set__", "object");
         (self.vtable().__set__)(self, key, value, receiver, context)
     }
 
@@ -249,7 +238,6 @@ impl JsObject {
         key: &PropertyKey,
         context: &mut InternalMethodContext<'_>,
     ) -> JsResult<bool> {
-        let _timer = Profiler::global().start_event("Object::__delete__", "object");
         (self.vtable().__delete__)(self, key, context)
     }
 
@@ -266,7 +254,6 @@ impl JsObject {
         &self,
         context: &mut Context,
     ) -> JsResult<Vec<PropertyKey>> {
-        let _timer = Profiler::global().start_event("Object::__own_property_keys__", "object");
         (self.vtable().__own_property_keys__)(self, context)
     }
 
@@ -392,6 +379,7 @@ pub struct InternalObjectMethods {
 /// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
 ///
 /// This is done to avoid recursion.
+#[allow(variant_size_differences)]
 pub(crate) enum CallValue {
     /// Calling is ready, the frames have been setup.
     ///
@@ -421,7 +409,11 @@ impl CallValue {
             self = func(&object, argument_count, context)?;
         }
 
-        Ok(matches!(self, Self::Complete))
+        match self {
+            Self::Ready => Ok(false),
+            Self::Complete => Ok(true),
+            Self::Pending { .. } => unreachable!(),
+        }
     }
 }
 
@@ -436,8 +428,6 @@ pub(crate) fn ordinary_get_prototype_of(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<JsPrototype> {
-    let _timer = Profiler::global().start_event("Object::ordinary_get_prototype_of", "object");
-
     // 1. Return O.[[Prototype]].
     Ok(obj.prototype().clone())
 }
@@ -540,7 +530,6 @@ pub(crate) fn ordinary_get_own_property(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
-    let _timer = Profiler::global().start_event("Object::ordinary_get_own_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If O does not have an own property with key P, return undefined.
     // 3. Let D be a newly created Property Descriptor with no fields.
@@ -570,8 +559,6 @@ pub(crate) fn ordinary_define_own_property(
     desc: PropertyDescriptor,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let _timer = Profiler::global().start_event("Object::ordinary_define_own_property", "object");
-
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     let current = obj.__get_own_property__(key, context)?;
 
@@ -599,7 +586,6 @@ pub(crate) fn ordinary_has_property(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let _timer = Profiler::global().start_event("Object::ordinary_has_property", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
     // 3. If hasOwn is not undefined, return true.
@@ -632,7 +618,6 @@ pub(crate) fn ordinary_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<JsValue> {
-    let _timer = Profiler::global().start_event("Object::ordinary_get", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     match obj.__get_own_property__(key, context)? {
@@ -686,7 +671,6 @@ pub(crate) fn ordinary_try_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<JsValue>> {
-    let _timer = Profiler::global().start_event("Object::ordinary_try_get", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
     match obj.__get_own_property__(key, context)? {
@@ -737,8 +721,6 @@ pub(crate) fn ordinary_set(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let _timer = Profiler::global().start_event("Object::ordinary_set", "object");
-
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
     // 3. Return OrdinarySetWithOwnDescriptor(O, P, V, Receiver, ownDesc).
@@ -852,7 +834,6 @@ pub(crate) fn ordinary_delete(
     key: &PropertyKey,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<bool> {
-    let _timer = Profiler::global().start_event("Object::ordinary_delete", "object");
     // 1. Assert: IsPropertyKey(P) is true.
     Ok(
         // 2. Let desc be ? O.[[GetOwnProperty]](P).
@@ -883,7 +864,6 @@ pub(crate) fn ordinary_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
-    let _timer = Profiler::global().start_event("Object::ordinary_own_property_keys", "object");
     // 1. Let keys be a new empty List.
     let mut keys = Vec::new();
 
@@ -919,9 +899,6 @@ pub(crate) fn is_compatible_property_descriptor(
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
 ) -> bool {
-    let _timer =
-        Profiler::global().start_event("Object::is_compatible_property_descriptor", "object");
-
     // 1. Return ValidateAndApplyPropertyDescriptor(undefined, undefined, Extensible, Desc, Current).
     validate_and_apply_property_descriptor(None, extensible, desc, current, &mut Slot::new())
 }
@@ -939,8 +916,6 @@ pub(crate) fn validate_and_apply_property_descriptor(
     current: Option<PropertyDescriptor>,
     slot: &mut Slot,
 ) -> bool {
-    let _timer =
-        Profiler::global().start_event("Object::validate_and_apply_property_descriptor", "object");
     // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
     let Some(mut current) = current else {
@@ -1097,7 +1072,6 @@ pub(crate) fn get_prototype_from_constructor<F>(
 where
     F: FnOnce(&StandardConstructors) -> &StandardConstructor,
 {
-    let _timer = Profiler::global().start_event("Object::get_prototype_from_constructor", "object");
     // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic
     // object.
     // The corresponding object must be an intrinsic that is intended to be used

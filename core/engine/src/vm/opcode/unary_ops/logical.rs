@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
+    Context,
 };
 
 /// `LogicalNot` implements the Opcode Operation for `Opcode::LogicalNot`
@@ -10,14 +10,18 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct LogicalNot;
 
+impl LogicalNot {
+    #[inline(always)]
+    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) {
+        context.vm.set_register(
+            value.into(),
+            (!context.vm.get_register(value.into()).to_boolean()).into(),
+        );
+    }
+}
+
 impl Operation for LogicalNot {
     const NAME: &'static str = "LogicalNot";
     const INSTRUCTION: &'static str = "INST - LogicalNot";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        context.vm.push(!value.to_boolean());
-        Ok(CompletionType::Normal)
-    }
 }

@@ -1,6 +1,10 @@
 //! This module implements the `JsObject` structure.
 //!
 //! The `JsObject` is a garbage collected Object.
+#![allow(
+    unknown_lints,
+    reason = "unpredictable_function_pointer_comparisons doesn't exist on 1.84"
+)]
 
 use super::{
     internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
@@ -21,6 +25,7 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace};
+use std::collections::HashSet;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -280,7 +285,83 @@ impl JsObject {
     #[must_use]
     #[track_caller]
     pub fn is_array(&self) -> bool {
-        std::ptr::eq(self.vtable(), &ARRAY_EXOTIC_INTERNAL_METHODS)
+        std::ptr::eq(self.vtable(), &raw const ARRAY_EXOTIC_INTERNAL_METHODS)
+    }
+
+    /// The inner implementation of `deep_strict_equals`, which keeps a list of values we've
+    /// seen to avoid recursive objects.
+    pub(crate) fn deep_strict_equals_inner(
+        lhs: &Self,
+        rhs: &Self,
+        encounters: &mut HashSet<usize>,
+        context: &mut Context,
+    ) -> JsResult<bool> {
+        // Loop through all the keys and if one is not equal, return false.
+        fn key_loop(
+            lhs: &JsObject,
+            rhs: &JsObject,
+            encounters: &mut HashSet<usize>,
+            context: &mut Context,
+        ) -> JsResult<bool> {
+            let l_keys = lhs.own_property_keys(context)?;
+            let r_keys = rhs.own_property_keys(context)?;
+
+            if l_keys.len() != r_keys.len() {
+                return Ok(false);
+            }
+
+            for key in &l_keys {
+                let vl = lhs.get_property(key);
+                let vr = rhs.get_property(key);
+
+                match (vl, vr) {
+                    (None, None) => {}
+                    (Some(vl), Some(vr)) => match (vl.value(), vr.value()) {
+                        (None, None) => {}
+                        (Some(lv), Some(rv)) => {
+                            if !lv.deep_strict_equals_inner(rv, encounters, context)? {
+                                return Ok(false);
+                            }
+                        }
+                        _ => {
+                            return Ok(false);
+                        }
+                    },
+                    _ => {
+                        return Ok(false);
+                    }
+                }
+            }
+            Ok(true)
+        }
+
+        let addr_l = std::ptr::from_ref::<Self>(lhs) as usize;
+        let addr_r = std::ptr::from_ref::<Self>(rhs) as usize;
+
+        if addr_r == addr_l {
+            return Ok(true);
+        }
+
+        let contains_l = encounters.contains(&addr_l);
+        let contains_r = encounters.contains(&addr_r);
+        if contains_l || contains_r {
+            return Ok(false);
+        }
+
+        encounters.insert(addr_l);
+        encounters.insert(addr_r);
+
+        // Make sure we clean up after the recursion.
+        let result = key_loop(lhs, rhs, encounters, context);
+        encounters.remove(&addr_l);
+        encounters.remove(&addr_r);
+        result
+    }
+
+    /// Checks that all own property keys and values are equal (recursively).
+    #[inline]
+    pub fn deep_strict_equals(lhs: &Self, rhs: &Self, context: &mut Context) -> JsResult<bool> {
+        Self::deep_strict_equals_inner(lhs, rhs, &mut HashSet::new(), context)
     }
 
     /// Converts an object to a primitive.
@@ -408,7 +489,7 @@ impl JsObject {
         let get = if let Some(getter) = self.try_get(js_string!("get"), context)? {
             // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
-            if !getter.is_undefined() && getter.as_object().map_or(true, |o| !o.is_callable()) {
+            if !getter.is_undefined() && getter.as_object().is_none_or(|o| !o.is_callable()) {
                 return Err(JsNativeError::typ()
                     .with_message("Property descriptor getter must be callable")
                     .into());
@@ -425,7 +506,7 @@ impl JsObject {
         let set = if let Some(setter) = self.try_get(js_string!("set"), context)? {
             // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
             // todo: extract IsCallable to be callable from Value
-            if !setter.is_undefined() && setter.as_object().map_or(true, |o| !o.is_callable()) {
+            if !setter.is_undefined() && setter.as_object().is_none_or(|o| !o.is_callable()) {
                 return Err(JsNativeError::typ()
                     .with_message("Property descriptor setter must be callable")
                     .into());
@@ -748,6 +829,10 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     #[must_use]
+    #[expect(
+        unpredictable_function_pointer_comparisons,
+        reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
+    )]
     pub fn is_callable(&self) -> bool {
         self.inner.vtable.__call__ != ORDINARY_INTERNAL_METHODS.__call__
     }
@@ -760,6 +845,10 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
     #[must_use]
+    #[expect(
+        unpredictable_function_pointer_comparisons,
+        reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
+    )]
     pub fn is_constructor(&self) -> bool {
         self.inner.vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
     }

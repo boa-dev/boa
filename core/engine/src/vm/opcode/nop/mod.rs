@@ -1,24 +1,4 @@
-use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
-};
-
-/// `Nop` implements the Opcode Operation for `Opcode::Nop`
-///
-/// Operation:
-///  - No-operation instruction, does nothing
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Nop;
-
-impl Operation for Nop {
-    const NAME: &'static str = "Nop";
-    const INSTRUCTION: &'static str = "INST - Nop";
-    const COST: u8 = 1;
-
-    fn execute(_: &mut Context) -> JsResult<CompletionType> {
-        Ok(CompletionType::Normal)
-    }
-}
+use crate::{vm::opcode::Operation, Context};
 
 /// `Reserved` implements the Opcode Operation for `Opcode::Reserved`
 ///
@@ -27,20 +7,15 @@ impl Operation for Nop {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Reserved;
 
+impl Reserved {
+    #[inline(always)]
+    pub(crate) fn operation((): (), _: &mut Context) {
+        unreachable!("Reserved opcodes are unreachable!")
+    }
+}
+
 impl Operation for Reserved {
     const NAME: &'static str = "Reserved";
     const INSTRUCTION: &'static str = "INST - Reserved";
     const COST: u8 = 0;
-
-    fn execute(_: &mut Context) -> JsResult<CompletionType> {
-        unreachable!("Reserved opcodes are unreachable!")
-    }
-
-    fn execute_with_u16_operands(_: &mut Context) -> JsResult<CompletionType> {
-        unreachable!("Reserved.U16 opcodes are unreachable!")
-    }
-
-    fn execute_with_u32_operands(_: &mut Context) -> JsResult<CompletionType> {
-        unreachable!("Reserved.U32 opcodes are unreachable!")
-    }
 }

@@ -1,6 +1,11 @@
+use std::ops::ControlFlow;
+
 use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult,
+    vm::{
+        opcode::{Operation, VaryingOperand},
+        CompletionRecord,
+    },
+    Context, JsNativeError,
 };
 
 /// `Return` implements the Opcode Operation for `Opcode::Return`
@@ -10,14 +15,17 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Return;
 
+impl Return {
+    #[inline(always)]
+    pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
+        context.handle_return()
+    }
+}
+
 impl Operation for Return {
     const NAME: &'static str = "Return";
     const INSTRUCTION: &'static str = "INST - Return";
     const COST: u8 = 4;
-
-    fn execute(_context: &mut Context) -> JsResult<CompletionType> {
-        Ok(CompletionType::Return)
-    }
 }
 
 /// `CheckReturn` implements the Opcode Operation for `Opcode::CheckReturn`
@@ -27,23 +35,20 @@ impl Operation for Return {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct CheckReturn;
 
-impl Operation for CheckReturn {
-    const NAME: &'static str = "CheckReturn";
-    const INSTRUCTION: &'static str = "INST - CheckReturn";
-    const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl CheckReturn {
+    #[inline(always)]
+    pub(crate) fn operation((): (), context: &mut Context) -> ControlFlow<CompletionRecord> {
         let frame = context.vm.frame();
         if !frame.construct() {
-            return Ok(CompletionType::Normal);
+            return ControlFlow::Continue(());
         }
-        let this = frame.this(&context.vm);
+        let this = &context.vm.stack.get_this(frame);
         let result = context.vm.take_return_value();
 
         let result = if result.is_object() {
             result
         } else if !this.is_undefined() {
-            this
+            this.clone()
         } else if !result.is_undefined() {
             let realm = context.vm.frame().realm.clone();
             context.vm.pending_exception = Some(
@@ -52,11 +57,11 @@ impl Operation for CheckReturn {
                     .with_realm(realm)
                     .into(),
             );
-            return Ok(CompletionType::Throw);
+            return context.handle_thow();
         } else {
             let frame = context.vm.frame();
             if frame.has_this_value_cached() {
-                this
+                this.clone()
             } else {
                 let realm = frame.realm.clone();
 
@@ -64,7 +69,7 @@ impl Operation for CheckReturn {
                     Err(err) => {
                         let err = err.inject_realm(realm);
                         context.vm.pending_exception = Some(err);
-                        return Ok(CompletionType::Throw);
+                        return context.handle_thow();
                     }
                     Ok(Some(this)) => this,
                     Ok(None) => context.realm().global_this().clone().into(),
@@ -73,46 +78,56 @@ impl Operation for CheckReturn {
         };
 
         context.vm.set_return_value(result);
-        Ok(CompletionType::Normal)
+        ControlFlow::Continue(())
     }
 }
 
-/// `GetReturnValue` implements the Opcode Operation for `Opcode::GetReturnValue`
+impl Operation for CheckReturn {
+    const NAME: &'static str = "CheckReturn";
+    const INSTRUCTION: &'static str = "INST - CheckReturn";
+    const COST: u8 = 3;
+}
+
+/// `SetAccumulator` implements the Opcode Operation for `Opcode::SetAccumulator`
 ///
 /// Operation:
-///  - Gets the return value of a function.
+///  - Sets the accumulator value, which is the implicit return value of a function.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct GetReturnValue;
+pub(crate) struct SetAccumulator;
 
-impl Operation for GetReturnValue {
-    const NAME: &'static str = "GetReturnValue";
-    const INSTRUCTION: &'static str = "INST - GetReturnValue";
-    const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.get_return_value();
-        context.vm.push(value);
-        Ok(CompletionType::Normal)
+impl SetAccumulator {
+    #[inline(always)]
+    pub(crate) fn operation(register: VaryingOperand, context: &mut Context) {
+        let value = context.vm.get_register(register.into());
+        context.vm.set_return_value(value.clone());
     }
 }
 
-/// `SetReturnValue` implements the Opcode Operation for `Opcode::SetReturnValue`
+impl Operation for SetAccumulator {
+    const NAME: &'static str = "SetAccumulator";
+    const INSTRUCTION: &'static str = "INST - SetAccumulator";
+    const COST: u8 = 2;
+}
+
+/// `Move` implements the Opcode Operation for `Opcode::Move`
 ///
 /// Operation:
-///  - Sets the return value of a function.
+///  - Sets the accumulator value, which is the implicit return value of a function.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct SetReturnValue;
+pub(crate) struct Move;
 
-impl Operation for SetReturnValue {
-    const NAME: &'static str = "SetReturnValue";
-    const INSTRUCTION: &'static str = "INST - SetReturnValue";
-    const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        context.vm.set_return_value(value);
-        Ok(CompletionType::Normal)
+impl Move {
+    #[inline(always)]
+    pub(crate) fn operation((dst, src): (VaryingOperand, VaryingOperand), context: &mut Context) {
+        let value = context.vm.get_register(src.into());
+        context.vm.set_register(dst.into(), value.clone());
     }
+}
+
+impl Operation for Move {
+    const NAME: &'static str = "Move";
+    const INSTRUCTION: &'static str = "INST - Move";
+    const COST: u8 = 2;
 }
 
 /// TODO: doc
@@ -120,14 +135,10 @@ impl Operation for SetReturnValue {
 pub(crate) struct PopIntoRegister;
 
 impl PopIntoRegister {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-
-        let rp = context.vm.frame().rp;
-        context.vm.stack[(rp + dst) as usize] = value;
-        Ok(CompletionType::Normal)
+    #[inline(always)]
+    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
+        let value = context.vm.stack.pop().clone();
+        context.vm.set_register(dst.into(), value);
     }
 }
 
@@ -135,21 +146,6 @@ impl Operation for PopIntoRegister {
     const NAME: &'static str = "PopIntoRegister";
     const INSTRUCTION: &'static str = "INST - PopIntoRegister";
     const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        Self::operation(dst, context)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        Self::operation(dst, context)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, context)
-    }
 }
 
 /// TODO: doc
@@ -157,13 +153,10 @@ impl Operation for PopIntoRegister {
 pub(crate) struct PushFromRegister;
 
 impl PushFromRegister {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(dst: u32, context: &mut Context) -> JsResult<CompletionType> {
-        let rp = context.vm.frame().rp;
-        let value = context.vm.stack[(rp + dst) as usize].clone();
-        context.vm.push(value);
-        Ok(CompletionType::Normal)
+    #[inline(always)]
+    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
+        let value = context.vm.get_register(dst.into());
+        context.vm.stack.push(value.clone());
     }
 }
 
@@ -171,19 +164,26 @@ impl Operation for PushFromRegister {
     const NAME: &'static str = "PushFromRegister";
     const INSTRUCTION: &'static str = "INST - PushFromRegister";
     const COST: u8 = 2;
+}
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        Self::operation(dst, context)
-    }
+/// `SetRegisterFromAccumulator` implements the Opcode Operation for `Opcode::SetRegisterFromAccumulator`
+///
+/// Operation:
+///  - Sets the accumulator value, which is the implicit return value of a function.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct SetRegisterFromAccumulator;
 
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        Self::operation(dst, context)
+impl SetRegisterFromAccumulator {
+    #[inline(always)]
+    pub(crate) fn operation(register: VaryingOperand, context: &mut Context) {
+        context
+            .vm
+            .set_register(register.into(), context.vm.get_return_value());
     }
+}
 
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        Self::operation(dst, context)
-    }
+impl Operation for SetRegisterFromAccumulator {
+    const NAME: &'static str = "SetRegisterFromAccumulator";
+    const INSTRUCTION: &'static str = "INST - SetRegisterFromAccumulator";
+    const COST: u8 = 2;
 }

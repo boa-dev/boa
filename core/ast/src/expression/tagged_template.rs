@@ -1,9 +1,10 @@
-use boa_interner::{Interner, Sym, ToInternedString};
-use core::ops::ControlFlow;
-
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-
 use super::Expression;
+use crate::{
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
+};
+use boa_interner::{Interner, Sym, ToInternedString};
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// A [`TaggedTemplate`][moz] expression, as defined by the [spec].
 ///
@@ -21,6 +22,7 @@ pub struct TaggedTemplate {
     cookeds: Box<[Option<Sym>]>,
     exprs: Box<[Expression]>,
     identifier: u64,
+    span: Span,
 }
 
 impl TaggedTemplate {
@@ -34,6 +36,7 @@ impl TaggedTemplate {
         cookeds: Box<[Option<Sym>]>,
         exprs: Box<[Expression]>,
         identifier: u64,
+        span: Span,
     ) -> Self {
         Self {
             tag: tag.into(),
@@ -41,6 +44,7 @@ impl TaggedTemplate {
             cookeds,
             exprs,
             identifier,
+            span,
         }
     }
 
@@ -78,6 +82,13 @@ impl TaggedTemplate {
     pub const fn identifier(&self) -> u64 {
         self.identifier
     }
+
+    /// Get the [`Span`] of the [`TaggedTemplate`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
+    }
 }
 
 impl ToInternedString for TaggedTemplate {
@@ -87,9 +98,9 @@ impl ToInternedString for TaggedTemplate {
         let mut exprs = self.exprs.iter();
 
         for raw in &self.raws {
-            buf.push_str(&format!("{}", interner.resolve_expect(*raw)));
+            let _ = write!(buf, "{}", interner.resolve_expect(*raw));
             if let Some(expr) = exprs.next() {
-                buf.push_str(&format!("${{{}}}", expr.to_interned_string(interner)));
+                let _ = write!(buf, "${{{}}}", expr.to_interned_string(interner));
             }
         }
         buf.push('`');

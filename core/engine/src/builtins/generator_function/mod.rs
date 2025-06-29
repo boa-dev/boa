@@ -21,7 +21,6 @@ use crate::{
     value::JsValue,
     Context, JsResult, JsString,
 };
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -31,8 +30,6 @@ pub struct GeneratorFunction;
 
 impl IntrinsicObject for GeneratorFunction {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(Some(
                 realm.intrinsics().constructors().function().prototype(),

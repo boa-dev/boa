@@ -31,17 +31,18 @@ use rustc_hash::FxHashSet;
 
 use boa_engine::js_string;
 use boa_engine::property::PropertyKey;
+use boa_engine::value::TryFromJs;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_parser::source::ReadChar;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 pub use loader::*;
 pub use namespace::ModuleNamespace;
 use source::SourceTextModule;
 pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 
 use crate::object::TypedJsFunction;
+use crate::spanned_source_text::SourceText;
 use crate::{
     builtins,
     builtins::promise::{PromiseCapability, PromiseState},
@@ -87,9 +88,9 @@ struct ModuleRepr {
 #[derive(Debug, Trace, Finalize)]
 pub(crate) enum ModuleKind {
     /// A [**Source Text Module Record**](https://tc39.es/ecma262/#sec-source-text-module-records)
-    SourceText(SourceTextModule),
+    SourceText(Box<SourceTextModule>),
     /// A [**Synthetic Module Record**](https://tc39.es/proposal-json-modules/#sec-synthetic-module-records)
-    Synthetic(SyntheticModule),
+    Synthetic(Box<SyntheticModule>),
 }
 
 impl ModuleKind {
@@ -160,21 +161,22 @@ impl Module {
         realm: Option<Realm>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let _timer = Profiler::global().start_event("Module parsing", "Main");
         let path = src.path().map(Path::to_path_buf);
         let realm = realm.unwrap_or_else(|| context.realm().clone());
 
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
-        let module = parser.parse_module(realm.scope(), context.interner_mut())?;
+        let (module, source) =
+            parser.parse_module_with_source(realm.scope(), context.interner_mut())?;
 
-        let src = SourceTextModule::new(module, context.interner());
+        let source_text = SourceText::new(source);
+        let src = SourceTextModule::new(module, context.interner(), source_text);
 
         Ok(Self {
             inner: Gc::new(ModuleRepr {
                 realm,
                 namespace: GcRefCell::default(),
-                kind: ModuleKind::SourceText(src),
+                kind: ModuleKind::SourceText(Box::new(src)),
                 host_defined: HostDefined::default(),
                 path,
             }),
@@ -203,7 +205,7 @@ impl Module {
             inner: Gc::new(ModuleRepr {
                 realm,
                 namespace: GcRefCell::default(),
-                kind: ModuleKind::Synthetic(synth),
+                kind: ModuleKind::Synthetic(Box::new(synth)),
                 host_defined: HostDefined::default(),
                 path,
             }),
@@ -523,7 +525,7 @@ impl Module {
     ///
     /// let promise = module.load_link_evaluate(context);
     ///
-    /// context.run_jobs();
+    /// context.run_jobs().unwrap();
     ///
     /// assert_eq!(
     ///     promise.state(),
@@ -533,8 +535,6 @@ impl Module {
     #[allow(dropping_copy_types)]
     #[inline]
     pub fn load_link_evaluate(&self, context: &mut Context) -> JsPromise {
-        let main_timer = Profiler::global().start_event("Module evaluation", "Main");
-
         let promise = self
             .load(context)
             .then(
@@ -562,10 +562,6 @@ impl Module {
                 None,
                 context,
             );
-
-        // The main_timer needs to be dropped before the Profiler is.
-        drop(main_timer);
-        Profiler::global().drop();
 
         promise
     }
@@ -632,7 +628,7 @@ impl Module {
     ) -> JsResult<TypedJsFunction<A, R>>
     where
         A: crate::object::TryIntoJsArguments,
-        R: crate::value::TryFromJs,
+        R: TryFromJs,
     {
         let func = self.get_value(name.clone(), context)?;
         let func = func.as_function().ok_or_else(|| {
@@ -661,5 +657,34 @@ impl Hash for Module {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         std::ptr::hash(self.inner.as_ref(), state);
+    }
+}
+
+/// A trait to convert a type into a JS module.
+pub trait IntoJsModule {
+    /// Converts the type into a JS module.
+    fn into_js_module(self, context: &mut Context) -> Module;
+}
+
+impl<T: IntoIterator<Item = (JsString, NativeFunction)> + Clone> IntoJsModule for T {
+    fn into_js_module(self, context: &mut Context) -> Module {
+        let (names, fns): (Vec<_>, Vec<_>) = self.into_iter().unzip();
+        let exports = names.clone();
+
+        Module::synthetic(
+            exports.as_slice(),
+            unsafe {
+                SyntheticModuleInitializer::from_closure(move |module, context| {
+                    for (name, f) in names.iter().zip(fns.iter()) {
+                        module
+                            .set_export(name, f.clone().to_js_function(context.realm()).into())?;
+                    }
+                    Ok(())
+                })
+            },
+            None,
+            None,
+            context,
+        )
     }
 }

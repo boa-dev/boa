@@ -27,10 +27,9 @@ use boa_ast::{
     declaration::Variable,
     function::{FormalParameter, FormalParameterList},
     statement::Return,
-    Punctuator,
+    Punctuator, Span, StatementList,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Async arrow function parsing.
 ///
@@ -67,9 +66,10 @@ where
     type Output = ast::function::AsyncArrowFunction;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("AsyncArrowFunction", "Parsing");
-
-        cursor.expect((Keyword::Async, false), "async arrow function", interner)?;
+        let async_token =
+            cursor.expect((Keyword::Async, false), "async arrow function", interner)?;
+        let start_linear_span = async_token.linear_span();
+        let async_token_span = async_token.span();
         cursor.peek_expect_no_lineterminator(0, "async arrow function", interner)?;
 
         let next_token = cursor.peek(0, interner).or_abrupt()?;
@@ -144,7 +144,17 @@ where
             interner,
         )?;
 
-        Ok(ast::function::AsyncArrowFunction::new(None, params, body))
+        let linear_pos_end = body.linear_pos_end();
+        let linear_span = start_linear_span.union(linear_pos_end);
+
+        let body_span_end = body.span().end();
+        Ok(ast::function::AsyncArrowFunction::new(
+            None,
+            params,
+            body,
+            linear_span,
+            Span::new(async_token_span.start(), body_span_end),
+        ))
     }
 }
 
@@ -173,22 +183,21 @@ where
     type Output = ast::function::FunctionBody;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let body = match cursor.peek(0, interner).or_abrupt()?.kind() {
-            TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                cursor.advance(interner);
-                let body = FunctionBody::new(false, true).parse(cursor, interner)?;
-                cursor.expect(Punctuator::CloseBlock, "async arrow function", interner)?;
-                body
-            }
-            _ => ast::function::FunctionBody::new(
-                [ast::Statement::Return(Return::new(
-                    ExpressionBody::new(self.allow_in, true)
-                        .parse(cursor, interner)?
-                        .into(),
-                ))
-                .into()],
-                false,
-            ),
+        let body = if let TokenKind::Punctuator(Punctuator::OpenBlock) =
+            cursor.peek(0, interner).or_abrupt()?.kind()
+        {
+            FunctionBody::new(false, true, "async arrow function").parse(cursor, interner)?
+        } else {
+            let expression = ExpressionBody::new(self.allow_in, true).parse(cursor, interner)?;
+            let span = expression.span();
+            ast::function::FunctionBody::new(
+                StatementList::new(
+                    [ast::Statement::Return(Return::new(expression.into())).into()],
+                    cursor.linear_pos(),
+                    false,
+                ),
+                span,
+            )
         };
 
         Ok(body)

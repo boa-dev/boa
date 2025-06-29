@@ -1,7 +1,4 @@
-use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
-};
+use crate::{vm::opcode::Operation, Context};
 
 /// `Pop` implements the Opcode Operation for `Opcode::Pop`
 ///
@@ -10,15 +7,17 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Pop;
 
+impl Pop {
+    #[inline(always)]
+    pub(super) fn operation((): (), context: &mut Context) {
+        let _val = context.vm.stack.pop();
+    }
+}
+
 impl Operation for Pop {
     const NAME: &'static str = "Pop";
     const INSTRUCTION: &'static str = "INST - Pop";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let _val = context.vm.pop();
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `PopEnvironment` implements the Opcode Operation for `Opcode::PopEnvironment`
@@ -28,13 +27,15 @@ impl Operation for Pop {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PopEnvironment;
 
+impl PopEnvironment {
+    #[inline(always)]
+    pub(super) fn operation((): (), context: &mut Context) {
+        context.vm.environments.pop();
+    }
+}
+
 impl Operation for PopEnvironment {
     const NAME: &'static str = "PopEnvironment";
     const INSTRUCTION: &'static str = "INST - PopEnvironment";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        context.vm.environments.pop();
-        Ok(CompletionType::Normal)
-    }
 }

@@ -23,7 +23,6 @@ use crate::{
 };
 use ast::{
     declaration::Binding,
-    expression::Identifier,
     operations::{bound_names, var_declared_names},
 };
 use boa_ast::{
@@ -35,7 +34,6 @@ use boa_ast::{
     Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 
 /// For statement parsing
@@ -80,7 +78,6 @@ where
     type Output = ast::Statement;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ForStatement", "Parsing");
         cursor.expect((Keyword::For, false), "for statement", interner)?;
 
         let mut r#await = false;
@@ -173,24 +170,25 @@ where
                 ));
             }
             (Some(init), TokenKind::Keyword((kw @ (Keyword::In | Keyword::Of), false))) => {
-                if kw == &Keyword::Of
-                    && init
-                        == ForLoopInitializer::Expression(ast::Expression::Identifier(
-                            Identifier::new(Sym::LET),
-                        ))
-                {
-                    return Err(Error::general("unexpected token", position));
+                if kw == &Keyword::Of {
+                    if let ForLoopInitializer::Expression(ast::Expression::Identifier(ident)) = init
+                    {
+                        if ident.sym() == Sym::LET {
+                            return Err(Error::general("unexpected token", position));
+                        }
+                    }
                 }
-                if init_is_async_of
-                    && init
-                        == ForLoopInitializer::Expression(ast::Expression::Identifier(
-                            Identifier::new(Sym::ASYNC),
-                        ))
-                {
-                    return Err(Error::lex(LexError::Syntax(
-                        "invalid left-hand side expression 'async' of a for-of loop".into(),
-                        init_position,
-                    )));
+
+                if init_is_async_of {
+                    if let ForLoopInitializer::Expression(ast::Expression::Identifier(ident)) = init
+                    {
+                        if ident.sym() == Sym::ASYNC {
+                            return Err(Error::lex(LexError::Syntax(
+                                "invalid left-hand side expression 'async' of a for-of loop".into(),
+                                init_position,
+                            )));
+                        }
+                    }
                 }
 
                 let in_loop = kw == &Keyword::In;

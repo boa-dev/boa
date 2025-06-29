@@ -53,12 +53,11 @@ use ast::{
 };
 use boa_ast::{
     self as ast,
-    pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
-    Keyword, Punctuator,
+    pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement},
+    Keyword, Punctuator, Span,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
-use boa_profiler::Profiler;
 
 pub(in crate::parser) use declaration::ClassTail;
 
@@ -118,7 +117,6 @@ where
     type Output = ast::Statement;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
@@ -151,7 +149,6 @@ where
             TokenKind::Keyword((Keyword::For, _)) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Return, _)) => {
                 if self.allow_return.0 {
@@ -275,7 +272,7 @@ impl<R> TokenParser<R> for StatementList
 where
     R: ReadChar,
 {
-    type Output = ast::StatementList;
+    type Output = (ast::StatementList, Option<Position>);
 
     /// The function parses a `node::StatementList` using the `StatementList`'s
     /// `break_nodes` to know when to terminate.
@@ -288,16 +285,23 @@ where
     /// Note that the last token which causes the parse to finish is not
     /// consumed.
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
         let global_strict = cursor.strict();
         let mut directive_prologues = self.directive_prologues;
         let mut strict = self.strict;
         let mut directives_stack = Vec::new();
+        let mut linear_pos_end = cursor.linear_pos();
+        let mut end_position = None;
 
         loop {
-            match cursor.peek(0, interner)? {
+            let peek_token = cursor.peek(0, interner)?;
+            if let Some(peek_token) = peek_token {
+                linear_pos_end = peek_token.linear_span().end();
+                end_position = Some(peek_token.span().end());
+            }
+
+            match peek_token {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
                 Some(token) if directive_prologues => {
                     if let TokenKind::StringLiteral((_, escape)) = token.kind() {
@@ -313,50 +317,52 @@ where
                     .parse(cursor, interner)?;
 
             if directive_prologues {
-                match &item {
-                    ast::StatementListItem::Statement(ast::Statement::Expression(
-                        ast::Expression::Literal(ast::expression::literal::Literal::String(string)),
-                    )) if !strict => {
-                        if interner.resolve_expect(*string).join(
-                            |s| s == "use strict",
-                            |g| g == utf16!("use strict"),
-                            true,
-                        ) && directives_stack.last().expect("token should exist").1
-                            == EscapeSequence::empty()
-                        {
-                            cursor.set_strict(true);
-                            strict = true;
+                if let ast::StatementListItem::Statement(statement) = &item {
+                    if let ast::Statement::Expression(ast::Expression::Literal(lit)) =
+                        statement.as_ref()
+                    {
+                        if let Some(string) = lit.as_string() {
+                            if strict {
+                                // TODO: should store directives in some place
+                            } else if interner.resolve_expect(string).join(
+                                |s| s == "use strict",
+                                |g| g == utf16!("use strict"),
+                                true,
+                            ) && directives_stack.last().expect("token should exist").1
+                                == EscapeSequence::empty()
+                            {
+                                cursor.set_strict(true);
+                                strict = true;
 
-                            directives_stack.pop();
+                                directives_stack.pop();
 
-                            for (position, escape) in std::mem::take(&mut directives_stack) {
-                                if escape.contains(EscapeSequence::LEGACY_OCTAL) {
-                                    return Err(Error::general(
-                                        "legacy octal escape sequences are not allowed in strict mode",
-                                        position,
-                                    ));
-                                }
+                                for (position, escape) in std::mem::take(&mut directives_stack) {
+                                    if escape.contains(EscapeSequence::LEGACY_OCTAL) {
+                                        return Err(Error::general(
+                                "legacy octal escape sequences are not allowed in strict mode",
+                                position,
+                            ));
+                                    }
 
-                                if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
-                                    return Err(Error::general(
+                                    if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
+                                        return Err(Error::general(
                                         "decimal escape sequences are not allowed in strict mode",
                                         position,
                                     ));
+                                    }
                                 }
                             }
+                        } else {
+                            directive_prologues = false;
+                            directives_stack.clear();
                         }
-                    }
-                    ast::StatementListItem::Statement(ast::Statement::Expression(
-                        ast::Expression::Literal(ast::expression::literal::Literal::String(
-                            _string,
-                        )),
-                    )) => {
-                        // TODO: should store directives in some place
-                    }
-                    _ => {
+                    } else {
                         directive_prologues = false;
                         directives_stack.clear();
                     }
+                } else {
+                    directive_prologues = false;
+                    directives_stack.clear();
                 }
             }
 
@@ -365,7 +371,10 @@ where
 
         cursor.set_strict(global_strict);
 
-        Ok(ast::StatementList::new(items, strict))
+        Ok((
+            ast::StatementList::new(items, linear_pos_end, strict),
+            end_position,
+        ))
     }
 }
 
@@ -409,7 +418,6 @@ where
     type Output = ast::StatementListItem;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind().clone() {
@@ -483,16 +491,17 @@ impl<R> TokenParser<R> for ObjectBindingPattern
 where
     R: ReadChar,
 {
-    type Output = Vec<ObjectPatternElement>;
+    type Output = ObjectPattern;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ObjectBindingPattern", "Parsing");
-
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::OpenBlock),
-            "object binding pattern",
-            interner,
-        )?;
+        let start = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "object binding pattern",
+                interner,
+            )?
+            .span()
+            .start();
 
         let mut patterns = Vec::new();
 
@@ -502,12 +511,18 @@ where
             let token = cursor.peek(0, interner).or_abrupt()?;
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBlock),
-                        "object binding pattern",
-                        interner,
-                    )?;
-                    return Ok(patterns);
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBlock),
+                            "object binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
+                    return Ok(ObjectPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 TokenKind::Punctuator(Punctuator::Spread) => {
                     cursor.expect(
@@ -517,13 +532,20 @@ where
                     )?;
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBlock),
-                        "object binding pattern",
-                        interner,
-                    )?;
                     patterns.push(ObjectPatternElement::RestProperty { ident });
-                    return Ok(patterns);
+
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBlock),
+                            "object binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
+                    return Ok(ObjectPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 _ => {
                     let is_property_name = match token.kind() {
@@ -598,16 +620,14 @@ where
                                                 .parse(cursor, interner)?;
                                                 patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
-                                                    pattern: ArrayPattern::new(bindings.into())
-                                                        .into(),
+                                                    pattern: bindings.into(),
                                                     default_init: Some(init),
                                                 });
                                             }
                                             _ => {
                                                 patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
-                                                    pattern: ArrayPattern::new(bindings.into())
-                                                        .into(),
+                                                    pattern: bindings.into(),
                                                     default_init: None,
                                                 });
                                             }
@@ -660,14 +680,14 @@ where
                                 init.set_anonymous_function_definition_name(&name);
                                 patterns.push(ObjectPatternElement::SingleName {
                                     ident: name,
-                                    name: name.sym().into(),
+                                    name: name.into(),
                                     default_init: Some(init),
                                 });
                             }
                             _ => {
                                 patterns.push(ObjectPatternElement::SingleName {
                                     ident: name,
-                                    name: name.sym().into(),
+                                    name: name.into(),
                                     default_init: None,
                                 });
                             }
@@ -719,16 +739,17 @@ impl<R> TokenParser<R> for ArrayBindingPattern
 where
     R: ReadChar,
 {
-    type Output = Vec<ArrayPatternElement>;
+    type Output = ArrayPattern;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ArrayBindingPattern", "Parsing");
-
-        cursor.expect(
-            TokenKind::Punctuator(Punctuator::OpenBracket),
-            "array binding pattern",
-            interner,
-        )?;
+        let start = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenBracket),
+                "array binding pattern",
+                interner,
+            )?
+            .span()
+            .start();
 
         let mut patterns = Vec::new();
         let mut last_elision_or_first = true;
@@ -736,12 +757,18 @@ where
         loop {
             match cursor.peek(0, interner).or_abrupt()?.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBracket) => {
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBracket),
-                        "array binding pattern",
-                        interner,
-                    )?;
-                    return Ok(patterns);
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBracket),
+                            "array binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
+                    return Ok(ArrayPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
                     cursor.expect(
@@ -789,13 +816,19 @@ where
                         }
                     }
 
-                    cursor.expect(
-                        TokenKind::Punctuator(Punctuator::CloseBracket),
-                        "array binding pattern",
-                        interner,
-                    )?;
+                    let end = cursor
+                        .expect(
+                            TokenKind::Punctuator(Punctuator::CloseBracket),
+                            "array binding pattern",
+                            interner,
+                        )?
+                        .span()
+                        .end();
 
-                    return Ok(patterns);
+                    return Ok(ArrayPattern::new(
+                        patterns.into_boxed_slice(),
+                        Span::new(start, end),
+                    ));
                 }
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     last_elision_or_first = false;
@@ -960,6 +993,7 @@ where
         match tok.kind() {
             TokenKind::Keyword((Keyword::Export, false)) => ExportDeclaration
                 .parse(cursor, interner)
+                .map(Box::new)
                 .map(Self::Output::ExportDeclaration),
             TokenKind::Keyword((Keyword::Import, false)) => {
                 if ImportDeclaration::test(cursor, interner)? {

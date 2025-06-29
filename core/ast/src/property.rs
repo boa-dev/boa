@@ -1,8 +1,11 @@
 //! Property definition related types, used in object literals and class definitions.
 
-use super::{expression::literal::Literal, Expression};
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use boa_interner::{Interner, Sym, ToInternedString};
+use super::Expression;
+use crate::{
+    expression::Identifier,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
+use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
 /// `PropertyName` can be either a literal or computed.
@@ -21,7 +24,7 @@ pub enum PropertyName {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName
-    Literal(Sym),
+    Literal(Identifier),
 
     /// A `Computed` property name is an expression that gets evaluated and converted into a property name.
     ///
@@ -35,9 +38,9 @@ pub enum PropertyName {
 impl PropertyName {
     /// Returns the literal property name if it exists.
     #[must_use]
-    pub const fn literal(&self) -> Option<Sym> {
-        if let Self::Literal(sym) = self {
-            Some(*sym)
+    pub const fn literal(&self) -> Option<Identifier> {
+        if let Self::Literal(ident) = self {
+            Some(*ident)
         } else {
             None
         }
@@ -55,11 +58,12 @@ impl PropertyName {
 
     /// Returns either the literal property name or the computed const string property name.
     #[must_use]
-    pub const fn prop_name(&self) -> Option<Sym> {
+    pub fn prop_name(&self) -> Option<Identifier> {
         match self {
-            Self::Literal(sym) | Self::Computed(Expression::Literal(Literal::String(sym))) => {
-                Some(*sym)
-            }
+            Self::Literal(ident) => Some(*ident),
+            Self::Computed(Expression::Literal(lit)) => lit
+                .as_string()
+                .map(|value| Identifier::new(value, lit.span())),
             Self::Computed(_) => None,
         }
     }
@@ -68,14 +72,14 @@ impl PropertyName {
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Self::Literal(key) => interner.resolve_expect(*key).to_string(),
+            Self::Literal(key) => interner.resolve_expect(key.sym()).to_string(),
             Self::Computed(key) => format!("[{}]", key.to_interned_string(interner)),
         }
     }
 }
 
-impl From<Sym> for PropertyName {
-    fn from(name: Sym) -> Self {
+impl From<Identifier> for PropertyName {
+    fn from(name: Identifier) -> Self {
         Self::Literal(name)
     }
 }
@@ -92,7 +96,7 @@ impl VisitWith for PropertyName {
         V: Visitor<'a>,
     {
         match self {
-            Self::Literal(sym) => visitor.visit_sym(sym),
+            Self::Literal(ident) => visitor.visit_sym(ident.sym_ref()),
             Self::Computed(expr) => visitor.visit_expression(expr),
         }
     }
@@ -102,7 +106,7 @@ impl VisitWith for PropertyName {
         V: VisitorMut<'a>,
     {
         match self {
-            Self::Literal(sym) => visitor.visit_sym_mut(sym),
+            Self::Literal(ident) => visitor.visit_sym_mut(ident.sym_mut()),
             Self::Computed(expr) => visitor.visit_expression_mut(expr),
         }
     }

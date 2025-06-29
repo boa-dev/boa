@@ -18,7 +18,6 @@ mod plain_date_time;
 mod plain_month_day;
 mod plain_time;
 mod plain_year_month;
-mod time_zone;
 mod zoneddatetime;
 
 #[cfg(test)]
@@ -29,7 +28,6 @@ pub use self::{
     plain_time::*, plain_year_month::*, zoneddatetime::*,
 };
 
-use crate::value::JsVariant;
 use crate::{
     builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
@@ -37,24 +35,12 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_profiler::Profiler;
 use temporal_rs::options::RelativeTo;
 use temporal_rs::{
     primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
-    NS_PER_DAY,
 };
-
-// TODO: Remove in favor of `temporal_rs`
-pub(crate) fn ns_max_instant() -> JsBigInt {
-    JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
-}
-
-// TODO: Remove in favor of `temporal_rs`
-pub(crate) fn ns_min_instant() -> JsBigInt {
-    JsBigInt::from(i128::from(NS_PER_DAY) * -100_000_000_i128)
-}
 
 // An enum representing common fields across `Temporal` objects.
 pub(crate) enum DateTimeValues {
@@ -83,8 +69,6 @@ impl BuiltInObject for Temporal {
 
 impl IntrinsicObject for Temporal {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
@@ -162,14 +146,6 @@ impl IntrinsicObject for Temporal {
 
 // -- Temporal Abstract Operations --
 
-/// Abstract operation `ToZeroPaddedDecimalString ( n, minLength )`
-///
-/// The abstract operation `ToZeroPaddedDecimalString` takes arguments `n` (a non-negative integer)
-/// and `minLength` (a non-negative integer) and returns a String.
-fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
-    format!("{n:0min_length$}")
-}
-
 pub(crate) fn get_relative_to_option(
     options: &JsObject,
     context: &mut Context,
@@ -235,30 +211,6 @@ pub(crate) fn get_relative_to_option(
         &relative_to_str.to_std_string_escaped(),
         context.tz_provider(),
     )?))
-}
-
-type RelativeTemporalObjectResult = JsResult<(Option<TemporalDate>, Option<TemporalZonedDateTime>)>;
-
-/// 13.21 `ToRelativeTemporalObject ( options )`
-pub(crate) fn to_relative_temporal_object(
-    options: &JsObject,
-    context: &mut Context,
-) -> RelativeTemporalObjectResult {
-    let relative_to = options.get(js_string!("relativeTo"), context)?;
-    let plain_date = match relative_to.variant() {
-        JsVariant::String(relative_to_str) => JsValue::from(relative_to_str.clone()),
-        JsVariant::Object(relative_to_obj) => JsValue::from(relative_to_obj.clone()),
-        JsVariant::Undefined => return Ok((None, None)),
-        _ => {
-            return Err(JsNativeError::typ()
-                .with_message("Invalid type for converting to relativeTo object")
-                .into())
-        }
-    };
-    let plain_date = to_temporal_date(&plain_date, None, context)?;
-
-    // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
-    Ok((Some(plain_date), None))
 }
 
 // 13.26 IsPartialTemporalObject ( object )

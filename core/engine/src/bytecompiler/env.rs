@@ -1,8 +1,6 @@
-use boa_ast::scope::Scope;
-
-use crate::vm::{Constant, Opcode};
-
 use super::ByteCompiler;
+use crate::vm::Constant;
+use boa_ast::scope::Scope;
 
 impl ByteCompiler<'_> {
     /// Push either a new declarative or function scope on the environment stack.
@@ -32,7 +30,7 @@ impl ByteCompiler<'_> {
             self.current_open_environments_count += 1;
             let index = self.constants.len() as u32;
             self.constants.push(Constant::Scope(scope.clone()));
-            self.emit_with_varying_operand(Opcode::PushScope, index);
+            self.bytecode.emit_push_scope(index.into());
         }
         std::mem::swap(&mut self.lexical_scope, &mut scope);
         Some(scope)
@@ -44,7 +42,7 @@ impl ByteCompiler<'_> {
             std::mem::swap(&mut self.lexical_scope, &mut scope);
             if !scope.all_bindings_local() {
                 self.current_open_environments_count -= 1;
-                self.emit_opcode(Opcode::PopEnvironment);
+                self.bytecode.emit_pop_environment();
             }
         }
     }

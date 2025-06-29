@@ -25,7 +25,7 @@ use crate::{
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsArgs, JsResult, JsString,
 };
-use boa_profiler::Profiler;
+use cow_utils::CowUtils;
 use num_traits::float::FloatCore;
 
 mod globals;
@@ -48,8 +48,6 @@ pub(crate) struct Number;
 
 impl IntrinsicObject for Number {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -744,8 +742,7 @@ impl Number {
         // 1. If number is not a Number, return false.
         // 2. If number is not finite, return false.
         // 3. Otherwise, return true.
-        Ok(JsValue::new(args.first().map_or(
-            false,
+        Ok(JsValue::new(args.first().is_some_and(
             |val| match val.variant() {
                 JsVariant::Integer32(_) => true,
                 JsVariant::Float64(number) => number.is_finite(),
@@ -770,7 +767,7 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(args.first().map_or(false, Self::is_integer).into())
+        Ok(args.first().is_some_and(Self::is_integer).into())
     }
 
     /// `Number.isNaN( number )`
@@ -916,10 +913,11 @@ impl Number {
 
 /// Helper function that formats a float as a ES6-style exponential number string.
 fn f64_to_exponential(n: f64) -> JsString {
-    js_string!(match n.abs() {
-        x if x >= 1.0 || x == 0.0 => format!("{n:e}").replace('e', "e+"),
-        _ => format!("{n:e}"),
-    })
+    let s = format!("{n:e}");
+    match n.abs() {
+        x if x >= 1.0 || x == 0.0 => js_string!(s.cow_replace('e', "e+")),
+        _ => js_string!(s),
+    }
 }
 
 /// Helper function that formats a float as a ES6-style exponential number string with a given precision.

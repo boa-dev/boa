@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::VecDeque, future::Future, pin::Pin, rc::Rc
 
 use boa_engine::{
     builtins::promise::PromiseState,
-    job::{FutureJob, JobQueue, NativeJob},
+    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     js_string,
     module::ModuleLoader,
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
@@ -28,60 +28,62 @@ impl ModuleLoader for HttpModuleLoader {
     ) {
         let url = specifier.to_std_string_escaped();
 
-        let fetch = async move {
-            // Adding some prints to show the non-deterministic nature of the async fetches.
-            // Try to run the example several times to see how sometimes the fetches start in order
-            // but finish in disorder.
-            println!("Fetching `{url}`...");
-            // This could also retry fetching in case there's an error while requesting the module.
-            let body: Result<_, isahc::Error> = async {
-                let mut response = Request::get(&url)
-                    .redirect_policy(RedirectPolicy::Limit(5))
-                    .body(())?
-                    .send_async()
-                    .await?;
-
-                Ok(response.text().await?)
-            }
-            .await;
-            println!("Finished fetching `{url}`");
-
-            // Since the async context cannot take the `context` by ref, we have to continue
-            // parsing inside a new `NativeJob` that will be enqueued into the promise job queue.
-            NativeJob::new(move |context| -> JsResult<JsValue> {
-                let body = match body {
-                    Ok(body) => body,
-                    Err(err) => {
-                        // On error we always call `finish_load` to notify the load promise about the
-                        // error.
-                        finish_load(
-                            Err(JsNativeError::typ().with_message(err.to_string()).into()),
-                            context,
-                        );
-
-                        // Just returns anything to comply with `NativeJob::new`'s signature.
-                        return Ok(JsValue::undefined());
-                    }
-                };
-
-                // Could also add a path if needed.
-                let source = Source::from_bytes(body.as_bytes());
-
-                let module = Module::parse(source, None, context);
-
-                // We don't do any error handling, `finish_load` takes care of that for us.
-                finish_load(module, context);
-
-                // Also needed to match `NativeJob::new`.
-                Ok(JsValue::undefined())
-            })
-        };
-
         // Just enqueue the future for now. We'll advance all the enqueued futures inside our custom
-        // `JobQueue`.
-        context
-            .job_queue()
-            .enqueue_future_job(Box::pin(fetch), context)
+        // `JobExecutor`.
+        context.enqueue_job(
+            NativeAsyncJob::with_realm(
+                move |context| {
+                    Box::pin(async move {
+                        // Adding some prints to show the non-deterministic nature of the async fetches.
+                        // Try to run the example several times to see how sometimes the fetches start in order
+                        // but finish in disorder.
+                        println!("Fetching `{url}`...");
+
+                        // This could also retry fetching in case there's an error while requesting the module.
+                        let body: Result<_, isahc::Error> = async {
+                            let mut response = Request::get(&url)
+                                .redirect_policy(RedirectPolicy::Limit(5))
+                                .body(())?
+                                .send_async()
+                                .await?;
+
+                            Ok(response.text().await?)
+                        }
+                        .await;
+
+                        println!("Finished fetching `{url}`");
+
+                        let body = match body {
+                            Ok(body) => body,
+                            Err(err) => {
+                                // On error we always call `finish_load` to notify the load promise about the
+                                // error.
+                                finish_load(
+                                    Err(JsNativeError::typ().with_message(err.to_string()).into()),
+                                    &mut context.borrow_mut(),
+                                );
+
+                                // Just returns anything to comply with `NativeAsyncJob::new`'s signature.
+                                return Ok(JsValue::undefined());
+                            }
+                        };
+
+                        // Could also add a path if needed.
+                        let source = Source::from_bytes(body.as_bytes());
+
+                        let module = Module::parse(source, None, &mut context.borrow_mut());
+
+                        // We don't do any error handling, `finish_load` takes care of that for us.
+                        finish_load(module, &mut context.borrow_mut());
+
+                        // Also needed to match `NativeAsyncJob::new`.
+                        Ok(JsValue::undefined())
+                    })
+                },
+                context.realm().clone(),
+            )
+            .into(),
+        );
     }
 }
 
@@ -109,7 +111,7 @@ fn main() -> JsResult<()> {
     "#;
 
     let context = &mut Context::builder()
-        .job_queue(Rc::new(Queue::new()))
+        .job_executor(Rc::new(Queue::new()))
         // NEW: sets the context module loader to our custom loader
         .module_loader(Rc::new(HttpModuleLoader))
         .build()?;
@@ -122,7 +124,7 @@ fn main() -> JsResult<()> {
 
     // Important to call `Context::run_jobs`, or else all the futures and promises won't be
     // pushed forward by the job queue.
-    context.run_jobs();
+    context.run_jobs()?;
 
     match promise.state() {
         // Our job queue guarantees that all promises and futures are finished after returning
@@ -170,20 +172,20 @@ fn main() -> JsResult<()> {
 // Taken from the `smol_event_loop.rs` example.
 /// An event queue using smol to drive futures to completion.
 struct Queue {
-    futures: RefCell<Vec<FutureJob>>,
-    jobs: RefCell<VecDeque<NativeJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
 }
 
 impl Queue {
     fn new() -> Self {
         Self {
-            futures: RefCell::default(),
-            jobs: RefCell::default(),
+            async_jobs: RefCell::default(),
+            promise_jobs: RefCell::default(),
         }
     }
 
     fn drain_jobs(&self, context: &mut Context) {
-        let jobs = std::mem::take(&mut *self.jobs.borrow_mut());
+        let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
         for job in jobs {
             if let Err(e) = job.call(context) {
                 eprintln!("Uncaught {e}");
@@ -192,67 +194,67 @@ impl Queue {
     }
 }
 
-impl JobQueue for Queue {
-    fn enqueue_promise_job(&self, job: NativeJob, _context: &mut Context) {
-        self.jobs.borrow_mut().push_back(job);
-    }
-
-    fn enqueue_future_job(&self, future: FutureJob, _context: &mut Context) {
-        self.futures.borrow_mut().push(future);
+impl JobExecutor for Queue {
+    fn enqueue_job(&self, job: Job, _context: &mut Context) {
+        match job {
+            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
+            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            _ => panic!("unsupported job type"),
+        }
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
-    fn run_jobs(&self, context: &mut Context) {
-        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(context)));
+    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
+        smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
-    fn run_jobs_async<'a, 'ctx, 'fut>(
+    fn run_jobs_async<'a, 'b, 'fut>(
         &'a self,
-        context: &'ctx mut Context,
-    ) -> Pin<Box<dyn Future<Output = ()> + 'fut>>
+        context: &'b RefCell<&mut Context>,
+    ) -> Pin<Box<dyn Future<Output = JsResult<()>> + 'fut>>
     where
         'a: 'fut,
-        'ctx: 'fut,
+        'b: 'fut,
     {
         Box::pin(async move {
             // Early return in case there were no jobs scheduled.
-            if self.jobs.borrow().is_empty() && self.futures.borrow().is_empty() {
-                return;
+            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+                return Ok(());
             }
             let mut group = FutureGroup::new();
             loop {
-                group.extend(std::mem::take(&mut *self.futures.borrow_mut()));
+                for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
+                    group.insert(job.call(context));
+                }
 
-                if self.jobs.borrow().is_empty() {
-                    let Some(job) = group.next().await else {
+                if self.promise_jobs.borrow().is_empty() {
+                    let Some(result) = group.next().await else {
                         // Both queues are empty. We can exit.
-                        return;
+                        return Ok(());
                     };
 
-                    // Important to schedule the returned `job` into the job queue, since that's
-                    // what allows updating the `Promise` seen by ECMAScript for when the future
-                    // completes.
-                    self.enqueue_promise_job(job, context);
+                    if let Err(err) = result {
+                        eprintln!("Uncaught {err}");
+                    }
                     continue;
                 }
 
                 // We have some jobs pending on the microtask queue. Try to poll the pending
                 // tasks once to see if any of them finished, and run the pending microtasks
                 // otherwise.
-                let Some(job) = future::poll_once(group.next()).await.flatten() else {
+                let Some(result) = future::poll_once(group.next()).await.flatten() else {
                     // No completed jobs. Run the microtask queue once.
-                    self.drain_jobs(context);
+                    self.drain_jobs(&mut context.borrow_mut());
                     continue;
                 };
 
-                // Important to schedule the returned `job` into the job queue, since that's
-                // what allows updating the `Promise` seen by ECMAScript for when the future
-                // completes.
-                self.enqueue_promise_job(job, context);
+                if let Err(err) = result {
+                    eprintln!("Uncaught {err}");
+                }
 
                 // Only one macrotask can be executed before the next drain of the microtask queue.
-                self.drain_jobs(context);
+                self.drain_jobs(&mut context.borrow_mut());
             }
         })
     }

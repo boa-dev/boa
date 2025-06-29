@@ -3,21 +3,14 @@
 //! This module will provides everything needed to implement the `CallFrame`
 
 use crate::{
-    builtins::{
-        iterable::IteratorRecord,
-        promise::{PromiseCapability, ResolvingFunctions},
-    },
-    environments::EnvironmentStack,
-    object::{JsFunction, JsObject},
-    realm::Realm,
-    vm::CodeBlock,
-    JsValue,
+    builtins::iterable::IteratorRecord, environments::EnvironmentStack, realm::Realm,
+    vm::CodeBlock, JsValue,
 };
 use boa_ast::scope::BindingLocator;
 use boa_gc::{Finalize, Gc, Trace};
 use thin_vec::ThinVec;
 
-use super::{ActiveRunnable, Vm};
+use super::ActiveRunnable;
 
 bitflags::bitflags! {
     /// Flags associated with a [`CallFrame`].
@@ -60,10 +53,6 @@ pub struct CallFrame {
     #[unsafe_ignore_trace]
     pub(crate) binding_stack: Vec<BindingLocator>,
 
-    // SAFETY: Nothing requires tracing, so this is safe.
-    #[unsafe_ignore_trace]
-    pub(crate) local_binings_initialized: Box<[bool]>,
-
     /// How many iterations a loop has done.
     pub(crate) loop_iteration_count: u64,
 
@@ -93,59 +82,13 @@ impl CallFrame {
 
 /// ---- `CallFrame` creation methods ----
 impl CallFrame {
-    /// This is the size of the function prologue.
-    ///
-    /// The position of the elements are relative to the [`CallFrame::fp`] (register pointer).
-    ///
-    /// ```text
-    ///                      Setup by the caller
-    ///   ┌─────────────────────────────────────────────────────────┐ ┌───── register pointer
-    ///   ▼                                                         ▼ ▼
-    /// | -(2 + N): this | -(1 + N): func | -N: arg1 | ... | -1: argN | 0: local1 | ... | K: localK |
-    ///   ▲                              ▲   ▲                      ▲   ▲                         ▲
-    ///   └──────────────────────────────┘   └──────────────────────┘   └─────────────────────────┘
-    ///         function prologue                    arguments              Setup by the callee
-    ///   ▲
-    ///   └─ Frame pointer
-    /// ```
-    ///
-    /// ### Example
-    ///
-    /// The following function calls, generate the following stack:
-    ///
-    /// ```JavaScript
-    /// function x(a) {
-    /// }
-    /// function y(b, c) {
-    ///     return x(b + c)
-    /// }
-    ///
-    /// y(1, 2)
-    /// ```
-    ///
-    /// ```text
-    ///     caller prologue    caller arguments   callee prologue   callee arguments
-    ///   ┌─────────────────┐   ┌─────────┐   ┌─────────────────┐  ┌──────┐
-    ///   ▼                 ▼   ▼         ▼   │                 ▼  ▼      ▼
-    /// | 0: undefined | 1: y | 2: 1 | 3: 2 | 4: undefined | 5: x | 6:  3 |
-    /// ▲                                   ▲                             ▲
-    /// │       caller register pointer ────┤                             │
-    /// │                                   │                 callee register pointer
-    /// │                             callee frame pointer
-    /// │
-    /// └─────  caller frame pointer
-    /// ```
-    ///
-    /// Some questions:
-    ///
-    /// - Who is responsible for cleaning up the stack after a call? The rust caller.
     pub(crate) const FUNCTION_PROLOGUE: u32 = 2;
-    pub(crate) const THIS_POSITION: u32 = 2;
-    pub(crate) const FUNCTION_POSITION: u32 = 1;
-    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: u32 = 0;
-    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: u32 = 1;
-    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: u32 = 2;
-    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: u32 = 3;
+    const THIS_POSITION: usize = 2;
+    const FUNCTION_POSITION: usize = 1;
+    pub(crate) const PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX: usize = 0;
+    pub(crate) const PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX: usize = 1;
+    pub(crate) const PROMISE_CAPABILITY_REJECT_REGISTER_INDEX: usize = 2;
+    pub(crate) const ASYNC_GENERATOR_OBJECT_REGISTER_INDEX: usize = 3;
 
     /// Creates a new `CallFrame` with the provided `CodeBlock`.
     pub(crate) fn new(
@@ -154,16 +97,14 @@ impl CallFrame {
         environments: EnvironmentStack,
         realm: Realm,
     ) -> Self {
-        let local_binings_initialized = code_block.local_bindings_initialized.clone();
         Self {
-            code_block,
             pc: 0,
             rp: 0,
             env_fp: 0,
             argument_count: 0,
             iterators: ThinVec::new(),
             binding_stack: Vec::new(),
-            local_binings_initialized,
+            code_block,
             loop_iteration_count: 0,
             active_runnable,
             environments,
@@ -190,153 +131,67 @@ impl CallFrame {
         self
     }
 
-    pub(crate) fn this(&self, vm: &Vm) -> JsValue {
-        let this_index = self.rp - self.argument_count - Self::THIS_POSITION;
-        vm.stack[this_index as usize].clone()
+    /// Returns the index of `this` in the stack.
+    pub(crate) fn this_index(&self) -> usize {
+        self.rp as usize - self.argument_count as usize - Self::THIS_POSITION
     }
 
-    pub(crate) fn function(&self, vm: &Vm) -> Option<JsObject> {
-        let function_index = self.rp - self.argument_count - Self::FUNCTION_POSITION;
-        if let Some(object) = vm.stack[function_index as usize].as_object() {
-            return Some(object.clone());
-        }
-
-        None
+    /// Returns the index of the function in the stack.
+    pub(crate) fn function_index(&self) -> usize {
+        self.rp as usize - self.argument_count as usize - Self::FUNCTION_POSITION
     }
 
-    pub(crate) fn arguments<'stack>(&self, vm: &'stack Vm) -> &'stack [JsValue] {
-        let rp = self.rp as usize;
-        let argument_count = self.argument_count as usize;
-        let arguments_start = rp - argument_count;
-        &vm.stack[arguments_start..rp]
+    /// Returns the index of the promise capability promise register in the stack.
+    pub(crate) fn promise_capability_promise_register_index(&self) -> usize {
+        self.rp as usize + Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX
     }
 
-    pub(crate) fn argument<'stack>(&self, index: usize, vm: &'stack Vm) -> Option<&'stack JsValue> {
-        self.arguments(vm).get(index)
+    /// Returns the index of the promise capability resolve register in the stack.
+    pub(crate) fn promise_capability_resolve_register_index(&self) -> usize {
+        self.rp as usize + Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX
     }
 
-    pub(crate) fn fp(&self) -> u32 {
-        self.rp - self.argument_count - Self::FUNCTION_PROLOGUE
+    /// Returns the index of the promise capability reject register in the stack.
+    pub(crate) fn promise_capability_reject_register_index(&self) -> usize {
+        self.rp as usize + Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX
     }
 
-    pub(crate) fn restore_stack(&self, vm: &mut Vm) {
-        let fp = self.fp();
-        vm.stack.truncate(fp as usize);
+    /// Returns the index of the async generator object register in the stack.
+    pub(crate) fn async_generator_object_register_index(&self) -> usize {
+        self.rp as usize + Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX
     }
 
-    /// Returns the async generator object, if the function that this [`CallFrame`] is from an async generator, [`None`] otherwise.
-    pub(crate) fn async_generator_object(&self, stack: &[JsValue]) -> Option<JsObject> {
-        if !self.code_block().is_async_generator() {
-            return None;
-        }
-
-        self.register(Self::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX, stack)
-            .as_object()
-            .cloned()
+    /// Returns the range of the arguments in the stack.
+    pub(crate) fn arguments_range(&self) -> std::ops::Range<usize> {
+        (self.rp as usize - self.argument_count as usize)..self.rp as usize
     }
 
-    pub(crate) fn promise_capability(&self, stack: &[JsValue]) -> Option<PromiseCapability> {
-        if !self.code_block().is_async() {
-            return None;
-        }
-
-        let promise = self
-            .register(Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX, stack)
-            .as_object()
-            .cloned()?;
-        let resolve = self
-            .register(Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX, stack)
-            .as_object()
-            .cloned()
-            .and_then(JsFunction::from_object)?;
-        let reject = self
-            .register(Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX, stack)
-            .as_object()
-            .cloned()
-            .and_then(JsFunction::from_object)?;
-
-        Some(PromiseCapability {
-            promise,
-            functions: ResolvingFunctions { resolve, reject },
-        })
-    }
-
-    pub(crate) fn set_promise_capability(
-        &self,
-        stack: &mut [JsValue],
-        promise_capability: Option<&PromiseCapability>,
-    ) {
-        debug_assert!(
-            self.code_block().is_async(),
-            "Only async functions have a promise capability"
-        );
-
-        self.set_register(
-            Self::PROMISE_CAPABILITY_PROMISE_REGISTER_INDEX,
-            promise_capability
-                .map(PromiseCapability::promise)
-                .cloned()
-                .map_or_else(JsValue::undefined, Into::into),
-            stack,
-        );
-        self.set_register(
-            Self::PROMISE_CAPABILITY_RESOLVE_REGISTER_INDEX,
-            promise_capability
-                .map(PromiseCapability::resolve)
-                .cloned()
-                .map_or_else(JsValue::undefined, Into::into),
-            stack,
-        );
-        self.set_register(
-            Self::PROMISE_CAPABILITY_REJECT_REGISTER_INDEX,
-            promise_capability
-                .map(PromiseCapability::reject)
-                .cloned()
-                .map_or_else(JsValue::undefined, Into::into),
-            stack,
-        );
-    }
-
-    /// Returns the register at the given index.
-    ///
-    /// # Panics
-    ///
-    /// If the index is out of bounds.
-    #[track_caller]
-    pub(crate) fn register<'stack>(&self, index: u32, stack: &'stack [JsValue]) -> &'stack JsValue {
-        debug_assert!(index < self.code_block().register_count);
-        let at = self.rp + index;
-        &stack[at as usize]
-    }
-
-    /// Sets the register at the given index.
-    ///
-    /// # Panics
-    ///
-    /// If the index is out of bounds.
-    pub(crate) fn set_register(&self, index: u32, value: JsValue, stack: &mut [JsValue]) {
-        debug_assert!(index < self.code_block().register_count);
-        let at = self.rp + index;
-        stack[at as usize] = value;
+    /// Returns the frame pointer of this `CallFrame`.
+    pub(crate) fn frame_pointer(&self) -> usize {
+        (self.rp - self.argument_count - Self::FUNCTION_PROLOGUE) as usize
     }
 
     /// Does this have the [`CallFrameFlags::EXIT_EARLY`] flag.
     pub(crate) fn exit_early(&self) -> bool {
         self.flags.contains(CallFrameFlags::EXIT_EARLY)
     }
+
     /// Set the [`CallFrameFlags::EXIT_EARLY`] flag.
     pub(crate) fn set_exit_early(&mut self, early_exit: bool) {
         self.flags.set(CallFrameFlags::EXIT_EARLY, early_exit);
     }
+
     /// Does this have the [`CallFrameFlags::CONSTRUCT`] flag.
     pub(crate) fn construct(&self) -> bool {
         self.flags.contains(CallFrameFlags::CONSTRUCT)
     }
-    /// Does this [`CallFrame`] need to push registers on [`Vm::push_frame()`].
+
+    /// Does this [`CallFrame`] need to push registers on [`super::Vm::push_frame()`].
     pub(crate) fn registers_already_pushed(&self) -> bool {
         self.flags
             .contains(CallFrameFlags::REGISTERS_ALREADY_PUSHED)
     }
+
     /// Does this [`CallFrame`] have a cached `this` value.
     ///
     /// The cached value is placed in the [`CallFrame::THIS_POSITION`] position.

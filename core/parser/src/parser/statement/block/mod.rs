@@ -24,7 +24,6 @@ use boa_ast::{
     statement, Punctuator,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
 /// The possible `TokenKind` which indicate the end of a block statement.
@@ -76,16 +75,15 @@ where
     type Output = statement::Block;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block", interner)?;
         if let Some(tk) = cursor.peek(0, interner)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
                 cursor.advance(interner);
-                return Ok(statement::Block::from(vec![]));
+                return Ok(statement::Block::from((vec![], cursor.linear_pos())));
             }
         }
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
-        let statement_list = StatementList::new(
+        let (statement_list, _end) = StatementList::new(
             self.allow_yield,
             self.allow_await,
             self.allow_return,
@@ -94,7 +92,7 @@ where
             false,
         )
         .parse(cursor, interner)
-        .map(statement::Block::from)?;
+        .map(|(statement_list, end)| (statement::Block::from(statement_list), end))?;
         cursor.expect(Punctuator::CloseBlock, "block", interner)?;
 
         // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate

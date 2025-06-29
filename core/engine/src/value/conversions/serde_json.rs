@@ -1,15 +1,16 @@
 //! This module implements the conversions from and into [`serde_json::Value`].
 
-use super::{InnerValue, JsValue};
+use super::JsValue;
 use crate::{
     builtins::Array,
     error::JsNativeError,
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult,
+    Context, JsResult, JsVariant,
 };
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 
 impl JsValue {
     /// Converts a [`serde_json::Value`] to a `JsValue`.
@@ -34,7 +35,7 @@ impl JsValue {
     /// let mut context = Context::default();
     /// let value = JsValue::from_json(&json, &mut context).unwrap();
     /// #
-    /// # assert_eq!(json, value.to_json(&mut context).unwrap());
+    /// # assert_eq!(Some(json), value.to_json(&mut context).unwrap());
     /// ```
     pub fn from_json(json: &Value, context: &mut Context) -> JsResult<Self> {
         /// Biggest possible integer, as i64.
@@ -84,6 +85,9 @@ impl JsValue {
 
     /// Converts the `JsValue` to a [`serde_json::Value`].
     ///
+    /// If the `JsValue` is `Undefined`, this method will return `None`.
+    /// Otherwise it will return the corresponding `serde_json::Value`.
+    ///
     /// # Example
     ///
     /// ```
@@ -106,30 +110,44 @@ impl JsValue {
     ///
     /// let back_to_json = value.to_json(&mut context).unwrap();
     /// #
-    /// # assert_eq!(json, back_to_json);
+    /// # assert_eq!(Some(json), back_to_json);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the `JsValue` is `Undefined`.
-    pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
-        match &self.inner {
-            InnerValue::Null => Ok(Value::Null),
-            InnerValue::Undefined => todo!("undefined to JSON"),
-            InnerValue::Boolean(b) => Ok(Value::from(*b)),
-            InnerValue::String(string) => Ok(string.to_std_string_escaped().into()),
-            InnerValue::Float64(rat) => Ok(Value::from(*rat)),
-            InnerValue::Integer32(int) => Ok(Value::from(*int)),
-            InnerValue::BigInt(_bigint) => Err(JsNativeError::typ()
+    pub fn to_json(&self, context: &mut Context) -> JsResult<Option<Value>> {
+        let mut seen_objects = HashSet::new();
+        self.to_json_inner(context, &mut seen_objects)
+    }
+
+    fn to_json_inner(
+        &self,
+        context: &mut Context,
+        seen_objects: &mut HashSet<JsObject>,
+    ) -> JsResult<Option<Value>> {
+        match self.variant() {
+            JsVariant::Null => Ok(Some(Value::Null)),
+            JsVariant::Undefined => Ok(None),
+            JsVariant::Boolean(b) => Ok(Some(Value::from(b))),
+            JsVariant::String(string) => Ok(Some(string.to_std_string_escaped().into())),
+            JsVariant::Float64(rat) => Ok(Some(Value::from(rat))),
+            JsVariant::Integer32(int) => Ok(Some(Value::from(int))),
+            JsVariant::BigInt(_bigint) => Err(JsNativeError::typ()
                 .with_message("cannot convert bigint to JSON")
                 .into()),
-            InnerValue::Object(obj) => {
-                let value_by_prop_key = |property_key, context: &mut Context| {
+            JsVariant::Object(obj) => {
+                if seen_objects.contains(obj) {
+                    return Err(JsNativeError::typ()
+                        .with_message("cyclic object value")
+                        .into());
+                }
+                seen_objects.insert(obj.clone());
+                let mut value_by_prop_key = |property_key, context: &mut Context| {
                     obj.borrow()
                         .properties()
                         .get(&property_key)
-                        .and_then(|x| x.value().map(|val| val.to_json(context)))
-                        .unwrap_or(Ok(Value::Null))
+                        .and_then(|x| {
+                            x.value()
+                                .map(|val| val.to_json_inner(context, seen_objects))
+                        })
+                        .unwrap_or(Ok(Some(Value::Null)))
                 };
 
                 if obj.is_array() {
@@ -138,17 +156,26 @@ impl JsValue {
 
                     for k in 0..len as u32 {
                         let val = value_by_prop_key(k.into(), context)?;
-                        arr.push(val);
-                    }
+                        match val {
+                            Some(val) => arr.push(val),
 
-                    Ok(Value::Array(arr))
+                            // Undefined in array. Substitute with null as Value doesn't support Undefined.
+                            None => arr.push(Value::Null),
+                        }
+                    }
+                    // Passing the object rather than its clone that was inserted to the set should be fine
+                    // as they hash to the same value and therefore HashSet can still remove the clone
+                    seen_objects.remove(obj);
+                    Ok(Some(Value::Array(arr)))
                 } else {
                     let mut map = Map::new();
 
                     for index in obj.borrow().properties().index_property_keys() {
                         let key = index.to_string();
                         let value = value_by_prop_key(index.into(), context)?;
-                        map.insert(key, value);
+                        if let Some(value) = value {
+                            map.insert(key, value);
+                        }
                     }
 
                     for property_key in obj.borrow().properties().shape.keys() {
@@ -162,13 +189,15 @@ impl JsValue {
                             }
                         };
                         let value = value_by_prop_key(property_key, context)?;
-                        map.insert(key, value);
+                        if let Some(value) = value {
+                            map.insert(key, value);
+                        }
                     }
-
-                    Ok(Value::Object(map))
+                    seen_objects.remove(obj);
+                    Ok(Some(Value::Object(map)))
                 }
             }
-            InnerValue::Symbol(_sym) => Err(JsNativeError::typ()
+            JsVariant::Symbol(_sym) => Err(JsNativeError::typ()
                 .with_message("cannot convert Symbol to JSON")
                 .into()),
         }
@@ -181,9 +210,9 @@ mod tests {
     use indoc::indoc;
     use serde_json::json;
 
-    use crate::object::JsArray;
-    use crate::{js_string, JsValue};
-    use crate::{run_test_actions, TestAction};
+    use crate::{
+        js_string, object::JsArray, run_test_actions, Context, JsObject, JsValue, TestAction,
+    };
 
     #[test]
     fn json_conversions() {
@@ -245,7 +274,7 @@ mod tests {
                 assert_eq!(arr.at(3, ctx).unwrap(), true.into());
             }
 
-            assert_eq!(json, value.to_json(ctx).unwrap());
+            assert_eq!(Some(json), value.to_json(ctx).unwrap());
         })]);
     }
 
@@ -253,23 +282,92 @@ mod tests {
     fn integer_ops_to_json() {
         run_test_actions([
             TestAction::assert_with_op("1000000 + 500", |v, ctx| {
-                v.to_json(ctx).unwrap() == json!(1_000_500)
+                v.to_json(ctx).unwrap() == Some(json!(1_000_500))
             }),
             TestAction::assert_with_op("1000000 - 500", |v, ctx| {
-                v.to_json(ctx).unwrap() == json!(999_500)
+                v.to_json(ctx).unwrap() == Some(json!(999_500))
             }),
             TestAction::assert_with_op("1000000 * 500", |v, ctx| {
-                v.to_json(ctx).unwrap() == json!(500_000_000)
+                v.to_json(ctx).unwrap() == Some(json!(500_000_000))
             }),
             TestAction::assert_with_op("1000000 / 500", |v, ctx| {
-                v.to_json(ctx).unwrap() == json!(2_000)
+                v.to_json(ctx).unwrap() == Some(json!(2_000))
             }),
             TestAction::assert_with_op("233894 % 500", |v, ctx| {
-                v.to_json(ctx).unwrap() == json!(394)
+                v.to_json(ctx).unwrap() == Some(json!(394))
             }),
             TestAction::assert_with_op("36 ** 5", |v, ctx| {
-                v.to_json(ctx).unwrap() == json!(60_466_176)
+                v.to_json(ctx).unwrap() == Some(json!(60_466_176))
             }),
         ]);
+    }
+
+    #[test]
+    fn to_json_cyclic() {
+        let mut context = Context::default();
+        let obj = JsObject::with_null_proto();
+        obj.create_data_property(js_string!("a"), obj.clone(), &mut context)
+            .expect("should create data property");
+        assert_eq!(
+            JsValue::from(obj)
+                .to_json(&mut context)
+                .unwrap_err()
+                .to_string(),
+            "TypeError: cyclic object value"
+        );
+    }
+
+    #[test]
+    fn to_json_undefined() {
+        let mut context = Context::default();
+        let undefined_value = JsValue::undefined();
+        assert!(undefined_value.to_json(&mut context).unwrap().is_none());
+    }
+
+    #[test]
+    fn to_json_undefined_in_structure() {
+        let mut context = Context::default();
+        let object_with_undefined = {
+            // Defining the following structure:
+            // {
+            //     "outer_a": 1,
+            //     "outer_b": undefined,
+            //     "outer_c": [2, undefined, 3, { "inner_a": undefined }]
+            // }
+
+            let inner = JsObject::with_null_proto();
+            inner
+                .create_data_property(js_string!("inner_a"), JsValue::undefined(), &mut context)
+                .expect("should add property");
+
+            let array = JsArray::new(&mut context);
+            array.push(2, &mut context).expect("should push");
+            array
+                .push(JsValue::undefined(), &mut context)
+                .expect("should push");
+            array.push(3, &mut context).expect("should push");
+            array.push(inner, &mut context).expect("should push");
+
+            let outer = JsObject::with_null_proto();
+            outer
+                .create_data_property(js_string!("outer_a"), JsValue::new(1), &mut context)
+                .expect("should add property");
+            outer
+                .create_data_property(js_string!("outer_b"), JsValue::undefined(), &mut context)
+                .expect("should add property");
+            outer
+                .create_data_property(js_string!("outer_c"), array, &mut context)
+                .expect("should add property");
+
+            JsValue::from(outer)
+        };
+
+        assert_eq!(
+            Some(json!({
+                "outer_a": 1,
+                "outer_c": [2, null, 3, { }]
+            })),
+            object_with_undefined.to_json(&mut context).unwrap()
+        );
     }
 }

@@ -1,20 +1,14 @@
-use crate::{
-    builtins::Number,
-    value::Numeric,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsBigInt, JsResult,
-};
+use super::VaryingOperand;
+use crate::{builtins::Number, value::Numeric, vm::opcode::Operation, Context, JsBigInt, JsResult};
 use std::ops::Neg as StdNeg;
 
 pub(crate) mod decrement;
 pub(crate) mod increment;
 pub(crate) mod logical;
-pub(crate) mod void;
 
 pub(crate) use decrement::*;
 pub(crate) use increment::*;
 pub(crate) use logical::*;
-pub(crate) use void::*;
 
 /// `TypeOf` implements the Opcode Operation for `Opcode::TypeOf`
 ///
@@ -23,16 +17,20 @@ pub(crate) use void::*;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TypeOf;
 
+impl TypeOf {
+    #[inline(always)]
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) {
+        context.vm.set_register(
+            value.into(),
+            context.vm.get_register(value.into()).js_type_of().into(),
+        );
+    }
+}
+
 impl Operation for TypeOf {
     const NAME: &'static str = "TypeOf";
     const INSTRUCTION: &'static str = "INST - TypeOf";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        context.vm.push(value.js_type_of());
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `Pos` implements the Opcode Operation for `Opcode::Pos`
@@ -42,17 +40,24 @@ impl Operation for TypeOf {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Pos;
 
+impl Pos {
+    #[inline(always)]
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        let v = context
+            .vm
+            .get_register(value.into())
+            .clone()
+            .to_number(context)?
+            .into();
+        context.vm.set_register(value.into(), v);
+        Ok(())
+    }
+}
+
 impl Operation for Pos {
     const NAME: &'static str = "Pos";
     const INSTRUCTION: &'static str = "INST - Pos";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let value = value.to_number(context)?;
-        context.vm.push(value);
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `Neg` implements the Opcode Operation for `Opcode::Neg`
@@ -62,19 +67,28 @@ impl Operation for Pos {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Neg;
 
+impl Neg {
+    #[inline(always)]
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        match context
+            .vm
+            .get_register(value.into())
+            .clone()
+            .to_numeric(context)?
+        {
+            Numeric::Number(number) => context.vm.set_register(value.into(), number.neg().into()),
+            Numeric::BigInt(bigint) => context
+                .vm
+                .set_register(value.into(), JsBigInt::neg(&bigint).into()),
+        }
+        Ok(())
+    }
+}
+
 impl Operation for Neg {
     const NAME: &'static str = "Neg";
     const INSTRUCTION: &'static str = "INST - Neg";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value.to_numeric(context)? {
-            Numeric::Number(number) => context.vm.push(number.neg()),
-            Numeric::BigInt(bigint) => context.vm.push(JsBigInt::neg(&bigint)),
-        }
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `BitNot` implements the Opcode Operation for `Opcode::BitNot`
@@ -84,17 +98,28 @@ impl Operation for Neg {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct BitNot;
 
+impl BitNot {
+    #[inline(always)]
+    pub(super) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
+        match context
+            .vm
+            .get_register(value.into())
+            .clone()
+            .to_numeric(context)?
+        {
+            Numeric::Number(number) => context
+                .vm
+                .set_register(value.into(), Number::not(number).into()),
+            Numeric::BigInt(bigint) => context
+                .vm
+                .set_register(value.into(), JsBigInt::not(&bigint).into()),
+        }
+        Ok(())
+    }
+}
+
 impl Operation for BitNot {
     const NAME: &'static str = "BitNot";
     const INSTRUCTION: &'static str = "INST - BitNot";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value.to_numeric(context)? {
-            Numeric::Number(number) => context.vm.push(Number::not(number)),
-            Numeric::BigInt(bigint) => context.vm.push(JsBigInt::not(&bigint)),
-        }
-        Ok(CompletionType::Normal)
-    }
 }

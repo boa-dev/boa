@@ -2,9 +2,8 @@
 
 use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
-use boa_ast::{Position, Punctuator, Span};
+use boa_ast::{PositionGroup, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 const CHAR_ASSIGN: u32 = '=' as u32;
 
@@ -41,16 +40,16 @@ macro_rules! vop {
 /// The `op` macro handles binary operations or assignment operations and converts them into tokens.
 macro_rules! op {
     ($cursor:ident, $start_pos:expr, $assign_op:expr, $op:expr) => ({
-        Token::new(
+        Token::new_by_position_group(
             vop!($cursor, $assign_op, $op).into(),
-            Span::new($start_pos, $cursor.pos()),
+            $start_pos, $cursor.pos_group(),
         )
     });
     ($cursor:ident, $start_pos:expr, $assign_op:expr, $op:expr, {$($case:pat => $block:expr),+}) => ({
         let punc: Punctuator = vop!($cursor, $assign_op, $op, {$($case => $block),+});
-        Token::new(
+        Token::new_by_position_group(
             punc.into(),
-            Span::new($start_pos, $cursor.pos()),
+            $start_pos, $cursor.pos_group(),
         )
     });
 }
@@ -81,14 +80,12 @@ impl<R> Tokenizer<R> for Operator {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         _interner: &mut Interner,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Operator", "Lexing");
-
         Ok(match self.init {
             b'*' => op!(cursor, start_pos, Punctuator::AssignMul, Punctuator::Mul, {
                 Some(0x2A /* * */) => vop!(cursor, Punctuator::AssignPow, Punctuator::Exp)
@@ -121,14 +118,16 @@ impl<R> Tokenizer<R> for Operator {
                     Some(0x2E /* . */) if !matches!(second, Some(second) if (0x30..=0x39 /* 0..=9 */).contains(&second)) =>
                     {
                         cursor.next_char()?.expect(". vanished");
-                        Token::new(
+                        Token::new_by_position_group(
                             TokenKind::Punctuator(Punctuator::Optional),
-                            Span::new(start_pos, cursor.pos()),
+                            start_pos,
+                            cursor.pos_group(),
                         )
                     }
-                    _ => Token::new(
+                    _ => Token::new_by_position_group(
                         TokenKind::Punctuator(Punctuator::Question),
-                        Span::new(start_pos, cursor.pos()),
+                        start_pos,
+                        cursor.pos_group(),
                     ),
                 }
             }
@@ -160,7 +159,9 @@ impl<R> Tokenizer<R> for Operator {
                 vop!(cursor, Punctuator::StrictNotEq, Punctuator::NotEq),
                 Punctuator::Not
             ),
-            b'~' => Token::new(Punctuator::Neg.into(), Span::new(start_pos, cursor.pos())),
+            b'~' => {
+                Token::new_by_position_group(Punctuator::Neg.into(), start_pos, cursor.pos_group())
+            }
             op => unimplemented!("operator {}", op),
         })
     }

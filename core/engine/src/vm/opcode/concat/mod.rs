@@ -1,7 +1,6 @@
-use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsString,
-};
+use super::VaryingOperand;
+use crate::{vm::opcode::Operation, Context, JsResult, JsString};
+use thin_vec::ThinVec;
 
 /// `ConcatToString` implements the Opcode Operation for `Opcode::ConcatToString`
 ///
@@ -11,21 +10,20 @@ use crate::{
 pub(crate) struct ConcatToString;
 
 impl ConcatToString {
-    fn operation(context: &mut Context, value_count: usize) -> JsResult<CompletionType> {
-        let mut strings = Vec::with_capacity(value_count);
-        for _ in 0..value_count {
-            strings.push(context.vm.pop().to_string(context)?);
+    #[inline(always)]
+    pub(super) fn operation(
+        (string, values): (VaryingOperand, ThinVec<VaryingOperand>),
+
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let mut strings = Vec::with_capacity(values.len());
+        for value in values {
+            let val = context.vm.get_register(value.into()).clone();
+            strings.push(val.to_string(context)?);
         }
-        strings.reverse();
-        let s = JsString::concat_array(
-            &strings
-                .iter()
-                .map(JsString::as_str)
-                .map(Into::into)
-                .collect::<Vec<_>>(),
-        );
-        context.vm.push(s);
-        Ok(CompletionType::Normal)
+        let s = JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<_>>());
+        context.vm.set_register(string.into(), s.into());
+        Ok(())
     }
 }
 
@@ -33,19 +31,4 @@ impl Operation for ConcatToString {
     const NAME: &'static str = "ConcatToString";
     const INSTRUCTION: &'static str = "INST - ConcatToString";
     const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value_count = context.vm.read::<u8>() as usize;
-        Self::operation(context, value_count)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let value_count = context.vm.read::<u16>() as usize;
-        Self::operation(context, value_count)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let value_count = context.vm.read::<u32>() as usize;
-        Self::operation(context, value_count)
-    }
 }

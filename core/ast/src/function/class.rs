@@ -7,10 +7,10 @@ use crate::{
     property::{MethodDefinitionKind, PropertyName},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration,
+    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 use std::hash::Hash;
 
 /// A class declaration.
@@ -93,10 +93,7 @@ impl ToIndentedString for ClassDeclaration {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = format!("class {}", interner.resolve_expect(self.name.sym()));
         if let Some(super_ref) = self.super_ref.as_ref() {
-            buf.push_str(&format!(
-                " extends {}",
-                super_ref.to_interned_string(interner)
-            ));
+            let _ = write!(buf, " extends {}", super_ref.to_interned_string(interner));
         }
         if self.elements.is_empty() && self.constructor().is_none() {
             buf.push_str(" {}");
@@ -105,11 +102,12 @@ impl ToIndentedString for ClassDeclaration {
         let indentation = "    ".repeat(indent_n + 1);
         buf.push_str(" {\n");
         if let Some(expr) = &self.constructor {
-            buf.push_str(&format!(
-                "{indentation}constructor({}) {}\n",
+            let _ = writeln!(
+                buf,
+                "{indentation}constructor({}) {}",
                 join_nodes(interner, expr.parameters().as_ref()),
                 block_to_string(&expr.body.statements, interner, indent_n + 1)
-            ));
+            );
         }
         for element in &self.elements {
             buf.push_str(&element.to_indented_string(interner, indent_n));
@@ -157,7 +155,7 @@ impl VisitWith for ClassDeclaration {
 
 impl From<ClassDeclaration> for Declaration {
     fn from(f: ClassDeclaration) -> Self {
-        Self::ClassDeclaration(f)
+        Self::ClassDeclaration(Box::new(f))
     }
 }
 
@@ -178,6 +176,8 @@ pub struct ClassExpression {
     pub(crate) constructor: Option<FunctionExpression>,
     pub(crate) elements: Box<[ClassElement]>,
 
+    span: Span,
+
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) name_scope: Option<Scope>,
 }
@@ -192,6 +192,7 @@ impl ClassExpression {
         constructor: Option<FunctionExpression>,
         elements: Box<[ClassElement]>,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let name_scope = if has_binding_identifier {
             Some(Scope::default())
@@ -203,6 +204,7 @@ impl ClassExpression {
             super_ref,
             constructor,
             elements,
+            span,
             name_scope,
         }
     }
@@ -241,6 +243,13 @@ impl ClassExpression {
     pub const fn name_scope(&self) -> Option<&Scope> {
         self.name_scope.as_ref()
     }
+
+    /// Get the [`Span`] of the [`ClassExpression`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
+    }
 }
 
 impl ToIndentedString for ClassExpression {
@@ -248,14 +257,11 @@ impl ToIndentedString for ClassExpression {
         let mut buf = "class".to_string();
         if self.name_scope.is_some() {
             if let Some(name) = self.name {
-                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
             }
         }
         if let Some(super_ref) = self.super_ref.as_ref() {
-            buf.push_str(&format!(
-                " extends {}",
-                super_ref.to_interned_string(interner)
-            ));
+            let _ = write!(buf, " extends {}", super_ref.to_interned_string(interner));
         }
         if self.elements.is_empty() && self.constructor().is_none() {
             buf.push_str(" {}");
@@ -264,11 +270,12 @@ impl ToIndentedString for ClassExpression {
         let indentation = "    ".repeat(indent_n + 1);
         buf.push_str(" {\n");
         if let Some(expr) = &self.constructor {
-            buf.push_str(&format!(
-                "{indentation}constructor({}) {}\n",
+            let _ = writeln!(
+                buf,
+                "{indentation}constructor({}) {}",
                 join_nodes(interner, expr.parameters().as_ref()),
                 block_to_string(&expr.body.statements, interner, indent_n + 1)
-            ));
+            );
         }
         for element in &self.elements {
             buf.push_str(&element.to_indented_string(interner, indent_n));
@@ -389,7 +396,7 @@ pub enum ClassElement {
 
     /// A private static field definition, only accessible from static methods and fields inside the
     /// class declaration.
-    PrivateStaticFieldDefinition(PrivateName, Option<Expression>),
+    PrivateStaticFieldDefinition(PrivateFieldDefinition),
 
     /// A static block, where a class can have initialization logic for its static fields.
     StaticBlock(StaticBlockBody),
@@ -406,7 +413,7 @@ pub enum ClassElement {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ClassFieldDefinition {
     pub(crate) name: PropertyName,
-    pub(crate) field: Option<Expression>,
+    pub(crate) initializer: Option<Expression>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
@@ -416,10 +423,10 @@ impl ClassFieldDefinition {
     /// Creates a new class field definition.
     #[inline]
     #[must_use]
-    pub fn new(name: PropertyName, field: Option<Expression>) -> Self {
+    pub fn new(name: PropertyName, initializer: Option<Expression>) -> Self {
         Self {
             name,
-            field,
+            initializer,
             scope: Scope::default(),
         }
     }
@@ -431,11 +438,11 @@ impl ClassFieldDefinition {
         &self.name
     }
 
-    /// Returns the field of the class field definition.
+    /// Returns the initializer of the class field definition.
     #[inline]
     #[must_use]
-    pub const fn field(&self) -> Option<&Expression> {
-        self.field.as_ref()
+    pub const fn initializer(&self) -> Option<&Expression> {
+        self.initializer.as_ref()
     }
 
     /// Returns the scope of the class field definition.
@@ -457,7 +464,7 @@ impl ClassFieldDefinition {
 #[derive(Clone, Debug, PartialEq)]
 pub struct PrivateFieldDefinition {
     pub(crate) name: PrivateName,
-    pub(crate) field: Option<Expression>,
+    pub(crate) initializer: Option<Expression>,
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scope: Scope,
@@ -467,10 +474,10 @@ impl PrivateFieldDefinition {
     /// Creates a new private field definition.
     #[inline]
     #[must_use]
-    pub fn new(name: PrivateName, field: Option<Expression>) -> Self {
+    pub fn new(name: PrivateName, initializer: Option<Expression>) -> Self {
         Self {
             name,
-            field,
+            initializer,
             scope: Scope::default(),
         }
     }
@@ -482,11 +489,11 @@ impl PrivateFieldDefinition {
         &self.name
     }
 
-    /// Returns the field of the private field definition.
+    /// Returns the initializer of the private field definition.
     #[inline]
     #[must_use]
-    pub const fn field(&self) -> Option<&Expression> {
-        self.field.as_ref()
+    pub const fn initializer(&self) -> Option<&Expression> {
+        self.initializer.as_ref()
     }
 
     /// Returns the scope of the private field definition.
@@ -502,7 +509,7 @@ impl ToIndentedString for ClassElement {
         let indentation = "    ".repeat(indent_n + 1);
         match self {
             Self::MethodDefinition(m) => m.to_indented_string(interner, indent_n),
-            Self::FieldDefinition(field) => match &field.field {
+            Self::FieldDefinition(field) => match &field.initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}{} = {};\n",
@@ -517,7 +524,7 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::StaticFieldDefinition(field) => match &field.field {
+            Self::StaticFieldDefinition(field) => match &field.initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}static {} = {};\n",
@@ -532,8 +539,9 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. }) => match field
-            {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            }) => match initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}#{} = {};\n",
@@ -548,7 +556,11 @@ impl ToIndentedString for ClassElement {
                     )
                 }
             },
-            Self::PrivateStaticFieldDefinition(name, field) => match field {
+            Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => match initializer {
                 Some(expr) => {
                     format!(
                         "{indentation}static #{} = {};\n",
@@ -593,16 +605,22 @@ impl VisitWith for ClassElement {
             }
             Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
                 visitor.visit_property_name(&field.name)?;
-                if let Some(expr) = &field.field {
+                if let Some(expr) = &field.initializer {
                     visitor.visit_expression(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
-            | Self::PrivateStaticFieldDefinition(name, field) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            })
+            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => {
                 visitor.visit_private_name(name)?;
-                if let Some(expr) = field {
+                if let Some(expr) = initializer {
                     visitor.visit_expression(expr)
                 } else {
                     ControlFlow::Continue(())
@@ -631,16 +649,22 @@ impl VisitWith for ClassElement {
             }
             Self::FieldDefinition(field) | Self::StaticFieldDefinition(field) => {
                 visitor.visit_property_name_mut(&mut field.name)?;
-                if let Some(expr) = &mut field.field {
+                if let Some(expr) = &mut field.initializer {
                     visitor.visit_expression_mut(expr)
                 } else {
                     ControlFlow::Continue(())
                 }
             }
-            Self::PrivateFieldDefinition(PrivateFieldDefinition { name, field, .. })
-            | Self::PrivateStaticFieldDefinition(name, field) => {
+            Self::PrivateFieldDefinition(PrivateFieldDefinition {
+                name, initializer, ..
+            })
+            | Self::PrivateStaticFieldDefinition(PrivateFieldDefinition {
+                name,
+                initializer,
+                ..
+            }) => {
                 visitor.visit_private_name_mut(name)?;
-                if let Some(expr) = field {
+                if let Some(expr) = initializer {
                     visitor.visit_expression_mut(expr)
                 } else {
                     ControlFlow::Continue(())
@@ -673,6 +697,7 @@ pub struct ClassMethodDefinition {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl ClassMethodDefinition {
@@ -685,9 +710,13 @@ impl ClassMethodDefinition {
         body: FunctionBody,
         kind: MethodDefinitionKind,
         is_static: bool,
+        start_linear_pos: LinearPosition,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
+
+        let linear_span = LinearSpan::new(start_linear_pos, body.linear_pos_end());
+
         Self {
             name,
             parameters,
@@ -696,6 +725,7 @@ impl ClassMethodDefinition {
             kind,
             is_static,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -746,6 +776,13 @@ impl ClassMethodDefinition {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
     }
 
     /// Returns `true` if the class method definition contains a direct call to `eval`.
@@ -824,14 +861,15 @@ impl ToInternedString for ClassElementName {
 pub struct PrivateName {
     /// The `[[Description]]` internal slot of the private name.
     description: Sym,
+    span: Span,
 }
 
 impl PrivateName {
     /// Create a new private name.
     #[inline]
     #[must_use]
-    pub const fn new(description: Sym) -> Self {
-        Self { description }
+    pub const fn new(description: Sym, span: Span) -> Self {
+        Self { description, span }
     }
 
     /// Get the description of the private name.
@@ -839,6 +877,13 @@ impl PrivateName {
     #[must_use]
     pub const fn description(&self) -> Sym {
         self.description
+    }
+
+    /// Get the [`Span`] of the [`PrivateName`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        self.span
     }
 }
 

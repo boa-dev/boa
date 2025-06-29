@@ -18,9 +18,10 @@ use crate::{
     js_string,
     object::JsObject,
     realm::Realm,
+    spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant, Opcode},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    vm::{CallFrame, CallFrameFlags, Constant},
+    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
     operations::{contains, contains_arguments, ContainsSymbol},
@@ -28,7 +29,6 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -37,8 +37,6 @@ pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
             .name(Self::NAME)
             .length(1)
@@ -130,7 +128,7 @@ impl Eval {
         if strict {
             parser.set_strict();
         }
-        let mut body = parser.parse_eval(direct, context.interner_mut())?;
+        let (mut body, source) = parser.parse_eval(direct, context.interner_mut())?;
 
         // 6. Let inFunction be false.
         // 7. Let inMethod be false.
@@ -261,6 +259,9 @@ impl Eval {
 
         let in_with = context.vm.environments.has_object_environment();
 
+        let source_text = SourceText::new(source);
+        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
+
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             body.strict(),
@@ -271,6 +272,7 @@ impl Eval {
             false,
             context.interner_mut(),
             in_with,
+            spanned_source_text,
         );
 
         compiler.current_open_environments_count += 1;
@@ -280,7 +282,7 @@ impl Eval {
             .constants
             .push(Constant::Scope(lexical_scope.clone()));
 
-        compiler.emit_with_varying_operand(Opcode::PushScope, scope_index);
+        compiler.bytecode.emit_push_scope(scope_index.into());
         if strict {
             variable_scope = lexical_scope.clone();
             compiler.variable_scope = lexical_scope.clone();

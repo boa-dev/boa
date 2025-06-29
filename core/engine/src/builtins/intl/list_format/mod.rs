@@ -1,10 +1,12 @@
 use std::fmt::Write;
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
-use icu_list::{provider::AndListV1Marker, ListFormatter, ListLength};
-use icu_locid::Locale;
-use icu_provider::DataLocale;
+use icu_list::{
+    options::{ListFormatterOptions, ListLength},
+    provider::{ListAndV1, ListFormatterPatterns},
+    ListFormatter, ListFormatterPreferences,
+};
+use icu_locale::Locale;
 
 use crate::{
     builtins::{
@@ -12,10 +14,7 @@ use crate::{
         options::{get_option, get_options_object},
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
-    context::{
-        icu::ErasedProvider,
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{internal_methods::get_prototype_from_constructor, JsObject},
     property::Attribute,
@@ -45,15 +44,15 @@ pub(crate) struct ListFormat {
 }
 
 impl Service for ListFormat {
-    type LangMarker = AndListV1Marker;
+    type LangMarker = ListAndV1;
+
+    const ATTRIBUTES: &'static icu_provider::DataMarkerAttributes = ListFormatterPatterns::WIDE;
 
     type LocaleOptions = ();
 }
 
 impl IntrinsicObject for ListFormat {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(
                 Self::supported_locales_of,
@@ -148,26 +147,24 @@ impl BuiltInConstructor for ListFormat {
         // 16. Let dataLocaleData be localeData.[[<dataLocale>]].
         // 17. Let dataLocaleTypes be dataLocaleData.[[<type>]].
         // 18. Set listFormat.[[Templates]] to dataLocaleTypes.[[<style>]].
-        let data_locale = &DataLocale::from(&locale);
-        let formatter = match (typ, context.intl_provider().erased_provider()) {
-            (ListFormatType::Conjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_and_with_length_with_any_provider(a, data_locale, style)
-            }
-            (ListFormatType::Disjunction, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_or_with_length_with_any_provider(a, data_locale, style)
-            }
-            (ListFormatType::Unit, ErasedProvider::Any(a)) => {
-                ListFormatter::try_new_unit_with_length_with_any_provider(a, data_locale, style)
-            }
-            (ListFormatType::Conjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_and_with_length_with_buffer_provider(b, data_locale, style)
-            }
-            (ListFormatType::Disjunction, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_or_with_length_with_buffer_provider(b, data_locale, style)
-            }
-            (ListFormatType::Unit, ErasedProvider::Buffer(b)) => {
-                ListFormatter::try_new_unit_with_length_with_buffer_provider(b, data_locale, style)
-            }
+        let prefs = ListFormatterPreferences::from(&locale);
+        let options = ListFormatterOptions::default().with_length(style);
+        let formatter = match typ {
+            ListFormatType::Conjunction => ListFormatter::try_new_and_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
+            ListFormatType::Disjunction => ListFormatter::try_new_or_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
+            ListFormatType::Unit => ListFormatter::try_new_unit_with_buffer_provider(
+                context.intl_provider().erased_provider(),
+                prefs,
+                options,
+            ),
         }
         .map_err(|e| JsNativeError::typ().with_message(e.to_string()))?;
 
@@ -214,8 +211,7 @@ impl ListFormat {
         let requested_locales = canonicalize_locale_list(locales, context)?;
 
         // 3. Return ? FilterLocales(availableLocales, requestedLocales, options).
-        filter_locales::<<Self as Service>::LangMarker>(requested_locales, options, context)
-            .map(JsValue::from)
+        filter_locales::<Self>(requested_locales, options, context).map(JsValue::from)
     }
 
     /// [`Intl.ListFormat.prototype.format ( list )`][spec].
@@ -340,7 +336,7 @@ impl ListFormat {
                         "element" => self.0.push(Part::Element(string.0)),
                         "literal" => self.0.push(Part::Literal(string.0)),
                         _ => unreachable!(),
-                    };
+                    }
                 }
                 Ok(())
             }

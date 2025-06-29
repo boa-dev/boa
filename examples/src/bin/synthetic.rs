@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let promise_result = module.load_link_evaluate(context);
 
     // Very important to push forward the job queue after queueing promises.
-    context.run_jobs();
+    context.run_jobs()?;
 
     // Checking if the final promise didn't return an error.
     match promise_result.state() {

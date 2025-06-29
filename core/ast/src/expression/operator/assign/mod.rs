@@ -23,6 +23,7 @@ use crate::{
     expression::{access::PropertyAccess, identifier::Identifier, Expression},
     pattern::Pattern,
     visitor::{VisitWith, Visitor, VisitorMut},
+    Span,
 };
 
 /// An assignment operator expression.
@@ -68,6 +69,13 @@ impl Assign {
     #[must_use]
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
+    }
+
+    /// Get the [`Span`] of the [`Assign`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
@@ -158,6 +166,17 @@ impl AssignTarget {
             Expression::PropertyAccess(access) => Some(Self::Access(access.clone())),
             Expression::Parenthesized(p) => Self::from_expression_simple(p.expression(), strict),
             _ => None,
+        }
+    }
+
+    /// Get the [`Span`] of the [`AssignTarget`] node.
+    #[inline]
+    #[must_use]
+    pub fn span(&self) -> Span {
+        match self {
+            AssignTarget::Identifier(identifier) => identifier.span(),
+            AssignTarget::Access(property_access) => property_access.span(),
+            AssignTarget::Pattern(pattern) => pattern.span(),
         }
     }
 }

@@ -40,8 +40,8 @@
 //! ```
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
@@ -64,6 +64,8 @@ mod text;
 pub use text::{TextDecoder, TextEncoder};
 
 pub mod url;
+
+pub mod interval;
 
 /// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
 #[derive(Debug)]
@@ -111,6 +113,8 @@ pub fn register(
     #[cfg(feature = "url")]
     url::Url::register(ctx)?;
 
+    interval::register(ctx)?;
+
     Ok(())
 }
 
@@ -122,10 +126,8 @@ pub(crate) mod test {
 
     /// A test action executed in a test function.
     #[allow(missing_debug_implementations)]
-    #[derive(Clone)]
     pub(crate) struct TestAction(Inner);
 
-    #[derive(Clone)]
     #[allow(dead_code)]
     enum Inner {
         RunHarness,
@@ -133,7 +135,7 @@ pub(crate) mod test {
             source: Cow<'static, str>,
         },
         InspectContext {
-            op: fn(&mut Context),
+            op: Box<dyn FnOnce(&mut Context)>,
         },
         Assert {
             source: Cow<'static, str>,
@@ -171,8 +173,8 @@ pub(crate) mod test {
         /// Executes `op` with the currently active context.
         ///
         /// Useful to make custom assertions that must be done from Rust code.
-        pub(crate) fn inspect_context(op: fn(&mut Context)) -> Self {
-            Self(Inner::InspectContext { op })
+        pub(crate) fn inspect_context(op: impl FnOnce(&mut Context) + 'static) -> Self {
+            Self(Inner::InspectContext { op: Box::new(op) })
         }
     }
 

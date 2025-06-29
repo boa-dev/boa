@@ -398,17 +398,15 @@ impl JsObject {
         // NOTE(HalidOdat): For object's that are not callable we implement a special __call__ internal method
         //                  that throws on call.
 
-        context.vm.push(this.clone()); // this
-        context.vm.push(self.clone()); // func
+        context.vm.stack.push(this.clone()); // this
+        context.vm.stack.push(self.clone()); // func
         let argument_count = args.len();
-        context.vm.push_values(args);
+        context.vm.stack.calling_convention_push_arguments(args);
 
         // 3. Return ? F.[[Call]](V, argumentsList).
         let frame_index = context.vm.frames.len();
-        let is_complete = self.__call__(argument_count).resolve(context)?;
-
-        if is_complete {
-            return Ok(context.vm.pop());
+        if self.__call__(argument_count).resolve(context)? {
+            return Ok(context.vm.stack.pop());
         }
 
         if frame_index + 1 == context.vm.frames.len() {
@@ -447,18 +445,18 @@ impl JsObject {
         // 1. If newTarget is not present, set newTarget to F.
         let new_target = new_target.unwrap_or(self);
 
-        context.vm.push(self.clone()); // func
+        context.vm.stack.push(JsValue::undefined());
+        context.vm.stack.push(self.clone()); // func
         let argument_count = args.len();
-        context.vm.push_values(args);
-        context.vm.push(new_target.clone());
+        context.vm.stack.calling_convention_push_arguments(args);
+        context.vm.stack.push(new_target.clone());
 
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
         let frame_index = context.vm.frames.len();
-        let is_complete = self.__construct__(argument_count).resolve(context)?;
 
-        if is_complete {
-            let result = context.vm.pop();
+        if self.__construct__(argument_count).resolve(context)? {
+            let result = context.vm.stack.pop();
             return Ok(result
                 .as_object()
                 .expect("construct value should be an object")

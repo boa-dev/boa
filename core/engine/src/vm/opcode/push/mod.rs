@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    vm::opcode::{Operation, VaryingOperand},
+    Context, JsValue,
 };
 
 pub(crate) mod array;
@@ -26,15 +26,17 @@ macro_rules! implement_push_generics {
         #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
+        impl $name {
+            #[inline(always)]
+            pub(super) fn operation(dst: VaryingOperand,  context: &mut Context) {
+                context.vm.set_register(dst.into(), $push_value.into());
+            }
+        }
+
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 1;
-
-            fn execute(context: &mut Context) -> JsResult<CompletionType> {
-                context.vm.push($push_value);
-                Ok(CompletionType::Normal)
-            }
         }
     };
 }
@@ -53,7 +55,7 @@ implement_push_generics!(PushTrue, true, "Push integer `true` on the stack.");
 implement_push_generics!(PushFalse, false, "Push integer `false` on the stack.");
 implement_push_generics!(PushZero, 0, "Push integer `0` on the stack.");
 implement_push_generics!(PushOne, 1, "Push integer `1` on the stack.");
-implement_push_generics!(PushNaN, JsValue::nan(), "Push integer `NaN` on the stack.");
+implement_push_generics!(PushNan, JsValue::nan(), "Push integer `NaN` on the stack.");
 implement_push_generics!(
     PushPositiveInfinity,
     JsValue::positive_infinity(),

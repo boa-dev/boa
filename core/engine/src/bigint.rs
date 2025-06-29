@@ -80,6 +80,15 @@ impl JsBigInt {
         self.inner.to_f64().unwrap_or(f64::INFINITY)
     }
 
+    /// Converts the `BigInt` to a i128 type.
+    ///
+    /// Returns `i128::MAX` if the `BigInt` is too big.
+    #[inline]
+    #[must_use]
+    pub fn to_i128(&self) -> i128 {
+        self.inner.to_i128().unwrap_or(i128::MAX)
+    }
+
     /// Converts a string to a `BigInt` with the specified radix.
     #[inline]
     #[must_use]
@@ -489,7 +498,7 @@ impl PartialEq<f64> for JsBigInt {
     #[inline]
     fn eq(&self, other: &f64) -> bool {
         other.fract().is_zero()
-            && RawBigInt::from_f64(*other).map_or(false, |bigint| self.inner.as_ref() == &bigint)
+            && RawBigInt::from_f64(*other).is_some_and(|bigint| self.inner.as_ref() == &bigint)
     }
 }
 
@@ -497,6 +506,6 @@ impl PartialEq<JsBigInt> for f64 {
     #[inline]
     fn eq(&self, other: &JsBigInt) -> bool {
         self.fract().is_zero()
-            && RawBigInt::from_f64(*self).map_or(false, |bigint| other.inner.as_ref() == &bigint)
+            && RawBigInt::from_f64(*self).is_some_and(|bigint| other.inner.as_ref() == &bigint)
     }
 }

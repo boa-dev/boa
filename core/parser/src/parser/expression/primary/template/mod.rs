@@ -15,10 +15,9 @@ use crate::{
 };
 use boa_ast::{
     expression::literal::{self, TemplateElement},
-    Position, Punctuator,
+    PositionGroup, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses a template literal.
 ///
@@ -32,13 +31,18 @@ use boa_profiler::Profiler;
 pub(super) struct TemplateLiteral {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    start: Position,
+    start: PositionGroup,
     first: Sym,
 }
 
 impl TemplateLiteral {
     /// Creates a new `TemplateLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, start: Position, first: Sym) -> Self
+    pub(super) fn new<Y, A>(
+        allow_yield: Y,
+        allow_await: A,
+        start: PositionGroup,
+        first: Sym,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -59,8 +63,6 @@ where
     type Output = literal::TemplateLiteral;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("TemplateLiteral", "Parsing");
-
         let mut elements = vec![
             TemplateElement::String(self.first),
             TemplateElement::Expr(
@@ -75,7 +77,8 @@ where
         )?;
 
         loop {
-            match cursor.lex_template(self.start, interner)?.kind() {
+            let token = cursor.lex_template(self.start, interner)?;
+            match token.kind() {
                 TokenKind::TemplateMiddle(template_string) => {
                     let Some(cooked) = template_string.cooked() else {
                         return Err(Error::general(
@@ -102,7 +105,10 @@ where
                         ));
                     };
                     elements.push(TemplateElement::String(cooked));
-                    return Ok(literal::TemplateLiteral::new(elements.into()));
+                    return Ok(literal::TemplateLiteral::new(
+                        elements.into(),
+                        Span::new(self.start.position(), token.span().end()),
+                    ));
                 }
                 _ => return Err(Error::general("cannot parse template literal", self.start)),
             }

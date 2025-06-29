@@ -1,6 +1,5 @@
-use crate::{vm::CompletionType, Context, JsResult};
-
-use super::Operation;
+use super::{Operation, VaryingOperand};
+use crate::{Context, JsResult};
 
 /// `HasRestrictedGlobalProperty` implements the Opcode Operation for `Opcode::HasRestrictedGlobalProperty`
 ///
@@ -12,11 +11,19 @@ use super::Operation;
 pub(crate) struct HasRestrictedGlobalProperty;
 
 impl HasRestrictedGlobalProperty {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let name = &context.vm.frame().code_block().constant_string(index);
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, index): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let name = &context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
         let value = context.has_restricted_global_property(name)?;
-        context.vm.push(value);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), value.into());
+        Ok(())
     }
 }
 
@@ -24,21 +31,6 @@ impl Operation for HasRestrictedGlobalProperty {
     const NAME: &'static str = "HasRestrictedGlobalProperty";
     const INSTRUCTION: &'static str = "INST - HasRestrictedGlobalProperty";
     const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `CanDeclareGlobalFunction` implements the Opcode Operation for `Opcode::CanDeclareGlobalFunction`
@@ -51,11 +43,19 @@ impl Operation for HasRestrictedGlobalProperty {
 pub(crate) struct CanDeclareGlobalFunction;
 
 impl CanDeclareGlobalFunction {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let name = &context.vm.frame().code_block().constant_string(index);
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, index): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let name = &context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
         let value = context.can_declare_global_function(name)?;
-        context.vm.push(value);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), value.into());
+        Ok(())
     }
 }
 
@@ -63,21 +63,6 @@ impl Operation for CanDeclareGlobalFunction {
     const NAME: &'static str = "CanDeclareGlobalFunction";
     const INSTRUCTION: &'static str = "INST - CanDeclareGlobalFunction";
     const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `CanDeclareGlobalVar` implements the Opcode Operation for `Opcode::CanDeclareGlobalVar`
@@ -90,11 +75,19 @@ impl Operation for CanDeclareGlobalFunction {
 pub(crate) struct CanDeclareGlobalVar;
 
 impl CanDeclareGlobalVar {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let name = &context.vm.frame().code_block().constant_string(index);
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, index): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let name = &context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
         let value = context.can_declare_global_var(name)?;
-        context.vm.push(value);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), value.into());
+        Ok(())
     }
 }
 
@@ -102,21 +95,6 @@ impl Operation for CanDeclareGlobalVar {
     const NAME: &'static str = "CanDeclareGlobalVar";
     const INSTRUCTION: &'static str = "INST - CanDeclareGlobalVar";
     const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `CreateGlobalFunctionBinding` implements the Opcode Operation for `Opcode::CreateGlobalFunctionBinding`
@@ -129,22 +107,26 @@ impl Operation for CanDeclareGlobalVar {
 pub(crate) struct CreateGlobalFunctionBinding;
 
 impl CreateGlobalFunctionBinding {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
+    #[inline(always)]
+    pub(super) fn operation(
+        (function, configurable, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-        index: usize,
-        configurable: bool,
-    ) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block().constant_string(index);
-        let value = context.vm.pop();
+    ) -> JsResult<()> {
+        let configurable = u32::from(configurable) != 0;
+        let value = context.vm.get_register(function.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let function = value
             .as_object()
-            .expect("valeu should be an function")
+            .expect("value must be an function")
             .clone();
         context.create_global_function_binding(name, function, configurable)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -152,24 +134,6 @@ impl Operation for CreateGlobalFunctionBinding {
     const NAME: &'static str = "CreateGlobalFunctionBinding";
     const INSTRUCTION: &'static str = "INST - CreateGlobalFunctionBinding";
     const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index, configurable)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index, configurable)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index, configurable)
-    }
 }
 
 /// `CreateGlobalVarBinding` implements the Opcode Operation for `Opcode::CreateGlobalVarBinding`
@@ -182,16 +146,20 @@ impl Operation for CreateGlobalFunctionBinding {
 pub(crate) struct CreateGlobalVarBinding;
 
 impl CreateGlobalVarBinding {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
+    #[inline(always)]
+    pub(super) fn operation(
+        (configurable, index): (VaryingOperand, VaryingOperand),
         context: &mut Context,
-        index: usize,
-        configurable: bool,
-    ) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) -> JsResult<()> {
+        let configurable = u32::from(configurable) != 0;
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
         context.create_global_var_binding(name, configurable)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -199,22 +167,4 @@ impl Operation for CreateGlobalVarBinding {
     const NAME: &'static str = "CreateGlobalVarBinding";
     const INSTRUCTION: &'static str = "INST - CreateGlobalVarBinding";
     const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index, configurable)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index, configurable)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let configurable = context.vm.read::<u8>() != 0;
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index, configurable)
-    }
 }

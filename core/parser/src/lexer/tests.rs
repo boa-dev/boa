@@ -3,10 +3,10 @@
 use crate::lexer::{
     template::TemplateString,
     token::{ContainsEscapeSequence, EscapeSequence, Numeric},
-    Cursor, Error, Interner, Lexer, Position, Punctuator, Span, TokenKind,
+    Cursor, Error, Interner, Lexer, Punctuator, TokenKind,
 };
 use crate::source::ReadChar;
-use boa_ast::Keyword;
+use boa_ast::{Keyword, Position, Span};
 use boa_interner::Sym;
 use boa_macros::utf16;
 use std::str;
@@ -960,11 +960,11 @@ fn string_codepoint_with_no_braces() {
 }
 
 #[test]
-#[ignore]
+#[ignore = "Need to assert if this test is valid"]
 fn illegal_code_point_following_numeric_literal() {
     // Checks as per https://tc39.es/ecma262/#sec-literals-numeric-literals that a NumericLiteral cannot
     // be immediately followed by an IdentifierStart where the IdentifierStart
-    let mut lexer = Lexer::from(&br"17.4\u{2764}"[..]);
+    let mut lexer = Lexer::from("17.4\u{2764}".as_bytes());
     let interner = &mut Interner::default();
 
     assert!(

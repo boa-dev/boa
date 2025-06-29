@@ -1,5 +1,3 @@
-use std::ops::ControlFlow;
-
 use super::{FormalParameterList, FunctionBody};
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::FunctionScopes;
@@ -8,7 +6,9 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes,
 };
+use crate::{LinearSpan, LinearSpanIgnoreEq, Span};
 use boa_interner::{Interner, ToIndentedString};
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An async arrow function expression, as defined by the [spec].
 ///
@@ -30,6 +30,9 @@ pub struct AsyncArrowFunction {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
+
+    span: Span,
 }
 
 impl AsyncArrowFunction {
@@ -40,6 +43,8 @@ impl AsyncArrowFunction {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -49,6 +54,8 @@ impl AsyncArrowFunction {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
+            span,
         }
     }
 
@@ -86,11 +93,25 @@ impl AsyncArrowFunction {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the function declaration contains a direct call to `eval`.
     #[inline]
     #[must_use]
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
+    }
+
+    /// Get the [`Span`] of the [`AsyncArrowFunction`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -100,11 +121,12 @@ impl ToIndentedString for AsyncArrowFunction {
         if self.body().statements().is_empty() {
             buf.push_str(") => {}");
         } else {
-            buf.push_str(&format!(
+            let _ = write!(
+                buf,
                 ") => {{\n{}{}}}",
                 self.body.to_indented_string(interner, indentation + 1),
                 "    ".repeat(indentation)
-            ));
+            );
         }
         buf
     }

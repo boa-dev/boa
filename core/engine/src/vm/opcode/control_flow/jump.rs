@@ -1,7 +1,8 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
+    Context,
 };
+use thin_vec::ThinVec;
 
 /// `Jump` implements the Opcode Operation for `Opcode::Jump`
 ///
@@ -10,16 +11,17 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Jump;
 
+impl Jump {
+    #[inline(always)]
+    pub(crate) fn operation(address: u32, context: &mut Context) {
+        context.vm.frame_mut().pc = address;
+    }
+}
+
 impl Operation for Jump {
     const NAME: &'static str = "Jump";
     const INSTRUCTION: &'static str = "INST - Jump";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        context.vm.frame_mut().pc = address;
-        Ok(CompletionType::Normal)
-    }
 }
 
 // `JumpIfTrue` implements the Opcode Operation for `Opcode::JumpIfTrue`
@@ -29,18 +31,20 @@ impl Operation for Jump {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfTrue;
 
+impl JumpIfTrue {
+    #[inline(always)]
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+        let value = context.vm.get_register(value.into());
+        if value.to_boolean() {
+            context.vm.frame_mut().pc = address;
+        }
+    }
+}
+
 impl Operation for JumpIfTrue {
     const NAME: &'static str = "JumpIfTrue";
     const INSTRUCTION: &'static str = "INST - JumpIfTrue";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        if context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address;
-        }
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `JumpIfFalse` implements the Opcode Operation for `Opcode::JumpIfFalse`
@@ -50,18 +54,20 @@ impl Operation for JumpIfTrue {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfFalse;
 
+impl JumpIfFalse {
+    #[inline(always)]
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+        let value = context.vm.get_register(value.into());
+        if !value.to_boolean() {
+            context.vm.frame_mut().pc = address;
+        }
+    }
+}
+
 impl Operation for JumpIfFalse {
     const NAME: &'static str = "JumpIfFalse";
     const INSTRUCTION: &'static str = "INST - JumpIfFalse";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        if !context.vm.pop().to_boolean() {
-            context.vm.frame_mut().pc = address;
-        }
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `JumpIfNotUndefined` implements the Opcode Operation for `Opcode::JumpIfNotUndefined`
@@ -71,20 +77,20 @@ impl Operation for JumpIfFalse {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfNotUndefined;
 
+impl JumpIfNotUndefined {
+    #[inline(always)]
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+        let value = context.vm.get_register(value.into());
+        if !value.is_undefined() {
+            context.vm.frame_mut().pc = address;
+        }
+    }
+}
+
 impl Operation for JumpIfNotUndefined {
     const NAME: &'static str = "JumpIfNotUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNotUndefined";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        if !value.is_undefined() {
-            context.vm.frame_mut().pc = address;
-            context.vm.push(value);
-        }
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `JumpIfNullOrUndefined` implements the Opcode Operation for `Opcode::JumpIfNullOrUndefined`
@@ -94,21 +100,20 @@ impl Operation for JumpIfNotUndefined {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfNullOrUndefined;
 
+impl JumpIfNullOrUndefined {
+    #[inline(always)]
+    pub(crate) fn operation((address, value): (u32, VaryingOperand), context: &mut Context) {
+        let value = context.vm.get_register(value.into());
+        if value.is_null_or_undefined() {
+            context.vm.frame_mut().pc = address;
+        }
+    }
+}
+
 impl Operation for JumpIfNullOrUndefined {
     const NAME: &'static str = "JumpIfNullOrUndefined";
     const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
     const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let address = context.vm.read::<u32>();
-        let value = context.vm.pop();
-        if value.is_null_or_undefined() {
-            context.vm.frame_mut().pc = address;
-        } else {
-            context.vm.push(value);
-        }
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `JumpTable` implements the Opcode Operation for `Opcode::JumpTable`
@@ -118,31 +123,30 @@ impl Operation for JumpIfNullOrUndefined {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpTable;
 
-impl Operation for JumpTable {
-    const NAME: &'static str = "JumpTable";
-    const INSTRUCTION: &'static str = "INST - JumpTable";
-    const COST: u8 = 5;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let default = context.vm.read::<u32>();
-        let count = context.vm.read::<u32>();
-
-        let value = context.vm.pop();
+impl JumpTable {
+    #[inline(always)]
+    pub(crate) fn operation((default, addresses): (u32, ThinVec<u32>), context: &mut Context) {
+        let value = context.vm.stack.pop();
         if let Some(value) = value.as_i32() {
-            let value = value as u32;
+            let value = value as usize;
             let mut target = None;
-            for i in 0..count {
-                let address = context.vm.read::<u32>();
+            for (i, address) in addresses.iter().enumerate() {
                 if i + 1 == value {
-                    target = Some(address);
+                    target = Some(*address);
                 }
             }
 
             context.vm.frame_mut().pc = target.unwrap_or(default);
 
-            return Ok(CompletionType::Normal);
+            return;
         }
 
         unreachable!("expected positive integer, got {value:?}")
     }
+}
+
+impl Operation for JumpTable {
+    const NAME: &'static str = "JumpTable";
+    const INSTRUCTION: &'static str = "INST - JumpTable";
+    const COST: u8 = 5;
 }

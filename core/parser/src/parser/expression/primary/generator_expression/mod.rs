@@ -23,10 +23,9 @@ use crate::{
 use boa_ast::{
     function::GeneratorExpression as GeneratorExpressionNode,
     operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Keyword, Punctuator,
+    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Generator expression parsing.
 ///
@@ -53,7 +52,9 @@ where
     type Output = GeneratorExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("GeneratorExpression", "Parsing");
+        let token = cursor.expect((Keyword::Function, false), "generator expression", interner)?;
+        let start_linear_span = token.linear_span();
+        let function_span_start = token.span().start();
 
         cursor.expect(
             TokenKind::Punctuator(Punctuator::Mul),
@@ -84,11 +85,9 @@ where
         let params = FormalParameters::new(true, false).parse(cursor, interner)?;
 
         cursor.expect(Punctuator::CloseParen, "generator expression", interner)?;
-        cursor.expect(Punctuator::OpenBlock, "generator expression", interner)?;
 
-        let body = FunctionBody::new(true, false).parse(cursor, interner)?;
-
-        cursor.expect(Punctuator::CloseBlock, "generator expression", interner)?;
+        let body =
+            FunctionBody::new(true, false, "generator expression").parse(cursor, interner)?;
 
         // If the source text matched by FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -151,7 +150,17 @@ where
             )));
         }
 
-        let function = GeneratorExpressionNode::new(name, params, body, name.is_some());
+        let span = start_linear_span.union(body.linear_pos_end());
+
+        let function_span_end = body.span().end();
+        let function = GeneratorExpressionNode::new(
+            name,
+            params,
+            body,
+            span,
+            name.is_some(),
+            Span::new(function_span_start, function_span_end),
+        );
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

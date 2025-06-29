@@ -26,7 +26,6 @@ use crate::{
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use std::collections::VecDeque;
 
 use super::{BuiltInBuilder, IntrinsicObject};
@@ -57,7 +56,7 @@ pub(crate) struct AsyncGeneratorRequest {
 }
 
 /// The internal representation of an `AsyncGenerator` object.
-#[derive(Debug, Clone, Finalize, Trace, JsData)]
+#[derive(Debug, Finalize, Trace, JsData)]
 pub struct AsyncGenerator {
     /// The `[[AsyncGeneratorState]]` internal slot.
     #[unsafe_ignore_trace]
@@ -72,8 +71,6 @@ pub struct AsyncGenerator {
 
 impl IntrinsicObject for AsyncGenerator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm

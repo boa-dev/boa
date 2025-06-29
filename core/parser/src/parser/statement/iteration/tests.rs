@@ -13,31 +13,44 @@ use boa_ast::{
         Call, Identifier,
     },
     statement::{Block, Break, DoWhileLoop, WhileLoop},
-    Expression, Statement, StatementListItem,
+    Expression, Span, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
+use indoc::indoc;
+
+const PSEUDO_LINEAR_POS: boa_ast::LinearPosition = boa_ast::LinearPosition::new(0);
 
 /// Checks do-while statement parsing.
 #[test]
 fn check_do_while() {
     let interner = &mut Interner::default();
     check_script_parser(
-        r#"do {
-            a += 1;
-        } while (true)"#,
+        indoc! {"
+            do {
+                a += 1;
+            } while (true)
+        "},
         vec![Statement::DoWhileLoop(DoWhileLoop::new(
             Statement::Block(
-                vec![StatementListItem::Statement(Statement::Expression(
-                    Expression::from(Assign::new(
-                        AssignOp::Add,
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                        Literal::from(1).into(),
-                    )),
-                ))]
-                .into(),
+                (
+                    vec![StatementListItem::Statement(
+                        Statement::Expression(Expression::from(Assign::new(
+                            AssignOp::Add,
+                            Identifier::new(
+                                interner.get_or_intern_static("a", utf16!("a")),
+                                Span::new((2, 5), (2, 6)),
+                            )
+                            .into(),
+                            Literal::new(1, Span::new((2, 10), (2, 11))).into(),
+                        )))
+                        .into(),
+                    )],
+                    PSEUDO_LINEAR_POS,
+                )
+                    .into(),
             ),
-            Literal::from(true).into(),
+            Literal::new(true, Span::new((3, 10), (3, 14))).into(),
         ))
         .into()],
         interner,
@@ -49,13 +62,18 @@ fn check_do_while() {
 fn check_do_while_semicolon_insertion() {
     let interner = &mut Interner::default();
     check_script_parser(
-        r#"var i = 0;
-        do {console.log("hello");} while(i++ < 10) console.log("end");"#,
+        indoc! {r#"
+            var i = 0;
+            do {console.log("hello");} while(i++ < 10) console.log("end");
+        "#},
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("i", utf16!("i")).into(),
-                    Some(Literal::from(0).into()),
+                    Identifier::new(
+                        interner.get_or_intern_static("i", utf16!("i")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
+                    Some(Literal::new(0, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -63,26 +81,42 @@ fn check_do_while_semicolon_insertion() {
             .into(),
             Statement::DoWhileLoop(DoWhileLoop::new(
                 Statement::Block(
-                    vec![StatementListItem::Statement(Statement::Expression(
-                        Expression::from(Call::new(
-                            Expression::PropertyAccess(
-                                SimplePropertyAccess::new(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("console", utf16!("console")),
+                    (
+                        vec![StatementListItem::Statement(
+                            Statement::Expression(
+                                Call::new(
+                                    Expression::PropertyAccess(
+                                        SimplePropertyAccess::new(
+                                            Identifier::new(
+                                                interner.get_or_intern_static(
+                                                    "console",
+                                                    utf16!("console"),
+                                                ),
+                                                Span::new((2, 5), (2, 12)),
+                                            )
+                                            .into(),
+                                            Identifier::new(
+                                                interner.get_or_intern_static("log", utf16!("log")),
+                                                Span::new((2, 13), (2, 16)),
+                                            ),
+                                        )
+                                        .into(),
+                                    ),
+                                    vec![Literal::new(
+                                        interner.get_or_intern_static("hello", utf16!("hello")),
+                                        Span::new((2, 17), (2, 24)),
                                     )
+                                    .into()]
                                     .into(),
-                                    interner.get_or_intern_static("log", utf16!("log")),
+                                    Span::new((2, 16), (2, 25)),
                                 )
                                 .into(),
-                            ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("hello", utf16!("hello")),
                             )
-                            .into()]
                             .into(),
-                        )),
-                    ))]
-                    .into(),
+                        )],
+                        PSEUDO_LINEAR_POS,
+                    )
+                        .into(),
                 ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
@@ -90,28 +124,42 @@ fn check_do_while_semicolon_insertion() {
                         UpdateOp::IncrementPost,
                         UpdateTarget::Identifier(Identifier::new(
                             interner.get_or_intern_static("i", utf16!("i")),
+                            Span::new((2, 34), (2, 35)),
                         )),
+                        Span::new((2, 34), (2, 37)),
                     )
                     .into(),
-                    Literal::from(10).into(),
+                    Literal::new(10, Span::new((2, 40), (2, 42))).into(),
                 )
                 .into(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Call::new(
-                Expression::PropertyAccess(
-                    SimplePropertyAccess::new(
-                        Identifier::new(
-                            interner.get_or_intern_static("console", utf16!("console")),
+            Statement::Expression(
+                Call::new(
+                    Expression::PropertyAccess(
+                        SimplePropertyAccess::new(
+                            Identifier::new(
+                                interner.get_or_intern_static("console", utf16!("console")),
+                                Span::new((2, 44), (2, 51)),
+                            )
+                            .into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("log", utf16!("log")),
+                                Span::new((2, 52), (2, 55)),
+                            ),
                         )
                         .into(),
-                        interner.get_or_intern_static("log", utf16!("log")),
+                    ),
+                    vec![Literal::new(
+                        interner.get_or_intern_static("end", utf16!("end")),
+                        Span::new((2, 56), (2, 61)),
                     )
+                    .into()]
                     .into(),
-                ),
-                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
-                    .into(),
-            )))
+                    Span::new((2, 55), (2, 62)),
+                )
+                .into(),
+            )
             .into(),
         ],
         interner,
@@ -124,13 +172,18 @@ fn check_do_while_semicolon_insertion() {
 fn check_do_while_semicolon_insertion_no_space() {
     let interner = &mut Interner::default();
     check_script_parser(
-        r#"var i = 0;
-        do {console.log("hello");} while(i++ < 10)console.log("end");"#,
+        indoc! {r#"
+            var i = 0;
+            do {console.log("hello");} while(i++ < 10)console.log("end");
+        "#},
         vec![
             Statement::Var(VarDeclaration(
                 vec![Variable::from_identifier(
-                    interner.get_or_intern_static("i", utf16!("i")).into(),
-                    Some(Literal::from(0).into()),
+                    Identifier::new(
+                        interner.get_or_intern_static("i", utf16!("i")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
+                    Some(Literal::new(0, Span::new((1, 9), (1, 10))).into()),
                 )]
                 .try_into()
                 .unwrap(),
@@ -138,26 +191,42 @@ fn check_do_while_semicolon_insertion_no_space() {
             .into(),
             Statement::DoWhileLoop(DoWhileLoop::new(
                 Statement::Block(
-                    vec![StatementListItem::Statement(Statement::Expression(
-                        Expression::from(Call::new(
-                            Expression::PropertyAccess(
-                                SimplePropertyAccess::new(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("console", utf16!("console")),
+                    (
+                        vec![StatementListItem::Statement(
+                            Statement::Expression(
+                                Call::new(
+                                    Expression::PropertyAccess(
+                                        SimplePropertyAccess::new(
+                                            Identifier::new(
+                                                interner.get_or_intern_static(
+                                                    "console",
+                                                    utf16!("console"),
+                                                ),
+                                                Span::new((2, 5), (2, 12)),
+                                            )
+                                            .into(),
+                                            Identifier::new(
+                                                interner.get_or_intern_static("log", utf16!("log")),
+                                                Span::new((2, 13), (2, 16)),
+                                            ),
+                                        )
+                                        .into(),
+                                    ),
+                                    vec![Literal::new(
+                                        interner.get_or_intern_static("hello", utf16!("hello")),
+                                        Span::new((2, 17), (2, 24)),
                                     )
+                                    .into()]
                                     .into(),
-                                    interner.get_or_intern_static("log", utf16!("log")),
+                                    Span::new((2, 16), (2, 25)),
                                 )
                                 .into(),
-                            ),
-                            vec![Literal::from(
-                                interner.get_or_intern_static("hello", utf16!("hello")),
                             )
-                            .into()]
                             .into(),
-                        )),
-                    ))]
-                    .into(),
+                        )],
+                        PSEUDO_LINEAR_POS,
+                    )
+                        .into(),
                 ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
@@ -165,28 +234,42 @@ fn check_do_while_semicolon_insertion_no_space() {
                         UpdateOp::IncrementPost,
                         UpdateTarget::Identifier(Identifier::new(
                             interner.get_or_intern_static("i", utf16!("i")),
+                            Span::new((2, 34), (2, 35)),
                         )),
+                        Span::new((2, 34), (2, 37)),
                     )
                     .into(),
-                    Literal::from(10).into(),
+                    Literal::new(10, Span::new((2, 40), (2, 42))).into(),
                 )
                 .into(),
             ))
             .into(),
-            Statement::Expression(Expression::from(Call::new(
-                Expression::PropertyAccess(
-                    SimplePropertyAccess::new(
-                        Identifier::new(
-                            interner.get_or_intern_static("console", utf16!("console")),
+            Statement::Expression(
+                Call::new(
+                    Expression::PropertyAccess(
+                        SimplePropertyAccess::new(
+                            Identifier::new(
+                                interner.get_or_intern_static("console", utf16!("console")),
+                                Span::new((2, 43), (2, 50)),
+                            )
+                            .into(),
+                            Identifier::new(
+                                interner.get_or_intern_static("log", utf16!("log")),
+                                Span::new((2, 51), (2, 54)),
+                            ),
                         )
                         .into(),
-                        interner.get_or_intern_static("log", utf16!("log")),
+                    ),
+                    vec![Literal::new(
+                        interner.get_or_intern_static("end", utf16!("end")),
+                        Span::new((2, 55), (2, 60)),
                     )
+                    .into()]
                     .into(),
-                ),
-                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
-                    .into(),
-            )))
+                    Span::new((2, 54), (2, 61)),
+                )
+                .into(),
+            )
             .into(),
         ],
         interner,
@@ -197,21 +280,21 @@ fn check_do_while_semicolon_insertion_no_space() {
 #[test]
 fn while_spaces() {
     check_script_parser(
-        r#"
+        indoc! {"
 
-        while
+            while
 
-        (
+            (
 
-        true
+            true
 
-        )
+            )
 
-        break;
+            break;
 
-        "#,
+        "},
         vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::from(true).into(),
+            Literal::new(true, Span::new((6, 1), (6, 5))).into(),
             Break::new(None).into(),
         ))
         .into()],
@@ -223,7 +306,7 @@ fn while_spaces() {
 #[test]
 fn do_while_spaces() {
     check_script_parser(
-        r#"
+        indoc! {"
 
         do
 
@@ -235,13 +318,16 @@ fn do_while_spaces() {
 
         while (true)
 
-        "#,
+        "},
         vec![Statement::DoWhileLoop(DoWhileLoop::new(
-            Block::from(vec![StatementListItem::Statement(Statement::Break(
-                Break::new(None),
-            ))])
+            Block::from((
+                vec![StatementListItem::Statement(
+                    Statement::Break(Break::new(None)).into(),
+                )],
+                PSEUDO_LINEAR_POS,
+            ))
             .into(),
-            Literal::Bool(true).into(),
+            Literal::new(true, Span::new((10, 8), (10, 12))).into(),
         ))
         .into()],
         &mut Interner::default(),

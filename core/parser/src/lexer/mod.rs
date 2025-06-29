@@ -42,9 +42,8 @@ use self::{
     template::TemplateLiteral,
 };
 use crate::source::{ReadChar, UTF8Input};
-use boa_ast::{Position, Punctuator, Span};
+use boa_ast::{PositionGroup, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 pub use self::{
     error::Error,
@@ -56,7 +55,7 @@ trait Tokenizer<R> {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
@@ -123,15 +122,13 @@ impl<R> Lexer<R> {
     /// As per <https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar>
     pub(crate) fn lex_slash_token(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
         init_with_eq: bool,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("lex_slash_token", "Lexing");
-
         if let Some(c) = self.cursor.peek_char()? {
             match (c, init_with_eq) {
                 // /
@@ -157,14 +154,16 @@ impl<R> Lexer<R> {
                                     // Consume the '='
                                     self.cursor.next_char()?.expect("= token vanished");
                                 }
-                                Ok(Token::new(
+                                Ok(Token::new_by_position_group(
                                     Punctuator::AssignDiv.into(),
-                                    Span::new(start, self.cursor.pos()),
+                                    start,
+                                    self.cursor.pos_group(),
                                 ))
                             } else {
-                                Ok(Token::new(
+                                Ok(Token::new_by_position_group(
                                     Punctuator::Div.into(),
-                                    Span::new(start, self.cursor.pos()),
+                                    start,
+                                    self.cursor.pos_group(),
                                 ))
                             }
                         }
@@ -176,9 +175,10 @@ impl<R> Lexer<R> {
                 }
             }
         } else {
-            Ok(Token::new(
+            Ok(Token::new_by_position_group(
                 Punctuator::Div.into(),
-                Span::new(start, self.cursor.pos()),
+                start,
+                self.cursor.pos_group(),
             ))
         }
     }
@@ -192,7 +192,7 @@ impl<R> Lexer<R> {
             return Ok(());
         }
 
-        while self.cursor.peek_char()?.map_or(false, is_whitespace) {
+        while self.cursor.peek_char()?.is_some_and(is_whitespace) {
             let _next = self.cursor.next_char();
         }
 
@@ -202,7 +202,7 @@ impl<R> Lexer<R> {
             let _next = self.cursor.next_char();
             let _next = self.cursor.next_char();
 
-            let start = self.cursor.pos();
+            let start = self.cursor.pos_group();
             SingleLineComment.lex(&mut self.cursor, start, interner)?;
         }
 
@@ -219,9 +219,7 @@ impl<R> Lexer<R> {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("next()", "Lexing");
-
-        let mut start = self.cursor.pos();
+        let mut start = self.cursor.pos_group();
         let Some(mut next_ch) = self.cursor.next_char()? else {
             return Ok(None);
         };
@@ -233,13 +231,13 @@ impl<R> Lexer<R> {
             if next_ch == 0x23 && self.cursor.peek_char()? == Some(0x21) {
                 let _token = HashbangComment.lex(&mut self.cursor, start, interner);
                 return self.next(interner);
-            };
+            }
         }
 
         // Ignore whitespace
         if is_whitespace(next_ch) {
             loop {
-                start = self.cursor.pos();
+                start = self.cursor.pos_group();
                 let Some(next) = self.cursor.next_char()? else {
                     return Ok(None);
                 };
@@ -252,19 +250,22 @@ impl<R> Lexer<R> {
 
         if let Ok(c) = char::try_from(next_ch) {
             let token = match c {
-                '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new(
+                '\r' | '\n' | '\u{2028}' | '\u{2029}' => Ok(Token::new_by_position_group(
                     TokenKind::LineTerminator,
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
                 '"' | '\'' => StringLiteral::new(c).lex(&mut self.cursor, start, interner),
                 '`' => TemplateLiteral.lex(&mut self.cursor, start, interner),
-                ';' => Ok(Token::new(
+                ';' => Ok(Token::new_by_position_group(
                     Punctuator::Semicolon.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
-                ':' => Ok(Token::new(
+                ':' => Ok(Token::new_by_position_group(
                     Punctuator::Colon.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
                 '.' => {
                     if self
@@ -278,33 +279,40 @@ impl<R> Lexer<R> {
                         SpreadLiteral::new().lex(&mut self.cursor, start, interner)
                     }
                 }
-                '(' => Ok(Token::new(
+                '(' => Ok(Token::new_by_position_group(
                     Punctuator::OpenParen.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
-                ')' => Ok(Token::new(
+                ')' => Ok(Token::new_by_position_group(
                     Punctuator::CloseParen.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
-                ',' => Ok(Token::new(
+                ',' => Ok(Token::new_by_position_group(
                     Punctuator::Comma.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
-                '{' => Ok(Token::new(
+                '{' => Ok(Token::new_by_position_group(
                     Punctuator::OpenBlock.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
-                '}' => Ok(Token::new(
+                '}' => Ok(Token::new_by_position_group(
                     Punctuator::CloseBlock.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
-                '[' => Ok(Token::new(
+                '[' => Ok(Token::new_by_position_group(
                     Punctuator::OpenBracket.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
-                ']' => Ok(Token::new(
+                ']' => Ok(Token::new_by_position_group(
                     Punctuator::CloseBracket.into(),
-                    Span::new(start, self.cursor.pos()),
+                    start,
+                    self.cursor.pos_group(),
                 )),
                 '#' => PrivateIdentifier::new().lex(&mut self.cursor, start, interner),
                 '/' => self.lex_slash_token(start, interner, false),
@@ -316,7 +324,7 @@ impl<R> Lexer<R> {
                     let _next = self.cursor.next_char();
                     let _next = self.cursor.next_char();
                     let _next = self.cursor.next_char();
-                    let start = self.cursor.pos();
+                    let start = self.cursor.pos_group();
                     SingleLineComment.lex(&mut self.cursor, start, interner)
                 }
                 #[allow(clippy::cast_possible_truncation)]
@@ -339,7 +347,7 @@ impl<R> Lexer<R> {
                         start.line_number(),
                         start.column_number()
                     );
-                    Err(Error::syntax(details, start))
+                    Err(Error::syntax(details, start.position()))
                 }
             }?;
 
@@ -351,7 +359,7 @@ impl<R> Lexer<R> {
                     start.line_number(),
                     start.column_number()
                 ),
-                start,
+                start.position(),
             ))
         }
     }
@@ -381,13 +389,17 @@ impl<R> Lexer<R> {
     /// Performs the lexing of a template literal.
     pub(crate) fn lex_template(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
         TemplateLiteral.lex(&mut self.cursor, start, interner)
+    }
+
+    pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
+        self.cursor.take_source()
     }
 }
 

@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::{
     builtins::{
         options::{get_option, get_options_object},
+        temporal::options::get_digits_option,
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
@@ -16,17 +17,23 @@ use crate::{
     JsSymbol, JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
-use num_traits::ToPrimitive;
+use cow_utils::CowUtils;
 use temporal_rs::{
-    options::{ArithmeticOverflow, Disambiguation, OffsetDisambiguation},
-    partial::PartialZonedDateTime,
-    Calendar, TimeZone, ZonedDateTime as ZonedDateTimeInner,
+    options::{
+        ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
+        OffsetDisambiguation, RoundingIncrement, RoundingMode, RoundingOptions,
+        ToStringRoundingOptions, Unit,
+    },
+    partial::{PartialDate, PartialTime, PartialZonedDateTime},
+    provider::{TimeZoneProvider, TransitionDirection},
+    Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner,
 };
 
 use super::{
-    calendar::to_temporal_calendar_slot_value, create_temporal_date, create_temporal_datetime,
-    create_temporal_instant, create_temporal_time, to_partial_date_record, to_partial_time_record,
+    calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
+    create_temporal_date, create_temporal_datetime, create_temporal_duration,
+    create_temporal_instant, create_temporal_time, is_partial_temporal_object,
+    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
     to_temporal_duration, to_temporal_time,
 };
 
@@ -49,8 +56,6 @@ impl BuiltInObject for ZonedDateTime {
 
 impl IntrinsicObject for ZonedDateTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name(js_string!("get calendarId"))
             .build();
@@ -153,6 +158,14 @@ impl IntrinsicObject for ZonedDateTime {
 
         let get_in_leap_year = BuiltInBuilder::callable(realm, Self::get_in_leap_year)
             .name(js_string!("get inLeapYear"))
+            .build();
+
+        let get_offset_nanos = BuiltInBuilder::callable(realm, Self::get_offset_nanoseconds)
+            .name(js_string!("get offsetNanoseconds"))
+            .build();
+
+        let get_offset = BuiltInBuilder::callable(realm, Self::get_offset)
+            .name(js_string!("get offset"))
             .build();
 
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
@@ -317,16 +330,40 @@ impl IntrinsicObject for ZonedDateTime {
                 None,
                 Attribute::CONFIGURABLE,
             )
+            .accessor(
+                js_string!("offsetNanoseconds"),
+                Some(get_offset_nanos),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("offset"),
+                Some(get_offset),
+                None,
+                Attribute::CONFIGURABLE,
+            )
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::compare, js_string!("compare"), 2)
+            .method(Self::with, js_string!("with"), 1)
             .method(Self::with_plain_time, js_string!("withPlainTime"), 0)
             .method(Self::with_timezone, js_string!("withTimeZone"), 1)
             .method(Self::with_calendar, js_string!("withCalendar"), 1)
             .method(Self::add, js_string!("add"), 1)
             .method(Self::subtract, js_string!("subtract"), 1)
+            .method(Self::until, js_string!("until"), 1)
+            .method(Self::since, js_string!("since"), 1)
+            .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .method(Self::start_of_day, js_string!("startOfDay"), 0)
+            .method(
+                Self::get_time_zone_transition,
+                js_string!("getTimeZoneTransition"),
+                1,
+            )
             .method(Self::to_instant, js_string!("toInstant"), 0)
             .method(Self::to_plain_date, js_string!("toPlainDate"), 0)
             .method(Self::to_plain_time, js_string!("toPlainTime"), 0)
@@ -360,14 +397,8 @@ impl BuiltInConstructor for ZonedDateTime {
                 .into());
         }
         //  2. Set epochNanoseconds to ? ToBigInt(epochNanoseconds).
-        let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
         //  3. If IsValidEpochNanoseconds(epochNanoseconds) is false, throw a RangeError exception.
-        // TODO: Better primitive for handling epochNanoseconds is needed in temporal_rs
-        let Some(nanos) = epoch_nanos.to_f64().to_i128() else {
-            return Err(JsNativeError::range()
-                .with_message("epochNanoseconds exceeded valid range.")
-                .into());
-        };
+        let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
 
         //  4. If timeZone is not a String, throw a TypeError exception.
         let Some(timezone_str) = args.get_or_undefined(1).as_string() else {
@@ -383,30 +414,33 @@ impl BuiltInConstructor for ZonedDateTime {
         // c. Set timeZone to identifierRecord.[[Identifier]].
         //  7. Else,
         // a. Set timeZone to FormatOffsetTimeZoneIdentifier(timeZoneParse.[[OffsetMinutes]]).
-        let timezone = TimeZone::try_from_str_with_provider(
-            &timezone_str.to_std_string_escaped(),
-            context.tz_provider(),
-        )?;
+        let timezone = TimeZone::try_from_identifier_str(&timezone_str.to_std_string_escaped())?;
+        if matches!(timezone, TimeZone::IanaIdentifier(_))
+            && !context
+                .tz_provider()
+                .check_identifier(&timezone.identifier()?)
+        {
+            return Err(JsNativeError::range()
+                .with_message("TimeZone string is not a supported by IANA identifier.")
+                .into());
+        }
 
         //  8. If calendar is undefined, set calendar to "iso8601".
         //  9. If calendar is not a String, throw a TypeError exception.
         //  10. Set calendar to ? CanonicalizeCalendar(calendar).
         let calendar = args
-            .get(2)
-            .map(|v| {
-                if let Some(calendar_str) = v.as_string() {
-                    Calendar::from_str(&calendar_str.to_std_string_escaped())
-                        .map_err(Into::<JsError>::into)
-                } else {
-                    Err(JsNativeError::typ()
-                        .with_message("calendar must be a string.")
-                        .into())
-                }
+            .get_or_undefined(2)
+            .map(|s| {
+                s.as_string()
+                    .map(JsString::to_std_string_lossy)
+                    .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
+            .transpose()?
+            .map(|s| Calendar::try_from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
 
-        let inner = ZonedDateTimeInner::try_new(nanos, calendar, timezone)?;
+        let inner = ZonedDateTimeInner::try_new(epoch_nanos.to_i128(), calendar, timezone)?;
 
         //  11. Return ? CreateTemporalZonedDateTime(epochNanoseconds, timeZone, calendar, NewTarget).
         create_temporal_zoneddatetime(inner, Some(new_target), context).map(Into::into)
@@ -430,16 +464,15 @@ impl ZonedDateTime {
 
     /// 6.3.4 get `Temporal.ZonedDateTime.prototype.timeZoneId`
     fn get_timezone_id(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let _zdt = this
+        let zdt = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Err(JsNativeError::error()
-            .with_message("Not yet implemented.")
-            .into())
+        let tz_id = zdt.inner.timezone().identifier()?;
+        Ok(JsString::from(tz_id).into())
     }
 
     /// 6.3.5 get `Temporal.ZonedDateTime.prototype.era`
@@ -453,7 +486,7 @@ impl ZonedDateTime {
 
         let era = zdt.inner.era_with_provider(context.tz_provider())?;
         Ok(era
-            .map(|tinystr| JsString::from(tinystr.to_lowercase()))
+            .map(|tinystr| JsString::from(tinystr.cow_to_lowercase()))
             .into_or_undefined())
     }
 
@@ -633,7 +666,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        Ok(JsBigInt::from(zdt.inner.epoch_nanoseconds()).into())
+        Ok(JsBigInt::from(zdt.inner.epoch_nanoseconds().as_i128()).into())
     }
 
     /// 6.3.19 get `Temporal.ZonedDateTime.prototype.dayOfWeek`
@@ -793,6 +826,37 @@ impl ZonedDateTime {
             .in_leap_year_with_provider(context.tz_provider())?
             .into())
     }
+
+    /// 6.3.29 get Temporal.ZonedDateTime.prototype.offsetNanoseconds
+    fn get_offset_nanoseconds(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        Ok(zdt
+            .inner
+            .offset_nanoseconds_with_provider(context.tz_provider())?
+            .into())
+    }
+
+    /// 6.3.30 get Temporal.ZonedDateTime.prototype.offset
+    fn get_offset(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        Ok(JsString::from(zdt.inner.offset_with_provider(context.tz_provider())?).into())
+    }
 }
 
 // ==== `ZonedDateTime` method implementations ====
@@ -812,7 +876,48 @@ impl ZonedDateTime {
         // 1. Return ? ToTemporalZonedDateTime(item, options).
         let one = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
         let two = to_temporal_zoneddatetime(args.get_or_undefined(1), None, context)?;
-        Ok((one.cmp(&two) as i8).into())
+        Ok((one.compare_instant(&two) as i8).into())
+    }
+
+    /// 6.3.31 `Temporal.ZonedDateTime.prototype.with ( temporalZonedDateTimeLike [ , options ] )`
+    fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let zonedDateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+        // 3. If ? IsPartialTemporalObject(temporalZonedDateTimeLike) is false, throw a TypeError exception.
+        let Some(obj) = is_partial_temporal_object(args.get_or_undefined(0), context)? else {
+            return Err(JsNativeError::typ()
+                .with_message("temporalZonedDateTimeLike was not a partial object")
+                .into());
+        };
+
+        let partial = to_partial_zoneddatetime(obj, context)?;
+
+        // 19. Let resolvedOptions be ? GetOptionsObject(options).
+        let resolved_options = get_options_object(args.get_or_undefined(1))?;
+        // 20. Let disambiguation be ? GetTemporalDisambiguationOption(resolvedOptions).
+        let disambiguation =
+            get_option::<Disambiguation>(&resolved_options, js_string!("disambiguation"), context)?;
+        // 21. Let offset be ? GetTemporalOffsetOption(resolvedOptions, prefer).
+        let offset =
+            get_option::<OffsetDisambiguation>(&resolved_options, js_string!("offset"), context)?;
+        // 22. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
+        let overflow =
+            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+
+        let result = zdt.inner.with_with_provider(
+            partial,
+            disambiguation,
+            offset,
+            overflow,
+            context.tz_provider(),
+        )?;
+        create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
     /// 6.3.32 `Temporal.ZonedDateTime.prototype.withPlainTime ( [ plainTimeLike ] )`
@@ -829,17 +934,13 @@ impl ZonedDateTime {
             })?;
 
         let time = args
-            .first()
+            .get_or_undefined(0)
             .map(|v| to_temporal_time(v, None, context))
             .transpose()?;
 
-        let inner = if let Some(pt) = time {
-            zdt.inner
-                .with_plain_time_and_provider(pt, context.tz_provider())?
-        } else {
-            zdt.inner
-                .start_of_day_with_provider(context.tz_provider())?
-        };
+        let inner = zdt
+            .inner
+            .with_plain_time_and_provider(time, context.tz_provider())?;
         create_temporal_zoneddatetime(inner, None, context).map(Into::into)
     }
 
@@ -887,13 +988,10 @@ impl ZonedDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
-        create_temporal_zoneddatetime(
-            zdt.inner
-                .add_with_provider(&duration, overflow, context.tz_provider())?,
-            None,
-            context,
-        )
-        .map(Into::into)
+        let result = zdt
+            .inner
+            .add_with_provider(&duration, overflow, context.tz_provider())?;
+        create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
     /// 6.3.36 `Temporal.ZonedDateTime.prototype.subtract ( temporalDurationLike [ , options ] )`
@@ -910,13 +1008,116 @@ impl ZonedDateTime {
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
-        create_temporal_zoneddatetime(
+        let result =
             zdt.inner
-                .subtract_with_provider(&duration, overflow, context.tz_provider())?,
-            None,
+                .subtract_with_provider(&duration, overflow, context.tz_provider())?;
+        create_temporal_zoneddatetime(result, None, context).map(Into::into)
+    }
+
+    fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        let result = zdt
+            .inner
+            .since_with_provider(&other, settings, context.tz_provider())?;
+        create_temporal_duration(result, None, context).map(Into::into)
+    }
+
+    fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
+
+        let options = get_options_object(args.get_or_undefined(1))?;
+        let settings = get_difference_settings(&options, context)?;
+
+        let result = zdt
+            .inner
+            .until_with_provider(&other, settings, context.tz_provider())?;
+        create_temporal_duration(result, None, context).map(Into::into)
+    }
+
+    /// 6.3.39 `Temporal.ZonedDateTime.prototype.round ( roundTo )`
+    fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let zonedDateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let round_to = match args.first().map(JsValue::variant) {
+            // 3. If roundTo is undefined, then
+            None | Some(JsVariant::Undefined) => {
+                // a. Throw a TypeError exception.
+                return Err(JsNativeError::typ()
+                    .with_message("roundTo cannot be undefined.")
+                    .into());
+            }
+            // 4. If Type(roundTo) is String, then
+            Some(JsVariant::String(rt)) => {
+                // a. Let paramString be roundTo.
+                let param_string = rt.clone();
+                // b. Set roundTo to OrdinaryObjectCreate(null).
+                let new_round_to = JsObject::with_null_proto();
+                // c. Perform ! CreateDataPropertyOrThrow(roundTo, "smallestUnit", paramString).
+                new_round_to.create_data_property_or_throw(
+                    js_string!("smallestUnit"),
+                    param_string,
+                    context,
+                )?;
+                new_round_to
+            }
+            // 5. Else,
+            Some(round_to) => {
+                // a. Set roundTo to ? GetOptionsObject(roundTo).
+                get_options_object(&JsValue::from(round_to))?
+            }
+        };
+
+        // 6. NOTE: The following steps read options and perform independent validation
+        // in alphabetical order (GetRoundingIncrementOption reads "roundingIncrement"
+        // and GetRoundingModeOption reads "roundingMode").
+        let mut options = RoundingOptions::default();
+
+        // 7. Let roundingIncrement be ? GetRoundingIncrementOption(roundTo).
+        options.increment =
+            get_option::<RoundingIncrement>(&round_to, js_string!("roundingIncrement"), context)?;
+
+        // 8. Let roundingMode be ? GetRoundingModeOption(roundTo, half-expand).
+        options.rounding_mode =
+            get_option::<RoundingMode>(&round_to, js_string!("roundingMode"), context)?;
+
+        // 9. Let smallestUnit be ? GetTemporalUnitValuedOption(roundTo, "smallestUnit", time, required, « day »).
+        options.smallest_unit = get_temporal_unit(
+            &round_to,
+            js_string!("smallestUnit"),
+            TemporalUnitGroup::Time,
+            Some(vec![Unit::Day]),
             context,
-        )
-        .map(Into::into)
+        )?;
+
+        let result = zdt
+            .inner
+            .round_with_provider(options, context.tz_provider())?;
+        create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
     /// 6.3.40 `Temporal.ZonedDateTime.prototype.equals ( other )`
@@ -930,6 +1131,87 @@ impl ZonedDateTime {
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
         Ok((zdt.inner == other).into())
+    }
+
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let options = get_options_object(args.get_or_undefined(0))?;
+
+        let show_calendar =
+            get_option::<DisplayCalendar>(&options, js_string!("calendarName"), context)?
+                .unwrap_or(DisplayCalendar::Auto);
+        let precision = get_digits_option(&options, context)?;
+        let show_offset = get_option::<DisplayOffset>(&options, js_string!("offset"), context)?
+            .unwrap_or(DisplayOffset::Auto);
+        let rounding_mode =
+            get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
+        // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
+        let display_timezone =
+            get_option::<DisplayTimeZone>(&options, js_string!("timeZoneName"), context)?
+                .unwrap_or(DisplayTimeZone::Auto);
+
+        let options = ToStringRoundingOptions {
+            precision,
+            smallest_unit,
+            rounding_mode,
+        };
+        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+            show_offset,
+            display_timezone,
+            show_calendar,
+            options,
+            context.tz_provider(),
+        )?;
+
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 6.3.42 `Temporal.ZonedDateTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    fn to_locale_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+            DisplayOffset::Auto,
+            DisplayTimeZone::Auto,
+            DisplayCalendar::Auto,
+            ToStringRoundingOptions::default(),
+            context.tz_provider(),
+        )?;
+
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 6.3.43 `Temporal.ZonedDateTime.prototype.toJSON ( )`
+    fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let ixdtf = zdt.inner.to_ixdtf_string_with_provider(
+            DisplayOffset::Auto,
+            DisplayTimeZone::Auto,
+            DisplayCalendar::Auto,
+            ToStringRoundingOptions::default(),
+            context.tz_provider(),
+        )?;
+
+        Ok(JsString::from(ixdtf).into())
     }
 
     /// 6.3.44 `Temporal.ZonedDateTime.prototype.valueOf ( )`
@@ -954,6 +1236,66 @@ impl ZonedDateTime {
         create_temporal_zoneddatetime(new, None, context).map(Into::into)
     }
 
+    /// 6.3.46 `Temporal.ZonedDateTime.prototype.getTimeZoneTransition ( directionParam )`
+    fn get_time_zone_transition(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let zonedDateTime be the this value.
+        // 2. Perform ? RequireInternalSlot(zonedDateTime, [[InitializedTemporalZonedDateTime]]).
+        // 3. Let timeZone be zonedDateTime.[[TimeZone]].
+        let zdt = this
+            .as_object()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
+            })?;
+
+        let direction_param = args.get_or_undefined(0);
+        // 4. If directionParam is undefined, throw a TypeError exception.
+        if direction_param.is_undefined() {
+            return Err(JsNativeError::typ()
+                .with_message("getTimeZoneTransition directionParam cannot be undefined.")
+                .into());
+        }
+        // 5. If directionParam is a String, then
+        let options_obj = if let Some(param_str) = direction_param.as_string() {
+            // a. Let paramString be directionParam.
+            // b. Set directionParam to OrdinaryObjectCreate(null).
+            let obj = JsObject::with_null_proto();
+            // c. Perform ! CreateDataPropertyOrThrow(directionParam, "direction", paramString).
+            obj.create_data_property_or_throw(
+                js_string!("direction"),
+                JsValue::from(param_str.clone()),
+                context,
+            )?;
+            obj
+        // 6. Else,
+        } else {
+            // a. Set directionParam to ? GetOptionsObject(directionParam).
+            get_options_object(direction_param)?
+        };
+
+        // TODO: step 7
+        // 7. Let direction be ? GetDirectionOption(directionParam).
+        let direction =
+            get_option::<TransitionDirection>(&options_obj, js_string!("direction"), context)?
+                .ok_or_else(|| {
+                    JsNativeError::range().with_message("direction option is required.")
+                })?;
+
+        // Step 8-12
+        let result = zdt
+            .inner
+            .get_time_zone_transition_with_provider(direction, context.tz_provider())?;
+
+        match result {
+            Some(zdt) => create_temporal_zoneddatetime(zdt, None, context).map(Into::into),
+            None => Ok(JsValue::null()),
+        }
+    }
+
     /// 6.3.47 `Temporal.ZonedDateTime.prototype.toInstant ( )`
     fn to_instant(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let zdt = this
@@ -963,7 +1305,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        create_temporal_instant(zdt.inner.to_instant(), None, context).map(Into::into)
+        create_temporal_instant(zdt.inner.to_instant(), None, context)
     }
 
     /// 6.3.48 `Temporal.ZonedDateTime.prototype.toPlainDate ( )`
@@ -1133,6 +1475,8 @@ pub(crate) fn to_temporal_zoneddatetime(
                 get_option::<OffsetDisambiguation>(&options, js_string!("offset"), context)?
                     .unwrap_or(OffsetDisambiguation::Reject);
             // p. Perform ? GetTemporalOverflowOption(resolvedOptions).
+            let _overflow =
+                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
             // q. Let isoDate be CreateISODateRecord(result.[[Year]], result.[[Month]], result.[[Day]]).
             // r. Let time be result.[[Time]].
             // 6. Let offsetNanoseconds be 0.
@@ -1182,13 +1526,20 @@ pub(crate) fn to_temporal_timezone_identifier(
     // 7. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(name).
     // 8. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
     // 9. Return timeZoneIdentifierRecord.[[Identifier]].
-    Ok(TimeZone::try_from_str_with_provider(
-        &tz_string.to_std_string_escaped(),
-        context.tz_provider(),
-    )?)
+    let timezone = TimeZone::try_from_str(&tz_string.to_std_string_escaped())?;
+    if matches!(timezone, TimeZone::IanaIdentifier(_))
+        && !context
+            .tz_provider()
+            .check_identifier(&timezone.identifier()?)
+    {
+        return Err(JsNativeError::range()
+            .with_message("TimeZone string is not a supported IANA identifier.")
+            .into());
+    }
+    Ok(timezone)
 }
 
-fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
+fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<UtcOffset> {
     // 1. Let offset be ? ToPrimitive(argument, string).
     let offset = value.to_primitive(context, PreferredType::String)?;
     // 2. If offset is not a String, throw a TypeError exception.
@@ -1198,30 +1549,161 @@ fn to_offset_string(value: &JsValue, context: &mut Context) -> JsResult<String> 
             .into());
     };
     // 3. Perform ? ParseDateTimeUTCOffset(offset).
-    let result = offset_string.to_std_string_escaped();
-    let _u = TimeZone::try_from_str_with_provider(&result, context.tz_provider())?;
+    let result = UtcOffset::from_str(&offset_string.to_std_string_escaped())?;
     // 4. Return offset.
     Ok(result)
 }
 
 pub(crate) fn to_partial_zoneddatetime(
-    object: &JsObject,
+    partial_object: &JsObject,
     context: &mut Context,
 ) -> JsResult<PartialZonedDateTime> {
+    // NOTE (nekevss): Why do we have to list out all of the get operations? Well, order of operations Watson!
     // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
     // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », « time-zone »).
-    let date = to_partial_date_record(object, context)?;
-    let time = to_partial_time_record(object, context)?;
-    // d. Let timeZone be fields.[[TimeZone]].
-    let timezone = object
-        .get(js_string!("timeZone"), context)?
-        .map(|v| to_temporal_timezone_identifier(v, context))
+    let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    let day = partial_object
+        .get(js_string!("day"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
         .transpose()?;
-    // e. Let offsetString be fields.[[OffsetString]].
-    let offset = object
+    let hour = partial_object
+        .get(js_string!("hour"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
+    // TODO: `temporal_rs` needs a `has_era` method
+    let (era, era_year) = if calendar == Calendar::default() {
+        (None, None)
+    } else {
+        let era = partial_object
+            .get(js_string!("era"), context)?
+            .map(|v| {
+                let v = v.to_primitive(context, PreferredType::String)?;
+                let Some(era) = v.as_string() else {
+                    return Err(JsError::from(
+                        JsNativeError::typ()
+                            .with_message("The monthCode field value must be a string."),
+                    ));
+                };
+                // TODO: double check if an invalid monthCode is a range or type error.
+                TinyAsciiStr::<19>::try_from_str(&era.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
+            })
+            .transpose()?;
+        let era_year = partial_object
+            .get(js_string!("eraYear"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+        (era, era_year)
+    };
+    let microsecond = partial_object
+        .get(js_string!("microsecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?;
+
+    let millisecond = partial_object
+        .get(js_string!("millisecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?;
+
+    let minute = partial_object
+        .get(js_string!("minute"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
+
+    let month = partial_object
+        .get(js_string!("month"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            finite
+                .as_positive_integer_with_truncation()
+                .map_err(JsError::from)
+        })
+        .transpose()?;
+
+    let month_code = partial_object
+        .get(js_string!("monthCode"), context)?
+        .map(|v| {
+            let v = v.to_primitive(context, PreferredType::String)?;
+            let Some(month_code) = v.as_string() else {
+                return Err(JsNativeError::typ()
+                    .with_message("The monthCode field value must be a string.")
+                    .into());
+            };
+            MonthCode::from_str(&month_code.to_std_string_escaped()).map_err(JsError::from)
+        })
+        .transpose()?;
+
+    let nanosecond = partial_object
+        .get(js_string!("nanosecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?;
+
+    let offset = partial_object
         .get(js_string!("offset"), context)?
         .map(|v| to_offset_string(v, context))
         .transpose()?;
+
+    let second = partial_object
+        .get(js_string!("second"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
+
+    let timezone = partial_object
+        .get(js_string!("timeZone"), context)?
+        .map(|v| to_temporal_timezone_identifier(v, context))
+        .transpose()?;
+
+    let year = partial_object
+        .get(js_string!("year"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+        })
+        .transpose()?;
+
+    let date = PartialDate::new()
+        .with_year(year)
+        .with_month(month)
+        .with_month_code(month_code)
+        .with_day(day)
+        .with_era(era)
+        .with_era_year(era_year)
+        .with_calendar(calendar);
+
+    let time = PartialTime::new()
+        .with_hour(hour)
+        .with_minute(minute)
+        .with_second(second)
+        .with_millisecond(millisecond)
+        .with_microsecond(microsecond)
+        .with_nanosecond(nanosecond);
+
     Ok(PartialZonedDateTime {
         date,
         time,

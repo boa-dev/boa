@@ -48,6 +48,7 @@ where
     let mut visitor = BindingCollectorVisitor {
         strict,
         eval,
+        in_arrow: false,
         scope: scope.clone(),
         interner,
     };
@@ -434,19 +435,14 @@ impl<'ast> VisitorMut<'ast> for BindingEscapeAnalyzer<'_> {
             ),
             ClassElement::FieldDefinition(field) | ClassElement::StaticFieldDefinition(field) => {
                 self.visit_property_name_mut(&mut field.name)?;
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
-                if let Some(e) = &mut field.field {
-                    self.visit_expression_mut(e)?;
-                }
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 ControlFlow::Continue(())
@@ -547,6 +543,14 @@ impl BindingEscapeAnalyzer<'_> {
         std::mem::swap(&mut self.scope, &mut scope);
         self.visit_function_body_mut(body)?;
         std::mem::swap(&mut self.scope, &mut scope);
+        if scopes.arguments_object_accessed() && scopes.mapped_arguments_object {
+            let parameter_names = bound_names(parameters);
+            for name in parameter_names {
+                scopes
+                    .parameter_scope()
+                    .access_binding(&name.to_js_string(self.interner), true);
+            }
+        }
         scopes.reorder_binding_indices();
         self.direct_eval = direct_eval_old;
         ControlFlow::Continue(())
@@ -557,11 +561,23 @@ struct BindingCollectorVisitor<'interner> {
     strict: bool,
     eval: bool,
     scope: Scope,
+    in_arrow: bool,
     interner: &'interner Interner,
 }
 
 impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
     type BreakTy = &'static str;
+
+    fn visit_this_mut(
+        &mut self,
+        _node: &'ast mut crate::expression::This,
+    ) -> ControlFlow<Self::BreakTy> {
+        // NOTE: Arrow functions inherit 'this' from their enclosing scope, so we must escape it.
+        if self.in_arrow {
+            self.scope.escape_this_in_enclosing_function_scope();
+        }
+        ControlFlow::Continue(())
+    }
 
     fn visit_function_declaration_mut(
         &mut self,
@@ -816,27 +832,22 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
                 self.visit_property_name_mut(&mut field.name)?;
                 let mut scope = Scope::new(self.scope.clone(), true);
                 std::mem::swap(&mut self.scope, &mut scope);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 std::mem::swap(&mut self.scope, &mut scope);
                 field.scope = scope;
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
                 let mut scope = Scope::new(self.scope.clone(), true);
                 std::mem::swap(&mut self.scope, &mut scope);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 std::mem::swap(&mut self.scope, &mut scope);
                 field.scope = scope;
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
-                    self.visit_expression_mut(e)?;
-                }
                 ControlFlow::Continue(())
             }
             ClassElement::StaticBlock(node) => {
@@ -972,7 +983,7 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         if let Some(expr) = &mut node.inner.final_expr {
             self.visit_expression_mut(expr)?;
         }
-        self.visit_statement_mut(&mut node.inner.body);
+        self.visit_statement_mut(&mut node.inner.body)?;
         if let Some(mut scope) = scope {
             std::mem::swap(&mut self.scope, &mut scope);
         }
@@ -1151,6 +1162,8 @@ impl BindingCollectorVisitor<'_> {
         arrow: bool,
     ) -> ControlFlow<&'static str> {
         let strict = self.strict || strict;
+        let old_in_arrow = self.in_arrow;
+        self.in_arrow = arrow;
 
         let function_scope = if let Some(name) = name {
             let scope = Scope::new(self.scope.clone(), false);
@@ -1184,6 +1197,8 @@ impl BindingCollectorVisitor<'_> {
 
         *scopes = function_scopes;
 
+        self.in_arrow = old_in_arrow;
+
         ControlFlow::Continue(())
     }
 }
@@ -1196,7 +1211,7 @@ where
     let mut visitor = ScopeIndexVisitor {
         index: scope.scope_index(),
     };
-    visitor.visit(node.into());
+    let _ = visitor.visit(node.into());
 }
 
 struct ScopeIndexVisitor {
@@ -1423,26 +1438,21 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
                 let index = self.index;
                 self.index += 1;
                 field.scope.set_index(self.index);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 self.index = index;
                 ControlFlow::Continue(())
             }
-            ClassElement::PrivateFieldDefinition(field) => {
+            ClassElement::PrivateFieldDefinition(field)
+            | ClassElement::PrivateStaticFieldDefinition(field) => {
                 let index = self.index;
                 self.index += 1;
                 field.scope.set_index(self.index);
-                if let Some(e) = &mut field.field {
+                if let Some(e) = &mut field.initializer {
                     self.visit_expression_mut(e)?;
                 }
                 self.index = index;
-                ControlFlow::Continue(())
-            }
-            ClassElement::PrivateStaticFieldDefinition(_, e) => {
-                if let Some(e) = e {
-                    self.visit_expression_mut(e)?;
-                }
                 ControlFlow::Continue(())
             }
             ClassElement::StaticBlock(node) => {
@@ -1550,7 +1560,7 @@ impl<'ast> VisitorMut<'ast> for ScopeIndexVisitor {
         if let Some(expr) = &mut node.inner.final_expr {
             self.visit_expression_mut(expr)?;
         }
-        self.visit_statement_mut(&mut node.inner.body);
+        self.visit_statement_mut(&mut node.inner.body)?;
         self.index = index;
         ControlFlow::Continue(())
     }
@@ -1623,9 +1633,20 @@ impl ScopeIndexVisitor {
             }
             scope.set_index(self.index);
         }
-        if !(arrow && scopes.function_scope.all_bindings_local() && !contains_direct_eval) {
+
+        if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
+            scopes.requires_function_scope = true;
             self.index += 1;
+        } else if !arrow {
+            assert!(scopes.function_scope().is_function());
+            scopes.requires_function_scope = scopes.function_scope().escaped_this()
+                || contains(parameters, ContainsSymbol::Super)
+                || contains(body, ContainsSymbol::Super)
+                || contains(parameters, ContainsSymbol::NewTarget)
+                || contains(body, ContainsSymbol::NewTarget);
+            self.index += u32::from(scopes.requires_function_scope);
         }
+
         scopes.function_scope.set_index(self.index);
         if let Some(scope) = &scopes.parameters_eval_scope {
             if !scope.all_bindings_local() {
@@ -1706,9 +1727,9 @@ fn global_declaration_instantiation(
         //     ii. Else,
         //         1. Perform ? env.CreateMutableBinding(dn, false).
         if let StatementListItem::Declaration(declaration) = statement {
-            match declaration {
+            match declaration.as_ref() {
                 Declaration::ClassDeclaration(class) => {
-                    for name in bound_names(class) {
+                    for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
                         drop(env.create_mutable_binding(name, false));
                     }
@@ -1812,6 +1833,8 @@ fn function_declaration_instantiation(
         parameters_eval_scope: None,
         parameters_scope: None,
         lexical_scope: None,
+        mapped_arguments_object: false,
+        requires_function_scope: false,
     };
 
     // 1. Let calleeContext be the running execution context.
@@ -1857,9 +1880,9 @@ fn function_declaration_instantiation(
         };
 
         // a.iii. If functionNames does not contain fn, then
-        if !function_names.contains(&name) {
+        if !function_names.contains(&name.sym()) {
             // 1. Insert fn as the first element of functionNames.
-            function_names.push(name);
+            function_names.push(name.sym());
         }
     }
 
@@ -1868,7 +1891,7 @@ fn function_declaration_instantiation(
     // 15. Let argumentsObjectNeeded be true.
     let mut arguments_object_needed = true;
 
-    let arguments = Sym::ARGUMENTS.into();
+    let arguments = Sym::ARGUMENTS;
 
     // 16. If func.[[ThisMode]] is lexical, then
     // 17. Else if parameterNames contains "arguments", then
@@ -1947,7 +1970,7 @@ fn function_declaration_instantiation(
             // Because we do not track (yet) if the mapped arguments object escapes the function,
             // we have to assume that the binding might escape trough the arguments object.
             if arguments_object_needed && !strict && formals.is_simple() {
-                env.access_binding(&param_name, true);
+                scopes.mapped_arguments_object = true;
             }
 
             // Note: These steps are not necessary in our implementation.
@@ -2084,9 +2107,9 @@ fn function_declaration_instantiation(
     //             1. Perform ! lexEnv.CreateMutableBinding(dn, false).
     for statement in body.statements() {
         if let StatementListItem::Declaration(declaration) = statement {
-            match declaration {
+            match declaration.as_ref() {
                 Declaration::ClassDeclaration(class) => {
-                    for name in bound_names(class) {
+                    for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
                         drop(lex_env.create_mutable_binding(name, false));
                     }
@@ -2165,30 +2188,26 @@ fn module_instantiation(module: &Module, env: &Scope, interner: &Interner) {
                     let name = name.to_js_string(interner);
                     drop(env.create_mutable_binding(name, false));
                 }
-                continue;
             }
             LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Const(c)) => {
                 for name in bound_names(c) {
                     let name = name.to_js_string(interner);
                     env.create_immutable_binding(name, true);
                 }
-                continue;
             }
             LexicallyScopedDeclaration::LexicalDeclaration(LexicalDeclaration::Let(l)) => {
                 for name in bound_names(l) {
                     let name = name.to_js_string(interner);
                     drop(env.create_mutable_binding(name, false));
                 }
-                continue;
             }
             LexicallyScopedDeclaration::AssignmentExpression(expr) => {
                 for name in bound_names(expr) {
                     let name = name.to_js_string(interner);
                     drop(env.create_mutable_binding(name, false));
                 }
-                continue;
             }
-        };
+        }
     }
 }
 
@@ -2222,7 +2241,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
     strict: bool,
     var_env: &Scope,
     lex_env: &Scope,
-    #[allow(unused_variables)] annex_b_function_names: &[Identifier],
+    #[allow(unused_variables)] annex_b_function_names: &[Sym],
     interner: &Interner,
 ) -> Result<EvalDeclarationBindings, String> {
     let mut result = EvalDeclarationBindings::default();
@@ -2263,7 +2282,7 @@ pub(crate) fn eval_declaration_instantiation_scope(
             //    declaration so it doesn't need to be checked for var/let hoisting conflicts.
             // 2. For each element name of varNames, do
             for name in &var_names {
-                let name = interner.resolve_expect(name.sym()).utf16().into();
+                let name = interner.resolve_expect(*name).utf16().into();
 
                 // a. If ! thisEnv.HasBinding(name) is true, then
                 if this_env.has_binding(&name) {
@@ -2315,10 +2334,10 @@ pub(crate) fn eval_declaration_instantiation_scope(
             VarScopedDeclaration::VariableDeclaration(_) => continue,
         };
         // a.iv. If declaredFunctionNames does not contain fn, then
-        if !declared_function_names.contains(&name) {
+        if !declared_function_names.contains(&name.sym()) {
             // 1. If varEnv is a Global Environment Record, then
             // 2. Append fn to declaredFunctionNames.
-            declared_function_names.push(name);
+            declared_function_names.push(name.sym());
 
             // 3. Insert d as the first element of functionsToInitialize.
             functions_to_initialize.push(declaration.clone());
@@ -2391,9 +2410,9 @@ pub(crate) fn eval_declaration_instantiation_scope(
         //     ii. Else,
         //         1. Perform ? lexEnv.CreateMutableBinding(dn, false).
         if let StatementListItem::Declaration(declaration) = statement {
-            match declaration {
+            match declaration.as_ref() {
                 Declaration::ClassDeclaration(class) => {
-                    for name in bound_names(class) {
+                    for name in bound_names(class.as_ref()) {
                         let name = name.to_js_string(interner);
                         drop(lex_env.create_mutable_binding(name, false));
                     }

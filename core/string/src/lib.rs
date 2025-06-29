@@ -10,10 +10,6 @@
     clippy::undocumented_unsafe_blocks,
     clippy::missing_safety_doc
 )]
-// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.
-// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses
-// the same names from the unstable functions of the `std::ptr` module.
-#![allow(unstable_name_collisions)]
 #![allow(clippy::module_name_repetitions)]
 
 mod builder;
@@ -21,14 +17,12 @@ mod common;
 mod display;
 mod iter;
 mod str;
-mod tagged;
 
 #[cfg(test)]
 mod tests;
 
 use self::{iter::Windows, str::JsSliceIndex};
 use crate::display::{JsStrDisplayEscaped, JsStrDisplayLossy};
-use crate::tagged::{Tagged, UnwrappedTagged};
 #[doc(inline)]
 pub use crate::{
     builder::{CommonJsStringBuilder, Latin1JsStringBuilder, Utf16JsStringBuilder},
@@ -36,6 +30,7 @@ pub use crate::{
     iter::Iter,
     str::{JsStr, JsStrVariant},
 };
+use std::borrow::Cow;
 use std::fmt::Write;
 use std::{
     alloc::{alloc, dealloc, Layout},
@@ -44,9 +39,10 @@ use std::{
     hash::{Hash, Hasher},
     mem::ManuallyDrop,
     process::abort,
-    ptr::{self, addr_of, addr_of_mut, NonNull},
+    ptr::{self, NonNull},
     str::FromStr,
 };
+use tag_ptr::{Tagged, UnwrappedTagged};
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
@@ -535,6 +531,7 @@ impl JsString {
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
     #[inline]
     #[must_use]
+    #[allow(clippy::cast_ptr_alignment)]
     pub fn as_str(&self) -> JsStr<'_> {
         match self.ptr.unwrap() {
             UnwrappedTagged::Ptr(h) => {
@@ -555,26 +552,20 @@ impl JsString {
                 //   which means it is safe to read the `refcount` as `read_only` here.
                 unsafe {
                     let h = h.as_ptr();
-                    if (*h).refcount.read_only == 0 {
+                    let tagged_len = (*h).tagged_len;
+                    let len = tagged_len.len();
+                    let is_latin1 = tagged_len.is_latin1();
+                    let ptr = if (*h).refcount.read_only == 0 {
                         let h = h.cast::<StaticJsString>();
-                        return if (*h).tagged_len.is_latin1() {
-                            JsStr::latin1(std::slice::from_raw_parts(
-                                (*h).ptr,
-                                (*h).tagged_len.len(),
-                            ))
-                        } else {
-                            JsStr::utf16(std::slice::from_raw_parts(
-                                (*h).ptr.cast(),
-                                (*h).tagged_len.len(),
-                            ))
-                        };
-                    }
-
-                    let len = (*h).len();
-                    if (*h).is_latin1() {
-                        JsStr::latin1(std::slice::from_raw_parts(addr_of!((*h).data).cast(), len))
+                        (*h).ptr
                     } else {
-                        JsStr::utf16(std::slice::from_raw_parts(addr_of!((*h).data).cast(), len))
+                        (&raw const (*h).data).cast::<u8>()
+                    };
+
+                    if is_latin1 {
+                        JsStr::latin1(std::slice::from_raw_parts(ptr, len))
+                    } else {
+                        JsStr::utf16(std::slice::from_raw_parts(ptr.cast::<u16>(), len))
                     }
                 }
             }
@@ -614,7 +605,7 @@ impl JsString {
 
         let string = {
             // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-            let mut data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast::<u8>() };
+            let mut data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
             for &string in strings {
                 // SAFETY:
                 // The sum of all `count` for each `string` equals `full_count`, and since we're
@@ -749,7 +740,7 @@ impl JsString {
         let ptr = Self::allocate_inner(count, string.is_latin1());
 
         // SAFETY: `allocate_inner` guarantees that `ptr` is a valid pointer.
-        let data = unsafe { addr_of_mut!((*ptr.as_ptr()).data).cast::<u8>() };
+        let data = unsafe { (&raw mut (*ptr.as_ptr()).data).cast::<u8>() };
 
         // SAFETY:
         // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
@@ -973,19 +964,24 @@ impl From<JsStr<'_>> for JsString {
 impl From<&[JsString]> for JsString {
     #[inline]
     fn from(value: &[JsString]) -> Self {
-        Self::concat_array(
-            &value
-                .iter()
-                .map(Self::as_str)
-                .map(Into::into)
-                .collect::<Vec<_>>()[..],
-        )
+        Self::concat_array(&value.iter().map(Self::as_str).collect::<Vec<_>>()[..])
     }
 }
+
 impl From<String> for JsString {
     #[inline]
     fn from(s: String) -> Self {
         Self::from(s.as_str())
+    }
+}
+
+impl<'a> From<Cow<'a, str>> for JsString {
+    #[inline]
+    fn from(s: Cow<'a, str>) -> Self {
+        match s {
+            Cow::Borrowed(s) => s.into(),
+            Cow::Owned(s) => s.into(),
+        }
     }
 }
 

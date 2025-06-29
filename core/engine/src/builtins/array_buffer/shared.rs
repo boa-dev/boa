@@ -1,15 +1,11 @@
-#![allow(unstable_name_collisions)]
-
 use std::{
     alloc,
     sync::{atomic::Ordering, Arc},
 };
 
-use boa_profiler::Profiler;
 use portable_atomic::{AtomicU8, AtomicUsize};
 
 use boa_gc::{Finalize, Trace};
-use sptr::Strict;
 
 use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
@@ -89,8 +85,6 @@ impl SharedArrayBuffer {
 
 impl IntrinsicObject for SharedArrayBuffer {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)

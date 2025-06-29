@@ -1,11 +1,10 @@
 //! Boa's lexing for ECMAScript regex literals.
 
-use crate::lexer::{Cursor, Error, Span, Token, TokenKind, Tokenizer};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
 use crate::source::ReadChar;
 use bitflags::bitflags;
-use boa_ast::Position;
+use boa_ast::{Position, PositionGroup};
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 use regress::{Flags, Regex};
 use std::fmt::{Display, Write};
 use std::str::{self, FromStr};
@@ -40,14 +39,12 @@ impl<R> Tokenizer<R> for RegexLiteral {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("RegexLiteral", "Lexing");
-
         let mut body = Vec::new();
         if self.init_with_eq {
             body.push(u32::from(b'='));
@@ -143,18 +140,19 @@ impl<R> Tokenizer<R> for RegexLiteral {
         }
 
         if let Err(error) = Regex::from_unicode(body.into_iter(), flags_str) {
-            return Err(Error::Syntax(
-                format!("Invalid regular expression literal: {error}").into(),
+            return Err(Error::syntax(
+                format!("Invalid regular expression literal: {error}"),
                 start_pos,
             ));
         }
 
-        Ok(Token::new(
+        Ok(Token::new_by_position_group(
             TokenKind::regular_expression_literal(
                 interner.get_or_intern(body_utf16.as_slice()),
                 parse_regex_flags(flags_str, flags_start, interner)?,
             ),
-            Span::new(start_pos, cursor.pos()),
+            start_pos,
+            cursor.pos_group(),
         ))
     }
 }

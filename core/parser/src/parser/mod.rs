@@ -20,7 +20,6 @@ use crate::{
     Error, Source,
 };
 use boa_ast::{
-    expression::Identifier,
     function::{FormalParameterList, FunctionBody},
     operations::{
         all_private_identifiers_valid, check_labels, contains, contains_invalid_object_literal,
@@ -29,11 +28,14 @@ use boa_ast::{
     scope::Scope,
     Position, StatementList,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
 use std::path::Path;
 
 use self::statement::ModuleItemList;
+
+type ScriptParseOutput = (boa_ast::Script, boa_ast::SourceText);
+type ModuleParseOutput = (boa_ast::Module, boa_ast::SourceText);
 
 /// Trait implemented by parsers.
 ///
@@ -132,7 +134,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         }
     }
 
-    /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
+    /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation without source text.
     /// The resulting `Script` can be compiled into boa bytecode and executed in the boa vm.
     ///
     /// # Errors
@@ -145,18 +147,34 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         scope: &Scope,
         interner: &mut Interner,
     ) -> ParseResult<boa_ast::Script> {
+        self.parse_script_with_source(scope, interner).map(|x| x.0)
+    }
+
+    /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation with source text.
+    /// The resulting `Script` can be compiled into boa bytecode and executed in the boa vm.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Script
+    pub fn parse_script_with_source(
+        &mut self,
+        scope: &Scope,
+        interner: &mut Interner,
+    ) -> ParseResult<ScriptParseOutput> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
-        let mut ast = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
+        let (mut ast, source) = ScriptParser::new(false).parse(&mut self.cursor, interner)?;
         if !ast.analyze_scope(scope, interner) {
             return Err(Error::general(
                 "invalid scope analysis",
                 Position::new(1, 1),
             ));
         }
-        Ok(ast)
+        Ok((ast, source))
     }
 
-    /// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation.
+    /// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation without source text.
     /// The resulting `ModuleItemList` can be compiled into boa bytecode and executed in the boa vm.
     ///
     /// # Errors
@@ -172,15 +190,34 @@ impl<'a, R: ReadChar> Parser<'a, R> {
     where
         R: ReadChar,
     {
+        self.parse_module_with_source(scope, interner).map(|x| x.0)
+    }
+
+    /// Parse the full input as an [ECMAScript Module][spec] into the boa AST representation with source text.
+    /// The resulting `ModuleItemList` can be compiled into boa bytecode and executed in the boa vm.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` on any parsing error, including invalid reads of the bytes being parsed.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Module
+    pub fn parse_module_with_source(
+        &mut self,
+        scope: &Scope,
+        interner: &mut Interner,
+    ) -> ParseResult<ModuleParseOutput>
+    where
+        R: ReadChar,
+    {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
-        let mut module = ModuleParser.parse(&mut self.cursor, interner)?;
+        let (mut module, source) = ModuleParser.parse(&mut self.cursor, interner)?;
         if !module.analyze_scope(scope, interner) {
             return Err(Error::general(
                 "invalid scope analysis",
                 Position::new(1, 1),
             ));
         }
-        Ok(module)
+        Ok((module, source))
     }
 
     /// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]
@@ -196,7 +233,7 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         &mut self,
         direct: bool,
         interner: &mut Interner,
-    ) -> ParseResult<boa_ast::Script> {
+    ) -> ParseResult<ScriptParseOutput> {
         self.cursor.set_goal(InputElement::HashbangOrRegExp);
         ScriptParser::new(direct).parse(&mut self.cursor, interner)
     }
@@ -214,7 +251,9 @@ impl<'a, R: ReadChar> Parser<'a, R> {
         allow_yield: bool,
         allow_await: bool,
     ) -> ParseResult<FunctionBody> {
-        FunctionStatementList::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
+        let mut parser = FunctionStatementList::new(allow_yield, allow_await, "function body");
+        parser.parse_full_input(true);
+        parser.parse(&mut self.cursor, interner)
     }
 
     /// Parses the full input as an [ECMAScript `FormalParameterList`][spec] into the boa AST representation.
@@ -283,12 +322,12 @@ impl<R> TokenParser<R> for ScriptParser
 where
     R: ReadChar,
 {
-    type Output = boa_ast::Script;
+    type Output = ScriptParseOutput;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let script = boa_ast::Script::new(
-            ScriptBody::new(true, cursor.strict(), self.direct_eval).parse(cursor, interner)?,
-        );
+        let stmts =
+            ScriptBody::new(true, cursor.strict(), self.direct_eval).parse(cursor, interner)?;
+        let script = boa_ast::Script::new(stmts);
 
         // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
         let mut lexical_names = FxHashSet::default();
@@ -311,7 +350,8 @@ where
             }
         }
 
-        Ok(script)
+        let source = cursor.take_source();
+        Ok((script, source))
     }
 }
 
@@ -347,7 +387,7 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let body = statement::StatementList::new(
+        let (body, _end) = statement::StatementList::new(
             false,
             false,
             false,
@@ -416,7 +456,7 @@ impl<R> TokenParser<R> for ModuleParser
 where
     R: ReadChar,
 {
-    type Output = boa_ast::Module;
+    type Output = ModuleParseOutput;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.set_module();
@@ -430,7 +470,7 @@ where
                 return Err(Error::general(
                     format!(
                         "lexical name `{}` declared multiple times",
-                        interner.resolve_expect(name.sym())
+                        interner.resolve_expect(name)
                     ),
                     Position::new(1, 1),
                 ));
@@ -444,7 +484,7 @@ where
                 return Err(Error::general(
                     format!(
                         "lexical name `{}` declared multiple times",
-                        interner.resolve_expect(name.sym())
+                        interner.resolve_expect(name)
                     ),
                     Position::new(1, 1),
                 ));
@@ -474,7 +514,7 @@ where
                 return Err(Error::general(
                     format!(
                         "could not find the exported binding `{}` in the declared names of the module",
-                        interner.resolve_expect(name.sym())
+                        interner.resolve_expect(name)
                     ),
                     Position::new(1, 1),
                 ));
@@ -515,14 +555,15 @@ where
             ));
         }
 
-        Ok(module)
+        let source = cursor.take_source();
+        Ok((module, source))
     }
 }
 
 /// Helper to check if any parameter names are declared in the given list.
 fn name_in_lexically_declared_names(
-    bound_names: &[Identifier],
-    lexical_names: &[Identifier],
+    bound_names: &[Sym],
+    lexical_names: &[Sym],
     position: Position,
     interner: &Interner,
 ) -> ParseResult<()> {
@@ -531,7 +572,7 @@ fn name_in_lexically_declared_names(
             return Err(Error::general(
                 format!(
                     "formal parameter `{}` declared in lexically declared names",
-                    interner.resolve_expect(name.sym())
+                    interner.resolve_expect(*name)
                 ),
                 position,
             ));

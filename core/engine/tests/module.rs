@@ -41,7 +41,7 @@ fn test_json_module_from_str() {
 
     let module = Module::parse(source, None, &mut context).unwrap();
     let promise = module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     match promise.state() {
         PromiseState::Pending => {}
@@ -59,7 +59,7 @@ fn test_json_module_from_str() {
         .unwrap();
 
     assert_eq!(
-        JsString::from(json.to_json(&mut context).unwrap().to_string()),
+        JsString::from(json.to_json(&mut context).unwrap().unwrap().to_string()),
         json_string
     );
 }

@@ -32,11 +32,10 @@ use crate::{
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{CallFrame, CallFrameFlags},
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -49,8 +48,6 @@ pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
@@ -112,9 +109,13 @@ impl Json {
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
         let mut parser = Parser::new(Source::from_bytes(&script_string));
         parser.set_json_parse();
+        // In json we don't need the source: there no way to pass an object that needs a source text
+        // But if it's incorrect, just call `parser.parse_script_with_source` here
         let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
             let in_with = context.vm.environments.has_object_environment();
+            // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
+            let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
                 js_string!("<main>"),
                 script.strict(),
@@ -125,6 +126,7 @@ impl Json {
                 false,
                 context.interner_mut(),
                 in_with,
+                spanned_source_text,
             );
             compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())

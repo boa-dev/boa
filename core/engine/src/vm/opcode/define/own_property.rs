@@ -1,7 +1,7 @@
 use crate::{
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType},
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsNativeError, JsResult,
 };
 
@@ -13,26 +13,30 @@ use crate::{
 pub(crate) struct DefineOwnPropertyByName;
 
 impl DefineOwnPropertyByName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let object = context.vm.pop();
-        let object = if let Some(object) = object.as_object() {
-            object.clone()
-        } else {
-            object.to_object(context)?
-        };
-        let name = context.vm.frame().code_block().constant_string(index);
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
+        let object = object.to_object(context)?;
         object.__define_own_property__(
             &name.into(),
             PropertyDescriptor::builder()
-                .value(value)
+                .value(value.clone())
                 .writable(true)
                 .enumerable(true)
                 .configurable(true)
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -40,21 +44,6 @@ impl Operation for DefineOwnPropertyByName {
     const NAME: &'static str = "DefineOwnPropertyByName";
     const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByName";
     const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `DefineOwnPropertyByValue` implements the Opcode Operation for `Opcode::DefineOwnPropertyByValue`
@@ -64,25 +53,21 @@ impl Operation for DefineOwnPropertyByName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineOwnPropertyByValue;
 
-impl Operation for DefineOwnPropertyByValue {
-    const NAME: &'static str = "DefineOwnPropertyByValue";
-    const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByValue";
-    const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let key = context.vm.pop();
-        let object = context.vm.pop();
-        let object = if let Some(object) = object.as_object() {
-            object.clone()
-        } else {
-            object.to_object(context)?
-        };
+impl DefineOwnPropertyByValue {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
+        let object = object.to_object(context)?;
         let key = key.to_property_key(context)?;
         let success = object.__define_own_property__(
             &key,
             PropertyDescriptor::builder()
-                .value(value)
+                .value(value.clone())
                 .writable(true)
                 .enumerable(true)
                 .configurable(true)
@@ -94,6 +79,12 @@ impl Operation for DefineOwnPropertyByValue {
                 .with_message("failed to defined own property")
                 .into());
         }
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for DefineOwnPropertyByValue {
+    const NAME: &'static str = "DefineOwnPropertyByValue";
+    const INSTRUCTION: &'static str = "INST - DefineOwnPropertyByValue";
+    const COST: u8 = 4;
 }

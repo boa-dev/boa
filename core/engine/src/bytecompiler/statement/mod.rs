@@ -1,8 +1,6 @@
-use crate::{bytecompiler::ByteCompiler, vm::Opcode};
-
-use boa_ast::Statement;
-
 use super::jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind};
+use crate::bytecompiler::ByteCompiler;
+use boa_ast::Statement;
 
 mod block;
 mod r#break;
@@ -43,44 +41,61 @@ impl ByteCompiler<'_> {
             }
             Statement::Continue(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::SetReturnValue);
+                    let value = self.register_allocator.alloc();
+                    self.bytecode.emit_push_undefined(value.variable());
+                    self.bytecode.emit_set_accumulator(value.variable());
+                    self.register_allocator.dealloc(value);
                 }
                 self.compile_continue(*node, use_expr);
             }
             Statement::Break(node) => {
                 if root_statement && (use_expr || self.jump_control_info_has_use_expr()) {
-                    self.emit_opcode(Opcode::PushUndefined);
-                    self.emit_opcode(Opcode::SetReturnValue);
+                    let value = self.register_allocator.alloc();
+                    self.bytecode.emit_push_undefined(value.variable());
+                    self.bytecode.emit_set_accumulator(value.variable());
+                    self.register_allocator.dealloc(value);
                 }
                 self.compile_break(*node, use_expr);
             }
             Statement::Throw(throw) => {
-                self.compile_expr(throw.target(), true);
-                self.emit(Opcode::Throw, &[]);
+                let error = self.register_allocator.alloc();
+                self.compile_expr(throw.target(), &error);
+                self.bytecode.emit_throw(error.variable());
+                self.register_allocator.dealloc(error);
             }
             Statement::Switch(switch) => {
                 self.compile_switch(switch, use_expr);
             }
             Statement::Return(ret) => {
+                let value = self.register_allocator.alloc();
                 if let Some(expr) = ret.target() {
-                    self.compile_expr(expr, true);
+                    self.compile_expr(expr, &value);
+
                     if self.is_async_generator() {
-                        self.emit_opcode(Opcode::Await);
-                        self.emit_opcode(Opcode::GeneratorNext);
+                        self.bytecode.emit_await(value.variable());
+                        let resume_kind = self.register_allocator.alloc();
+                        self.pop_into_register(&resume_kind);
+                        self.pop_into_register(&value);
+                        self.bytecode
+                            .emit_generator_next(resume_kind.variable(), value.variable());
+                        self.register_allocator.dealloc(resume_kind);
                     }
                 } else {
-                    self.emit_opcode(Opcode::PushUndefined);
+                    self.bytecode.emit_push_undefined(value.variable());
                 }
 
+                self.push_from_register(&value);
+                self.register_allocator.dealloc(value);
                 self.r#return(true);
             }
             Statement::Try(t) => self.compile_try(t, use_expr),
             Statement::Expression(expr) => {
-                self.compile_expr(expr, use_expr);
+                let value = self.register_allocator.alloc();
+                self.compile_expr(expr, &value);
                 if use_expr {
-                    self.emit_opcode(Opcode::SetReturnValue);
+                    self.bytecode.emit_set_accumulator(value.variable());
                 }
+                self.register_allocator.dealloc(value);
             }
             Statement::With(with) => self.compile_with(with, use_expr),
             Statement::Empty => {}
@@ -105,11 +120,14 @@ impl ByteCompiler<'_> {
             let count = self.jump_info_open_environment_count(i);
             actions.push(JumpRecordAction::PopEnvironments { count });
 
-            if info.is_try_with_finally_block() && !info.in_finally() {
-                actions.push(JumpRecordAction::HandleFinally {
-                    index: info.jumps.len() as u32,
-                });
-                actions.push(JumpRecordAction::Transfer { index: i as u32 });
+            if !info.in_finally() {
+                if let Some(finally_throw) = info.finally_throw {
+                    actions.push(JumpRecordAction::HandleFinally {
+                        index: info.jumps.len() as u32,
+                        finally_throw,
+                    });
+                    actions.push(JumpRecordAction::Transfer { index: i as u32 });
+                }
             }
 
             if info.iterator_loop() {
