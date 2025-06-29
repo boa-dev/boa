@@ -603,7 +603,8 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
         }
         true
     } else {
-        let passed = error
+        
+        error
             .as_opaque()
             .expect("try_native cannot fail if e is not opaque")
             .as_object()
@@ -613,8 +614,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
             .and_then(|o| o.get(js_str!("name"), context).ok())
             .as_ref()
             .and_then(JsValue::as_string)
-            .is_some_and(|s| s == target_type.as_str());
-        passed
+            .is_some_and(|s| s == target_type.as_str())
     }
 }
 

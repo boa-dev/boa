@@ -535,7 +535,9 @@ impl Module {
     #[allow(dropping_copy_types)]
     #[inline]
     pub fn load_link_evaluate(&self, context: &mut Context) -> JsPromise {
-        let promise = self
+        
+
+        self
             .load(context)
             .then(
                 Some(
@@ -561,9 +563,7 @@ impl Module {
                 ),
                 None,
                 context,
-            );
-
-        promise
+            )
     }
 
     /// Abstract operation [`GetModuleNamespace ( module )`][spec].

@@ -115,7 +115,8 @@ where
                 let new_token_span = token.span();
                 cursor.advance(interner);
 
-                let lhs_new_target = if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
+                
+                if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(true))) => {
@@ -153,8 +154,7 @@ where
                     );
 
                     New::from(call_node).into()
-                };
-                lhs_new_target
+                }
             }
             TokenKind::Keyword((Keyword::Super, _)) => {
                 let super_token_span = token.span();
