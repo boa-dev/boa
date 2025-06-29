@@ -7,6 +7,7 @@ use icu_locale::{
 use icu_plurals::provider::PluralsCardinalV1;
 use icu_provider::{
     DataIdentifierBorrowed, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
+    DryDataProvider,
 };
 
 use crate::{
@@ -60,6 +61,21 @@ impl Service for TestService {
 fn locale_resolution() {
     let provider = IntlProvider::try_new_buffer(boa_icu_provider::buffer());
     let mut default = default_locale(provider.locale_canonicalizer().unwrap());
+    default = <IntlProvider as DryDataProvider<<TestService as Service>::LangMarker>>::dry_load(
+        &provider,
+        DataRequest {
+            id: DataIdentifierBorrowed::for_locale(&default.clone().into()),
+            metadata: {
+                let mut md = DataRequestMetadata::default();
+                md.silent = true;
+                md
+            },
+        },
+    )
+    .unwrap()
+    .locale
+    .map_or(default, |loc| loc.into_locale());
+
     default
         .extensions
         .unicode
