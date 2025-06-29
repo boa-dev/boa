@@ -125,7 +125,7 @@ criterion = "0.5.1"
 float-cmp = "0.10.0"
 futures-lite = "2.5.0"
 test-case = "3.3.1"
-rstest = "0.23.0"
+rstest = "0.25.0"
 winapi = { version = "0.3.9", default-features = false }
 url = "2.5.4"
 tokio = { version = "1.42.0", default-features = false }
