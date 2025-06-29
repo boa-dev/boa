@@ -39,13 +39,9 @@ use self::{
     with::WithStatement,
 };
 use crate::{
-    lexer::{token::EscapeSequence, Error as LexError, InputElement, Token, TokenKind},
-    parser::{
-        expression::{BindingIdentifier, Initializer, PropertyName},
-        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
-    },
-    source::ReadChar,
-    Error,
+    lexer::{token::EscapeSequence, Error as LexError, InputElement, Token, TokenKind}, parse_cmd, parser::{
+        expression::{BindingIdentifier, Initializer, PropertyName}, parse_loop::ParseState, AllowAwait, AllowReturn, AllowYield, ControlFlow, Cursor, OrAbrupt, ParseResult, ParsedNode, TokenLoopParser, TokenParser
+    }, source::ReadChar, Error
 };
 use ast::{
     operations::{all_private_identifiers_valid, check_labels, contains_invalid_object_literal},
@@ -226,6 +222,14 @@ where
     }
 }
 
+impl<R: ReadChar> TokenLoopParser<R> for Statement {
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, _continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        let (cursor, interner) = state.mut_inner();
+        let ok = self.parse(cursor, interner)?;
+        parse_cmd!([DONE]: state <= Statement(ok))
+    }
+}
+
 /// Reads a list of statements.
 ///
 /// More information:
@@ -378,6 +382,144 @@ where
     }
 }
 
+pub(super) struct StatementListNode {
+    pub list: ast::StatementList,
+    pub pos: Option<Position>,
+}
+
+pub(super) struct StatementListLocal {
+    items: Vec<ast::StatementListItem>,
+    directives_stack: Vec<(Position, EscapeSequence)>,
+    linear_pos_end: boa_ast::LinearPosition,
+    end_position: Option<Position>,
+    global_strict: bool,
+    directive_prologues: bool,
+    strict: bool,
+}
+impl StatementListLocal {
+    pub(super) fn new<R: ReadChar>(stmt_list: &StatementList, state: &mut ParseState<'_, R>) -> Self {
+        Self {
+            items: Vec::new(),
+
+            directives_stack: Vec::new(),
+            linear_pos_end: state.cursor().linear_pos(),
+            end_position: None,
+
+            global_strict: state.cursor().strict(),
+            directive_prologues: stmt_list.directive_prologues,
+            strict: stmt_list.strict,
+        }
+    }
+}
+
+impl<R> TokenLoopParser<R> for StatementList
+where
+    R: ReadChar,
+{
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        let mut local = match continue_point {
+            0 => StatementListLocal::new(&self, state),
+            1 => {
+                let mut local = parse_cmd![[POP LOCAL]: state => StatementList];
+                Self::continue_point_list_item(&mut local, state)?;
+                local
+            }
+            _ => return state.continue_point_error(continue_point)
+        };
+
+        loop {
+            let peek_token = state.peek(0)?;
+            if let Some(peek_token) = peek_token {
+                local.linear_pos_end = peek_token.linear_span().end();
+                local.end_position = Some(peek_token.span().end());
+            }
+
+            match peek_token {
+                Some(token) if self.break_nodes.contains(token.kind()) => break,
+                Some(token) if local.directive_prologues => {
+                    if let TokenKind::StringLiteral((_, escape)) = token.kind() {
+                        local.directives_stack.push((token.span().start(), *escape));
+                    }
+                }
+                None => break,
+                _ => {}
+            }
+
+            let item = StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return);
+            parse_cmd![[SUB PARSE]: item; state <= local as StatementList (1)];
+        }
+
+        state.cursor_mut().set_strict(local.global_strict);
+
+        let node = StatementListNode {
+            list: ast::StatementList::new(local.items, local.linear_pos_end, local.strict),
+            pos: local.end_position,
+        };
+        parse_cmd![[DONE]: state <= StatementList(node)];
+    }
+}
+
+impl StatementList {
+    fn continue_point_list_item<R>(local: &mut StatementListLocal, state: &mut ParseState<'_, R>) -> ParseResult<()>
+    where R: ReadChar,
+    {
+        let item = parse_cmd![[POP NODE]: state => StatementListItem];
+
+        if local.directive_prologues {
+            if let ast::StatementListItem::Statement(statement) = &item {
+                if let ast::Statement::Expression(ast::Expression::Literal(lit)) =
+                    statement.as_ref()
+                {
+                    if let Some(string) = lit.as_string() {
+                        if local.strict {
+                            // TODO: should store directives in some place
+                        } else if state.interner().resolve_expect(string).join(
+                            |s| s == "use strict",
+                            |g| g == utf16!("use strict"),
+                            true,
+                        ) && local.directives_stack.last().expect("token should exist").1
+                            == EscapeSequence::empty()
+                        {
+                            state.cursor_mut().set_strict(true);
+                            local.strict = true;
+
+                            local.directives_stack.pop();
+
+                            for (position, escape) in std::mem::take(&mut local.directives_stack) {
+                                if escape.contains(EscapeSequence::LEGACY_OCTAL) {
+                                    return Err(Error::general(
+                            "legacy octal escape sequences are not allowed in strict mode",
+                            position,
+                        ));
+                                }
+
+                                if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
+                                    return Err(Error::general(
+                                    "decimal escape sequences are not allowed in strict mode",
+                                    position,
+                                ));
+                                }
+                            }
+                        }
+                    } else {
+                        local.directive_prologues = false;
+                        local.directives_stack.clear();
+                    }
+                } else {
+                    local.directive_prologues = false;
+                    local.directives_stack.clear();
+                }
+            } else {
+                local.directive_prologues = false;
+                local.directives_stack.clear();
+            }
+        }
+
+        local.items.push(item);
+        Ok(())
+    }
+}
+
 /// Statement list item parsing
 ///
 /// A statement list item can either be an statement or a declaration.
@@ -460,6 +602,60 @@ where
         }
     }
 }
+
+impl<R> TokenLoopParser<R> for StatementListItem
+where
+    R: ReadChar,
+{
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        if continue_point == 1 {
+            parse_cmd![[POP LOCAL]: state => Empty];
+            match state.pop_node()? {
+                ParsedNode::Declaration(decl) => {
+                    parse_cmd![[DONE]: state <= StatementListItem(ast::StatementListItem::from(decl))]
+                }
+                ParsedNode::Statement(stmt) => {
+                    parse_cmd![[DONE]: state <= StatementListItem(ast::StatementListItem::from(stmt))]
+                }
+                _ => return Err(state.general_error(concat!("expect `Declaration` or `Statement` node")))
+            }
+        } else if continue_point > 1 {
+            return state.continue_point_error(continue_point)
+        }
+
+        let tok = state.peek(0).or_abrupt()?;
+
+        let decl = Declaration::new(self.allow_yield, self.allow_await);
+        let stmt = Statement::new(self.allow_yield, self.allow_await, self.allow_return);
+
+        match tok.kind().clone() {
+            TokenKind::Keyword((Keyword::Function | Keyword::Class | Keyword::Const, _)) => {
+                parse_cmd![[SUB PARSE]: decl; state <= Empty (1)]
+            }
+            TokenKind::Keyword((Keyword::Let, false)) if allowed_token_after_let(state.peek(1)?) => {
+                    parse_cmd![[SUB PARSE]: decl; state <= Empty (1)]
+            }
+            TokenKind::Keyword((Keyword::Async, false)) => {
+                let skip_n = if state.peek_is_line_terminator(0).or_abrupt()? {
+                    2
+                } else {
+                    1
+                };
+
+                let is_line_terminator = state.peek_is_line_terminator(skip_n)?.unwrap_or(true);
+
+                match state.peek(1)?.map(Token::kind) {
+                    Some(TokenKind::Keyword((Keyword::Function, _))) if !is_line_terminator => {
+                        parse_cmd![[SUB PARSE]: decl; state <= Empty (1)]
+                    }
+                    _ => parse_cmd![[SUB PARSE]: stmt; state <= Empty (1)]
+                }
+            }
+            _ => parse_cmd![[SUB PARSE]: stmt; state <= Empty (1)]
+        }
+    }
+}
+
 
 /// `ObjectBindingPattern` pattern parsing.
 ///

@@ -27,6 +27,7 @@ use crate::{
     source::ReadChar,
     Error,
 };
+use crate::{parse_cmd, parser::{ControlFlow, TokenLoopParser, parse_loop::ParseState}};
 use boa_ast::{
     self as ast,
     expression::Identifier,
@@ -122,6 +123,14 @@ where
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
+    }
+}
+
+impl<R: ReadChar> TokenLoopParser<R> for HoistableDeclaration {
+    fn parse_loop(&mut self, state: &mut ParseState<'_, R>, _continue_point: usize) -> ParseResult<ControlFlow<R>> {
+        let (cursor, interner) = state.mut_inner();
+        let ok = self.parse(cursor, interner)?;
+        parse_cmd!([DONE]: state <= Declaration(ok))
     }
 }
 
