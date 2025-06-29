@@ -14,6 +14,7 @@ use intrinsics::Intrinsics;
 use temporal_rs::tzdb::FsTzdbProvider;
 
 use crate::job::Job;
+use crate::native_function::AsyncCallState;
 use crate::vm::RuntimeLimits;
 use crate::{
     builtins,
@@ -129,6 +130,17 @@ pub struct Context {
     parser_identifier: u32,
 
     data: HostDefined,
+
+    /// State of any boxed future that should be .awaited before continuing
+    /// to execute VM instructions.
+    ///
+    /// XXX: How do we make sure that any
+    /// `AsyncCallState::Finished(Result<JsValue>)` can't be garbage collected?
+    ///
+    /// XXX: there's maybe a better place for this, or better abstraction /
+    /// generalization than this, but this hopefully works for a draft /
+    /// proof-of-concept.
+    pub(crate) async_call: AsyncCallState,
 }
 
 impl std::fmt::Debug for Context {
@@ -1131,6 +1143,7 @@ impl ContextBuilder {
             parser_identifier: 0,
             can_block: self.can_block,
             data: HostDefined::default(),
+            async_call: AsyncCallState::None,
         };
 
         builtins::set_default_global_bindings(&mut context)?;

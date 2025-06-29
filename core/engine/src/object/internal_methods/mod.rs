@@ -393,7 +393,20 @@ pub(crate) enum CallValue {
         argument_count: usize,
     },
 
+    /// Further processing is needed.
+    ///
+    /// Unlike for `Pending`, the further processing should not block the VM and
+    /// be completed synchronously, it should integrate with VM cycle budgeting
+    /// and yielding.
+    AsyncPending,
+
     /// The value has been computed and is the first element on the stack.
+    Complete,
+}
+
+pub(crate) enum ResolvedCallValue {
+    Ready,
+    Pending,
     Complete,
 }
 
@@ -412,7 +425,25 @@ impl CallValue {
         match self {
             Self::Ready => Ok(false),
             Self::Complete => Ok(true),
+            Self::Pending { .. } | Self::AsyncPending { .. } => unreachable!(),
+        }
+    }
+
+    pub(crate) fn async_resolve(mut self, context: &mut Context) -> JsResult<ResolvedCallValue> {
+        while let Self::Pending {
+            func,
+            object,
+            argument_count,
+        } = self
+        {
+            self = func(&object, argument_count, context)?;
+        }
+
+        match self {
+            Self::Ready => Ok(ResolvedCallValue::Ready),
+            Self::Complete => Ok(ResolvedCallValue::Complete),
             Self::Pending { .. } => unreachable!(),
+            Self::AsyncPending { .. } => Ok(ResolvedCallValue::Pending),
         }
     }
 }

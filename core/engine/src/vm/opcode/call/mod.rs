@@ -3,8 +3,8 @@ use crate::{
     builtins::{promise::PromiseCapability, Promise},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
-    object::FunctionObjectBuilder,
-    vm::opcode::Operation,
+    object::{internal_methods::ResolvedCallValue, FunctionObjectBuilder},
+    vm::opcode::{OpStatus, Operation},
     Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
@@ -177,21 +177,32 @@ pub(crate) struct Call;
 
 impl Call {
     #[inline(always)]
-    pub(super) fn operation(argument_count: VaryingOperand, context: &mut Context) -> JsResult<()> {
+    pub(super) fn operation(
+        argument_count: VaryingOperand,
+        context: &mut Context,
+    ) -> JsResult<OpStatus> {
         let func = context
             .vm
             .stack
             .calling_convention_get_function(argument_count.into());
 
+        //println!("Call function: {:?}", func);
         let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("not a callable function")
                 .into());
         };
 
-        object.__call__(argument_count.into()).resolve(context)?;
-
-        Ok(())
+        match object
+            .__call__(argument_count.into())
+            .async_resolve(context)?
+        {
+            ResolvedCallValue::Ready | ResolvedCallValue::Complete => Ok(OpStatus::Finished),
+            ResolvedCallValue::Pending => {
+                //println!("Pending call");
+                Ok(OpStatus::Pending)
+            }
+        }
     }
 }
 
