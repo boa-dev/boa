@@ -334,6 +334,7 @@ dependencies = [
  "cow-utils",
  "dhat",
  "jemallocator",
+ "mimalloc-safe",
  "phf",
  "pollster",
  "regex",
@@ -788,6 +789,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15efe7a882b08f34e38556b14f2fb3daa98769d06c7f0c1b076dfd0d983bc892"
 dependencies = [
  "error-code",
+]
+
+[[package]]
+name = "cmake"
+version = "0.1.54"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7caa3f9de89ddbe2c607f4101924c5abec803763ae9534e4f4d7d8f84aa81f0"
+dependencies = [
+ "cc",
 ]
 
 [[package]]
@@ -2273,6 +2283,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
+name = "libmimalloc-sys2"
+version = "0.1.49"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "355557e51b464fc536b87c44f8c3f35b75299858768fb658ecfdafb5bae294ad"
+dependencies = [
+ "cc",
+ "cmake",
+ "libc",
+]
+
+[[package]]
 name = "libnghttp2-sys"
 version = "0.1.11+1.64.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2419,6 +2440,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a"
 dependencies = [
  "autocfg",
+]
+
+[[package]]
+name = "mimalloc-safe"
+version = "0.1.53"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bb800e901f5b61ba3e62d9d96f530e579e4305da2f718ae00fa440014b2ab47"
+dependencies = [
+ "libmimalloc-sys2",
 ]
 
 [[package]]

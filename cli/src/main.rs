@@ -57,6 +57,13 @@ use jemallocator as _;
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
+#[cfg(all(target_os = "windows", feature = "dhat"))]
+use mimalloc_safe as _;
+
+#[cfg(all(target_os = "windows", not(feature = "dhat")))]
+#[global_allocator]
+static ALLOC: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
+
 #[cfg(feature = "dhat")]
 #[global_allocator]
 static ALLOC: dhat::Alloc = dhat::Alloc;
