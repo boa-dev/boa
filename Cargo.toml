@@ -21,16 +21,6 @@ exclude = [
     "tests/src", # Just a hack to have fuzz inside tests
 ]
 
-default-members = [
-    "core/*",
-    "ffi/*",
-    "tests/macros",
-    "tests/tester",
-    "tools/*",
-    "examples",
-    "cli",
-]
-
 [workspace.package]
 edition = "2021"
 version = "0.20.0"

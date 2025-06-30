@@ -193,9 +193,9 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
     let harness_path = wpt_path.join("resources/testharness.js");
     let harness = Source::from_filepath(&harness_path).expect("Could not create source.");
 
-    context
-        .eval(harness)
-        .expect("Failed to eval testharness.js");
+    if let Err(e) = context.eval(harness) {
+        panic!("Failed to eval testharness.js: {e:#?}");
+    }
 
     (context, logger)
 }
