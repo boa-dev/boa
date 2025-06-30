@@ -73,7 +73,7 @@ impl Url {
     #[boa(constructor)]
     pub fn new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
         if let Some(Convert(ref base)) = base {
-            let base_url = url::Url::parse(base.as_str())
+            let base_url = url::Url::parse(base)
                 .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
             if base_url.cannot_be_a_base() {
                 return Err(js_error!(TypeError: "Base URL {} cannot be a base", base));
