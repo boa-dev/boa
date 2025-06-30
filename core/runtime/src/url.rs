@@ -35,14 +35,6 @@ impl Url {
         context.register_global_class::<Self>()?;
         Ok(())
     }
-
-    /// Create a new `URL` object from a `url::Url`.
-    ///
-    /// # Errors
-    /// Any errors that might occur during URL parsing.
-    pub fn create<T: TryInto<url::Url>>(url: T) -> Result<Self, T::Error> {
-        url.try_into().map(Self)
-    }
 }
 
 impl Display for Url {
