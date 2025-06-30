@@ -10,3 +10,6 @@ boa_gc.workspace = true
 boa_interop.workspace = true
 boa_runtime.workspace = true
 rstest.workspace = true
+
+[features]
+wpt = []

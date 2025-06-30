@@ -1,5 +1,6 @@
 //! Integration tests running the Web Platform Tests (WPT) for the `boa_runtime` crate.
 #![allow(unused_crate_dependencies)]
+#![cfg(feature = "wpt")]
 
 use boa_engine::class::Class;
 use boa_engine::parser::source::UTF16Input;
