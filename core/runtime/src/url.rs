@@ -40,7 +40,7 @@ impl Url {
     ///
     /// # Errors
     /// Any errors that might occur during URL parsing.
-    pub fn new<T: TryInto<url::Url>>(url: T) -> Result<Self, T::Error> {
+    pub fn create<T: TryInto<url::Url>>(url: T) -> Result<Self, T::Error> {
         url.try_into().map(Self)
     }
 }
@@ -71,10 +71,7 @@ impl Url {
     /// # Errors
     /// Any errors that might occur during URL parsing.
     #[boa(constructor)]
-    pub fn create(
-        Convert(ref url): Convert<String>,
-        base: Option<Convert<String>>,
-    ) -> JsResult<Self> {
+    pub fn new(Convert(ref url): Convert<String>, base: Option<Convert<String>>) -> JsResult<Self> {
         if let Some(Convert(ref base)) = base {
             let base_url = url::Url::parse(base.as_str())
                 .map_err(|e| js_error!(TypeError: "Failed to parse base URL: {}", e))?;
@@ -229,7 +226,7 @@ impl Url {
 
     #[boa(static)]
     fn can_parse(url: Convert<String>, base: Option<Convert<String>>) -> bool {
-        Url::create(url, base).is_ok()
+        Url::new(url, base).is_ok()
     }
 
     #[boa(static)]
@@ -238,7 +235,7 @@ impl Url {
         base: Option<Convert<String>>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Url::create(url, base).map_or(Ok(JsValue::null()), |u| {
+        Url::new(url, base).map_or(Ok(JsValue::null()), |u| {
             Url::from_data(u, context).map(JsValue::from)
         })
     }
