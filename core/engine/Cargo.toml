@@ -95,6 +95,7 @@ indexmap = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
 fast-float2.workspace = true
 tap.workspace = true
+small_btree.workspace = true
 paste.workspace = true
 
 thiserror.workspace = true

@@ -1,6 +1,9 @@
-// TODO: Maybe extract to a separate crate? It could be useful for some applications.
-#![allow(unreachable_pub)]
-#![allow(unused)]
+//! A crate that provides a `SmallMap` collection, which is initially backed by an inline vec
+//! but changes its backing to a heap map if its number of elements exceeds `ARRAY_SIZE`.
+//!
+//! This provides performance benefits for maps that are expected to be small most of the time,
+//! by avoiding heap allocations for the common case while still supporting larger collections when needed.
+
 
 use std::{
     borrow::Borrow,
@@ -22,7 +25,7 @@ use Entry::{Occupied, Vacant};
 /// A map that is initially backed by an inline vec, but changes its backing to a heap map if its
 /// number of elements exceeds `ARRAY_SIZE`.
 #[derive(Clone)]
-pub(crate) struct SmallMap<K, V, const ARRAY_SIZE: usize> {
+pub struct SmallMap<K, V, const ARRAY_SIZE: usize> {
     inner: Inner<K, V, ARRAY_SIZE>,
 }
 
@@ -59,7 +62,7 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Iter<'_, K, V> {
 }
 
 impl<K, V> Default for Iter<'_, K, V> {
-    /// Creates an empty `small_map::Iter`.
+    /// Creates an empty `small_btree::Iter`.
     fn default() -> Self {
         Self {
             inner: InnerIter::Inline(std::slice::Iter::default()),
@@ -92,7 +95,7 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
 }
 
 impl<K, V> Default for IterMut<'_, K, V> {
-    /// Creates an empty `small_map::IterMut`.
+    /// Creates an empty `small_btree::IterMut`.
     fn default() -> Self {
         Self {
             inner: InnerIterMut::Inline(std::slice::IterMut::default()),
@@ -127,7 +130,7 @@ impl<K: fmt::Debug, V: fmt::Debug, const ARRAY_SIZE: usize> fmt::Debug
 }
 
 impl<K, V, const ARRAY_SIZE: usize> Default for IntoIter<K, V, ARRAY_SIZE> {
-    /// Creates an empty `small_map::IntoIter`.
+    /// Creates an empty `small_btree::IntoIter`.
     fn default() -> Self {
         Self {
             inner: InnerIntoIter::Inline(ArrayVec::new().into_iter()),
@@ -137,6 +140,7 @@ impl<K, V, const ARRAY_SIZE: usize> Default for IntoIter<K, V, ARRAY_SIZE> {
 
 impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     /// Makes a new, empty `SmallMap`.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             inner: Inner::Inline(ArrayVec::new_const()),
