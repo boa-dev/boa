@@ -398,10 +398,10 @@ fn main() -> Result<()> {
             Ok(line) => {
                 editor.add_history_entry(&line).map_err(io::Error::other)?;
 
-                if args.has_dump_flag() {
-                    if let Err(e) = dump(Source::from_bytes(&line), &args, &mut context) {
-                        eprintln!("{e:?}");
-                    }
+                if args.has_dump_flag()
+                    && let Err(e) = dump(Source::from_bytes(&line), &args, &mut context)
+                {
+                    eprintln!("{e:?}");
                 } else if let Some(flowgraph) = args.flowgraph {
                     match generate_flowgraph(
                         &mut context,

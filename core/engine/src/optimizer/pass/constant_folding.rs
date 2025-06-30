@@ -136,10 +136,10 @@ impl ConstantFolding {
             if !matches!(binary.rhs(), Expression::Literal(_)) {
                 // If left-hand side is already undefined then just keep it,
                 // so we don't cause an infinite loop.
-                if let Expression::Literal(literal) = binary.lhs() {
-                    if literal.is_undefined() {
-                        return PassAction::Keep;
-                    }
+                if let Expression::Literal(literal) = binary.lhs()
+                    && literal.is_undefined()
+                {
+                    return PassAction::Keep;
                 }
 
                 *binary.lhs_mut() = Literal::new(LiteralKind::Undefined, span).into();

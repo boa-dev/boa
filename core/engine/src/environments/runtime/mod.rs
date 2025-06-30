@@ -139,10 +139,10 @@ impl EnvironmentStack {
     /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding
     pub(crate) fn get_this_binding(&self) -> JsResult<Option<JsValue>> {
         for env in self.stack.iter().rev() {
-            if let Environment::Declarative(decl) = env {
-                if let Some(this) = decl.get_this_binding()? {
-                    return Ok(Some(this));
-                }
+            if let Environment::Declarative(decl) = env
+                && let Some(this) = decl.get_this_binding()?
+            {
+                return Ok(Some(this));
             }
         }
 
@@ -371,10 +371,11 @@ impl Context {
     /// are completely removed of runtime checks because the specification guarantees that runtime
     /// semantics cannot add or remove lexical bindings.
     pub(crate) fn find_runtime_binding(&mut self, locator: &mut BindingLocator) -> JsResult<()> {
-        if let Some(env) = self.vm.environments.current_declarative_ref() {
-            if !env.with() && !env.poisoned() {
-                return Ok(());
-            }
+        if let Some(env) = self.vm.environments.current_declarative_ref()
+            && !env.with()
+            && !env.poisoned()
+        {
+            return Ok(());
         }
 
         let (global, min_index) = match locator.scope() {
@@ -387,12 +388,12 @@ impl Context {
             match self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
-                        if let Some(env) = env.kind().as_function() {
-                            if let Some(b) = env.compile().get_binding(locator.name()) {
-                                locator.set_scope(b.scope());
-                                locator.set_binding_index(b.binding_index());
-                                return Ok(());
-                            }
+                        if let Some(env) = env.kind().as_function()
+                            && let Some(b) = env.compile().get_binding(locator.name())
+                        {
+                            locator.set_scope(b.scope());
+                            locator.set_binding_index(b.binding_index());
+                            return Ok(());
                         }
                     } else if !env.with() {
                         return Ok(());
@@ -403,10 +404,9 @@ impl Context {
                     let key = locator.name().clone();
                     if o.has_property(key.clone(), self)? {
                         if let Some(unscopables) = o.get(JsSymbol::unscopables(), self)?.as_object()
+                            && unscopables.get(key.clone(), self)?.to_boolean()
                         {
-                            if unscopables.get(key.clone(), self)?.to_boolean() {
-                                continue;
-                            }
+                            continue;
                         }
                         locator.set_scope(BindingLocatorScope::Stack(index));
                         return Ok(());
@@ -430,10 +430,10 @@ impl Context {
         &mut self,
         locator: &BindingLocator,
     ) -> JsResult<Option<JsObject>> {
-        if let Some(env) = self.vm.environments.current_declarative_ref() {
-            if !env.with() {
-                return Ok(None);
-            }
+        if let Some(env) = self.vm.environments.current_declarative_ref()
+            && !env.with()
+        {
+            return Ok(None);
         }
 
         let min_index = match locator.scope() {
@@ -446,10 +446,10 @@ impl Context {
             match self.environment_expect(index) {
                 Environment::Declarative(env) => {
                     if env.poisoned() {
-                        if let Some(env) = env.kind().as_function() {
-                            if env.compile().get_binding(locator.name()).is_some() {
-                                break;
-                            }
+                        if let Some(env) = env.kind().as_function()
+                            && env.compile().get_binding(locator.name()).is_some()
+                        {
+                            break;
                         }
                     } else if !env.with() {
                         break;
@@ -460,10 +460,9 @@ impl Context {
                     let key = locator.name().clone();
                     if o.has_property(key.clone(), self)? {
                         if let Some(unscopables) = o.get(JsSymbol::unscopables(), self)?.as_object()
+                            && unscopables.get(key.clone(), self)?.to_boolean()
                         {
-                            if unscopables.get(key.clone(), self)?.to_boolean() {
-                                continue;
-                            }
+                            continue;
                         }
                         return Ok(Some(o));
                     }

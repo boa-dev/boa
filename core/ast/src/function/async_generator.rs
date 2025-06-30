@@ -260,10 +260,10 @@ impl AsyncGeneratorExpression {
 impl ToIndentedString for AsyncGeneratorExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function*".to_owned();
-        if self.has_binding_identifier {
-            if let Some(name) = self.name {
-                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
-            }
+        if self.has_binding_identifier
+            && let Some(name) = self.name
+        {
+            let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
         }
         let _ = write!(
             buf,

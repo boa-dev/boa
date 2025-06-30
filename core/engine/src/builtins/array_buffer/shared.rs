@@ -486,12 +486,12 @@ impl SharedArrayBuffer {
         //     b. Append [[ArrayBufferByteLengthData]] and [[ArrayBufferMaxByteLength]] to slots.
         // 4. Else,
         //     a. Append [[ArrayBufferByteLength]] to slots.
-        if let Some(max_byte_len) = max_byte_len {
-            if byte_len > max_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("`length` cannot be bigger than `maxByteLength`")
-                    .into());
-            }
+        if let Some(max_byte_len) = max_byte_len
+            && byte_len > max_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("`length` cannot be bigger than `maxByteLength`")
+                .into());
         }
 
         // 5. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%SharedArrayBuffer.prototype%", slots).

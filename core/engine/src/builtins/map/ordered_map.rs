@@ -197,6 +197,7 @@ impl<V> OrderedMap<V> {
     /// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
     ///
     /// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.
+    // TODO: Take typed `JsObject` instead
     pub(crate) fn lock(&mut self, map: JsObject) -> MapLock {
         self.lock += 1;
         MapLock(map)

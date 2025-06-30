@@ -704,29 +704,29 @@ impl JsObject {
                 let desc =
                     self.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-                if let Some(desc) = desc {
-                    if desc.expect_enumerable() {
-                        match kind {
-                            // 1. If kind is key, append key to properties.
-                            PropertyNameKind::Key => properties.push(key_str.into()),
-                            // 2. Else,
-                            // a. Let value be ? Get(O, key).
-                            // b. If kind is value, append value to properties.
-                            PropertyNameKind::Value => {
-                                properties.push(self.get(key.clone(), context)?);
-                            }
-                            // c. Else,
-                            // i. Assert: kind is key+value.
-                            // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                            // iii. Append entry to properties.
-                            PropertyNameKind::KeyAndValue => properties.push(
-                                Array::create_array_from_list(
-                                    [key_str.into(), self.get(key.clone(), context)?],
-                                    context,
-                                )
-                                .into(),
-                            ),
+                if let Some(desc) = desc
+                    && desc.expect_enumerable()
+                {
+                    match kind {
+                        // 1. If kind is key, append key to properties.
+                        PropertyNameKind::Key => properties.push(key_str.into()),
+                        // 2. Else,
+                        // a. Let value be ? Get(O, key).
+                        // b. If kind is value, append value to properties.
+                        PropertyNameKind::Value => {
+                            properties.push(self.get(key.clone(), context)?);
                         }
+                        // c. Else,
+                        // i. Assert: kind is key+value.
+                        // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                        // iii. Append entry to properties.
+                        PropertyNameKind::KeyAndValue => properties.push(
+                            Array::create_array_from_list(
+                                [key_str.into(), self.get(key.clone(), context)?],
+                                context,
+                            )
+                            .into(),
+                        ),
                     }
                 }
             }

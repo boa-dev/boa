@@ -327,22 +327,22 @@ impl ModuleItemList {
                         let module = specifier.sym();
 
                         match kind {
-                            ReExportKind::Namespaced { name } => {
-                                if let Some(name) = *name {
-                                    self.0.push(
-                                        IndirectExportEntry::new(
-                                            module,
-                                            ReExportImportName::Star,
-                                            name,
-                                        )
-                                        .into(),
-                                    );
-                                } else {
-                                    self.0.push(ExportEntry::StarReExport {
-                                        module_request: module,
-                                    });
-                                }
+                            ReExportKind::Namespaced { name: Some(name) } => {
+                                self.0.push(
+                                    IndirectExportEntry::new(
+                                        module,
+                                        ReExportImportName::Star,
+                                        *name,
+                                    )
+                                    .into(),
+                                );
                             }
+                            ReExportKind::Namespaced { name: None } => {
+                                self.0.push(ExportEntry::StarReExport {
+                                    module_request: module,
+                                });
+                            }
+
                             ReExportKind::Named { names } => {
                                 for name in &**names {
                                     self.0.push(

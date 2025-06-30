@@ -683,10 +683,10 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-touint32>
     pub fn to_u32(&self, context: &mut Context) -> JsResult<u32> {
         // This is the fast path, if the value is Integer we can just return it.
-        if let Some(number) = self.0.as_integer32() {
-            if let Ok(number) = u32::try_from(number) {
-                return Ok(number);
-            }
+        if let Some(number) = self.0.as_integer32()
+            && let Ok(number) = u32::try_from(number)
+        {
+            return Ok(number);
         }
         let number = self.to_number(context)?;
 

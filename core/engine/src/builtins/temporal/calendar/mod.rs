@@ -18,11 +18,11 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
     // a. Return item.[[Calendar]].
     if let Some(calendar) = extract_from_temporal_type(
         item,
-        |d| Ok(Some(d.borrow().data().inner.calendar().clone())),
-        |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
-        |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
-        |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
-        |zdt| Ok(Some(zdt.borrow().data().inner.calendar().clone())),
+        |d| Ok(Some(d.inner.calendar().clone())),
+        |dt| Ok(Some(dt.inner.calendar().clone())),
+        |ym| Ok(Some(ym.inner.calendar().clone())),
+        |md| Ok(Some(md.inner.calendar().clone())),
+        |zdt| Ok(Some(zdt.inner.calendar().clone())),
     )? {
         return Ok(calendar);
     }
@@ -42,19 +42,19 @@ pub(crate) fn to_temporal_calendar_slot_value(calendar_like: &JsValue) -> JsResu
     if calendar_like.is_undefined() {
         return Ok(Calendar::default());
     // 2. If Type(temporalCalendarLike) is Object, then
-    } else if let Some(calendar_like) = calendar_like.as_object() {
-        // a. If temporalCalendarLike has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
-        // i. Return temporalCalendarLike.[[Calendar]].
-        if let Some(calendar) = extract_from_temporal_type(
+    // a. If temporalCalendarLike has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
+    // i. Return temporalCalendarLike.[[Calendar]].
+    } else if let Some(calendar_like) = calendar_like.as_object()
+        && let Some(calendar) = extract_from_temporal_type(
             calendar_like,
-            |d| Ok(Some(d.borrow().data().inner.calendar().clone())),
-            |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
-            |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
-            |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
-            |zdt| Ok(Some(zdt.borrow().data().inner.calendar().clone())),
-        )? {
-            return Ok(calendar);
-        }
+            |d| Ok(Some(d.inner.calendar().clone())),
+            |dt| Ok(Some(dt.inner.calendar().clone())),
+            |ym| Ok(Some(ym.inner.calendar().clone())),
+            |md| Ok(Some(md.inner.calendar().clone())),
+            |zdt| Ok(Some(zdt.inner.calendar().clone())),
+        )?
+    {
+        return Ok(calendar);
     }
 
     // 3. If temporalCalendarLike is not a String, throw a TypeError exception.

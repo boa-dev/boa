@@ -19,10 +19,10 @@ pub(crate) trait ErasedWeakMapBox {
 
 impl<K: Trace + ?Sized, V: Trace + Clone> ErasedWeakMapBox for WeakMapBox<K, V> {
     fn clear_dead_entries(&self) {
-        if let Some(map) = self.map.upgrade() {
-            if let Ok(mut map) = map.try_borrow_mut() {
-                map.clear_expired();
-            }
+        if let Some(map) = self.map.upgrade()
+            && let Ok(mut map) = map.try_borrow_mut()
+        {
+            map.clear_expired();
         }
     }
 

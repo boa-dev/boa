@@ -757,11 +757,13 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
             .fallback_symbol();
 
         //    a. Return ? Get(nf, %Intl%.[[FallbackSymbol]]).
-        let nf = nf_o.get(fallback_symbol, context)?;
-        if let Some(nf) = nf.as_object() {
-            if let Ok(nf) = nf.clone().downcast::<NumberFormat>() {
-                return Ok(nf);
-            }
+        if let Some(nf) = nf_o
+            .get(fallback_symbol, context)?
+            .as_object()
+            .cloned()
+            .and_then(|o| o.downcast::<NumberFormat>().ok())
+        {
+            return Ok(nf);
         }
     }
 

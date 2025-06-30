@@ -903,10 +903,7 @@ pub(crate) fn to_temporal_duration(
 ) -> JsResult<InnerDuration> {
     // 1a. If Type(item) is Object
     // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
-    if let Some(duration) = item
-        .as_object()
-        .and_then(JsObject::downcast_ref::<Duration>)
-    {
+    if let Some(duration) = item.as_downcast_ref::<Duration>() {
         return Ok(duration.inner);
     }
 

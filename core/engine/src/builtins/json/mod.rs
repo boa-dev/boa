@@ -317,11 +317,11 @@ impl Json {
                                 v.to_string(context)
                                     .expect("ToString cannot fail on number value"),
                             );
-                        } else if let Some(obj) = v.as_object() {
+                        } else if let Some(obj) = v.as_object()
+                            && (obj.is::<JsString>() || obj.is::<f64>())
+                        {
                             // i. If v has a [[StringData]] or [[NumberData]] internal slot, set item to ? ToString(v).
-                            if obj.is::<JsString>() || obj.is::<f64>() {
-                                property_set.insert(v.to_string(context)?);
-                            }
+                            property_set.insert(v.to_string(context)?);
                         }
 
                         // h. Set k to k + 1.
@@ -425,11 +425,9 @@ impl Json {
             let to_json = value.get_v(js_string!("toJSON"), context)?;
 
             // b. If IsCallable(toJSON) is true, then
-            if let Some(obj) = to_json.as_object() {
-                if obj.is_callable() {
-                    // i. Set value to ? Call(toJSON, value, « key »).
-                    value = obj.call(&value, &[key.clone().into()], context)?;
-                }
+            if let Some(obj) = to_json.as_callable() {
+                // i. Set value to ? Call(toJSON, value, « key »).
+                value = obj.call(&value, &[key.clone().into()], context)?;
             }
         }
 
@@ -506,17 +504,17 @@ impl Json {
         }
 
         // 11. If Type(value) is Object and IsCallable(value) is false, then
-        if let Some(obj) = value.as_object() {
-            if !obj.is_callable() {
-                // a. Let isArray be ? IsArray(value).
-                // b. If isArray is true, return ? SerializeJSONArray(state, value).
-                // c. Return ? SerializeJSONObject(state, value).
-                return if obj.is_array_abstract()? {
-                    Ok(Some(Self::serialize_json_array(state, obj, context)?))
-                } else {
-                    Ok(Some(Self::serialize_json_object(state, obj, context)?))
-                };
-            }
+        if let Some(obj) = value.as_object()
+            && !obj.is_callable()
+        {
+            // a. Let isArray be ? IsArray(value).
+            // b. If isArray is true, return ? SerializeJSONArray(state, value).
+            // c. Return ? SerializeJSONObject(state, value).
+            return if obj.is_array_abstract()? {
+                Ok(Some(Self::serialize_json_array(state, obj, context)?))
+            } else {
+                Ok(Some(Self::serialize_json_object(state, obj, context)?))
+            };
         }
 
         // 12. Return undefined.

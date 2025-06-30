@@ -193,7 +193,7 @@ impl Catch {
 impl ToIndentedString for Catch {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = " catch".to_owned();
-        if let Some(ref param) = self.parameter {
+        if let Some(param) = &self.parameter {
             let _ = write!(buf, "({})", param.to_interned_string(interner));
         }
         let _ = write!(

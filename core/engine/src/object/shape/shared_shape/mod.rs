@@ -446,11 +446,11 @@ impl SharedShape {
         }
 
         let property_table_inner = self.property_table().inner().borrow();
-        if let Some((property_table_index, slot)) = property_table_inner.map.get(key) {
-            // Check if we are trying to access properties that belong to another shape.
-            if *property_table_index < self.property_count() {
-                return Some(*slot);
-            }
+        // Check if we are trying to access properties that belong to another shape.
+        if let Some((property_table_index, slot)) = property_table_inner.map.get(key)
+            && *property_table_index < self.property_count()
+        {
+            return Some(*slot);
         }
         None
     }

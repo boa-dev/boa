@@ -278,13 +278,14 @@ impl BuiltInConstructor for DataView {
         }
 
         // 14. If byteLength is not undefined, then
-        if let Some(view_byte_len) = view_byte_len.filter(|_| !byte_len.is_undefined()) {
-            // a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
-            if offset + view_byte_len > buf_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("DataView offset outside of buffer array bounds")
-                    .into());
-            }
+        //     a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+        if !byte_len.is_undefined()
+            && let Some(view_byte_len) = view_byte_len
+            && offset + view_byte_len > buf_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("DataView offset outside of buffer array bounds")
+                .into());
         }
 
         let obj = JsObject::from_proto_and_data_with_shared_shape(

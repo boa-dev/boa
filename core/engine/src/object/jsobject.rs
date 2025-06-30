@@ -585,19 +585,16 @@ Cannot both specify accessors and a value or writable attribute",
                 let desc = from.__get_own_property__(&key, context)?;
 
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-                if let Some(desc) = desc {
-                    if let Some(enumerable) = desc.enumerable() {
-                        if enumerable {
-                            // 1. Let propValue be ? Get(from, nextKey).
-                            let prop_value = from.__get__(&key, from.clone().into(), context)?;
+                if let Some(desc) = desc
+                    && let Some(enumerable) = desc.enumerable()
+                    && enumerable
+                {
+                    // 1. Let propValue be ? Get(from, nextKey).
+                    let prop_value = from.__get__(&key, from.clone().into(), context)?;
 
-                            // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
-                            self.create_data_property_or_throw(key, prop_value, context)
-                                .expect(
-                                    "CreateDataPropertyOrThrow should never complete abruptly here",
-                                );
-                        }
-                    }
+                    // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                    self.create_data_property_or_throw(key, prop_value, context)
+                        .expect("CreateDataPropertyOrThrow should never complete abruptly here");
                 }
             }
         }

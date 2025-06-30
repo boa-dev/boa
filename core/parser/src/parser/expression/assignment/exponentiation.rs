@@ -74,16 +74,13 @@ where
 
         let lhs =
             UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-        if let Some(tok) = cursor.peek(0, interner)? {
-            if tok.kind() == &TokenKind::Punctuator(Punctuator::Exp) {
-                cursor.advance(interner);
-                return Ok(Binary::new(
-                    ArithmeticOp::Exp.into(),
-                    lhs,
-                    self.parse(cursor, interner)?,
-                )
-                .into());
-            }
+        if let Some(tok) = cursor.peek(0, interner)?
+            && tok.kind() == &TokenKind::Punctuator(Punctuator::Exp)
+        {
+            cursor.advance(interner);
+            return Ok(
+                Binary::new(ArithmeticOp::Exp.into(), lhs, self.parse(cursor, interner)?).into(),
+            );
         }
         Ok(lhs)
     }

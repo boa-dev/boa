@@ -1504,12 +1504,12 @@ pub(crate) fn to_temporal_timezone_identifier(
     context: &mut Context,
 ) -> JsResult<TimeZone> {
     // 1. If temporalTimeZoneLike is an Object, then
-    if let Some(obj) = value.as_object() {
-        // a. If temporalTimeZoneLike has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        if let Some(zdt) = obj.downcast_ref::<ZonedDateTime>() {
-            // i. Return temporalTimeZoneLike.[[TimeZone]].
-            return Ok(zdt.inner.timezone().clone());
-        }
+    //    a. If temporalTimeZoneLike has an [[InitializedTemporalZonedDateTime]] internal slot, then
+    if let Some(obj) = value.as_object()
+        && let Some(zdt) = obj.downcast_ref::<ZonedDateTime>()
+    {
+        // i. Return temporalTimeZoneLike.[[TimeZone]].
+        return Ok(zdt.inner.timezone().clone());
     }
 
     // 2. If temporalTimeZoneLike is not a String, throw a TypeError exception.

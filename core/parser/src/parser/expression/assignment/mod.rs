@@ -105,16 +105,12 @@ where
                 } else {
                     1
                 };
-                if let Some(tok) = cursor.peek_no_skip_line_term(skip_n, interner)? {
-                    if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                        return ArrowFunction::new(
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
+                if let Some(tok) = cursor.peek_no_skip_line_term(skip_n, interner)?
+                    && tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
+                {
+                    return ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
                         .map(Expression::ArrowFunction);
-                    }
                 }
             }
             //  AsyncArrowFunction[?In, ?Yield, ?Await]

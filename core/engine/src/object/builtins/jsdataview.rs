@@ -123,13 +123,14 @@ impl JsDataView {
         }
 
         // 14. If byteLength is not undefined, then
-        if let Some(view_byte_len) = view_byte_len.filter(|_| byte_len.is_some()) {
-            // a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
-            if offset + view_byte_len > buf_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("DataView offset outside of buffer array bounds")
-                    .into());
-            }
+        //     a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+        if let Some(view_byte_len) = view_byte_len
+            && byte_len.is_some()
+            && offset + view_byte_len > buf_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("DataView offset outside of buffer array bounds")
+                .into());
         }
 
         let obj = JsObject::new(

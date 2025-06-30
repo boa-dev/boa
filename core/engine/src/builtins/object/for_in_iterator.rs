@@ -118,15 +118,15 @@ impl ForInIterator {
                 iterator.object_was_visited = true;
             }
             while let Some(r) = iterator.remaining_keys.pop_front() {
-                if !iterator.visited_keys.contains(&r) {
-                    if let Some(desc) = object.__get_own_property__(
+                if !iterator.visited_keys.contains(&r)
+                    && let Some(desc) = object.__get_own_property__(
                         &PropertyKey::from(r.clone()),
                         &mut InternalMethodContext::new(context),
-                    )? {
-                        iterator.visited_keys.insert(r.clone());
-                        if desc.expect_enumerable() {
-                            return Ok(create_iter_result_object(JsValue::new(r), false, context));
-                        }
+                    )?
+                {
+                    iterator.visited_keys.insert(r.clone());
+                    if desc.expect_enumerable() {
+                        return Ok(create_iter_result_object(JsValue::new(r), false, context));
                     }
                 }
             }

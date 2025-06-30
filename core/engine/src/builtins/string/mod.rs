@@ -2722,10 +2722,10 @@ pub(crate) fn get_substitution(
                         //     a. Let refReplacement be the empty String.
                         // 3. Else,
                         //     a. Let refReplacement be capture.
-                        if let Some(capture) = captures.get(index - 1) {
-                            if let Some(s) = capture.as_string() {
-                                result.extend(s.iter());
-                            }
+                        if let Some(capture) = captures.get(index - 1)
+                            && let Some(s) = capture.as_string()
+                        {
+                            result.extend(s.iter());
                         }
 
                     // viii. Else,

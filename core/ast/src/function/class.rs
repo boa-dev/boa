@@ -254,10 +254,10 @@ impl ClassExpression {
 impl ToIndentedString for ClassExpression {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "class".to_string();
-        if self.name_scope.is_some() {
-            if let Some(name) = self.name {
-                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
-            }
+        if self.name_scope.is_some()
+            && let Some(name) = self.name
+        {
+            let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
         }
         if let Some(super_ref) = self.super_ref.as_ref() {
             let _ = write!(buf, " extends {}", super_ref.to_interned_string(interner));

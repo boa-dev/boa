@@ -206,15 +206,15 @@ impl BuiltInConstructor for RegExp {
                 .map_or(JsValue::undefined(), JsValue::new);
 
             // b. If patternIsRegExp is true and flags is undefined, then
-            if let Some(pattern) = pattern_is_regexp {
-                if flags.is_undefined() {
-                    // i. Let patternConstructor be ? Get(pattern, "constructor").
-                    let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
+            if let Some(pattern) = pattern_is_regexp
+                && flags.is_undefined()
+            {
+                // i. Let patternConstructor be ? Get(pattern, "constructor").
+                let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
 
-                    // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
-                    if JsValue::same_value(&new_target, &pattern_constructor) {
-                        return Ok(pattern.clone().into());
-                    }
+                // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
+                if JsValue::same_value(&new_target, &pattern_constructor) {
+                    return Ok(pattern.clone().into());
                 }
             }
         }
@@ -835,7 +835,8 @@ impl RegExp {
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
         let obj = this
             .as_object()
-            .filter(|obj| obj.is::<RegExp>())
+            .cloned()
+            .and_then(|o| o.downcast::<RegExp>().ok())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("RegExp.prototype.exec called with invalid value")
             })?;
@@ -882,11 +883,11 @@ impl RegExp {
         }
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
-        if !this.is::<RegExp>() {
+        let Ok(this) = this.clone().downcast::<RegExp>() else {
             return Err(JsNativeError::typ()
                 .with_message("RegExpExec called with invalid value")
                 .into());
-        }
+        };
 
         // 6. Return ? RegExpBuiltinExec(R, S).
         Self::abstract_builtin_exec(this, &input, context)
@@ -899,17 +900,12 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpbuiltinexec
     pub(crate) fn abstract_builtin_exec(
-        this: &JsObject,
+        this: JsObject<RegExp>,
         input: &JsString,
         context: &mut Context,
     ) -> JsResult<Option<JsObject>> {
-        let rx = this
-            .downcast_ref::<RegExp>()
-            .as_deref()
-            .cloned()
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message("RegExpBuiltinExec called with invalid value")
-            })?;
+        let rx = this.borrow().data.clone();
+        let this = this.upcast();
 
         // 1. Let length be the length of S.
         let length = input.len() as u64;

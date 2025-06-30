@@ -786,16 +786,17 @@ impl<'ast> VisitorMut<'ast> for BindingCollectorVisitor<'_> {
         node: &'ast mut ClassExpression,
     ) -> ControlFlow<Self::BreakTy> {
         let mut name_scope = None;
-        if let Some(name) = node.name {
-            if node.name_scope.is_some() {
-                let mut scope = Scope::new(self.scope.clone(), false);
-                let name = name.to_js_string(self.interner);
-                scope.create_immutable_binding(name, true);
-                node.name_scope = Some(scope.clone());
-                std::mem::swap(&mut self.scope, &mut scope);
-                name_scope = Some(scope);
-            }
+        if let Some(name) = node.name
+            && node.name_scope.is_some()
+        {
+            let mut scope = Scope::new(self.scope.clone(), false);
+            let name = name.to_js_string(self.interner);
+            scope.create_immutable_binding(name, true);
+            node.name_scope = Some(scope.clone());
+            std::mem::swap(&mut self.scope, &mut scope);
+            name_scope = Some(scope);
         }
+
         if let Some(super_ref) = &mut node.super_ref {
             self.visit_expression_mut(super_ref)?;
         }
@@ -2134,10 +2135,10 @@ fn function_declaration_instantiation(
     // 35. Let privateEnv be the PrivateEnvironment of calleeContext.
     // 36. For each Parse Node f of functionsToInitialize, do
 
-    if let Some(lexical_scope) = &scopes.lexical_scope {
-        if lexical_scope.num_bindings() == 0 {
-            scopes.lexical_scope = None;
-        }
+    if let Some(lexical_scope) = &scopes.lexical_scope
+        && lexical_scope.num_bindings() == 0
+    {
+        scopes.lexical_scope = None;
     }
 
     // 37. Return unused.

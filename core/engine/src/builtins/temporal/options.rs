@@ -40,12 +40,12 @@ pub(crate) fn get_temporal_unit(
 
     let unit = get_option(options, key, context)?;
 
-    if let Some(u) = &unit {
-        if !unit_values.contains(u) {
-            return Err(JsNativeError::range()
-                .with_message("TemporalUnit was not part of the valid UnitGroup.")
-                .into());
-        }
+    if let Some(u) = &unit
+        && !unit_values.contains(u)
+    {
+        return Err(JsNativeError::range()
+            .with_message("TemporalUnit was not part of the valid UnitGroup.")
+            .into());
     }
 
     Ok(unit)

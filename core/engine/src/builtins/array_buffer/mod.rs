@@ -859,12 +859,12 @@ impl ArrayBuffer {
         // 3. If allocatingResizableBuffer is true, then
         //     a. If byteLength > maxByteLength, throw a RangeError exception.
         //     b. Append [[ArrayBufferMaxByteLength]] to slots.
-        if let Some(max_byte_len) = max_byte_len {
-            if byte_len > max_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("`length` cannot be bigger than `maxByteLength`")
-                    .into());
-            }
+        if let Some(max_byte_len) = max_byte_len
+            && byte_len > max_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("`length` cannot be bigger than `maxByteLength`")
+                .into());
         }
 
         // 4. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", slots).

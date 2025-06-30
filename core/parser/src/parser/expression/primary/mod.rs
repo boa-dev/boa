@@ -531,13 +531,13 @@ where
 
         let parameters = FormalParameterList::from(parameters);
 
-        if let Some(span) = tailing_comma {
-            if parameters.has_rest_parameter() {
-                return Err(Error::general(
-                    "rest parameter must be last formal parameter",
-                    span.start(),
-                ));
-            }
+        if let Some(span) = tailing_comma
+            && parameters.has_rest_parameter()
+        {
+            return Err(Error::general(
+                "rest parameter must be last formal parameter",
+                span.start(),
+            ));
         }
 
         if contains(&parameters, ContainsSymbol::YieldExpression) {

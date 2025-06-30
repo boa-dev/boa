@@ -156,16 +156,15 @@ impl ByteCompiler<'_> {
         use_expr: bool,
     ) {
         // Handle https://tc39.es/ecma262/#prod-annexB-ForInOfStatement
-        if let IterableLoopInitializer::Var(var) = for_in_loop.initializer() {
-            if let Binding::Identifier(ident) = var.binding() {
-                let ident = ident.to_js_string(self.interner());
-                if let Some(init) = var.init() {
-                    let value = self.register_allocator.alloc();
-                    self.compile_expr(init, &value);
-                    self.emit_binding(BindingOpcode::InitVar, ident, &value);
-                    self.register_allocator.dealloc(value);
-                }
-            }
+        if let IterableLoopInitializer::Var(var) = for_in_loop.initializer()
+            && let Binding::Identifier(ident) = var.binding()
+            && let Some(init) = var.init()
+        {
+            let ident = ident.to_js_string(self.interner());
+            let value = self.register_allocator.alloc();
+            self.compile_expr(init, &value);
+            self.emit_binding(BindingOpcode::InitVar, ident, &value);
+            self.register_allocator.dealloc(value);
         }
         let outer_scope = self.push_declarative_scope(for_in_loop.target_scope());
         let value = self.register_allocator.alloc();

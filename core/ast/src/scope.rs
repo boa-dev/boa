@@ -641,17 +641,16 @@ impl FunctionScopes {
             return true;
         }
 
-        if let Some(scope) = &self.parameters_eval_scope {
-            if scope
+        if let Some(scope) = &self.parameters_eval_scope
+            && scope
                 .inner
                 .bindings
                 .borrow()
                 .first()
                 .filter(|b| b.name == "arguments" && b.accessed)
                 .is_some()
-            {
-                return true;
-            }
+        {
+            return true;
         }
 
         false

@@ -94,10 +94,10 @@ impl Service for Collator {
                     && validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
             })
             .inspect(|co| {
-                if Some(co) == locale_preferences.collation_type.as_ref() {
-                    if let Some(co) = co.unicode_extension_value() {
-                        locale.extensions.unicode.keywords.set(key!("co"), co);
-                    }
+                if Some(co) == locale_preferences.collation_type.as_ref()
+                    && let Some(co) = co.unicode_extension_value()
+                {
+                    locale.extensions.unicode.keywords.set(key!("co"), co);
                 }
             })
             .or_else(|| {
@@ -115,13 +115,13 @@ impl Service for Collator {
             .numeric_ordering
             .take()
             .inspect(|kn| {
-                if Some(kn) == locale_preferences.numeric_ordering.as_ref() {
-                    if let Some(mut kn) = kn.unicode_extension_value() {
-                        if kn.as_single_subtag() == Some(&subtag!("true")) {
-                            kn = unicode::Value::new_empty();
-                        }
-                        locale.extensions.unicode.keywords.set(key!("kn"), kn);
+                if Some(kn) == locale_preferences.numeric_ordering.as_ref()
+                    && let Some(mut kn) = kn.unicode_extension_value()
+                {
+                    if kn.as_single_subtag() == Some(&subtag!("true")) {
+                        kn = unicode::Value::new_empty();
                     }
+                    locale.extensions.unicode.keywords.set(key!("kn"), kn);
                 }
             })
             .or_else(|| {
@@ -143,10 +143,10 @@ impl Service for Collator {
             .case_first
             .take()
             .inspect(|kf| {
-                if Some(kf) == locale_preferences.case_first.as_ref() {
-                    if let Some(kn) = kf.unicode_extension_value() {
-                        locale.extensions.unicode.keywords.set(key!("kf"), kn);
-                    }
+                if Some(kf) == locale_preferences.case_first.as_ref()
+                    && let Some(kn) = kf.unicode_extension_value()
+                {
+                    locale.extensions.unicode.keywords.set(key!("kf"), kn);
                 }
             })
             .or_else(|| {

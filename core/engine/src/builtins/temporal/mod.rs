@@ -270,22 +270,22 @@ fn extract_from_temporal_type<DF, DTF, YMF, MDF, ZDTF, Ret>(
     zoned_datetime_f: ZDTF,
 ) -> JsResult<Option<Ret>>
 where
-    DF: FnOnce(JsObject<PlainDate>) -> JsResult<Option<Ret>>,
-    DTF: FnOnce(JsObject<PlainDateTime>) -> JsResult<Option<Ret>>,
-    YMF: FnOnce(JsObject<PlainYearMonth>) -> JsResult<Option<Ret>>,
-    MDF: FnOnce(JsObject<PlainMonthDay>) -> JsResult<Option<Ret>>,
-    ZDTF: FnOnce(JsObject<ZonedDateTime>) -> JsResult<Option<Ret>>,
+    DF: FnOnce(&PlainDate) -> JsResult<Option<Ret>>,
+    DTF: FnOnce(&PlainDateTime) -> JsResult<Option<Ret>>,
+    YMF: FnOnce(&PlainYearMonth) -> JsResult<Option<Ret>>,
+    MDF: FnOnce(&PlainMonthDay) -> JsResult<Option<Ret>>,
+    ZDTF: FnOnce(&ZonedDateTime) -> JsResult<Option<Ret>>,
 {
-    if let Ok(date) = object.clone().downcast::<PlainDate>() {
-        return date_f(date);
-    } else if let Ok(dt) = object.clone().downcast::<PlainDateTime>() {
-        return datetime_f(dt);
-    } else if let Ok(ym) = object.clone().downcast::<PlainYearMonth>() {
-        return year_month_f(ym);
-    } else if let Ok(md) = object.clone().downcast::<PlainMonthDay>() {
-        return month_day_f(md);
-    } else if let Ok(dt) = object.clone().downcast::<ZonedDateTime>() {
-        return zoned_datetime_f(dt);
+    if let Some(date) = object.downcast_ref::<PlainDate>() {
+        return date_f(&*date);
+    } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
+        return datetime_f(&*dt);
+    } else if let Some(ym) = object.downcast_ref::<PlainYearMonth>() {
+        return year_month_f(&*ym);
+    } else if let Some(md) = object.downcast_ref::<PlainMonthDay>() {
+        return month_day_f(&*md);
+    } else if let Some(dt) = object.downcast_ref::<ZonedDateTime>() {
+        return zoned_datetime_f(&*dt);
     }
 
     Ok(None)

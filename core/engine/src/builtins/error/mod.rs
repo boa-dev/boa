@@ -210,11 +210,11 @@ impl Error {
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         // 1.a. Let cause be ? Get(options, "cause").
-        if let Some(options) = options.as_object() {
-            if let Some(cause) = options.try_get(js_string!("cause"), context)? {
-                // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
-                o.create_non_enumerable_data_property_or_throw(js_string!("cause"), cause, context);
-            }
+        if let Some(options) = options.as_object()
+            && let Some(cause) = options.try_get(js_string!("cause"), context)?
+        {
+            // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
+            o.create_non_enumerable_data_property_or_throw(js_string!("cause"), cause, context);
         }
 
         // 2. Return unused.
