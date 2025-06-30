@@ -9,7 +9,7 @@ use crate::{
     Statement,
 };
 use boa_interner::{Interner, ToInternedString};
-use core::{convert::TryFrom, ops::ControlFlow};
+use core::{convert::TryFrom, fmt::Write as _, ops::ControlFlow};
 
 /// A [`var`][var] statement, also called [`VariableStatement`][varstmt] in the spec.
 ///
@@ -263,7 +263,7 @@ impl ToInternedString for Variable {
         let mut buf = self.binding.to_interned_string(interner);
 
         if let Some(ref init) = self.init {
-            buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+            let _ = write!(buf, " = {}", init.to_interned_string(interner));
         }
         buf
     }

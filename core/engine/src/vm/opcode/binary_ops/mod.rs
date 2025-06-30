@@ -1,8 +1,5 @@
-use crate::{
-    error::JsNativeError,
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
-};
+use super::VaryingOperand;
+use crate::{error::JsNativeError, vm::opcode::Operation, Context, JsResult};
 
 pub(crate) mod logical;
 pub(crate) mod macro_defined;
@@ -19,18 +16,16 @@ pub(crate) struct NotEq;
 
 impl NotEq {
     #[allow(clippy::needless_pass_by_value)]
-    fn operation(
-        dst: u32,
-        lhs: u32,
-        rhs: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let lhs = registers.get(lhs);
-        let rhs = registers.get(rhs);
-        let value = !lhs.equals(rhs, context)?;
-        registers.set(dst, value.into());
-        Ok(CompletionType::Normal)
+    ) -> JsResult<()> {
+        let lhs = context.vm.get_register(lhs.into()).clone();
+        let rhs = context.vm.get_register(rhs.into()).clone();
+        let value = !lhs.equals(&rhs, context)?;
+        context.vm.set_register(dst.into(), value.into());
+        Ok(())
     }
 }
 
@@ -38,27 +33,6 @@ impl Operation for NotEq {
     const NAME: &'static str = "NotEq";
     const INSTRUCTION: &'static str = "INST - NotEq";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u8>().into();
-        let lhs = context.vm.read::<u8>().into();
-        let rhs = context.vm.read::<u8>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u16>().into();
-        let lhs = context.vm.read::<u16>().into();
-        let rhs = context.vm.read::<u16>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        let lhs = context.vm.read::<u32>();
-        let rhs = context.vm.read::<u32>();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
 }
 
 /// `StrictEq` implements the Opcode Operation for `Opcode::StrictEq`
@@ -69,20 +43,15 @@ impl Operation for NotEq {
 pub(crate) struct StrictEq;
 
 impl StrictEq {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(
-        dst: u32,
-        lhs: u32,
-        rhs: u32,
-        registers: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let lhs = registers.get(lhs);
-        let rhs = registers.get(rhs);
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
         let value = lhs.strict_equals(rhs);
-        registers.set(dst, value.into());
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), value.into());
     }
 }
 
@@ -90,27 +59,6 @@ impl Operation for StrictEq {
     const NAME: &'static str = "StrictEq";
     const INSTRUCTION: &'static str = "INST - StrictEq";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        let lhs = context.vm.read::<u8>().into();
-        let rhs = context.vm.read::<u8>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        let lhs = context.vm.read::<u16>().into();
-        let rhs = context.vm.read::<u16>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        let lhs = context.vm.read::<u32>();
-        let rhs = context.vm.read::<u32>();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
 }
 
 /// `StrictNotEq` implements the Opcode Operation for `Opcode::StrictNotEq`
@@ -121,20 +69,15 @@ impl Operation for StrictEq {
 pub(crate) struct StrictNotEq;
 
 impl StrictNotEq {
-    #[allow(clippy::unnecessary_wraps)]
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(
-        dst: u32,
-        lhs: u32,
-        rhs: u32,
-        registers: &mut Registers,
-        _: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let lhs = registers.get(lhs);
-        let rhs = registers.get(rhs);
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
+        let lhs = context.vm.get_register(lhs.into());
+        let rhs = context.vm.get_register(rhs.into());
         let value = !lhs.strict_equals(rhs);
-        registers.set(dst, value.into());
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), value.into());
     }
 }
 
@@ -142,27 +85,6 @@ impl Operation for StrictNotEq {
     const NAME: &'static str = "StrictNotEq";
     const INSTRUCTION: &'static str = "INST - StrictNotEq";
     const COST: u8 = 2;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        let lhs = context.vm.read::<u8>().into();
-        let rhs = context.vm.read::<u8>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        let lhs = context.vm.read::<u16>().into();
-        let rhs = context.vm.read::<u16>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        let lhs = context.vm.read::<u32>();
-        let rhs = context.vm.read::<u32>();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
 }
 
 /// `In` implements the Opcode Operation for `Opcode::In`
@@ -173,15 +95,12 @@ impl Operation for StrictNotEq {
 pub(crate) struct In;
 
 impl In {
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(
-        dst: u32,
-        lhs: u32,
-        rhs: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let rhs = registers.get(rhs);
+    ) -> JsResult<()> {
+        let rhs = context.vm.get_register(rhs.into()).clone();
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message(format!(
@@ -190,11 +109,11 @@ impl In {
                 ))
                 .into());
         };
-        let lhs = registers.get(lhs);
+        let lhs = context.vm.get_register(lhs.into()).clone();
         let key = lhs.to_property_key(context)?;
         let value = rhs.has_property(key, context)?;
-        registers.set(dst, value.into());
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), value.into());
+        Ok(())
     }
 }
 
@@ -202,27 +121,6 @@ impl Operation for In {
     const NAME: &'static str = "In";
     const INSTRUCTION: &'static str = "INST - In";
     const COST: u8 = 3;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        let lhs = context.vm.read::<u8>().into();
-        let rhs = context.vm.read::<u8>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        let lhs = context.vm.read::<u16>().into();
-        let rhs = context.vm.read::<u16>().into();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        let lhs = context.vm.read::<u32>();
-        let rhs = context.vm.read::<u32>();
-        Self::operation(dst, lhs, rhs, registers, context)
-    }
 }
 
 /// `InPrivate` implements the Opcode Operation for `Opcode::InPrivate`
@@ -233,16 +131,17 @@ impl Operation for In {
 pub(crate) struct InPrivate;
 
 impl InPrivate {
-    #[allow(clippy::needless_pass_by_value)]
-    fn operation(
-        dst: u32,
-        index: usize,
-        rhs: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(super) fn operation(
+        (dst, index, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block().constant_string(index);
-        let rhs = registers.get(rhs);
+    ) -> JsResult<()> {
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
+        let rhs = context.vm.get_register(rhs.into());
 
         let Some(rhs) = rhs.as_object() else {
             return Err(JsNativeError::typ()
@@ -261,8 +160,8 @@ impl InPrivate {
 
         let value = rhs.private_element_find(&name, true, true).is_some();
 
-        registers.set(dst, value.into());
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), value.into());
+        Ok(())
     }
 }
 
@@ -270,25 +169,4 @@ impl Operation for InPrivate {
     const NAME: &'static str = "InPrivate";
     const INSTRUCTION: &'static str = "INST - InPrivate";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u8>());
-        let index = context.vm.read::<u8>() as usize;
-        let rhs = context.vm.read::<u8>().into();
-        Self::operation(dst, index, rhs, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = u32::from(context.vm.read::<u16>());
-        let index = context.vm.read::<u16>() as usize;
-        let rhs = context.vm.read::<u16>().into();
-        Self::operation(dst, index, rhs, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let dst = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        let rhs = context.vm.read::<u32>();
-        Self::operation(dst, index, rhs, registers, context)
-    }
 }

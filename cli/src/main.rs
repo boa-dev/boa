@@ -241,14 +241,12 @@ fn generate_flowgraph<R: ReadChar>(
     let code = script
         .codeblock(context)
         .map_err(|e| e.into_erased(context))?;
-
     let direction = match direction {
         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
         Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
         Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
         Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
     };
-
     let mut graph = Graph::new(direction);
     code.to_graph(graph.subgraph(String::default()));
     let result = match format {
@@ -398,9 +396,7 @@ fn main() -> Result<()> {
             Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
             Ok(line) => {
-                editor
-                    .add_history_entry(&line)
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+                editor.add_history_entry(&line).map_err(io::Error::other)?;
 
                 if args.has_dump_flag() {
                     if let Err(e) = dump(Source::from_bytes(&line), &args, &mut context) {
@@ -427,7 +423,7 @@ fn main() -> Result<()> {
                     }
                     if let Err(err) = context.run_jobs() {
                         eprintln!("{err}");
-                    };
+                    }
                 }
             }
 

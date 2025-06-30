@@ -89,6 +89,7 @@ pub mod class;
 pub mod context;
 pub mod environments;
 pub mod error;
+pub mod interop;
 pub mod job;
 pub mod module;
 pub mod native_function;
@@ -119,13 +120,14 @@ pub mod prelude {
         context::Context,
         error::{JsError, JsNativeError, JsNativeErrorKind},
         host_defined::HostDefined,
-        module::Module,
+        interop::{IntoJsFunctionCopied, UnsafeIntoJsFunction},
+        module::{IntoJsModule, Module},
         native_function::NativeFunction,
         object::{JsData, JsObject, NativeObject},
         script::Script,
         string::{JsStr, JsString},
         symbol::JsSymbol,
-        value::{JsValue, JsVariant},
+        value::{js_object, js_value, JsValue, JsVariant},
     };
     pub use boa_gc::{Finalize, Trace};
     pub use boa_macros::{js_str, JsData};

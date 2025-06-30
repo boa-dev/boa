@@ -3,7 +3,6 @@
 #![allow(unused_crate_dependencies)]
 
 use boa_engine::{Context, Source};
-use getrandom as _;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]

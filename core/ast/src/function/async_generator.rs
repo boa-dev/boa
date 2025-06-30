@@ -1,4 +1,6 @@
 //! Async Generator Expression
+
+use super::{FormalParameterList, FunctionBody};
 use crate::operations::{contains, ContainsSymbol};
 use crate::scope::{FunctionScopes, Scope};
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
@@ -7,11 +9,9 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes, Declaration,
 };
-use crate::{LinearSpan, LinearSpanIgnoreEq};
+use crate::{LinearSpan, LinearSpanIgnoreEq, Span};
 use boa_interner::{Interner, ToIndentedString};
-use core::ops::ControlFlow;
-
-use super::{FormalParameterList, FunctionBody};
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An async generator declaration.
 ///
@@ -162,6 +162,8 @@ pub struct AsyncGeneratorExpression {
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
     linear_span: LinearSpanIgnoreEq,
+
+    span: Span,
 }
 
 impl AsyncGeneratorExpression {
@@ -174,6 +176,7 @@ impl AsyncGeneratorExpression {
         body: FunctionBody,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -186,6 +189,7 @@ impl AsyncGeneratorExpression {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
+            span,
         }
     }
 
@@ -244,6 +248,13 @@ impl AsyncGeneratorExpression {
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
     }
+
+    /// Get the [`Span`] of the [`AsyncGeneratorExpression`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
+    }
 }
 
 impl ToIndentedString for AsyncGeneratorExpression {
@@ -251,14 +262,15 @@ impl ToIndentedString for AsyncGeneratorExpression {
         let mut buf = "async function*".to_owned();
         if self.has_binding_identifier {
             if let Some(name) = self.name {
-                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
             }
         }
-        buf.push_str(&format!(
+        let _ = write!(
+            buf,
             "({}) {}",
             join_nodes(interner, self.parameters.as_ref()),
             block_to_string(&self.body.statements, interner, indentation)
-        ));
+        );
 
         buf
     }

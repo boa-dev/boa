@@ -23,7 +23,6 @@ use crate::{
     HostDefined, JsNativeError, JsObject, JsResult, JsString,
 };
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
-use boa_profiler::Profiler;
 
 /// Representation of a Realm.
 ///
@@ -78,8 +77,6 @@ impl Realm {
     /// Create a new [`Realm`].
     #[inline]
     pub fn create(hooks: &dyn HostHooks, root_shape: &RootShape) -> JsResult<Self> {
-        let _timer = Profiler::global().start_event("Realm::create", "realm");
-
         let intrinsics = Intrinsics::uninit(root_shape).ok_or_else(|| {
             JsNativeError::typ().with_message("failed to create the realm intrinsics")
         })?;
@@ -225,7 +222,7 @@ impl Realm {
     }
 
     pub(crate) fn addr(&self) -> *const () {
-        let ptr: *const _ = &*self.inner;
+        let ptr: *const _ = &raw const *self.inner;
         ptr.cast()
     }
 }

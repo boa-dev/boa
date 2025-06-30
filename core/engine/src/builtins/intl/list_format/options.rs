@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use icu_list::ListLength;
+use icu_list::options::ListLength;
 
 use crate::{
     builtins::options::{OptionType, ParsableOptionType},

@@ -1,11 +1,12 @@
 use boa_macros::js_str;
 
 use crate::value::JsVariant;
+use crate::vm::opcode::VaryingOperand;
 use crate::{
     builtins::function::set_function_name,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::opcode::Operation,
     Context, JsNativeError, JsResult,
 };
 
@@ -17,20 +18,22 @@ use crate::{
 pub(crate) struct SetPropertyByName;
 
 impl SetPropertyByName {
-    fn operation(
-        value: u32,
-        receiver: u32,
-        object: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (value, receiver, object, index): (
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+        ),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
-        let receiver = registers.get(receiver);
-        let object = registers.get(object);
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(value.into()).clone();
+        let receiver = context.vm.get_register(receiver.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
 
-        let ic = &context.vm.frame().code_block().ic[index];
+        let ic = &context.vm.frame().code_block().ic[usize::from(index)];
 
         let object_borrowed = object.borrow();
         if let Some((shape, slot)) = ic.match_or_reset(object_borrowed.shape()) {
@@ -49,7 +52,7 @@ impl SetPropertyByName {
                 drop(object_borrowed);
                 if slot.attributes.has_set() && result.is_object() {
                     result.as_object().expect("should contain getter").call(
-                        receiver,
+                        &receiver,
                         &[value.clone()],
                         context,
                     )?;
@@ -64,7 +67,7 @@ impl SetPropertyByName {
                 let mut object_borrowed = object.borrow_mut();
                 object_borrowed.properties_mut().storage[slot_index] = value.clone();
             }
-            return Ok(CompletionType::Normal);
+            return Ok(());
         }
         drop(object_borrowed);
 
@@ -81,13 +84,13 @@ impl SetPropertyByName {
         // Cache the property.
         let slot = *context.slot();
         if succeeded && slot.is_cachable() {
-            let ic = &context.vm.frame().code_block.ic[index];
+            let ic = &context.vm.frame().code_block.ic[usize::from(index)];
             let object_borrowed = object.borrow();
             let shape = object_borrowed.shape();
             ic.set(shape, slot);
         }
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -95,30 +98,6 @@ impl Operation for SetPropertyByName {
     const NAME: &'static str = "SetPropertyByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyByName";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        let receiver = context.vm.read::<u8>().into();
-        let object = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(value, receiver, object, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        let receiver = context.vm.read::<u16>().into();
-        let object = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(value, receiver, object, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        let receiver = context.vm.read::<u32>();
-        let object = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(value, receiver, object, index, registers, context)
-    }
 }
 
 /// `SetPropertyByValue` implements the Opcode Operation for `Opcode::SetPropertyByValue`
@@ -129,18 +108,20 @@ impl Operation for SetPropertyByName {
 pub(crate) struct SetPropertyByValue;
 
 impl SetPropertyByValue {
-    fn operation(
-        value: u32,
-        key: u32,
-        receiver: u32,
-        object: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (value, key, receiver, object): (
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+        ),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
-        let key = registers.get(key);
-        let receiver = registers.get(receiver);
-        let object = registers.get(object);
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let receiver = context.vm.get_register(receiver.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
 
         let key = key.to_property_key(context)?;
@@ -158,9 +139,9 @@ impl SetPropertyByValue {
 
                     if object_borrowed
                         .properties_mut()
-                        .set_dense_property(index.get(), value)
+                        .set_dense_property(index.get(), &value)
                     {
-                        return Ok(CompletionType::Normal);
+                        return Ok(());
                     }
                 }
             }
@@ -179,7 +160,7 @@ impl SetPropertyByValue {
                 .into());
         }
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -187,30 +168,6 @@ impl Operation for SetPropertyByValue {
     const NAME: &'static str = "SetPropertyByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyByValue";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        let key = context.vm.read::<u8>().into();
-        let receiver = context.vm.read::<u8>().into();
-        let object = context.vm.read::<u8>().into();
-        Self::operation(value, key, receiver, object, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        let key = context.vm.read::<u16>().into();
-        let receiver = context.vm.read::<u16>().into();
-        let object = context.vm.read::<u16>().into();
-        Self::operation(value, key, receiver, object, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        let key = context.vm.read::<u32>();
-        let receiver = context.vm.read::<u32>();
-        let object = context.vm.read::<u32>();
-        Self::operation(value, key, receiver, object, registers, context)
-    }
 }
 
 /// `SetPropertyGetterByName` implements the Opcode Operation for `Opcode::SetPropertyGetterByName`
@@ -221,20 +178,18 @@ impl Operation for SetPropertyByValue {
 pub(crate) struct SetPropertyGetterByName;
 
 impl SetPropertyGetterByName {
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
+    ) -> JsResult<()> {
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
 
         let object = object.to_object(context)?;
@@ -253,7 +208,7 @@ impl SetPropertyGetterByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -261,27 +216,6 @@ impl Operation for SetPropertyGetterByName {
     const NAME: &'static str = "SetPropertyGetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByName";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }
 
 /// `SetPropertyGetterByValue` implements the Opcode Operation for `Opcode::SetPropertyGetterByValue`
@@ -292,16 +226,14 @@ impl Operation for SetPropertyGetterByName {
 pub(crate) struct SetPropertyGetterByValue;
 
 impl SetPropertyGetterByValue {
-    fn operation(
-        value: u32,
-        key: u32,
-        object: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
-        let key = registers.get(key);
-        let object = registers.get(object);
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
 
@@ -320,7 +252,7 @@ impl SetPropertyGetterByValue {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -328,27 +260,6 @@ impl Operation for SetPropertyGetterByValue {
     const NAME: &'static str = "SetPropertyGetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertyGetterByValue";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        let key = context.vm.read::<u8>().into();
-        let object = context.vm.read::<u8>().into();
-        Self::operation(value, key, object, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        let key = context.vm.read::<u16>().into();
-        let object = context.vm.read::<u16>().into();
-        Self::operation(value, key, object, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        let key = context.vm.read::<u32>();
-        let object = context.vm.read::<u32>();
-        Self::operation(value, key, object, registers, context)
-    }
 }
 
 /// `SetPropertySetterByName` implements the Opcode Operation for `Opcode::SetPropertySetterByName`
@@ -359,20 +270,18 @@ impl Operation for SetPropertyGetterByValue {
 pub(crate) struct SetPropertySetterByName;
 
 impl SetPropertySetterByName {
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
+    ) -> JsResult<()> {
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
         let name = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
 
         let object = object.to_object(context)?;
@@ -392,7 +301,7 @@ impl SetPropertySetterByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -400,27 +309,6 @@ impl Operation for SetPropertySetterByName {
     const NAME: &'static str = "SetPropertySetterByName";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByName";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }
 
 /// `SetPropertySetterByValue` implements the Opcode Operation for `Opcode::SetPropertySetterByValue`
@@ -431,16 +319,14 @@ impl Operation for SetPropertySetterByName {
 pub(crate) struct SetPropertySetterByValue;
 
 impl SetPropertySetterByValue {
-    fn operation(
-        value: u32,
-        key: u32,
-        object: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (value, key, object): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let value = registers.get(value);
-        let key = registers.get(key);
-        let object = registers.get(object);
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(value.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
 
         let object = object.to_object(context)?;
         let name = key.to_property_key(context)?;
@@ -460,7 +346,7 @@ impl SetPropertySetterByValue {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -468,27 +354,6 @@ impl Operation for SetPropertySetterByValue {
     const NAME: &'static str = "SetPropertySetterByValue";
     const INSTRUCTION: &'static str = "INST - SetPropertySetterByValue";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        let key = context.vm.read::<u8>().into();
-        let object = context.vm.read::<u8>().into();
-        Self::operation(value, key, object, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        let key = context.vm.read::<u16>().into();
-        let object = context.vm.read::<u16>().into();
-        Self::operation(value, key, object, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        let key = context.vm.read::<u32>();
-        let object = context.vm.read::<u32>();
-        Self::operation(value, key, object, registers, context)
-    }
 }
 
 /// `SetFunctionName` implements the Opcode Operation for `Opcode::SetFunctionName`
@@ -499,23 +364,20 @@ impl Operation for SetPropertySetterByValue {
 pub(crate) struct SetFunctionName;
 
 impl SetFunctionName {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        function: u32,
-        name: u32,
-        prefix: u8,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, name, prefix): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let name = registers.get(name);
+    ) {
+        let function = context.vm.get_register(function.into()).clone();
+        let name = context.vm.get_register(name.into()).clone();
         let name = match name.variant() {
             JsVariant::String(name) => PropertyKey::from(name.clone()),
             JsVariant::Symbol(name) => PropertyKey::from(name.clone()),
             _ => unreachable!(),
         };
 
-        let prefix = match prefix {
+        let prefix = match u32::from(prefix) {
             1 => Some(js_str!("get")),
             2 => Some(js_str!("set")),
             _ => None,
@@ -527,8 +389,6 @@ impl SetFunctionName {
             prefix,
             context,
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -536,25 +396,4 @@ impl Operation for SetFunctionName {
     const NAME: &'static str = "SetFunctionName";
     const INSTRUCTION: &'static str = "INST - SetFunctionName";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let name = context.vm.read::<u8>().into();
-        let prefix = context.vm.read::<u8>();
-        Self::operation(function, name, prefix, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let name = context.vm.read::<u16>().into();
-        let prefix = context.vm.read::<u8>();
-        Self::operation(function, name, prefix, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let name = context.vm.read::<u32>();
-        let prefix = context.vm.read::<u8>();
-        Self::operation(function, name, prefix, registers, context)
-    }
 }

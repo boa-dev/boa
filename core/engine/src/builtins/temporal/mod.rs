@@ -18,7 +18,6 @@ mod plain_date_time;
 mod plain_month_day;
 mod plain_time;
 mod plain_year_month;
-mod time_zone;
 mod zoneddatetime;
 
 #[cfg(test)]
@@ -38,7 +37,6 @@ use crate::{
     string::StaticJsStrings,
     Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_profiler::Profiler;
 use temporal_rs::options::RelativeTo;
 use temporal_rs::{
     primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
@@ -71,8 +69,6 @@ impl BuiltInObject for Temporal {
 
 impl IntrinsicObject for Temporal {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
@@ -149,14 +145,6 @@ impl IntrinsicObject for Temporal {
 }
 
 // -- Temporal Abstract Operations --
-
-/// Abstract operation `ToZeroPaddedDecimalString ( n, minLength )`
-///
-/// The abstract operation `ToZeroPaddedDecimalString` takes arguments `n` (a non-negative integer)
-/// and `minLength` (a non-negative integer) and returns a String.
-fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
-    format!("{n:0min_length$}")
-}
 
 pub(crate) fn get_relative_to_option(
     options: &JsObject,

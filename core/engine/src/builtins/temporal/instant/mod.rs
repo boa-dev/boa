@@ -24,11 +24,10 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use num_traits::ToPrimitive;
-use temporal_rs::options::{TemporalUnit, ToStringRoundingOptions};
+use temporal_rs::options::{ToStringRoundingOptions, Unit};
 use temporal_rs::{
-    options::{RoundingIncrement, RoundingOptions, TemporalRoundingMode},
+    options::{RoundingIncrement, RoundingMode, RoundingOptions},
     Instant as InnerInstant,
 };
 
@@ -46,8 +45,6 @@ impl BuiltInObject for Instant {
 
 impl IntrinsicObject for Instant {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_millis = BuiltInBuilder::callable(realm, Self::get_epoch_milliseconds)
             .name(js_string!("get epochMilliseconds"))
             .build();
@@ -128,7 +125,7 @@ impl BuiltInConstructor for Instant {
             return Err(JsNativeError::typ()
                 .with_message("Temporal.Instant new target cannot be undefined.")
                 .into());
-        };
+        }
 
         // 2. Let epochNanoseconds be ? ToBigInt(epochNanoseconds).
         let epoch_nanos = args.get_or_undefined(0).to_bigint(context)?;
@@ -391,7 +388,7 @@ impl Instant {
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         options.rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
+            get_option::<RoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit"), time, required).
         let smallest_unit = get_temporal_unit(
@@ -468,9 +465,8 @@ impl Instant {
 
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+            get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
         // NOTE: There may be an order-of-operations here due to a check on Unit groups and smallest_unit value.
         let timezone = options
             .get(js_string!("timeZone"), context)?
@@ -556,7 +552,7 @@ impl Instant {
         let timezone = to_temporal_timezone_identifier(args.get_or_undefined(0), context)?;
 
         // 4. Return ! CreateTemporalZonedDateTime(instant.[[EpochNanoseconds]], timeZone, "iso8601").
-        let zdt = instant.inner.to_zoned_date_time_iso(timezone)?;
+        let zdt = instant.inner.to_zoned_date_time_iso(timezone);
         create_temporal_zoneddatetime(zdt, None, context).map(Into::into)
     }
 }

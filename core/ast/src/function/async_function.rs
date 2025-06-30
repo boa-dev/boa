@@ -8,10 +8,10 @@ use crate::{
     operations::{contains, ContainsSymbol},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan, LinearSpanIgnoreEq,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, ToIndentedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An async function declaration.
 ///
@@ -162,6 +162,8 @@ pub struct AsyncFunctionExpression {
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
     linear_span: LinearSpanIgnoreEq,
+
+    span: Span,
 }
 
 impl AsyncFunctionExpression {
@@ -174,6 +176,7 @@ impl AsyncFunctionExpression {
         body: FunctionBody,
         linear_span: LinearSpan,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -186,6 +189,7 @@ impl AsyncFunctionExpression {
             contains_direct_eval,
             scopes: FunctionScopes::default(),
             linear_span: linear_span.into(),
+            span,
         }
     }
 
@@ -244,6 +248,13 @@ impl AsyncFunctionExpression {
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
     }
+
+    /// Get the [`Span`] of the [`AsyncFunctionExpression`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
+    }
 }
 
 impl ToIndentedString for AsyncFunctionExpression {
@@ -251,21 +262,19 @@ impl ToIndentedString for AsyncFunctionExpression {
         let mut buf = "async function".to_owned();
         if self.has_binding_identifier {
             if let Some(name) = self.name {
-                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
             }
         }
-        buf.push_str(&format!(
-            "({}",
-            join_nodes(interner, self.parameters.as_ref())
-        ));
+        let _ = write!(buf, "({}", join_nodes(interner, self.parameters.as_ref()));
         if self.body().statements().is_empty() {
             buf.push_str(") {}");
         } else {
-            buf.push_str(&format!(
+            let _ = write!(
+                buf,
                 ") {{\n{}{}}}",
                 self.body.to_indented_string(interner, indentation + 1),
                 "    ".repeat(indentation)
-            ));
+            );
         }
         buf
     }

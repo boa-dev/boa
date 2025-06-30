@@ -20,7 +20,7 @@ use crate::{
     realm::Realm,
     spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant, Opcode, Registers},
+    vm::{CallFrame, CallFrameFlags, Constant},
     Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
@@ -29,7 +29,6 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -38,8 +37,6 @@ pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
             .name(Self::NAME)
             .length(1)
@@ -285,7 +282,7 @@ impl Eval {
             .constants
             .push(Constant::Scope(lexical_scope.clone()));
 
-        compiler.emit_with_varying_operand(Opcode::PushScope, scope_index);
+        compiler.bytecode.emit_push_scope(scope_index.into());
         if strict {
             variable_scope = lexical_scope.clone();
             compiler.variable_scope = lexical_scope.clone();
@@ -333,8 +330,7 @@ impl Eval {
 
         context.realm().resize_global_env();
 
-        let register_count = context.vm.frame().code_block().register_count;
-        let record = context.run(&mut Registers::new(register_count as usize));
+        let record = context.run();
         context.vm.pop_frame();
 
         record.consume()

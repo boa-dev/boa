@@ -21,8 +21,6 @@ use crate::{
     JsString, JsValue,
 };
 
-use boa_profiler::Profiler;
-
 use super::{
     array_buffer::{BufferObject, BufferRef},
     typed_array::{Atomic, ContentType, Element, TypedArray, TypedArrayElement, TypedArrayKind},
@@ -35,8 +33,6 @@ pub(crate) struct Atomics;
 
 impl IntrinsicObject for Atomics {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let builder = BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),

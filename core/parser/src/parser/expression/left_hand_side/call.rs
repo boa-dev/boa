@@ -22,12 +22,11 @@ use boa_ast::{
     self as ast,
     expression::{
         access::{PrivatePropertyAccess, SimplePropertyAccess},
-        Call,
+        Call, Identifier,
     },
-    Punctuator,
+    Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses a call expression.
 ///
@@ -68,14 +67,13 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("CallExpression", "Parsing");
-
         let token = cursor.peek(0, interner).or_abrupt()?;
 
         let lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-            let args =
+            let (args, args_span) =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            Call::new(self.first_member_expr, args).into()
+
+            Call::new(self.first_member_expr, args, args_span).into()
         } else {
             let next_token = cursor.next(interner)?.expect("token vanished");
             return Err(Error::expected(
@@ -122,36 +120,47 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut lhs = self.call;
 
-        while let Some(tok) = cursor.peek(0, interner)? {
-            let token = tok.clone();
+        while let Some(token) = cursor.peek(0, interner)?.cloned() {
+            let lhs_span_start = lhs.span().start();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let args = Arguments::new(self.allow_yield, self.allow_await)
+                    let (args, args_span) = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    lhs = ast::Expression::from(Call::new(lhs, args));
+                    lhs = Call::new(lhs, args, args_span).into();
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     cursor.advance(interner);
 
-                    let access = match cursor.next(interner).or_abrupt()?.kind() {
+                    let token = cursor.next(interner).or_abrupt()?;
+                    let access = match token.kind() {
                         TokenKind::IdentifierName((name, _)) => {
-                            SimplePropertyAccess::new(lhs, *name).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(*name, token.span()))
+                                .into()
                         }
-                        TokenKind::Keyword((kw, _)) => {
-                            SimplePropertyAccess::new(lhs, kw.to_sym()).into()
-                        }
+                        TokenKind::Keyword((kw, _)) => SimplePropertyAccess::new(
+                            lhs,
+                            Identifier::new(kw.to_sym(), token.span()),
+                        )
+                        .into(),
                         TokenKind::BooleanLiteral((true, _)) => {
-                            SimplePropertyAccess::new(lhs, Sym::TRUE).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(Sym::TRUE, token.span()))
+                                .into()
                         }
-                        TokenKind::BooleanLiteral((false, _)) => {
-                            SimplePropertyAccess::new(lhs, Sym::FALSE).into()
-                        }
+                        TokenKind::BooleanLiteral((false, _)) => SimplePropertyAccess::new(
+                            lhs,
+                            Identifier::new(Sym::FALSE, token.span()),
+                        )
+                        .into(),
                         TokenKind::NullLiteral(_) => {
-                            SimplePropertyAccess::new(lhs, Sym::NULL).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(Sym::NULL, token.span()))
+                                .into()
                         }
-                        TokenKind::PrivateIdentifier(name) => {
-                            PrivatePropertyAccess::new(lhs, PrivateName::new(*name)).into()
-                        }
+                        TokenKind::PrivateIdentifier(name) => PrivatePropertyAccess::new(
+                            lhs,
+                            PrivateName::new(*name, token.span()),
+                            Span::new(lhs_span_start, token.span().end()),
+                        )
+                        .into(),
                         _ => {
                             return Err(Error::expected(
                                 ["identifier".to_owned()],
@@ -176,7 +185,7 @@ where
                     lhs = TaggedTemplateLiteral::new(
                         self.allow_yield,
                         self.allow_await,
-                        tok.start_group(),
+                        token.start_group(),
                         lhs,
                     )
                     .parse(cursor, interner)?

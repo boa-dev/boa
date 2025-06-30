@@ -1,5 +1,5 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -13,19 +13,16 @@ macro_rules! implement_bin_ops {
         pub(crate) struct $name;
 
         impl $name {
-            #[allow(clippy::needless_pass_by_value)]
-            fn operation(
-                dst: u32,
-                lhs: u32,
-                rhs: u32,
-                registers: &mut Registers,
+            #[inline(always)]
+            pub(crate) fn operation(
+                (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
                 context: &mut Context,
-            ) -> JsResult<CompletionType> {
-                let lhs = registers.get(lhs);
-                let rhs = registers.get(rhs);
+            ) -> JsResult<()> {
+                let lhs = context.vm.get_register(lhs.into()).clone();
+                let rhs = context.vm.get_register(rhs.into()).clone();
                 let value = lhs.$op(&rhs, context)?;
-                registers.set(dst, value.into());
-                Ok(CompletionType::Normal)
+                context.vm.set_register(dst.into(), value.into());
+                Ok(())
             }
         }
 
@@ -33,27 +30,6 @@ macro_rules! implement_bin_ops {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 2;
-
-            fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u8>().into();
-                let lhs = context.vm.read::<u8>().into();
-                let rhs = context.vm.read::<u8>().into();
-                Self::operation(dst, lhs, rhs, registers, context)
-            }
-
-            fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u16>().into();
-                let lhs = context.vm.read::<u16>().into();
-                let rhs = context.vm.read::<u16>().into();
-                Self::operation(dst, lhs, rhs, registers, context)
-            }
-
-            fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u32>();
-                let lhs = context.vm.read::<u32>();
-                let rhs = context.vm.read::<u32>();
-                Self::operation(dst, lhs, rhs, registers, context)
-            }
         }
     };
 }

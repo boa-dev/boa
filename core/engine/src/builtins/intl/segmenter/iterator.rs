@@ -1,9 +1,7 @@
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_segmenter::{
-    GraphemeClusterBreakIteratorLatin1, GraphemeClusterBreakIteratorUtf16,
-    SentenceBreakIteratorLatin1, SentenceBreakIteratorUtf16, WordBreakIteratorLatin1,
-    WordBreakIteratorUtf16,
+    iterators::{GraphemeClusterBreakIterator, SentenceBreakIterator, WordBreakIterator},
+    scaffold::{Latin1, Utf16},
 };
 
 use crate::{
@@ -18,12 +16,12 @@ use crate::{
 use super::{create_segment_data_object, Segmenter};
 
 pub(crate) enum NativeSegmentIterator<'l, 's> {
-    GraphemeUtf16(GraphemeClusterBreakIteratorUtf16<'l, 's>),
-    WordUtf16(WordBreakIteratorUtf16<'l, 's>),
-    SentenceUtf16(SentenceBreakIteratorUtf16<'l, 's>),
-    GraphemeLatin1(GraphemeClusterBreakIteratorLatin1<'l, 's>),
-    WordLatin1(WordBreakIteratorLatin1<'l, 's>),
-    SentenceLatin1(SentenceBreakIteratorLatin1<'l, 's>),
+    GraphemeUtf16(GraphemeClusterBreakIterator<'l, 's, Utf16>),
+    WordUtf16(WordBreakIterator<'l, 's, Utf16>),
+    SentenceUtf16(SentenceBreakIterator<'l, 's, Utf16>),
+    GraphemeLatin1(GraphemeClusterBreakIterator<'l, 's, Latin1>),
+    WordLatin1(WordBreakIterator<'l, 's, Latin1>),
+    SentenceLatin1(SentenceBreakIterator<'l, 's, Latin1>),
 }
 
 impl Iterator for NativeSegmentIterator<'_, '_> {
@@ -62,8 +60,6 @@ pub(crate) struct SegmentIterator {
 
 impl IntrinsicObject for SegmentIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("%SegmentIteratorPrototype%", "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),

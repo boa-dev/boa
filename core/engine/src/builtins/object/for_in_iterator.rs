@@ -19,7 +19,6 @@ use crate::{
     Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
 
@@ -40,8 +39,6 @@ pub(crate) struct ForInIterator {
 
 impl IntrinsicObject for ForInIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm

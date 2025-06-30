@@ -2,7 +2,7 @@ use crate::{
     builtins::function::{set_function_name, OrdinaryFunction},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -14,21 +14,19 @@ use crate::{
 pub(crate) struct DefineClassStaticMethodByName;
 
 impl DefineClassStaticMethodByName {
-    fn operation(
-        class: u32,
-        function: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, class, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let class = registers.get(class);
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let class = context.vm.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
         {
             let function_object = function
@@ -51,7 +49,7 @@ impl DefineClassStaticMethodByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -59,27 +57,6 @@ impl Operation for DefineClassStaticMethodByName {
     const NAME: &'static str = "DefineClassStaticMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByName";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let class = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(class, function, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let class = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(class, function, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let class = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(class, function, index, registers, context)
-    }
 }
 
 /// `DefineClassMethodByName` implements the Opcode Operation for `Opcode::DefineClassMethodByName`
@@ -90,21 +67,19 @@ impl Operation for DefineClassStaticMethodByName {
 pub(crate) struct DefineClassMethodByName;
 
 impl DefineClassMethodByName {
-    fn operation(
-        class_proto: u32,
-        function: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, class_proto, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let class_proto = registers.get(class_proto);
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let class_proto = context.vm.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = context
             .vm
             .frame()
             .code_block()
-            .constant_string(index)
+            .constant_string(index.into())
             .into();
         {
             let function_object = function
@@ -127,7 +102,7 @@ impl DefineClassMethodByName {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -135,27 +110,6 @@ impl Operation for DefineClassMethodByName {
     const NAME: &'static str = "DefineClassMethodByName";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByName";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let class_proto = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(class_proto, function, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let class_proto = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(class_proto, function, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let class_proto = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(class_proto, function, index, registers, context)
-    }
 }
 
 /// `DefineClassStaticMethodByValue` implements the Opcode Operation for `Opcode::DefineClassStaticMethodByValue`
@@ -166,16 +120,14 @@ impl Operation for DefineClassMethodByName {
 pub(crate) struct DefineClassStaticMethodByValue;
 
 impl DefineClassStaticMethodByValue {
-    fn operation(
-        function: u32,
-        key: u32,
-        class: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, key, class): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let key = registers.get(key);
-        let class = registers.get(class);
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let class = context.vm.get_register(class.into()).clone();
         let class = class.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -201,7 +153,7 @@ impl DefineClassStaticMethodByValue {
                 .build(),
             context,
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -209,27 +161,6 @@ impl Operation for DefineClassStaticMethodByValue {
     const NAME: &'static str = "DefineClassStaticMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassStaticMethodByValue";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let key = context.vm.read::<u8>().into();
-        let class = context.vm.read::<u8>().into();
-        Self::operation(function, key, class, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let key = context.vm.read::<u16>().into();
-        let class = context.vm.read::<u16>().into();
-        Self::operation(function, key, class, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let key = context.vm.read::<u32>();
-        let class = context.vm.read::<u32>();
-        Self::operation(function, key, class, registers, context)
-    }
 }
 
 /// `DefineClassMethodByValue` implements the Opcode Operation for `Opcode::DefineClassMethodByValue`
@@ -240,16 +171,14 @@ impl Operation for DefineClassStaticMethodByValue {
 pub(crate) struct DefineClassMethodByValue;
 
 impl DefineClassMethodByValue {
-    fn operation(
-        function: u32,
-        key: u32,
-        class_proto: u32,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (function, key, class_proto): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let function = registers.get(function);
-        let key = registers.get(key);
-        let class_proto = registers.get(class_proto);
+    ) -> JsResult<()> {
+        let function = context.vm.get_register(function.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let class_proto = context.vm.get_register(class_proto.into()).clone();
         let class_proto = class_proto.as_object().expect("class must be object");
         let key = key
             .to_property_key(context)
@@ -275,7 +204,7 @@ impl DefineClassMethodByValue {
                 .build(),
             &mut InternalMethodContext::new(context),
         )?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -283,25 +212,4 @@ impl Operation for DefineClassMethodByValue {
     const NAME: &'static str = "DefineClassMethodByValue";
     const INSTRUCTION: &'static str = "INST - DefineClassMethodByValue";
     const COST: u8 = 6;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u8>().into();
-        let key = context.vm.read::<u8>().into();
-        let class_proto = context.vm.read::<u8>().into();
-        Self::operation(function, key, class_proto, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u16>().into();
-        let key = context.vm.read::<u16>().into();
-        let class_proto = context.vm.read::<u16>().into();
-        Self::operation(function, key, class_proto, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let function = context.vm.read::<u32>();
-        let key = context.vm.read::<u32>();
-        let class_proto = context.vm.read::<u32>();
-        Self::operation(function, key, class_proto, registers, context)
-    }
 }

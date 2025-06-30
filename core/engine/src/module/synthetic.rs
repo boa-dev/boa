@@ -2,17 +2,17 @@ use boa_ast::scope::Scope;
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use rustc_hash::FxHashSet;
 
+use super::{BindingName, ResolveExportError, ResolvedBinding};
 use crate::{
     builtins::promise::ResolvingFunctions,
     bytecompiler::ByteCompiler,
+    class::{Class, ClassBuilder},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
     Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
-
-use super::{BindingName, ResolveExportError, ResolvedBinding};
 
 trait TraceableCallback: Trace {
     fn call(&self, module: &SyntheticModule, context: &mut Context) -> JsResult<()>;
@@ -222,6 +222,28 @@ impl SyntheticModule {
         Ok(())
     }
 
+    /// Sets or changes the exported value for `C::NAME` in the synthetic module
+    /// to the Class's constructor.
+    pub fn export_class<C: Class>(&self, context: &mut Context) -> JsResult<()> {
+        self.export_named_class::<C>(&JsString::from(C::NAME), context)
+    }
+
+    /// Sets or changes the exported value for `export_name` in the synthetic module
+    /// to the Class's constructor.
+    pub fn export_named_class<C: Class>(
+        &self,
+        export_name: &JsString,
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let mut class_builder = ClassBuilder::new::<C>(context);
+        C::init(&mut class_builder)?;
+
+        let class = class_builder.build();
+
+        self.set_export(export_name, class.constructor().into())?;
+        Ok(())
+    }
+
     /// Creates a new synthetic module.
     pub(super) fn new(names: FxHashSet<JsString>, eval_steps: SyntheticModuleInitializer) -> Self {
         Self {
@@ -394,7 +416,7 @@ impl SyntheticModule {
         // 11. Suspend moduleContext and remove it from the execution context stack.
         // 12. Resume the context that is now on the top of the execution context stack as the running execution context.
         let frame = context.vm.pop_frame().expect("there should be a frame");
-        frame.restore_stack(&mut context.vm);
+        context.vm.stack.truncate_to_frame(&frame);
 
         // 13. Let pc be ! NewPromiseCapability(%Promise%).
         let (promise, ResolvingFunctions { resolve, reject }) = JsPromise::new_pending(context);

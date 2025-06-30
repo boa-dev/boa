@@ -49,7 +49,7 @@ pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFl
 
 use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},
-    LinearPosition, StatementList, StatementListItem,
+    LinearPosition, Span, StatementList, StatementListItem,
 };
 
 /// A Function body.
@@ -63,21 +63,18 @@ use crate::{
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FunctionBody {
     pub(crate) statements: StatementList,
+    span: Span,
 }
 
 impl FunctionBody {
     /// Creates a new `FunctionBody` AST node.
+    #[inline]
     #[must_use]
-    pub fn new<S>(statements: S, linear_pos_end: LinearPosition, strict: bool) -> Self
-    where
-        S: Into<Box<[StatementListItem]>>,
-    {
-        Self {
-            statements: StatementList::new(statements.into(), linear_pos_end, strict),
-        }
+    pub fn new(statements: StatementList, span: Span) -> Self {
+        Self { statements, span }
     }
 
     /// Gets the list of statements.
@@ -107,11 +104,12 @@ impl FunctionBody {
     pub const fn linear_pos_end(&self) -> LinearPosition {
         self.statements.linear_pos_end()
     }
-}
 
-impl From<StatementList> for FunctionBody {
-    fn from(statements: StatementList) -> Self {
-        Self { statements }
+    /// Get the [`Span`] of the [`FunctionBody`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
     }
 }
 

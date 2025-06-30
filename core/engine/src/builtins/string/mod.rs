@@ -24,7 +24,6 @@ use crate::{
 };
 use boa_macros::utf16;
 
-use boa_profiler::Profiler;
 use cow_utils::CowUtils;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
 use std::{
@@ -84,8 +83,6 @@ pub(crate) struct String;
 
 impl IntrinsicObject for String {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let trim_start = BuiltInBuilder::callable(realm, Self::trim_start)
             .length(0)
             .name(js_string!("trimStart"))
@@ -726,9 +723,7 @@ impl String {
                 let n = n as usize;
                 let mut result = Vec::with_capacity(n);
 
-                std::iter::repeat(string.as_str())
-                    .take(n)
-                    .for_each(|s| result.push(s));
+                std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
 
                 // 6. Return the String value that is made from n copies of S appended together.
                 Ok(JsString::concat_array(&result).into())
@@ -1456,7 +1451,7 @@ impl String {
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
 
-                collator.compare_utf16(&s, &that_value) as i8
+                collator.as_borrowed().compare_utf16(&s, &that_value) as i8
             }
 
             // Default to common comparison if the user doesn't have `Intl` enabled.
@@ -1758,13 +1753,7 @@ impl String {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use super::intl::locale::{
-                canonicalize_locale_list, default_locale, lookup_matching_locale_by_prefix,
-            };
-            // TODO: Small hack to make lookups behave.
-            // We would really like to be able to use `icu_casemap::provider::CaseMapV1Marker`
-            use icu_locid::Locale;
-            use icu_plurals::provider::OrdinalV1Marker;
+            use super::intl::locale::{canonicalize_locale_list, default_locale};
 
             // 1. Let O be ? RequireObjectCoercible(this value).
             let this = this.require_object_coercible()?;
@@ -1779,7 +1768,7 @@ impl String {
 
             // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
             // 2. If requestedLocales is not an empty List, then
-            let mut requested_locale = if let Some(locale) =
+            let requested_locale = if let Some(locale) =
                 canonicalize_locale_list(args.get_or_undefined(0), context)?
                     .into_iter()
                     .next()
@@ -1791,20 +1780,14 @@ impl String {
                 //     a. Let requestedLocale be ! DefaultLocale().
                 default_locale(context.intl_provider().locale_canonicalizer()?)
             };
-            // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
-            requested_locale.extensions.unicode.clear();
 
+            // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
             // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode
             //    Character Database contains language sensitive case mappings. Implementations may add additional
             //    language tags if they support case mapping for additional locales.
             // 6. Let match be LookupMatchingLocaleByPrefix(availableLocales, noExtensionsLocale).
             // 7. If match is not undefined, let locale be match.[[locale]]; else let locale be "und".
-            let locale = lookup_matching_locale_by_prefix::<OrdinalV1Marker>(
-                [requested_locale],
-                context.intl_provider(),
-            )
-            .unwrap_or(Locale::UND);
-
+            // ICU4X already handles locales in the correct way.
             let casemapper = context.intl_provider().case_mapper()?;
 
             // 8. Let codePoints be StringToCodePoints(S).
@@ -1813,11 +1796,17 @@ impl String {
                     // 10. Else,
                     //     a. Assert: targetCase is upper.
                     //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.uppercase_to_string(&segment, &locale.id)
+                    casemapper
+                        .as_borrowed()
+                        .uppercase_to_string(&segment, &requested_locale.id)
+                        .into()
                 } else {
                     // 9. If targetCase is lower, then
                     //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.lowercase_to_string(&segment, &locale.id)
+                    casemapper
+                        .as_borrowed()
+                        .lowercase_to_string(&segment, &requested_locale.id)
+                        .into()
                 }
             });
 
@@ -2180,10 +2169,10 @@ impl String {
             #[cfg(not(feature = "intl"))]
             {
                 const NORMALIZERS: StringNormalizers = StringNormalizers {
-                    nfc: ComposingNormalizer::new_nfc(),
-                    nfkc: ComposingNormalizer::new_nfkc(),
-                    nfd: DecomposingNormalizer::new_nfd(),
-                    nfkd: DecomposingNormalizer::new_nfkd(),
+                    nfc: ComposingNormalizer::new_nfc().static_to_owned(),
+                    nfkc: ComposingNormalizer::new_nfkc().static_to_owned(),
+                    nfd: DecomposingNormalizer::new_nfd().static_to_owned(),
+                    nfkd: DecomposingNormalizer::new_nfkd().static_to_owned(),
                 };
                 &NORMALIZERS
             }
@@ -2196,10 +2185,10 @@ impl String {
         let s = s.iter().collect::<Vec<_>>();
 
         let result = match normalization {
-            Normalization::Nfc => normalizers.nfc.normalize_utf16(&s),
-            Normalization::Nfd => normalizers.nfd.normalize_utf16(&s),
-            Normalization::Nfkc => normalizers.nfkc.normalize_utf16(&s),
-            Normalization::Nfkd => normalizers.nfkd.normalize_utf16(&s),
+            Normalization::Nfc => normalizers.nfc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfd => normalizers.nfd.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkc => normalizers.nfkc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkd => normalizers.nfkd.as_borrowed().normalize_utf16(&s),
         };
 
         // 7. Return ns.

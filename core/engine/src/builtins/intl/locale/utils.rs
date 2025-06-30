@@ -13,13 +13,11 @@ use crate::{
     Context, JsNativeError, JsResult, JsValue,
 };
 
-use icu_locid::{
-    extensions::unicode::{Key, Value},
-    subtags::Variants,
-    LanguageIdentifier, Locale,
+use icu_locale::{LanguageIdentifier, Locale, LocaleCanonicalizer};
+use icu_provider::{
+    DataIdentifierBorrowed, DataLocale, DataMarker, DataMarkerAttributes, DataRequest,
+    DataRequestMetadata, DryDataProvider,
 };
-use icu_locid_transform::LocaleCanonicalizer;
-use icu_provider::{DataLocale, DataProvider, DataRequest, DataRequestMetadata, KeyedDataMarker};
 use indexmap::IndexSet;
 
 use tap::TapOptional;
@@ -39,7 +37,51 @@ pub(crate) fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
         .tap_some_mut(|loc| {
             canonicalizer.canonicalize(loc);
         })
-        .unwrap_or_default()
+        .unwrap_or(Locale::UNKNOWN)
+}
+
+/// Gets the `Locale` struct from a `JsValue`.
+pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResult<Locale> {
+    // ii. If Type(kValue) is not String or Object, throw a TypeError exception.
+    if !(tag.is_object() || tag.is_string()) {
+        return Err(JsNativeError::typ()
+            .with_message("locale should be a String or Object")
+            .into());
+    }
+    // iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
+    if let Some(tag) = tag
+        .as_object()
+        .and_then(|obj| obj.borrow().downcast_ref::<Locale>().cloned())
+    {
+        // 1. Let tag be kValue.[[Locale]].
+        // No need to canonicalize since all `Locale` objects should already be canonicalized.
+        return Ok(tag);
+    }
+
+    // iv. Else,
+    // 1. Let tag be ? ToString(kValue).
+    let tag = tag.to_string(context)?.to_std_string_escaped();
+    if tag.contains('_') {
+        return Err(JsNativeError::range()
+            .with_message("locale is not a structurally valid language tag")
+            .into());
+    }
+
+    let mut tag = tag
+        .parse()
+        // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
+        .map_err(|_| {
+            JsNativeError::range().with_message("locale is not a structurally valid language tag")
+        })?;
+
+    // All callers of `locale_from_value` canonicalize the result immediately after, so
+    // we canonicalize here instead.
+    context
+        .intl_provider()
+        .locale_canonicalizer()?
+        .canonicalize(&mut tag);
+
+    Ok(tag)
 }
 
 /// Abstract operation `CanonicalizeLocaleList ( locales )`
@@ -95,44 +137,7 @@ pub(crate) fn canonicalize_locale_list(
         // c. If kPresent is true, then
         // c.i. Let kValue be ? Get(O, Pk).
         if let Some(k_value) = o.try_get(k, context)? {
-            // ii. If Type(kValue) is not String or Object, throw a TypeError exception.
-            if !(k_value.is_object() || k_value.is_string()) {
-                return Err(JsNativeError::typ()
-                    .with_message("locale should be a String or Object")
-                    .into());
-            }
-            // iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
-            let mut tag = if let Some(tag) = k_value
-                .as_object()
-                .and_then(|obj| obj.borrow().downcast_ref::<Locale>().cloned())
-            {
-                // 1. Let tag be kValue.[[Locale]].
-                tag
-            }
-            // iv. Else,
-            else {
-                // 1. Let tag be ? ToString(kValue).
-                let k_value = k_value.to_string(context)?.to_std_string_escaped();
-                if k_value.contains('_') {
-                    return Err(JsNativeError::range()
-                        .with_message("locale is not a structurally valid language tag")
-                        .into());
-                }
-
-                k_value
-                    .parse()
-                    // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
-                    .map_err(|_| {
-                        JsNativeError::range()
-                            .with_message("locale is not a structurally valid language tag")
-                    })?
-            };
-
-            // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
-            context
-                .intl_provider()
-                .locale_canonicalizer()?
-                .canonicalize(&mut tag);
+            let tag = locale_from_value(&k_value, context)?;
 
             // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
             seen.insert(tag);
@@ -154,19 +159,19 @@ pub(crate) fn canonicalize_locale_list(
 /// # Notes
 ///
 /// - This differs a bit from the spec, since we don't have an `[[AvailableLocales]]`
-///   list to compare with. However, we can do data requests to a [`DataProvider`]
+///   list to compare with. However, we can do data requests to a [`DryDataProvider`]
 ///   in order to see if a certain [`Locale`] is supported.
 ///
-/// - Calling this function with a singleton `KeyedDataMarker` will always return `None`.
+/// - Calling this function with a singleton [`DataMarker`] will always return `None`.
 ///
 /// [prefix]: https://tc39.es/ecma402/#sec-lookupmatchinglocalebyprefix
 /// [best]: https://tc39.es/ecma402/#sec-lookupmatchinglocalebybestfit
-pub(crate) fn lookup_matching_locale_by_prefix<M: KeyedDataMarker>(
+fn lookup_matching_locale_by_prefix<S: Service>(
     requested_locales: impl IntoIterator<Item = Locale>,
     provider: &IntlProvider,
 ) -> Option<Locale>
 where
-    IntlProvider: DataProvider<M>,
+    IntlProvider: DryDataProvider<S::LangMarker>,
 {
     // 1. For each element locale of requestedLocales, do
     for locale in requested_locales {
@@ -175,7 +180,7 @@ where
         //     i. Set extension to the Unicode locale extension sequence of locale.
         //     ii. Set locale to the String value that is locale with any Unicode locale extension sequences removed.
         let mut locale = locale.clone();
-        let id = std::mem::take(&mut locale.id);
+        let id = std::mem::replace(&mut locale.id, LanguageIdentifier::UNKNOWN);
         locale.extensions.transform.clear();
         locale.extensions.private.clear();
 
@@ -189,10 +194,13 @@ where
             // i. If availableLocales contains prefix, return the Record { [[locale]]: prefix, [[extension]]: extension }.
             // ICU4X requires doing data requests in order to check if a locale
             // is part of the set of supported locales.
-            let response = DataProvider::<M>::load(
+            let response = DryDataProvider::dry_load(
                 provider,
                 DataRequest {
-                    locale: &prefix,
+                    id: DataIdentifierBorrowed::for_marker_attributes_and_locale(
+                        S::ATTRIBUTES,
+                        &prefix,
+                    ),
                     metadata: {
                         let mut metadata = DataRequestMetadata::default();
                         metadata.silent = true;
@@ -201,15 +209,15 @@ where
                 },
             );
 
-            if let Ok(req) = response {
+            if let Ok(metadata) = response {
                 // `metadata.locale` returns None when the provider doesn't have a fallback mechanism,
                 // but supports the required locale. However, if the provider has a fallback mechanism,
                 // this will return `Some(locale)`, where the locale is the used locale after applying
                 // the fallback algorithm, even if the used locale is exactly the same as the required
                 // locale.
-                match req.metadata.locale {
-                    Some(loc) if loc.get_langid() == prefix.get_langid() => {
-                        locale.id = loc.into_locale().id;
+                match metadata.locale {
+                    Some(loc) if loc.into_locale().id == prefix.into_locale().id => {
+                        locale.id = prefix.into_locale().id;
                         return Some(locale);
                     }
                     None => {
@@ -227,15 +235,10 @@ where
             // Since the definition of `LanguageIdentifier` allows us to manipulate it
             // without using strings, we can replace these steps by a simpler
             // algorithm.
-            if prefix.has_variants() {
-                let mut variants = prefix.clear_variants().iter().copied().collect::<Vec<_>>();
-                variants.pop();
-                prefix.set_variants(Variants::from_vec_unchecked(variants));
-            } else if prefix.region().is_some() {
-                prefix.set_region(None);
-            } else if prefix.script().is_some() {
-                prefix.set_script(None);
-            } else {
+            if prefix.variant.take().is_none()
+                && prefix.region.take().is_none()
+                && prefix.script.take().is_none()
+            {
                 break;
             }
         }
@@ -254,24 +257,26 @@ where
 /// produced by the `LookupMatcher` abstract operation.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher
-fn lookup_matching_locale_by_best_fit<M: KeyedDataMarker>(
+fn lookup_matching_locale_by_best_fit<S: Service>(
     requested_locales: impl IntoIterator<Item = Locale>,
     provider: &IntlProvider,
 ) -> Option<Locale>
 where
-    IntlProvider: DataProvider<M>,
+    IntlProvider: DryDataProvider<S::LangMarker>,
 {
     for mut locale in requested_locales {
-        let id = std::mem::take(&mut locale.id);
+        let id = std::mem::replace(&mut locale.id, LanguageIdentifier::UNKNOWN);
 
         // Only leave unicode extensions when returning the locale.
         locale.extensions.transform.clear();
         locale.extensions.private.clear();
 
-        let Ok(response) = DataProvider::<M>::load(
+        let dl = &DataLocale::from(&id);
+
+        let Ok(response) = DryDataProvider::dry_load(
             provider,
             DataRequest {
-                locale: &DataLocale::from(&id),
+                id: DataIdentifierBorrowed::for_marker_attributes_and_locale(S::ATTRIBUTES, dl),
                 metadata: {
                     let mut md = DataRequestMetadata::default();
                     md.silent = true;
@@ -282,16 +287,15 @@ where
             continue;
         };
 
-        if id == LanguageIdentifier::UND {
+        if id == LanguageIdentifier::UNKNOWN {
             return Some(locale);
         }
 
         if let Some(id) = response
-            .metadata
             .locale
             .map(|dl| dl.into_locale().id)
             .or(Some(id))
-            .filter(|loc| loc != &LanguageIdentifier::UND)
+            .filter(|loc| loc != &LanguageIdentifier::UNKNOWN)
         {
             locale.id = id;
             return Some(locale);
@@ -318,7 +322,7 @@ pub(in crate::builtins::intl) fn resolve_locale<S>(
 ) -> JsResult<Locale>
 where
     S: Service,
-    IntlProvider: DataProvider<S::LangMarker>,
+    IntlProvider: DryDataProvider<S::LangMarker>,
 {
     // 1. Let matcher be options.[[localeMatcher]].
     // 2. If matcher is "lookup", then
@@ -327,15 +331,18 @@ where
     //     a. Let r be LookupMatchingLocaleByBestFit(availableLocales, requestedLocales).
     // 4. If r is undefined, set r to the Record { [[locale]]: DefaultLocale(), [[extension]]: empty }.
     let found_locale = if options.matcher == LocaleMatcher::Lookup {
-        lookup_matching_locale_by_prefix::<S::LangMarker>(requested_locales, provider)
+        lookup_matching_locale_by_prefix::<S>(requested_locales, provider)
     } else {
-        lookup_matching_locale_by_best_fit::<S::LangMarker>(requested_locales, provider)
+        lookup_matching_locale_by_best_fit::<S>(requested_locales, provider)
     };
 
     let mut found_locale = if let Some(loc) = found_locale {
         loc
     } else {
-        default_locale(provider.locale_canonicalizer()?)
+        let default = default_locale(provider.locale_canonicalizer()?);
+        lookup_matching_locale_by_best_fit::<S>([default], provider).ok_or_else(|| {
+            JsNativeError::typ().with_message("could not find i18n data for Intl service")
+        })?
     };
 
     // From here, the spec differs significantly from the implementation,
@@ -404,16 +411,16 @@ where
 ///
 /// # Note
 ///
-/// Calling this function with a singleton `KeyedDataMarker` will always return `None`.
+/// Calling this function with a Service that has a singleton `LangMarker` will always return `None`.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-supportedlocales
-pub(in crate::builtins::intl) fn filter_locales<M: KeyedDataMarker>(
+pub(in crate::builtins::intl) fn filter_locales<S: Service>(
     requested_locales: Vec<Locale>,
     options: &JsValue,
     context: &mut Context,
 ) -> JsResult<JsObject>
 where
-    IntlProvider: DataProvider<M>,
+    IntlProvider: DryDataProvider<S::LangMarker>,
 {
     // 1. Set options to ? CoerceOptionsToObject(options).
     let options = coerce_options_to_object(options, context)?;
@@ -433,12 +440,12 @@ where
             // b. If matcher is "lookup", then
             //     i. Let match be LookupMatchingLocaleByPrefix(availableLocales, noExtensionsLocale).
             LocaleMatcher::Lookup => {
-                lookup_matching_locale_by_prefix([no_ext_loc], context.intl_provider())
+                lookup_matching_locale_by_prefix::<S>([no_ext_loc], context.intl_provider())
             }
             // c. Else,
             //     i. Let match be LookupMatchingLocaleByBestFit(availableLocales, noExtensionsLocale).
             LocaleMatcher::BestFit => {
-                lookup_matching_locale_by_best_fit([no_ext_loc], context.intl_provider())
+                lookup_matching_locale_by_best_fit::<S>([no_ext_loc], context.intl_provider())
             }
         };
 
@@ -462,68 +469,74 @@ where
 ///
 /// # Note
 ///
-/// Calling this function with a singleton `KeyedDataMarker` will always return `None`.
-pub(in crate::builtins::intl) fn validate_extension<M: KeyedDataMarker>(
+/// Calling this function with a singleton `DataMarker` will always return `None`.
+pub(in crate::builtins::intl) fn validate_extension<M: DataMarker>(
     language: LanguageIdentifier,
-    key: Key,
-    value: &Value,
-    provider: &impl DataProvider<M>,
+    attributes: &DataMarkerAttributes,
+    provider: &impl DryDataProvider<M>,
 ) -> bool {
-    let mut locale = DataLocale::from(language);
-    locale.set_unicode_ext(key, value.clone());
-    let request = DataRequest {
-        locale: &locale,
-        metadata: DataRequestMetadata::default(),
+    let locale = DataLocale::from(language);
+    let req = DataRequest {
+        id: DataIdentifierBorrowed::for_marker_attributes_and_locale(attributes, &locale),
+        metadata: {
+            let mut metadata = DataRequestMetadata::default();
+            metadata.silent = true;
+            metadata
+        },
     };
 
-    DataProvider::load(provider, request)
-        .ok()
-        .map(|res| res.metadata.locale.unwrap_or_else(|| locale.clone()))
-        .filter(|loc| loc == &locale)
-        .is_some()
+    provider.dry_load(req).is_ok()
 }
 
 #[cfg(all(test, feature = "intl_bundled"))]
 mod tests {
-    use icu_locid::{langid, locale, Locale};
-    use icu_plurals::provider::CardinalV1Marker;
+    use icu_locale::{langid, locale, Locale};
+    use icu_plurals::provider::PluralsCardinalV1;
+
+    struct TestService;
+
+    impl Service for TestService {
+        type LangMarker = PluralsCardinalV1;
+        type LocaleOptions = ();
+    }
 
     use crate::{
-        builtins::intl::locale::utils::{
-            lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix,
+        builtins::intl::{
+            locale::utils::{lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix},
+            Service,
         },
         context::icu::IntlProvider,
     };
 
     #[test]
     fn best_fit() {
-        let icu = &IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer());
+        let icu = &IntlProvider::try_new_buffer(boa_icu_provider::buffer());
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<CardinalV1Marker>([locale!("en")], icu),
+            lookup_matching_locale_by_best_fit::<TestService>([locale!("en")], icu),
             Some(locale!("en"))
         );
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<CardinalV1Marker>([locale!("es-ES")], icu),
+            lookup_matching_locale_by_best_fit::<TestService>([locale!("es-ES")], icu),
             Some(locale!("es"))
         );
 
         assert_eq!(
-            lookup_matching_locale_by_best_fit::<CardinalV1Marker>([locale!("kr")], icu),
+            lookup_matching_locale_by_best_fit::<TestService>([locale!("kr")], icu),
             None
         );
     }
 
     #[test]
     fn lookup_match() {
-        let icu = &IntlProvider::try_new_with_buffer_provider(boa_icu_provider::buffer());
+        let icu = &IntlProvider::try_new_buffer(boa_icu_provider::buffer());
 
         // requested: [fr-FR-u-hc-h12]
         let requested: Locale = "fr-FR-u-hc-h12".parse().unwrap();
 
         let result =
-            lookup_matching_locale_by_prefix::<CardinalV1Marker>([requested.clone()], icu).unwrap();
+            lookup_matching_locale_by_prefix::<TestService>([requested.clone()], icu).unwrap();
         assert_eq!(result.id, langid!("fr"));
         assert_eq!(result.extensions, requested.extensions);
 
@@ -534,7 +547,7 @@ mod tests {
         let uz = locale!("uz-Cyrl");
         let requested = vec![kr, gr, es.clone(), uz];
 
-        let res = lookup_matching_locale_by_best_fit::<CardinalV1Marker>(requested, icu).unwrap();
+        let res = lookup_matching_locale_by_best_fit::<TestService>(requested, icu).unwrap();
         assert_eq!(res.id, langid!("es"));
         assert_eq!(res.extensions, es.extensions);
     }

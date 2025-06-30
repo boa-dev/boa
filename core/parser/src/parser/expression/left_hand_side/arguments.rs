@@ -16,9 +16,8 @@ use crate::{
     source::ReadChar,
     Error,
 };
-use boa_ast::{expression::Spread, Expression, Punctuator};
+use boa_ast::{expression::Spread, Expression, Punctuator, Span};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses a list of arguments.
 ///
@@ -52,21 +51,24 @@ impl<R> TokenParser<R> for Arguments
 where
     R: ReadChar,
 {
-    type Output = Box<[Expression]>;
+    type Output = (Box<[Expression]>, Span);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Arguments", "Parsing");
+        let start = cursor
+            .expect(Punctuator::OpenParen, "arguments", interner)?
+            .span()
+            .start();
 
-        cursor.expect(Punctuator::OpenParen, "arguments", interner)?;
         let mut args = Vec::new();
-        loop {
+        let end = loop {
             cursor.set_goal(InputElement::RegExp);
             let next_token = cursor.peek(0, interner).or_abrupt()?;
 
             match next_token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseParen) => {
+                    let end = next_token.span().end();
                     cursor.advance(interner);
-                    break;
+                    break end;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
                     let next_token = cursor.next(interner)?.expect(", token vanished"); // Consume the token.
@@ -80,8 +82,8 @@ where
                         ));
                     }
 
-                    if cursor.next_if(Punctuator::CloseParen, interner)?.is_some() {
-                        break;
+                    if let Some(next) = cursor.next_if(Punctuator::CloseParen, interner)? {
+                        break next.span().end();
                     }
                 }
                 _ => {
@@ -96,11 +98,15 @@ where
                 }
             }
 
-            if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
+            if let Some(spread_token) = cursor.next_if(Punctuator::Spread, interner)? {
+                let target = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+                let target_span_end = target.span().end();
+
                 args.push(
                     Spread::new(
-                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                        target,
+                        Span::new(spread_token.span().start(), target_span_end),
                     )
                     .into(),
                 );
@@ -110,8 +116,8 @@ where
                         .parse(cursor, interner)?,
                 );
             }
-        }
+        };
         cursor.set_goal(InputElement::Div);
-        Ok(args.into_boxed_slice())
+        Ok((args.into_boxed_slice(), Span::new(start, end)))
     }
 }

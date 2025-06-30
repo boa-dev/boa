@@ -12,14 +12,22 @@ rust-version.workspace = true
 proc-macro = true
 
 [dependencies]
+cfg-if.workspace = true
 cow-utils.workspace = true
+lz4_flex = { workspace = true, optional = true }
 quote.workspace = true
-syn = { workspace = true, features = ["full"] }
+syn = { workspace = true, features = ["full", "visit-mut"] }
 proc-macro2.workspace = true
 synstructure.workspace = true
+
+[dev-dependencies]
+test-case.workspace = true
 
 [lints]
 workspace = true
 
 [package.metadata.docs.rs]
 all-features = true
+
+[features]
+embedded_lz4 = ["lz4_flex"]

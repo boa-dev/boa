@@ -174,3 +174,238 @@ fn not_a_function() {
         "calling a builtin Set constructor without new is forbidden",
     )]);
 }
+
+#[test]
+fn difference() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1, 3, 5, 7, 9]);
+            let setB = new Set([1, 4, 9]);
+        "#}),
+        TestAction::assert_with_op("setA.difference(setB)", |v, _| {
+            v.display().to_string() == "Set { 3, 5, 7 }"
+        }),
+        TestAction::assert_with_op("setB.difference(setA)", |v, _| {
+            v.display().to_string() == "Set { 4 }"
+        }),
+    ]);
+}
+
+#[test]
+fn difference_equal_set() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1, 3, 5, 7, 9]);
+            let setB = new Set([1, 4, 5, 7, 9]);
+        "#}),
+        TestAction::assert_with_op("setA.difference(setB)", |v, _| {
+            v.display().to_string() == "Set { 3 }"
+        }),
+        TestAction::assert_with_op("setB.difference(setA)", |v, _| {
+            v.display().to_string() == "Set { 4 }"
+        }),
+    ]);
+}
+
+#[test]
+fn difference_empty() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+           let setA = new Set([1, 3, 5, 7, 9]);
+           let setB = new Set([]);
+        "#}),
+        TestAction::assert_with_op("setA.difference(setB)", |v, _| {
+            v.display().to_string() == "Set { 1, 3, 5, 7, 9 }"
+        }),
+        TestAction::assert_with_op("setB.difference(setA)", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+    ]);
+}
+
+#[test]
+fn intersection() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1,2,3]);
+            let setB = new Set([1,4,3]);
+            let setC = new Set([]);
+            "#}),
+        TestAction::assert_with_op("setA.intersection(setB)", |v, _| {
+            v.display().to_string() == "Set { 1, 3 }"
+        }),
+        TestAction::assert_with_op("setB.intersection(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 3 }"
+        }),
+        TestAction::assert_with_op("setA.intersection(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 2, 3 }"
+        }),
+        TestAction::assert_with_op("setB.intersection(setB)", |v, _| {
+            v.display().to_string() == "Set { 1, 4, 3 }"
+        }),
+        TestAction::assert_with_op("setB.intersection(setC)", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+        TestAction::assert_with_op("setA.intersection(setC)", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+    ]);
+}
+
+#[test]
+fn is_dist_joint_from() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1, 2, 3]);
+            let setB = new Set([1, 4, 6]);
+            let setC = new Set([4, 8, 15, 16 ,23 ,42]);
+            "#}),
+        TestAction::assert_with_op("setA.isDisjointFrom(setB)", |v, _| {
+            !v.as_boolean().unwrap_or(false)
+        }),
+        TestAction::assert_with_op("setA.isDisjointFrom(setC)", |v, _| {
+            v.as_boolean().unwrap_or(true)
+        }),
+    ]);
+}
+
+#[test]
+fn is_subset_of() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([4, 8, 15]);
+            let setB = new Set([1, 4, 6]);
+            let setC = new Set([4, 8, 15, 16 ,23 ,42]);
+            let setD = new Set([16]);
+            let setE = new Set([]);
+            "#}),
+        TestAction::assert_with_op("setA.isSubsetOf(setB)", |v, _| {
+            !v.as_boolean().unwrap_or(false)
+        }),
+        TestAction::assert_with_op("setA.isSubsetOf(setC)", |v, _| {
+            v.as_boolean().unwrap_or(true)
+        }),
+        TestAction::assert_with_op("setB.isSubsetOf(setC)", |v, _| {
+            !v.as_boolean().unwrap_or(false)
+        }),
+        TestAction::assert_with_op("setC.isSubsetOf(setC)", |v, _| {
+            v.as_boolean().unwrap_or(true)
+        }),
+        TestAction::assert_with_op("setD.isSubsetOf(setC)", |v, _| {
+            v.as_boolean().unwrap_or(true)
+        }),
+        TestAction::assert_with_op("setE.isSubsetOf(setC)", |v, _| {
+            v.as_boolean().unwrap_or(true)
+        }),
+        TestAction::assert_with_op("setA.isSubsetOf(setE)", |v, _| {
+            !v.as_boolean().unwrap_or(false)
+        }),
+    ]);
+}
+
+#[test]
+fn is_superset_of() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set(["JavaScript", "HTML", "CSS"]);
+            let setB = new Set(["HTML", "CSS"]);
+            "#}),
+        TestAction::assert_with_op("setA.isSupersetOf(setB)", |v, _| {
+            v.as_boolean().unwrap_or(false)
+        }),
+        TestAction::assert_with_op("setB.isSupersetOf(setA)", |v, _| {
+            !v.as_boolean().unwrap_or(false)
+        }),
+    ]);
+}
+
+#[test]
+fn symmetric_difference_different_sets_strings() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set(["JavaScript", "HTML", "CSS"]);
+            let setB = new Set(["Python", "Java", "JavaScript", "PHP"]);
+            "#}),
+        TestAction::assert_with_op("setA.symmetricDifference(setB)", |v, _| {
+            v.display().to_string() == "Set { \"HTML\", \"CSS\", \"Python\", \"Java\", \"PHP\" }"
+        }),
+        TestAction::assert_with_op("setB.symmetricDifference(setA)", |v, _| {
+            v.display().to_string() == "Set { \"Python\", \"Java\", \"PHP\", \"HTML\", \"CSS\" }"
+        }),
+    ]);
+}
+
+#[test]
+fn symmetric_difference_different_sets_numbers() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setC = new Set([2, 4, 6, 8]);
+            let setD = new Set([1, 4, 9]);
+            "#}),
+        TestAction::assert_with_op("setC.symmetricDifference(setD)", |v, _| {
+            v.display().to_string() == "Set { 2, 6, 8, 1, 9 }"
+        }),
+        TestAction::assert_with_op("setD.symmetricDifference(setC)", |v, _| {
+            v.display().to_string() == "Set { 1, 9, 2, 6, 8 }"
+        }),
+    ]);
+}
+
+#[test]
+fn symmetric_difference_same_set() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set(["JavaScript", "HTML", "CSS"]);
+            let setACopy = setA;
+        "#}),
+        TestAction::assert_with_op("setA.symmetricDifference(setACopy)", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+    ]);
+}
+
+// Alternative test that programmatically creates a new Set with the same content.
+#[test]
+fn symmetric_difference_with_identical_content() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set(["JavaScript", "HTML", "CSS"]);
+            // Создаем функцию, которая вернет новый Set с тем же содержимым
+            function getIdenticalSet() {
+                return new Set(Array.from(setA));
+            }
+            "#}),
+        // We use a function to get a new Set object with the same content.
+        TestAction::assert_with_op("setA.symmetricDifference(getIdenticalSet())", |v, _| {
+            v.display().to_string() == "Set(0)"
+        }),
+    ]);
+}
+
+#[test]
+fn union() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([2, 4, 6, 8]);
+            let setB = new Set([1, 4, 9]);
+            "#}),
+        TestAction::assert_with_op("setA.union(setB)", |v, _| {
+            v.display().to_string() == "Set { 2, 4, 6, 8, 1, 9 }"
+        }),
+        TestAction::assert_with_op("setB.union(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 4, 9, 2, 6, 8 }"
+        }),
+    ]);
+}
+
+#[test]
+fn union_same_set() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            let setA = new Set([1, 4, 9]);
+            "#}),
+        TestAction::assert_with_op("setA.union(setA)", |v, _| {
+            v.display().to_string() == "Set { 1, 4, 9 }"
+        }),
+    ]);
+}

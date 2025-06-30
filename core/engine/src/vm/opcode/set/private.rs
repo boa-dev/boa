@@ -2,7 +2,7 @@ use crate::{
     js_str, js_string,
     object::PrivateElement,
     property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType, Registers},
+    vm::opcode::{Operation, VaryingOperand},
     Context, JsResult,
 };
 
@@ -14,16 +14,18 @@ use crate::{
 pub(crate) struct SetPrivateField;
 
 impl SetPrivateField {
-    fn operation(
-        value: u32,
-        object: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (value, object, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block().constant_string(index);
-        let value = registers.get(value);
-        let object = registers.get(object);
+    ) -> JsResult<()> {
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
+        let value = context.vm.get_register(value.into()).clone();
+        let object = context.vm.get_register(object.into()).clone();
         let base_obj = object.to_object(context)?;
         let name = context
             .vm
@@ -32,7 +34,7 @@ impl SetPrivateField {
             .expect("private name must be in environment");
 
         base_obj.private_set(&name, value.clone(), context)?;
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -40,27 +42,6 @@ impl Operation for SetPrivateField {
     const NAME: &'static str = "SetPrivateField";
     const INSTRUCTION: &'static str = "INST - SetPrivateField";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u8>().into();
-        let object = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(value, object, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u16>().into();
-        let object = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(value, object, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.read::<u32>();
-        let object = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(value, object, index, registers, context)
-    }
 }
 
 /// `DefinePrivateField` implements the Opcode Operation for `Opcode::DefinePrivateField`
@@ -71,17 +52,18 @@ impl Operation for SetPrivateField {
 pub(crate) struct DefinePrivateField;
 
 impl DefinePrivateField {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) {
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let object = object
             .as_object()
@@ -91,8 +73,6 @@ impl DefinePrivateField {
             object.private_name(name),
             PrivateElement::Field(value.clone()),
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -100,27 +80,6 @@ impl Operation for DefinePrivateField {
     const NAME: &'static str = "DefinePrivateField";
     const INSTRUCTION: &'static str = "INST - DefinePrivateField";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }
 
 /// `SetPrivateMethod` implements the Opcode Operation for `Opcode::SetPrivateMethod`
@@ -131,17 +90,18 @@ impl Operation for DefinePrivateField {
 pub(crate) struct SetPrivateMethod;
 
 impl SetPrivateMethod {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) {
+        let object = context.vm.get_register(object.into()).clone();
+        let value = context.vm.get_register(value.into()).clone();
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let value = value.as_callable().expect("method must be callable");
         let object = object
@@ -163,8 +123,6 @@ impl SetPrivateMethod {
             object.private_name(name),
             PrivateElement::Method(value.clone()),
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -172,27 +130,6 @@ impl Operation for SetPrivateMethod {
     const NAME: &'static str = "SetPrivateMethod";
     const INSTRUCTION: &'static str = "INST - SetPrivateMethod";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }
 
 /// `SetPrivateSetter` implements the Opcode Operation for `Opcode::SetPrivateSetter`
@@ -203,17 +140,18 @@ impl Operation for SetPrivateMethod {
 pub(crate) struct SetPrivateSetter;
 
 impl SetPrivateSetter {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) {
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let value = value.as_callable().expect("setter must be callable");
         let object = object
@@ -227,8 +165,6 @@ impl SetPrivateSetter {
                 setter: Some(value.clone()),
             },
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -236,27 +172,6 @@ impl Operation for SetPrivateSetter {
     const NAME: &'static str = "SetPrivateSetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateSetter";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }
 
 /// `SetPrivateGetter` implements the Opcode Operation for `Opcode::SetPrivateGetter`
@@ -267,17 +182,18 @@ impl Operation for SetPrivateSetter {
 pub(crate) struct SetPrivateGetter;
 
 impl SetPrivateGetter {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(
-        object: u32,
-        value: u32,
-        index: usize,
-        registers: &mut Registers,
+    #[inline(always)]
+    pub(crate) fn operation(
+        (object, value, index): (VaryingOperand, VaryingOperand, VaryingOperand),
         context: &mut Context,
-    ) -> JsResult<CompletionType> {
-        let object = registers.get(object);
-        let value = registers.get(value);
-        let name = context.vm.frame().code_block().constant_string(index);
+    ) {
+        let object = context.vm.get_register(object.into());
+        let value = context.vm.get_register(value.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
         let value = value.as_callable().expect("getter must be callable");
         let object = object
@@ -291,8 +207,6 @@ impl SetPrivateGetter {
                 setter: None,
             },
         );
-
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -300,25 +214,4 @@ impl Operation for SetPrivateGetter {
     const NAME: &'static str = "SetPrivateGetter";
     const INSTRUCTION: &'static str = "INST - SetPrivateGetter";
     const COST: u8 = 4;
-
-    fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u8>().into();
-        let value = context.vm.read::<u8>().into();
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u16>().into();
-        let value = context.vm.read::<u16>().into();
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
-
-    fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-        let object = context.vm.read::<u32>();
-        let value = context.vm.read::<u32>();
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(object, value, index, registers, context)
-    }
 }

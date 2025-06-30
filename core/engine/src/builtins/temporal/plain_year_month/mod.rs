@@ -17,7 +17,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
@@ -50,8 +49,6 @@ impl BuiltInObject for PlainYearMonth {
 
 impl IntrinsicObject for PlainYearMonth {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name(js_string!("get calendarId"))
             .build();
@@ -203,7 +200,7 @@ impl BuiltInConstructor for PlainYearMonth {
                     .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
             .transpose()?
-            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .map(|s| Calendar::try_from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
 
@@ -369,7 +366,7 @@ impl PlainYearMonth {
             get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
                 .unwrap_or_default();
         // 10. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
-        let result = year_month.inner.with(partial, overflow)?;
+        let result = year_month.inner.with(partial, Some(overflow))?;
         // 11. Return ! CreateTemporalYearMonth(isoDate, calendar).
         create_temporal_year_month(result, None, context)
     }
@@ -521,7 +518,7 @@ impl PlainYearMonth {
             })?;
 
         // 3. If item is not an Object, then
-        let Some(_obj) = args.get_or_undefined(0).as_object() else {
+        let Some(obj) = args.get_or_undefined(0).as_object() else {
             // a. Throw a TypeError exception.
             return Err(JsNativeError::typ()
                 .with_message("toPlainDate item must be an object.")
@@ -530,9 +527,21 @@ impl PlainYearMonth {
         // 4. Let calendar be yearMonth.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, yearMonth.[[ISODate]], year-month).
         // 6. Let inputFields be ? PrepareCalendarFields(calendar, item, « day », « », « »).
+        let day = obj
+            .get(js_string!("day"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                finite
+                    .as_positive_integer_with_truncation::<u8>()
+                    .map_err(JsError::from)
+            })
+            .transpose()?;
+
+        let partial = PartialDate::new().with_day(day);
+
         // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
         // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
-        let result = year_month.inner.to_plain_date()?;
+        let result = year_month.inner.to_plain_date(Some(partial))?;
         // 9. Return ! CreateTemporalDate(isoDate, calendar).
         create_temporal_date(result, None, context).map(Into::into)
     }

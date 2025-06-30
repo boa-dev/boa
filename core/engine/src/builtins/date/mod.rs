@@ -31,7 +31,6 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use boa_profiler::Profiler;
 
 pub(crate) mod utils;
 
@@ -57,8 +56,6 @@ impl Date {
 
 impl IntrinsicObject for Date {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_utc_string = BuiltInBuilder::callable(realm, Self::to_utc_string)
             .name(js_string!("toUTCString"))
             .length(0)
@@ -422,7 +419,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::new(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return DateFromTime(LocalTime(t)).
@@ -461,7 +458,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return WeekDay(LocalTime(t)).
@@ -503,7 +500,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 5. Return YearFromTime(LocalTime(t)) - 1900𝔽.
         Ok(JsValue::from(
@@ -535,7 +532,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return YearFromTime(LocalTime(t)).
@@ -573,7 +570,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return HourFromTime(LocalTime(t)).
@@ -611,7 +608,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return msFromTime(LocalTime(t)).
@@ -649,7 +646,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return MinFromTime(LocalTime(t)).
@@ -688,7 +685,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return MonthFromTime(LocalTime(t)).
@@ -726,7 +723,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return SecFromTime(LocalTime(t)).
@@ -794,7 +791,7 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 5. Return (t - LocalTime(t)) / msPerMinute.
         Ok(JsValue::from(
@@ -837,7 +834,7 @@ impl Date {
         // 5. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 6. Set t to LocalTime(t).
@@ -1001,7 +998,7 @@ impl Date {
         // 8. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 9. Set t to LocalTime(t).
@@ -1074,7 +1071,7 @@ impl Date {
         // 5. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 6. Set t to LocalTime(t).
@@ -1152,7 +1149,7 @@ impl Date {
         // 7. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 8. Set t to LocalTime(t).
@@ -1226,7 +1223,7 @@ impl Date {
         // 6. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 7. Set t to LocalTime(t).
         if LOCAL {
@@ -1299,7 +1296,7 @@ impl Date {
         // 6. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 7. Set t to LocalTime(t).
         if LOCAL {
@@ -1476,7 +1473,7 @@ impl Date {
         // 4. If tv is NaN, return "Invalid Date".
         if tv.is_nan() {
             return Ok(js_string!("Invalid Date").into());
-        };
+        }
 
         // 5. Let t be LocalTime(tv).
         let t = local_time(tv, context.host_hooks().as_ref());

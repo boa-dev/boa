@@ -20,7 +20,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
@@ -61,8 +60,6 @@ impl BuiltInObject for PlainDate {
 
 impl IntrinsicObject for PlainDate {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name(js_string!("get calendarId"))
             .build();
@@ -271,7 +268,7 @@ impl BuiltInConstructor for PlainDate {
             return Err(JsNativeError::typ()
                 .with_message("NewTarget cannot be undefined.")
                 .into());
-        };
+        }
 
         let year = args
             .get_or_undefined(0)
@@ -293,7 +290,7 @@ impl BuiltInConstructor for PlainDate {
                     .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
             .transpose()?
-            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .map(|s| Calendar::try_from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
 
@@ -424,7 +421,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.day_of_week().into())
+        Ok(date.inner.day_of_week()?.into())
     }
 
     /// 3.3.11 get `Temporal.PlainDate.prototype.dayOfYear`
@@ -454,7 +451,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.week_of_year()?.into_or_undefined())
+        Ok(date.inner.week_of_year().into_or_undefined())
     }
 
     /// 3.3.13 get `Temporal.PlainDate.prototype.yearOfWeek`
@@ -469,7 +466,7 @@ impl PlainDate {
                 .into());
         };
 
-        Ok(date.inner.year_of_week()?.into_or_undefined())
+        Ok(date.inner.year_of_week().into_or_undefined())
     }
 
     /// 3.3.14 get `Temporal.PlainDate.prototype.daysInWeek`
@@ -689,7 +686,8 @@ impl PlainDate {
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialDate).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
-        let partial = to_partial_date_record(partial_object, context)?;
+        let partial =
+            to_partial_date_record(partial_object, date.inner.calendar().clone(), context)?;
 
         let options = get_options_object(args.get_or_undefined(1))?;
         let overflow = get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
@@ -798,7 +796,7 @@ impl PlainDate {
     ) -> JsResult<JsValue> {
         // 1. Let temporalDate be the this value.
         // 2. Perform ? RequireInternalSlot(temporalDate, [[InitializedTemporalDate]]).
-        let _date = this
+        let date = this
             .as_object()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
@@ -807,7 +805,7 @@ impl PlainDate {
 
         let item = args.get_or_undefined(0);
         // 3. If item is an Object, then
-        let (_timezone, _time) = if let Some(obj) = item.as_object() {
+        let (timezone, time) = if let Some(obj) = item.as_object() {
             // a. Let timeZoneLike be ? Get(item, "timeZone").
             let time_zone_like = obj.get(js_string!("timeZone"), context)?;
             // b. If timeZoneLike is undefined, then
@@ -837,14 +835,12 @@ impl PlainDate {
             (to_temporal_timezone_identifier(item, context)?, None)
         };
 
-        // TODO: uncomment once merged in `temporal_rs`
-        // let result = date.inner.to_zoned_date_time_with_provider(timezone, time, context.tz_provider())
+        let result =
+            date.inner
+                .to_zoned_date_time_with_provider(timezone, time, context.tz_provider())?;
 
         // 7. Return ! CreateTemporalZonedDateTime(epochNs, timeZone, temporalDate.[[Calendar]]).
-        // create_temporal_zoneddatetime(result, None, context)
-        Err(JsNativeError::error()
-            .with_message("not yet implemented.")
-            .into())
+        create_temporal_zoneddatetime(result, None, context).map(Into::into)
     }
 
     /// 3.3.30 `Temporal.PlainDate.prototype.toString ( [ options ] )`
@@ -946,7 +942,7 @@ pub(crate) fn to_temporal_date(
     context: &mut Context,
 ) -> JsResult<InnerDate> {
     // 1. If options is not present, set options to undefined.
-    let options = options.unwrap_or(JsValue::undefined());
+    let options = options.unwrap_or_default();
 
     // 2. Assert: Type(options) is Object or Undefined.
     // 3. If options is not undefined, set options to ? SnapshotOwnProperties(? GetOptionsObject(options), null).
@@ -983,17 +979,17 @@ pub(crate) fn to_temporal_date(
             // ii. Return ! CreateTemporalDate(item.[[ISOYear]], item.[[ISOMonth]], item.[[ISODay]], item.[[Calendar]]).
             return Ok(date);
         }
-
-        let options_obj = get_options_object(&options)?;
-        // d. Let calendar be ? GetTemporalCalendarSlotValueWithISODefault(item).
+        // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
+        let calendar = get_temporal_calendar_slot_value_with_default(object, context)?;
+        // e. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code, day », «», «»).
+        let partial = to_partial_date_record(object, calendar, context)?;
+        // f. Let resolvedOptions be ? GetOptionsObject(options).
+        let resolved_options = get_options_object(&options)?;
+        // g. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&options_obj, js_string!("overflow"), context)?;
-
-        // e. Let fieldNames be ? CalendarFields(calendar, « "day", "month", "monthCode", "year" »).
-        // f. Let fields be ? PrepareTemporalFields(item, fieldNames, «»).
-        let partial = to_partial_date_record(object, context)?;
-        // TODO: Move validation to `temporal_rs`.
-        // g. Return ? CalendarDateFromFields(calendar, fields, options).
+            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
+        // h. Let isoDate be ? CalendarDateFromFields(calendar, fields, overflow).
+        // i. Return ! CreateTemporalDate(isoDate, calendar).
         return Ok(InnerDate::from_partial(partial, overflow)?);
     }
 
@@ -1028,9 +1024,10 @@ pub(crate) fn to_temporal_date(
 // TODO: For order of operations, `to_partial_date_record` may need to take a `Option<Calendar>` arg.
 pub(crate) fn to_partial_date_record(
     partial_object: &JsObject,
+    calendar: Calendar,
     context: &mut Context,
 ) -> JsResult<PartialDate> {
-    let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
+    // let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
     // TODO: Most likely need to use an iterator to handle.
     let day = partial_object
         .get(js_string!("day"), context)?

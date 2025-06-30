@@ -13,7 +13,6 @@ use boa_ast::{
     statement, Keyword, Punctuator,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 
 /// Catch parsing
@@ -54,7 +53,6 @@ where
     type Output = statement::Catch;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Catch", "Parsing");
         cursor.expect((Keyword::Catch, false), "try statement", interner)?;
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();
         let catch_param = if cursor.next_if(Punctuator::OpenParen, interner)?.is_some() {

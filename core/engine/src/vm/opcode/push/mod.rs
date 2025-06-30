@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult, JsValue,
+    vm::opcode::{Operation, VaryingOperand},
+    Context, JsValue,
 };
 
 pub(crate) mod array;
@@ -27,9 +27,9 @@ macro_rules! implement_push_generics {
         pub(crate) struct $name;
 
         impl $name {
-            fn operation(dst: u32, registers: &mut Registers, _: &mut Context) -> JsResult<CompletionType> {
-                registers.set(dst, $push_value.into());
-                Ok(CompletionType::Normal)
+            #[inline(always)]
+            pub(super) fn operation(dst: VaryingOperand,  context: &mut Context) {
+                context.vm.set_register(dst.into(), $push_value.into());
             }
         }
 
@@ -37,21 +37,6 @@ macro_rules! implement_push_generics {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 1;
-
-            fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u8>().into();
-                Self::operation(dst, registers, context)
-            }
-
-            fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u16>().into();
-                Self::operation(dst, registers, context)
-            }
-
-            fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u32>().into();
-                Self::operation(dst, registers, context)
-            }
         }
     };
 }
@@ -70,7 +55,7 @@ implement_push_generics!(PushTrue, true, "Push integer `true` on the stack.");
 implement_push_generics!(PushFalse, false, "Push integer `false` on the stack.");
 implement_push_generics!(PushZero, 0, "Push integer `0` on the stack.");
 implement_push_generics!(PushOne, 1, "Push integer `1` on the stack.");
-implement_push_generics!(PushNaN, JsValue::nan(), "Push integer `NaN` on the stack.");
+implement_push_generics!(PushNan, JsValue::nan(), "Push integer `NaN` on the stack.");
 implement_push_generics!(
     PushPositiveInfinity,
     JsValue::positive_infinity(),

@@ -8,14 +8,9 @@ use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::ModuleLoader;
 use boa_engine::{js_string, Context, JsString, JsValue, Module, Source};
 use boa_interop::embed_module;
+use boa_interop::loaders::embedded::EmbeddedModuleLoader;
 
-#[test]
-fn simple() {
-    #[cfg(target_family = "unix")]
-    let module_loader = Rc::new(embed_module!("tests/embedded/"));
-    #[cfg(target_family = "windows")]
-    let module_loader = Rc::new(embed_module!("tests\\embedded\\"));
-
+fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
     let mut context = Context::builder()
         .module_loader(module_loader.clone())
         .build()
@@ -66,4 +61,25 @@ fn simple() {
         ),
         PromiseState::Pending => panic!("Promise was not settled"),
     }
+}
+
+#[test]
+fn simple() {
+    #[cfg(target_family = "unix")]
+    let module_loader = Rc::new(embed_module!("tests/embedded/"));
+    #[cfg(target_family = "windows")]
+    let module_loader = Rc::new(embed_module!("tests\\embedded\\"));
+
+    load_module_and_test(&module_loader);
+}
+
+#[cfg(feature = "embedded_lz4")]
+#[test]
+fn compressed_lz4() {
+    #[cfg(target_family = "unix")]
+    let module_loader = Rc::new(embed_module!("tests/embedded/", compress = "lz4"));
+    #[cfg(target_family = "windows")]
+    let module_loader = Rc::new(embed_module!("tests\\embedded\\", compress = "lz4"));
+
+    load_module_and_test(&module_loader);
 }

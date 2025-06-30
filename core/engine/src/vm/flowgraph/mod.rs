@@ -13,7 +13,10 @@ pub use edge::*;
 pub use graph::*;
 pub use node::*;
 
-use super::{Constant, Instruction, InstructionIterator};
+use super::{
+    opcode::{Instruction, InstructionIterator},
+    Constant,
+};
 
 impl CodeBlock {
     /// Output the [`CodeBlock`] VM instructions into a [`Graph`].
@@ -29,8 +32,7 @@ impl CodeBlock {
         graph.set_label(name);
 
         let mut iterator = InstructionIterator::new(&self.bytecode);
-        while let Some((previous_pc, _, instruction)) = iterator.next() {
-            let opcode = instruction.opcode();
+        while let Some((previous_pc, opcode, instruction)) = iterator.next() {
             let opcode_str = opcode.as_str();
 
             let label = format!("{opcode_str} {}", self.instruction_operands(&instruction));
@@ -101,7 +103,7 @@ impl CodeBlock {
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Instruction::PushLiteral { .. }
-                | Instruction::PushRegExp { .. }
+                | Instruction::PushRegexp { .. }
                 | Instruction::HasRestrictedGlobalProperty { .. }
                 | Instruction::CanDeclareGlobalFunction { .. }
                 | Instruction::CanDeclareGlobalVar { .. } => {
@@ -307,7 +309,9 @@ impl CodeBlock {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
-                Instruction::ThrowNewTypeError { .. } | Instruction::ThrowNewSyntaxError { .. } => {
+                Instruction::ThrowNewTypeError { .. }
+                | Instruction::ThrowNewSyntaxError { .. }
+                | Instruction::ThrowNewReferenceError { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     if let Some((i, handler)) = self.find_handler(previous_pc as u32) {
                         graph.add_edge(
@@ -360,7 +364,7 @@ impl CodeBlock {
                 Instruction::Pop
                 | Instruction::PushZero { .. }
                 | Instruction::PushOne { .. }
-                | Instruction::PushNaN { .. }
+                | Instruction::PushNan { .. }
                 | Instruction::PushPositiveInfinity { .. }
                 | Instruction::PushNegativeInfinity { .. }
                 | Instruction::PushNull { .. }
@@ -438,18 +442,14 @@ impl CodeBlock {
                 | Instruction::CreateMappedArgumentsObject { .. }
                 | Instruction::CreateUnmappedArgumentsObject { .. }
                 | Instruction::CreateGlobalFunctionBinding { .. }
-                | Instruction::CreateGlobalVarBinding { .. }
-                | Instruction::PopIntoLocal { .. }
-                | Instruction::PushFromLocal { .. } => {
+                | Instruction::CreateGlobalVarBinding { .. } => {
                     graph.add_node(previous_pc, NodeShape::None, label.into(), Color::None);
                     graph.add_edge(previous_pc, pc, None, Color::None, EdgeStyle::Line);
                 }
                 Instruction::Return => {
                     graph.add_node(previous_pc, NodeShape::Diamond, label.into(), Color::Red);
                 }
-                Instruction::U16Operands
-                | Instruction::U32Operands
-                | Instruction::Reserved1
+                Instruction::Reserved1
                 | Instruction::Reserved2
                 | Instruction::Reserved3
                 | Instruction::Reserved4
@@ -508,7 +508,10 @@ impl CodeBlock {
                 | Instruction::Reserved57
                 | Instruction::Reserved58
                 | Instruction::Reserved59
-                | Instruction::Reserved60 => unreachable!("Reserved opcodes are unreachable"),
+                | Instruction::Reserved60
+                | Instruction::Reserved61
+                | Instruction::Reserved62
+                | Instruction::Reserved63 => unreachable!("Reserved opcodes are unreachable"),
             }
         }
 
