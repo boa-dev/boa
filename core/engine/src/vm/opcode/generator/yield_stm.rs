@@ -4,7 +4,7 @@ use crate::{
     builtins::async_generator::{AsyncGenerator, AsyncGeneratorState},
     vm::{
         opcode::{Operation, VaryingOperand},
-        CompletionRecord, GeneratorResumeKind,
+        CompletionRecord, GeneratorResumeKind, OpStatus,
     },
     Context, JsValue,
 };
@@ -21,7 +21,7 @@ impl GeneratorYield {
     pub(crate) fn operation(
         value: VaryingOperand,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         let value = context.vm.get_register(value.into());
         context.vm.set_return_value(value.clone());
         context.handle_yield()
@@ -46,7 +46,7 @@ impl AsyncGeneratorYield {
     pub(crate) fn operation(
         value: VaryingOperand,
         context: &mut Context,
-    ) -> ControlFlow<CompletionRecord> {
+    ) -> ControlFlow<CompletionRecord, OpStatus> {
         // AsyncGeneratorYield ( value )
         // https://tc39.es/ecma262/#sec-asyncgeneratoryield
 
@@ -100,7 +100,7 @@ impl AsyncGeneratorYield {
             context.vm.stack.push(resume_kind);
 
             // d. Return ? AsyncGeneratorUnwrapYieldResumption(resumptionValue).
-            return ControlFlow::Continue(());
+            return ControlFlow::Continue(OpStatus::Finished);
         }
 
         // 12. Else,
