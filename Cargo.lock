@@ -401,7 +401,7 @@ dependencies = [
  "ryu-js",
  "serde",
  "serde_json",
- "small_map",
+ "small_btree",
  "static_assertions",
  "sys-locale",
  "tag_ptr",
@@ -3455,7 +3455,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "small_map"
+name = "small_btree"
 version = "0.1.0"
 dependencies = [
  "arrayvec",

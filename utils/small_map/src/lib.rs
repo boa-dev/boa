@@ -62,7 +62,7 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Iter<'_, K, V> {
 }
 
 impl<K, V> Default for Iter<'_, K, V> {
-    /// Creates an empty `small_map::Iter`.
+    /// Creates an empty `small_btree::Iter`.
     fn default() -> Self {
         Self {
             inner: InnerIter::Inline(std::slice::Iter::default()),
@@ -95,7 +95,7 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
 }
 
 impl<K, V> Default for IterMut<'_, K, V> {
-    /// Creates an empty `small_map::IterMut`.
+    /// Creates an empty `small_btree::IterMut`.
     fn default() -> Self {
         Self {
             inner: InnerIterMut::Inline(std::slice::IterMut::default()),
@@ -130,7 +130,7 @@ impl<K: fmt::Debug, V: fmt::Debug, const ARRAY_SIZE: usize> fmt::Debug
 }
 
 impl<K, V, const ARRAY_SIZE: usize> Default for IntoIter<K, V, ARRAY_SIZE> {
-    /// Creates an empty `small_map::IntoIter`.
+    /// Creates an empty `small_btree::IntoIter`.
     fn default() -> Self {
         Self {
             inner: InnerIntoIter::Inline(ArrayVec::new().into_iter()),

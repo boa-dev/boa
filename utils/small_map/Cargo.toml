@@ -1,5 +1,5 @@
 [package]
-name = "small_map"
+name = "small_btree"
 keywords = ["small", "map"]
 categories = ["data-structures"]
 readme = "../../README.md"
