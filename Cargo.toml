@@ -18,7 +18,8 @@ members = [
 
 exclude = [
     "tests/fuzz", # Does weird things on Windows tests
-    "tests/src",  # Just a hack to have fuzz inside tests
+    "tests/src", # Just a hack to have fuzz inside tests
+    "tests/wpt", # Should not run WPT by default.
 ]
 
 [workspace.package]
@@ -128,6 +129,7 @@ criterion = "0.5.1"
 float-cmp = "0.10.0"
 futures-lite = "2.6.0"
 test-case = "3.3.1"
+rstest = "0.25.0"
 url = "2.5.4"
 tokio = { version = "1.45.1", default-features = false }
 futures-concurrency = "7.6.3"

@@ -43,6 +43,8 @@
 )]
 #![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+// Currently throws a false positive regarding dependencies that are only used in tests.
+#![allow(unused_crate_dependencies)]
 #![allow(
     clippy::module_name_repetitions,
     clippy::redundant_pub_crate,
@@ -53,7 +55,7 @@ pub mod console;
 
 use boa_engine::realm::Realm;
 #[doc(inline)]
-pub use console::{Console, ConsoleState, Logger};
+pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 mod text;
 
