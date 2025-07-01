@@ -1,6 +1,7 @@
 use boa_engine::{Context, Finalize, JsData, JsResult, Trace};
-use boa_gc::{Gc, GcRefCell};
 use boa_runtime::{ConsoleState, Logger};
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 /// A unique index of all logs.
@@ -31,7 +32,8 @@ struct RecordingLoggerInner {
 
 #[derive(Clone, Trace, Finalize, JsData)]
 pub(crate) struct RecordingLogger {
-    inner: Gc<GcRefCell<RecordingLoggerInner>>,
+    #[unsafe_ignore_trace]
+    inner: Rc<RefCell<RecordingLoggerInner>>,
 }
 
 impl Logger for RecordingLogger {
@@ -71,7 +73,7 @@ impl Logger for RecordingLogger {
 impl RecordingLogger {
     pub(crate) fn new() -> Self {
         Self {
-            inner: Gc::new(GcRefCell::new(RecordingLoggerInner {
+            inner: Rc::new(RefCell::new(RecordingLoggerInner {
                 log: Vec::new(),
                 error: Vec::new(),
             })),

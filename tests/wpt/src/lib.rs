@@ -10,15 +10,14 @@ use boa_engine::{
     js_error, js_str, js_string, Context, Finalize, JsData, JsResult, JsString, JsValue, Source,
     Trace,
 };
-use boa_gc::Gc;
 use boa_interop::{ContextData, IntoJsFunctionCopied};
 use boa_runtime::url::Url;
 use boa_runtime::RegisterOptions;
 use logger::RecordingLogEvent;
-use std::cell::OnceCell;
+use std::cell::{OnceCell, RefCell};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::AtomicBool;
+use std::rc::Rc;
 
 mod logger;
 
@@ -57,7 +56,7 @@ impl TryFromJs for TestStatus {
     }
 }
 
-/// A single test serialization.
+/// A single test.
 #[derive(TryFromJs)]
 struct Test {
     name: JsString,
@@ -96,7 +95,7 @@ impl TestSuiteSource {
                 .ok()
         }
         let buffer = std::fs::read(&self.path)?;
-        // Check if buffer contains UTF8 or UTF16.
+        // Check if the buffer contains UTF8 or UTF16.
         let maybe_utf8 = String::from_utf8(buffer.clone());
         if let Ok(utf8) = maybe_utf8 {
             Ok(utf8)
@@ -119,7 +118,10 @@ impl TestSuiteSource {
 
     fn scripts(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let mut scripts: Vec<String> = Vec::new();
-        let dir = self.path.parent().expect("Could not get parent directory");
+        let dir = self
+            .path
+            .parent()
+            .expect("Could not get the parent directory");
 
         'outer: for script in self.meta()?.get("script").unwrap_or(&Vec::new()) {
             let script = script
@@ -193,7 +195,7 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
         .unwrap();
 
     let harness_path = wpt_path.join("resources/testharness.js");
-    let harness = Source::from_filepath(&harness_path).expect("Could not create source.");
+    let harness = Source::from_filepath(&harness_path).expect("Could not create a source.");
 
     if let Err(e) = context.eval(harness) {
         panic!("Failed to eval testharness.js: {e:#?}");
@@ -250,19 +252,19 @@ fn complete_callback__(ContextData(test_done): ContextData<TestCompletion>) {
 }
 
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
-struct TestCompletion(Gc<AtomicBool>);
+struct TestCompletion(#[unsafe_ignore_trace] Rc<RefCell<bool>>);
 
 impl TestCompletion {
     fn new() -> Self {
-        Self(Gc::new(AtomicBool::new(false)))
+        Self(Rc::new(RefCell::new(false)))
     }
 
     fn done(&self) {
-        self.0.store(true, std::sync::atomic::Ordering::SeqCst);
+        self.0.replace(true);
     }
 
     fn is_done(&self) -> bool {
-        self.0.load(std::sync::atomic::Ordering::SeqCst)
+        *self.0.borrow()
     }
 }
 
@@ -273,7 +275,7 @@ impl TestCompletion {
 fn execute_test_file(path: &Path) {
     let dir = path.parent().unwrap();
     let wpt_path = PathBuf::from(
-        std::env::var("WPT_ROOT").expect("Could not find WPT_ROOT environment variable"),
+        std::env::var("WPT_ROOT").expect("Could not find the WPT_ROOT environment variable"),
     );
     let (mut context, logger) = create_context(&wpt_path);
     let test_done = TestCompletion::new();
@@ -318,7 +320,7 @@ fn execute_test_file(path: &Path) {
         };
 
         if path.exists() {
-            let source = Source::from_filepath(&path).expect("Could not parse source.");
+            let source = Source::from_filepath(&path).expect("Could not parse the source.");
             if let Err(err) = context.eval(source) {
                 panic!("Could not eval script, path = {path:?}, err = {err:?}");
             }
@@ -328,7 +330,7 @@ fn execute_test_file(path: &Path) {
     }
     context
         .eval(source.source())
-        .expect("Could not evaluate source");
+        .expect("Could not evaluate the test source");
     context.run_jobs();
 
     // Done()
@@ -375,7 +377,7 @@ fn encoding(
 }
 
 /// Test the URL class with the WPT test suite.
-// A bunch of these tests are failing due to lack of support in the URL class,
+// A bunch of these tests are failing due to lack of support in the URL class
 // or missing APIs such as fetch.
 #[cfg(not(clippy))]
 #[rstest::rstest]

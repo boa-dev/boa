@@ -12,4 +12,7 @@ boa_runtime.workspace = true
 rstest.workspace = true
 
 [features]
+# Run the suites of tests. Without this flag (which is not enabled by
+# default), the tests will be ignored as they require an environment
+# variable that isn't set when running tests normally.
 wpt = []

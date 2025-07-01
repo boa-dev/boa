@@ -22,6 +22,9 @@ yarn-error.log
 # test262 testing suite
 test262
 
+# wpt testing suite
+wpt_tests
+
 # Profiling
 *.string_data
 *.string_index
