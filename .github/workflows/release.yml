@@ -88,18 +88,22 @@ jobs:
           os: ubuntu-20.04
           target: x86_64-unknown-linux-gnu
           binary_extension: ""
+          features: ""
         - build: macos-amd64
           os: macos-13
           target: x86_64-apple-darwin
           binary_extension: ""
+          features: ""
         - build: macos-arm64
           os: macos-14
           target: aarch64-apple-darwin
           binary_extension: ""
+          features: ""
         - build: win-msvc
           os: windows-2019
           target: x86_64-pc-windows-msvc
           binary_extension: ".exe"
+          features: "mimalloc"
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -112,7 +116,13 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build
-        run: cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
+        run: |
+          if [ -n "${{ matrix.features }}" ]; then
+            cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa --features ${{ matrix.features }}
+          else
+            cargo build --target ${{ matrix.target }} --verbose --release --locked --bin boa
+          fi
+        shell: bash
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2

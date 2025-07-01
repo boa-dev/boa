@@ -30,12 +30,13 @@ cow-utils.workspace = true
 [features]
 default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl_bundled"]
 dhat = ["dep:dhat"]
+mimalloc = ["dep:mimalloc-safe"]
 
 [target.x86_64-unknown-linux-gnu.dependencies]
 jemallocator.workspace = true
 
 [target.'cfg(target_os = "windows")'.dependencies]
-mimalloc-safe = { workspace = true, features = ["skip_collect_on_exit"] }
+mimalloc-safe = { workspace = true, optional = true, features = ["skip_collect_on_exit"] }
 
 [[bin]]
 name = "boa"
