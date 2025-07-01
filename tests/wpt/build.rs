@@ -1,8 +1,5 @@
 #![allow(dead_code)]
 
-#[cfg(not(feature = "wpt"))]
-fn main() {}
-
 use serde::Deserialize;
 use std::path::Path;
 
@@ -61,7 +58,6 @@ fn prep_repository(rev: &str, root: impl AsRef<Path>) {
     .expect("Could not reset the repository");
 }
 
-#[cfg(feature = "wpt")]
 fn main() {
     println!("cargo:rerun-if-changed=tests_wpt");
 

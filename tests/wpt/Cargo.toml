@@ -5,19 +5,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-boa_engine.workspace = true
-boa_gc.workspace = true
-boa_interop.workspace = true
-boa_runtime.workspace = true
-rstest.workspace = true
+boa_engine = { path = "../../core/engine" }
+boa_gc = { path = "../../core/gc" }
+boa_interop = { path = "../../core/interop" }
+boa_runtime = { path = "../../core/runtime" }
+rstest = "0.25.0"
 
 [build-dependencies]
 git2 = "0.20.2"
 toml = "0.8.23"
-serde = { workspace = true, features = ["derive"] }
-
-[features]
-# Run the suites of tests. Without this flag (which is not enabled by
-# default), the tests will be ignored as they require an environment
-# variable that isn't set when running tests normally.
-wpt = []
+serde = { version = "1.0.219", features = ["derive"] }

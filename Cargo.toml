@@ -19,6 +19,7 @@ members = [
 exclude = [
     "tests/fuzz", # Does weird things on Windows tests
     "tests/src", # Just a hack to have fuzz inside tests
+    "tests/wpt", # Should not run WPT by default.
 ]
 
 [workspace.package]
