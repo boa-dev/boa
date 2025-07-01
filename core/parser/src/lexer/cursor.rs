@@ -179,6 +179,11 @@ impl<R: ReadChar> Cursor<R> {
             } else if let Some(byte) = self.next_char()? {
                 buf[count] = byte as u8;
                 count += 1;
+            } else if count >= buf.len() {
+                return Err(Error::new(
+                    ErrorKind::UnexpectedEof,
+                    "Unexpected end of buffer while taking characters",
+                ));
             } else {
                 // next_is_pred will return false if the next value is None so the None case should already be handled.
                 unreachable!();
