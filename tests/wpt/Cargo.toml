@@ -11,6 +11,11 @@ boa_interop.workspace = true
 boa_runtime.workspace = true
 rstest.workspace = true
 
+[build-dependencies]
+git2 = "0.20.2"
+toml = "0.8.23"
+serde = { workspace = true, features = ["derive"] }
+
 [features]
 # Run the suites of tests. Without this flag (which is not enabled by
 # default), the tests will be ignored as they require an environment

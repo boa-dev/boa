@@ -23,7 +23,7 @@ yarn-error.log
 test262
 
 # wpt testing suite
-wpt_tests
+tests_wpt
 
 # Profiling
 *.string_data
