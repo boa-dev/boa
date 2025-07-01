@@ -186,8 +186,8 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
         .unwrap();
 
     // Define location to be an empty URL.
-    let location = Url::new("about:blank".to_string().into(), None.into())
-        .expect("Could not parse the location URL");
+    let location =
+        Url::new("about:blank".to_string().into(), None).expect("Could not parse the location URL");
     let location =
         Url::from_data(location, &mut context).expect("Could not create the location URL");
     context
