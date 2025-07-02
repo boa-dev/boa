@@ -59,20 +59,18 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             .with_message(format!("expected object, got {}", value.type_of()))
             .into());
     };
-    let format;
+    let mut format = FlowgraphFormat::Mermaid;
     let mut direction = Direction::LeftToRight;
-    if let Some(arguments) = args.get(1).and_then(JsValue::as_object) {
-        format = flowgraph_parse_format_option(&arguments.get(js_string!("format"), context)?)?;
-        direction =
-            flowgraph_parse_direction_option(&arguments.get(js_string!("direction"), context)?)?;
-    } else if value.is_string() {
-        format = flowgraph_parse_format_option(value)?;
-    } else {
-        return Err(JsNativeError::typ()
-            .with_message("options argument must be a string or object")
-            .into());
+    if let Some(arguments) = args.get(1) {
+        if let Some(arguments) = arguments.as_object() {
+            format = flowgraph_parse_format_option(&arguments.get(js_string!("format"), context)?)?;
+            direction = flowgraph_parse_direction_option(
+                &arguments.get(js_string!("direction"), context)?,
+            )?;
+        } else {
+            format = flowgraph_parse_format_option(arguments)?;
+        }
     }
-
     let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
         return Err(JsNativeError::typ()
             .with_message("expected an ordinary function object")
