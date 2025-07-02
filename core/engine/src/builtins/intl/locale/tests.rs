@@ -74,7 +74,7 @@ fn locale_resolution() {
     )
     .unwrap()
     .locale
-    .map_or(default, |loc| loc.into_locale());
+    .map_or(default, DataLocale::into_locale);
 
     default
         .extensions
