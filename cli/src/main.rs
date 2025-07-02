@@ -44,20 +44,17 @@ use std::{
     target_arch = "x86_64",
     target_os = "linux",
     target_env = "gnu",
-    feature = "dhat"
-))]
-use jemallocator as _;
-
-#[cfg(all(
-    target_arch = "x86_64",
-    target_os = "linux",
-    target_env = "gnu",
+    feature = "fast-allocator",
     not(feature = "dhat")
 ))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
-#[cfg(all(target_os = "windows", feature = "mimalloc", not(feature = "dhat")))]
+#[cfg(all(
+    target_os = "windows",
+    feature = "fast-allocator",
+    not(feature = "dhat")
+))]
 #[global_allocator]
 static ALLOC: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
