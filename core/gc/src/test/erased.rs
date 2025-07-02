@@ -3,7 +3,7 @@ use std::any::TypeId;
 use boa_macros::{Finalize, Trace};
 
 use super::run_test;
-use crate::{Gc, GcErased};
+use crate::{Gc, GcBox, GcErased, force_collect, test::Harness};
 
 #[test]
 fn erased_gc() {
@@ -24,6 +24,46 @@ fn erased_gc() {
         assert_eq!(**gc_from_erased, value);
 
         assert!(Gc::ptr_eq(&gc, gc_from_erased));
+    });
+}
+
+#[test]
+fn nested_erased_gc() {
+    #[derive(Debug, Trace, Finalize)]
+    struct List {
+        value: i32,
+        next: Option<GcErased>,
+    }
+
+    run_test(|| {
+        let mut root = GcErased::new(Gc::new(List {
+            value: 0,
+            next: None,
+        }));
+
+        for value in 1..100 {
+            root = GcErased::new(Gc::new(List {
+                value,
+                next: Some(root),
+            }));
+        }
+
+        Harness::assert_exact_bytes_allocated(100 * size_of::<GcBox<List>>());
+        force_collect();
+        Harness::assert_exact_bytes_allocated(100 * size_of::<GcBox<List>>());
+
+        let mut head = root.downcast::<List>().cloned();
+        for value in (0..100).rev() {
+            let head_unwrap = head.as_ref().unwrap();
+
+            assert_eq!(head_unwrap.value, value);
+
+            head = head_unwrap
+                .next
+                .as_ref()
+                .and_then(GcErased::downcast::<List>)
+                .cloned();
+        }
     });
 }
 
