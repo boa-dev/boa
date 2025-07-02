@@ -1,11 +1,11 @@
 use crate::value::JsVariant;
 use crate::vm::opcode::VaryingOperand;
 use crate::{
-    builtins::{function::OrdinaryFunction, OrdinaryObject},
-    object::{internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE},
+    Context,
+    builtins::{OrdinaryObject, function::OrdinaryFunction},
+    object::{CONSTRUCTOR, JsObject, PROTOTYPE, internal_methods::InternalMethodContext},
     property::PropertyDescriptorBuilder,
     vm::opcode::Operation,
-    Context,
 };
 
 /// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`

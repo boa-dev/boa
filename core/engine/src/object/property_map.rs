@@ -1,15 +1,15 @@
 use super::{
+    JsPrototype, ObjectStorage, PropertyDescriptor, PropertyKey,
     shape::{
+        ChangeTransitionAction, RootShape, Shape, UniqueShape,
         property_table::PropertyTableInner,
         shared_shape::TransitionKey,
         slot::{Slot, SlotAttributes},
-        ChangeTransitionAction, RootShape, Shape, UniqueShape,
     },
-    JsPrototype, ObjectStorage, PropertyDescriptor, PropertyKey,
 };
 use crate::value::JsVariant;
-use crate::{property::PropertyDescriptorBuilder, JsValue};
-use boa_gc::{custom_trace, Finalize, Trace};
+use crate::{JsValue, property::PropertyDescriptorBuilder};
+use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::IndexMap;
 use rustc_hash::{FxHashMap, FxHasher};
 use std::{collections::hash_map, hash::BuildHasherDefault, iter::FusedIterator};
@@ -86,10 +86,10 @@ impl IndexedProperties {
     /// Get a property descriptor if it exists.
     fn get(&self, key: u32) -> Option<PropertyDescriptor> {
         let value = match self {
-            Self::DenseI32(ref vec) => vec.get(key as usize).copied()?.into(),
-            Self::DenseF64(ref vec) => vec.get(key as usize).copied()?.into(),
-            Self::DenseElement(ref vec) => vec.get(key as usize)?.clone(),
-            Self::Sparse(ref map) => return map.get(&key).cloned(),
+            Self::DenseI32(vec) => vec.get(key as usize).copied()?.into(),
+            Self::DenseF64(vec) => vec.get(key as usize).copied()?.into(),
+            Self::DenseElement(vec) => vec.get(key as usize)?.clone(),
+            Self::Sparse(map) => return map.get(&key).cloned(),
         };
 
         Some(

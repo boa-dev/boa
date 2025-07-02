@@ -1,10 +1,10 @@
 use boa_interner::Interner;
 
 use crate::{
-    expression::{Call, Identifier, NewTarget, This},
-    operations::{contains, ContainsSymbol},
-    statement::With,
     Span, Statement,
+    expression::{Call, Identifier, NewTarget, This},
+    operations::{ContainsSymbol, contains},
+    statement::With,
 };
 
 #[test]

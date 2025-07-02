@@ -4,6 +4,7 @@ use rustc_hash::FxHashSet;
 
 use super::{BindingName, ResolveExportError, ResolvedBinding};
 use crate::{
+    Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
     builtins::promise::ResolvingFunctions,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
@@ -11,7 +12,6 @@ use crate::{
     js_string,
     object::JsPromise,
     vm::{ActiveRunnable, CallFrame, CodeBlock},
-    Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
 trait TraceableCallback: Trace {

@@ -1,7 +1,7 @@
 use crate::{
+    Expression,
     statement::Statement,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Expression,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;

@@ -1,8 +1,8 @@
 use std::{error::Error, path::Path, rc::Rc};
 
 use boa_engine::{
-    builtins::promise::PromiseState, js_string, module::SimpleModuleLoader, Context, JsError,
-    JsNativeError, JsValue, Module, NativeFunction,
+    Context, JsError, JsNativeError, JsValue, Module, NativeFunction,
+    builtins::promise::PromiseState, js_string, module::SimpleModuleLoader,
 };
 use boa_parser::Source;
 
@@ -96,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             assert_eq!(v, JsValue::undefined());
         }
         PromiseState::Rejected(err) => {
-            return Err(JsError::from_opaque(err).try_native(context)?.into())
+            return Err(JsError::from_opaque(err).try_native(context)?.into());
         }
     }
 

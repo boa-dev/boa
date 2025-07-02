@@ -1,17 +1,17 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
     declaration::{LexicalDeclaration, Variable, VariableList},
     expression::{
+        Call, Identifier, NewTarget,
         access::{PropertyAccess, SimplePropertyAccess},
         literal::Literal,
-        Call, Identifier, NewTarget,
     },
     function::{
         ClassDeclaration, ClassElement, ClassFieldDefinition, ClassMethodDefinition,
         FormalParameterList, FunctionBody, FunctionExpression,
     },
     property::MethodDefinitionKind,
-    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

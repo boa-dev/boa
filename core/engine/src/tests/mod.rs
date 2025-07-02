@@ -14,7 +14,7 @@ mod promise;
 mod spread;
 mod to_string;
 
-use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{JsNativeErrorKind, JsValue, TestAction, run_test_actions};
 
 #[test]
 fn length_correct_value_on_string_literal() {
@@ -422,17 +422,50 @@ fn strict_mode_reserved_name() {
     // an error in strict mode code as per https://tc39.es/ecma262/#sec-strict-mode-of-ecmascript.
 
     let cases = [
-        ("var implements = 10;", "unexpected token 'implements', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var interface = 10;", "unexpected token 'interface', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var package = 10;", "unexpected token 'package', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var private = 10;", "unexpected token 'private', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var protected = 10;", "unexpected token 'protected', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var public = 10;", "unexpected token 'public', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var static = 10;", "unexpected token 'static', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var eval = 10;", "binding identifier `eval` not allowed in strict mode at line 1, col 19"),
-        ("var arguments = 10;", "binding identifier `arguments` not allowed in strict mode at line 1, col 19"),
-        ("var let = 10;", "unexpected token 'let', strict reserved word cannot be an identifier at line 1, col 19"),
-        ("var yield = 10;", "unexpected token 'yield', strict reserved word cannot be an identifier at line 1, col 19"),
+        (
+            "var implements = 10;",
+            "unexpected token 'implements', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var interface = 10;",
+            "unexpected token 'interface', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var package = 10;",
+            "unexpected token 'package', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var private = 10;",
+            "unexpected token 'private', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var protected = 10;",
+            "unexpected token 'protected', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var public = 10;",
+            "unexpected token 'public', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var static = 10;",
+            "unexpected token 'static', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var eval = 10;",
+            "binding identifier `eval` not allowed in strict mode at line 1, col 19",
+        ),
+        (
+            "var arguments = 10;",
+            "binding identifier `arguments` not allowed in strict mode at line 1, col 19",
+        ),
+        (
+            "var let = 10;",
+            "unexpected token 'let', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
+        (
+            "var yield = 10;",
+            "unexpected token 'yield', strict reserved word cannot be an identifier at line 1, col 19",
+        ),
     ];
 
     run_test_actions(cases.into_iter().map(|(case, msg)| {

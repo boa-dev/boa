@@ -1,10 +1,10 @@
 //! Block AST node.
 
 use crate::{
-    operations::{contains, ContainsSymbol},
+    Statement, StatementList,
+    operations::{ContainsSymbol, contains},
     scope::Scope,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Statement, StatementList,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;

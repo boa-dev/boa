@@ -11,25 +11,24 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{BindingIdentifier, Initializer},
         statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
-        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use ast::{
-    operations::{check_labels, contains_invalid_object_literal},
     Position,
+    operations::{check_labels, contains_invalid_object_literal},
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Punctuator, Span,
     declaration::Variable,
     expression::Identifier,
     function::{FormalParameterList, FormalParameterListFlags, FunctionBody as AstFunctionBody},
-    Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 

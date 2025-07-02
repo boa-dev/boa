@@ -1,6 +1,6 @@
 use boa_macros::js_str;
 
-use crate::{run_test_actions, JsValue, TestAction};
+use crate::{JsValue, TestAction, run_test_actions};
 
 // Temporal Object tests.
 

@@ -1,7 +1,7 @@
 use boa_macros::js_str;
 use indoc::indoc;
 
-use crate::{js_string, run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{JsNativeErrorKind, JsValue, TestAction, js_string, run_test_actions};
 
 #[test]
 fn json_sanity() {

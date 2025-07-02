@@ -7,24 +7,23 @@
 
 use super::arguments::Arguments;
 use crate::{
-    lexer::{token::ContainsEscapeSequence, InputElement, TokenKind},
+    Error,
+    lexer::{InputElement, TokenKind, token::ContainsEscapeSequence},
     parser::{
-        expression::{
-            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
-        },
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{
+            Expression, left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
+        },
     },
     source::ReadChar,
-    Error,
 };
 use ast::function::PrivateName;
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Punctuator, Span,
     expression::{
-        access::{PrivatePropertyAccess, SimplePropertyAccess, SuperPropertyAccess},
         Call, Identifier, ImportMeta, New, NewTarget,
+        access::{PrivatePropertyAccess, SimplePropertyAccess, SuperPropertyAccess},
     },
-    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 
@@ -116,7 +115,7 @@ where
                 let new_token_span = token.span();
                 cursor.advance(interner);
 
-                let lhs_new_target = if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
+                if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(true))) => {
@@ -154,8 +153,7 @@ where
                     );
 
                     New::from(call_node).into()
-                };
-                lhs_new_target
+                }
             }
             TokenKind::Keyword((Keyword::Super, _)) => {
                 let super_token_span = token.span();
@@ -221,7 +219,7 @@ where
                             token.to_string(interner),
                             token.span(),
                             "expected super property",
-                        ))
+                        ));
                     }
                 }
             }

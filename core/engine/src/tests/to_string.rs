@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use crate::{value::TryFromJs, Context};
+use crate::{Context, value::TryFromJs};
 use boa_parser::Source;
 
 /// We test nested `toString()` cases:

@@ -11,7 +11,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction
 
 use crate::{
-    builtins::{function::BuiltInFunctionObject, BuiltInObject},
+    Context, JsResult, JsString,
+    builtins::{BuiltInObject, function::BuiltInFunctionObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::PROTOTYPE,
     property::Attribute,
@@ -19,7 +20,6 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
 };
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};

@@ -7,17 +7,17 @@ use boa_macros::utf16;
 use num_traits::Zero;
 
 use super::{
-    object::typed_array_set_element, ContentType, TypedArray, TypedArrayKind, TypedArrayMarker,
+    ContentType, TypedArray, TypedArrayKind, TypedArrayMarker, object::typed_array_set_element,
 };
-use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 use crate::{
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
-        array::{find_via_predicate, ArrayIterator, Direction},
-        array_buffer::{
-            utils::{memcpy, memmove, SliceRefMut},
-            ArrayBuffer, BufferObject,
-        },
         Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        array::{ArrayIterator, Direction, find_via_predicate},
+        array_buffer::{
+            ArrayBuffer, BufferObject,
+            utils::{SliceRefMut, memcpy, memmove},
+        },
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -26,8 +26,8 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::IntegerOrInfinity,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
+use crate::{builtins::array_buffer::utils::memmove_naive, value::JsVariant};
 
 /// The JavaScript `%TypedArray%` object.
 ///
@@ -201,7 +201,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.from called on non-constructable value")
-                    .into())
+                    .into());
             }
         };
 
@@ -327,7 +327,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.of called on non-constructable value")
-                    .into())
+                    .into());
             }
         };
 
@@ -379,7 +379,7 @@ impl BuiltinTypedArray {
         let k = match relative_index {
             // Note: Early undefined return on infinity.
             IntegerOrInfinity::PositiveInfinity | IntegerOrInfinity::NegativeInfinity => {
-                return Ok(JsValue::undefined())
+                return Ok(JsValue::undefined());
             }
             // 5. If relativeIndex ≥ 0, then
             // a. Let k be relativeIndex.
@@ -660,7 +660,7 @@ impl BuiltinTypedArray {
                     .with_message(
                         "TypedArray.prototype.every called with non-callable callback function",
                     )
-                    .into())
+                    .into());
             }
         };
 
@@ -1159,12 +1159,12 @@ impl BuiltinTypedArray {
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
             // b. If kPresent is true, then
             // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here") {
-                // ii. Let same be IsStrictlyEqual(searchElement, elementK).
-                // iii. If same is true, return 𝔽(k).
-                if args.get_or_undefined(0).strict_equals(&element_k) {
-                    return Ok(k.into());
-                }
+            //   ii. Let same be IsStrictlyEqual(searchElement, elementK).
+            //   iii. If same is true, return 𝔽(k).
+            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here")
+                && args.get_or_undefined(0).strict_equals(&element_k)
+            {
+                return Ok(k.into());
             }
 
             // c. Set k to k + 1.
@@ -1294,12 +1294,12 @@ impl BuiltinTypedArray {
             // a. Let kPresent be ! HasProperty(O, ! ToString(𝔽(k))).
             // b. If kPresent is true, then
             // b.i. Let elementK be ! Get(O, ! ToString(𝔽(k))).
-            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here") {
-                // ii. Let same be IsStrictlyEqual(searchElement, elementK).
-                // iii. If same is true, return 𝔽(k).
-                if args.get_or_undefined(0).strict_equals(&element_k) {
-                    return Ok(k.into());
-                }
+            //   ii. Let same be IsStrictlyEqual(searchElement, elementK).
+            //   iii. If same is true, return 𝔽(k).
+            if let Some(element_k) = ta.try_get(k, context).expect("Get cannot fail here")
+                && args.get_or_undefined(0).strict_equals(&element_k)
+            {
+                return Ok(k.into());
             }
 
             // c. Set k to k - 1.
@@ -1369,7 +1369,7 @@ impl BuiltinTypedArray {
                     .with_message(
                         "TypedArray.prototype.map called with non-callable callback function",
                     )
-                    .into())
+                    .into());
             }
         };
 
@@ -1671,12 +1671,12 @@ impl BuiltinTypedArray {
             IntegerOrInfinity::Integer(i) if i < 0 => {
                 return Err(JsNativeError::range()
                     .with_message("TypedArray.set called with negative offset")
-                    .into())
+                    .into());
             }
             IntegerOrInfinity::NegativeInfinity => {
                 return Err(JsNativeError::range()
                     .with_message("TypedArray.set called with negative offset")
-                    .into())
+                    .into());
             }
             IntegerOrInfinity::PositiveInfinity => U64OrPositiveInfinity::PositiveInfinity,
             IntegerOrInfinity::Integer(i) => U64OrPositiveInfinity::U64(i as u64),
@@ -1961,7 +1961,7 @@ impl BuiltinTypedArray {
             U64OrPositiveInfinity::PositiveInfinity => {
                 return Err(JsNativeError::range()
                     .with_message("Target offset cannot be positive infinity")
-                    .into())
+                    .into());
             }
         };
 
@@ -2206,7 +2206,7 @@ impl BuiltinTypedArray {
                     .with_message(
                         "TypedArray.prototype.some called with non-callable callback function",
                     )
-                    .into())
+                    .into());
             }
         };
 
@@ -2254,7 +2254,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
-                    .into())
+                    .into());
             }
         };
 
@@ -2306,7 +2306,7 @@ impl BuiltinTypedArray {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("TypedArray.sort called with non-callable comparefn")
-                    .into())
+                    .into());
             }
         };
 
@@ -2378,10 +2378,8 @@ impl BuiltinTypedArray {
         //     a. Let srcLength be 0.
         // 7. Else,
         //     a. Let srcLength be TypedArrayLength(srcRecord).
-        let src_len = if let Some(buf) = buffer
-            .as_buffer()
-            .bytes(Ordering::SeqCst)
-            .filter(|s| !src_borrow.data.is_out_of_bounds(s.len()))
+        let src_len = if let Some(buf) = buffer.as_buffer().bytes(Ordering::SeqCst)
+            && !src_borrow.data.is_out_of_bounds(buf.len())
         {
             src_borrow.data.array_length(buf.len())
         } else {
@@ -2697,23 +2695,23 @@ impl BuiltinTypedArray {
             TypedArray::validate(&JsValue::new(new_typed_array), Ordering::SeqCst)?;
 
         // 3. If the number of elements in argumentList is 1 and argumentList[0] is a Number, then
-        if args.len() == 1 {
-            if let Some(number) = args[0].as_number() {
-                let new_ta = new_ta.borrow();
-                // a. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
-                if new_ta.data.is_out_of_bounds(buf_len) {
-                    return Err(JsNativeError::typ()
-                        .with_message("new typed array outside of the bounds of its inner buffer")
-                        .into());
-                }
+        if args.len() == 1
+            && let Some(number) = args[0].as_number()
+        {
+            let new_ta = new_ta.borrow();
+            // a. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
+            if new_ta.data.is_out_of_bounds(buf_len) {
+                return Err(JsNativeError::typ()
+                    .with_message("new typed array outside of the bounds of its inner buffer")
+                    .into());
+            }
 
-                // b. Let length be TypedArrayLength(taRecord).
-                // c. If length < ℝ(argumentList[0]), throw a TypeError exception.
-                if (new_ta.data.array_length(buf_len) as f64) < number {
-                    return Err(JsNativeError::typ()
-                        .with_message("new typed array length is smaller than expected")
-                        .into());
-                }
+            // b. Let length be TypedArrayLength(taRecord).
+            // c. If length < ℝ(argumentList[0]), throw a TypeError exception.
+            if (new_ta.data.array_length(buf_len) as f64) < number {
+                return Err(JsNativeError::typ()
+                    .with_message("new typed array length is smaller than expected")
+                    .into());
             }
         }
 

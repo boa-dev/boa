@@ -2,12 +2,12 @@
 //! files embedded in the binary at build time.
 
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens, TokenStreamExt};
+use quote::{ToTokens, TokenStreamExt, quote};
 use std::fs;
 use std::path::PathBuf;
 use syn::parse::ParseStream;
 use syn::punctuated::Punctuated;
-use syn::{parse::Parse, Ident, LitInt, LitStr, Token};
+use syn::{Ident, LitInt, LitStr, Token, parse::Parse};
 
 #[derive(Copy, Clone)]
 enum CompressType {

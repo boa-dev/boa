@@ -1,7 +1,7 @@
 use super::PassAction;
 use boa_ast::{
-    visitor::{VisitWith, VisitorMut},
     Expression,
+    visitor::{VisitWith, VisitorMut},
 };
 use std::{convert::Infallible, ops::ControlFlow};
 

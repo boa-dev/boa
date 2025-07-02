@@ -6,17 +6,19 @@ use std::convert::TryInto;
 
 use crate::{Parser, Source};
 use boa_ast::{
+    Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Span,
+    Statement, StatementList, StatementListItem,
     declaration::{Declaration, LexicalDeclaration, VarDeclaration, Variable},
     expression::{
+        Call, Identifier, New, Parenthesized,
         access::SimplePropertyAccess,
         literal::{Literal, ObjectLiteral, PropertyDefinition},
         operator::{
+            Assign, Binary, Update,
             assign::AssignOp,
             binary::{ArithmeticOp, BinaryOp, LogicalOp, RelationalOp},
             update::{UpdateOp, UpdateTarget},
-            Assign, Binary, Update,
         },
-        Call, Identifier, New, Parenthesized,
     },
     function::{
         ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags,
@@ -24,8 +26,6 @@ use boa_ast::{
     },
     scope::Scope,
     statement::{Block, If, Return, With},
-    Expression, LinearPosition, LinearSpan, Module, ModuleItem, ModuleItemList, Script, Span,
-    Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -71,9 +71,11 @@ where
 /// Checks that the given javascript string creates a parse error.
 #[track_caller]
 pub(super) fn check_invalid_script(js: &str) {
-    assert!(Parser::new(Source::from_bytes(js))
-        .parse_script(&Scope::new_global(), &mut Interner::default())
-        .is_err());
+    assert!(
+        Parser::new(Source::from_bytes(js))
+            .parse_script(&Scope::new_global(), &mut Interner::default())
+            .is_err()
+    );
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
@@ -82,33 +84,35 @@ fn check_construct_call_precedence() {
     let interner = &mut Interner::default();
     check_script_parser(
         "new Date().getTime()",
-        vec![Statement::Expression(
-            Call::new(
-                Expression::PropertyAccess(
-                    SimplePropertyAccess::new(
-                        New::from(Call::new(
-                            Identifier::new(
-                                interner.get_or_intern_static("Date", utf16!("Date")),
-                                Span::new((1, 5), (1, 9)),
-                            )
+        vec![
+            Statement::Expression(
+                Call::new(
+                    Expression::PropertyAccess(
+                        SimplePropertyAccess::new(
+                            New::from(Call::new(
+                                Identifier::new(
+                                    interner.get_or_intern_static("Date", utf16!("Date")),
+                                    Span::new((1, 5), (1, 9)),
+                                )
+                                .into(),
+                                Box::default(),
+                                Span::new((1, 1), (1, 11)),
+                            ))
                             .into(),
-                            Box::default(),
-                            Span::new((1, 1), (1, 11)),
-                        ))
+                            Identifier::new(
+                                interner.get_or_intern_static("getTime", utf16!("getTime")),
+                                Span::new((1, 12), (1, 19)),
+                            ),
+                        )
                         .into(),
-                        Identifier::new(
-                            interner.get_or_intern_static("getTime", utf16!("getTime")),
-                            Span::new((1, 12), (1, 19)),
-                        ),
-                    )
-                    .into(),
-                ),
-                Box::default(),
-                Span::new((1, 19), (1, 21)),
+                    ),
+                    Box::default(),
+                    Span::new((1, 19), (1, 21)),
+                )
+                .into(),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }
@@ -118,25 +122,27 @@ fn assign_operator_precedence() {
     let interner = &mut Interner::default();
     check_script_parser(
         "a = a + 1",
-        vec![Statement::Expression(Expression::from(Assign::new(
-            AssignOp::Assign,
-            Identifier::new(
-                interner.get_or_intern_static("a", utf16!("a")),
-                Span::new((1, 1), (1, 2)),
-            )
-            .into(),
-            Binary::new(
-                ArithmeticOp::Add.into(),
+        vec![
+            Statement::Expression(Expression::from(Assign::new(
+                AssignOp::Assign,
                 Identifier::new(
                     interner.get_or_intern_static("a", utf16!("a")),
-                    Span::new((1, 5), (1, 6)),
+                    Span::new((1, 1), (1, 2)),
                 )
                 .into(),
-                Literal::new(1, Span::new((1, 9), (1, 10))).into(),
-            )
+                Binary::new(
+                    ArithmeticOp::Add.into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    )
+                    .into(),
+                    Literal::new(1, Span::new((1, 9), (1, 10))).into(),
+                )
+                .into(),
+            )))
             .into(),
-        )))
-        .into()],
+        ],
         interner,
     );
 }
@@ -246,30 +252,32 @@ fn ambigous_regex_divide_expression() {
     let interner = &mut Interner::default();
     check_script_parser(
         s,
-        vec![Statement::Expression(Expression::from(Binary::new(
-            RelationalOp::StrictEqual.into(),
-            Binary::new(
-                ArithmeticOp::Div.into(),
-                Literal::new(1, Span::new((1, 1), (1, 2))).into(),
-                Identifier::new(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Span::new((1, 5), (1, 6)),
+        vec![
+            Statement::Expression(Expression::from(Binary::new(
+                RelationalOp::StrictEqual.into(),
+                Binary::new(
+                    ArithmeticOp::Div.into(),
+                    Literal::new(1, Span::new((1, 1), (1, 2))).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 5), (1, 6)),
+                    )
+                    .into(),
                 )
                 .into(),
-            )
-            .into(),
-            Binary::new(
-                ArithmeticOp::Div.into(),
-                Literal::new(1, Span::new((1, 11), (1, 12))).into(),
-                Identifier::new(
-                    interner.get_or_intern_static("b", utf16!("b")),
-                    Span::new((1, 15), (1, 16)),
+                Binary::new(
+                    ArithmeticOp::Div.into(),
+                    Literal::new(1, Span::new((1, 11), (1, 12))).into(),
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((1, 15), (1, 16)),
+                    )
+                    .into(),
                 )
                 .into(),
-            )
+            )))
             .into(),
-        )))
-        .into()],
+        ],
         interner,
     );
 }
@@ -282,36 +290,38 @@ fn two_divisions_in_expression() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_script_parser(
         s,
-        vec![Statement::Expression(Expression::from(Binary::new(
-            LogicalOp::Or.into(),
-            Binary::new(
-                RelationalOp::StrictNotEqual.into(),
-                Identifier::new(a, Span::new((1, 1), (1, 2))).into(),
-                Literal::new(0, Span::new((1, 7), (1, 8))).into(),
-            )
-            .into(),
-            Binary::new(
-                RelationalOp::StrictEqual.into(),
+        vec![
+            Statement::Expression(Expression::from(Binary::new(
+                LogicalOp::Or.into(),
                 Binary::new(
-                    ArithmeticOp::Div.into(),
-                    Literal::new(1, Span::new((1, 12), (1, 13))).into(),
-                    Identifier::new(a, Span::new((1, 16), (1, 17))).into(),
+                    RelationalOp::StrictNotEqual.into(),
+                    Identifier::new(a, Span::new((1, 1), (1, 2))).into(),
+                    Literal::new(0, Span::new((1, 7), (1, 8))).into(),
                 )
                 .into(),
                 Binary::new(
-                    ArithmeticOp::Div.into(),
-                    Literal::new(1, Span::new((1, 22), (1, 23))).into(),
-                    Identifier::new(
-                        interner.get_or_intern_static("b", utf16!("b")),
-                        Span::new((1, 26), (1, 27)),
+                    RelationalOp::StrictEqual.into(),
+                    Binary::new(
+                        ArithmeticOp::Div.into(),
+                        Literal::new(1, Span::new((1, 12), (1, 13))).into(),
+                        Identifier::new(a, Span::new((1, 16), (1, 17))).into(),
+                    )
+                    .into(),
+                    Binary::new(
+                        ArithmeticOp::Div.into(),
+                        Literal::new(1, Span::new((1, 22), (1, 23))).into(),
+                        Identifier::new(
+                            interner.get_or_intern_static("b", utf16!("b")),
+                            Span::new((1, 26), (1, 27)),
+                        )
+                        .into(),
                     )
                     .into(),
                 )
                 .into(),
-            )
+            )))
             .into(),
-        )))
-        .into()],
+        ],
         interner,
     );
 }
@@ -521,18 +531,20 @@ fn bracketed_expr() {
     let interner = &mut Interner::default();
     check_script_parser(
         s,
-        vec![Statement::Expression(
-            Parenthesized::new(
-                Identifier::new(
-                    interner.get_or_intern_static("b", utf16!("b")),
-                    Span::new((1, 2), (1, 3)),
+        vec![
+            Statement::Expression(
+                Parenthesized::new(
+                    Identifier::new(
+                        interner.get_or_intern_static("b", utf16!("b")),
+                        Span::new((1, 2), (1, 3)),
+                    )
+                    .into(),
+                    Span::new((1, 1), (1, 4)),
                 )
                 .into(),
-                Span::new((1, 1), (1, 4)),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }
@@ -545,24 +557,26 @@ fn increment_in_comma_op() {
     let b = interner.get_or_intern_static("b", utf16!("b"));
     check_script_parser(
         s,
-        vec![Statement::Expression(
-            Parenthesized::new(
-                Binary::new(
-                    BinaryOp::Comma,
-                    Update::new(
-                        UpdateOp::IncrementPost,
-                        UpdateTarget::Identifier(Identifier::new(b, Span::new((1, 2), (1, 3)))),
-                        Span::new((1, 2), (1, 5)),
+        vec![
+            Statement::Expression(
+                Parenthesized::new(
+                    Binary::new(
+                        BinaryOp::Comma,
+                        Update::new(
+                            UpdateOp::IncrementPost,
+                            UpdateTarget::Identifier(Identifier::new(b, Span::new((1, 2), (1, 3)))),
+                            Span::new((1, 2), (1, 5)),
+                        )
+                        .into(),
+                        Identifier::new(b, Span::new((1, 7), (1, 8))).into(),
                     )
                     .into(),
-                    Identifier::new(b, Span::new((1, 7), (1, 8))).into(),
+                    Span::new((1, 1), (1, 9)),
                 )
                 .into(),
-                Span::new((1, 1), (1, 9)),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }
@@ -598,18 +612,20 @@ fn spread_in_object() {
 
     check_script_parser(
         s,
-        vec![Declaration::Lexical(LexicalDeclaration::Let(
-            vec![Variable::from_identifier(
-                Identifier::new(
-                    interner.get_or_intern_static("x", utf16!("x")),
-                    Span::new((1, 5), (1, 6)),
-                ),
-                Some(ObjectLiteral::new(object_properties, Span::new((1, 9), (4, 2))).into()),
-            )]
-            .try_into()
-            .unwrap(),
-        ))
-        .into()],
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    Identifier::new(
+                        interner.get_or_intern_static("x", utf16!("x")),
+                        Span::new((1, 5), (1, 6)),
+                    ),
+                    Some(ObjectLiteral::new(object_properties, Span::new((1, 9), (4, 2))).into()),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -632,27 +648,29 @@ fn spread_in_arrow_function() {
     assert_eq!(params.length(), 0);
     check_script_parser(
         s,
-        vec![Statement::Expression(
-            ArrowFunction::new(
-                None,
-                params,
-                FunctionBody::new(
-                    StatementList::new(
-                        [Statement::Expression(
-                            Identifier::new(b, Span::new((2, 5), (2, 6))).into(),
-                        )
-                        .into()],
-                        PSEUDO_LINEAR_POS,
-                        false,
+        vec![
+            Statement::Expression(
+                ArrowFunction::new(
+                    None,
+                    params,
+                    FunctionBody::new(
+                        StatementList::new(
+                            [Statement::Expression(
+                                Identifier::new(b, Span::new((2, 5), (2, 6))).into(),
+                            )
+                            .into()],
+                            PSEUDO_LINEAR_POS,
+                            false,
+                        ),
+                        Span::new((1, 11), (3, 2)),
                     ),
-                    Span::new((1, 11), (3, 2)),
-                ),
-                EMPTY_LINEAR_SPAN,
-                Span::new((1, 1), (3, 2)),
+                    EMPTY_LINEAR_SPAN,
+                    Span::new((1, 1), (3, 2)),
+                )
+                .into(),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }
@@ -738,11 +756,13 @@ fn hashbang_use_strict_with_with_statement() {
             #!\"use strict"
             with({}) {}
         "#},
-        vec![Statement::With(With::new(
-            ObjectLiteral::new([], Span::new((2, 6), (2, 8))).into(),
-            Block::from(StatementList::new([], LinearPosition::new(27), false)).into(),
-        ))
-        .into()],
+        vec![
+            Statement::With(With::new(
+                ObjectLiteral::new([], Span::new((2, 6), (2, 8))).into(),
+                Block::from(StatementList::new([], LinearPosition::new(27), false)).into(),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }
@@ -773,7 +793,9 @@ fn stress_test_operations() {
         + "1; // end of line\n\n")
         .repeat(1_000);
 
-    assert!(Parser::new(Source::from_bytes(&src))
-        .parse_script(&Scope::new_global(), &mut Interner::default())
-        .is_ok());
+    assert!(
+        Parser::new(Source::from_bytes(&src))
+            .parse_script(&Scope::new_global(), &mut Interner::default())
+            .is_ok()
+    );
 }

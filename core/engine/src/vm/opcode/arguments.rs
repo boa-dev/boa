@@ -1,7 +1,7 @@
 use super::{Operation, VaryingOperand};
 use crate::{
-    builtins::function::arguments::{MappedArguments, UnmappedArguments},
     Context,
+    builtins::function::arguments::{MappedArguments, UnmappedArguments},
 };
 
 /// `CreateMappedArgumentsObject` implements the Opcode Operation for `Opcode::CreateMappedArgumentsObject`

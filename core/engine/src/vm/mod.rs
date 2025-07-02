@@ -5,14 +5,14 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
+    Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
     builtins::promise::{PromiseCapability, ResolvingFunctions},
     environments::EnvironmentStack,
     object::JsFunction,
     realm::Realm,
     script::Script,
-    Context, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, Module,
 };
-use boa_gc::{custom_trace, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use std::{future::Future, ops::ControlFlow, pin::Pin, task};
 
 #[cfg(feature = "trace")]
@@ -27,7 +27,7 @@ pub(crate) use opcode::{Instruction, InstructionIterator, Opcode};
 pub(crate) use {
     call_frame::CallFrameFlags,
     code_block::{
-        create_function_object, create_function_object_fast, CodeBlockFlags, Constant, Handler,
+        CodeBlockFlags, Constant, Handler, create_function_object, create_function_object_fast,
     },
     completion_record::CompletionRecord,
     inline_cache::InlineCache,

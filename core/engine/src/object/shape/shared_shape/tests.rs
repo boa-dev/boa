@@ -1,4 +1,4 @@
-use crate::{object::shape::slot::SlotAttributes, property::PropertyKey, JsObject, JsSymbol};
+use crate::{JsObject, JsSymbol, object::shape::slot::SlotAttributes, property::PropertyKey};
 
 use super::{SharedShape, TransitionKey};
 

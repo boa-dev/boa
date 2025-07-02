@@ -1,10 +1,10 @@
 use crate::{
+    Context, JsResult, JsValue,
     object::JsRegExp,
     vm::{
-        opcode::{Operation, VaryingOperand},
         Constant,
+        opcode::{Operation, VaryingOperand},
     },
-    Context, JsResult, JsValue,
 };
 
 /// `PushLiteral` implements the Opcode Operation for `Opcode::PushLiteral`

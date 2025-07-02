@@ -1,18 +1,20 @@
 use icu_decimal::provider::DecimalSymbolsV1;
 use icu_locale::{
-    extensions::unicode::Value, extensions_unicode_key as key, extensions_unicode_value as value,
-    locale, preferences::extensions::unicode::keywords::NumberingSystem, Locale,
+    Locale, extensions::unicode::Value, extensions_unicode_key as key,
+    extensions_unicode_value as value, locale,
+    preferences::extensions::unicode::keywords::NumberingSystem,
 };
 use icu_plurals::provider::PluralsCardinalV1;
 use icu_provider::{
     DataIdentifierBorrowed, DataLocale, DataProvider, DataRequest, DataRequestMetadata,
+    DryDataProvider,
 };
 
 use crate::{
     builtins::intl::{
+        Service,
         locale::{default_locale, resolve_locale},
         options::{IntlOptions, LocaleMatcher},
-        Service,
     },
     context::icu::IntlProvider,
 };
@@ -59,6 +61,21 @@ impl Service for TestService {
 fn locale_resolution() {
     let provider = IntlProvider::try_new_buffer(boa_icu_provider::buffer());
     let mut default = default_locale(provider.locale_canonicalizer().unwrap());
+    default = <IntlProvider as DryDataProvider<<TestService as Service>::LangMarker>>::dry_load(
+        &provider,
+        DataRequest {
+            id: DataIdentifierBorrowed::for_locale(&default.clone().into()),
+            metadata: {
+                let mut md = DataRequestMetadata::default();
+                md.silent = true;
+                md
+            },
+        },
+    )
+    .unwrap()
+    .locale
+    .map_or(default, DataLocale::into_locale);
+
     default
         .extensions
         .unicode

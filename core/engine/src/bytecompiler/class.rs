@@ -1,9 +1,10 @@
 use super::{BindingAccessOpcode, ByteCompiler, Literal, Register, ToJsString};
 use crate::{
     js_string,
-    vm::{opcode::BindingOpcode, CodeBlock, CodeBlockFlags},
+    vm::{CodeBlock, CodeBlockFlags, opcode::BindingOpcode},
 };
 use boa_ast::{
+    Expression,
     expression::Identifier,
     function::{
         ClassDeclaration, ClassElement, ClassElementName, ClassExpression, FormalParameterList,
@@ -11,7 +12,6 @@ use boa_ast::{
     },
     property::{MethodDefinitionKind, PropertyName},
     scope::Scope,
-    Expression,
 };
 use boa_gc::Gc;
 use boa_interner::Sym;

@@ -7,12 +7,12 @@ use std::{
 };
 
 use boa_engine::{
+    Context, JsArgs, JsNativeError, JsResult, JsValue, Source,
     builtins::array_buffer::{ArrayBuffer, SharedArrayBuffer},
     js_string,
     native_function::NativeFunction,
-    object::{builtins::JsSharedArrayBuffer, JsObject, ObjectInitializer},
+    object::{JsObject, ObjectInitializer, builtins::JsSharedArrayBuffer},
     property::Attribute,
-    Context, JsArgs, JsNativeError, JsResult, JsValue, Source,
 };
 use bus::BusReader;
 

@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::{ModuleLoader, Referrer};
-use boa_engine::{js_string, Context, JsResult, JsString, Module, Source};
+use boa_engine::{Context, JsResult, JsString, Module, Source, js_string};
 
 #[test]
 fn test_json_module_from_str() {

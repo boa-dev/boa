@@ -8,15 +8,15 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
 use crate::{
+    Error,
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
-        TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::AssignmentExpression,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{expression::Spread, Expression, Punctuator, Span};
+use boa_ast::{Expression, Punctuator, Span, expression::Spread};
 use boa_interner::Interner;
 
 /// Parses a list of arguments.

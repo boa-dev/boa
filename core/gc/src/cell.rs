@@ -1,8 +1,8 @@
 //! A garbage collected cell implementation
 
 use crate::{
-    trace::{Finalize, Trace},
     Tracer,
+    trace::{Finalize, Trace},
 };
 use std::{
     cell::{Cell, UnsafeCell},

@@ -11,17 +11,18 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        statement::StatementList, AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt,
-        ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        statement::StatementList,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Punctuator,
     operations::{lexically_declared_names_legacy, var_declared_names},
-    statement, Punctuator,
+    statement,
 };
 use boa_interner::Interner;
 use rustc_hash::FxHashMap;

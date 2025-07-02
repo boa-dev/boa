@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{JsNativeErrorKind, TestAction, run_test_actions};
 use indoc::indoc;
 
 #[test]

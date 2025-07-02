@@ -14,6 +14,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl
 
 use crate::{
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::{icu::IntlProvider, intrinsics::Intrinsics},
     js_string,
@@ -22,7 +23,6 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};

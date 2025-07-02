@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::PropertyKey,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult,
 };
 
 /// `GetPropertyByName` implements the Opcode Operation for `Opcode::GetPropertyByName`

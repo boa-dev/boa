@@ -11,11 +11,12 @@ use icu_locale::extensions::unicode::Value;
 use tinystr::TinyAsciiStr;
 
 use crate::{
+    Context, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
     builtins::{
         intl::options::{default_number_option, get_number_option},
-        options::{get_option, OptionType, ParsableOptionType},
+        options::{OptionType, ParsableOptionType, get_option},
     },
-    js_string, Context, JsNativeError, JsObject, JsResult, JsStr, JsString, JsValue,
+    js_string,
 };
 
 impl OptionType for SignedRoundingMode {

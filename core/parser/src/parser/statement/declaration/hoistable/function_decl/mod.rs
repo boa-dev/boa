@@ -3,12 +3,12 @@ mod tests;
 
 use crate::{
     parser::{
-        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+        statement::declaration::hoistable::{CallableDeclaration, parse_callable_declaration},
     },
     source::ReadChar,
 };
-use boa_ast::{function::FunctionDeclaration as FunctionDeclarationNode, Keyword};
+use boa_ast::{Keyword, function::FunctionDeclaration as FunctionDeclarationNode};
 use boa_interner::Interner;
 
 /// Function declaration parsing.

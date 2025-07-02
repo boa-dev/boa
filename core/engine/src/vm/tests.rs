@@ -1,6 +1,6 @@
 use crate::{
-    js_string, property::Attribute, run_test_actions, Context, JsNativeErrorKind, JsValue,
-    TestAction,
+    Context, JsNativeErrorKind, JsValue, TestAction, js_string, property::Attribute,
+    run_test_actions,
 };
 use boa_macros::js_str;
 use boa_parser::Source;

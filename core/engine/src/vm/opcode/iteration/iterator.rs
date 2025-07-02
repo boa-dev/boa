@@ -1,11 +1,11 @@
 use crate::{
-    builtins::{iterable::create_iter_result_object, Array},
+    Context, JsResult,
+    builtins::{Array, iterable::create_iter_result_object},
     js_string,
     vm::{
-        opcode::{Operation, VaryingOperand},
         GeneratorResumeKind,
+        opcode::{Operation, VaryingOperand},
     },
-    Context, JsResult,
 };
 
 /// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`

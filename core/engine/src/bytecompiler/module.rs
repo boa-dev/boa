@@ -1,6 +1,6 @@
 use super::{ByteCompiler, Literal, ToJsString};
 use crate::vm::opcode::BindingOpcode;
-use boa_ast::{declaration::ExportDeclaration, ModuleItem, ModuleItemList};
+use boa_ast::{ModuleItem, ModuleItemList, declaration::ExportDeclaration};
 use boa_interner::Sym;
 
 impl ByteCompiler<'_> {

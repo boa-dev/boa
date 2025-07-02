@@ -3,7 +3,7 @@
 use std::{fmt, str::FromStr};
 
 use crate::value::JsVariant;
-use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
+use crate::{Context, JsNativeError, JsResult, JsString, JsValue, object::JsObject};
 
 /// A type used as an option parameter for [`get_option`].
 pub(crate) trait OptionType: Sized {

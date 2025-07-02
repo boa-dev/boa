@@ -9,13 +9,14 @@ use thin_vec::ThinVec;
 
 use self::{internal_methods::ORDINARY_INTERNAL_METHODS, shape::Shape};
 use crate::{
+    Context, JsString, JsSymbol, JsValue,
     builtins::{
+        OrdinaryObject,
         function::{
-            arguments::{MappedArguments, UnmappedArguments},
             ConstructorKind,
+            arguments::{MappedArguments, UnmappedArguments},
         },
         typed_array::{TypedArray, TypedArrayKind},
-        OrdinaryObject,
     },
     context::intrinsics::StandardConstructor,
     js_string,
@@ -23,7 +24,6 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsString, JsSymbol, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -312,20 +312,19 @@ impl<T: ?Sized> Object<T> {
     pub(crate) fn append_private_element(&mut self, name: PrivateName, element: PrivateElement) {
         if let PrivateElement::Accessor { getter, setter } = &element {
             for (key, value) in &mut self.private_elements {
-                if name == *key {
-                    if let PrivateElement::Accessor {
+                if name == *key
+                    && let PrivateElement::Accessor {
                         getter: existing_getter,
                         setter: existing_setter,
                     } = value
-                    {
-                        if existing_getter.is_none() {
-                            existing_getter.clone_from(getter);
-                        }
-                        if existing_setter.is_none() {
-                            existing_setter.clone_from(setter);
-                        }
-                        return;
+                {
+                    if existing_getter.is_none() {
+                        existing_getter.clone_from(getter);
                     }
+                    if existing_setter.is_none() {
+                        existing_setter.clone_from(setter);
+                    }
+                    return;
                 }
             }
         }

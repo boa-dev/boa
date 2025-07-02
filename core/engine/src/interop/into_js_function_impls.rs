@@ -3,7 +3,7 @@
 use super::private::IntoJsFunctionSealed;
 use super::{IntoJsFunctionCopied, UnsafeIntoJsFunction};
 use crate::interop::{JsRest, TryFromJsArgument};
-use crate::{js_string, Context, JsError, NativeFunction, TryIntoJsResult};
+use crate::{Context, JsError, NativeFunction, TryIntoJsResult, js_string};
 use std::cell::RefCell;
 
 /// A token to represent the context argument in the function signature.

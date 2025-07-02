@@ -26,7 +26,7 @@ use self::{
     block::BlockStatement,
     break_stm::BreakStatement,
     continue_stm::ContinueStatement,
-    declaration::{allowed_token_after_let, Declaration, ExportDeclaration, ImportDeclaration},
+    declaration::{Declaration, ExportDeclaration, ImportDeclaration, allowed_token_after_let},
     expression::ExpressionStatement,
     if_stm::IfStatement,
     iteration::{DoWhileStatement, ForStatement, WhileStatement},
@@ -39,22 +39,21 @@ use self::{
     with::WithStatement,
 };
 use crate::{
-    lexer::{token::EscapeSequence, Error as LexError, InputElement, Token, TokenKind},
+    Error,
+    lexer::{Error as LexError, InputElement, Token, TokenKind, token::EscapeSequence},
     parser::{
-        expression::{BindingIdentifier, Initializer, PropertyName},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{BindingIdentifier, Initializer, PropertyName},
     },
     source::ReadChar,
-    Error,
 };
 use ast::{
-    operations::{all_private_identifiers_valid, check_labels, contains_invalid_object_literal},
     Position,
+    operations::{all_private_identifiers_valid, check_labels, contains_invalid_object_literal},
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Punctuator, Span,
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement},
-    Keyword, Punctuator, Span,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -339,16 +338,16 @@ where
                                 for (position, escape) in std::mem::take(&mut directives_stack) {
                                     if escape.contains(EscapeSequence::LEGACY_OCTAL) {
                                         return Err(Error::general(
-                                "legacy octal escape sequences are not allowed in strict mode",
-                                position,
-                            ));
+                                            "legacy octal escape sequences are not allowed in strict mode",
+                                            position,
+                                        ));
                                     }
 
                                     if escape.contains(EscapeSequence::NON_OCTAL_DECIMAL) {
                                         return Err(Error::general(
-                                        "decimal escape sequences are not allowed in strict mode",
-                                        position,
-                                    ));
+                                            "decimal escape sequences are not allowed in strict mode",
+                                            position,
+                                        ));
                                     }
                                 }
                             }

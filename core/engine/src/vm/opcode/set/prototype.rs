@@ -1,7 +1,7 @@
 use crate::{
+    Context,
     object::internal_methods::InternalMethodContext,
     vm::opcode::{Operation, VaryingOperand},
-    Context,
 };
 
 /// `SetPrototype` implements the Opcode Operation for `Opcode::SetPrototype`

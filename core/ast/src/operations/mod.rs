@@ -9,14 +9,16 @@ use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
 
 use crate::{
+    Declaration, Expression, LinearSpan, ModuleItem, Script, Statement, StatementList,
+    StatementListItem,
     declaration::{
         Binding, ExportDeclaration, ImportDeclaration, LexicalDeclaration, VarDeclaration, Variable,
     },
     expression::{
+        Await, Call, Identifier, NewTarget, OptionalOperationKind, SuperCall, This, Yield,
         access::{PrivatePropertyAccess, SuperPropertyAccess},
         literal::PropertyDefinition,
         operator::BinaryInPrivate,
-        Await, Call, Identifier, NewTarget, OptionalOperationKind, SuperCall, This, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -25,12 +27,10 @@ use crate::{
         FunctionExpression, GeneratorDeclaration, GeneratorExpression, PrivateFieldDefinition,
     },
     statement::{
-        iteration::{ForLoopInitializer, IterableLoopInitializer},
         LabelledItem, With,
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
     },
     visitor::{NodeRef, VisitWith, Visitor},
-    Declaration, Expression, LinearSpan, ModuleItem, Script, Statement, StatementList,
-    StatementListItem,
 };
 
 #[cfg(test)]
@@ -91,13 +91,13 @@ where
         }
 
         fn visit_call(&mut self, node: &'ast Call) -> ControlFlow<Self::BreakTy> {
-            if self.0 == ContainsSymbol::DirectEval {
-                if let Expression::Identifier(ident) = node.function().flatten() {
-                    if ident.sym() == Sym::EVAL {
-                        return ControlFlow::Break(());
-                    }
-                }
+            if self.0 == ContainsSymbol::DirectEval
+                && let Expression::Identifier(ident) = node.function().flatten()
+                && ident.sym() == Sym::EVAL
+            {
+                return ControlFlow::Break(());
             }
+
             self.visit_expression(node.function())?;
             for arg in node.args() {
                 self.visit_expression(arg)?;
@@ -411,11 +411,12 @@ where
         }
 
         fn visit_class_element(&mut self, node: &'ast ClassElement) -> ControlFlow<Self::BreakTy> {
-            if let ClassElement::MethodDefinition(m) = node {
-                if let ClassElementName::PropertyName(name) = m.name() {
-                    return name.visit_with(self);
-                }
+            if let ClassElement::MethodDefinition(m) = node
+                && let ClassElementName::PropertyName(name) = m.name()
+            {
+                return name.visit_with(self);
             }
+
             node.visit_with(self)
         }
 
@@ -2334,11 +2335,11 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
     fn visit_block(&mut self, node: &'ast crate::statement::Block) -> ControlFlow<Self::BreakTy> {
         self.visit(node.statement_list())?;
         for statement in node.statement_list().statements() {
-            if let StatementListItem::Declaration(declaration) = statement {
-                if let Declaration::FunctionDeclaration(function) = declaration.as_ref() {
-                    let name = function.name();
-                    self.0.push(name.sym());
-                }
+            if let StatementListItem::Declaration(declaration) = statement
+                && let Declaration::FunctionDeclaration(function) = &**declaration
+            {
+                let name = function.name();
+                self.0.push(name.sym());
             }
         }
 
@@ -2354,22 +2355,22 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         for case in node.cases() {
             self.visit(case)?;
             for statement in case.body().statements() {
-                if let StatementListItem::Declaration(declaration) = statement {
-                    if let Declaration::FunctionDeclaration(function) = declaration.as_ref() {
-                        let name = function.name();
-                        self.0.push(name.sym());
-                    }
+                if let StatementListItem::Declaration(declaration) = statement
+                    && let Declaration::FunctionDeclaration(function) = &**declaration
+                {
+                    let name = function.name();
+                    self.0.push(name.sym());
                 }
             }
         }
         if let Some(default) = node.default() {
             self.visit(default)?;
             for statement in default.statements() {
-                if let StatementListItem::Declaration(declaration) = statement {
-                    if let Declaration::FunctionDeclaration(function) = declaration.as_ref() {
-                        let name = function.name();
-                        self.0.push(name.sym());
-                    }
+                if let StatementListItem::Declaration(declaration) = statement
+                    && let Declaration::FunctionDeclaration(function) = declaration.as_ref()
+                {
+                    let name = function.name();
+                    self.0.push(name.sym());
                 }
             }
         }

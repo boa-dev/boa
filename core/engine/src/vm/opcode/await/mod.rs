@@ -1,14 +1,14 @@
 use super::VaryingOperand;
 use crate::{
+    Context, JsArgs, JsValue,
     builtins::{
-        async_generator::AsyncGenerator, generator::GeneratorContext, promise::PromiseCapability,
-        Promise,
+        Promise, async_generator::AsyncGenerator, generator::GeneratorContext,
+        promise::PromiseCapability,
     },
     js_string,
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
-    vm::{opcode::Operation, CompletionRecord, GeneratorResumeKind},
-    Context, JsArgs, JsValue,
+    vm::{CompletionRecord, GeneratorResumeKind, opcode::Operation},
 };
 use boa_gc::Gc;
 use std::{cell::Cell, ops::ControlFlow};
@@ -48,9 +48,9 @@ impl Await {
             .map(JsValue::from)
             .unwrap_or_default();
 
-        let gen = GeneratorContext::from_current(context, None);
+        let r#gen = GeneratorContext::from_current(context, None);
 
-        let captures = Gc::new(Cell::new(Some(gen)));
+        let captures = Gc::new(Cell::new(Some(r#gen)));
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
         // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
@@ -62,12 +62,12 @@ impl Await {
                     // b. Suspend prevContext.
                     // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
                     // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
-                    let mut gen = captures.take().expect("should only run once");
+                    let mut r#gen = captures.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object();
 
-                    gen.resume(
+                    r#gen.resume(
                         Some(args.get_or_undefined(0).clone()),
                         GeneratorResumeKind::Normal,
                         context,
@@ -77,7 +77,7 @@ impl Await {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
-                            .context = Some(gen);
+                            .context = Some(r#gen);
                     }
 
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
@@ -103,12 +103,12 @@ impl Await {
                     // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
                     // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                     // f. Return undefined.
-                    let mut gen = captures.take().expect("should only run once");
+                    let mut r#gen = captures.take().expect("should only run once");
 
                     // NOTE: We need to get the object before resuming, since it could clear the stack.
-                    let async_generator = gen.async_generator_object();
+                    let async_generator = r#gen.async_generator_object();
 
-                    gen.resume(
+                    r#gen.resume(
                         Some(args.get_or_undefined(0).clone()),
                         GeneratorResumeKind::Throw,
                         context,
@@ -118,7 +118,7 @@ impl Await {
                         async_generator
                             .downcast_mut::<AsyncGenerator>()
                             .expect("must be async generator")
-                            .context = Some(gen);
+                            .context = Some(r#gen);
                     }
 
                     Ok(JsValue::undefined())

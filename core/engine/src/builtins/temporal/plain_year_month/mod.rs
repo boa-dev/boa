@@ -3,9 +3,11 @@
 use std::str::FromStr;
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -13,21 +15,19 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 
 use temporal_rs::{
+    Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth,
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth,
 };
 
 use super::{
-    calendar::get_temporal_calendar_slot_value_with_default, create_temporal_date,
+    DateTimeValues, calendar::get_temporal_calendar_slot_value_with_default, create_temporal_date,
     create_temporal_duration, is_partial_temporal_object, options::get_difference_settings,
-    to_temporal_duration, DateTimeValues,
+    to_temporal_duration,
 };
 
 /// The `Temporal.PlainYearMonth` object.

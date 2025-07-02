@@ -11,6 +11,7 @@ mod debug;
 mod helper;
 
 use boa_engine::{
+    Context, JsError, JsResult, Source,
     builtins::promise::PromiseState,
     context::ContextBuilder,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
@@ -18,17 +19,16 @@ use boa_engine::{
     optimizer::OptimizerOptions,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context, JsError, JsResult, Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
 use color_eyre::{
-    eyre::{eyre, WrapErr},
     Result, Section,
+    eyre::{WrapErr, eyre},
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
-use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
+use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::{
     cell::RefCell,
     collections::VecDeque,
@@ -297,7 +297,7 @@ fn evaluate_file(
             PromiseState::Pending => Err(eyre!("module didn't execute")),
             PromiseState::Fulfilled(_) => Ok(()),
             PromiseState::Rejected(err) => {
-                return Err(JsError::from_opaque(err).into_erased(context).into())
+                return Err(JsError::from_opaque(err).into_erased(context).into());
             }
         };
     }
@@ -398,10 +398,10 @@ fn main() -> Result<()> {
             Ok(line) => {
                 editor.add_history_entry(&line).map_err(io::Error::other)?;
 
-                if args.has_dump_flag() {
-                    if let Err(e) = dump(Source::from_bytes(&line), &args, &mut context) {
-                        eprintln!("{e:?}");
-                    }
+                if args.has_dump_flag()
+                    && let Err(e) = dump(Source::from_bytes(&line), &args, &mut context)
+                {
+                    eprintln!("{e:?}");
                 } else if let Some(flowgraph) = args.flowgraph {
                     match generate_flowgraph(
                         &mut context,

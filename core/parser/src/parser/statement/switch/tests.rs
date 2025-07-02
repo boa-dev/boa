@@ -1,9 +1,9 @@
 use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
-    declaration::{LexicalDeclaration, Variable},
-    expression::{access::SimplePropertyAccess, literal::Literal, Call, Identifier},
-    statement::{Break, Case, Switch},
     Declaration, Expression, Span, Statement,
+    declaration::{LexicalDeclaration, Variable},
+    expression::{Call, Identifier, access::SimplePropertyAccess, literal::Literal},
+    statement::{Break, Case, Switch},
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -204,19 +204,27 @@ fn check_separated_switch() {
                         Literal::new(10, Span::new((21, 1), (21, 3))).into(),
                         (
                             vec![
-                                Statement::Expression(Call::new(
-                                    Expression::PropertyAccess(
-                                        SimplePropertyAccess::new(
-                                            Identifier::new(console, Span::new((25, 1), (25, 8)))
+                                Statement::Expression(
+                                    Call::new(
+                                        Expression::PropertyAccess(
+                                            SimplePropertyAccess::new(
+                                                Identifier::new(
+                                                    console,
+                                                    Span::new((25, 1), (25, 8)),
+                                                )
                                                 .into(),
-                                            Identifier::new(log, Span::new((25, 9), (25, 12))),
-                                        )
+                                                Identifier::new(log, Span::new((25, 9), (25, 12))),
+                                            )
+                                            .into(),
+                                        ),
+                                        vec![
+                                            Literal::new(10, Span::new((25, 13), (25, 15))).into(),
+                                        ]
                                         .into(),
-                                    ),
-                                    vec![Literal::new(10, Span::new((25, 13), (25, 15))).into()]
-                                        .into(),
-                                    Span::new((25, 12), (25, 16)),
-                                ).into())
+                                        Span::new((25, 12), (25, 16)),
+                                    )
+                                    .into(),
+                                )
                                 .into(),
                                 Statement::Break(Break::new(None)).into(),
                             ],
@@ -226,27 +234,37 @@ fn check_separated_switch() {
                     ),
                     Case::default(
                         (
-                            vec![Statement::Expression(
-                                Call::new(
-                                    Expression::PropertyAccess(
-                                        SimplePropertyAccess::new(
-                                            Identifier::new(console, Span::new((33, 1), (33, 8)))
+                            vec![
+                                Statement::Expression(
+                                    Call::new(
+                                        Expression::PropertyAccess(
+                                            SimplePropertyAccess::new(
+                                                Identifier::new(
+                                                    console,
+                                                    Span::new((33, 1), (33, 8)),
+                                                )
                                                 .into(),
-                                            Identifier::new(log, Span::new((33, 9), (33, 12))),
-                                        )
+                                                Identifier::new(log, Span::new((33, 9), (33, 12))),
+                                            )
+                                            .into(),
+                                        ),
+                                        vec![
+                                            Literal::new(
+                                                interner.get_or_intern_static(
+                                                    "Default",
+                                                    utf16!("Default"),
+                                                ),
+                                                Span::new((33, 13), (33, 22)),
+                                            )
+                                            .into(),
+                                        ]
                                         .into(),
-                                    ),
-                                    vec![Literal::new(
-                                        interner.get_or_intern_static("Default", utf16!("Default")),
-                                        Span::new((33, 13), (33, 22)),
+                                        Span::new((33, 12), (33, 23)),
                                     )
-                                    .into()]
                                     .into(),
-                                    Span::new((33, 12), (33, 23)),
                                 )
                                 .into(),
-                            )
-                            .into()],
+                            ],
                             PSEUDO_LINEAR_POS,
                         )
                             .into(),

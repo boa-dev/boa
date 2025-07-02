@@ -1,7 +1,7 @@
-use super::{formatter, Console, ConsoleState};
-use crate::test::{run_test_actions, run_test_actions_with, TestAction};
+use super::{Console, ConsoleState, formatter};
 use crate::Logger;
-use boa_engine::{js_string, property::Attribute, Context, JsError, JsResult, JsValue};
+use crate::test::{TestAction, run_test_actions, run_test_actions_with};
+use boa_engine::{Context, JsError, JsResult, JsValue, js_string, property::Attribute};
 use boa_gc::{Gc, GcRefCell};
 use indoc::indoc;
 

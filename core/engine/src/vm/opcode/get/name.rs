@@ -1,9 +1,9 @@
 use crate::{
+    Context, JsResult, JsValue,
     error::JsNativeError,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::PropertyKey,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult, JsValue,
 };
 
 /// `GetName` implements the Opcode Operation for `Opcode::GetName`

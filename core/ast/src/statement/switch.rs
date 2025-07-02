@@ -1,12 +1,12 @@
 //! Switch node.
 
 use crate::{
+    StatementList,
     expression::Expression,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     scope::Scope,
     statement::Statement,
     visitor::{VisitWith, Visitor, VisitorMut},
-    StatementList,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};

@@ -1,5 +1,5 @@
 use super::VaryingOperand;
-use crate::{vm::opcode::Operation, Context, JsResult, JsValue};
+use crate::{Context, JsResult, JsValue, vm::opcode::Operation};
 
 pub(crate) mod class;
 pub(crate) mod own_property;

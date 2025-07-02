@@ -79,7 +79,7 @@ impl<R> Tokenizer<R> for MultiLineComment {
                         },
                         start_pos,
                         cursor.pos_group(),
-                    ))
+                    ));
                 }
                 Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
                     new_line = true;

@@ -1,10 +1,11 @@
 use crate::{
+    JsNativeErrorKind, JsValue, TestAction,
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
-    run_test_actions, JsNativeErrorKind, JsValue, TestAction,
+    run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;

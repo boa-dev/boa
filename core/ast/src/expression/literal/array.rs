@@ -1,10 +1,10 @@
 //! Array declaration Expression.
 
-use crate::expression::operator::assign::{AssignOp, AssignTarget};
+use crate::Span;
 use crate::expression::Expression;
+use crate::expression::operator::assign::{AssignOp, AssignTarget};
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::Span;
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 

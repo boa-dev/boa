@@ -1,14 +1,14 @@
 //! Error-related types and conversions.
 
 use crate::{
-    builtins::{error::Error, Array},
+    Context, JsString, JsValue,
+    builtins::{Array, error::Error},
     js_string,
     object::JsObject,
     property::PropertyDescriptor,
     realm::Realm,
-    Context, JsString, JsValue,
 };
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use std::{borrow::Cow, error, fmt};
 use thiserror::Error;
 

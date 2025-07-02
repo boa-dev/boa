@@ -1,6 +1,6 @@
 use boa_engine::{
-    js_string, object::ObjectInitializer, property::Attribute, string::JsStrVariant, Context,
-    JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
+    Context, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, js_string,
+    object::ObjectInitializer, property::Attribute, string::JsStrVariant,
 };
 
 fn storage(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {

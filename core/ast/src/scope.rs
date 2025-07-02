@@ -379,7 +379,7 @@ impl Scope {
                     binding.escapes,
                 ),
                 Some(binding) if binding.strict => {
-                    return Err(BindingLocatorError::MutateImmutable)
+                    return Err(BindingLocatorError::MutateImmutable);
                 }
                 Some(_) => return Err(BindingLocatorError::Silent),
                 None => self.inner.outer.as_ref().map_or_else(
@@ -431,7 +431,7 @@ impl Scope {
                     binding.escapes,
                 ),
                 Some(binding) if binding.strict => {
-                    return Err(BindingLocatorError::MutateImmutable)
+                    return Err(BindingLocatorError::MutateImmutable);
                 }
                 Some(_) => return Err(BindingLocatorError::Silent),
                 None => self.inner.outer.as_ref().map_or_else(
@@ -641,17 +641,16 @@ impl FunctionScopes {
             return true;
         }
 
-        if let Some(scope) = &self.parameters_eval_scope {
-            if scope
+        if let Some(scope) = &self.parameters_eval_scope
+            && scope
                 .inner
                 .bindings
                 .borrow()
                 .first()
                 .filter(|b| b.name == "arguments" && b.accessed)
                 .is_some()
-            {
-                return true;
-            }
+        {
+            return true;
         }
 
         false

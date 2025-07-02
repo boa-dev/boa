@@ -1,10 +1,10 @@
 use crate::{
-    alloc_overflow, JsStr, JsStrVariant, JsString, RawJsString, RefCount, TaggedLen, DATA_OFFSET,
+    DATA_OFFSET, JsStr, JsStrVariant, JsString, RawJsString, RefCount, TaggedLen, alloc_overflow,
 };
 use tag_ptr::Tagged;
 
 use std::{
-    alloc::{alloc, dealloc, realloc, Layout},
+    alloc::{Layout, alloc, dealloc, realloc},
     cell::Cell,
     marker::PhantomData,
     mem::ManuallyDrop,

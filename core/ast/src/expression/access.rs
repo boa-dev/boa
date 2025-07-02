@@ -14,10 +14,10 @@
 //! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
+use crate::Span;
 use crate::expression::Expression;
 use crate::function::PrivateName;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::Span;
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 

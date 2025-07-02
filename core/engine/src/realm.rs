@@ -12,15 +12,15 @@ use boa_ast::scope::Scope;
 use rustc_hash::FxHashMap;
 
 use crate::{
+    HostDefined, JsNativeError, JsObject, JsResult, JsString,
     class::Class,
     context::{
-        intrinsics::{Intrinsics, StandardConstructor},
         HostHooks,
+        intrinsics::{Intrinsics, StandardConstructor},
     },
     environments::DeclarativeEnvironment,
     module::Module,
     object::shape::RootShape,
-    HostDefined, JsNativeError, JsObject, JsResult, JsString,
 };
 use boa_gc::{Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
 

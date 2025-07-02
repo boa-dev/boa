@@ -17,25 +17,25 @@ mod optional;
 mod template;
 
 use crate::{
+    Error,
     lexer::{InputElement, TokenKind},
     parser::{
+        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
         expression::{
+            AssignmentExpression,
             left_hand_side::{
                 arguments::Arguments,
                 call::{CallExpression, CallExpressionTail},
                 member::MemberExpression,
                 optional::OptionalExpression,
             },
-            AssignmentExpression,
         },
-        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    expression::{ImportCall, SuperCall},
     Expression, Keyword, Position, Punctuator, Span,
+    expression::{ImportCall, SuperCall},
 };
 use boa_interner::Interner;
 
@@ -88,24 +88,24 @@ where
             cursor: &mut Cursor<R>,
             interner: &mut Interner,
         ) -> ParseResult<Option<Position>> {
-            if let Some(next) = cursor.peek(0, interner)? {
-                if let TokenKind::Keyword((kw, escaped)) = next.kind() {
-                    let keyword_token_start = next.span().start();
-                    if kw == &keyword {
-                        if *escaped {
-                            return Err(Error::general(
-                                format!(
-                                    "keyword `{}` cannot contain escaped characters",
-                                    kw.as_str().0
-                                ),
-                                keyword_token_start,
-                            ));
-                        }
-                        if let Some(next) = cursor.peek(1, interner)? {
-                            if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                                return Ok(Some(keyword_token_start));
-                            }
-                        }
+            if let Some(next) = cursor.peek(0, interner)?
+                && let TokenKind::Keyword((kw, escaped)) = next.kind()
+            {
+                let keyword_token_start = next.span().start();
+                if kw == &keyword {
+                    if *escaped {
+                        return Err(Error::general(
+                            format!(
+                                "keyword `{}` cannot contain escaped characters",
+                                kw.as_str().0
+                            ),
+                            keyword_token_start,
+                        ));
+                    }
+                    if let Some(next) = cursor.peek(1, interner)?
+                        && next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
+                    {
+                        return Ok(Some(keyword_token_start));
                     }
                 }
             }
@@ -146,21 +146,21 @@ where
         } else {
             let mut member = MemberExpression::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
-            if let Some(tok) = cursor.peek(0, interner)? {
-                if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                    member = CallExpression::new(self.allow_yield, self.allow_await, member)
-                        .parse(cursor, interner)?;
-                }
+            if let Some(tok) = cursor.peek(0, interner)?
+                && tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen)
+            {
+                member = CallExpression::new(self.allow_yield, self.allow_await, member)
+                    .parse(cursor, interner)?;
             }
             member
         };
 
-        if let Some(tok) = cursor.peek(0, interner)? {
-            if tok.kind() == &TokenKind::Punctuator(Punctuator::Optional) {
-                lhs = OptionalExpression::new(self.allow_yield, self.allow_await, lhs)
-                    .parse(cursor, interner)?
-                    .into();
-            }
+        if let Some(tok) = cursor.peek(0, interner)?
+            && tok.kind() == &TokenKind::Punctuator(Punctuator::Optional)
+        {
+            lhs = OptionalExpression::new(self.allow_yield, self.allow_await, lhs)
+                .parse(cursor, interner)?
+                .into();
         }
 
         Ok(lhs)

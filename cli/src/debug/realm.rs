@@ -1,5 +1,5 @@
 use boa_engine::{
-    js_string, object::ObjectInitializer, Context, JsObject, JsResult, JsValue, NativeFunction,
+    Context, JsObject, JsResult, JsValue, NativeFunction, js_string, object::ObjectInitializer,
 };
 
 /// Creates a new ECMAScript Realm and returns the global object of the realm.

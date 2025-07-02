@@ -1,6 +1,6 @@
 use super::JsValue;
-use crate::builtins::Number;
 use crate::JsVariant;
+use crate::builtins::Number;
 use std::hash::{Hash, Hasher};
 
 impl PartialEq for JsValue {

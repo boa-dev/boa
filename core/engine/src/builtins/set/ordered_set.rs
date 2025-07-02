@@ -1,7 +1,7 @@
 //! Implements a set type that preserves insertion order.
 
-use crate::{builtins::map::ordered_map::MapKey, object::JsObject, JsData, JsValue};
-use boa_gc::{custom_trace, Finalize, Trace};
+use crate::{JsData, JsValue, builtins::map::ordered_map::MapKey, object::JsObject};
+use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::IndexSet;
 use std::fmt::Debug;
 

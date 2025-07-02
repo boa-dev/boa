@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsNativeError, JsResult,
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsNativeError, JsResult,
 };
 
 /// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`

@@ -1,6 +1,6 @@
 //! This module implements lexing for number literals (123, 787) used in ECMAScript.
 
-use crate::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer, token::Numeric};
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;

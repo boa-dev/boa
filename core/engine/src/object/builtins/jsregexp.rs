@@ -1,9 +1,9 @@
 //! A Rust API wrapper for Boa's `RegExp` Builtin ECMAScript Object
 use crate::{
+    Context, JsNativeError, JsResult, JsValue,
     builtins::RegExp,
     object::{JsArray, JsObject},
     value::TryFromJs,
-    Context, JsNativeError, JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};

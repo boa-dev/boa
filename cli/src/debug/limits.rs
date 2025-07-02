@@ -1,8 +1,7 @@
 use boa_engine::{
-    js_string,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, js_string,
     object::{FunctionObjectBuilder, ObjectInitializer},
     property::Attribute,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 fn get_loop(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {

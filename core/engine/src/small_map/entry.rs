@@ -1,5 +1,5 @@
 use std::{
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     fmt::Debug,
 };
 
@@ -24,8 +24,8 @@ pub enum Entry<'a, K, V, const ARRAY_SIZE: usize> {
 impl<K: Debug + Ord, V: Debug, const ARRAY_SIZE: usize> Debug for Entry<'_, K, V, ARRAY_SIZE> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Vacant(ref v) => f.debug_tuple("Entry").field(v).finish(),
-            Self::Occupied(ref o) => f.debug_tuple("Entry").field(o).finish(),
+            Self::Vacant(v) => f.debug_tuple("Entry").field(v).finish(),
+            Self::Occupied(o) => f.debug_tuple("Entry").field(o).finish(),
         }
     }
 }

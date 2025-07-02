@@ -1,4 +1,4 @@
-use crate::{trace::Trace, Gc, GcBox, Tracer};
+use crate::{Gc, GcBox, Tracer, trace::Trace};
 use std::{cell::UnsafeCell, ptr::NonNull};
 
 use super::GcHeader;

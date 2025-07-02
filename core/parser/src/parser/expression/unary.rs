@@ -8,20 +8,20 @@
 //! [spec]: https://tc39.es/ecma262/#sec-unary-operators
 
 use crate::{
+    Error,
     lexer::{Error as LexError, TokenKind},
     parser::{
-        expression::{await_expr::AwaitExpression, update::UpdateExpression},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{await_expr::AwaitExpression, update::UpdateExpression},
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Expression, Keyword, Punctuator, Span,
     expression::{
         access::PropertyAccess,
-        operator::{unary::UnaryOp, Unary},
+        operator::{Unary, unary::UnaryOp},
     },
-    Expression, Keyword, Punctuator, Span,
 };
 use boa_interner::Interner;
 
