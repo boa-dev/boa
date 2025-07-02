@@ -43,7 +43,7 @@ fn into_js_module() {
                     let counter = foo_count.clone();
                     move || {
                         *counter.borrow_mut() += 1;
-                        
+
                         *counter.borrow()
                     }
                 }

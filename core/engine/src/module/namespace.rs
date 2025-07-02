@@ -68,7 +68,6 @@ impl ModuleNamespace {
         // 5. Set M.[[Module]] to module.
         // 7. Set M.[[Exports]] to sortedExports.
         // 8. Create own properties of M corresponding to the definitions in 28.3.
-        
 
         // 9. Set module.[[Namespace]] to M.
         // Ignored because this is done by `Module::namespace`

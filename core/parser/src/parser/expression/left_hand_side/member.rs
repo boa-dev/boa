@@ -115,7 +115,6 @@ where
                 let new_token_span = token.span();
                 cursor.advance(interner);
 
-                
                 if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {

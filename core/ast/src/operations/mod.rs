@@ -2366,11 +2366,11 @@ impl<'ast> Visitor<'ast> for AnnexBFunctionDeclarationNamesVisitor<'_> {
         if let Some(default) = node.default() {
             self.visit(default)?;
             for statement in default.statements() {
-                if let StatementListItem::Declaration(declaration) = statement &&
-                     let Declaration::FunctionDeclaration(function) = declaration.as_ref() {
-                        let name = function.name();
-                        self.0.push(name.sym());
-
+                if let StatementListItem::Declaration(declaration) = statement
+                    && let Declaration::FunctionDeclaration(function) = declaration.as_ref()
+                {
+                    let name = function.name();
+                    self.0.push(name.sym());
                 }
             }
         }

@@ -535,10 +535,7 @@ impl Module {
     #[allow(dropping_copy_types)]
     #[inline]
     pub fn load_link_evaluate(&self, context: &mut Context) -> JsPromise {
-        
-
-        self
-            .load(context)
+        self.load(context)
             .then(
                 Some(
                     NativeFunction::from_copy_closure_with_captures(

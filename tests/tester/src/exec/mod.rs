@@ -603,7 +603,6 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
         }
         true
     } else {
-        
         error
             .as_opaque()
             .expect("try_native cannot fail if e is not opaque")
