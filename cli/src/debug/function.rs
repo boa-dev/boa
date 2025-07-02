@@ -59,7 +59,7 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             .with_message(format!("expected object, got {}", value.type_of()))
             .into());
     };
-    let mut format = FlowgraphFormat::Mermaid;
+    let format;
     let mut direction = Direction::LeftToRight;
     if let Some(arguments) = args.get(1).and_then(JsValue::as_object) {
         format = flowgraph_parse_format_option(&arguments.get(js_string!("format"), context)?)?;

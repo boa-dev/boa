@@ -277,15 +277,15 @@ where
     ZDTF: FnOnce(&ZonedDateTime) -> JsResult<Option<Ret>>,
 {
     if let Some(date) = object.downcast_ref::<PlainDate>() {
-        return date_f(&*date);
+        return date_f(&date);
     } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
-        return datetime_f(&*dt);
+        return datetime_f(&dt);
     } else if let Some(ym) = object.downcast_ref::<PlainYearMonth>() {
-        return year_month_f(&*ym);
+        return year_month_f(&ym);
     } else if let Some(md) = object.downcast_ref::<PlainMonthDay>() {
-        return month_day_f(&*md);
+        return month_day_f(&md);
     } else if let Some(dt) = object.downcast_ref::<ZonedDateTime>() {
-        return zoned_datetime_f(&*dt);
+        return zoned_datetime_f(&dt);
     }
 
     Ok(None)

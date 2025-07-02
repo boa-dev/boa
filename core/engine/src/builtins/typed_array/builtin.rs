@@ -2379,7 +2379,7 @@ impl BuiltinTypedArray {
         // 7. Else,
         //     a. Let srcLength be TypedArrayLength(srcRecord).
         let src_len = if let Some(buf) = buffer.as_buffer().bytes(Ordering::SeqCst)
-            && !src_borrow.data.is_out_of_bounds(s.len())
+            && !src_borrow.data.is_out_of_bounds(buf.len())
         {
             src_borrow.data.array_length(buf.len())
         } else {
