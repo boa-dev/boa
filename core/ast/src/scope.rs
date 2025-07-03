@@ -2,6 +2,7 @@
 //!
 //! Scopes are used to track the bindings of identifiers in the AST.
 
+use bitflags::bitflags;
 use boa_string::JsString;
 use std::{
     cell::{Cell, RefCell},
@@ -9,16 +10,58 @@ use std::{
     rc::Rc,
 };
 
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    struct BindingFlags: u8 {
+        const MUTABLE  = 1 << 0;
+        const LEX      = 1 << 1;
+        const STRICT   = 1 << 2;
+        const ESCAPES  = 1 << 3;
+        const ACCESSED = 1 << 4;
+    }
+}
+
+impl BindingFlags {
+    fn is_mutable(self) -> bool {
+        self.contains(BindingFlags::MUTABLE)
+    }
+    fn is_lex(self) -> bool {
+        self.contains(BindingFlags::LEX)
+    }
+    fn is_strict(self) -> bool {
+        self.contains(BindingFlags::STRICT)
+    }
+    fn escapes(self) -> bool {
+        self.contains(BindingFlags::ESCAPES)
+    }
+    fn is_accessed(self) -> bool {
+        self.contains(BindingFlags::ACCESSED)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
-#[allow(clippy::struct_excessive_bools)]
 struct Binding {
     name: JsString,
     index: u32,
-    mutable: bool,
-    lex: bool,
-    strict: bool,
-    escapes: bool,
-    accessed: bool,
+    flags: BindingFlags,
+}
+
+impl Binding {
+    fn is_mutable(&self) -> bool {
+        self.flags.is_mutable()
+    }
+    fn is_lex(&self) -> bool {
+        self.flags.is_lex()
+    }
+    fn is_strict(&self) -> bool {
+        self.flags.is_strict()
+    }
+    fn escapes(&self) -> bool {
+        self.flags.escapes()
+    }
+    fn is_accessed(&self) -> bool {
+        self.flags.is_accessed()
+    }
 }
 
 /// A scope maps bound identifiers to their binding positions.
@@ -104,13 +147,13 @@ impl Scope {
             .bindings
             .borrow()
             .iter()
-            .all(|binding| !binding.escapes)
+            .all(|binding| !binding.escapes())
     }
 
     /// Marks all bindings in this scope as escaping.
     pub fn escape_all_bindings(&self) {
         for binding in self.inner.bindings.borrow_mut().iter_mut() {
-            binding.escapes = true;
+            binding.flags.insert(BindingFlags::ESCAPES);
         }
     }
 
@@ -128,7 +171,7 @@ impl Scope {
             .borrow()
             .iter()
             .find(|b| &b.name == name)
-            .is_some_and(|binding| binding.lex)
+            .is_some_and(Binding::is_lex)
     }
 
     /// Check if the scope has a binding with the given name.
@@ -149,8 +192,8 @@ impl Scope {
                     binding.index,
                     self.inner.unique_id,
                 ),
-                binding.lex,
-                binding.escapes,
+                binding.is_lex(),
+                binding.escapes(),
             )
         } else if let Some(outer) = &self.inner.outer {
             outer.get_identifier_reference(name)
@@ -174,7 +217,7 @@ impl Scope {
             .bindings
             .borrow()
             .iter()
-            .filter(|binding| binding.escapes)
+            .filter(|binding| binding.escapes())
             .count() as u32
     }
 
@@ -183,7 +226,7 @@ impl Scope {
         let mut bindings = self.inner.bindings.borrow_mut();
         let mut index = 0;
         for binding in bindings.iter_mut() {
-            if !binding.escapes {
+            if !binding.escapes() {
                 binding.index = 0;
                 continue;
             }
@@ -249,8 +292,8 @@ impl Scope {
                         binding.index,
                         self.inner.unique_id,
                     ),
-                    binding.lex,
-                    binding.escapes,
+                    binding.is_lex(),
+                    binding.escapes(),
                 )
             })
     }
@@ -270,9 +313,9 @@ impl Scope {
                 .iter_mut()
                 .find(|b| &b.name == name)
             {
-                binding.accessed = true;
+                binding.flags.insert(BindingFlags::ACCESSED);
                 if crossed_function_border || eval_or_with {
-                    binding.escapes = true;
+                    binding.flags.insert(BindingFlags::ESCAPES);
                 }
                 return;
             }
@@ -322,14 +365,13 @@ impl Scope {
                 self.inner.unique_id,
             );
         }
+        let mut flags = BindingFlags::MUTABLE;
+        flags.set(BindingFlags::LEX, !function_scope);
+        flags.set(BindingFlags::ESCAPES, self.is_global());
         bindings.push(Binding {
             name: name.clone(),
             index: binding_index,
-            mutable: true,
-            lex: !function_scope,
-            strict: false,
-            escapes: self.is_global(),
-            accessed: false,
+            flags,
         });
         BindingLocator::declarative(
             name,
@@ -347,14 +389,13 @@ impl Scope {
             return;
         }
         let binding_index = bindings.len() as u32;
+        let mut flags = BindingFlags::LEX;
+        flags.set(BindingFlags::STRICT, strict);
+        flags.set(BindingFlags::ESCAPES, self.is_global());
         bindings.push(Binding {
             name,
             index: binding_index,
-            mutable: false,
-            lex: true,
-            strict,
-            escapes: self.is_global(),
-            accessed: false,
+            flags,
         });
     }
 
@@ -368,17 +409,17 @@ impl Scope {
     ) -> Result<IdentifierReference, BindingLocatorError> {
         Ok(
             match self.inner.bindings.borrow().iter().find(|b| b.name == name) {
-                Some(binding) if binding.mutable => IdentifierReference::new(
+                Some(binding) if binding.is_mutable() => IdentifierReference::new(
                     BindingLocator::declarative(
                         name,
                         self.inner.index.get(),
                         binding.index,
                         self.inner.unique_id,
                     ),
-                    binding.lex,
-                    binding.escapes,
+                    binding.is_lex(),
+                    binding.escapes(),
                 ),
-                Some(binding) if binding.strict => {
+                Some(binding) if binding.is_strict() => {
                     return Err(BindingLocatorError::MutateImmutable);
                 }
                 Some(_) => return Err(BindingLocatorError::Silent),
@@ -420,17 +461,17 @@ impl Scope {
 
         Ok(
             match self.inner.bindings.borrow().iter().find(|b| b.name == name) {
-                Some(binding) if binding.mutable => IdentifierReference::new(
+                Some(binding) if binding.is_mutable() => IdentifierReference::new(
                     BindingLocator::declarative(
                         name,
                         self.inner.index.get(),
                         binding.index,
                         self.inner.unique_id,
                     ),
-                    binding.lex,
-                    binding.escapes,
+                    binding.is_lex(),
+                    binding.escapes(),
                 ),
-                Some(binding) if binding.strict => {
+                Some(binding) if binding.is_strict() => {
                     return Err(BindingLocatorError::MutateImmutable);
                 }
                 Some(_) => return Err(BindingLocatorError::Silent),
@@ -635,7 +676,7 @@ impl FunctionScopes {
             .bindings
             .borrow()
             .first()
-            .filter(|b| b.name == "arguments" && b.accessed)
+            .filter(|b| b.name == "arguments" && b.is_accessed())
             .is_some()
         {
             return true;
@@ -647,7 +688,7 @@ impl FunctionScopes {
                 .bindings
                 .borrow()
                 .first()
-                .filter(|b| b.name == "arguments" && b.accessed)
+                .filter(|b| b.name == "arguments" && b.is_accessed())
                 .is_some()
         {
             return true;
