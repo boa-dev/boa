@@ -52,10 +52,22 @@ use jemallocator as _;
     target_arch = "x86_64",
     target_os = "linux",
     target_env = "gnu",
+    feature = "fast-allocator",
     not(feature = "dhat")
 ))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
+#[cfg(all(target_os = "windows", feature = "dhat"))]
+use mimalloc_safe as _;
+
+#[cfg(all(
+    target_os = "windows",
+    feature = "fast-allocator",
+    not(feature = "dhat")
+))]
+#[global_allocator]
+static ALLOC: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]
