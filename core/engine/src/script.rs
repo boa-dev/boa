@@ -142,6 +142,7 @@ impl Script {
             context.interner_mut(),
             false,
             spanned_source_text,
+            self.path().map(Path::to_owned).into(),
         );
 
         #[cfg(feature = "annex-b")]

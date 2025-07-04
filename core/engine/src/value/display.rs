@@ -7,8 +7,9 @@ use crate::{
     },
     js_string,
     property::PropertyDescriptor,
+    vm::shadow_stack::ShadowEntry,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Write};
 
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
@@ -219,13 +220,46 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         )
                     })
                     .unwrap_or_default();
-                if name.is_empty() {
+                let mut result = if name.is_empty() {
                     message
                 } else if message.is_empty() {
                     name.to_string()
                 } else {
                     format!("{name}: {message}")
+                };
+                let data = v
+                    .downcast_ref::<Error>()
+                    .expect("already checked object type");
+
+                if let Some(position) = &data.position {
+                    match position {
+                        ShadowEntry::Native { function_name } => {
+                            write!(
+                                &mut result,
+                                " (native at {})",
+                                function_name.to_std_string_escaped()
+                            )
+                            .expect("should not fail");
+                        }
+                        ShadowEntry::Bytecode { pc, source_info } => {
+                            write!(&mut result, " ({}", source_info.map().path())
+                                .expect("should not fail");
+
+                            if let Some(position) = source_info.map().find(*pc) {
+                                write!(
+                                    &mut result,
+                                    ":{}:{}",
+                                    position.line_number(),
+                                    position.column_number()
+                                )
+                                .expect("should not fail");
+                            }
+
+                            result.push(')');
+                        }
+                    }
                 }
+                result
             } else if let Some(promise) = v_bor.downcast_ref::<Promise>() {
                 format!(
                     "Promise {{ {} }}",

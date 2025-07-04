@@ -22,7 +22,7 @@ use crate::{
     string::StaticJsStrings,
 };
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 /// JavaScript `SyntaxError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -86,7 +86,7 @@ impl BuiltInConstructor for SyntaxError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Syntax,
+            Error::with_caller_position(ErrorKind::Syntax, context),
         );
 
         // 3. If message is not undefined, then

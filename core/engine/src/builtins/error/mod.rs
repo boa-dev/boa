@@ -20,6 +20,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+    vm::shadow_stack::ShadowEntry,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -45,22 +46,13 @@ pub(crate) use self::uri::UriError;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-/// A built-in `Error` object, per the [ECMAScript spec][spec].
-///
-/// This is used internally to convert between [`JsObject`] and
-/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
-/// objects. However, the recommended way to create them is to construct a
-/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
-/// which will assign its prototype, properties and kind automatically.
-///
-/// For a description of every error kind and its usage, see
-/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+/// A tag of built-in `Error` object, [ECMAScript spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
 #[non_exhaustive]
-pub enum Error {
+pub enum ErrorKind {
     /// The `AggregateError` object type.
     ///
     /// More information:
@@ -126,6 +118,54 @@ pub enum Error {
     Uri,
 }
 
+/// A built-in `Error` object, per the [ECMAScript spec][spec].
+///
+/// This is used internally to convert between [`JsObject`] and
+/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
+/// objects. However, the recommended way to create them is to construct a
+/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
+/// which will assign its prototype, properties and kind automatically.
+///
+/// For a description of every error kind and its usage, see
+/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-error-objects
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
+pub struct Error {
+    pub(crate) tag: ErrorKind,
+    #[unsafe_ignore_trace]
+    pub(crate) position: Option<ShadowEntry>,
+}
+
+impl Eq for Error {}
+impl PartialEq for Error {
+    // The position of where the Error was created does not affect equality check.
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.tag == other.tag
+    }
+}
+
+impl Error {
+    /// Create a new [`Error`].
+    #[inline]
+    #[must_use]
+    pub fn new(tag: ErrorKind) -> Self {
+        Self {
+            tag,
+            position: None,
+        }
+    }
+
+    /// Get the position from the last called function.
+    pub(crate) fn with_caller_position(tag: ErrorKind, context: &Context) -> Self {
+        Self {
+            tag,
+            position: context.vm.shadow_stack.caller_position(),
+        }
+    }
+}
+
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
@@ -181,7 +221,7 @@ impl BuiltInConstructor for Error {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Error,
+            Error::with_caller_position(ErrorKind::Error, context),
         );
 
         // 3. If message is not undefined, then
@@ -296,7 +336,7 @@ impl Error {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .is_some_and(|o| o.is::<Self>())
+            .is_some_and(|o| o.is::<Error>())
             .into())
     }
 }

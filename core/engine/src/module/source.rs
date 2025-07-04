@@ -1,4 +1,4 @@
-use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, rc::Rc};
+use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, path::PathBuf, rc::Rc};
 
 use boa_ast::{
     declaration::{
@@ -235,6 +235,7 @@ struct ModuleCode {
     requested_modules: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
     source: boa_ast::Module,
     source_text: SourceText,
+    path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
@@ -247,7 +248,12 @@ impl SourceTextModule {
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: boa_ast::Module, interner: &Interner, source_text: SourceText) -> Self {
+    pub(super) fn new(
+        code: boa_ast::Module,
+        interner: &Interner,
+        source_text: SourceText,
+        path: Option<PathBuf>,
+    ) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = code
             .items()
@@ -339,6 +345,7 @@ impl SourceTextModule {
             code: ModuleCode {
                 source: code,
                 source_text,
+                path,
                 requested_modules,
                 has_tla,
                 import_entries,
@@ -1457,6 +1464,7 @@ impl SourceTextModule {
             context.interner_mut(),
             false,
             spanned_source_text,
+            self.code.path.clone().into(),
         );
 
         compiler.async_handler = Some(compiler.push_handler());

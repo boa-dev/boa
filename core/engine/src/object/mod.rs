@@ -562,6 +562,7 @@ impl<'realm> FunctionObjectBuilder<'realm> {
         let object = self.realm.intrinsics().templates().function().create(
             NativeFunctionObject {
                 f: self.function,
+                name: self.name.clone(),
                 constructor: self.constructor,
                 realm: Some(self.realm.clone()),
             },
@@ -1013,6 +1014,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 private_elements: self.constructor_object.private_elements,
                 data: NativeFunctionObject {
                     f: self.function,
+                    name: self.name.clone(),
                     constructor: self.kind,
                     realm: Some(self.context.realm().clone()),
                 },

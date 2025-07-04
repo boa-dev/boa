@@ -3,7 +3,7 @@ use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     js_string,
-    vm::{CodeBlock, CodeBlockFlags},
+    vm::{CodeBlock, CodeBlockFlags, source_info::SourcePath},
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -11,6 +11,8 @@ use boa_ast::{
 };
 use boa_gc::Gc;
 use boa_interner::Interner;
+
+use super::SourcePositionGuard;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
 #[derive(Debug, Clone)]
@@ -26,6 +28,7 @@ pub(crate) struct FunctionCompiler {
     force_function_scope: bool,
     name_scope: Option<Scope>,
     spanned_source_text: SpannedSourceText,
+    source_path: SourcePath,
 }
 
 impl FunctionCompiler {
@@ -42,6 +45,7 @@ impl FunctionCompiler {
             force_function_scope: false,
             name_scope: None,
             spanned_source_text,
+            source_path: SourcePath::None,
         }
     }
 
@@ -103,6 +107,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Set source map file path.
+    pub(crate) fn source_path(mut self, source_path: SourcePath) -> Self {
+        self.source_path = source_path;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
@@ -130,6 +140,7 @@ impl FunctionCompiler {
             interner,
             self.in_with,
             self.spanned_source_text,
+            self.source_path,
         );
 
         compiler.length = length;
@@ -212,7 +223,10 @@ impl FunctionCompiler {
             }
         }
 
-        compiler.compile_statement_list(body.statement_list(), false, false);
+        {
+            let mut compiler = SourcePositionGuard::new(&mut compiler, body.span().start());
+            compiler.compile_statement_list(body.statement_list(), false, false);
+        }
 
         compiler.params = parameters.clone();
         compiler.parameter_scope = scopes.parameter_scope();

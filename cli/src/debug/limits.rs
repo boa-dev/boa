@@ -47,6 +47,22 @@ fn set_recursion(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
     Ok(JsValue::undefined())
 }
 
+fn get_backtrace(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    let max = context.runtime_limits().backtrace_limit();
+    Ok(JsValue::from(max))
+}
+
+fn set_backtrace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    let value = args.get_or_undefined(0).to_length(context)?;
+    let Ok(value) = value.try_into() else {
+        return Err(JsNativeError::range()
+            .with_message(format!("Argument {value} greater than usize::MAX"))
+            .into());
+    };
+    context.runtime_limits_mut().set_backtrace_limit(value);
+    Ok(JsValue::undefined())
+}
+
 pub(super) fn create_object(context: &mut Context) -> JsObject {
     let get_loop =
         FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_loop))
@@ -80,6 +96,17 @@ pub(super) fn create_object(context: &mut Context) -> JsObject {
             .name(js_string!("set recursion"))
             .length(1)
             .build();
+    let get_backtrace =
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(get_backtrace))
+            .name(js_string!("get backtrace"))
+            .length(0)
+            .build();
+    let set_backtrace =
+        FunctionObjectBuilder::new(context.realm(), NativeFunction::from_fn_ptr(set_backtrace))
+            .name(js_string!("set backtrace"))
+            .length(1)
+            .build();
+
     ObjectInitializer::new(context)
         .accessor(
             js_string!("loop"),
@@ -97,6 +124,12 @@ pub(super) fn create_object(context: &mut Context) -> JsObject {
             js_string!("recursion"),
             Some(get_recursion),
             Some(set_recursion),
+            Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+        )
+        .accessor(
+            js_string!("backtrace"),
+            Some(get_backtrace),
+            Some(set_backtrace),
             Attribute::WRITABLE | Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
         .build()
