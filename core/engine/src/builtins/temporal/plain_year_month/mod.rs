@@ -21,7 +21,7 @@ use boa_gc::{Finalize, Trace};
 use temporal_rs::{
     Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth,
     options::{ArithmeticOverflow, DisplayCalendar},
-    partial::PartialDate,
+    partial::{PartialDate, PartialYearMonth},
 };
 
 use super::{
@@ -698,7 +698,7 @@ fn add_or_subtract_duration(
 fn to_partial_year_month(
     partial_object: &JsObject,
     context: &mut Context,
-) -> JsResult<PartialDate> {
+) -> JsResult<PartialYearMonth> {
     // a. Let calendar be ? ToTemporalCalendar(item).
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
 
@@ -732,11 +732,9 @@ fn to_partial_year_month(
         })
         .transpose()?;
 
-    Ok(PartialDate {
-        year,
-        month,
-        month_code,
-        calendar,
-        ..Default::default()
-    })
+    Ok(PartialYearMonth::new()
+        .with_year(year)
+        .with_month(month)
+        .with_month_code(month_code)
+        .with_calendar(calendar))
 }

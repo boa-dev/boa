@@ -3597,9 +3597,9 @@ checksum = "1ac9aa371f599d22256307c24a9d748c041e548cbf599f35d890f9d365361790"
 
 [[package]]
 name = "temporal_rs"
-version = "0.0.9"
+version = "0.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7995a53f8d6e4a4dae21067190ee433eb209b7b2b71140c36cec4910c2bc7c37"
+checksum = "bc86c57c167d92f33d5dd199a9ea608524ee42ec21c92c8869f6b243a2f814e2"
 dependencies = [
  "combine",
  "core_maths",
@@ -3948,9 +3948,9 @@ checksum = "bc7d623258602320d5c55d1bc22793b57daff0ec7efc270ea7d55ce1d5f5471c"
 
 [[package]]
 name = "tzif"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cecffbab91858408738280e7bb6aac788f59a522dda961cd6b15542f0c08559"
+checksum = "e5e762ac355f0c204d09ae644b3d59423d5ddfc5603997d60c8c56f24e429a9d"
 dependencies = [
  "combine",
 ]
