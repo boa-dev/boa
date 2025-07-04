@@ -276,8 +276,10 @@ impl<T: Trace + ?Sized> Gc<T> {
         unsafe { self.inner_ptr.as_ref() }.vtable
     }
 
+    #[inline(always)]
+    #[allow(clippy::inline_always)]
     pub(crate) fn inner_ptr(&self) -> NonNull<GcBox<T>> {
-        assert!(finalizer_safe());
+        debug_assert!(finalizer_safe());
         self.inner_ptr
     }
 
