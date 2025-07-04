@@ -5,15 +5,15 @@ use std::{
 
 use arrayvec::ArrayVec;
 
-use super::SmallMap;
+use super::SmallBTreeMap;
 
 use Entry::{Occupied, Vacant};
 
 /// A view into a single entry in a map, which may either be vacant or occupied.
 ///
-/// This `enum` is constructed from the [`entry`] method on [`SmallMap`].
+/// This `enum` is constructed from the [`entry`] method on [`SmallBTreeMap`].
 ///
-/// [`entry`]: SmallMap::entry
+/// [`entry`]: SmallBTreeMap::entry
 pub enum Entry<'a, K, V, const ARRAY_SIZE: usize> {
     /// A vacant entry.
     Vacant(VacantEntry<'a, K, V, ARRAY_SIZE>),
@@ -30,7 +30,7 @@ impl<K: Debug + Ord, V: Debug, const ARRAY_SIZE: usize> Debug for Entry<'_, K, V
     }
 }
 
-/// A view into a vacant entry in a `SmallMap`.
+/// A view into a vacant entry in a `SmallBTreeMap`.
 /// It is part of the [`Entry`] enum.
 pub struct VacantEntry<'a, K, V, const ARRAY_SIZE: usize> {
     pub(super) inner: InnerVacant<'a, K, V, ARRAY_SIZE>,
@@ -47,7 +47,7 @@ impl<K: Debug + Ord, V, const ARRAY_SIZE: usize> Debug for VacantEntry<'_, K, V,
     }
 }
 
-/// A view into an occupied entry in a `SmallMap`.
+/// A view into an occupied entry in a `SmallBTreeMap`.
 /// It is part of the [`Entry`] enum.
 pub struct OccupiedEntry<'a, K, V, const ARRAY_SIZE: usize> {
     pub(super) inner: InnerOccupied<'a, K, V, ARRAY_SIZE>,
@@ -244,7 +244,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
 
 pub(super) struct InlineVacantEntry<'a, K, V, const ARRAY_SIZE: usize> {
     pub(super) key: K,
-    pub(super) map: &'a mut SmallMap<K, V, ARRAY_SIZE>,
+    pub(super) map: &'a mut SmallBTreeMap<K, V, ARRAY_SIZE>,
 }
 
 impl<'a, K: Ord + Eq, V, const ARRAY_SIZE: usize> InlineVacantEntry<'a, K, V, ARRAY_SIZE> {
@@ -283,7 +283,7 @@ impl<'a, K: Ord + Eq, V, const ARRAY_SIZE: usize> InlineVacantEntry<'a, K, V, AR
 
         let btree = BTreeMap::from_iter(vec);
 
-        *map = SmallMap {
+        *map = SmallBTreeMap {
             inner: super::Inner::Heap(btree),
         };
 
