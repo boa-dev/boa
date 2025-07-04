@@ -12,6 +12,8 @@ use boa_ast::{
 use boa_gc::Gc;
 use boa_interner::Interner;
 
+use super::SourcePositionGuard;
+
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
 #[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
@@ -221,9 +223,10 @@ impl FunctionCompiler {
             }
         }
 
-        compiler.push_source_position(body.span().start());
-        compiler.compile_statement_list(body.statement_list(), false, false);
-        compiler.pop_source_position();
+        {
+            let mut compiler = SourcePositionGuard::new(&mut compiler, body.span().start());
+            compiler.compile_statement_list(body.statement_list(), false, false);
+        }
 
         compiler.params = parameters.clone();
         compiler.parameter_scope = scopes.parameter_scope();

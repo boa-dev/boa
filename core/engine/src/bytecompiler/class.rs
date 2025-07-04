@@ -1,4 +1,6 @@
-use super::{BindingAccessOpcode, ByteCompiler, Literal, Register, ToJsString};
+use super::{
+    BindingAccessOpcode, ByteCompiler, Literal, Register, SourcePositionGuard, ToJsString,
+};
 use crate::{
     js_string,
     vm::{CodeBlock, CodeBlockFlags, opcode::BindingOpcode},
@@ -128,9 +130,10 @@ impl ByteCompiler<'_> {
                 expr.scopes(),
             );
 
-            compiler.push_source_position(expr.span().start());
-            compiler.compile_statement_list(expr.body().statement_list(), false, false);
-            compiler.pop_source_position();
+            {
+                let mut compiler = SourcePositionGuard::new(&mut compiler, expr.span().start());
+                compiler.compile_statement_list(expr.body().statement_list(), false, false);
+            }
 
             compiler.bytecode.emit_push_undefined(value.variable());
         } else if class.super_ref.is_some() {
@@ -619,13 +622,17 @@ impl ByteCompiler<'_> {
                         block.scopes(),
                     );
 
-                    compiler.push_source_position(block.statements().span().start());
-                    compiler.compile_statement_list(
-                        block.statements().statement_list(),
-                        false,
-                        false,
-                    );
-                    compiler.pop_source_position();
+                    {
+                        let mut compiler = SourcePositionGuard::new(
+                            &mut compiler,
+                            block.statements().span().start(),
+                        );
+                        compiler.compile_statement_list(
+                            block.statements().statement_list(),
+                            false,
+                            false,
+                        );
+                    }
 
                     let code = Gc::new(compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));
