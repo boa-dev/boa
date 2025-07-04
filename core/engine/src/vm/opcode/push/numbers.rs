@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType, Registers},
-    Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
+    Context,
 };
 
 macro_rules! implement_push_numbers_with_conversion {
@@ -13,9 +13,9 @@ macro_rules! implement_push_numbers_with_conversion {
         pub(crate) struct $name;
 
         impl $name {
-            fn operation(dst: u32, value: $num_type, registers: &mut Registers) -> JsResult<CompletionType> {
-                registers.set(dst, i32::from(value).into());
-                Ok(CompletionType::Normal)
+            #[inline(always)]
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+                context.vm.set_register(dst.into(), i32::from(value).into());
             }
         }
 
@@ -23,24 +23,6 @@ macro_rules! implement_push_numbers_with_conversion {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 1;
-
-            fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u8>().into();
-                let value = context.vm.read::<$num_type>();
-                Self::operation(dst, value, registers)
-            }
-
-            fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u16>().into();
-                let value = context.vm.read::<$num_type>();
-                Self::operation(dst, value, registers)
-            }
-
-            fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u32>().into();
-                let value = context.vm.read::<$num_type>();
-                Self::operation(dst, value, registers)
-            }
         }
     };
 }
@@ -55,9 +37,9 @@ macro_rules! implement_push_numbers_no_conversion {
         pub(crate) struct $name;
 
         impl $name {
-            fn operation(dst: u32, value: $num_type, registers: &mut Registers) -> JsResult<CompletionType> {
-                registers.set(dst, value.into());
-                Ok(CompletionType::Normal)
+            #[inline(always)]
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+                context.vm.set_register(dst.into(), value.into());
             }
         }
 
@@ -65,24 +47,6 @@ macro_rules! implement_push_numbers_no_conversion {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 1;
-
-            fn execute(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u8>().into();
-                let value = context.vm.read::<$num_type>();
-                Self::operation(dst, value, registers)
-            }
-
-            fn execute_u16(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u16>().into();
-                let value = context.vm.read::<$num_type>();
-                Self::operation(dst, value, registers)
-            }
-
-            fn execute_u32(registers: &mut Registers, context: &mut Context) -> JsResult<CompletionType> {
-                let dst = context.vm.read::<u32>().into();
-                let value = context.vm.read::<$num_type>();
-                Self::operation(dst, value, registers)
-            }
         }
     };
 }

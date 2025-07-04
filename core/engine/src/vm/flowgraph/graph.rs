@@ -1,5 +1,5 @@
 use crate::vm::flowgraph::{Color, Edge, EdgeStyle, EdgeType, Node, NodeShape};
-use std::{collections::hash_map::RandomState, hash::BuildHasher};
+use std::{collections::hash_map::RandomState, fmt::Write as _, hash::BuildHasher};
 
 /// This represents the direction of flow in the flowgraph.
 #[derive(Debug, Clone, Copy)]
@@ -97,24 +97,24 @@ impl SubGraph {
     /// Format into the graphviz format.
     fn graphviz_format(&self, result: &mut String, prefix: &str) {
         let label = format!("{}", RandomState::new().hash_one(&self.label));
-        result.push_str(&format!("\tsubgraph cluster_{prefix}_{label} {{\n"));
+        let _ = writeln!(result, "\tsubgraph cluster_{prefix}_{label} {{");
         result.push_str("\t\tstyle = filled;\n");
-        result.push_str(&format!(
-            "\t\tlabel = \"{}\";\n",
+        let _ = writeln!(
+            result,
+            "\t\tlabel = \"{}\";",
             if self.label.is_empty() {
                 "Anonymous Function"
             } else {
                 self.label.as_ref()
             }
-        ));
+        );
 
-        result.push_str(&format!(
-            "\t\t{prefix}_{label}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]\n"
-        ));
+        let _ =
+            writeln!(result,
+            "\t\t{prefix}_{label}_start [label=\"Start\",shape=Mdiamond,style=filled,color=green]"
+        );
         if !self.nodes.is_empty() {
-            result.push_str(&format!(
-                "\t\t{prefix}_{label}_start -> {prefix}_{label}_i_0\n"
-            ));
+            let _ = writeln!(result, "\t\t{prefix}_{label}_start -> {prefix}_{label}_i_0");
         }
 
         for node in &self.nodes {
@@ -124,10 +124,11 @@ impl SubGraph {
                 NodeShape::Diamond => ", shape=diamond",
             };
             let color = format!(",style=filled,color=\"{}\"", node.color);
-            result.push_str(&format!(
-                "\t\t{prefix}_{}_i_{}[label=\"{:04}: {}\"{shape}{color}];\n",
+            let _ = writeln!(
+                result,
+                "\t\t{prefix}_{}_i_{}[label=\"{:04}: {}\"{shape}{color}];",
                 label, node.location, node.location, node.label
-            ));
+            );
         }
 
         for edge in &self.edges {
@@ -140,14 +141,15 @@ impl SubGraph {
                 (EdgeStyle::Dashed, EdgeType::None) => ",style=dashed,dir=none",
                 (EdgeStyle::Dashed, EdgeType::Arrow) => ",style=dashed,",
             };
-            result.push_str(&format!(
-                "\t\t{prefix}_{}_i_{} -> {prefix}_{}_i_{} [label=\"{}\", len=f{style}{color}];\n",
+            let _ = writeln!(
+                result,
+                "\t\t{prefix}_{}_i_{} -> {prefix}_{}_i_{} [label=\"{}\", len=f{style}{color}];",
                 label,
                 edge.from,
                 label,
                 edge.to,
                 edge.label.as_deref().unwrap_or("")
-            ));
+            );
         }
         for (index, subgraph) in self.subgraphs.iter().enumerate() {
             let prefix = format!("{prefix}_F{index}");
@@ -165,23 +167,21 @@ impl SubGraph {
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };
-        result.push_str(&format!(
-            "  subgraph {prefix}_{}[\"{}\"]\n",
+        let _ = writeln!(
+            result,
+            "  subgraph {prefix}_{}[\"{}\"]",
             label,
             if self.label.is_empty() {
                 "Anonymous Function"
             } else {
                 self.label.as_ref()
             }
-        ));
-        result.push_str(&format!("  direction {rankdir}\n"));
-
-        result.push_str(&format!("  {prefix}_{label}_start{{Start}}\n"));
-        result.push_str(&format!("  style {prefix}_{label}_start fill:green\n"));
+        );
+        let _ = writeln!(result, "  direction {rankdir}");
+        let _ = writeln!(result, "  {prefix}_{label}_start{{Start}}");
+        let _ = writeln!(result, "  style {prefix}_{label}_start fill:green");
         if !self.nodes.is_empty() {
-            result.push_str(&format!(
-                "  {prefix}_{label}_start --> {prefix}_{label}_i_0\n"
-            ));
+            let _ = writeln!(result, "  {prefix}_{label}_start --> {prefix}_{label}_i_0");
         }
 
         for node in &self.nodes {
@@ -189,15 +189,17 @@ impl SubGraph {
                 NodeShape::None | NodeShape::Record => ('[', ']'),
                 NodeShape::Diamond => ('{', '}'),
             };
-            result.push_str(&format!(
-                "  {prefix}_{}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}\n",
+            let _ = writeln!(
+                result,
+                "  {prefix}_{}_i_{}{shape_begin}\"{:04}: {}\"{shape_end}",
                 label, node.location, node.location, node.label
-            ));
+            );
             if !node.color.is_none() {
-                result.push_str(&format!(
-                    "  style {prefix}_{}_i_{} fill:{}\n",
+                let _ = writeln!(
+                    result,
+                    "  style {prefix}_{}_i_{} fill:{}",
                     label, node.location, node.color
-                ));
+                );
             }
         }
 
@@ -208,21 +210,23 @@ impl SubGraph {
                 (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::None) => "-.-",
                 (EdgeStyle::Dotted | EdgeStyle::Dashed, EdgeType::Arrow) => "-.->",
             };
-            result.push_str(&format!(
-                "  {prefix}_{}_i_{} {style}| {}| {prefix}_{}_i_{}\n",
+            let _ = writeln!(
+                result,
+                "  {prefix}_{}_i_{} {style}| {}| {prefix}_{}_i_{}",
                 label,
                 edge.from,
                 edge.label.as_deref().unwrap_or(""),
                 label,
                 edge.to,
-            ));
+            );
 
             if !edge.color.is_none() {
-                result.push_str(&format!(
-                    "  linkStyle {} stroke:{}, stroke-width: 4px\n",
+                let _ = writeln!(
+                    result,
+                    "  linkStyle {} stroke:{}, stroke-width: 4px",
                     index + 1,
                     edge.color
-                ));
+                );
             }
         }
         for (index, subgraph) in self.subgraphs.iter().enumerate() {
@@ -276,7 +280,7 @@ impl Graph {
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };
-        result += &format!("\trankdir={rankdir};\n");
+        let _ = writeln!(result, "\trankdir={rankdir};");
 
         for subgraph in &self.subgraphs {
             subgraph.graphviz_format(&mut result, "");
@@ -295,7 +299,7 @@ impl Graph {
             Direction::LeftToRight => "LR",
             Direction::RightToLeft => "RL",
         };
-        result += &format!("graph {rankdir}\n");
+        let _ = writeln!(result, "graph {rankdir}");
 
         for subgraph in &self.subgraphs {
             subgraph.mermaid_format(&mut result, "");

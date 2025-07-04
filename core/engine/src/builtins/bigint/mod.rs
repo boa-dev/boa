@@ -25,7 +25,6 @@ use crate::{
     value::{IntegerOrInfinity, PreferredType},
     Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 use num_bigint::ToBigInt;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -39,10 +38,9 @@ pub struct BigInt;
 
 impl IntrinsicObject for BigInt {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .static_method(Self::as_int_n, js_string!("asIntN"), 2)
             .static_method(Self::as_uint_n, js_string!("asUintN"), 2)
@@ -209,6 +207,42 @@ impl BigInt {
         //    Letters a-z are used for digits with values 10 through 35.
         //    The precise algorithm is implementation-defined, however the algorithm should be a generalization of that specified in 6.1.6.2.23.
         Ok(JsValue::new(js_string!(x.to_string_radix(radix_mv as u32))))
+    }
+
+    #[allow(
+        unused_variables,
+        reason = "`args` is used if the `intl` feature is enabled"
+    )]
+    fn to_locale_string(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        #[cfg(feature = "intl")]
+        {
+            // 1. Let x be ? ThisBigIntValue(this value).
+
+            use fixed_decimal::Decimal;
+
+            use crate::builtins::intl::NumberFormat;
+            let x = Self::this_bigint_value(this)?;
+            let locales = args.get_or_undefined(0).clone();
+            let options = args.get_or_undefined(1).clone();
+
+            // 2. Let numberFormat be ? Construct(%Intl.NumberFormat%, « locales, options »).
+            let number_format = NumberFormat::new(&locales, &options, context)?;
+            let x = &mut Decimal::try_from_str(&x.to_string())
+                .map_err(|err| JsNativeError::range().with_message(err.to_string()))?;
+
+            // 3. Return FormatNumeric(numberFormat, ℝ(x)).
+            Ok(js_string!(number_format.format(x).to_string()).into())
+        }
+
+        #[cfg(not(feature = "intl"))]
+        {
+            // Arguments are reserved, so we cannot pass them to the `toString` method.
+            Self::to_string(this, &[], context)
+        }
     }
 
     /// `BigInt.prototype.valueOf()`

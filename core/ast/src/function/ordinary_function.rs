@@ -7,10 +7,10 @@ use crate::{
     scope::{FunctionScopes, Scope},
     scope_analyzer::{analyze_binding_escapes, collect_bindings},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan, LinearSpanIgnoreEq,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, ToIndentedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// A function declaration.
 ///
@@ -160,6 +160,9 @@ pub struct FunctionExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+
+    span: Span,
+
     linear_span: Option<LinearSpan>,
 }
 
@@ -173,6 +176,7 @@ impl PartialEq for FunctionExpression {
             && self.contains_direct_eval == other.contains_direct_eval
             && self.name_scope == other.name_scope
             && self.scopes == other.scopes
+            && self.span == other.span
     }
 }
 
@@ -186,6 +190,7 @@ impl FunctionExpression {
         body: FunctionBody,
         linear_span: Option<LinearSpan>,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -199,6 +204,7 @@ impl FunctionExpression {
             scopes: FunctionScopes::default(),
             #[allow(clippy::redundant_closure_for_method_calls)]
             linear_span,
+            span,
         }
     }
 
@@ -258,6 +264,13 @@ impl FunctionExpression {
         self.contains_direct_eval
     }
 
+    /// Get the [`Span`] of the [`FunctionExpression`] node.
+    #[inline]
+    #[must_use]
+    pub const fn span(&self) -> Span {
+        self.span
+    }
+
     /// Analyze the scope of the function expression.
     pub fn analyze_scope(&mut self, strict: bool, scope: &Scope, interner: &Interner) -> bool {
         if !collect_bindings(self, strict, false, scope, interner) {
@@ -272,14 +285,15 @@ impl ToIndentedString for FunctionExpression {
         let mut buf = "function".to_owned();
         if self.has_binding_identifier {
             if let Some(name) = self.name {
-                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
+                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
             }
         }
-        buf.push_str(&format!(
+        let _ = write!(
+            buf,
             "({}) {}",
             join_nodes(interner, self.parameters.as_ref()),
             block_to_string(&self.body.statements, interner, indentation)
-        ));
+        );
 
         buf
     }

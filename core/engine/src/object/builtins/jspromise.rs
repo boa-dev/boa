@@ -1165,13 +1165,12 @@ impl JsPromise {
             builtins::{async_generator::AsyncGenerator, generator::GeneratorContext},
             js_string,
             object::FunctionObjectBuilder,
-            vm::Registers,
         };
         use std::cell::Cell;
 
         // Clone the stack since we split it.
         let stack = context.vm.stack.clone();
-        let gen_ctx = GeneratorContext::from_current(context, Registers::new(0), None);
+        let gen_ctx = GeneratorContext::from_current(context, None);
         context.vm.stack = stack;
 
         // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
@@ -1225,7 +1224,9 @@ impl JsPromise {
         .length(1)
         .build();
 
-        let gen_ctx = GeneratorContext::from_current(context, Registers::new(0), None);
+        let stack = context.vm.stack.clone();
+        let gen_ctx = GeneratorContext::from_current(context, None);
+        context.vm.stack = stack;
 
         // 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
         // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).

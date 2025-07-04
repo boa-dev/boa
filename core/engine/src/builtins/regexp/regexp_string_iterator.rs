@@ -22,7 +22,6 @@ use crate::{
     Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use regexp::{advance_string_index, RegExp};
 
 /// The `RegExp String Iterator` object.
@@ -42,8 +41,6 @@ pub(crate) struct RegExpStringIterator {
 
 impl IntrinsicObject for RegExpStringIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm

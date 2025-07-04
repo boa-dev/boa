@@ -16,6 +16,23 @@ impl<'a> UTF16Input<'a> {
     pub const fn new(input: &'a [u16]) -> Self {
         Self { input, index: 0 }
     }
+
+    // use `#[cold]` to hint to branch predictor that surrogate pairs are rare
+    #[cold]
+    fn handle_surrogate_pair(&mut self, u1: u16) -> u32 {
+        let Some(u2) = self.input.get(self.index).copied() else {
+            return u1.into();
+        };
+
+        // If the code unit is not a low surrogate, it is not a surrogate pair.
+        if !is_low_surrogate(u2) {
+            return u1.into();
+        }
+
+        self.index += 1;
+
+        code_point_from_surrogates(u1, u2)
+    }
 }
 
 impl ReadChar for UTF16Input<'_> {
@@ -32,18 +49,7 @@ impl ReadChar for UTF16Input<'_> {
             return Ok(Some(u1.into()));
         }
 
-        let Some(u2) = self.input.get(self.index).copied() else {
-            return Ok(Some(u1.into()));
-        };
-
-        // If the code unit is not a low surrogate, it is not a surrogate pair.
-        if !is_low_surrogate(u2) {
-            return Ok(Some(u1.into()));
-        }
-
-        self.index += 1;
-
-        Ok(Some(code_point_from_surrogates(u1, u2)))
+        Ok(Some(self.handle_surrogate_pair(u1)))
     }
 }
 

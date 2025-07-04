@@ -24,7 +24,10 @@ use boa_engine::{
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use std::{cell::RefCell, collections::hash_map::Entry, io::Write, rc::Rc, time::SystemTime};
+use std::{
+    cell::RefCell, collections::hash_map::Entry, fmt::Write as _, io::Write, rc::Rc,
+    time::SystemTime,
+};
 
 /// A trait that can be used to forward console logs to an implementation.
 pub trait Logger: Trace + Sized {
@@ -153,7 +156,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                         /* float */
                         'f' => {
                             let arg = data.get_or_undefined(arg_index).to_number(context)?;
-                            formatted.push_str(&format!("{arg:.6}"));
+                            let _ = write!(formatted, "{arg:.6}");
                             arg_index += 1;
                         }
                         /* object, FIXME: how to render this properly? */
@@ -196,7 +199,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                     }
                 } else {
                     formatted.push(c);
-                };
+                }
             }
 
             /* unformatted data */
@@ -311,7 +314,6 @@ impl Console {
                 })
             }
         }
-        // let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let state = Rc::new(RefCell::new(Self::default()));
         let logger = Rc::new(logger);
@@ -797,7 +799,7 @@ impl Console {
                 &console.state,
                 context,
             )?;
-        };
+        }
 
         Ok(JsValue::undefined())
     }

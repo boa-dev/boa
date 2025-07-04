@@ -8,7 +8,6 @@ use crate::{
 };
 use boa_ast::{statement::WhileLoop, Keyword, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// While statement parsing
 ///
@@ -52,7 +51,6 @@ where
     type Output = WhileLoop;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("WhileStatement", "Parsing");
         cursor.expect((Keyword::While, false), "while statement", interner)?;
 
         cursor.expect(Punctuator::OpenParen, "while statement", interner)?;

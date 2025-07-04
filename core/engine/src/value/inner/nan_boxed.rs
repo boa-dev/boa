@@ -63,45 +63,42 @@
 //! | `+Infinity`       | `7FF0:0000:0000:0000`    | |
 //! | `-Infinity`       | `FFF0:0000:0000:0000`    | |
 //! | `NAN` (quiet)     | `7FF8:0000:0000:0000`    | |
-//! | `NAN` (signaling) | `FFF8:0000:0000:0000`    | |
-//! | `Undefined`       | `7FF4:0000:0000:0000`    | |
-//! | `Null`            | `7FF5:0000:0000:0000`    | |
-//! | `False`           | `7FF6:0000:0000:0000`    | |
-//! | `True`            | `7FF6:0000:0000:0001`    | |
-//! | `Integer32`       | `7FF7:0000:IIII:IIII`    | 32-bits integer. |
-//! | `BigInt`          | `7FF8:PPPP:PPPP:PPPP`    | 48-bits pointer. Assumes non-null pointer. |
-//! | `Object`          | `7FFA:PPPP:PPPP:PPPP`    | 48-bits pointer. |
-//! | `Symbol`          | `7FFC:PPPP:PPPP:PPPP`    | 48-bits pointer. |
-//! | `String`          | `7FFE:PPPP:PPPP:PPPP`    | 48-bits pointer. |
+//! | `Integer32`       | `7FF9:0000:IIII:IIII`    | 32-bits integer. |
+//! | `False`           | `7FFA:0000:0000:0000`    | |
+//! | `True`            | `7FFA:0000:0000:0001`    | |
+//! | `Null`            | `7FFB:0000:0000:0000`    | |
+//! | `Undefined`       | `7FFB:0000:0000:0001`    | |
+//! | `Object`          | `7FFC:PPPP:PPPP:PPPP`    | 48-bits pointer. Assumes non-null pointer. |
+//! | `String`          | `7FFD:PPPP:PPPP:PPPP`    | 48-bits pointer. Assumes non-null pointer. |
+//! | `Symbol`          | `7FFE:PPPP:PPPP:PPPP`    | 48-bits pointer. Assumes non-null pointer. |
+//! | `BigInt`          | `7FFF:PPPP:PPPP:PPPP`    | 48-bits pointer. Assumes non-null pointer. |
 //! | `Float64`         | Any other values.        | |
 //!
 //! Another way to vizualize this is by looking at the bit layout of a NaN-boxed
 //! value:
 //! ```text
 //!                           ....--<| The type of inner value is represented by this.
-//!                           |..|   | 1??0 - Pointer, where ?? is the subtype of pointer:
-//!                           |..|   |        b00 - BigInt, b01 - Object,
-//!                           |..|   |        b10 - Symbol, b11 - String.
-//!                           |..|   |        If the pointer is null, then it is a NaN value.
-//!                           |..|   | 0??? - Non-pointer, where ??? is the subtype:
-//!                           |..|   |        b100 - Undefined, b101 - Null,
-//!                           |..|   |        b011 - Boolean, b110 - Integer32.
+//!                           |..|   | 11?? - Pointer, where ?? is the subtype of pointer:
+//!                           |..|   |        b00 - Object, b01 - String,
+//!                           |..|   |        b10 - Symbol, b11 - BigInt.
+//!                           |..|   | 10?? - Non-pointer, where ?? is the subtype:
+//!                           |..|   |        b01 - Integer32, b10 - Boolean,
+//!                           |..|   |        b11 - Other
 //!                           vvvv
 //! bit index: 63   59   55   51   47   43   39   35   31 .. 3  0
 //!            0000 0000 0000 0000 0000 0000 0000 0000 0000 .. 0000
 //! +Inf       0111 1111 1111 0000 0000 0000 0000 0000 0000 .. 0000
 //! -Inf       1111 1111 1111 0000 0000 0000 0000 0000 0000 .. 0000
 //! NaN (q)    0111 1111 1111 1000 0000 0000 0000 0000 0000 .. 0000
-//! NaN (s)    1111 1111 1111 1000 0000 0000 0000 0000 0000 .. 0000
-//! Undefined  0111 1111 1111 0100 0000 0000 0000 0000 0000 .. 0000
-//! Null       0111 1111 1111 0101 0000 0000 0000 0000 0000 .. 0000
-//! False      0111 1111 1111 0110 0000 0000 0000 0000 0000 .. 0000
-//! True       0111 1111 1111 0110 0000 0000 0000 0000 0000 .. 0001
-//! Integer32  0111 1111 1111 0111 0000 0000 0000 0000 IIII .. IIII
-//! BigInt     0111 1111 1111 1000 PPPP PPPP PPPP PPPP PPPP .. PPPP
-//! Object     0111 1111 1111 1010 PPPP PPPP PPPP PPPP PPPP .. PPPP
-//! Symbol     0111 1111 1111 1100 PPPP PPPP PPPP PPPP PPPP .. PPPP
-//! String     0111 1111 1111 1110 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! Integer32  0111 1111 1111 1001 0000 0000 0000 0000 IIII .. IIII
+//! False      0111 1111 1111 1010 0000 0000 0000 0000 0000 .. 0000
+//! True       0111 1111 1111 1010 0000 0000 0000 0000 0000 .. 0001
+//! Null       0111 1111 1111 1011 0000 0000 0000 0000 0000 .. 0000
+//! Undefined  0111 1111 1111 1011 0000 0000 0000 0000 0000 .. 0001
+//! Object     0111 1111 1111 1100 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! String     0111 1111 1111 1101 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! Symbol     0111 1111 1111 1110 PPPP PPPP PPPP PPPP PPPP .. PPPP
+//! BigInt     0111 1111 1111 1111 PPPP PPPP PPPP PPPP PPPP .. PPPP
 //! Float64    Any other value.
 //! ```
 //!
@@ -129,128 +126,103 @@ mod bits {
     use boa_string::JsString;
     use std::ptr::NonNull;
 
-    /// Undefined value in `u64`.
-    pub(super) const UNDEFINED: u64 = 0x7FF4_0000_0000_0000;
+    /// The mask for the bits that indicate if the value is a NaN-value.
+    const MASK_NAN: u64 = 0x7FF0_0000_0000_0000;
 
-    /// Null value in `u64`.
-    pub(super) const NULL: u64 = 0x7FF5_0000_0000_0000;
+    /// The mask for the bits that indicate the kind of the value.
+    pub(super) const MASK_KIND: u64 = MASK_NAN | 0xF_0000_0000_0000;
 
-    /// False value in `u64`.
-    pub(super) const FALSE: u64 = 0x7FF6_0000_0000_0000;
+    // The tag bits for the different kinds of values.
+    const TAG_INF: u64 = 0x0_0000_0000_0000;
+    const TAG_NAN: u64 = 0x8_0000_0000_0000;
+    const TAG_INT32: u64 = 0x9_0000_0000_0000;
+    const TAG_BOOLEAN: u64 = 0xA_0000_0000_0000;
+    const TAG_OTHER: u64 = 0xB_0000_0000_0000;
+    const TAG_OBJECT: u64 = 0xC_0000_0000_0000;
+    const TAG_STRING: u64 = 0xD_0000_0000_0000;
+    const TAG_SYMBOL: u64 = 0xE_0000_0000_0000;
+    const TAG_BIGINT: u64 = 0xF_0000_0000_0000;
 
-    /// True value in `u64`.
-    pub(super) const TRUE: u64 = 0x7FF6_0000_0000_0001;
+    // The masks for the different kinds of tag bits.
+    pub(super) const MASK_INT32: u64 = MASK_NAN | TAG_INT32;
+    pub(super) const MASK_BOOLEAN: u64 = MASK_NAN | TAG_BOOLEAN;
+    pub(super) const MASK_OTHER: u64 = MASK_NAN | TAG_OTHER;
+    pub(super) const MASK_OBJECT: u64 = MASK_NAN | TAG_OBJECT;
+    pub(super) const MASK_STRING: u64 = MASK_NAN | TAG_STRING;
+    pub(super) const MASK_SYMBOL: u64 = MASK_NAN | TAG_SYMBOL;
+    pub(super) const MASK_BIGINT: u64 = MASK_NAN | TAG_BIGINT;
 
-    /// Integer32 start (zero) value in `u64`.
-    pub(super) const INTEGER32_ZERO: u64 = 0x7FF7_0000_0000_0000;
+    // The masks for the different kinds of values.
+    const MASK_INT32_VALUE: u64 = 0xFFFF_FFFF;
+    const MASK_POINTER_VALUE: u64 = 0x0000_FFFF_FFFF_FFFF;
+    const MASK_BOOLEAN_VALUE: u64 = 1;
 
-    /// Integer32 end (MAX) value in `u64`.
-    pub(super) const INTEGER32_MAX: u64 = 0x7FF7_0000_FFFF_FFFF;
+    /// The constant null value.
+    pub(super) const VALUE_NULL: u64 = MASK_OTHER;
 
-    /// Pointer starting point in `u64`.
-    pub(super) const POINTER_START: u64 = 0x7FF8_0000_0000_0000;
+    /// The constant undefined value.
+    pub(super) const VALUE_UNDEFINED: u64 = MASK_OTHER | 1;
 
-    /// Pointer types mask in `u64`.
-    pub(super) const POINTER_MASK: u64 = 0x0000_FFFF_FFFF_FFFF;
+    /// The constant false value.
+    pub(super) const VALUE_FALSE: u64 = MASK_BOOLEAN;
 
-    /// Pointer start point for `BigInt` in `u64`.
-    pub(super) const POINTER_BIGINT_START: u64 = POINTER_START | POINTER_TYPE_BIGINT;
-    /// Pointer end point for `BigInt` in `u64`.
-    pub(super) const POINTER_BIGINT_END: u64 = POINTER_START | POINTER_MASK | POINTER_TYPE_BIGINT;
-    /// Pointer start point for `JsObject` in `u64`.
-    pub(super) const POINTER_OBJECT_START: u64 = POINTER_START | POINTER_TYPE_OBJECT;
-    /// Pointer end point for `JsObject` in `u64`.
-    pub(super) const POINTER_OBJECT_END: u64 = POINTER_START | POINTER_MASK | POINTER_TYPE_OBJECT;
-    /// Pointer start point for `JsSymbol` in `u64`.
-    pub(super) const POINTER_SYMBOL_START: u64 = POINTER_START | POINTER_TYPE_SYMBOL;
-    /// Pointer end point for `JsSymbol` in `u64`.
-    pub(super) const POINTER_SYMBOL_END: u64 = POINTER_START | POINTER_MASK | POINTER_TYPE_SYMBOL;
-    /// Pointer start point for `JsString` in `u64`.
-    pub(super) const POINTER_STRING_START: u64 = POINTER_START | POINTER_TYPE_STRING;
-    /// Pointer end point for `JsString` in `u64`.
-    pub(super) const POINTER_STRING_END: u64 = POINTER_START | POINTER_MASK | POINTER_TYPE_STRING;
-
-    /// Pointer mask for the type of the pointer.
-    pub(super) const POINTER_TYPE_MASK: u64 = 0x0007_0000_0000_0000;
-
-    /// Pointer type value for `BigInt`.
-    pub(super) const POINTER_TYPE_BIGINT: u64 = 0x0000_0000_0000_0000;
-
-    /// Pointer type value for `JsObject`.
-    pub(super) const POINTER_TYPE_OBJECT: u64 = 0x0004_0000_0000_0000;
-
-    /// Pointer type value for `JsSymbol`.
-    pub(super) const POINTER_TYPE_SYMBOL: u64 = 0x0005_0000_0000_0000;
-
-    /// Pointer type value for `JsString`.
-    pub(super) const POINTER_TYPE_STRING: u64 = 0x0006_0000_0000_0000;
-
-    /// NAN value in `u64`.
-    pub(super) const NAN: u64 = 0x7FF8_0000_0000_0000;
+    /// The constant true value.
+    pub(super) const VALUE_TRUE: u64 = MASK_BOOLEAN | 1;
 
     /// Checks that a value is a valid boolean (either true or false).
     #[inline(always)]
     pub(super) const fn is_bool(value: u64) -> bool {
-        value == TRUE || value == FALSE
+        value & MASK_KIND == MASK_BOOLEAN
     }
 
     /// Checks that a value is a valid float, not a tagged nan boxed value.
     #[inline(always)]
     pub(super) const fn is_float(value: u64) -> bool {
-        let as_float = f64::from_bits(value);
-        !as_float.is_nan() || value == NAN
+        (value & MASK_NAN != MASK_NAN)
+            || (value & MASK_KIND) == (MASK_NAN | TAG_INF)
+            || (value & MASK_KIND) == (MASK_NAN | TAG_NAN)
     }
 
     /// Checks that a value is a valid undefined.
     #[inline(always)]
     pub(super) const fn is_undefined(value: u64) -> bool {
-        value == UNDEFINED
+        value == VALUE_UNDEFINED
     }
 
     /// Checks that a value is a valid null.
     #[inline(always)]
     pub(super) const fn is_null(value: u64) -> bool {
-        value == NULL
+        value == VALUE_NULL
     }
 
     /// Checks that a value is a valid integer32.
     #[inline(always)]
     pub(super) const fn is_integer32(value: u64) -> bool {
-        value & INTEGER32_ZERO == INTEGER32_ZERO
-    }
-
-    /// Untag a value as a pointer.
-    #[inline(always)]
-    pub(super) const fn is_pointer(value: u64) -> bool {
-        value & POINTER_START == POINTER_START
+        value & MASK_KIND == MASK_INT32
     }
 
     /// Checks that a value is a valid `BigInt`.
     #[inline(always)]
-    #[allow(clippy::verbose_bit_mask)]
     pub(super) const fn is_bigint(value: u64) -> bool {
-        // If `(value & POINTER_MASK)` is zero, then it is NaN.
-        is_pointer(value)
-            && (value & POINTER_TYPE_MASK == POINTER_TYPE_BIGINT)
-            && (value & POINTER_MASK) != 0
+        value & MASK_KIND == MASK_BIGINT
     }
 
     /// Checks that a value is a valid Object.
     #[inline(always)]
     pub(super) const fn is_object(value: u64) -> bool {
-        is_pointer(value) && (value & POINTER_TYPE_MASK == POINTER_TYPE_OBJECT)
+        value & MASK_KIND == MASK_OBJECT
     }
 
     /// Checks that a value is a valid Symbol.
     #[inline(always)]
     pub(super) const fn is_symbol(value: u64) -> bool {
-        is_pointer(value) && (value & POINTER_TYPE_MASK == POINTER_TYPE_SYMBOL)
+        value & MASK_KIND == MASK_SYMBOL
     }
 
     /// Checks that a value is a valid String.
     #[inline(always)]
     pub(super) const fn is_string(value: u64) -> bool {
-        is_pointer(value) && (value & POINTER_TYPE_MASK == POINTER_TYPE_STRING)
+        value & MASK_KIND == MASK_STRING
     }
 
     /// Returns a tagged u64 of a 64-bits float.
@@ -267,23 +239,25 @@ mod bits {
     /// Returns a tagged u64 of a 32-bits integer.
     #[inline(always)]
     pub(super) const fn tag_i32(value: i32) -> u64 {
-        INTEGER32_ZERO | value as u64 & 0xFFFF_FFFFu64
+        value as u64 & MASK_INT32_VALUE | MASK_INT32
     }
 
     /// Returns a i32-bits from a tagged integer.
     #[inline(always)]
     pub(super) const fn untag_i32(value: u64) -> i32 {
-        ((value & 0xFFFF_FFFFu64) | 0xFFFF_FFFF_0000_0000u64) as i32
+        value as i32
     }
 
     /// Returns a tagged u64 of a boolean.
     #[inline(always)]
     pub(super) const fn tag_bool(value: bool) -> u64 {
-        if value {
-            TRUE
-        } else {
-            FALSE
-        }
+        value as u64 | MASK_BOOLEAN
+    }
+
+    /// Returns a boolan from a tagged value.
+    #[inline(always)]
+    pub(super) const fn untag_bool(value: u64) -> bool {
+        value & MASK_BOOLEAN_VALUE != 0
     }
 
     /// Returns a tagged u64 of a boxed `[JsBigInt]`.
@@ -298,7 +272,7 @@ mod bits {
     #[allow(clippy::identity_op)]
     pub(super) unsafe fn tag_bigint(value: Box<JsBigInt>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & POINTER_MASK;
+        let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
@@ -309,7 +283,7 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER_BIGINT_START | value_masked
+        value_masked | MASK_BIGINT
     }
 
     /// Returns a tagged u64 of a boxed `[JsObject]`.
@@ -323,7 +297,7 @@ mod bits {
     #[inline(always)]
     pub(super) unsafe fn tag_object(value: Box<JsObject>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & POINTER_MASK;
+        let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
@@ -334,7 +308,7 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER_OBJECT_START | value_masked
+        value_masked | MASK_OBJECT
     }
 
     /// Returns a tagged u64 of a boxed `[JsSymbol]`.
@@ -348,7 +322,7 @@ mod bits {
     #[inline(always)]
     pub(super) unsafe fn tag_symbol(value: Box<JsSymbol>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & POINTER_MASK;
+        let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
@@ -359,7 +333,7 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER_SYMBOL_START | value_masked
+        value_masked | MASK_SYMBOL
     }
 
     /// Returns a tagged u64 of a boxed `[JsString]`.
@@ -373,7 +347,7 @@ mod bits {
     #[inline(always)]
     pub(super) unsafe fn tag_string(value: Box<JsString>) -> u64 {
         let value = Box::into_raw(value) as u64;
-        let value_masked: u64 = value & POINTER_MASK;
+        let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
         assert_eq!(
@@ -384,7 +358,7 @@ mod bits {
         assert_ne!(value_masked, 0, "Pointer is NULL.");
 
         // Simply cast for bits.
-        POINTER_STRING_START | value_masked
+        value_masked | MASK_STRING
     }
 
     /// Returns a reference to T from a tagged value.
@@ -395,26 +369,33 @@ mod bits {
     #[inline(always)]
     pub(super) const unsafe fn untag_pointer<'a, T>(value: u64) -> &'a T {
         // This is safe since we already checked the pointer is not null as this point.
-        unsafe { NonNull::new_unchecked((value & POINTER_MASK) as *mut T).as_ref() }
+        unsafe { NonNull::new_unchecked((value & MASK_POINTER_VALUE) as *mut T).as_ref() }
+    }
+
+    /// Returns a boxed T from a tagged value.
+    ///
+    /// # Safety
+    /// The pointer must be a valid pointer to a T on the heap, otherwise this
+    /// will result in undefined behavior.
+    #[allow(clippy::unnecessary_box_returns)]
+    pub(super) unsafe fn untag_pointer_owned<T>(value: u64) -> Box<T> {
+        // This is safe since we already checked the pointer is not null as this point.
+        unsafe { Box::from_raw((value & MASK_POINTER_VALUE) as *mut T) }
     }
 }
 
-// Verify that all representations of NanBitTag ARE NAN, but don't match static NAN.
-// The only exception to this rule is BigInt, which assumes that the pointer is
-// non-null. The static f64::NAN is equal to BigInt.
-const_assert!(f64::from_bits(bits::UNDEFINED).is_nan());
-const_assert!(f64::from_bits(bits::NULL).is_nan());
-const_assert!(f64::from_bits(bits::FALSE).is_nan());
-const_assert!(f64::from_bits(bits::TRUE).is_nan());
-const_assert!(f64::from_bits(bits::INTEGER32_ZERO).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_BIGINT_START).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_BIGINT_END).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_OBJECT_START).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_OBJECT_END).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_SYMBOL_START).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_SYMBOL_END).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_STRING_START).is_nan());
-const_assert!(f64::from_bits(bits::POINTER_STRING_END).is_nan());
+// Verify that all const values and masks are nan.
+const_assert!(f64::from_bits(bits::VALUE_UNDEFINED).is_nan());
+const_assert!(f64::from_bits(bits::VALUE_NULL).is_nan());
+const_assert!(f64::from_bits(bits::VALUE_FALSE).is_nan());
+const_assert!(f64::from_bits(bits::VALUE_TRUE).is_nan());
+const_assert!(f64::from_bits(bits::MASK_INT32).is_nan());
+const_assert!(f64::from_bits(bits::MASK_BOOLEAN).is_nan());
+const_assert!(f64::from_bits(bits::MASK_OTHER).is_nan());
+const_assert!(f64::from_bits(bits::MASK_OBJECT).is_nan());
+const_assert!(f64::from_bits(bits::MASK_STRING).is_nan());
+const_assert!(f64::from_bits(bits::MASK_SYMBOL).is_nan());
+const_assert!(f64::from_bits(bits::MASK_BIGINT).is_nan());
 
 /// A NaN-boxed `[JsValue]`'s inner.
 pub(crate) struct NanBoxedValue(pub u64);
@@ -482,14 +463,14 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) const fn null() -> Self {
-        Self::from_inner_unchecked(bits::NULL)
+        Self::from_inner_unchecked(bits::VALUE_NULL)
     }
 
     /// Returns a `InnerValue` from an undefined.
     #[must_use]
     #[inline(always)]
     pub(crate) const fn undefined() -> Self {
-        Self::from_inner_unchecked(bits::UNDEFINED)
+        Self::from_inner_unchecked(bits::VALUE_UNDEFINED)
     }
 
     /// Returns a `InnerValue` from a 64-bits float. If the float is `NaN`,
@@ -577,13 +558,6 @@ impl NanBoxedValue {
         bits::is_integer32(self.0)
     }
 
-    /// Returns true if a value is a pointer type.
-    #[must_use]
-    #[inline(always)]
-    pub(crate) const fn is_pointer(&self) -> bool {
-        bits::is_pointer(self.0)
-    }
-
     /// Returns true if a value is a `[JsBigInt]`. A `NaN` will not match here.
     #[must_use]
     #[inline(always)]
@@ -639,8 +613,8 @@ impl NanBoxedValue {
     #[inline(always)]
     pub(crate) const fn as_bool(&self) -> Option<bool> {
         match self.0 {
-            bits::FALSE => Some(false),
-            bits::TRUE => Some(true),
+            bits::VALUE_FALSE => Some(false),
+            bits::VALUE_TRUE => Some(true),
             _ => None,
         }
     }
@@ -693,47 +667,31 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) const fn as_variant(&self) -> JsVariant<'_> {
-        match self.0 {
-            bits::UNDEFINED => JsVariant::Undefined,
-            bits::NULL => JsVariant::Null,
-            bits::FALSE => JsVariant::Boolean(false),
-            bits::TRUE => JsVariant::Boolean(true),
-            bits::INTEGER32_ZERO..=bits::INTEGER32_MAX => {
-                JsVariant::Integer32(bits::untag_i32(self.0))
-            }
-            bits::NAN => JsVariant::Float64(f64::NAN),
-            bits::POINTER_BIGINT_START..=bits::POINTER_BIGINT_END => {
-                JsVariant::BigInt(unsafe { bits::untag_pointer(self.0) })
-            }
-            bits::POINTER_OBJECT_START..=bits::POINTER_OBJECT_END => {
-                JsVariant::Object(unsafe { bits::untag_pointer(self.0) })
-            }
-            bits::POINTER_SYMBOL_START..=bits::POINTER_SYMBOL_END => {
-                JsVariant::Symbol(unsafe { bits::untag_pointer(self.0) })
-            }
-            bits::POINTER_STRING_START..=bits::POINTER_STRING_END => {
-                JsVariant::String(unsafe { bits::untag_pointer(self.0) })
-            }
+        match self.0 & bits::MASK_KIND {
+            bits::MASK_OBJECT => JsVariant::Object(unsafe { bits::untag_pointer(self.0) }),
+            bits::MASK_STRING => JsVariant::String(unsafe { bits::untag_pointer(self.0) }),
+            bits::MASK_SYMBOL => JsVariant::Symbol(unsafe { bits::untag_pointer(self.0) }),
+            bits::MASK_BIGINT => JsVariant::BigInt(unsafe { bits::untag_pointer(self.0) }),
+            bits::MASK_INT32 => JsVariant::Integer32(bits::untag_i32(self.0)),
+            bits::MASK_BOOLEAN => JsVariant::Boolean(bits::untag_bool(self.0)),
+            bits::MASK_OTHER => match self.0 {
+                bits::VALUE_NULL => JsVariant::Null,
+                _ => JsVariant::Undefined,
+            },
             _ => JsVariant::Float64(f64::from_bits(self.0)),
         }
     }
 }
 
 impl Drop for NanBoxedValue {
+    #[inline(always)]
     fn drop(&mut self) {
-        let maybe_ptr = self.0 & bits::POINTER_MASK;
-
-        // Drop the pointer if it is a pointer.
-        if self.is_pointer() {
-            if self.is_string() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsString) });
-            } else if self.is_object() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsObject) });
-            } else if self.is_bigint() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsBigInt) });
-            } else if self.is_symbol() {
-                drop(unsafe { Box::from_raw(maybe_ptr as *mut JsSymbol) });
-            }
+        match self.0 & bits::MASK_KIND {
+            bits::MASK_OBJECT => drop(unsafe { bits::untag_pointer_owned::<JsObject>(self.0) }),
+            bits::MASK_STRING => drop(unsafe { bits::untag_pointer_owned::<JsString>(self.0) }),
+            bits::MASK_SYMBOL => drop(unsafe { bits::untag_pointer_owned::<JsSymbol>(self.0) }),
+            bits::MASK_BIGINT => drop(unsafe { bits::untag_pointer_owned::<JsBigInt>(self.0) }),
+            _ => {}
         }
     }
 }

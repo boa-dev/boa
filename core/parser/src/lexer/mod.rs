@@ -44,7 +44,6 @@ use self::{
 use crate::source::{ReadChar, UTF8Input};
 use boa_ast::{PositionGroup, Punctuator};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 pub use self::{
     error::Error,
@@ -130,8 +129,6 @@ impl<R> Lexer<R> {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("lex_slash_token", "Lexing");
-
         if let Some(c) = self.cursor.peek_char()? {
             match (c, init_with_eq) {
                 // /
@@ -222,8 +219,6 @@ impl<R> Lexer<R> {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("next()", "Lexing");
-
         let mut start = self.cursor.pos_group();
         let Some(mut next_ch) = self.cursor.next_char()? else {
             return Ok(None);
@@ -236,7 +231,7 @@ impl<R> Lexer<R> {
             if next_ch == 0x23 && self.cursor.peek_char()? == Some(0x21) {
                 let _token = HashbangComment.lex(&mut self.cursor, start, interner);
                 return self.next(interner);
-            };
+            }
         }
 
         // Ignore whitespace

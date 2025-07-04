@@ -16,7 +16,6 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
@@ -48,7 +47,6 @@ impl BuiltInObject for PlainMonthDay {
 
 impl IntrinsicObject for PlainMonthDay {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         let get_day = BuiltInBuilder::callable(realm, Self::get_day)
             .name(js_string!("get day"))
             .build();
@@ -149,7 +147,7 @@ impl BuiltInConstructor for PlainMonthDay {
                     .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })
             .transpose()?
-            .map(|s| Calendar::from_utf8(s.as_bytes()))
+            .map(|s| Calendar::try_from_utf8(s.as_bytes()))
             .transpose()?
             .unwrap_or_default();
 
@@ -188,7 +186,7 @@ impl PlainMonthDay {
             })?;
         let inner = &month_day.inner;
         match field {
-            DateTimeValues::Day => Ok(inner.iso_day().into()),
+            DateTimeValues::Day => Ok(inner.day().into()),
             DateTimeValues::MonthCode => Ok(js_string!(inner.month_code().as_str()).into()),
             _ => unreachable!(),
         }
@@ -235,14 +233,13 @@ impl PlainMonthDay {
         // 4. Let calendar be monthDay.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
         // 6. Let partialMonthDay be ? PrepareCalendarFields(calendar, temporalMonthDayLike, « year, month, month-code, day », « », partial).
-        let partial = to_partial_date_record(object, context)?;
+        let partial = to_partial_date_record(object, month_day.inner.calendar().clone(), context)?;
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialMonthDay).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
         // 9. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
-                .unwrap_or_default();
+            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
         // 10. Let isoDate be ? CalendarMonthDayFromFields(calendar, fields, overflow).
         // 11. Return ! CreateTemporalMonthDay(isoDate, calendar).
         create_temporal_month_day(month_day.inner.with(partial, overflow)?, None, context)
@@ -331,7 +328,7 @@ impl PlainMonthDay {
             })?;
 
         // 3. If item is not an Object, then
-        let Some(_item) = args.get_or_undefined(0).as_object() else {
+        let Some(item) = args.get_or_undefined(0).as_object() else {
             // a. Throw a TypeError exception.
             return Err(JsNativeError::typ()
                 .with_message("toPlainDate item must be an object")
@@ -342,10 +339,20 @@ impl PlainMonthDay {
         // 4. Let calendar be monthDay.[[Calendar]].
         // 5. Let fields be ISODateToFields(calendar, monthDay.[[ISODate]], month-day).
         // 6. Let inputFields be ? PrepareCalendarFields(calendar, item, « year », « », « »).
+        let year = item
+            .get(js_string!("year"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+
+        let partial = PartialDate::new().with_year(year);
+
         // 7. Let mergedFields be CalendarMergeFields(calendar, fields, inputFields).
         // 8. Let isoDate be ? CalendarDateFromFields(calendar, mergedFields, constrain).
         // 9. Return ! CreateTemporalDate(isoDate, calendar).
-        let result = month_day.inner.to_plain_date()?;
+        let result = month_day.inner.to_plain_date(Some(partial))?;
         create_temporal_date(result, None, context).map(Into::into)
     }
 }

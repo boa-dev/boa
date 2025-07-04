@@ -12,7 +12,6 @@ use crate::{
     Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 /// `%AsyncFromSyncIteratorPrototype%` object.
 ///
@@ -28,8 +27,6 @@ pub(crate) struct AsyncFromSyncIterator {
 
 impl IntrinsicObject for AsyncFromSyncIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm

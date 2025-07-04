@@ -2048,8 +2048,8 @@ impl BuiltinTypedArray {
 
         // a. Set taRecord to MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // b. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
-        let mut src_buf_borrow = src_borrow.data.viewed_array_buffer().as_buffer_mut();
-        let Some(mut src_buf) = src_buf_borrow
+        let src_buf_borrow = src_borrow.data.viewed_array_buffer().as_buffer();
+        let Some(src_buf) = src_buf_borrow
             .bytes(Ordering::SeqCst)
             .filter(|s| !src_borrow.data.is_out_of_bounds(s.len()))
         else {
@@ -2058,8 +2058,10 @@ impl BuiltinTypedArray {
                 .into());
         };
 
+        let src_buf_len = src_buf.len();
+
         // c. Set endIndex to min(endIndex, TypedArrayLength(taRecord)).
-        let end_index = min(end_index, src_borrow.data.array_length(src_buf.len()));
+        let end_index = min(end_index, src_borrow.data.array_length(src_buf_len));
 
         // d. Set countBytes to max(endIndex - startIndex, 0).
         let count = end_index.saturating_sub(start_index) as usize;
@@ -2128,6 +2130,12 @@ impl BuiltinTypedArray {
                 target_borrow.data.viewed_array_buffer(),
             ) {
                 // cannot borrow the target mutably (overlapping bytes), but we can move the data instead.
+                drop(src_buf_borrow);
+
+                let mut src_buf_borrow = src_borrow.data.viewed_array_buffer().as_buffer_mut();
+                let mut src_buf = src_buf_borrow
+                    .bytes_with_len(src_buf_len)
+                    .expect("already checked that the buffer is not detached");
 
                 #[cfg(debug_assertions)]
                 {
@@ -2515,7 +2523,7 @@ impl BuiltinTypedArray {
                     .to_string(context)?;
 
                 r.extend(s.iter());
-            };
+            }
         }
 
         Ok(js_string!(&r[..]).into())
@@ -2637,7 +2645,7 @@ impl BuiltinTypedArray {
                 obj.downcast_ref::<TypedArray>()
                     .map(|o| o.kind().js_name().into())
             })
-            .unwrap_or(JsValue::undefined()))
+            .unwrap_or_default())
     }
 
     /// `TypedArraySpeciesCreate ( exemplar, argumentList )`

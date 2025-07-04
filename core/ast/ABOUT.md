@@ -18,7 +18,6 @@ Try out the most recent release with Boa's live demo
 - [**`boa_interner`**][interner] - Boa's string interner.
 - [**`boa_macros`**][macros] - Boa's macros.
 - [**`boa_parser`**][parser] - Boa's lexer and parser.
-- [**`boa_profiler`**][profiler] - Boa's code profiler.
 - [**`boa_runtime`**][runtime] - Boa's WebAPI features.
 - [**`boa_string`**][string] - Boa's ECMAScript string implementation.
 - [**`tag_ptr`**][tag_ptr] - Utility library that enables a pointer to be associated with a tag of type `usize`.
@@ -32,7 +31,6 @@ Try out the most recent release with Boa's live demo
 [gc]: https://docs.rs/boa_gc/latest/boa_gc/index.html
 [interner]: https://docs.rs/boa_interner/latest/boa_interner/index.html
 [parser]: https://docs.rs/boa_parser/latest/boa_parser/index.html
-[profiler]: https://docs.rs/boa_profiler/latest/boa_profiler/index.html
 [icu]: https://docs.rs/boa_icu_provider/latest/boa_icu_provider/index.html
 [runtime]: https://docs.rs/boa_runtime/latest/boa_runtime/index.html
 [string]: https://docs.rs/boa_string/latest/boa_string/index.html

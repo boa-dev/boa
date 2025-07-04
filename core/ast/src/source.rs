@@ -1,9 +1,8 @@
 use std::ops::ControlFlow;
 
-use boa_interner::{Interner, ToIndentedString};
+use boa_interner::{Interner, Sym, ToIndentedString};
 
 use crate::{
-    expression::Identifier,
     scope::Scope,
     scope_analyzer::{
         analyze_binding_escapes, collect_bindings, eval_declaration_instantiation_scope,
@@ -72,7 +71,7 @@ impl Script {
         strict: bool,
         variable_scope: &Scope,
         lexical_scope: &Scope,
-        annex_b_function_names: &[Identifier],
+        annex_b_function_names: &[Sym],
         interner: &Interner,
     ) -> Result<EvalDeclarationBindings, String> {
         let bindings = eval_declaration_instantiation_scope(

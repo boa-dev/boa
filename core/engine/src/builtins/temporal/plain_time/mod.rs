@@ -21,9 +21,8 @@ use crate::{
     JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{ArithmeticOverflow, TemporalRoundingMode, TemporalUnit, ToStringRoundingOptions},
+    options::{ArithmeticOverflow, RoundingMode, ToStringRoundingOptions, Unit},
     partial::PartialTime,
     PlainTime as PlainTimeInner,
 };
@@ -42,7 +41,6 @@ impl BuiltInObject for PlainTime {
 
 impl IntrinsicObject for PlainTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         let get_hour = BuiltInBuilder::callable(realm, Self::get_hour)
             .name(js_string!("get hour"))
             .build();
@@ -485,7 +483,7 @@ impl PlainTime {
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
+            get_option::<RoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", time, required).
         let smallest_unit = get_temporal_unit(
@@ -545,9 +543,8 @@ impl PlainTime {
 
         let precision = get_digits_option(&options, context)?;
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&options, js_string!("roundingMode"), context)?;
-        let smallest_unit =
-            get_option::<TemporalUnit>(&options, js_string!("smallestUnit"), context)?;
+            get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
         let options = ToStringRoundingOptions {
             precision,

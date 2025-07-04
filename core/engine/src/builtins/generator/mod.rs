@@ -20,11 +20,10 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind, Registers},
+    vm::{CallFrame, CallFrameFlags, CompletionRecord, GeneratorResumeKind, Stack},
     Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{custom_trace, Finalize, Trace};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -59,23 +58,17 @@ unsafe impl Trace for GeneratorState {
 /// context/vm before the generator execution starts/resumes and after it has ended/yielded.
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct GeneratorContext {
-    pub(crate) stack: Vec<JsValue>,
+    pub(crate) stack: Stack,
     pub(crate) call_frame: Option<CallFrame>,
-    registers: Registers,
 }
 
 impl GeneratorContext {
     /// Creates a new `GeneratorContext` from the current `Context` state.
-    pub(crate) fn from_current(
-        context: &mut Context,
-        mut registers: Registers,
-        async_generator: Option<JsObject>,
-    ) -> Self {
+    pub(crate) fn from_current(context: &mut Context, async_generator: Option<JsObject>) -> Self {
         let mut frame = context.vm.frame().clone();
         frame.environments = context.vm.environments.clone();
         frame.realm = context.realm().clone();
-        let fp = frame.fp() as usize;
-        let stack = context.vm.stack.split_off(fp);
+        let mut stack = context.vm.stack.split_off_frame(&frame);
 
         frame.rp = CallFrame::FUNCTION_PROLOGUE + frame.argument_count;
 
@@ -84,16 +77,12 @@ impl GeneratorContext {
         frame.flags |= CallFrameFlags::REGISTERS_ALREADY_PUSHED;
 
         if let Some(async_generator) = async_generator {
-            registers.set(
-                CallFrame::ASYNC_GENERATOR_OBJECT_REGISTER_INDEX,
-                async_generator.into(),
-            );
+            stack.set_async_generator_object(&frame, async_generator);
         }
 
         Self {
             call_frame: Some(frame),
             stack,
-            registers,
         }
     }
 
@@ -114,11 +103,11 @@ impl GeneratorContext {
         frame.set_exit_early(true);
 
         if let Some(value) = value {
-            context.vm.push(value);
+            context.vm.stack.push(value);
         }
-        context.vm.push(resume_kind);
+        context.vm.stack.push(resume_kind);
 
-        let result = context.run(&mut self.registers);
+        let result = context.run();
 
         std::mem::swap(&mut context.vm.stack, &mut self.stack);
         self.call_frame = context.vm.pop_frame();
@@ -128,9 +117,10 @@ impl GeneratorContext {
 
     /// Returns the async generator object, if the function that this [`GeneratorContext`] is from an async generator, [`None`] otherwise.
     pub(crate) fn async_generator_object(&self) -> Option<JsObject> {
-        self.call_frame
-            .as_ref()
-            .and_then(|frame| frame.async_generator_object(&self.registers))
+        if let Some(frame) = &self.call_frame {
+            return self.stack.async_generator_object(frame);
+        }
+        None
     }
 }
 
@@ -143,8 +133,6 @@ pub struct Generator {
 
 impl IntrinsicObject for Generator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm

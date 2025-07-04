@@ -31,12 +31,11 @@ use crate::{
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{CallFrame, CallFrameFlags, Registers},
+    vm::{CallFrame, CallFrameFlags},
     Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -49,8 +48,6 @@ pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
@@ -147,8 +144,7 @@ impl Json {
         );
 
         context.realm().resize_global_env();
-        let register_count = context.vm.frame().code_block().register_count;
-        let record = context.run(&mut Registers::new(register_count as usize));
+        let record = context.run();
         context.vm.pop_frame();
 
         let unfiltered = record.consume()?;

@@ -429,7 +429,6 @@ impl<D: Copy> Add<&JsStringBuilder<D>> for JsStringBuilder<D> {
     type Output = Self;
 
     #[inline]
-    #[must_use]
     fn add(mut self, rhs: &JsStringBuilder<D>) -> Self::Output {
         self.extend_from_slice(rhs.as_slice());
         self
@@ -440,7 +439,6 @@ impl<D: Copy> Add<&[D]> for JsStringBuilder<D> {
     type Output = Self;
 
     #[inline]
-    #[must_use]
     fn add(mut self, rhs: &[D]) -> Self::Output {
         self.extend_from_slice(rhs);
         self
@@ -469,7 +467,6 @@ impl<D: Copy> FromIterator<D> for JsStringBuilder<D> {
 
 impl<D: Copy> From<&[D]> for JsStringBuilder<D> {
     #[inline]
-    #[must_use]
     fn from(value: &[D]) -> Self {
         let mut builder = Self::with_capacity(value.len());
         // SAFETY: The capacity is large enough to hold elements.
@@ -480,7 +477,6 @@ impl<D: Copy> From<&[D]> for JsStringBuilder<D> {
 
 impl<D: Copy + Eq + PartialEq> PartialEq for JsStringBuilder<D> {
     #[inline]
-    #[must_use]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice().eq(other.as_slice())
     }
@@ -488,7 +484,6 @@ impl<D: Copy + Eq + PartialEq> PartialEq for JsStringBuilder<D> {
 
 impl<D: Copy> Clone for JsStringBuilder<D> {
     #[inline]
-    #[must_use]
     fn clone(&self) -> Self {
         if self.is_allocated() {
             let mut builder = Self::with_capacity(self.capacity());
@@ -907,7 +902,6 @@ impl<'ref_str, T: Into<Segment<'ref_str>>> Add<T> for CommonJsStringBuilder<'ref
     type Output = Self;
 
     #[inline]
-    #[must_use]
     fn add(mut self, rhs: T) -> Self::Output {
         self.push(rhs);
         self

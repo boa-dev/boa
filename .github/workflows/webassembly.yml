@@ -51,7 +51,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
       - name: Install wasm-pack
-        uses: baptiste0928/cargo-install@v3.3.0
+        uses: baptiste0928/cargo-install@v3.3.1
         with:
           crate: wasm-pack
       - name: Build Playground

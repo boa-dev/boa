@@ -1,6 +1,5 @@
-use crate::vm::{BindingOpcode, Opcode};
-
-use super::{ByteCompiler, Literal, Operand, ToJsString};
+use super::{ByteCompiler, Literal, ToJsString};
+use crate::vm::opcode::BindingOpcode;
 use boa_ast::{declaration::ExportDeclaration, ModuleItem, ModuleItemList};
 use boa_interner::Sym;
 
@@ -27,7 +26,7 @@ impl ByteCompiler<'_> {
             }
             ModuleItem::ExportDeclaration(export) => {
                 #[allow(clippy::match_same_arms)]
-                match export {
+                match export.as_ref() {
                     ExportDeclaration::ReExport { .. } | ExportDeclaration::List(_) => {
                         // ExportDeclaration :
                         //    export ExportFromClause FromClause ;
@@ -43,7 +42,7 @@ impl ByteCompiler<'_> {
                     ExportDeclaration::VarStatement(var) => self.compile_var_decl(var),
                     ExportDeclaration::Declaration(decl) => self.compile_decl(decl, false),
                     ExportDeclaration::DefaultClassDeclaration(cl) => {
-                        self.compile_class(cl.into(), None);
+                        self.compile_class(cl.as_ref().into(), None);
                     }
                     ExportDeclaration::DefaultAssignmentExpression(expr) => {
                         let function = self.register_allocator.alloc();
@@ -56,13 +55,10 @@ impl ByteCompiler<'_> {
                                 .into_common(false);
                             let key = self.register_allocator.alloc();
                             self.emit_push_literal(Literal::String(default), &key);
-                            self.emit(
-                                Opcode::SetFunctionName,
-                                &[
-                                    Operand::Register(&function),
-                                    Operand::Register(&key),
-                                    Operand::U8(0),
-                                ],
+                            self.bytecode.emit_set_function_name(
+                                function.variable(),
+                                key.variable(),
+                                0u32.into(),
                             );
                             self.register_allocator.dealloc(key);
                         }

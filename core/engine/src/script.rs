@@ -14,14 +14,13 @@ use rustc_hash::FxHashMap;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_parser::{source::ReadChar, Parser, Source};
-use boa_profiler::Profiler;
 
 use crate::{
     bytecompiler::{global_declaration_instantiation_context, ByteCompiler},
     js_string,
     realm::Realm,
     spanned_source_text::SourceText,
-    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock, Registers},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
     Context, HostDefined, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
@@ -85,7 +84,6 @@ impl Script {
         realm: Option<Realm>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let _timer = Profiler::global().start_event("Script parsing", "Main");
         let path = src.path().map(Path::to_path_buf);
         let mut parser = Parser::new(src);
         parser.set_identifier(context.next_parser_identifier());
@@ -121,9 +119,7 @@ impl Script {
 
         if let Some(codeblock) = &*codeblock {
             return Ok(codeblock.clone());
-        };
-
-        let _timer = Profiler::global().start_event("Script compilation", "Main");
+        }
 
         let mut annex_b_function_names = Vec::new();
 
@@ -171,11 +167,8 @@ impl Script {
     ///
     /// [`JobExecutor::run_jobs`]: crate::job::JobExecutor::run_jobs
     pub fn evaluate(&self, context: &mut Context) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Execution", "Main");
-
         self.prepare_run(context)?;
-        let register_count = self.codeblock(context)?.register_count;
-        let record = context.run(&mut Registers::new(register_count as usize));
+        let record = context.run();
 
         context.vm.pop_frame();
         context.clear_kept_objects();
@@ -207,14 +200,9 @@ impl Script {
         context: &mut Context,
         budget: u32,
     ) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("Async Execution", "Main");
-
         self.prepare_run(context)?;
 
-        let register_count = self.codeblock(context)?.register_count;
-        let record = context
-            .run_async_with_budget(budget, &mut Registers::new(register_count as usize))
-            .await;
+        let record = context.run_async_with_budget(budget).await;
 
         context.vm.pop_frame();
         context.clear_kept_objects();

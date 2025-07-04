@@ -6,8 +6,8 @@ use crate::lexer::{
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
-
+use icu_properties::props::{IdContinue, IdStart};
+use icu_properties::{CodePointSetData, CodePointSetDataBorrowed};
 /// Identifier lexing.
 ///
 /// More information:
@@ -34,8 +34,8 @@ impl Identifier {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     pub(super) fn is_identifier_start(ch: u32) -> bool {
-        matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */)
-            || icu_properties::sets::id_start().contains32(ch)
+        const ID_START: CodePointSetDataBorrowed<'static> = CodePointSetData::new::<IdStart>();
+        matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */) || ID_START.contains32(ch)
     }
 
     /// Checks if a character is `IdentifierPart` as per ECMAScript standards.
@@ -45,10 +45,12 @@ impl Identifier {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     fn is_identifier_part(ch: u32) -> bool {
+        const ID_CONTINUE: CodePointSetDataBorrowed<'static> =
+            CodePointSetData::new::<IdContinue>();
         matches!(
             ch,
             0x0024 /* $ */ | 0x005F /* _ */ | 0x200C /* <ZWNJ> */ | 0x200D /* <ZWJ> */
-        ) || icu_properties::sets::id_continue().contains32(ch)
+        ) || ID_CONTINUE.contains32(ch)
     }
 }
 
@@ -62,8 +64,6 @@ impl<R> Tokenizer<R> for Identifier {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Identifier", "Lexing");
-
         let (identifier_name, contains_escaped_chars) =
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
@@ -101,8 +101,6 @@ impl Identifier {
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Identifier::take_identifier_name", "Lexing");
-
         let mut contains_escaped_chars = false;
         let mut identifier_name = if init == '\\' && cursor.next_if(0x75 /* u */)? {
             let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos.position())?;

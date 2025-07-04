@@ -11,7 +11,7 @@
 mod tests;
 
 use crate::{
-    lexer::TokenKind,
+    lexer::{InputElement, TokenKind},
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
         TokenParser,
@@ -21,10 +21,9 @@ use crate::{
 };
 use boa_ast::{
     expression::{literal, Spread},
-    Punctuator,
+    Punctuator, Span,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses an array literal.
 ///
@@ -61,18 +60,25 @@ where
     type Output = literal::ArrayLiteral;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ArrayLiteral", "Parsing");
+        let open_brancket_token = cursor.expect(
+            TokenKind::Punctuator(Punctuator::OpenBracket),
+            "array parsing",
+            interner,
+        )?;
+        cursor.set_goal(InputElement::RegExp);
+
         let mut elements = Vec::new();
         let mut has_trailing_comma_spread = false;
         let mut next_comma = false;
         let mut last_spread = false;
 
-        loop {
+        let end = loop {
             let token = cursor.peek(0, interner).or_abrupt()?;
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBracket) => {
+                    let end = token.span().end();
                     cursor.advance(interner);
-                    break;
+                    break end;
                 }
                 TokenKind::Punctuator(Punctuator::Comma) if next_comma => {
                     cursor.advance(interner);
@@ -98,10 +104,18 @@ where
                     ));
                 }
                 TokenKind::Punctuator(Punctuator::Spread) => {
+                    let spread_token_span_start = token.span().start();
+
                     cursor.advance(interner);
-                    let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
-                    elements.push(Some(Spread::new(node).into()));
+                    let target =
+                        AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    let target_span_end = target.span().end();
+
+                    elements.push(Some(
+                        Spread::new(target, Span::new(spread_token_span_start, target_span_end))
+                            .into(),
+                    ));
                     next_comma = true;
                     last_spread = true;
                 }
@@ -120,15 +134,17 @@ where
                     last_spread = false;
                 }
             }
-        }
+        };
 
         if last_spread && elements.last() == Some(&None) {
             has_trailing_comma_spread = true;
         }
 
+        let start = open_brancket_token.span().start();
         Ok(literal::ArrayLiteral::new(
             elements,
             has_trailing_comma_spread,
+            Span::new(start, end),
         ))
     }
 }

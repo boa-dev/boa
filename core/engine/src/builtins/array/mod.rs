@@ -10,7 +10,6 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use crate::{
@@ -78,8 +77,6 @@ impl JsData for Array {
 
 impl IntrinsicObject for Array {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let symbol_iterator = JsSymbol::iterator();
         let symbol_unscopables = JsSymbol::unscopables();
 
@@ -1490,7 +1487,7 @@ impl Array {
             if k < 0 {
                 k = 0;
             }
-        };
+        }
 
         let search_element = args.get_or_undefined(0);
 
@@ -1781,7 +1778,7 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => depth_num = u64::MAX,
                 _ => depth_num = 0,
             }
-        };
+        }
 
         // 5. Let A be ArraySpeciesCreate(O, 0)
         let a = Self::array_species_create(&o, 0, context)?;
@@ -2172,6 +2169,9 @@ impl Array {
         // 2. Let len be ? ToLength(? Get(array, "length")).
         let len = array.length_of_array_like(context)?;
 
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
         // 3. Let separator be the implementation-defined list-separator String value appropriate for the host environment's current locale (such as ", ").
         let separator = {
             #[cfg(feature = "intl")]
@@ -2205,7 +2205,11 @@ impl Array {
             if !next.is_null_or_undefined() {
                 // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
                 let s = next
-                    .invoke(js_string!("toLocaleString"), args, context)?
+                    .invoke(
+                        js_string!("toLocaleString"),
+                        &[locales.clone(), options.clone()],
+                        context,
+                    )?
                     .to_string(context)?;
 
                 // ii. Set R to the string-concatenation of R and S.

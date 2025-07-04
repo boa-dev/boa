@@ -19,7 +19,7 @@ use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
     builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
+    bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     js_string,
     module::ModuleKind,
@@ -27,7 +27,7 @@ use crate::{
     realm::Realm,
     vm::{
         create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
-        CompletionRecord, Opcode, Registers,
+        CompletionRecord,
     },
     Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
     SpannedSourceText,
@@ -1527,10 +1527,14 @@ impl SourceTextModule {
                         let binding = env
                             .get_binding_reference(&name)
                             .expect("binding must exist");
-                        let index = compiler.get_or_insert_binding(binding);
+                        let index = compiler.insert_binding(binding);
                         let value = compiler.register_allocator.alloc();
-                        compiler.push_undefined(&value);
-                        compiler.emit_binding_access(Opcode::DefInitVar, &index, &value);
+                        compiler.bytecode.emit_push_undefined(value.variable());
+                        compiler.emit_binding_access(
+                            BindingAccessOpcode::DefInitVar,
+                            &index,
+                            &value,
+                        );
                         compiler.register_allocator.dealloc(value);
 
                         // 3. Append dn to declaredVarNames.
@@ -1748,13 +1752,10 @@ impl SourceTextModule {
             .vm
             .push_frame_with_stack(callframe, JsValue::undefined(), JsValue::null());
 
-        let register_count = context.vm.frame().code_block().register_count;
-        let registers = &mut Registers::new(register_count as usize);
-
         context
             .vm
-            .frame
-            .set_promise_capability(registers, capability);
+            .stack
+            .set_promise_capability(&context.vm.frame, capability);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.
@@ -1765,7 +1766,7 @@ impl SourceTextModule {
         // 10. Else,
         //    a. Assert: capability is a PromiseCapability Record.
         //    b. Perform AsyncBlockStart(capability, module.[[ECMAScriptCode]], moduleContext).
-        let result = context.run(registers);
+        let result = context.run();
 
         context.vm.pop_frame();
 

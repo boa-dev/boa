@@ -14,14 +14,17 @@ rust-version.workspace = true
 [dependencies]
 boa_engine = { workspace = true, features = ["js"] }
 wasm-bindgen = { workspace = true, default-features = false }
-getrandom = { workspace = true, features = ["wasm_js"] }
 console_error_panic_hook.workspace = true
 
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dev-dependencies]
 wasm-bindgen-test.workspace = true
 
 [features]
-default = ["boa_engine/annex-b", "boa_engine/intl_bundled", "boa_engine/experimental"]
+default = [
+    "boa_engine/annex-b",
+    "boa_engine/intl_bundled",
+    "boa_engine/experimental",
+]
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -33,3 +36,6 @@ workspace = true
 
 [package.metadata.docs.rs]
 all-features = true
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["--enable-bulk-memory", "--enable-nontrapping-float-to-int"]

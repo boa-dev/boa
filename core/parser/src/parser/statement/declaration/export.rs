@@ -24,7 +24,6 @@ use boa_ast::{
     Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 use super::{
     hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
@@ -47,8 +46,6 @@ where
     type Output = AstExportDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ExportDeclaration", "Parsing");
-
         cursor.expect((Keyword::Export, false), "export declaration", interner)?;
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -200,7 +197,9 @@ where
                     }
                     TokenKind::Keyword((Keyword::Class, false)) => {
                         AstExportDeclaration::DefaultClassDeclaration(
-                            ClassDeclaration::new(false, true, true).parse(cursor, interner)?,
+                            ClassDeclaration::new(false, true, true)
+                                .parse(cursor, interner)?
+                                .into(),
                         )
                     }
                     _ => {
