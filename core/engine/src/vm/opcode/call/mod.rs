@@ -1,6 +1,6 @@
 use super::VaryingOperand;
 use crate::{
-    Context, JsObject, JsResult, JsValue, NativeFunction,
+    Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
     builtins::{Promise, promise::PromiseCapability},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
@@ -184,14 +184,20 @@ impl Call {
             .calling_convention_get_function(argument_count.into());
 
         let Some(object) = func.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("not a callable function")
-                .into());
+            return Err(Self::handle_not_callable());
         };
 
         object.__call__(argument_count.into()).resolve(context)?;
 
         Ok(())
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn handle_not_callable() -> JsError {
+        JsNativeError::typ()
+            .with_message("not a callable function")
+            .into()
     }
 }
 
