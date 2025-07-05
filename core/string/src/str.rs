@@ -124,7 +124,7 @@ impl<'a> JsStr<'a> {
             #[allow(clippy::cast_ptr_alignment)]
             let ptr = self.inner.ptr.cast::<u16>();
 
-            // SAFETY: We check that the ptr points to a latin1 (i.e. &[u8]), so this is safe.
+            // SAFETY: We check that the ptr points to an utf16 slice, so this is safe.
             let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
 
             JsStrVariant::Utf16(slice)
