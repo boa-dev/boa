@@ -1,13 +1,9 @@
-use crate::{
-    DATA_OFFSET, JsStr, JsStrVariant, JsString, RawJsString, RefCount, TaggedLen, alloc_overflow,
-};
-use tag_ptr::Tagged;
+use crate::{DATA_OFFSET, JsStr, JsStrVariant, JsString, RawJsString, TaggedLen, alloc_overflow};
 
 use std::{
     alloc::{Layout, alloc, dealloc, realloc},
     cell::Cell,
     marker::PhantomData,
-    mem::ManuallyDrop,
     ops::{Add, AddAssign},
     ptr::{self, NonNull},
     str::{self},
@@ -375,9 +371,7 @@ impl<D: Copy> JsStringBuilder<D> {
         unsafe {
             inner.as_ptr().write(RawJsString {
                 tagged_len: TaggedLen::new(len, latin1),
-                refcount: RefCount {
-                    read_write: ManuallyDrop::new(Cell::new(1)),
-                },
+                refcount: Cell::new(1),
                 data: [0; 0],
             });
         }
@@ -385,9 +379,8 @@ impl<D: Copy> JsStringBuilder<D> {
         // Tell the compiler not to call the destructor of `JsStringBuilder`,
         // becuase we move inner `RawJsString` to `JsString`.
         std::mem::forget(self);
-        JsString {
-            ptr: Tagged::from_non_null(inner),
-        }
+
+        JsString { ptr: inner }
     }
 }
 
