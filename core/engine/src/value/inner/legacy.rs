@@ -228,9 +228,9 @@ impl EnumBasedValue {
     /// Returns the value as a boxed `[JsString]`.
     #[must_use]
     #[inline]
-    pub(crate) const fn as_string(&self) -> Option<&JsString> {
+    pub(crate) fn as_string(&self) -> Option<JsString> {
         match self {
-            Self::String(value) => Some(value),
+            Self::String(value) => Some(value.clone()),
             _ => None,
         }
     }
@@ -248,7 +248,7 @@ impl EnumBasedValue {
             Self::BigInt(v) => JsVariant::BigInt(v),
             Self::Object(v) => JsVariant::Object(v.clone()),
             Self::Symbol(v) => JsVariant::Symbol(v),
-            Self::String(v) => JsVariant::String(v),
+            Self::String(v) => JsVariant::String(v.clone()),
         }
     }
 }

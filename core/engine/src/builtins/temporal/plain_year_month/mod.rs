@@ -196,6 +196,7 @@ impl BuiltInConstructor for PlainYearMonth {
             .get_or_undefined(2)
             .map(|s| {
                 s.as_string()
+                    .as_ref()
                     .map(JsString::to_std_string_lossy)
                     .ok_or_else(|| JsNativeError::typ().with_message("calendar must be a string."))
             })

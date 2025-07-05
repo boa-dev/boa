@@ -24,15 +24,15 @@ impl JsValue {
             (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(x, y)),
 
             // String concat
-            (JsVariant::String(x), JsVariant::String(y)) => Self::from(js_string!(x, y)),
+            (JsVariant::String(x), JsVariant::String(y)) => Self::from(js_string!(&x, &y)),
 
             // Slow path:
             (_, _) => {
                 let x = self.to_primitive(context, PreferredType::Default)?;
                 let y = other.to_primitive(context, PreferredType::Default)?;
                 match (x.variant(), y.variant()) {
-                    (JsVariant::String(x), _) => Self::from(js_string!(x, &y.to_string(context)?)),
-                    (_, JsVariant::String(y)) => Self::from(js_string!(&x.to_string(context)?, y)),
+                    (JsVariant::String(x), _) => Self::from(js_string!(&x, &y.to_string(context)?)),
+                    (_, JsVariant::String(y)) => Self::from(js_string!(&x.to_string(context)?, &y)),
                     (_, _) => {
                         match (x.to_numeric(context)?, y.to_numeric(context)?) {
                             (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
@@ -553,9 +553,9 @@ impl JsValue {
 
                 match (px.variant(), py.variant()) {
                     (JsVariant::String(x), JsVariant::String(y)) => (x < y).into(),
-                    (JsVariant::BigInt(x), JsVariant::String(y)) => JsBigInt::from_js_string(y)
+                    (JsVariant::BigInt(x), JsVariant::String(y)) => JsBigInt::from_js_string(&y)
                         .map_or(AbstractRelation::Undefined, |ref y| (x < y).into()),
-                    (JsVariant::String(x), JsVariant::BigInt(y)) => JsBigInt::from_js_string(x)
+                    (JsVariant::String(x), JsVariant::BigInt(y)) => JsBigInt::from_js_string(&x)
                         .map_or(AbstractRelation::Undefined, |ref x| (x < y).into()),
                     (_, _) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
                         (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),

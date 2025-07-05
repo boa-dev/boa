@@ -125,7 +125,7 @@ mod bits {
     use crate::object::ErasedVTableObject;
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
     use boa_gc::GcBox;
-    use boa_string::JsString;
+    use boa_string::{JsString, RawJsString};
     use std::ptr::NonNull;
 
     /// The mask for the bits that indicate if the value is a NaN-value.
@@ -360,8 +360,8 @@ mod bits {
     /// The box is forgotten after this operation. It must be dropped separately,
     /// by calling `[Self::drop_pointer]`.
     #[inline(always)]
-    pub(super) unsafe fn tag_string(value: Box<JsString>) -> u64 {
-        let value = Box::into_raw(value) as u64;
+    pub(super) unsafe fn tag_string(value: JsString) -> u64 {
+        let value = JsString::into_raw(value).addr().get() as u64;
         let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
@@ -387,15 +387,57 @@ mod bits {
         unsafe { NonNull::new_unchecked((value & MASK_POINTER_VALUE) as *mut T).as_ref() }
     }
 
+    /// Returns a clone of a [`JsString`] from a tagged value.
+    ///
+    /// # Safety
+    ///
+    /// The pointer must be a valid pointer to a [`JsString`], otherwise this
+    /// will result in undefined behavior.
+    #[inline(always)]
+    pub(super) unsafe fn untag_string_pointer(value: u64) -> JsString {
+        let value = (value & MASK_POINTER_VALUE) as *mut RawJsString;
+
+        // SAFETY: JsValue always holds a valid, non-null JsString, so this is safe.
+        let ptr = unsafe { NonNull::new_unchecked(value) };
+
+        // SAFETY: The caller must guarantee that the JsValue is of type JsString, which is always valid.
+        let this = unsafe { JsString::from_raw(ptr) };
+
+        let result = this.clone();
+
+        // SAFETY: Dropping the `this` would result in a use-after-free if all reference are dropped.
+        std::mem::forget(this);
+
+        result
+    }
+
     /// Returns a boxed T from a tagged value.
     ///
     /// # Safety
+    ///
     /// The pointer must be a valid pointer to a T on the heap, otherwise this
     /// will result in undefined behavior.
     #[allow(clippy::unnecessary_box_returns)]
     pub(super) unsafe fn untag_pointer_owned<T>(value: u64) -> Box<T> {
         // This is safe since we already checked the pointer is not null as this point.
         unsafe { Box::from_raw((value & MASK_POINTER_VALUE) as *mut T) }
+    }
+
+    /// Returns the inner [`JsString`] from a tagged value.
+    ///
+    /// # Safety
+    ///
+    /// The pointer must be a valid pointer to a T on the heap, otherwise this
+    /// will result in undefined behavior.
+    #[allow(clippy::unnecessary_box_returns)]
+    pub(super) unsafe fn untag_string_owned(value: u64) -> JsString {
+        let value = (value & MASK_POINTER_VALUE) as *mut RawJsString;
+
+        // SAFETY: JsValue always holds a valid, non-null JsString, so this is safe.
+        let ptr = unsafe { NonNull::new_unchecked(value) };
+
+        // SAFETY: The caller must guarantee that the JsValue is of type JsString, which is always valid.
+        unsafe { JsString::from_raw(ptr) }
     }
 }
 
@@ -453,12 +495,12 @@ impl Clone for NanBoxedValue {
     fn clone(&self) -> Self {
         if let Some(o) = self.as_object() {
             Self::object(o.clone())
+        } else if let Some(s) = self.as_string() {
+            Self::string(s.clone())
         } else if let Some(b) = self.as_bigint() {
             Self::bigint(b.clone())
         } else if let Some(s) = self.as_symbol() {
             Self::symbol(s.clone())
-        } else if let Some(s) = self.as_string() {
-            Self::string(s.clone())
         } else {
             Self(self.0)
         }
@@ -535,7 +577,7 @@ impl NanBoxedValue {
     #[must_use]
     #[inline(always)]
     pub(crate) fn string(value: JsString) -> Self {
-        Self::from_inner_unchecked(unsafe { bits::tag_string(Box::new(value)) })
+        Self::from_inner_unchecked(unsafe { bits::tag_string(value) })
     }
 
     /// Returns true if a value is undefined.
@@ -673,9 +715,9 @@ impl NanBoxedValue {
     /// Returns the value as a boxed `[JsString]`.
     #[must_use]
     #[inline(always)]
-    pub(crate) const fn as_string(&self) -> Option<&JsString> {
+    pub(crate) fn as_string(&self) -> Option<JsString> {
         if self.is_string() {
-            Some(unsafe { bits::untag_pointer::<'_, JsString>(self.0) })
+            Some(unsafe { bits::untag_string_pointer(self.0) })
         } else {
             None
         }
@@ -692,7 +734,7 @@ impl NanBoxedValue {
                 core::mem::forget(obj); // Prevent double drop.
                 JsVariant::Object(o)
             }
-            bits::MASK_STRING => JsVariant::String(unsafe { bits::untag_pointer(self.0) }),
+            bits::MASK_STRING => JsVariant::String(unsafe { bits::untag_string_pointer(self.0) }),
             bits::MASK_SYMBOL => JsVariant::Symbol(unsafe { bits::untag_pointer(self.0) }),
             bits::MASK_BIGINT => JsVariant::BigInt(unsafe { bits::untag_pointer(self.0) }),
             bits::MASK_INT32 => JsVariant::Integer32(bits::untag_i32(self.0)),
@@ -711,7 +753,7 @@ impl Drop for NanBoxedValue {
     fn drop(&mut self) {
         match self.0 & bits::MASK_KIND {
             bits::MASK_OBJECT => drop(unsafe { bits::untag_object_owned(self.0) }),
-            bits::MASK_STRING => drop(unsafe { bits::untag_pointer_owned::<JsString>(self.0) }),
+            bits::MASK_STRING => drop(unsafe { bits::untag_string_owned(self.0) }),
             bits::MASK_SYMBOL => drop(unsafe { bits::untag_pointer_owned::<JsSymbol>(self.0) }),
             bits::MASK_BIGINT => drop(unsafe { bits::untag_pointer_owned::<JsBigInt>(self.0) }),
             _ => {}
@@ -814,8 +856,8 @@ macro_rules! assert_type {
     ($value: ident is string($scalar: ident)) => {
         assert_type!(@@is $value, 0, 0, 0, 0, 0, 0, 1, 0, 0);
         assert_type!(@@as $value, 0, 0, 0, 0, 0, 0, 1, 0, 0);
-        assert_eq!(Some(&$scalar), $value.as_string());
-        assert_eq!($value.as_variant(), JsVariant::String(&$scalar));
+        assert_eq!(Some(&$scalar), $value.as_string().as_ref());
+        assert_eq!($value.as_variant(), JsVariant::String($scalar));
     };
 }
 

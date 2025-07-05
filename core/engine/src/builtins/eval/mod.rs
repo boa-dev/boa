@@ -115,7 +115,7 @@ impl Eval {
         // 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
         context
             .host_hooks()
-            .ensure_can_compile_strings(eval_realm, &[], x, direct, context)?;
+            .ensure_can_compile_strings(eval_realm, &[], &x, direct, context)?;
 
         // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).

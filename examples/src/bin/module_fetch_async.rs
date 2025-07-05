@@ -156,14 +156,14 @@ fn main() -> JsResult<()> {
             .get(0, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        &js_string!("aGVsbG8=")
+        js_string!("aGVsbG8=")
     );
     assert_eq!(
         default
             .get(1, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        &js_string!("d29ybGQ=")
+        js_string!("d29ybGQ=")
     );
 
     Ok(())

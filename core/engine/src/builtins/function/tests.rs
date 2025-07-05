@@ -159,8 +159,7 @@ fn closure_capture_clone() {
                                     &js_string!("key").into(),
                                     &mut context.into()
                                 )?
-                                .and_then(|prop| prop.value().cloned())
-                                .and_then(|val| val.as_string().cloned())
+                                .and_then(|prop| prop.value().and_then(JsValue::as_string))
                                 .ok_or_else(
                                     || JsNativeError::typ().with_message("invalid `key` property")
                                 )?

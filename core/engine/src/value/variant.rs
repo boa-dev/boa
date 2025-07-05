@@ -14,7 +14,7 @@ pub enum JsVariant<'a> {
     /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
     /// `String` - A UTF-16 string, such as `"Hello, world"`.
-    String(&'a JsString),
+    String(JsString),
     /// `Number` - A 64-bit floating point number, such as `3.1415` or `Infinity`.
     /// This is the default representation of a number. If a number can be represented
     /// as an integer, it will be stored as an `Integer` variant instead.
