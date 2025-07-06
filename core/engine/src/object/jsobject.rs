@@ -24,7 +24,7 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
 };
-use boa_gc::{self, Finalize, Gc, GcBox, GcErased, GcRefCell, Trace};
+use boa_gc::{self, Finalize, Gc, GcErased, GcRefCell, Trace};
 use std::collections::HashSet;
 use std::{
     cell::RefCell,
@@ -32,10 +32,15 @@ use std::{
     error::Error,
     fmt::{self, Debug, Display},
     hash::Hash,
-    ptr::NonNull,
     result::Result as StdResult,
 };
 use thin_vec::ThinVec;
+
+#[cfg(not(feature = "jsvalue-enum"))]
+use boa_gc::GcBox;
+
+#[cfg(not(feature = "jsvalue-enum"))]
+use std::ptr::NonNull;
 
 /// A wrapper type for an immutably borrowed type T.
 pub type Ref<'a, T> = boa_gc::GcRef<'a, T>;
@@ -103,6 +108,7 @@ impl Default for JsObject {
 }
 
 impl JsObject {
+    #[cfg(not(feature = "jsvalue-enum"))]
     fn into_inner(self) -> Gc<ErasedVTableObject> {
         // SAFETY: The `GcErased` is guaranteed to contain a `ErasedVTableObject`,
         // since `JsObject` is constructed with `VTableObject<T>` which has the same size and alignment.
@@ -119,7 +125,8 @@ impl JsObject {
     ///
     /// # Safety
     /// The caller must ensure that the pointer is valid and points to a `GcBox<ErasedVTableObject>`.
-    /// /// The pointer must not be null.
+    /// The pointer must not be null.
+    #[cfg(not(feature = "jsvalue-enum"))]
     pub(crate) unsafe fn from_u64(value: u64) -> Self {
         // SAFETY: The caller guaranteed the value to be a valid pointer to a `GcBox<ErasedVTableObject>`.
         let ptr = unsafe {
@@ -133,6 +140,7 @@ impl JsObject {
         }
     }
 
+    #[cfg(not(feature = "jsvalue-enum"))]
     pub(crate) fn into_u64(self) -> u64 {
         Gc::into_raw(self.into_inner()).as_ptr() as u64
     }
