@@ -124,7 +124,7 @@ pub mod prelude {
         interop::{IntoJsFunctionCopied, UnsafeIntoJsFunction},
         module::{IntoJsModule, Module},
         native_function::NativeFunction,
-        object::{JsData, JsObject, NativeObject},
+        object::{JsData, JsObject, JsObjectTyped, NativeObject},
         script::Script,
         string::{JsStr, JsString},
         symbol::JsSymbol,

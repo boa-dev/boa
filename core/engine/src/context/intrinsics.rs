@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[cfg(feature = "intl")]
-use crate::builtins::intl::Intl;
+use crate::{builtins::intl::Intl, object::JsObjectTyped};
 
 /// The intrinsic objects and constructors.
 ///
@@ -1095,7 +1095,7 @@ pub struct IntrinsicObjects {
 
     /// [`%Intl%`](https://tc39.es/ecma402/#intl-object)
     #[cfg(feature = "intl")]
-    intl: JsObject<Intl>,
+    intl: JsObjectTyped<Intl>,
 
     /// [`%SegmentsPrototype%`](https://tc39.es/ecma402/#sec-%segmentsprototype%-object)
     #[cfg(feature = "intl")]
@@ -1142,7 +1142,7 @@ impl IntrinsicObjects {
             #[cfg(feature = "annex-b")]
             unescape: JsFunction::empty_intrinsic_function(false),
             #[cfg(feature = "intl")]
-            intl: JsObject::new_unique(None, Intl::new()?),
+            intl: JsObjectTyped::new_unique(None, Intl::new()?),
             #[cfg(feature = "intl")]
             segments_prototype: JsObject::default(),
             #[cfg(feature = "temporal")]
@@ -1318,7 +1318,7 @@ impl IntrinsicObjects {
     #[must_use]
     #[cfg(feature = "intl")]
     #[inline]
-    pub fn intl(&self) -> JsObject<Intl> {
+    pub fn intl(&self) -> JsObjectTyped<Intl> {
         self.intl.clone()
     }
 

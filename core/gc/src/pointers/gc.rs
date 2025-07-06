@@ -89,11 +89,23 @@ impl GcErased {
         Gc::is::<T>(&self.inner)
     }
 
-    /// Returns [`Some`] reference to the inner value if it is of type `T`, or [`None`] if it isn’t.
+    /// Returns [`Some`] `Gc<T>` if it is of type `T`, or [`None`] if it isn’t.
     #[inline]
     #[must_use]
-    pub fn downcast<T: Trace + 'static>(&self) -> Option<&Gc<T>> {
-        Gc::downcast::<T>(&self.inner)
+    pub fn downcast<T: Trace + 'static>(self) -> Option<Gc<T>> {
+        Gc::downcast::<T>(self.inner)
+    }
+
+    /// Downcast the inner value of type `T`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the cast is valid.
+    #[inline]
+    #[must_use]
+    pub unsafe fn downcast_unchecked<T: Trace + 'static>(self) -> Gc<T> {
+        // SAFETY: It's the callers responsibility to make sure this is valid.
+        unsafe { Gc::cast_unchecked::<T>(self.inner) }
     }
 
     /// Returns reference to the inner value of type `T`.
@@ -103,9 +115,9 @@ impl GcErased {
     /// The caller must ensure that the cast is valid.
     #[inline]
     #[must_use]
-    pub unsafe fn downcast_unchecked<T: Trace + 'static>(&self) -> &Gc<T> {
-        // SEFETY: It's the callers responisbility to make sure this is valid.
-        unsafe { Gc::cast_unchecked::<T>(&self.inner) }
+    pub unsafe fn downcast_ref_unchecked<T: Trace + 'static>(&self) -> &Gc<T> {
+        // SAFETY: It's the callers responsibility to make sure this is valid.
+        unsafe { Gc::cast_ref_unchecked::<T>(&self.inner) }
     }
 }
 
@@ -247,8 +259,8 @@ impl<T: Trace + ?Sized> Gc<T> {
     /// Returns [`Some`] reference to the inner value if it is of type `T`, or [`None`] if it isn’t.
     #[inline]
     #[must_use]
-    pub fn downcast<U: Trace + 'static>(this: &Self) -> Option<&Gc<U>> {
-        if !Gc::is::<U>(this) {
+    pub fn downcast<U: Trace + 'static>(this: Self) -> Option<Gc<U>> {
+        if !Gc::is::<U>(&this) {
             return None;
         }
 
@@ -263,10 +275,30 @@ impl<T: Trace + ?Sized> Gc<T> {
     /// The caller must ensure that the cast is valid.
     #[inline]
     #[must_use]
-    pub unsafe fn cast_unchecked<U: Trace + 'static>(this: &Self) -> &Gc<U> {
+    pub unsafe fn cast_unchecked<U: Trace + 'static>(this: Self) -> Gc<U> {
+        let inner_ptr = this.inner_ptr.cast();
+        core::mem::forget(this); // Prevents double free.
+        Gc {
+            inner_ptr,
+            marker: PhantomData,
+        }
+
         // SAFETY: Casting a Gc<T> to a Gc<U> of any type is safe, as long as you don’t actually access it as a U.
         //         The correct functions for T will still be called during tracing, finalization, and dropping.
-        unsafe { &*(&raw const *this).cast::<Gc<U>>() }
+        // unsafe { (*(&raw const *this).cast::<Gc<U>>()).clone() }
+    }
+
+    /// Returns reference to the inner value of type `T`.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that the cast is valid.
+    #[inline]
+    #[must_use]
+    pub unsafe fn cast_ref_unchecked<U: Trace + 'static>(this: &Self) -> &Gc<U> {
+        // SAFETY: Casting a Gc<T> to a Gc<U> of any type is safe, as long as you don’t actually access it as a U.
+        //         The correct functions for T will still be called during tracing, finalization, and dropping.
+        unsafe { &(*(&raw const *this).cast::<Gc<U>>()) }
     }
 }
 

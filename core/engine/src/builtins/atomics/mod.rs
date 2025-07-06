@@ -15,9 +15,16 @@ mod futex;
 use std::sync::atomic::Ordering;
 
 use crate::{
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue, builtins::BuiltInObject,
-    context::intrinsics::Intrinsics, js_string, object::JsObject, property::Attribute,
-    realm::Realm, string::StaticJsStrings, symbol::JsSymbol, sys::time::Duration,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    builtins::BuiltInObject,
+    context::intrinsics::Intrinsics,
+    js_string,
+    object::{JsObject, JsObjectTyped},
+    property::Attribute,
+    realm::Realm,
+    string::StaticJsStrings,
+    symbol::JsSymbol,
+    sys::time::Duration,
     value::IntegerOrInfinity,
 };
 
@@ -563,7 +570,7 @@ impl Atomics {
 fn validate_integer_typed_array(
     array: &JsValue,
     waitable: bool,
-) -> JsResult<(JsObject<TypedArray>, usize)> {
+) -> JsResult<(JsObjectTyped<TypedArray>, usize)> {
     // 1. Let taRecord be ? ValidateTypedArray(typedArray, unordered).
     // 2. NOTE: Bounds checking is not a synchronizing operation when typedArray's backing buffer is a growable SharedArrayBuffer.
     let ta_record = TypedArray::validate(array, Ordering::Relaxed)?;
@@ -606,7 +613,7 @@ struct AtomicAccess {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-validateatomicaccess
 fn validate_atomic_access(
-    array: &JsObject<TypedArray>,
+    array: &JsObjectTyped<TypedArray>,
     buf_len: usize,
     request_index: &JsValue,
     context: &mut Context,

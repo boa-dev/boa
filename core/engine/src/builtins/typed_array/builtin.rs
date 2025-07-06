@@ -21,7 +21,7 @@ use crate::{
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::internal_methods::get_prototype_from_constructor,
+    object::{JsObjectTyped, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
@@ -308,7 +308,7 @@ impl BuiltinTypedArray {
         let constructor =
             kind.standard_constructor()(context.intrinsics().constructors()).constructor();
 
-        Self::create(&constructor, &[length.into()], context).map(JsObject::upcast)
+        Self::create(&constructor, &[length.into()], context).map(JsObjectTyped::upcast)
     }
 
     /// `%TypedArray%.of ( ...items )`
@@ -1712,9 +1712,9 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-settypedarrayfromtypedarray
     fn set_typed_array_from_typed_array(
-        target: &JsObject<TypedArray>,
+        target: &JsObjectTyped<TypedArray>,
         target_offset: &U64OrPositiveInfinity,
-        source: &JsObject<TypedArray>,
+        source: &JsObjectTyped<TypedArray>,
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
@@ -1925,7 +1925,7 @@ impl BuiltinTypedArray {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-settypedarrayfromarraylike
     fn set_typed_array_from_array_like(
-        target: &JsObject<TypedArray>,
+        target: &JsObjectTyped<TypedArray>,
         target_offset: &U64OrPositiveInfinity,
         source: &JsValue,
         context: &mut Context,
@@ -2661,7 +2661,7 @@ impl BuiltinTypedArray {
         kind: TypedArrayKind,
         args: &[JsValue],
         context: &mut Context,
-    ) -> JsResult<JsObject<TypedArray>> {
+    ) -> JsResult<JsObjectTyped<TypedArray>> {
         // 1. Let defaultConstructor be the intrinsic object listed in column one of Table 73 for exemplar.[[TypedArrayName]].
         let default_constructor = kind.standard_constructor();
 
@@ -2690,7 +2690,7 @@ impl BuiltinTypedArray {
         constructor: &JsObject,
         args: &[JsValue],
         context: &mut Context,
-    ) -> JsResult<JsObject<TypedArray>> {
+    ) -> JsResult<JsObjectTyped<TypedArray>> {
         // 1. Let newTypedArray be ? Construct(constructor, argumentList).
         let new_typed_array = constructor.construct(args, Some(constructor), context)?;
 
@@ -2840,7 +2840,7 @@ impl BuiltinTypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-initializetypedarrayfromtypedarray
     pub(super) fn initialize_from_typed_array<T: TypedArrayMarker>(
         proto: JsObject,
-        src_array: &JsObject<TypedArray>,
+        src_array: &JsObjectTyped<TypedArray>,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         let src_array = src_array.borrow();

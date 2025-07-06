@@ -15,7 +15,9 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{CONSTRUCTOR, JsObject, internal_methods::get_prototype_from_constructor},
+    object::{
+        CONSTRUCTOR, JsObject, JsObjectTyped, internal_methods::get_prototype_from_constructor,
+    },
     property::Attribute,
     realm::Realm,
     string::{CodePoint, JsStrVariant, StaticJsStrings},
@@ -899,7 +901,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpbuiltinexec
     pub(crate) fn abstract_builtin_exec(
-        this: JsObject<RegExp>,
+        this: JsObjectTyped<RegExp>,
         input: &JsString,
         context: &mut Context,
     ) -> JsResult<Option<JsObject>> {

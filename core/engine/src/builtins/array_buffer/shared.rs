@@ -12,7 +12,7 @@ use crate::{
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::internal_methods::get_prototype_from_constructor,
+    object::{JsObjectTyped, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
@@ -480,7 +480,7 @@ impl SharedArrayBuffer {
         byte_len: u64,
         max_byte_len: Option<u64>,
         context: &mut Context,
-    ) -> JsResult<JsObject<SharedArrayBuffer>> {
+    ) -> JsResult<JsObjectTyped<SharedArrayBuffer>> {
         // 1. Let slots be « [[ArrayBufferData]] ».
         // 2. If maxByteLength is present and maxByteLength is not empty, let allocatingGrowableBuffer
         //    be true; otherwise let allocatingGrowableBuffer be false.
@@ -524,7 +524,7 @@ impl SharedArrayBuffer {
 
         // 10. Else,
         //     a. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObject::new(
+        let obj = JsObjectTyped::new(
             context.root_shape(),
             prototype,
             Self {

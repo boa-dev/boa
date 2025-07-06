@@ -24,7 +24,6 @@ use super::{
     locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
     options::{IntlOptions, coerce_options_to_object},
 };
-use crate::value::JsVariant;
 use crate::{
     Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     NativeFunction,
@@ -43,6 +42,7 @@ use crate::{
     string::StaticJsStrings,
     value::PreferredType,
 };
+use crate::{object::JsObjectTyped, value::JsVariant};
 
 #[cfg(test)]
 mod tests;
@@ -729,7 +729,10 @@ impl NumberFormat {
 /// call to `RequireInternalSlot`.
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-unwrapnumberformat
-fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObject<NumberFormat>> {
+fn unwrap_number_format(
+    nf: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsObjectTyped<NumberFormat>> {
     // 1. If Type(nf) is not Object, throw a TypeError exception.
     let nf_o = nf.as_object().ok_or_else(|| {
         JsNativeError::typ().with_message("value was not an `Intl.NumberFormat` object")

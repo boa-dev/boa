@@ -24,7 +24,7 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
 };
-use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace};
+use boa_gc::{self, Finalize, Gc, GcBox, GcErased, GcRefCell, Trace};
 use std::collections::HashSet;
 use std::{
     cell::RefCell,
@@ -57,11 +57,26 @@ impl JsData for ErasedObjectData {}
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
-pub struct JsObject<T: NativeObject + ?Sized = ErasedObjectData> {
+pub struct JsObject {
+    inner: GcErased,
+}
+
+impl Clone for JsObject {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
+/// Garbage collected typed `Object`.
+#[derive(Trace, Finalize)]
+#[boa_gc(unsafe_no_drop)]
+pub struct JsObjectTyped<T: NativeObject> {
     pub(crate) inner: Gc<VTableObject<T>>,
 }
 
-impl<T: NativeObject + ?Sized> Clone for JsObject<T> {
+impl<T: NativeObject> Clone for JsObjectTyped<T> {
     fn clone(&self) -> Self {
         Self {
             inner: self.inner.clone(),
@@ -77,8 +92,6 @@ impl<T: NativeObject + ?Sized> Clone for JsObject<T> {
 #[derive(Trace, Finalize)]
 pub(crate) struct VTableObject<T: NativeObject + ?Sized> {
     #[unsafe_ignore_trace]
-    type_id: core::any::TypeId,
-    #[unsafe_ignore_trace]
     vtable: &'static InternalObjectMethods,
     object: GcRefCell<Object<T>>,
 }
@@ -90,14 +103,38 @@ impl Default for JsObject {
 }
 
 impl JsObject {
-    pub(crate) fn from_raw(ptr: NonNull<GcBox<ErasedVTableObject>>) -> Self {
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        unsafe {
-            JsObject {
-                inner: Gc::from_raw(ptr),
-            }
+    fn into_inner(self) -> Gc<ErasedVTableObject> {
+        // SAFETY: The `GcErased` is guaranteed to contain a `ErasedVTableObject`,
+        // since `JsObject` is constructed with `VTableObject<T>` which has the same size and alignment.
+        unsafe { self.inner.downcast_unchecked::<ErasedVTableObject>() }
+    }
+
+    fn inner_as_ref(&self) -> &Gc<ErasedVTableObject> {
+        // SAFETY: The `GcErased` is guaranteed to contain a `ErasedVTableObject`,
+        // since `JsObject` is constructed with `VTableObject<T>` which has the same size and alignment.
+        unsafe { self.inner.downcast_ref_unchecked::<ErasedVTableObject>() }
+    }
+
+    /// Creates a new `JsObject` from a raw pointer.
+    ///
+    /// # Safety
+    /// The caller must ensure that the pointer is valid and points to a `GcBox<ErasedVTableObject>`.
+    /// /// The pointer must not be null.
+    pub(crate) unsafe fn from_u64(value: u64) -> Self {
+        // SAFETY: The caller guaranteed the value to be a valid pointer to a `GcBox<ErasedVTableObject>`.
+        let ptr = unsafe {
+            Gc::from_raw(NonNull::new_unchecked(
+                value as *mut GcBox<ErasedVTableObject>,
+            ))
+        };
+
+        JsObject {
+            inner: GcErased::new(ptr),
         }
+    }
+
+    pub(crate) fn into_u64(self) -> u64 {
+        Gc::into_raw(self.into_inner()).as_ptr() as u64
     }
 
     /// Creates a new `JsObject` from its inner object and its vtable.
@@ -105,18 +142,13 @@ impl JsObject {
         object: Object<T>,
         vtable: &'static InternalObjectMethods,
     ) -> Self {
-        let ptr = Gc::into_raw(Gc::new(VTableObject {
-            type_id: core::any::TypeId::of::<T>(),
+        let gc = Gc::new(VTableObject {
             object: GcRefCell::new(object),
             vtable,
-        }));
+        });
 
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        unsafe {
-            JsObject {
-                inner: Gc::from_raw(ptr.cast::<GcBox<ErasedVTableObject>>()),
-            }
+        JsObject {
+            inner: GcErased::new(gc),
         }
     }
 
@@ -159,8 +191,7 @@ impl JsObject {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let ptr = Gc::into_raw(Gc::new(VTableObject {
-            type_id: core::any::TypeId::of::<T>(),
+        let gc = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
                 data: Box::new(data),
                 properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
@@ -168,14 +199,10 @@ impl JsObject {
                 private_elements: ThinVec::new(),
             }),
             vtable: internal_methods,
-        }));
+        });
 
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        unsafe {
-            JsObject {
-                inner: Gc::from_raw(ptr.cast::<GcBox<ErasedVTableObject>>()),
-            }
+        JsObject {
+            inner: GcErased::new(gc),
         }
     }
 
@@ -192,8 +219,7 @@ impl JsObject {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let ptr = Gc::into_raw(Gc::new(VTableObject {
-            type_id: core::any::TypeId::of::<T>(),
+        let gc = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
                 data: Box::new(data),
                 properties: PropertyMap::from_prototype_with_shared_shape(
@@ -204,14 +230,10 @@ impl JsObject {
                 private_elements: ThinVec::new(),
             }),
             vtable: internal_methods,
-        }));
+        });
 
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        unsafe {
-            JsObject {
-                inner: Gc::from_raw(ptr.cast::<GcBox<ErasedVTableObject>>()),
-            }
+        JsObject {
+            inner: GcErased::new(gc),
         }
     }
 
@@ -220,26 +242,11 @@ impl JsObject {
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    pub fn downcast<T: NativeObject>(self) -> Result<JsObject<T>, Self> {
+    pub fn downcast<T: NativeObject>(self) -> Result<JsObjectTyped<T>, Self> {
         if self.is::<T>() {
-            let ptr: NonNull<GcBox<VTableObject<ErasedObjectData>>> = Gc::into_raw(self.inner);
-
-            // SAFETY: the rooted `Gc` ensures we can read the inner `GcBox` in a sound way.
-            #[cfg(debug_assertions)]
-            unsafe {
-                let erased = ptr.as_ref();
-
-                // Some sanity checks to ensure we're doing the correct cast.
-                assert_eq!(size_of_val(erased), size_of::<GcBox<VTableObject<T>>>());
-                assert_eq!(align_of_val(erased), align_of::<GcBox<VTableObject<T>>>());
-            }
-
-            let ptr: NonNull<GcBox<VTableObject<T>>> = ptr.cast();
-
-            // SAFETY: We checked that `self` is of type `T`, so we can safely cast the pointer.
-            let inner = unsafe { Gc::from_raw(ptr) };
-
-            Ok(JsObject { inner })
+            // SAFETY: We have verified that the object is of type `T`, so we can safely cast it.
+            let inner = unsafe { self.inner.downcast_unchecked::<VTableObject<T>>() };
+            Ok(JsObjectTyped { inner })
         } else {
             Err(self)
         }
@@ -251,18 +258,14 @@ impl JsObject {
     ///
     /// For this cast to be sound, `self` must contain an instance of `T` inside its inner data.
     #[must_use]
-    pub unsafe fn downcast_unchecked<T: NativeObject>(self) -> JsObject<T> {
-        let ptr: NonNull<GcBox<VTableObject<T>>> = Gc::into_raw(self.inner).cast();
-
+    pub unsafe fn downcast_unchecked<T: NativeObject>(self) -> JsObjectTyped<T> {
         // SAFETY: The caller guarantees `T` is the original inner data type of the underlying
         // object.
         // The pointer is guaranteed to be valid because we just created it.
         // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        unsafe {
-            JsObject {
-                inner: Gc::from_raw(ptr),
-            }
-        }
+        let gc = unsafe { self.inner.downcast_unchecked::<VTableObject<T>>() };
+
+        JsObjectTyped { inner: gc.clone() }
     }
 
     /// Downcasts a reference to the object,
@@ -314,7 +317,7 @@ impl JsObject {
     #[must_use]
     #[track_caller]
     pub fn is<T: NativeObject>(&self) -> bool {
-        self.inner.type_id == core::any::TypeId::of::<T>()
+        self.inner.is::<VTableObject<T>>()
     }
 
     /// Checks if it's an ordinary object.
@@ -686,74 +689,7 @@ Cannot both specify accessors and a value or writable attribute",
     }
 }
 
-impl<T: NativeObject + ?Sized> JsObject<T> {
-    /// Creates a new `JsObject` from its root shape, prototype, and data.
-    ///
-    /// Note that the returned object will not be erased to be convertible to a
-    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
-    pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self
-    where
-        T: Sized,
-    {
-        let internal_methods = data.internal_methods();
-        let inner = Gc::new(VTableObject {
-            type_id: core::any::TypeId::of::<T>(),
-            object: GcRefCell::new(Object {
-                data: Box::new(data),
-                properties: PropertyMap::from_prototype_with_shared_shape(
-                    root_shape,
-                    prototype.into(),
-                ),
-                extensible: true,
-                private_elements: ThinVec::new(),
-            }),
-            vtable: internal_methods,
-        });
-
-        Self { inner }
-    }
-
-    /// Creates a new `JsObject` from prototype, and data.
-    ///
-    /// Note that the returned object will not be erased to be convertible to a
-    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
-    pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self
-    where
-        T: Sized,
-    {
-        let internal_methods = data.internal_methods();
-        let inner = Gc::new(VTableObject {
-            type_id: core::any::TypeId::of::<T>(),
-            object: GcRefCell::new(Object {
-                data: Box::new(data),
-                properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
-                extensible: true,
-                private_elements: ThinVec::new(),
-            }),
-            vtable: internal_methods,
-        });
-
-        Self { inner }
-    }
-
-    /// Upcasts this object's inner data from a specific type `T` to an erased type
-    /// `dyn NativeObject`.
-    #[must_use]
-    pub fn upcast(self) -> JsObject
-    where
-        T: Sized,
-    {
-        let ptr: NonNull<GcBox<ErasedVTableObject>> = Gc::into_raw(self.inner).cast();
-
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        unsafe {
-            JsObject {
-                inner: Gc::from_raw(ptr),
-            }
-        }
-    }
-
+impl JsObject {
     /// Immutably borrows the `Object`.
     ///
     /// The borrow lasts until the returned `Ref` exits scope.
@@ -765,7 +701,7 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn borrow(&self) -> Ref<'_, Object<T>> {
+    pub fn borrow(&self) -> Ref<'_, Object<ErasedObjectData>> {
         self.try_borrow().expect("Object already mutably borrowed")
     }
 
@@ -779,7 +715,7 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     #[inline]
     #[must_use]
     #[track_caller]
-    pub fn borrow_mut(&self) -> RefMut<'_, Object<T>, Object<T>> {
+    pub fn borrow_mut(&self) -> RefMut<'_, Object<ErasedObjectData>, Object<ErasedObjectData>> {
         self.try_borrow_mut().expect("Object already borrowed")
     }
 
@@ -790,8 +726,11 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     ///
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     #[inline]
-    pub fn try_borrow(&self) -> StdResult<Ref<'_, Object<T>>, BorrowError> {
-        self.inner.object.try_borrow().map_err(|_| BorrowError)
+    pub fn try_borrow(&self) -> StdResult<Ref<'_, Object<ErasedObjectData>>, BorrowError> {
+        self.inner_as_ref()
+            .object
+            .try_borrow()
+            .map_err(|_| BorrowError)
     }
 
     /// Mutably borrows the object, returning an error if the value is currently borrowed.
@@ -801,8 +740,11 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
-    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object<T>, Object<T>>, BorrowMutError> {
-        self.inner
+    pub fn try_borrow_mut(
+        &self,
+    ) -> StdResult<RefMut<'_, Object<ErasedObjectData>, Object<ErasedObjectData>>, BorrowMutError>
+    {
+        self.inner_as_ref()
             .object
             .try_borrow_mut()
             .map_err(|_| BorrowMutError)
@@ -883,7 +825,7 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
         reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
     )]
     pub fn is_callable(&self) -> bool {
-        self.inner.vtable.__call__ != ORDINARY_INTERNAL_METHODS.__call__
+        self.inner_as_ref().vtable.__call__ != ORDINARY_INTERNAL_METHODS.__call__
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -899,15 +841,15 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
         reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
     )]
     pub fn is_constructor(&self) -> bool {
-        self.inner.vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
+        self.inner_as_ref().vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
     }
 
     pub(crate) fn vtable(&self) -> &'static InternalObjectMethods {
-        self.inner.vtable
+        self.inner_as_ref().vtable
     }
 
-    pub(crate) const fn inner(&self) -> &Gc<VTableObject<T>> {
-        &self.inner
+    pub(crate) fn inner(&self) -> &Gc<VTableObject<ErasedObjectData>> {
+        self.inner_as_ref()
     }
 
     /// Create a new private name with this object as the unique identifier.
@@ -917,29 +859,92 @@ impl<T: NativeObject + ?Sized> JsObject<T> {
     }
 }
 
-impl<T: NativeObject + ?Sized> AsRef<GcRefCell<Object<T>>> for JsObject<T> {
-    #[inline]
-    fn as_ref(&self) -> &GcRefCell<Object<T>> {
-        &self.inner.object
-    }
-}
+impl<T: NativeObject> JsObjectTyped<T> {
+    /// Creates a new `JsObject` from its root shape, prototype, and data.
+    ///
+    /// Note that the returned object will not be erased to be convertible to a
+    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self
+    where
+        T: Sized,
+    {
+        let internal_methods = data.internal_methods();
+        let inner = Gc::new(VTableObject {
+            object: GcRefCell::new(Object {
+                data: Box::new(data),
+                properties: PropertyMap::from_prototype_with_shared_shape(
+                    root_shape,
+                    prototype.into(),
+                ),
+                extensible: true,
+                private_elements: ThinVec::new(),
+            }),
+            vtable: internal_methods,
+        });
 
-impl<T: NativeObject + ?Sized> From<Gc<VTableObject<T>>> for JsObject<T> {
-    #[inline]
-    fn from(inner: Gc<VTableObject<T>>) -> Self {
         Self { inner }
     }
+
+    /// Creates a new `JsObject` from prototype, and data.
+    ///
+    /// Note that the returned object will not be erased to be convertible to a
+    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self
+    where
+        T: Sized,
+    {
+        let internal_methods = data.internal_methods();
+        let inner = Gc::new(VTableObject {
+            object: GcRefCell::new(Object {
+                data: Box::new(data),
+                properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
+                extensible: true,
+                private_elements: ThinVec::new(),
+            }),
+            vtable: internal_methods,
+        });
+
+        Self { inner }
+    }
+
+    /// Upcasts this object's inner data from a specific type `T` to an erased type
+    /// `dyn NativeObject`.
+    #[must_use]
+    pub fn upcast(self) -> JsObject
+    where
+        T: Sized,
+    {
+        JsObject {
+            inner: GcErased::new(self.inner),
+        }
+    }
 }
 
-impl<T: NativeObject + ?Sized> PartialEq for JsObject<T> {
+impl AsRef<GcRefCell<Object<ErasedObjectData>>> for JsObject {
+    #[inline]
+    fn as_ref(&self) -> &GcRefCell<Object<ErasedObjectData>> {
+        &self.inner_as_ref().object
+    }
+}
+
+impl From<Gc<VTableObject<ErasedObjectData>>> for JsObject {
+    #[inline]
+    fn from(inner: Gc<VTableObject<ErasedObjectData>>) -> Self {
+        Self {
+            inner: GcErased::new(inner),
+        }
+    }
+}
+
+impl PartialEq for JsObject {
     fn eq(&self, other: &Self) -> bool {
         Self::equals(self, other)
     }
 }
 
-impl<T: NativeObject + ?Sized> Eq for JsObject<T> {}
+impl Eq for JsObject {}
 
-impl<T: NativeObject + ?Sized> Hash for JsObject<T> {
+impl Hash for JsObject {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         std::ptr::hash(self.as_ref(), state);
     }
@@ -1053,7 +1058,7 @@ impl RecursionLimiter {
     }
 }
 
-impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
+impl Debug for JsObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let limiter = RecursionLimiter::new(self.as_ref());
 
@@ -1088,5 +1093,157 @@ impl<T: NativeObject + ?Sized> Debug for JsObject<T> {
         } else {
             f.write_str("{ ... }")
         }
+    }
+}
+
+impl<T: NativeObject> JsObjectTyped<T> {
+    /// Immutably borrows the `Object`.
+    ///
+    /// The borrow lasts until the returned `Ref` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn borrow(&self) -> Ref<'_, Object<T>> {
+        self.try_borrow().expect("Object already mutably borrowed")
+    }
+
+    /// Mutably borrows the Object.
+    ///
+    /// The borrow lasts until the returned `RefMut` exits scope.
+    /// The object cannot be borrowed while this borrow is active.
+    ///
+    /// # Panics
+    /// Panics if the object is currently borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn borrow_mut(&self) -> RefMut<'_, Object<T>, Object<T>> {
+        self.try_borrow_mut().expect("Object already borrowed")
+    }
+
+    /// Immutably borrows the `Object`, returning an error if the value is currently mutably borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRef` exits scope.
+    /// Multiple immutable borrows can be taken out at the same time.
+    ///
+    /// This is the non-panicking variant of [`borrow`](#method.borrow).
+    #[inline]
+    pub fn try_borrow(&self) -> StdResult<Ref<'_, Object<T>>, BorrowError> {
+        self.inner.object.try_borrow().map_err(|_| BorrowError)
+    }
+
+    /// Mutably borrows the object, returning an error if the value is currently borrowed.
+    ///
+    /// The borrow lasts until the returned `GcCellRefMut` exits scope.
+    /// The object be borrowed while this borrow is active.
+    ///
+    /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
+    #[inline]
+    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object<T>, Object<T>>, BorrowMutError> {
+        self.inner
+            .object
+            .try_borrow_mut()
+            .map_err(|_| BorrowMutError)
+    }
+
+    /// Checks if the garbage collected memory is the same.
+    #[must_use]
+    #[inline]
+    pub fn equals(lhs: &Self, rhs: &Self) -> bool {
+        Gc::ptr_eq(lhs.inner(), rhs.inner())
+    }
+
+    /// Get the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[must_use]
+    #[track_caller]
+    pub fn prototype(&self) -> JsPrototype {
+        self.borrow().prototype()
+    }
+
+    /// Set the prototype of the object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed
+    #[inline]
+    #[track_caller]
+    #[allow(clippy::must_use_candidate)]
+    pub fn set_prototype(&self, prototype: JsPrototype) -> bool {
+        self.borrow_mut().set_prototype(prototype)
+    }
+
+    /// Helper function for property insertion.
+    #[track_caller]
+    pub(crate) fn insert<K, P>(&self, key: K, property: P) -> bool
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.borrow_mut().insert(key, property)
+    }
+
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name, than `true` is returned
+    /// with that field, otherwise `false` is returned.
+    pub fn insert_property<K, P>(&self, key: K, property: P) -> bool
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.insert(key.into(), property)
+    }
+
+    /// It determines if Object is a callable function with a `[[Call]]` internal method.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iscallable
+    #[inline]
+    #[must_use]
+    #[expect(
+        unpredictable_function_pointer_comparisons,
+        reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
+    )]
+    pub fn is_callable(&self) -> bool {
+        self.inner.vtable.__call__ != ORDINARY_INTERNAL_METHODS.__call__
+    }
+
+    /// It determines if Object is a function object with a `[[Construct]]` internal method.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
+    #[inline]
+    #[must_use]
+    #[expect(
+        unpredictable_function_pointer_comparisons,
+        reason = "can only use `ptr::fn_addr_eq` on rustc 1.85"
+    )]
+    pub fn is_constructor(&self) -> bool {
+        self.inner.vtable.__construct__ != ORDINARY_INTERNAL_METHODS.__construct__
+    }
+
+    const fn inner(&self) -> &Gc<VTableObject<T>> {
+        &self.inner
+    }
+}
+
+impl<T: NativeObject> Debug for JsObjectTyped<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let object = self.clone().upcast();
+        f.write_fmt(format_args!("{object:?}"))
     }
 }

@@ -2,7 +2,7 @@
 use crate::{
     Context, JsNativeError, JsResult, JsValue,
     builtins::{DataView, array_buffer::BufferObject},
-    object::{JsArrayBuffer, JsObject},
+    object::{JsArrayBuffer, JsObject, JsObjectTyped},
     value::TryFromJs,
 };
 
@@ -31,19 +31,19 @@ use std::ops::Deref;
 #[derive(Debug, Clone, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 pub struct JsDataView {
-    inner: JsObject<DataView>,
+    inner: JsObjectTyped<DataView>,
 }
 
-impl From<JsDataView> for JsObject<DataView> {
+impl From<JsDataView> for JsObjectTyped<DataView> {
     #[inline]
     fn from(value: JsDataView) -> Self {
         value.inner
     }
 }
 
-impl From<JsObject<DataView>> for JsDataView {
+impl From<JsObjectTyped<DataView>> for JsDataView {
     #[inline]
-    fn from(value: JsObject<DataView>) -> Self {
+    fn from(value: JsObjectTyped<DataView>) -> Self {
         Self { inner: value }
     }
 }
@@ -133,7 +133,7 @@ impl JsDataView {
                 .into());
         }
 
-        let obj = JsObject::new(
+        let obj = JsObjectTyped::new(
             context.root_shape(),
             prototype,
             DataView {
@@ -519,7 +519,7 @@ impl From<JsDataView> for JsValue {
 }
 
 impl Deref for JsDataView {
-    type Target = JsObject<DataView>;
+    type Target = JsObjectTyped<DataView>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {
