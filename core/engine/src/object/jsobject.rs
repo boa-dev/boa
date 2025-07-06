@@ -868,10 +868,10 @@ impl JsObject {
 }
 
 impl<T: NativeObject> JsObjectTyped<T> {
-    /// Creates a new `JsObject` from its root shape, prototype, and data.
+    /// Creates a new `JsObjectTyped` from its root shape, prototype, and data.
     ///
     /// Note that the returned object will not be erased to be convertible to a
-    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    /// `JsValue`. To erase the pointer, call [`JsObjectTyped::upcast`].
     pub fn new<O: Into<Option<JsObject>>>(root_shape: &RootShape, prototype: O, data: T) -> Self
     where
         T: Sized,
@@ -893,10 +893,10 @@ impl<T: NativeObject> JsObjectTyped<T> {
         Self { inner }
     }
 
-    /// Creates a new `JsObject` from prototype, and data.
+    /// Creates a new `JsObjectTyped` from prototype, and data.
     ///
     /// Note that the returned object will not be erased to be convertible to a
-    /// `JsValue`. To erase the pointer, call [`JsObject::upcast`].
+    /// `JsValue`. To erase the pointer, call [`JsObjectTyped::upcast`].
     pub fn new_unique<O: Into<Option<JsObject>>>(prototype: O, data: T) -> Self
     where
         T: Sized,
