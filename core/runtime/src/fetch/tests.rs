@@ -1,10 +1,6 @@
 //! Test types and methods to help with testing the Fetch API.
 
-use crate::fetch::request::JsRequest;
-use crate::fetch::response::JsResponse;
-use crate::test::{run_test_actions, TestAction};
-use boa_engine::{js_error, js_str, js_string, Context, Finalize, JsData, JsResult, Trace};
-use either::Either;
+use boa_engine::{js_error, Context, Finalize, JsData, JsResult, Trace};
 use http::{Request, Response, Uri};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -46,6 +42,12 @@ impl crate::fetch::Fetcher for TestFetcher {
 
 #[test]
 fn request_constructor() {
+    use crate::fetch::request::JsRequest;
+    use crate::fetch::response::JsResponse;
+    use crate::test::{run_test_actions, TestAction};
+    use boa_engine::{js_str, js_string};
+    use either::Either;
+
     run_test_actions([
         TestAction::inspect_context(|ctx| {
             let mut fetcher = TestFetcher::default();

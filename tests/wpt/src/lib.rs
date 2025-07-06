@@ -18,6 +18,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+mod fetcher;
 mod logger;
 
 /// The test status JavaScript type from WPT. This is defined in the test harness.
@@ -117,10 +118,6 @@ impl TestSuiteSource {
 
     fn scripts(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let mut scripts: Vec<String> = Vec::new();
-        let dir = self
-            .path
-            .parent()
-            .expect("Could not get the parent directory");
 
         'outer: for script in self.meta()?.get("script").unwrap_or(&Vec::new()) {
             let script = script
@@ -129,11 +126,7 @@ impl TestSuiteSource {
 
             // Resolve the source path relative to the script path, but under the wpt_path.
             let script_path = Path::new(&script);
-            let path = if script_path.is_relative() {
-                dir.join(script_path)
-            } else {
-                script_path.to_path_buf()
-            };
+            let path = script_path.to_path_buf();
 
             for (from, to) in REWRITE_RULES {
                 if path.to_string_lossy().as_ref() == *from {
@@ -174,7 +167,9 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
     let logger = logger::RecordingLogger::new();
     boa_runtime::register(
         &mut context,
-        RegisterOptions::new().with_console_logger(logger.clone()),
+        RegisterOptions::new()
+            .with_console_logger(logger.clone())
+            .with_fetcher(fetcher::WptFetcher::new(wpt_path)),
     )
     .expect("Failed to register boa_runtime");
 
@@ -390,6 +385,19 @@ fn url(
     #[exclude("url-origin.any.js")]
     #[exclude("url-setters.any.js")]
     #[exclude("url-constructor.any.js")]
+    path: PathBuf,
+) {
+    execute_test_file(&path);
+}
+
+/// Test the `fetch` with the WPT test suite.
+#[cfg(not(clippy))]
+#[rstest::rstest]
+fn fetch(
+    #[base_dir = "${WPT_ROOT}"]
+    #[files("fetch/api/**/*.any.js")]
+    #[exclude("idlharness")]
+    #[exclude("abort")]
     path: PathBuf,
 ) {
     execute_test_file(&path);

@@ -77,17 +77,17 @@ pub struct RegisterOptions<F: fetch::Fetcher, L: Logger> {
     fetcher: Option<F>,
 }
 
-impl Default for RegisterOptions<ErrorFetcher, console::DefaultLogger> {
+impl Default for RegisterOptions<ErrorFetcher, DefaultLogger> {
     fn default() -> Self {
         Self {
             realm: None,
-            console_logger: console::DefaultLogger,
+            console_logger: DefaultLogger,
             fetcher: None,
         }
     }
 }
 
-impl RegisterOptions<ErrorFetcher, console::DefaultLogger> {
+impl RegisterOptions<ErrorFetcher, DefaultLogger> {
     /// Create a new `RegisterOptions` with the default options.
     #[must_use]
     pub fn new() -> Self {

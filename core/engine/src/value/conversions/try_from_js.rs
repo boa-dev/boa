@@ -3,7 +3,9 @@
 use num_bigint::BigInt;
 use num_traits::AsPrimitive;
 
-use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
+use crate::{
+    js_error, js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue,
+};
 
 mod collections;
 mod tuples;
@@ -96,9 +98,13 @@ where
                 .into());
         };
 
-        let length = object
-            .get(js_string!("length"), context)?
-            .to_length(context)?;
+        let length = object.get(js_string!("length"), context)?;
+        // If there's no length, return an error.
+        if length.is_null_or_undefined() {
+            return Err(js_error!(TypeError: "Not an array"));
+        }
+        let length = length.to_length(context)?;
+
         let length = match usize::try_from(length) {
             Ok(length) => length,
             Err(e) => {

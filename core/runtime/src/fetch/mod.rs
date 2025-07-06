@@ -7,7 +7,6 @@
 //! [spec]: https://fetch.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 
-#[cfg(test)]
 pub mod tests;
 
 use crate::fetch::headers::JsHeaders;
@@ -34,6 +33,13 @@ pub mod fetchers;
 /// A trait for backend implementation of an HTTP fetcher.
 // TODO: consider implementing an async version of this.
 pub trait Fetcher: NativeObject + Sized {
+    /// Resolve a URI to a URL. URIs can be any strings, but to do an `HttpRequest`
+    /// we need a proper URL.
+    /// By default, this will return the `URI` as is.
+    fn resolve_uri(&self, uri: &http::Uri) -> String {
+        uri.to_string()
+    }
+
     /// Fetch an HTTP document, returning an HTTP response.
     ///
     /// # Errors
@@ -76,9 +82,9 @@ pub fn fetch<T: Fetcher>(
     let request: Request<Option<Vec<u8>>> = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
-            HttpRequest::get(url)
-                .body(Some(Vec::new()))
-                .map_err(JsError::from_rust)?
+
+            let r = HttpRequest::get(url).body(Some(Vec::new()));
+            r.map_err(JsError::from_rust)?
         }
         Either::Right(request) => {
             // This can be a [`JsRequest`] object.

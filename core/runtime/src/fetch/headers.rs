@@ -14,6 +14,7 @@ use boa_interop::JsClass;
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::rc::Rc;
 use std::str::FromStr;
 
@@ -75,8 +76,49 @@ impl TryIntoJs for JsHeaders {
 #[boa(rename_all = "camelCase")]
 impl JsHeaders {
     #[boa(constructor)]
-    fn constructor() -> Self {
-        JsHeaders::default()
+    fn constructor(init: JsValue, context: &mut Context) -> JsResult<Self> {
+        let headers = JsHeaders::default();
+        if init.is_undefined() {
+            return Ok(headers);
+        }
+
+        // `init` can be a simple object literal with String values, an array of name-value
+        // pairs, where each pair is a 2-element string array; or an existing Headers object.
+        let mut h = headers.headers.borrow_mut();
+        if let Some(other_header) = init.as_downcast_ref::<JsHeaders>() {
+            for (key, value) in other_header.headers.borrow().iter() {
+                if h.contains_key(key) {
+                    h.append(key, value.clone());
+                } else {
+                    h.insert(key, value.clone());
+                }
+            }
+        } else if let Ok(init) = Vec::<(String, Convert<String>)>::try_from_js(&init, context) {
+            for (k, v) in init {
+                let key = to_header_name(k)?;
+                let value = to_header_value(&v.0)?;
+                if h.contains_key(&key) {
+                    h.append(key, value);
+                } else {
+                    h.insert(key, value);
+                }
+            }
+        } else if let Ok(init) = BTreeMap::<String, Convert<String>>::try_from_js(&init, context) {
+            for (k, v) in init {
+                let key = to_header_name(k)?;
+                let value = to_header_value(&v.0)?;
+                if h.contains_key(&key) {
+                    h.append(key, value);
+                } else {
+                    h.insert(key, value);
+                }
+            }
+        } else {
+            return Err(js_error!(TypeError: "Cannot convert init to header object."));
+        }
+        drop(h);
+
+        Ok(headers)
     }
 
     /// Appends a new value onto an existing header inside a Headers object,
@@ -87,7 +129,9 @@ impl JsHeaders {
     pub fn append(&mut self, key: Convert<String>, value: Convert<String>) -> JsResult<()> {
         let key = to_header_name(key.as_ref())?;
         let value = to_header_value(value.as_ref())?;
-        self.headers.borrow_mut().append(key, value);
+        if !self.headers.borrow_mut().append(&key, value.clone()) {
+            self.headers.borrow_mut().insert(key, value);
+        }
         Ok(())
     }
 
@@ -147,16 +191,17 @@ impl JsHeaders {
     ///
     /// # Errors
     /// If the key is not valid ASCII, an error is returned.
-    pub fn get(&self, key: Convert<String>) -> JsResult<Option<JsString>> {
-        let key = to_header_name(key.as_ref())?;
+    pub fn get(&self, key: Convert<String>) -> JsResult<JsValue> {
+        let name = to_header_name(key.as_ref())?;
         let value = self
             .headers
             .borrow()
-            .get_all(key)
+            .get_all(name.clone())
             .into_iter()
             .map(|v| v.to_str().unwrap_or(""))
             // Use an Option<String> to accumulate the values into a single string,
             // if there are any. Otherwise, we return None.
+            // Cannot use `join(",")` as we need to return undefined if none is found.
             .fold(None, |mut acc, v| {
                 let str = acc.get_or_insert_with(String::new);
                 if !str.is_empty() {
@@ -166,7 +211,7 @@ impl JsHeaders {
                 acc
             });
 
-        Ok(value.map(JsString::from))
+        Ok(value.map_or_else(JsValue::null, |v| JsString::from(v).into()))
     }
 
     /// Returns an array containing the values of all Set-Cookie headers associated with a response.
