@@ -130,7 +130,7 @@ float-cmp = "0.10.0"
 futures-lite = "2.6.0"
 test-case = "3.3.1"
 url = "2.5.4"
-tokio = { version = "1.45.1", default-features = false }
+tokio = { version = "1.46.1", default-features = false }
 futures-concurrency = "7.6.3"
 
 
