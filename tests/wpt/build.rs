@@ -59,11 +59,12 @@ fn prep_repository(rev: &str, root: impl AsRef<Path>) {
 }
 
 fn main() {
-    println!("cargo:rerun-if-changed=tests_wpt");
+    const CONFIG_PATH: &'static str = "../../test_wpt_config.toml";
+    println!("cargo:rerun-if-changed=../../tests_wpt");
+    println!("cargo:rerun-if-changed={}", CONFIG_PATH);
 
     let config: Config = {
-        let input = std::fs::read_to_string("../../test_wpt_config.toml")
-            .expect("Could not read config file");
+        let input = std::fs::read_to_string(CONFIG_PATH).expect("Could not read config file");
         toml::from_str(&input).expect("Config file is invalid TOML")
     };
 
