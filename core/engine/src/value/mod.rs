@@ -620,13 +620,13 @@ impl JsValue {
             JsVariant::Undefined | JsVariant::Null => Err(JsNativeError::typ()
                 .with_message("cannot convert 'null' or 'undefined' to object")
                 .into()),
-            JsVariant::Boolean(_) => Ok(constructors.boolean().prototype().clone()),
+            JsVariant::Boolean(_) => Ok(constructors.boolean().prototype()),
             JsVariant::Integer32(_) | JsVariant::Float64(_) => {
-                Ok(constructors.number().prototype().clone())
+                Ok(constructors.number().prototype())
             }
-            JsVariant::String(_) => Ok(constructors.string().prototype().clone()),
-            JsVariant::Symbol(_) => Ok(constructors.symbol().prototype().clone()),
-            JsVariant::BigInt(_) => Ok(constructors.bigint().prototype().clone()),
+            JsVariant::String(_) => Ok(constructors.string().prototype()),
+            JsVariant::Symbol(_) => Ok(constructors.symbol().prototype()),
+            JsVariant::BigInt(_) => Ok(constructors.bigint().prototype()),
             JsVariant::Object(object) => Ok(object.clone()),
         }
     }
