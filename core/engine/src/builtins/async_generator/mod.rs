@@ -17,7 +17,7 @@ use crate::{
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
-    object::{CONSTRUCTOR, FunctionObjectBuilder, JsObject, JsObjectTyped},
+    object::{CONSTRUCTOR, FunctionObjectBuilder, JsObject},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
@@ -340,7 +340,7 @@ impl AsyncGenerator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorenqueue
     pub(crate) fn enqueue(
-        generator: &JsObjectTyped<AsyncGenerator>,
+        generator: &JsObject<AsyncGenerator>,
         completion: CompletionRecord,
         promise_capability: PromiseCapability,
     ) {
@@ -366,7 +366,7 @@ impl AsyncGenerator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorcompletestep
     pub(crate) fn complete_step(
-        generator: &JsObjectTyped<AsyncGenerator>,
+        generator: &JsObject<AsyncGenerator>,
         completion: JsResult<JsValue>,
         done: bool,
         realm: Option<Realm>,
@@ -439,7 +439,7 @@ impl AsyncGenerator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorresume
     pub(crate) fn resume(
-        generator: &JsObjectTyped<AsyncGenerator>,
+        generator: &JsObject<AsyncGenerator>,
         completion: CompletionRecord,
         context: &mut Context,
     ) {
@@ -493,7 +493,7 @@ impl AsyncGenerator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorawaitreturn
     pub(crate) fn await_return(
-        generator: &JsObjectTyped<AsyncGenerator>,
+        generator: &JsObject<AsyncGenerator>,
         value: JsValue,
         context: &mut Context,
     ) {
@@ -614,7 +614,7 @@ impl AsyncGenerator {
     /// Panics if `generator` is not in the `DrainingQueue` state.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-asyncgeneratordrainqueue
-    pub(crate) fn drain_queue(generator: &JsObjectTyped<AsyncGenerator>, context: &mut Context) {
+    pub(crate) fn drain_queue(generator: &JsObject<AsyncGenerator>, context: &mut Context) {
         // 1. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
         assert_eq!(
             generator.borrow().data.state,

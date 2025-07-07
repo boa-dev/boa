@@ -282,10 +282,6 @@ impl<T: Trace + ?Sized> Gc<T> {
             inner_ptr,
             marker: PhantomData,
         }
-
-        // SAFETY: Casting a Gc<T> to a Gc<U> of any type is safe, as long as you don’t actually access it as a U.
-        //         The correct functions for T will still be called during tracing, finalization, and dropping.
-        // unsafe { (*(&raw const *this).cast::<Gc<U>>()).clone() }
     }
 
     /// Returns reference to the inner value of type `T`.

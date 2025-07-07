@@ -4,7 +4,7 @@ use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{JsObject, JsObjectTyped, Object, internal_methods::get_prototype_from_constructor},
+    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
     value::TryFromJs,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
@@ -14,19 +14,19 @@ use std::ops::Deref;
 #[derive(Debug, Clone, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 pub struct JsArrayBuffer {
-    inner: JsObjectTyped<ArrayBuffer>,
+    inner: JsObject<ArrayBuffer>,
 }
 
-impl From<JsArrayBuffer> for JsObjectTyped<ArrayBuffer> {
+impl From<JsArrayBuffer> for JsObject<ArrayBuffer> {
     #[inline]
     fn from(value: JsArrayBuffer) -> Self {
         value.inner
     }
 }
 
-impl From<JsObjectTyped<ArrayBuffer>> for JsArrayBuffer {
+impl From<JsObject<ArrayBuffer>> for JsArrayBuffer {
     #[inline]
-    fn from(value: JsObjectTyped<ArrayBuffer>) -> Self {
+    fn from(value: JsObject<ArrayBuffer>) -> Self {
         Self { inner: value }
     }
 }
@@ -117,7 +117,7 @@ impl JsArrayBuffer {
 
         // 3. Set obj.[[ArrayBufferData]] to block.
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
-        let obj = JsObjectTyped::new(
+        let obj = JsObject::new(
             context.root_shape(),
             prototype,
             ArrayBuffer::from_data(block, JsValue::undefined()),
@@ -303,7 +303,7 @@ impl From<JsArrayBuffer> for JsValue {
 }
 
 impl Deref for JsArrayBuffer {
-    type Target = JsObjectTyped<ArrayBuffer>;
+    type Target = JsObject<ArrayBuffer>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {

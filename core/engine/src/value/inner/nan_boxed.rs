@@ -122,7 +122,9 @@ const_assert!(align_of::<*mut ()>() >= 4);
 ///
 /// All bit magic is done here.
 mod bits {
+    use crate::object::ErasedVTableObject;
     use boa_engine::{JsBigInt, JsObject, JsSymbol};
+    use boa_gc::GcBox;
     use boa_string::JsString;
     use std::ptr::NonNull;
 
@@ -296,7 +298,7 @@ mod bits {
     /// by calling `[Self::drop_pointer]`.
     #[inline(always)]
     pub(super) unsafe fn tag_object(value: JsObject) -> u64 {
-        let value = value.into_u64();
+        let value = value.into_raw().as_ptr() as u64;
         let value_masked: u64 = value & MASK_POINTER_VALUE;
 
         // Assert alignment and location of the pointer.
@@ -315,10 +317,13 @@ mod bits {
     ///
     /// # Safety
     /// * The pointer must be a valid pointer to a `GcBox<ErasedVTableObject>`.
-    #[allow(clippy::unnecessary_box_returns)]
     pub(super) unsafe fn untag_object_owned(value: u64) -> JsObject {
         // This is safe since we already checked the pointer is not null as this point.
-        unsafe { JsObject::from_u64(value & MASK_POINTER_VALUE) }
+        unsafe {
+            JsObject::from_raw(NonNull::new_unchecked(
+                (value & MASK_POINTER_VALUE) as *mut GcBox<ErasedVTableObject>,
+            ))
+        }
     }
 
     /// Returns a tagged u64 of a boxed `[JsSymbol]`.

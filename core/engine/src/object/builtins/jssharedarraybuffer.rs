@@ -1,10 +1,7 @@
 //! A Rust API wrapper for Boa's `SharedArrayBuffer` Builtin ECMAScript Object
 use crate::{
-    Context, JsResult, JsValue,
-    builtins::array_buffer::SharedArrayBuffer,
-    error::JsNativeError,
-    object::{JsObject, JsObjectTyped},
-    value::TryFromJs,
+    Context, JsResult, JsValue, builtins::array_buffer::SharedArrayBuffer, error::JsNativeError,
+    object::JsObject, value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::{ops::Deref, sync::atomic::Ordering};
@@ -13,19 +10,19 @@ use std::{ops::Deref, sync::atomic::Ordering};
 #[derive(Debug, Clone, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 pub struct JsSharedArrayBuffer {
-    inner: JsObjectTyped<SharedArrayBuffer>,
+    inner: JsObject<SharedArrayBuffer>,
 }
 
-impl From<JsSharedArrayBuffer> for JsObjectTyped<SharedArrayBuffer> {
+impl From<JsSharedArrayBuffer> for JsObject<SharedArrayBuffer> {
     #[inline]
     fn from(value: JsSharedArrayBuffer) -> Self {
         value.inner
     }
 }
 
-impl From<JsObjectTyped<SharedArrayBuffer>> for JsSharedArrayBuffer {
+impl From<JsObject<SharedArrayBuffer>> for JsSharedArrayBuffer {
     #[inline]
-    fn from(value: JsObjectTyped<SharedArrayBuffer>) -> Self {
+    fn from(value: JsObject<SharedArrayBuffer>) -> Self {
         JsSharedArrayBuffer { inner: value }
     }
 }
@@ -58,7 +55,7 @@ impl JsSharedArrayBuffer {
             .shared_array_buffer()
             .prototype();
 
-        let inner = JsObjectTyped::new(context.root_shape(), proto, buffer);
+        let inner = JsObject::new(context.root_shape(), proto, buffer);
 
         Self { inner }
     }
@@ -110,7 +107,7 @@ impl From<JsSharedArrayBuffer> for JsValue {
 }
 
 impl Deref for JsSharedArrayBuffer {
-    type Target = JsObjectTyped<SharedArrayBuffer>;
+    type Target = JsObject<SharedArrayBuffer>;
 
     #[inline]
     fn deref(&self) -> &Self::Target {

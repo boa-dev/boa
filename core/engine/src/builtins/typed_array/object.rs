@@ -6,7 +6,7 @@ use crate::{
     Context, JsNativeError, JsResult, JsString, JsValue,
     builtins::array_buffer::BufferObject,
     object::{
-        JsData, JsObject, JsObjectTyped,
+        JsData, JsObject,
         internal_methods::{
             InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
@@ -193,10 +193,7 @@ impl TypedArray {
     /// Abstract operation [`ValidateTypedArray ( O, order )`][spec].
     ///
     /// [spec]: https://tc39.es/ecma262/sec-validatetypedarray
-    pub(crate) fn validate(
-        this: &JsValue,
-        order: Ordering,
-    ) -> JsResult<(JsObjectTyped<Self>, usize)> {
+    pub(crate) fn validate(this: &JsValue, order: Ordering) -> JsResult<(JsObject<Self>, usize)> {
         // 1. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         let obj = this
             .as_object()

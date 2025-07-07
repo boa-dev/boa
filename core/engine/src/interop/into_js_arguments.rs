@@ -236,7 +236,7 @@ impl<T: TryFromJs> Deref for JsThis<T> {
 /// [`JsThis`] capture instead.
 #[derive(Debug, Clone)]
 pub struct JsClass<T: NativeObject> {
-    inner: boa_engine::JsObjectTyped<T>,
+    inner: boa_engine::JsObject<T>,
 }
 
 impl<T: NativeObject> JsClass<T> {

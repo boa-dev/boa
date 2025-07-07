@@ -27,7 +27,7 @@ use crate::{
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{JsObject, JsObjectTyped, Object, internal_methods::get_prototype_from_constructor},
+    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
@@ -121,8 +121,8 @@ where
 #[derive(Debug, Clone, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 pub(crate) enum BufferObject {
-    Buffer(JsObjectTyped<ArrayBuffer>),
-    SharedBuffer(JsObjectTyped<SharedArrayBuffer>),
+    Buffer(JsObject<ArrayBuffer>),
+    SharedBuffer(JsObject<SharedArrayBuffer>),
 }
 
 impl From<BufferObject> for JsObject {
@@ -179,11 +179,9 @@ impl BufferObject {
     #[track_caller]
     pub(crate) fn equals(lhs: &Self, rhs: &Self) -> bool {
         match (lhs, rhs) {
-            (BufferObject::Buffer(lhs), BufferObject::Buffer(rhs)) => {
-                JsObjectTyped::equals(lhs, rhs)
-            }
+            (BufferObject::Buffer(lhs), BufferObject::Buffer(rhs)) => JsObject::equals(lhs, rhs),
             (BufferObject::SharedBuffer(lhs), BufferObject::SharedBuffer(rhs)) => {
-                if JsObjectTyped::equals(lhs, rhs) {
+                if JsObject::equals(lhs, rhs) {
                     return true;
                 }
 
@@ -695,7 +693,7 @@ impl ArrayBuffer {
         };
 
         // 20. If SameValue(new, O) is true, throw a TypeError exception.
-        if JsObjectTyped::equals(&buf, &new) {
+        if JsObject::equals(&buf, &new) {
             return Err(JsNativeError::typ()
                 .with_message("new ArrayBuffer is the same as this ArrayBuffer")
                 .into());
@@ -859,7 +857,7 @@ impl ArrayBuffer {
         byte_len: u64,
         max_byte_len: Option<u64>,
         context: &mut Context,
-    ) -> JsResult<JsObjectTyped<ArrayBuffer>> {
+    ) -> JsResult<JsObject<ArrayBuffer>> {
         // 1. Let slots be « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] ».
         // 2. If maxByteLength is present and maxByteLength is not empty, let allocatingResizableBuffer be true; otherwise let allocatingResizableBuffer be false.
         // 3. If allocatingResizableBuffer is true, then
@@ -887,7 +885,7 @@ impl ArrayBuffer {
         //        throw if, for example, virtual memory cannot be reserved up front.
         let block = create_byte_data_block(byte_len, max_byte_len, context)?;
 
-        let obj = JsObjectTyped::new(
+        let obj = JsObject::new(
             context.root_shape(),
             prototype,
             Self {
