@@ -470,6 +470,7 @@ impl BuiltInCallable<'_> {
         let object = self.realm.intrinsics().templates().function().create(
             NativeFunctionObject {
                 f: NativeFunction::from_fn_ptr(self.function),
+                name: self.name.clone(),
                 constructor: None,
                 realm: Some(self.realm.clone()),
             },

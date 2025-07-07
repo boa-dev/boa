@@ -6,6 +6,7 @@
 use std::cell::RefCell;
 
 use boa_gc::{Finalize, Gc, Trace, custom_trace};
+use boa_string::JsString;
 
 use crate::job::NativeAsyncJob;
 use crate::value::JsVariant;
@@ -73,8 +74,13 @@ where
 pub struct NativeFunctionObject {
     /// The rust function.
     pub(crate) f: NativeFunction,
+
+    /// JavaScript name of the function.
+    pub(crate) name: JsString,
+
     /// The kind of the function constructor if it is a constructor.
     pub(crate) constructor: Option<ConstructorKind>,
+
     /// The [`Realm`] in which the function is defined, or `None` if the realm is uninitialized.
     pub(crate) realm: Option<Realm>,
 }
@@ -424,12 +430,18 @@ pub(crate) fn native_function_call(
 
     let NativeFunctionObject {
         f: function,
+        name,
         constructor,
         realm,
     } = obj
         .downcast_ref::<NativeFunctionObject>()
         .expect("the object should be a native function object")
         .clone();
+
+    context
+        .vm
+        .shadow_stack
+        .push_native(context.vm.frame.pc, name);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -445,6 +457,8 @@ pub(crate) fn native_function_call(
 
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
+
+    context.vm.shadow_stack.pop();
 
     context.vm.stack.push(result?);
 
@@ -469,12 +483,18 @@ fn native_function_construct(
 
     let NativeFunctionObject {
         f: function,
+        name,
         constructor,
         realm,
     } = obj
         .downcast_ref::<NativeFunctionObject>()
         .expect("the object should be a native function object")
         .clone();
+
+    context
+        .vm
+        .shadow_stack
+        .push_native(context.vm.frame.pc, name);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -516,6 +536,8 @@ fn native_function_construct(
 
     context.vm.native_active_function = None;
     context.swap_realm(&mut realm);
+
+    context.vm.shadow_stack.pop();
 
     context.vm.stack.push(result?);
 

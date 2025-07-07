@@ -20,7 +20,7 @@ use crate::{
     string::StaticJsStrings,
 };
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ReferenceError;
@@ -83,7 +83,7 @@ impl BuiltInConstructor for ReferenceError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Reference,
+            Error::with_caller_position(ErrorKind::Reference, context),
         );
 
         // 3. If message is not undefined, then
