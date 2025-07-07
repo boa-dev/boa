@@ -207,6 +207,7 @@ impl Url {
         JsString::from(format!("{}", self.0))
     }
 
+    #[boa(rename = "toJSON")]
     fn to_json(&self) -> JsString {
         JsString::from(format!("{}", self.0))
     }
