@@ -83,7 +83,7 @@ impl ByteCompiler<'_> {
 
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            compiler.emit_get_property_by_name(dst, &object, &object, ident.sym());
+                            compiler.emit_get_property_by_name(dst, None, &object, ident.sym());
                             let value = compiler.register_allocator.alloc();
                             if increment {
                                 compiler.bytecode.emit_inc(value.variable(), dst.variable());
@@ -91,12 +91,7 @@ impl ByteCompiler<'_> {
                                 compiler.bytecode.emit_dec(value.variable(), dst.variable());
                             }
 
-                            compiler.emit_set_property_by_name(
-                                &value,
-                                &object,
-                                &object,
-                                ident.sym(),
-                            );
+                            compiler.emit_set_property_by_name(&value, None, &object, ident.sym());
 
                             if !post {
                                 compiler
@@ -184,7 +179,12 @@ impl ByteCompiler<'_> {
                         compiler.bytecode.emit_super(object.variable());
                         compiler.bytecode.emit_this(receiver.variable());
 
-                        compiler.emit_get_property_by_name(dst, &receiver, &object, ident.sym());
+                        compiler.emit_get_property_by_name(
+                            dst,
+                            Some(&receiver),
+                            &object,
+                            ident.sym(),
+                        );
 
                         let value = compiler.register_allocator.alloc();
                         if increment {
@@ -193,7 +193,12 @@ impl ByteCompiler<'_> {
                             compiler.bytecode.emit_dec(value.variable(), dst.variable());
                         }
 
-                        compiler.emit_set_property_by_name(&value, &receiver, &object, ident.sym());
+                        compiler.emit_set_property_by_name(
+                            &value,
+                            Some(&receiver),
+                            &object,
+                            ident.sym(),
+                        );
                         if !post {
                             compiler
                                 .bytecode
