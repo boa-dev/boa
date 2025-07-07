@@ -1,21 +1,21 @@
 use super::{BindingAccessOpcode, ToJsString};
 use crate::{
+    Context, JsNativeError, JsResult, SpannedSourceText,
     bytecompiler::{ByteCompiler, FunctionCompiler, FunctionSpec, NodeKind},
     vm::opcode::BindingOpcode,
-    Context, JsNativeError, JsResult, SpannedSourceText,
 };
 use boa_ast::{
+    Script,
     declaration::Binding,
     function::{FormalParameterList, FunctionBody},
     operations::{
-        all_private_identifiers_valid, bound_names, lexically_declared_names,
-        lexically_scoped_declarations, var_declared_names, var_scoped_declarations,
-        LexicallyScopedDeclaration, VarScopedDeclaration,
+        LexicallyScopedDeclaration, VarScopedDeclaration, all_private_identifiers_valid,
+        bound_names, lexically_declared_names, lexically_scoped_declarations, var_declared_names,
+        var_scoped_declarations,
     },
     scope::{FunctionScopes, Scope},
     scope_analyzer::EvalDeclarationBindings,
     visitor::NodeRef,
-    Script,
 };
 use boa_interner::{JStrRef, Sym};
 

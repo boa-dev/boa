@@ -1,14 +1,13 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    js_string,
+    Context, JsNativeError, JsResult, JsValue, js_string,
     native_function::NativeFunction,
     object::{
-        builtins::{JsArray, JsArrayBuffer, JsUint8Array},
         FunctionObjectBuilder,
+        builtins::{JsArray, JsArrayBuffer, JsUint8Array},
     },
     property::Attribute,
-    Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Gc, GcRefCell};
 

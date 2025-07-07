@@ -1,8 +1,8 @@
 use crate::bytecompiler::{Access, ByteCompiler, FunctionSpec, MethodKind, Register};
 use boa_ast::{
+    Expression,
     expression::literal::{ObjectLiteral, PropertyDefinition},
     property::{MethodDefinitionKind, PropertyName},
-    Expression,
 };
 use boa_interner::Sym;
 use thin_vec::ThinVec;

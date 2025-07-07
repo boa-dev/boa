@@ -15,21 +15,22 @@ mod utils;
 use std::cell::Cell;
 
 use crate::{
-    builtins::function::{arguments::MappedArguments, ThisMode},
+    JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
+    builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        opcode::{BindingOpcode, ByteCodeEmitter},
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
+        opcode::{BindingOpcode, ByteCodeEmitter},
     },
-    JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
 };
 use boa_ast::{
+    Declaration, Expression, LinearSpan, Statement, StatementList, StatementListItem,
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
+        Call, Identifier, New, Optional, OptionalOperationKind,
         access::{PropertyAccess, PropertyAccessField},
         literal::ObjectMethodDefinition,
         operator::{assign::AssignTarget, update::UpdateTarget},
-        Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -41,7 +42,6 @@ use boa_ast::{
     pattern::Pattern,
     property::MethodDefinitionKind,
     scope::{BindingLocator, BindingLocatorError, FunctionScopes, IdentifierReference, Scope},
-    Declaration, Expression, LinearSpan, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};

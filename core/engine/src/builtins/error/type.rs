@@ -16,16 +16,16 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
 };
 
 use super::Error;

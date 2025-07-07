@@ -13,13 +13,13 @@ mod tests;
 use crate::{
     lexer::{Token, TokenKind},
     parser::{
+        AllowAwait, AllowYield, ParseResult, TokenParser,
         cursor::{Cursor, SemicolonResult},
         expression::LabelIdentifier,
-        AllowAwait, AllowYield, ParseResult, TokenParser,
     },
     source::ReadChar,
 };
-use boa_ast::{statement::Break, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, statement::Break};
 use boa_interner::Interner;
 
 /// Break statement parsing

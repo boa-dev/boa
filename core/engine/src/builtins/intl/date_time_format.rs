@@ -8,17 +8,17 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
+    Context, JsData, JsResult, JsString, JsValue,
     builtins::{
-        options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        OrdinaryObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        options::OptionType,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsData, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};

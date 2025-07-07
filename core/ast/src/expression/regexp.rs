@@ -12,8 +12,8 @@ use std::ops::ControlFlow;
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
     Span,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 
 use super::Expression;

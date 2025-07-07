@@ -1,11 +1,11 @@
 use std::ops::ControlFlow;
 
 use crate::{
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        CompletionRecord,
-    },
     Context, JsError, JsNativeError,
+    vm::{
+        CompletionRecord,
+        opcode::{Operation, VaryingOperand},
+    },
 };
 
 /// `Throw` implements the Opcode Operation for `Opcode::Throw`

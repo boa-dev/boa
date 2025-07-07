@@ -1,19 +1,18 @@
 //! Object Expression.
 
 use crate::{
-    block_to_string,
+    LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
     expression::{
-        operator::assign::{AssignOp, AssignTarget},
         Expression, Identifier, RESERVED_IDENTIFIERS_STRICT,
+        operator::assign::{AssignOp, AssignTarget},
     },
     function::{FormalParameterList, FunctionBody},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinitionKind, PropertyName},
     scope::FunctionScopes,
     visitor::{VisitWith, Visitor, VisitorMut},
-    LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -80,7 +79,7 @@ impl ObjectLiteral {
         for (i, property) in self.properties.iter().enumerate() {
             match property {
                 PropertyDefinition::IdentifierReference(ident) if strict && *ident == Sym::EVAL => {
-                    return None
+                    return None;
                 }
                 PropertyDefinition::IdentifierReference(ident) => {
                     if strict && RESERVED_IDENTIFIERS_STRICT.contains(&ident.sym()) {

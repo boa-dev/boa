@@ -1,15 +1,16 @@
 // Boa's implementation of the `Temporal.Duration` Builtin Object.
 
 use super::{
-    get_relative_to_option,
-    options::{get_digits_option, get_temporal_unit, TemporalUnitGroup},
-    DateTimeValues,
+    DateTimeValues, get_relative_to_option,
+    options::{TemporalUnitGroup, get_digits_option, get_temporal_unit},
 };
 use crate::value::JsVariant;
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -17,14 +18,12 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use temporal_rs::{
+    Duration as InnerDuration,
     options::{RoundingIncrement, RoundingMode, RoundingOptions, ToStringRoundingOptions, Unit},
     partial::PartialDuration,
-    Duration as InnerDuration,
 };
 
 #[cfg(test)]
@@ -683,7 +682,7 @@ impl Duration {
             None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
-                    .into())
+                    .into());
             }
             // 4. If Type(roundTo) is String, then
             Some(JsVariant::String(rt)) => {
@@ -904,10 +903,7 @@ pub(crate) fn to_temporal_duration(
 ) -> JsResult<InnerDuration> {
     // 1a. If Type(item) is Object
     // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
-    if let Some(duration) = item
-        .as_object()
-        .and_then(JsObject::downcast_ref::<Duration>)
-    {
+    if let Some(duration) = item.as_downcast_ref::<Duration>() {
         return Ok(duration.inner);
     }
 

@@ -11,8 +11,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-additional-properties-of-the-global-object
 
 use crate::{
-    context::intrinsics::Intrinsics, js_string, realm::Realm, string::StaticJsStrings, Context,
-    JsArgs, JsObject, JsResult, JsString, JsValue,
+    Context, JsArgs, JsObject, JsResult, JsString, JsValue, context::intrinsics::Intrinsics,
+    js_string, realm::Realm, string::StaticJsStrings,
 };
 
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};

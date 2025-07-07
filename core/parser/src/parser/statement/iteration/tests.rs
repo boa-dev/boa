@@ -1,19 +1,19 @@
 use crate::parser::tests::{check_invalid_script, check_script_parser};
 use boa_ast::{
+    Expression, Span, Statement, StatementListItem,
     declaration::{VarDeclaration, Variable},
     expression::{
+        Call, Identifier,
         access::SimplePropertyAccess,
         literal::Literal,
         operator::{
+            Assign, Binary, Update,
             assign::AssignOp,
             binary::RelationalOp,
             update::{UpdateOp, UpdateTarget},
-            Assign, Binary, Update,
         },
-        Call, Identifier,
     },
     statement::{Block, Break, DoWhileLoop, WhileLoop},
-    Expression, Span, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -31,28 +31,30 @@ fn check_do_while() {
                 a += 1;
             } while (true)
         "},
-        vec![Statement::DoWhileLoop(DoWhileLoop::new(
-            Statement::Block(
-                (
-                    vec![StatementListItem::Statement(
-                        Statement::Expression(Expression::from(Assign::new(
-                            AssignOp::Add,
-                            Identifier::new(
-                                interner.get_or_intern_static("a", utf16!("a")),
-                                Span::new((2, 5), (2, 6)),
-                            )
+        vec![
+            Statement::DoWhileLoop(DoWhileLoop::new(
+                Statement::Block(
+                    (
+                        vec![StatementListItem::Statement(
+                            Statement::Expression(Expression::from(Assign::new(
+                                AssignOp::Add,
+                                Identifier::new(
+                                    interner.get_or_intern_static("a", utf16!("a")),
+                                    Span::new((2, 5), (2, 6)),
+                                )
+                                .into(),
+                                Literal::new(1, Span::new((2, 10), (2, 11))).into(),
+                            )))
                             .into(),
-                            Literal::new(1, Span::new((2, 10), (2, 11))).into(),
-                        )))
+                        )],
+                        PSEUDO_LINEAR_POS,
+                    )
                         .into(),
-                    )],
-                    PSEUDO_LINEAR_POS,
-                )
-                    .into(),
-            ),
-            Literal::new(true, Span::new((3, 10), (3, 14))).into(),
-        ))
-        .into()],
+                ),
+                Literal::new(true, Span::new((3, 10), (3, 14))).into(),
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -102,11 +104,13 @@ fn check_do_while_semicolon_insertion() {
                                         )
                                         .into(),
                                     ),
-                                    vec![Literal::new(
-                                        interner.get_or_intern_static("hello", utf16!("hello")),
-                                        Span::new((2, 17), (2, 24)),
-                                    )
-                                    .into()]
+                                    vec![
+                                        Literal::new(
+                                            interner.get_or_intern_static("hello", utf16!("hello")),
+                                            Span::new((2, 17), (2, 24)),
+                                        )
+                                        .into(),
+                                    ]
                                     .into(),
                                     Span::new((2, 16), (2, 25)),
                                 )
@@ -150,11 +154,13 @@ fn check_do_while_semicolon_insertion() {
                         )
                         .into(),
                     ),
-                    vec![Literal::new(
-                        interner.get_or_intern_static("end", utf16!("end")),
-                        Span::new((2, 56), (2, 61)),
-                    )
-                    .into()]
+                    vec![
+                        Literal::new(
+                            interner.get_or_intern_static("end", utf16!("end")),
+                            Span::new((2, 56), (2, 61)),
+                        )
+                        .into(),
+                    ]
                     .into(),
                     Span::new((2, 55), (2, 62)),
                 )
@@ -212,11 +218,13 @@ fn check_do_while_semicolon_insertion_no_space() {
                                         )
                                         .into(),
                                     ),
-                                    vec![Literal::new(
-                                        interner.get_or_intern_static("hello", utf16!("hello")),
-                                        Span::new((2, 17), (2, 24)),
-                                    )
-                                    .into()]
+                                    vec![
+                                        Literal::new(
+                                            interner.get_or_intern_static("hello", utf16!("hello")),
+                                            Span::new((2, 17), (2, 24)),
+                                        )
+                                        .into(),
+                                    ]
                                     .into(),
                                     Span::new((2, 16), (2, 25)),
                                 )
@@ -260,11 +268,13 @@ fn check_do_while_semicolon_insertion_no_space() {
                         )
                         .into(),
                     ),
-                    vec![Literal::new(
-                        interner.get_or_intern_static("end", utf16!("end")),
-                        Span::new((2, 55), (2, 60)),
-                    )
-                    .into()]
+                    vec![
+                        Literal::new(
+                            interner.get_or_intern_static("end", utf16!("end")),
+                            Span::new((2, 55), (2, 60)),
+                        )
+                        .into(),
+                    ]
                     .into(),
                     Span::new((2, 54), (2, 61)),
                 )
@@ -293,11 +303,13 @@ fn while_spaces() {
             break;
 
         "},
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::new(true, Span::new((6, 1), (6, 5))).into(),
-            Break::new(None).into(),
-        ))
-        .into()],
+        vec![
+            Statement::WhileLoop(WhileLoop::new(
+                Literal::new(true, Span::new((6, 1), (6, 5))).into(),
+                Break::new(None).into(),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }
@@ -319,17 +331,19 @@ fn do_while_spaces() {
         while (true)
 
         "},
-        vec![Statement::DoWhileLoop(DoWhileLoop::new(
-            Block::from((
-                vec![StatementListItem::Statement(
-                    Statement::Break(Break::new(None)).into(),
-                )],
-                PSEUDO_LINEAR_POS,
+        vec![
+            Statement::DoWhileLoop(DoWhileLoop::new(
+                Block::from((
+                    vec![StatementListItem::Statement(
+                        Statement::Break(Break::new(None)).into(),
+                    )],
+                    PSEUDO_LINEAR_POS,
+                ))
+                .into(),
+                Literal::new(true, Span::new((10, 8), (10, 12))).into(),
             ))
             .into(),
-            Literal::new(true, Span::new((10, 8), (10, 12))).into(),
-        ))
-        .into()],
+        ],
         &mut Interner::default(),
     );
 }

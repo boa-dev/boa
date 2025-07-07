@@ -10,28 +10,28 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
+    Context, JsArgs, JsData, JsResult, JsString,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use bytemuck::{bytes_of, bytes_of_mut};
 
 use super::{
+    BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
     array_buffer::{
-        utils::{memcpy, BytesConstPtr, BytesMutPtr},
         BufferObject,
+        utils::{BytesConstPtr, BytesMutPtr, memcpy},
     },
     typed_array::{self, TypedArrayElement},
-    BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
 };
 
 /// The internal representation of a `DataView` object.
@@ -278,13 +278,14 @@ impl BuiltInConstructor for DataView {
         }
 
         // 14. If byteLength is not undefined, then
-        if let Some(view_byte_len) = view_byte_len.filter(|_| !byte_len.is_undefined()) {
-            // a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
-            if offset + view_byte_len > buf_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("DataView offset outside of buffer array bounds")
-                    .into());
-            }
+        //     a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+        if !byte_len.is_undefined()
+            && let Some(view_byte_len) = view_byte_len
+            && offset + view_byte_len > buf_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("DataView offset outside of buffer array bounds")
+                .into());
         }
 
         let obj = JsObject::from_proto_and_data_with_shared_shape(

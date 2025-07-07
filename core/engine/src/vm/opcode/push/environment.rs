@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult,
     builtins::function::OrdinaryFunction,
     environments::PrivateEnvironment,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult,
 };
 use boa_gc::Gc;
 use thin_vec::ThinVec;

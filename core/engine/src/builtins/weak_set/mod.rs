@@ -8,15 +8,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
 
 use crate::{
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
+    object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 

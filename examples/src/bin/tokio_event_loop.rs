@@ -1,16 +1,16 @@
 use boa_engine::context::time::{JsDuration, JsInstant};
 use boa_engine::job::TimeoutJob;
 use boa_engine::{
+    Context, JsArgs, JsNativeError, JsResult, JsValue, Script, Source,
     context::ContextBuilder,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     js_string,
     native_function::NativeFunction,
     property::Attribute,
-    Context, JsArgs, JsNativeError, JsResult, JsValue, Script, Source,
 };
 use boa_runtime::Console;
 use futures_concurrency::future::FutureGroup;
-use futures_lite::{future, StreamExt};
+use futures_lite::{StreamExt, future};
 use std::collections::BTreeMap;
 use std::ops::DerefMut;
 use std::{

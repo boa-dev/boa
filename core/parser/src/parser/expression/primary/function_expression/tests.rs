@@ -1,10 +1,10 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    Declaration, Span, Statement, StatementList, StatementListItem,
     declaration::{LexicalDeclaration, Variable},
-    expression::{literal::Literal, Identifier},
+    expression::{Identifier, literal::Literal},
     function::{FormalParameterList, FunctionBody, FunctionExpression},
     statement::Return,
-    Declaration, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -23,37 +23,39 @@ fn check_function_expression() {
                 return 1;
             };
         "},
-        vec![Declaration::Lexical(LexicalDeclaration::Const(
-            vec![Variable::from_identifier(
-                Identifier::new(add, Span::new((1, 7), (1, 10))),
-                Some(
-                    FunctionExpression::new(
-                        Some(Identifier::new(add, Span::new((1, 7), (1, 10)))),
-                        FormalParameterList::default(),
-                        FunctionBody::new(
-                            StatementList::new(
-                                [StatementListItem::Statement(
-                                    Statement::Return(Return::new(Some(
-                                        Literal::new(1, Span::new((2, 12), (2, 13))).into(),
-                                    )))
-                                    .into(),
-                                )],
-                                PSEUDO_LINEAR_POS,
-                                false,
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    Identifier::new(add, Span::new((1, 7), (1, 10))),
+                    Some(
+                        FunctionExpression::new(
+                            Some(Identifier::new(add, Span::new((1, 7), (1, 10)))),
+                            FormalParameterList::default(),
+                            FunctionBody::new(
+                                StatementList::new(
+                                    [StatementListItem::Statement(
+                                        Statement::Return(Return::new(Some(
+                                            Literal::new(1, Span::new((2, 12), (2, 13))).into(),
+                                        )))
+                                        .into(),
+                                    )],
+                                    PSEUDO_LINEAR_POS,
+                                    false,
+                                ),
+                                Span::new((1, 24), (3, 2)),
                             ),
-                            Span::new((1, 24), (3, 2)),
-                        ),
-                        None,
-                        false,
-                        Span::new((1, 13), (3, 2)),
-                    )
-                    .into(),
-                ),
-            )]
-            .try_into()
-            .unwrap(),
-        ))
-        .into()],
+                            None,
+                            false,
+                            Span::new((1, 13), (3, 2)),
+                        )
+                        .into(),
+                    ),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -71,69 +73,76 @@ fn check_nested_function_expression() {
                 };
             };
         "},
-        vec![Declaration::Lexical(LexicalDeclaration::Const(
-            vec![Variable::from_identifier(
-                Identifier::new(a, Span::new((1, 7), (1, 8))),
-                Some(
-                    FunctionExpression::new(
-                        Some(Identifier::new(a, Span::new((1, 7), (1, 8)))),
-                        FormalParameterList::default(),
-                        FunctionBody::new(
-                            StatementList::new(
-                                [Declaration::Lexical(LexicalDeclaration::Const(
-                                    vec![Variable::from_identifier(
-                                        Identifier::new(b, Span::new((2, 11), (2, 12))),
-                                        Some(
-                                            FunctionExpression::new(
-                                                Some(Identifier::new(
-                                                    b,
-                                                    Span::new((2, 11), (2, 12)),
-                                                )),
-                                                FormalParameterList::default(),
-                                                FunctionBody::new(
-                                                    StatementList::new(
-                                                        [StatementListItem::Statement(
-                                                            Statement::Return(Return::new(Some(
-                                                                Literal::new(
-                                                                    1,
-                                                                    Span::new((3, 16), (3, 17)),
-                                                                )
+        vec![
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    Identifier::new(a, Span::new((1, 7), (1, 8))),
+                    Some(
+                        FunctionExpression::new(
+                            Some(Identifier::new(a, Span::new((1, 7), (1, 8)))),
+                            FormalParameterList::default(),
+                            FunctionBody::new(
+                                StatementList::new(
+                                    [Declaration::Lexical(LexicalDeclaration::Const(
+                                        vec![Variable::from_identifier(
+                                            Identifier::new(b, Span::new((2, 11), (2, 12))),
+                                            Some(
+                                                FunctionExpression::new(
+                                                    Some(Identifier::new(
+                                                        b,
+                                                        Span::new((2, 11), (2, 12)),
+                                                    )),
+                                                    FormalParameterList::default(),
+                                                    FunctionBody::new(
+                                                        StatementList::new(
+                                                            [StatementListItem::Statement(
+                                                                Statement::Return(Return::new(
+                                                                    Some(
+                                                                        Literal::new(
+                                                                            1,
+                                                                            Span::new(
+                                                                                (3, 16),
+                                                                                (3, 17),
+                                                                            ),
+                                                                        )
+                                                                        .into(),
+                                                                    ),
+                                                                ))
                                                                 .into(),
-                                                            )))
-                                                            .into(),
-                                                        )],
-                                                        PSEUDO_LINEAR_POS,
-                                                        false,
+                                                            )],
+                                                            PSEUDO_LINEAR_POS,
+                                                            false,
+                                                        ),
+                                                        Span::new((2, 26), (4, 6)),
                                                     ),
-                                                    Span::new((2, 26), (4, 6)),
-                                                ),
-                                                None,
-                                                false,
-                                                Span::new((2, 15), (4, 6)),
-                                            )
-                                            .into(),
-                                        ),
-                                    )]
-                                    .try_into()
-                                    .unwrap(),
-                                ))
-                                .into()],
-                                PSEUDO_LINEAR_POS,
-                                false,
+                                                    None,
+                                                    false,
+                                                    Span::new((2, 15), (4, 6)),
+                                                )
+                                                .into(),
+                                            ),
+                                        )]
+                                        .try_into()
+                                        .unwrap(),
+                                    ))
+                                    .into()],
+                                    PSEUDO_LINEAR_POS,
+                                    false,
+                                ),
+                                Span::new((1, 22), (5, 2)),
                             ),
-                            Span::new((1, 22), (5, 2)),
-                        ),
-                        None,
-                        false,
-                        Span::new((1, 11), (5, 2)),
-                    )
-                    .into(),
-                ),
-            )]
-            .try_into()
-            .unwrap(),
-        ))
-        .into()],
+                            None,
+                            false,
+                            Span::new((1, 11), (5, 2)),
+                        )
+                        .into(),
+                    ),
+                )]
+                .try_into()
+                .unwrap(),
+            ))
+            .into(),
+        ],
         interner,
     );
 }

@@ -8,15 +8,15 @@
 use std::ops::{Deref, DerefMut};
 
 use super::{
-    shape::slot::{Slot, SlotAttributes},
     JsPrototype, PROTOTYPE,
+    shape::slot::{Slot, SlotAttributes},
 };
 use crate::{
+    Context, JsNativeError, JsResult,
     context::intrinsics::{StandardConstructor, StandardConstructors},
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
-    Context, JsNativeError, JsResult,
 };
 
 pub(crate) mod immutable_prototype;

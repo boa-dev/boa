@@ -10,6 +10,7 @@ pub(crate) mod function;
 mod tests;
 
 use crate::{
+    Error, Source,
     error::ParseResult,
     lexer::{Error as LexError, InputElement},
     parser::{
@@ -17,16 +18,15 @@ use crate::{
         function::{FormalParameters, FunctionStatementList},
     },
     source::ReadChar,
-    Error, Source,
 };
 use boa_ast::{
+    Position, StatementList,
     function::{FormalParameterList, FunctionBody},
     operations::{
-        all_private_identifiers_valid, check_labels, contains, contains_invalid_object_literal,
-        lexically_declared_names, var_declared_names, ContainsSymbol,
+        ContainsSymbol, all_private_identifiers_valid, check_labels, contains,
+        contains_invalid_object_literal, lexically_declared_names, var_declared_names,
     },
     scope::Scope,
-    Position, StatementList,
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;

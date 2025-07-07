@@ -6,14 +6,14 @@
 //! [spec]: https://tc39.es/ecma262/#sec-modules
 
 use crate::{
+    StatementListItem,
     declaration::{
         ExportDeclaration, ExportEntry, ExportSpecifier, ImportDeclaration, ImportEntry,
         ImportKind, ImportName, IndirectExportEntry, LocalExportEntry, ModuleSpecifier,
         ReExportImportName, ReExportKind,
     },
-    operations::{bound_names, BoundNamesVisitor},
+    operations::{BoundNamesVisitor, bound_names},
     visitor::{VisitWith, Visitor, VisitorMut},
-    StatementListItem,
 };
 use boa_interner::Sym;
 use indexmap::IndexSet;
@@ -327,22 +327,22 @@ impl ModuleItemList {
                         let module = specifier.sym();
 
                         match kind {
-                            ReExportKind::Namespaced { name } => {
-                                if let Some(name) = *name {
-                                    self.0.push(
-                                        IndirectExportEntry::new(
-                                            module,
-                                            ReExportImportName::Star,
-                                            name,
-                                        )
-                                        .into(),
-                                    );
-                                } else {
-                                    self.0.push(ExportEntry::StarReExport {
-                                        module_request: module,
-                                    });
-                                }
+                            ReExportKind::Namespaced { name: Some(name) } => {
+                                self.0.push(
+                                    IndirectExportEntry::new(
+                                        module,
+                                        ReExportImportName::Star,
+                                        *name,
+                                    )
+                                    .into(),
+                                );
                             }
+                            ReExportKind::Namespaced { name: None } => {
+                                self.0.push(ExportEntry::StarReExport {
+                                    module_request: module,
+                                });
+                            }
+
                             ReExportKind::Named { names } => {
                                 for name in &**names {
                                     self.0.push(

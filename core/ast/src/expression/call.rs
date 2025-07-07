@@ -1,5 +1,5 @@
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{join_nodes, Span};
+use crate::{Span, join_nodes};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 

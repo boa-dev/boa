@@ -10,8 +10,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::{function::OrdinaryFunction, BuiltInObject},
-    bytecompiler::{eval_declaration_instantiation_context, ByteCompiler},
+    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
+    builtins::{BuiltInObject, function::OrdinaryFunction},
+    bytecompiler::{ByteCompiler, eval_declaration_instantiation_context},
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
@@ -21,10 +22,9 @@ use crate::{
     spanned_source_text::SourceText,
     string::StaticJsStrings,
     vm::{CallFrame, CallFrameFlags, Constant},
-    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
-    operations::{contains, contains_arguments, ContainsSymbol},
+    operations::{ContainsSymbol, contains, contains_arguments},
     scope::Scope,
 };
 use boa_gc::Gc;

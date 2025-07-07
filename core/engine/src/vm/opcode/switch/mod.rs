@@ -1,5 +1,5 @@
 use super::VaryingOperand;
-use crate::{vm::opcode::Operation, Context};
+use crate::{Context, vm::opcode::Operation};
 
 /// `Case` implements the Opcode Operation for `Opcode::Case`
 ///

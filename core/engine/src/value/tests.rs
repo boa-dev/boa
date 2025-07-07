@@ -3,7 +3,7 @@ use indoc::indoc;
 
 use super::*;
 use crate::object::internal_methods::InternalMethodContext;
-use crate::{js_string, run_test_actions, TestAction};
+use crate::{TestAction, js_string, run_test_actions};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -1475,8 +1475,8 @@ mod abstract_relational_comparison {
 
 mod js_value_macro {
     use crate::value::TryIntoJs;
-    use crate::{js_string, run_test_actions, JsValue, TestAction};
-    use boa_engine::{js_value, Context, JsResult};
+    use crate::{JsValue, TestAction, js_string, run_test_actions};
+    use boa_engine::{Context, JsResult, js_value};
     use boa_string::JsString;
     use std::ops::Neg;
 

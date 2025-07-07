@@ -1,5 +1,5 @@
 //! This module contains types that help create custom module loaders from functions.
-use boa_engine::module::{resolve_module_specifier, ModuleLoader, Referrer};
+use boa_engine::module::{ModuleLoader, Referrer, resolve_module_specifier};
 use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module, Source};
 use std::io::Cursor;
 

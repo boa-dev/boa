@@ -1,7 +1,7 @@
 use crate::{
+    Statement,
     function::FunctionDeclaration,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Statement,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;

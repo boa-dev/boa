@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::ModuleLoader;
-use boa_engine::{js_string, Context, JsString, JsValue, Module, Source};
+use boa_engine::{Context, JsString, JsValue, Module, Source, js_string};
 use boa_interop::embed_module;
 use boa_interop::loaders::embedded::EmbeddedModuleLoader;
 

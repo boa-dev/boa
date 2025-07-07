@@ -1,8 +1,8 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    Span, Statement, StatementListItem,
     expression::literal::Literal,
     statement::{Block, Continue, Labelled, LabelledItem, WhileLoop},
-    Span, Statement, StatementListItem,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -24,11 +24,13 @@ fn stmt_block_continue_only(continue_stmt: Continue) -> Statement {
 fn inline() {
     check_script_parser(
         "while (true) continue;",
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::new(true, Span::new((1, 8), (1, 12))).into(),
-            Continue::new(None).into(),
-        ))
-        .into()],
+        vec![
+            Statement::WhileLoop(WhileLoop::new(
+                Literal::new(true, Span::new((1, 8), (1, 12))).into(),
+                Continue::new(None).into(),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }
@@ -40,11 +42,13 @@ fn new_line() {
             while (true)
                 continue;
         "},
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::new(true, Span::new((1, 8), (1, 12))).into(),
-            Continue::new(None).into(),
-        ))
-        .into()],
+        vec![
+            Statement::WhileLoop(WhileLoop::new(
+                Literal::new(true, Span::new((1, 8), (1, 12))).into(),
+                Continue::new(None).into(),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }
@@ -53,11 +57,13 @@ fn new_line() {
 fn inline_block_semicolon_insertion() {
     check_script_parser(
         "while (true) {continue}",
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::new(true, Span::new((1, 8), (1, 12))).into(),
-            stmt_block_continue_only(Continue::new(None)),
-        ))
-        .into()],
+        vec![
+            Statement::WhileLoop(WhileLoop::new(
+                Literal::new(true, Span::new((1, 8), (1, 12))).into(),
+                stmt_block_continue_only(Continue::new(None)),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }
@@ -71,16 +77,18 @@ fn new_line_semicolon_insertion() {
                 continue test
             }
         "},
-        vec![Statement::Labelled(Labelled::new(
-            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
-                Literal::new(true, Span::new((1, 14), (1, 18))).into(),
-                stmt_block_continue_only(Continue::new(Some(
-                    interner.get_or_intern_static("test", utf16!("test")),
+        vec![
+            Statement::Labelled(Labelled::new(
+                LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                    Literal::new(true, Span::new((1, 14), (1, 18))).into(),
+                    stmt_block_continue_only(Continue::new(Some(
+                        interner.get_or_intern_static("test", utf16!("test")),
+                    ))),
                 ))),
-            ))),
-            interner.get_or_intern_static("test", utf16!("test")),
-        ))
-        .into()],
+                interner.get_or_intern_static("test", utf16!("test")),
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -89,11 +97,13 @@ fn new_line_semicolon_insertion() {
 fn inline_block() {
     check_script_parser(
         "while (true) {continue;}",
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::new(true, Span::new((1, 8), (1, 12))).into(),
-            stmt_block_continue_only(Continue::new(None)),
-        ))
-        .into()],
+        vec![
+            Statement::WhileLoop(WhileLoop::new(
+                Literal::new(true, Span::new((1, 8), (1, 12))).into(),
+                stmt_block_continue_only(Continue::new(None)),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }
@@ -107,16 +117,18 @@ fn new_line_block() {
                 continue test;
             }
         "},
-        vec![Statement::Labelled(Labelled::new(
-            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
-                Literal::new(true, Span::new((1, 14), (1, 18))).into(),
-                stmt_block_continue_only(Continue::new(Some(
-                    interner.get_or_intern_static("test", utf16!("test")),
+        vec![
+            Statement::Labelled(Labelled::new(
+                LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                    Literal::new(true, Span::new((1, 14), (1, 18))).into(),
+                    stmt_block_continue_only(Continue::new(Some(
+                        interner.get_or_intern_static("test", utf16!("test")),
+                    ))),
                 ))),
-            ))),
-            interner.get_or_intern_static("test", utf16!("test")),
-        ))
-        .into()],
+                interner.get_or_intern_static("test", utf16!("test")),
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -130,14 +142,16 @@ fn reserved_label() {
                 continue await;
             }
         "},
-        vec![Statement::Labelled(Labelled::new(
-            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
-                Literal::new(true, Span::new((1, 15), (1, 19))).into(),
-                stmt_block_continue_only(Continue::new(Some(Sym::AWAIT))),
-            ))),
-            Sym::AWAIT,
-        ))
-        .into()],
+        vec![
+            Statement::Labelled(Labelled::new(
+                LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                    Literal::new(true, Span::new((1, 15), (1, 19))).into(),
+                    stmt_block_continue_only(Continue::new(Some(Sym::AWAIT))),
+                ))),
+                Sym::AWAIT,
+            ))
+            .into(),
+        ],
         interner,
     );
 
@@ -148,14 +162,16 @@ fn reserved_label() {
                 continue yield;
             }
         "},
-        vec![Statement::Labelled(Labelled::new(
-            LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
-                Literal::new(true, Span::new((1, 15), (1, 19))).into(),
-                stmt_block_continue_only(Continue::new(Some(Sym::YIELD))),
-            ))),
-            Sym::YIELD,
-        ))
-        .into()],
+        vec![
+            Statement::Labelled(Labelled::new(
+                LabelledItem::Statement(Statement::WhileLoop(WhileLoop::new(
+                    Literal::new(true, Span::new((1, 15), (1, 19))).into(),
+                    stmt_block_continue_only(Continue::new(Some(Sym::YIELD))),
+                ))),
+                Sym::YIELD,
+            ))
+            .into(),
+        ],
         interner,
     );
 }
@@ -168,11 +184,13 @@ fn new_line_block_empty() {
                 continue;
             }
         "},
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::new(true, Span::new((1, 8), (1, 12))).into(),
-            stmt_block_continue_only(Continue::new(None)),
-        ))
-        .into()],
+        vec![
+            Statement::WhileLoop(WhileLoop::new(
+                Literal::new(true, Span::new((1, 8), (1, 12))).into(),
+                stmt_block_continue_only(Continue::new(None)),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }
@@ -185,11 +203,13 @@ fn new_line_block_empty_semicolon_insertion() {
                 continue
             }
         "},
-        vec![Statement::WhileLoop(WhileLoop::new(
-            Literal::new(true, Span::new((1, 8), (1, 12))).into(),
-            stmt_block_continue_only(Continue::new(None)),
-        ))
-        .into()],
+        vec![
+            Statement::WhileLoop(WhileLoop::new(
+                Literal::new(true, Span::new((1, 8), (1, 12))).into(),
+                stmt_block_continue_only(Continue::new(None)),
+            ))
+            .into(),
+        ],
         &mut Interner::default(),
     );
 }

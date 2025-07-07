@@ -7,8 +7,9 @@
 
 use super::ordered_map::{MapLock, OrderedMap};
 use crate::{
+    Context, JsData, JsResult,
     builtins::{
-        iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
+        Array, BuiltInBuilder, IntrinsicObject, JsValue, iterable::create_iter_result_object,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -17,7 +18,6 @@ use crate::{
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -74,22 +74,22 @@ impl MapIterator {
         kind: PropertyNameKind,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(map_obj) = map.as_object() {
-            if let Some(mut map) = map_obj.downcast_mut::<OrderedMap<JsValue>>() {
-                let lock = map.lock(map_obj.clone());
-                let iter = Self {
-                    iterated_map: Some(map_obj.clone()),
-                    map_next_index: 0,
-                    map_iteration_kind: kind,
-                    lock,
-                };
-                let map_iterator = JsObject::from_proto_and_data_with_shared_shape(
-                    context.root_shape(),
-                    context.intrinsics().objects().iterator_prototypes().map(),
-                    iter,
-                );
-                return Ok(map_iterator.into());
-            }
+        if let Some(map_obj) = map.as_object()
+            && let Some(mut map) = map_obj.downcast_mut::<OrderedMap<JsValue>>()
+        {
+            let lock = map.lock(map_obj.clone());
+            let iter = Self {
+                iterated_map: Some(map_obj.clone()),
+                map_next_index: 0,
+                map_iteration_kind: kind,
+                lock,
+            };
+            let map_iterator = JsObject::from_proto_and_data_with_shared_shape(
+                context.root_shape(),
+                context.intrinsics().objects().iterator_prototypes().map(),
+                iter,
+            );
+            return Ok(map_iterator.into());
         }
         Err(JsNativeError::typ()
             .with_message("`this` is not a Map")

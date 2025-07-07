@@ -4,7 +4,7 @@
 // You can execute this example with `cargo run --example gcd`
 
 use boa_engine::object::builtins::{JsFunction, TypedJsFunction};
-use boa_engine::{js_error, js_string, Context, JsResult, Module, Source};
+use boa_engine::{Context, JsResult, Module, Source, js_error, js_string};
 use boa_interop::IntoJsFunctionCopied;
 use std::path::PathBuf;
 

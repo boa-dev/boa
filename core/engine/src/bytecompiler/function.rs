@@ -1,9 +1,9 @@
 use crate::{
+    JsString, SpannedSourceText,
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     js_string,
     vm::{CodeBlock, CodeBlockFlags},
-    JsString, SpannedSourceText,
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -142,11 +142,11 @@ impl FunctionCompiler {
             compiler.this_mode = ThisMode::Lexical;
         }
 
-        if let Some(scope) = self.name_scope {
-            if !scope.all_bindings_local() {
-                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-                let _ = compiler.push_scope(&scope);
-            }
+        if let Some(scope) = self.name_scope
+            && !scope.all_bindings_local()
+        {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
+            let _ = compiler.push_scope(&scope);
         }
 
         if contains_direct_eval || !scopes.function_scope().all_bindings_local() {

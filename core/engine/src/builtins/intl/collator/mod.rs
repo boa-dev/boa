@@ -1,21 +1,22 @@
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use icu_collator::{
+    CollatorPreferences,
     options::{AlternateHandling, MaxVariable},
     preferences::{CollationCaseFirst, CollationNumericOrdering, CollationType},
     provider::CollationMetadataV1,
-    CollatorPreferences,
 };
 
 use icu_locale::{
-    extensions::unicode, extensions_unicode_key as key, preferences::PreferenceKey,
-    subtags::subtag, Locale,
+    Locale, extensions::unicode, extensions_unicode_key as key, preferences::PreferenceKey,
+    subtags::subtag,
 };
 use icu_provider::DataMarkerAttributes;
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
-        options::get_option, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        OrdinaryObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        options::get_option,
     },
     context::{
         icu::IntlProvider,
@@ -24,20 +25,19 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        JsObject,
+        FunctionObjectBuilder, JsFunction, JsObject,
+        internal_methods::get_prototype_from_constructor,
     },
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
-    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
-    options::{coerce_options_to_object, IntlOptions},
     Service,
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
+    options::{IntlOptions, coerce_options_to_object},
 };
 
 mod options;
@@ -94,10 +94,10 @@ impl Service for Collator {
                     && validate_extension::<Self::LangMarker>(locale.id.clone(), attr, provider)
             })
             .inspect(|co| {
-                if Some(co) == locale_preferences.collation_type.as_ref() {
-                    if let Some(co) = co.unicode_extension_value() {
-                        locale.extensions.unicode.keywords.set(key!("co"), co);
-                    }
+                if Some(co) == locale_preferences.collation_type.as_ref()
+                    && let Some(co) = co.unicode_extension_value()
+                {
+                    locale.extensions.unicode.keywords.set(key!("co"), co);
                 }
             })
             .or_else(|| {
@@ -115,13 +115,13 @@ impl Service for Collator {
             .numeric_ordering
             .take()
             .inspect(|kn| {
-                if Some(kn) == locale_preferences.numeric_ordering.as_ref() {
-                    if let Some(mut kn) = kn.unicode_extension_value() {
-                        if kn.as_single_subtag() == Some(&subtag!("true")) {
-                            kn = unicode::Value::new_empty();
-                        }
-                        locale.extensions.unicode.keywords.set(key!("kn"), kn);
+                if Some(kn) == locale_preferences.numeric_ordering.as_ref()
+                    && let Some(mut kn) = kn.unicode_extension_value()
+                {
+                    if kn.as_single_subtag() == Some(&subtag!("true")) {
+                        kn = unicode::Value::new_empty();
                     }
+                    locale.extensions.unicode.keywords.set(key!("kn"), kn);
                 }
             })
             .or_else(|| {
@@ -143,10 +143,10 @@ impl Service for Collator {
             .case_first
             .take()
             .inspect(|kf| {
-                if Some(kf) == locale_preferences.case_first.as_ref() {
-                    if let Some(kn) = kf.unicode_extension_value() {
-                        locale.extensions.unicode.keywords.set(key!("kf"), kn);
-                    }
+                if Some(kf) == locale_preferences.case_first.as_ref()
+                    && let Some(kn) = kf.unicode_extension_value()
+                {
+                    locale.extensions.unicode.keywords.set(key!("kf"), kn);
                 }
             })
             .or_else(|| {

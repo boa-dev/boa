@@ -1,18 +1,18 @@
 //! Boa's implementation of `Temporal.Now` ECMAScript Builtin object.
 
 use crate::{
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 use temporal_rs::{
+    Instant, TimeZone,
     now::{Now as NowInner, NowBuilder},
     unix_time::EpochNanoseconds,
-    Instant, TimeZone,
 };
 
 use super::{

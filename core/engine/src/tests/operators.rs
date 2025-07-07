@@ -1,4 +1,4 @@
-use crate::{run_test_actions, JsNativeErrorKind, JsValue, TestAction};
+use crate::{JsNativeErrorKind, JsValue, TestAction, run_test_actions};
 use boa_macros::js_str;
 use indoc::indoc;
 

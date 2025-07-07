@@ -10,17 +10,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_macros::utf16;
 
@@ -37,7 +37,7 @@ mod string_iterator;
 pub(crate) use string_iterator::StringIterator;
 
 #[cfg(feature = "annex-b")]
-pub use crate::{js_str, JsStr};
+pub use crate::{JsStr, js_str};
 
 /// The set of normalizers required for the `String.prototype.normalize` function.
 #[derive(Debug)]
@@ -224,7 +224,7 @@ impl BuiltInConstructor for String {
                     .as_symbol()
                     .expect("Already checked for a symbol")
                     .descriptive_string()
-                    .into())
+                    .into());
             }
             // b. Let s be ? ToString(value).
             Some(value) => value.to_string(context)?,
@@ -1557,11 +1557,7 @@ impl String {
         let repetitions = {
             let q = fill_len / filler_len;
             let r = fill_len % filler_len;
-            if r == 0 {
-                q
-            } else {
-                q + 1
-            }
+            if r == 0 { q } else { q + 1 }
         };
 
         let truncated_string_filler = filler.to_vec().repeat(repetitions as usize);
@@ -2726,10 +2722,10 @@ pub(crate) fn get_substitution(
                         //     a. Let refReplacement be the empty String.
                         // 3. Else,
                         //     a. Let refReplacement be capture.
-                        if let Some(capture) = captures.get(index - 1) {
-                            if let Some(s) = capture.as_string() {
-                                result.extend(s.iter());
-                            }
+                        if let Some(capture) = captures.get(index - 1)
+                            && let Some(s) = capture.as_string()
+                        {
+                            result.extend(s.iter());
                         }
 
                     // viii. Else,

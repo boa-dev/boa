@@ -1,10 +1,10 @@
 use crate::bytecompiler::{ByteCompiler, Label, Register};
 use boa_ast::{
-    expression::operator::{
-        binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
-        Binary, BinaryInPrivate,
-    },
     Expression,
+    expression::operator::{
+        Binary, BinaryInPrivate,
+        binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+    },
 };
 
 impl ByteCompiler<'_> {

@@ -1,6 +1,6 @@
 use crate::{
-    builtins::promise::PromiseState, object::JsPromise, run_test_actions, Context, JsValue,
-    TestAction,
+    Context, JsValue, TestAction, builtins::promise::PromiseState, object::JsPromise,
+    run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;

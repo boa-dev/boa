@@ -27,34 +27,33 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use crate::{
+    Error,
     lexer::{
-        token::{ContainsEscapeSequence, Numeric},
         InputElement, Token, TokenKind,
+        token::{ContainsEscapeSequence, Numeric},
     },
     parser::{
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
-            identifiers::IdentifierReference, primary::template::TemplateLiteral,
-            BindingIdentifier, Expression,
+            BindingIdentifier, Expression, identifiers::IdentifierReference,
+            primary::template::TemplateLiteral,
         },
         statement::{ArrayBindingPattern, ObjectBindingPattern},
-        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use ast::expression::RegExpLiteral as AstRegExp;
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Punctuator, Span,
     declaration::Variable,
     expression::{
+        Identifier, Parenthesized, This,
         literal::{self, Literal, LiteralKind, TemplateElement},
         operator::{assign::AssignTarget, binary::BinaryOp},
-        Identifier, Parenthesized, This,
     },
     function::{FormalParameter, FormalParameterList},
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     pattern::{ArrayPattern, ObjectPattern, Pattern},
-    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 
@@ -437,7 +436,7 @@ where
                                     next.kind().to_string(interner),
                                     next.span(),
                                     "CoverParenthesizedExpressionAndArrowParameterList",
-                                ))
+                                ));
                             }
                         }
                     }
@@ -447,7 +446,7 @@ where
                             next.kind().to_string(interner),
                             next.span(),
                             "CoverParenthesizedExpressionAndArrowParameterList",
-                        ))
+                        ));
                     }
                 }
             }
@@ -532,13 +531,13 @@ where
 
         let parameters = FormalParameterList::from(parameters);
 
-        if let Some(span) = tailing_comma {
-            if parameters.has_rest_parameter() {
-                return Err(Error::general(
-                    "rest parameter must be last formal parameter",
-                    span.start(),
-                ));
-            }
+        if let Some(span) = tailing_comma
+            && parameters.has_rest_parameter()
+        {
+            return Err(Error::general(
+                "rest parameter must be last formal parameter",
+                span.start(),
+            ));
         }
 
         if contains(&parameters, ContainsSymbol::YieldExpression) {

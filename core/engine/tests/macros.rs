@@ -3,7 +3,7 @@
 #![allow(unused_crate_dependencies)]
 
 use boa_engine::value::TryFromJs;
-use boa_engine::{js_string, Context, JsResult, JsValue, Source};
+use boa_engine::{Context, JsResult, JsValue, Source, js_string};
 use boa_string::JsString;
 
 #[test]

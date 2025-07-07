@@ -12,6 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
+    Context, JsArgs, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
@@ -22,11 +23,11 @@ use crate::{
     js_string,
     native_function::NativeFunctionObject,
     object::{
-        internal_methods::{
-            get_prototype_from_constructor, CallValue, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
-        },
         JsData, JsFunction, JsObject, PrivateElement, PrivateName,
+        internal_methods::{
+            CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            get_prototype_from_constructor,
+        },
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -34,18 +35,17 @@ use crate::{
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, JsArgs, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
 };
 use boa_ast::{
+    Position, Span, StatementList,
     function::{FormalParameterList, FunctionBody},
     operations::{
-        all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
-        ContainsSymbol,
+        ContainsSymbol, all_private_identifiers_valid, bound_names, contains,
+        lexically_declared_names,
     },
     scope::BindingLocatorScope,
-    Position, Span, StatementList,
 };
-use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
+use boa_gc::{self, Finalize, Gc, Trace, custom_trace};
 use boa_interner::Sym;
 use boa_macros::js_str;
 use boa_parser::{Parser, Source};

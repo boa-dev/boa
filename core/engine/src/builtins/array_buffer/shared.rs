@@ -1,6 +1,6 @@
 use std::{
     alloc,
-    sync::{atomic::Ordering, Arc},
+    sync::{Arc, atomic::Ordering},
 };
 
 use portable_atomic::{AtomicU8, AtomicUsize};
@@ -8,6 +8,7 @@ use portable_atomic::{AtomicU8, AtomicUsize};
 use boa_gc::{Finalize, Trace};
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -15,7 +16,6 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{get_max_byte_len, utils::copy_shared_to_shared};
@@ -486,12 +486,12 @@ impl SharedArrayBuffer {
         //     b. Append [[ArrayBufferByteLengthData]] and [[ArrayBufferMaxByteLength]] to slots.
         // 4. Else,
         //     a. Append [[ArrayBufferByteLength]] to slots.
-        if let Some(max_byte_len) = max_byte_len {
-            if byte_len > max_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("`length` cannot be bigger than `maxByteLength`")
-                    .into());
-            }
+        if let Some(max_byte_len) = max_byte_len
+            && byte_len > max_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("`length` cannot be bigger than `maxByteLength`")
+                .into());
         }
 
         // 5. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%SharedArrayBuffer.prototype%", slots).

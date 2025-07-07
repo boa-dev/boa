@@ -6,7 +6,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction-objects
 
 use crate::{
-    builtins::{function::BuiltInFunctionObject, BuiltInObject},
+    Context, JsResult, JsString,
+    builtins::{BuiltInObject, function::BuiltInFunctionObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{JsObject, PROTOTYPE},
     property::Attribute,
@@ -14,7 +15,6 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
 };
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};

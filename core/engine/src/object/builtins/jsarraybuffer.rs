@@ -1,11 +1,11 @@
 //! A Rust API wrapper for Boa's `ArrayBuffer` Builtin ECMAScript Object
 use crate::{
+    Context, JsResult, JsValue,
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
     error::JsNativeError,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, Object},
+    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
     value::TryFromJs,
-    Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 use std::ops::Deref;

@@ -14,25 +14,25 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 use super::{
-    error::Error, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
+    Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp, error::Error,
 };
 use crate::value::JsVariant;
 use crate::{
-    builtins::{iterable::IteratorHint, map, BuiltInObject},
+    Context, JsArgs, JsData, JsResult, JsString,
+    builtins::{BuiltInObject, iterable::IteratorHint, map},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::{get_prototype_from_constructor, InternalMethodContext},
         FunctionObjectBuilder, IntegrityLevel, JsObject,
+        internal_methods::{InternalMethodContext, get_prototype_from_constructor},
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -467,7 +467,7 @@ impl OrdinaryObject {
                         "Object prototype may only be an Object or null: {}",
                         prototype.display()
                     ))
-                    .into())
+                    .into());
             }
         };
 
@@ -690,7 +690,7 @@ impl OrdinaryObject {
                         "expected an object or null, got `{}`",
                         val.type_of()
                     ))
-                    .into())
+                    .into());
             }
         };
 
@@ -1356,7 +1356,7 @@ impl OrdinaryObject {
         use indexmap::IndexMap;
         use rustc_hash::FxHasher;
 
-        use crate::builtins::{iterable::if_abrupt_close_iterator, Number};
+        use crate::builtins::{Number, iterable::if_abrupt_close_iterator};
 
         let items = args.get_or_undefined(0);
         let callback = args.get_or_undefined(1);

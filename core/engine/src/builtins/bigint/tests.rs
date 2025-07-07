@@ -1,6 +1,6 @@
 use boa_macros::js_str;
 
-use crate::{run_test_actions, JsBigInt, JsNativeErrorKind, TestAction};
+use crate::{JsBigInt, JsNativeErrorKind, TestAction, run_test_actions};
 
 #[test]
 fn equality() {

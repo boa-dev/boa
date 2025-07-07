@@ -1,6 +1,6 @@
 use boa_engine::{
-    js_string, object::ObjectInitializer, Context, JsArgs, JsNativeError, JsObject, JsResult,
-    JsValue, NativeFunction,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, js_string,
+    object::ObjectInitializer,
 };
 
 fn get_object(args: &[JsValue], position: usize) -> JsResult<&JsObject> {

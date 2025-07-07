@@ -6,7 +6,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-string-iterator-objects
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    Context, JsData, JsResult, JsString, JsValue,
+    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
@@ -14,7 +15,6 @@ use crate::{
     property::Attribute,
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 

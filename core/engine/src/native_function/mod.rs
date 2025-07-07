@@ -5,22 +5,22 @@
 
 use std::cell::RefCell;
 
-use boa_gc::{custom_trace, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, Trace, custom_trace};
 
 use crate::job::NativeAsyncJob;
 use crate::value::JsVariant;
 use crate::{
-    builtins::{function::ConstructorKind, OrdinaryObject},
+    Context, JsNativeError, JsObject, JsResult, JsValue,
+    builtins::{OrdinaryObject, function::ConstructorKind},
     context::intrinsics::StandardConstructors,
     object::{
-        internal_methods::{
-            get_prototype_from_constructor, CallValue, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
-        },
         FunctionObjectBuilder, JsData, JsFunction, JsPromise,
+        internal_methods::{
+            CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            get_prototype_from_constructor,
+        },
     },
     realm::Realm,
-    Context, JsNativeError, JsObject, JsResult, JsValue,
 };
 
 #[cfg(feature = "experimental")]

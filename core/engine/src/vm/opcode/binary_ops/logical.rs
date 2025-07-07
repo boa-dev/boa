@@ -1,6 +1,6 @@
 use crate::{
-    vm::opcode::{Operation, VaryingOperand},
     Context,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 /// `LogicalAnd` implements the Opcode Operation for `Opcode::LogicalAnd`

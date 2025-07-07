@@ -10,14 +10,14 @@ use crate::utils::RenameScheme;
 use cow_utils::CowUtils;
 use proc_macro::TokenStream;
 use proc_macro2::Literal;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{
+    Data, DeriveInput, Expr, ExprLit, Fields, FieldsNamed, Ident, Lit, LitStr, Token,
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
-    Data, DeriveInput, Expr, ExprLit, Fields, FieldsNamed, Ident, Lit, LitStr, Token,
 };
-use synstructure::{decl_derive, AddBounds, Structure};
+use synstructure::{AddBounds, Structure, decl_derive};
 
 mod embedded_module_loader;
 

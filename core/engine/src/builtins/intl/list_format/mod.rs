@@ -2,32 +2,32 @@ use std::fmt::Write;
 
 use boa_gc::{Finalize, Trace};
 use icu_list::{
+    ListFormatter, ListFormatterPreferences,
     options::{ListFormatterOptions, ListLength},
     provider::{ListAndV1, ListFormatterPatterns},
-    ListFormatter, ListFormatterPreferences,
 };
 use icu_locale::Locale;
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
     builtins::{
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
         iterable::IteratorHint,
         options::{get_option, get_options_object},
-        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
 
 use super::{
+    Service,
     locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     options::IntlOptions,
-    Service,
 };
 
 mod options;

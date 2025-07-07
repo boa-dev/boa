@@ -1,10 +1,10 @@
-use crate::{context::HostHooks, js_string, value::IntegerOrInfinity, JsStr, JsString};
+use crate::{JsStr, JsString, context::HostHooks, js_string, value::IntegerOrInfinity};
 use boa_macros::js_str;
 use boa_string::JsStrVariant;
 use std::slice::Iter;
 use std::str;
 use std::{borrow::Cow, iter::Peekable};
-use time::{macros::format_description, OffsetDateTime, PrimitiveDateTime};
+use time::{OffsetDateTime, PrimitiveDateTime, macros::format_description};
 
 // Time-related Constants
 //
@@ -777,12 +777,22 @@ pub(super) fn parse_date(date: &JsString, hooks: &dyn HostHooks) -> Option<i64> 
     }
 
     // `toString` format: `Thu Jan 01 1970 00:00:00 GMT+0000`
-    if let Ok(t) = OffsetDateTime::parse(&date, &format_description!("[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]")) {
+    if let Ok(t) = OffsetDateTime::parse(
+        &date,
+        &format_description!(
+            "[weekday repr:short] [month repr:short] [day] [year] [hour]:[minute]:[second] GMT[offset_hour sign:mandatory][offset_minute][end]"
+        ),
+    ) {
         return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
 
     // `toUTCString` format: `Thu, 01 Jan 1970 00:00:00 GMT`
-    if let Ok(t) = PrimitiveDateTime::parse(&date, &format_description!("[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT[end]")) {
+    if let Ok(t) = PrimitiveDateTime::parse(
+        &date,
+        &format_description!(
+            "[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT[end]"
+        ),
+    ) {
         let t = t.assume_utc();
         return Some(t.unix_timestamp() * 1000 + i64::from(t.millisecond()));
     }
@@ -913,11 +923,7 @@ impl<'a> DateParser<'a> {
         let date = date + (self.offset as f64) * MS_PER_MINUTE;
 
         let t = time_clip(date);
-        if t.is_finite() {
-            Some(t as i64)
-        } else {
-            None
-        }
+        if t.is_finite() { Some(t as i64) } else { None }
     }
 
     fn finish_local(&mut self) -> Option<i64> {
@@ -936,11 +942,7 @@ impl<'a> DateParser<'a> {
         );
 
         let t = time_clip(utc_t(date, self.hooks));
-        if t.is_finite() {
-            Some(t as i64)
-        } else {
-            None
-        }
+        if t.is_finite() { Some(t as i64) } else { None }
     }
 
     #[allow(clippy::as_conversions)]

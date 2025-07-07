@@ -3,22 +3,22 @@
 //! This module is for the `CodeBlock` which implements a function representation in the VM
 
 use crate::{
+    Context, JsBigInt, JsString, JsValue, SpannedSourceText,
     builtins::{
-        function::{OrdinaryFunction, ThisMode},
         OrdinaryObject,
+        function::{OrdinaryFunction, ThisMode},
     },
     object::JsObject,
-    Context, JsBigInt, JsString, JsValue, SpannedSourceText,
 };
 use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
-use boa_gc::{empty_trace, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, Trace, empty_trace};
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
 use super::{
-    opcode::{ByteCode, Instruction, InstructionIterator},
     InlineCache,
+    opcode::{ByteCode, Instruction, InstructionIterator},
 };
 
 bitflags! {

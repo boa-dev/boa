@@ -22,23 +22,23 @@ pub use shared::SharedArrayBuffer;
 use std::sync::atomic::Ordering;
 
 use crate::{
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, Object},
+    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
 
 use self::utils::{SliceRef, SliceRefMut};
 
 use super::{
-    typed_array::TypedArray, Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
+    Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject, typed_array::TypedArray,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -859,12 +859,12 @@ impl ArrayBuffer {
         // 3. If allocatingResizableBuffer is true, then
         //     a. If byteLength > maxByteLength, throw a RangeError exception.
         //     b. Append [[ArrayBufferMaxByteLength]] to slots.
-        if let Some(max_byte_len) = max_byte_len {
-            if byte_len > max_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("`length` cannot be bigger than `maxByteLength`")
-                    .into());
-            }
+        if let Some(max_byte_len) = max_byte_len
+            && byte_len > max_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("`length` cannot be bigger than `maxByteLength`")
+                .into());
         }
 
         // 4. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", slots).

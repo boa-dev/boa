@@ -8,30 +8,29 @@
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
 use crate::{
+    Error,
     lexer::{Error as LexError, TokenKind},
     parser::{
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{AssignmentExpression, Expression},
         statement::{
-            declaration::{allowed_token_after_let, LexicalDeclaration},
-            variable::VariableDeclarationList,
             Statement,
+            declaration::{LexicalDeclaration, allowed_token_after_let},
+            variable::VariableDeclarationList,
         },
-        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use ast::{
     declaration::Binding,
     operations::{bound_names, var_declared_names},
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Position, Punctuator,
     statement::{
-        iteration::{ForLoopInitializer, IterableLoopInitializer},
         ForInLoop, ForLoop, ForOfLoop,
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
     },
-    Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;

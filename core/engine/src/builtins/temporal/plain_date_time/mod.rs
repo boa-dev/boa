@@ -3,10 +3,12 @@
 use std::str::FromStr;
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
         temporal::{to_partial_date_record, to_partial_time_record},
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -15,8 +17,6 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::IntoOrUndefined,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -24,23 +24,23 @@ use boa_gc::{Finalize, Trace};
 mod tests;
 
 use temporal_rs::{
+    Calendar, MonthCode, PlainDateTime as InnerDateTime, TinyAsciiStr,
     options::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, RoundingIncrement, RoundingMode,
         RoundingOptions, ToStringRoundingOptions, Unit,
     },
     partial::{PartialDate, PartialDateTime, PartialTime},
-    Calendar, MonthCode, PlainDateTime as InnerDateTime, TinyAsciiStr,
 };
 
 // TODO: Remove once implementations are complete.
 #[allow(unused_imports)]
 use super::{
+    PlainDate, ZonedDateTime,
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_date, create_temporal_duration, create_temporal_time,
     create_temporal_zoneddatetime,
-    options::{get_difference_settings, get_digits_option, get_temporal_unit, TemporalUnitGroup},
-    to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier, PlainDate,
-    ZonedDateTime,
+    options::{TemporalUnitGroup, get_difference_settings, get_digits_option, get_temporal_unit},
+    to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier,
 };
 use crate::value::JsVariant;
 
@@ -921,7 +921,7 @@ impl PlainDateTime {
             None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
-                    .into())
+                    .into());
             }
             // 4. If Type(roundTo) is String, then
             Some(JsVariant::String(rt)) => {

@@ -1,15 +1,15 @@
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsValue,
     builtins::{
-        iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
-        promise::{if_abrupt_reject_promise, PromiseCapability},
         BuiltInBuilder, IntrinsicObject, Promise,
+        iterable::{IteratorRecord, IteratorResult, create_iter_result_object},
+        promise::{PromiseCapability, if_abrupt_reject_promise},
     },
     context::intrinsics::Intrinsics,
     js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     realm::Realm,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 

@@ -21,6 +21,7 @@ mod tests;
 use std::{hash::BuildHasherDefault, sync::LazyLock};
 
 use crate::{
+    Context, JsArgs, JsResult, JsString,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -31,7 +32,6 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult, JsString,
 };
 use dashmap::DashMap;
 use rustc_hash::FxHasher;

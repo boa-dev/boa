@@ -1,6 +1,6 @@
 use crate::{
-    vm::opcode::{Operation, VaryingOperand},
     Context,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 macro_rules! implement_push_numbers_with_conversion {

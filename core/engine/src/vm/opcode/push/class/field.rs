@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult,
     builtins::function::OrdinaryFunction,
     object::JsFunction,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult,
 };
 
 /// `PushClassField` implements the Opcode Operation for `Opcode::PushClassField`

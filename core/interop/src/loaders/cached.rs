@@ -1,5 +1,5 @@
 //! A module loader that caches modules once they're resolved.
-use boa_engine::module::{resolve_module_specifier, ModuleLoader, Referrer};
+use boa_engine::module::{ModuleLoader, Referrer, resolve_module_specifier};
 use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module};
 use std::cell::RefCell;
 use std::collections::HashMap;

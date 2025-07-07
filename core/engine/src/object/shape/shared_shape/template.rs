@@ -2,11 +2,11 @@ use boa_gc::{Finalize, Trace};
 use thin_vec::ThinVec;
 
 use crate::{
+    JsValue,
     object::{
-        shape::slot::SlotAttributes, IndexedProperties, JsObject, NativeObject, Object, PropertyMap,
+        IndexedProperties, JsObject, NativeObject, Object, PropertyMap, shape::slot::SlotAttributes,
     },
     property::{Attribute, PropertyKey},
-    JsValue,
 };
 
 use super::{SharedShape, TransitionKey};

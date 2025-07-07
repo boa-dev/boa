@@ -75,7 +75,7 @@ macro_rules! js_string {
 mod tests {
     use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
-    use crate::{string::StaticJsStrings, JsStr};
+    use crate::{JsStr, string::StaticJsStrings};
 
     use super::JsString;
     use boa_macros::{js_str, utf16};

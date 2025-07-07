@@ -1,10 +1,10 @@
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::promise::OperationType,
     context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
     realm::Realm,
-    Context, JsResult, JsString, JsValue,
 };
 use time::{OffsetDateTime, UtcOffset};
 

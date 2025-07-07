@@ -11,15 +11,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
 use crate::{
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
@@ -37,10 +37,10 @@ mod tests;
 
 pub(crate) use self::aggregate::AggregateError;
 pub(crate) use self::eval::EvalError;
-pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
 pub(crate) use self::reference::ReferenceError;
 pub(crate) use self::syntax::SyntaxError;
+pub(crate) use self::r#type::TypeError;
 pub(crate) use self::uri::UriError;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
@@ -210,11 +210,11 @@ impl Error {
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         // 1.a. Let cause be ? Get(options, "cause").
-        if let Some(options) = options.as_object() {
-            if let Some(cause) = options.try_get(js_string!("cause"), context)? {
-                // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
-                o.create_non_enumerable_data_property_or_throw(js_string!("cause"), cause, context);
-            }
+        if let Some(options) = options.as_object()
+            && let Some(cause) = options.try_get(js_string!("cause"), context)?
+        {
+            // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
+            o.create_non_enumerable_data_property_or_throw(js_string!("cause"), cause, context);
         }
 
         // 2. Return unused.

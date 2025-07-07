@@ -1,11 +1,11 @@
 use colored::{Color, Colorize};
-use phf::{phf_set, Set};
+use phf::{Set, phf_set};
 use regex::{Captures, Regex, Replacer};
 use rustyline::{
+    Completer, Helper, Hinter,
     error::ReadlineError,
     highlight::{CmdKind, Highlighter},
     validate::{MatchingBracketValidator, ValidationContext, ValidationResult, Validator},
-    Completer, Helper, Hinter,
 };
 use std::borrow::Cow::{self, Borrowed};
 

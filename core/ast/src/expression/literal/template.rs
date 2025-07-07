@@ -1,9 +1,9 @@
 //! Template literal Expression.
 
 use crate::{
+    Span,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};

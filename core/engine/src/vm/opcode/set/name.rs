@@ -1,9 +1,9 @@
 use boa_ast::scope::{BindingLocator, BindingLocatorScope};
 
 use crate::{
+    Context, JsError, JsNativeError, JsResult,
     environments::Environment,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsError, JsNativeError, JsResult,
 };
 
 /// `ThrowMutateImmutable` implements the Opcode Operation for `Opcode::ThrowMutateImmutable`

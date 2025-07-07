@@ -1,12 +1,12 @@
 use crate::{
     lexer::TokenKind,
     parser::{
-        expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
-        OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::BindingIdentifier, statement::ClassTail,
     },
     source::ReadChar,
 };
-use boa_ast::{function::ClassExpression as ClassExpressionNode, Keyword, Span};
+use boa_ast::{Keyword, Span, function::ClassExpression as ClassExpressionNode};
 use boa_interner::Interner;
 
 /// Class expression parsing.

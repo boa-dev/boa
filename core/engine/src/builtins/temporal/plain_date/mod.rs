@@ -5,9 +5,11 @@
 use std::str::FromStr;
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -16,25 +18,23 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::IntoOrUndefined,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use temporal_rs::{
+    Calendar, MonthCode, PlainDate as InnerDate, TinyAsciiStr,
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::PartialDate,
-    Calendar, MonthCode, PlainDate as InnerDate, TinyAsciiStr,
 };
 
 use super::{create_temporal_month_day, create_temporal_year_month};
 // TODO: Remove once `temporal_rs` funcctionality implemented
 #[allow(unused_imports)]
 use super::{
+    PlainDateTime, ZonedDateTime,
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_datetime, create_temporal_duration, create_temporal_zoneddatetime,
     options::get_difference_settings,
-    to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier, PlainDateTime,
-    ZonedDateTime,
+    to_temporal_duration_record, to_temporal_time, to_temporal_timezone_identifier,
 };
 
 #[cfg(feature = "temporal")]
