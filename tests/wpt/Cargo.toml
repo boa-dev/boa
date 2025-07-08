@@ -1,0 +1,17 @@
+[package]
+name = "boa_wpt"
+publish = false
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+boa_engine = { path = "../../core/engine" }
+boa_gc = { path = "../../core/gc" }
+boa_interop = { path = "../../core/interop" }
+boa_runtime = { path = "../../core/runtime" }
+rstest = "0.25.0"
+
+[build-dependencies]
+git2 = "0.20.2"
+toml = "0.8.23"
+serde = { version = "1.0.219", features = ["derive"] }

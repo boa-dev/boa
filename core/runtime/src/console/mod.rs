@@ -116,6 +116,32 @@ impl Logger for DefaultLogger {
     }
 }
 
+/// A logger that drops all logging. Useful for testing.
+#[derive(Debug, Trace, Finalize)]
+pub struct NullLogger;
+
+impl Logger for NullLogger {
+    #[inline]
+    fn log(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn info(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn warn(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn error(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+}
+
 /// This represents the `console` formatter.
 fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     fn to_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
