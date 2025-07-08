@@ -47,7 +47,7 @@ impl RequestInit {
         }
 
         if let Some(ref headers) = self.headers.take() {
-            for (hkey, Convert(ref hvalue)) in headers {
+            for (hkey, Convert(hvalue)) in headers {
                 // Make sure key and value can be represented by regular strings.
                 // Keys also cannot have any extended characters (>128).
                 // Values cannot have unpaired surrogates.
