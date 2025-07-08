@@ -1,5 +1,6 @@
 #![cfg(test)]
 
+use crate::value::TryIntoJs;
 use boa_engine::value::Nullable;
 use boa_engine::{Context, JsResult, JsValue};
 
