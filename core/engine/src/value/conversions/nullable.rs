@@ -3,7 +3,6 @@
 use crate::value::{TryFromJs, TryIntoJs};
 use boa_engine::{Context, JsResult, JsValue};
 
-#[cfg(tests)]
 mod tests;
 
 /// A value that can be `null` in JavaScript, but not `undefined`.
