@@ -2,7 +2,7 @@ use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, T
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::{update::UpdateOp, Update},
+        operator::{Update, update::UpdateOp},
     },
     scope::BindingLocatorError,
 };
