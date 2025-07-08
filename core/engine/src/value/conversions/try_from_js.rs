@@ -3,7 +3,7 @@
 use num_bigint::BigInt;
 use num_traits::AsPrimitive;
 
-use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
+use crate::{Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue, js_string};
 
 mod collections;
 mod tuples;
@@ -248,7 +248,7 @@ fn integer_floating_js_value_to_integer() {
 
 #[test]
 fn value_into_vec() {
-    use boa_engine::{run_test_actions, TestAction};
+    use boa_engine::{TestAction, run_test_actions};
     use indoc::indoc;
 
     #[derive(Debug, PartialEq, Eq, boa_macros::TryFromJs)]
@@ -307,7 +307,7 @@ fn value_into_vec() {
 
 #[test]
 fn value_into_tuple() {
-    use boa_engine::{run_test_actions, TestAction};
+    use boa_engine::{TestAction, run_test_actions};
     use indoc::indoc;
 
     run_test_actions([
@@ -357,7 +357,7 @@ fn value_into_tuple() {
 
 #[test]
 fn value_into_map() {
-    use boa_engine::{run_test_actions, TestAction};
+    use boa_engine::{TestAction, run_test_actions};
     use indoc::indoc;
 
     run_test_actions([
