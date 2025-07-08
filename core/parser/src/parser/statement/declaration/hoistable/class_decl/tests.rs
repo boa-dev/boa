@@ -1,17 +1,17 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
     declaration::{LexicalDeclaration, Variable, VariableList},
     expression::{
+        Call, Identifier, NewTarget,
         access::{PropertyAccess, SimplePropertyAccess},
         literal::Literal,
-        Call, Identifier, NewTarget,
     },
     function::{
         ClassDeclaration, ClassElement, ClassFieldDefinition, ClassMethodDefinition,
         FormalParameterList, FunctionBody, FunctionExpression,
     },
     property::MethodDefinitionKind,
-    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -227,6 +227,31 @@ fn check_new_target_with_property_access() {
             const a = new A();
         "#},
         script,
+        interner,
+    );
+}
+
+#[test]
+fn check_non_reserved_keyword_as_identifier() {
+    let interner = &mut Interner::default();
+
+    check_script_parser(
+        indoc! {r#"
+            class of {}
+        "#},
+        [Declaration::ClassDeclaration(
+            ClassDeclaration::new(
+                Identifier::new(
+                    interner.get_or_intern_static("of", utf16!("of")),
+                    Span::new((1, 7), (1, 9)),
+                ),
+                None,
+                None,
+                vec![].into(),
+            )
+            .into(),
+        )
+        .into()],
         interner,
     );
 }

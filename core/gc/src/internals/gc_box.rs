@@ -1,6 +1,6 @@
 use crate::Trace;
 
-use super::{vtable_of, DropFn, GcHeader, RunFinalizerFn, TraceFn, TraceNonRootsFn, VTable};
+use super::{DropFn, GcHeader, RunFinalizerFn, TraceFn, TraceNonRootsFn, VTable, vtable_of};
 
 /// A garbage collected allocation.
 #[derive(Debug)]

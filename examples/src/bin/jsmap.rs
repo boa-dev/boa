@@ -1,7 +1,6 @@
 use boa_engine::{
-    js_string,
+    Context, JsResult, JsValue, js_string,
     object::builtins::{JsArray, JsMap},
-    Context, JsResult, JsValue,
 };
 
 fn main() -> JsResult<()> {

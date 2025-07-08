@@ -1,7 +1,7 @@
 use boa_macros::js_str;
 
 use crate::{
-    builtins::Number, run_test_actions, value::AbstractRelation, JsNativeErrorKind, TestAction,
+    JsNativeErrorKind, TestAction, builtins::Number, run_test_actions, value::AbstractRelation,
 };
 
 #[test]

@@ -4,8 +4,8 @@ use core::ops::ControlFlow;
 
 use super::Expression;
 use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
     Span,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 

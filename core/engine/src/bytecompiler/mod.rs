@@ -12,24 +12,30 @@ mod register;
 mod statement;
 mod utils;
 
-use std::cell::Cell;
+use std::{
+    borrow::{Borrow, BorrowMut},
+    cell::Cell,
+    ops::{Deref, DerefMut},
+};
 
 use crate::{
-    builtins::function::{arguments::MappedArguments, ThisMode},
+    JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
+    builtins::function::{ThisMode, arguments::MappedArguments},
     js_string,
     vm::{
-        opcode::{BindingOpcode, ByteCodeEmitter},
         CallFrame, CodeBlock, CodeBlockFlags, Constant, GeneratorResumeKind, Handler, InlineCache,
+        opcode::{BindingOpcode, ByteCodeEmitter},
+        source_info::{SourceInfo, SourceMap, SourceMapBuilder, SourcePath},
     },
-    JsBigInt, JsStr, JsString, SourceText, SpannedSourceText,
 };
 use boa_ast::{
+    Declaration, Expression, LinearSpan, Position, Statement, StatementList, StatementListItem,
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
+        Call, Identifier, New, Optional, OptionalOperationKind,
         access::{PropertyAccess, PropertyAccessField},
         literal::ObjectMethodDefinition,
         operator::{assign::AssignTarget, update::UpdateTarget},
-        Call, Identifier, New, Optional, OptionalOperationKind,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -41,7 +47,6 @@ use boa_ast::{
     pattern::Pattern,
     property::MethodDefinitionKind,
     scope::{BindingLocator, BindingLocatorError, FunctionScopes, IdentifierReference, Scope},
-    Declaration, Expression, LinearSpan, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
@@ -406,6 +411,43 @@ pub(crate) enum BindingAccessOpcode {
     DefVar,
 }
 
+/// Manages the source position scope, push on creation, pop on drop.
+pub(crate) struct SourcePositionGuard<'a, 'b> {
+    compiler: &'a mut ByteCompiler<'b>,
+}
+impl<'a, 'b> SourcePositionGuard<'a, 'b> {
+    pub(crate) fn new(compiler: &'a mut ByteCompiler<'b>, position: Position) -> Self {
+        compiler.push_source_position(position);
+        Self { compiler }
+    }
+}
+impl Drop for SourcePositionGuard<'_, '_> {
+    fn drop(&mut self) {
+        self.pop_source_position();
+    }
+}
+impl<'a> Deref for SourcePositionGuard<'_, 'a> {
+    type Target = ByteCompiler<'a>;
+    fn deref(&self) -> &Self::Target {
+        self.compiler
+    }
+}
+impl DerefMut for SourcePositionGuard<'_, '_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.compiler
+    }
+}
+impl<'a> Borrow<ByteCompiler<'a>> for SourcePositionGuard<'_, 'a> {
+    fn borrow(&self) -> &ByteCompiler<'a> {
+        self.compiler
+    }
+}
+impl<'a> BorrowMut<ByteCompiler<'a>> for SourcePositionGuard<'_, 'a> {
+    fn borrow_mut(&mut self) -> &mut ByteCompiler<'a> {
+        self.compiler
+    }
+}
+
 /// The [`ByteCompiler`] is used to compile ECMAScript AST from [`boa_ast`] to bytecode.
 #[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
@@ -429,6 +471,9 @@ pub struct ByteCompiler<'ctx> {
 
     /// Bytecode
     pub(crate) bytecode: ByteCodeEmitter,
+
+    pub(crate) source_map_builder: SourceMapBuilder,
+    pub(crate) source_path: SourcePath,
 
     pub(crate) constants: ThinVec<Constant>,
 
@@ -497,6 +542,7 @@ impl<'ctx> ByteCompiler<'ctx> {
         interner: &'ctx mut Interner,
         in_with: bool,
         spanned_source_text: SpannedSourceText,
+        source_path: SourcePath,
     ) -> ByteCompiler<'ctx> {
         let mut code_block_flags = CodeBlockFlags::empty();
         code_block_flags.set(CodeBlockFlags::STRICT, strict);
@@ -536,6 +582,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             function_name: name,
             length: 0,
             bytecode: ByteCodeEmitter::new(),
+            source_map_builder: SourceMapBuilder::default(),
             constants: ThinVec::default(),
             bindings: Vec::default(),
             local_binding_registers: FxHashMap::default(),
@@ -559,6 +606,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             lexical_scope,
             interner,
             spanned_source_text,
+            source_path,
 
             #[cfg(feature = "annex-b")]
             annex_b_function_names: Vec::new(),
@@ -738,6 +786,20 @@ impl<'ctx> ByteCompiler<'ctx> {
 
     fn next_opcode_location(&mut self) -> u32 {
         self.bytecode.next_opcode_location()
+    }
+
+    pub(crate) fn push_source_position<T>(&mut self, position: T)
+    where
+        T: Into<Option<Position>>,
+    {
+        let start_pc = self.next_opcode_location();
+        self.source_map_builder
+            .push_source_position(start_pc, position.into());
+    }
+
+    pub(crate) fn pop_source_position(&mut self) {
+        let start_pc = self.next_opcode_location();
+        self.source_map_builder.pop_source_position(start_pc);
     }
 
     pub(crate) fn emit_get_function(&mut self, dst: &Register, index: u32) {
@@ -1038,61 +1100,70 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => {
-                    let object = self.register_allocator.alloc();
-                    self.compile_expr(access.target(), &object);
+                    let mut compiler =
+                        SourcePositionGuard::new(self, access.field().span().start());
+
+                    let object = compiler.register_allocator.alloc();
+                    compiler.compile_expr(access.target(), &object);
 
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &object, &object, ident.sym());
+                            compiler.emit_get_property_by_name(dst, &object, &object, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
-                            let key = self.register_allocator.alloc();
-                            self.compile_expr(expr, &key);
-                            self.bytecode.emit_get_property_by_value(
+                            let key = compiler.register_allocator.alloc();
+                            compiler.compile_expr(expr, &key);
+                            compiler.bytecode.emit_get_property_by_value(
                                 dst.variable(),
                                 key.variable(),
                                 object.variable(),
                                 object.variable(),
                             );
-                            self.register_allocator.dealloc(key);
+                            compiler.register_allocator.dealloc(key);
                         }
                     }
-                    self.register_allocator.dealloc(object);
+                    compiler.register_allocator.dealloc(object);
                 }
                 PropertyAccess::Private(access) => {
-                    let index = self.get_or_insert_private_name(access.field());
-                    let object = self.register_allocator.alloc();
-                    self.compile_expr(access.target(), &object);
-                    self.bytecode.emit_get_private_field(
+                    let mut compiler =
+                        SourcePositionGuard::new(self, access.field().span().start());
+
+                    let index = compiler.get_or_insert_private_name(access.field());
+                    let object = compiler.register_allocator.alloc();
+                    compiler.compile_expr(access.target(), &object);
+                    compiler.bytecode.emit_get_private_field(
                         dst.variable(),
                         object.variable(),
                         index.into(),
                     );
-                    self.register_allocator.dealloc(object);
+                    compiler.register_allocator.dealloc(object);
                 }
                 PropertyAccess::Super(access) => {
-                    let value = self.register_allocator.alloc();
-                    let receiver = self.register_allocator.alloc();
-                    self.bytecode.emit_super(value.variable());
-                    self.bytecode.emit_this(receiver.variable());
+                    let mut compiler =
+                        SourcePositionGuard::new(self, access.field().span().start());
+
+                    let value = compiler.register_allocator.alloc();
+                    let receiver = compiler.register_allocator.alloc();
+                    compiler.bytecode.emit_super(value.variable());
+                    compiler.bytecode.emit_this(receiver.variable());
                     match access.field() {
                         PropertyAccessField::Const(ident) => {
-                            self.emit_get_property_by_name(dst, &receiver, &value, ident.sym());
+                            compiler.emit_get_property_by_name(dst, &receiver, &value, ident.sym());
                         }
                         PropertyAccessField::Expr(expr) => {
-                            let key = self.register_allocator.alloc();
-                            self.compile_expr(expr, &key);
-                            self.bytecode.emit_get_property_by_value(
+                            let key = compiler.register_allocator.alloc();
+                            compiler.compile_expr(expr, &key);
+                            compiler.bytecode.emit_get_property_by_value(
                                 dst.variable(),
                                 key.variable(),
                                 receiver.variable(),
                                 value.variable(),
                             );
-                            self.register_allocator.dealloc(key);
+                            compiler.register_allocator.dealloc(key);
                         }
                     }
-                    self.register_allocator.dealloc(receiver);
-                    self.register_allocator.dealloc(value);
+                    compiler.register_allocator.dealloc(receiver);
+                    compiler.register_allocator.dealloc(value);
                 }
             },
             Access::This => {
@@ -1699,6 +1770,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .arrow(arrow)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
+            .source_path(self.source_path.clone())
             .compile(
                 parameters,
                 body,
@@ -1779,6 +1851,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(name_scope.cloned())
+            .source_path(self.source_path.clone())
             .compile(
                 parameters,
                 body,
@@ -1828,6 +1901,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             .method(true)
             .in_with(self.in_with)
             .name_scope(function.name_scope.cloned())
+            .source_path(self.source_path.clone())
             .compile(
                 parameters,
                 body,
@@ -1927,61 +2001,71 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
         }
 
+        let mut compiler = SourcePositionGuard::new(self, call.span().start());
+
         let contains_spread = call
             .args()
             .iter()
             .any(|arg| matches!(arg, Expression::Spread(_)));
 
         if contains_spread {
-            let array = self.register_allocator.alloc();
-            let value = self.register_allocator.alloc();
+            let array = compiler.register_allocator.alloc();
+            let value = compiler.register_allocator.alloc();
 
-            self.bytecode.emit_push_new_array(array.variable());
+            compiler.bytecode.emit_push_new_array(array.variable());
 
             for arg in call.args() {
-                self.compile_expr(arg, &value);
+                compiler.compile_expr(arg, &value);
                 if let Expression::Spread(_) = arg {
-                    self.bytecode.emit_get_iterator(value.variable());
-                    self.bytecode.emit_push_iterator_to_array(array.variable());
+                    compiler.bytecode.emit_get_iterator(value.variable());
+                    compiler
+                        .bytecode
+                        .emit_push_iterator_to_array(array.variable());
                 } else {
-                    self.bytecode
+                    compiler
+                        .bytecode
                         .emit_push_value_to_array(value.variable(), array.variable());
                 }
             }
 
-            self.push_from_register(&array);
+            compiler.push_from_register(&array);
 
-            self.register_allocator.dealloc(array);
-            self.register_allocator.dealloc(value);
+            compiler.register_allocator.dealloc(array);
+            compiler.register_allocator.dealloc(value);
         } else {
             for arg in call.args() {
-                let value = self.register_allocator.alloc();
-                self.compile_expr(arg, &value);
-                self.push_from_register(&value);
-                self.register_allocator.dealloc(value);
+                let value = compiler.register_allocator.alloc();
+                compiler.compile_expr(arg, &value);
+                compiler.push_from_register(&value);
+                compiler.register_allocator.dealloc(value);
             }
         }
 
         match kind {
             CallKind::CallEval => {
-                let scope_index = self.constants.len() as u32;
-                self.constants
-                    .push(Constant::Scope(self.lexical_scope.clone()));
+                let scope_index = compiler.constants.len() as u32;
+                let lexical_scope = compiler.lexical_scope.clone();
+                compiler.constants.push(Constant::Scope(lexical_scope));
                 if contains_spread {
-                    self.bytecode.emit_call_eval_spread(scope_index.into());
+                    compiler.bytecode.emit_call_eval_spread(scope_index.into());
                 } else {
-                    self.bytecode
+                    compiler
+                        .bytecode
                         .emit_call_eval((call.args().len() as u32).into(), scope_index.into());
                 }
             }
-            CallKind::Call if contains_spread => self.bytecode.emit_call_spread(),
+            CallKind::Call if contains_spread => compiler.bytecode.emit_call_spread(),
             CallKind::Call => {
-                self.bytecode.emit_call((call.args().len() as u32).into());
+                compiler
+                    .bytecode
+                    .emit_call((call.args().len() as u32).into());
             }
-            CallKind::New if contains_spread => self.bytecode.emit_new_spread(),
-            CallKind::New => self.bytecode.emit_new((call.args().len() as u32).into()),
+            CallKind::New if contains_spread => compiler.bytecode.emit_new_spread(),
+            CallKind::New => compiler
+                .bytecode
+                .emit_new((call.args().len() as u32).into()),
         }
-        self.pop_into_register(dst);
+        compiler.pop_into_register(dst);
     }
 
     /// Finish compiling code with the [`ByteCompiler`] and return the generated [`CodeBlock`].
@@ -1995,6 +2079,8 @@ impl<'ctx> ByteCompiler<'ctx> {
         }
         self.r#return(false);
 
+        let final_bytecode_len = self.next_opcode_location();
+
         let mapped_arguments_binding_indices = if self.emitted_mapped_arguments_object_opcode {
             MappedArguments::binding_indices(&self.params, &self.parameter_scope, self.interner)
         } else {
@@ -2003,8 +2089,9 @@ impl<'ctx> ByteCompiler<'ctx> {
 
         let register_count = self.register_allocator.finish();
 
+        let source_map_entries = self.source_map_builder.build(final_bytecode_len);
+
         CodeBlock {
-            name: self.function_name,
             length: self.length,
             register_count,
             this_mode: self.this_mode,
@@ -2016,7 +2103,11 @@ impl<'ctx> ByteCompiler<'ctx> {
             handlers: self.handlers,
             flags: Cell::new(self.code_block_flags),
             ic: self.ic.into_boxed_slice(),
-            source_text_spanned: self.spanned_source_text,
+            source_info: SourceInfo::new(
+                SourceMap::new(source_map_entries, self.source_path),
+                self.function_name,
+                self.spanned_source_text,
+            ),
         }
     }
 

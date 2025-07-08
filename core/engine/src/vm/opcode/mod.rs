@@ -1,10 +1,10 @@
 #![allow(clippy::inline_always)]
 
 use crate::{
-    vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord},
     Context,
+    vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord},
 };
-use args::{read, Argument};
+use args::{Argument, read};
 use std::ops::ControlFlow;
 use thin_vec::ThinVec;
 
@@ -42,6 +42,8 @@ mod value;
 #[doc(inline)]
 pub(crate) use arguments::*;
 #[doc(inline)]
+pub(crate) use r#await::*;
+#[doc(inline)]
 pub(crate) use binary_ops::*;
 #[doc(inline)]
 pub(crate) use call::*;
@@ -75,8 +77,6 @@ pub(crate) use nop::*;
 pub(crate) use pop::*;
 #[doc(inline)]
 pub(crate) use push::*;
-#[doc(inline)]
-pub(crate) use r#await::*;
 #[doc(inline)]
 pub(crate) use rest_parameter::*;
 #[doc(inline)]

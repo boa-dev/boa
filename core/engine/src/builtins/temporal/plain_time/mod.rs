@@ -1,15 +1,16 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainTime` builtin object.
 
 use super::{
-    create_temporal_duration,
-    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
-    to_temporal_duration_record, PlainDateTime, ZonedDateTime,
+    PlainDateTime, ZonedDateTime, create_temporal_duration,
+    options::{TemporalUnitGroup, get_difference_settings, get_temporal_unit},
+    to_temporal_duration_record,
 };
-use crate::{builtins::temporal::options::get_digits_option, value::JsVariant};
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -17,14 +18,13 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
+use crate::{builtins::temporal::options::get_digits_option, value::JsVariant};
 use boa_gc::{Finalize, Trace};
 use temporal_rs::{
+    PlainTime as PlainTimeInner,
     options::{ArithmeticOverflow, RoundingMode, ToStringRoundingOptions, Unit},
     partial::PartialTime,
-    PlainTime as PlainTimeInner,
 };
 
 /// The `Temporal.PlainTime` object.
@@ -453,7 +453,7 @@ impl PlainTime {
             None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
-                    .into())
+                    .into());
             }
             // 4. If Type(roundTo) is String, then
             Some(JsVariant::String(rt)) => {

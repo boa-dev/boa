@@ -1,17 +1,16 @@
 use crate::{
-    js_string,
+    JsObject, JsString, JsValue, NativeFunction, js_string,
     native_function::{NativeFunctionObject, NativeFunctionPointer},
     object::{
+        CONSTRUCTOR, FunctionBinding, JsFunction, JsPrototype, PROTOTYPE,
         shape::{property_table::PropertyTableInner, slot::SlotAttributes},
-        FunctionBinding, JsFunction, JsPrototype, CONSTRUCTOR, PROTOTYPE,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
-    JsObject, JsString, JsValue, NativeFunction,
 };
 
-use super::{function::ConstructorKind, BuiltInConstructor, IntrinsicObject};
+use super::{BuiltInConstructor, IntrinsicObject, function::ConstructorKind};
 
 /// Marker for a constructor function.
 // TODO: Remove this marker and use `Constructor` directly.
@@ -215,10 +214,12 @@ impl BuiltInConstructorWithPrototype<'_> {
             .length(length)
             .build();
 
-        debug_assert!(!self
-            .object_property_table
-            .map
-            .contains_key(&binding.binding));
+        debug_assert!(
+            !self
+                .object_property_table
+                .map
+                .contains_key(&binding.binding)
+        );
         self.object_property_table.insert(
             binding.binding,
             SlotAttributes::WRITABLE | SlotAttributes::CONFIGURABLE,
@@ -293,10 +294,12 @@ impl BuiltInConstructorWithPrototype<'_> {
             .length(length)
             .build();
 
-        debug_assert!(!self
-            .prototype_property_table
-            .map
-            .contains_key(&binding.binding));
+        debug_assert!(
+            !self
+                .prototype_property_table
+                .map
+                .contains_key(&binding.binding)
+        );
         self.prototype_property_table.insert(
             binding.binding,
             SlotAttributes::WRITABLE | SlotAttributes::CONFIGURABLE,
@@ -467,6 +470,7 @@ impl BuiltInCallable<'_> {
         let object = self.realm.intrinsics().templates().function().create(
             NativeFunctionObject {
                 f: NativeFunction::from_fn_ptr(self.function),
+                name: self.name.clone(),
                 constructor: None,
                 realm: Some(self.realm.clone()),
             },

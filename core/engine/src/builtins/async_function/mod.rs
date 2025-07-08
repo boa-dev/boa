@@ -8,13 +8,13 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction
 
 use crate::{
-    builtins::{function::BuiltInFunctionObject, BuiltInObject},
+    Context, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, function::BuiltInFunctionObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsResult, JsString, JsValue,
 };
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};

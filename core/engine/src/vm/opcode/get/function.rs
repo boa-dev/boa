@@ -1,9 +1,9 @@
 use crate::{
+    Context,
     vm::{
         code_block::create_function_object_fast,
         opcode::{Operation, VaryingOperand},
     },
-    Context,
 };
 
 /// `GetFunction` implements the Opcode Operation for `Opcode::GetFunction`

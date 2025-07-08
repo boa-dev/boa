@@ -3,12 +3,12 @@
 // inspects the AST without modifying it, see symbol_visitor.rs.
 
 use boa_ast::{
+    Expression,
     expression::operator::{
-        binary::{ArithmeticOp, BinaryOp},
         Binary,
+        binary::{ArithmeticOp, BinaryOp},
     },
     visitor::{VisitWith, VisitorMut},
-    Expression,
 };
 use boa_engine::{Context, Source};
 use boa_interner::ToInternedString;

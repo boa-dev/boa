@@ -4,7 +4,7 @@
 
 use std::{
     borrow::Borrow,
-    collections::{btree_map, BTreeMap},
+    collections::{BTreeMap, btree_map},
     fmt,
     hash::{Hash, Hasher},
     iter::FusedIterator,

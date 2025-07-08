@@ -11,12 +11,12 @@
 
 use super::{ModuleSpecifier, VarDeclaration};
 use crate::{
+    Declaration, Expression,
     function::{
         AsyncFunctionDeclaration, AsyncGeneratorDeclaration, ClassDeclaration, FunctionDeclaration,
         GeneratorDeclaration,
     },
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, Expression,
 };
 use boa_interner::Sym;
 use std::ops::ControlFlow;

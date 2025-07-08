@@ -1,6 +1,6 @@
 use crate::{
-    js_string, native_function::NativeFunctionObject, run_test_actions, JsNativeErrorKind,
-    JsObject, JsValue, TestAction,
+    JsNativeErrorKind, JsObject, JsValue, TestAction, js_string,
+    native_function::NativeFunctionObject, run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;

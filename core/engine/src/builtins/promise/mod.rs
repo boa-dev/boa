@@ -4,10 +4,11 @@
 mod tests;
 
 use super::{
-    iterable::{IteratorHint, IteratorRecord},
     BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
+    iterable::{IteratorHint, IteratorRecord},
 };
 use crate::{
+    Context, JsArgs, JsError, JsResult, JsString,
     builtins::{Array, BuiltInObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -15,17 +16,16 @@ use crate::{
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        JsObject, CONSTRUCTOR,
+        CONSTRUCTOR, FunctionObjectBuilder, JsFunction, JsObject,
+        internal_methods::get_prototype_from_constructor,
     },
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsError, JsResult, JsString,
 };
-use boa_gc::{custom_trace, Finalize, Gc, GcRefCell, Trace};
+use boa_gc::{Finalize, Gc, GcRefCell, Trace, custom_trace};
 use boa_macros::JsData;
 use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};

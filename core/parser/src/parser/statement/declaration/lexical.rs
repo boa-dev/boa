@@ -8,18 +8,18 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::{
+    Error,
     lexer::{Error as LexError, Token, TokenKind},
     parser::{
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
         cursor::{Cursor, SemicolonResult},
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use ast::operations::bound_names;
-use boa_ast::{self as ast, declaration::Variable, Keyword, Punctuator};
+use boa_ast::{self as ast, Keyword, Punctuator, declaration::Variable};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
 
@@ -73,7 +73,7 @@ where
                 return Err(Error::general(
                     "Keyword must not contain escaped characters",
                     tok.span().start(),
-                ))
+                ));
             }
             TokenKind::Keyword((Keyword::Const, false)) => BindingList::new(
                 self.allow_in,
@@ -224,7 +224,7 @@ where
                     if tk.kind() == &TokenKind::Keyword((Keyword::Of, false))
                         || tk.kind() == &TokenKind::Keyword((Keyword::In, false)) =>
                 {
-                    break
+                    break;
                 }
                 SemicolonResult::NotFound(tk)
                     if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>

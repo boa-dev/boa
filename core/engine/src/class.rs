@@ -104,12 +104,12 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
+    Context, JsResult, JsValue,
     context::intrinsics::StandardConstructor,
     error::JsNativeError,
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsValue,
 };
 
 /// Native class.

@@ -6,12 +6,16 @@
 use std::ops::ControlFlow;
 
 use crate::{
+    Module, ModuleItem, ModuleItemList, Script, StatementList, StatementListItem,
     declaration::{
         Binding, Declaration, ExportDeclaration, ExportSpecifier, ImportDeclaration, ImportKind,
         ImportSpecifier, LexicalDeclaration, ModuleSpecifier, ReExportKind, VarDeclaration,
         Variable, VariableList,
     },
     expression::{
+        Await, Call, Expression, Identifier, ImportCall, ImportMeta, New, NewTarget, Optional,
+        OptionalOperation, OptionalOperationKind, Parenthesized, RegExpLiteral, Spread, SuperCall,
+        TaggedTemplate, This, Yield,
         access::{
             PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SimplePropertyAccess,
             SuperPropertyAccess,
@@ -21,12 +25,9 @@ use crate::{
             TemplateElement, TemplateLiteral,
         },
         operator::{
-            assign::{Assign, AssignTarget},
             Binary, BinaryInPrivate, Conditional, Unary, Update,
+            assign::{Assign, AssignTarget},
         },
-        Await, Call, Expression, Identifier, ImportCall, ImportMeta, New, NewTarget, Optional,
-        OptionalOperation, OptionalOperationKind, Parenthesized, RegExpLiteral, Spread, SuperCall,
-        TaggedTemplate, This, Yield,
     },
     function::{
         ArrowFunction, AsyncArrowFunction, AsyncFunctionDeclaration, AsyncFunctionExpression,
@@ -37,14 +38,13 @@ use crate::{
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern},
     property::PropertyName,
     statement::{
+        Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
+        Try, With,
         iteration::{
             Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForLoopInitializer, ForOfLoop,
             IterableLoopInitializer, WhileLoop,
         },
-        Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw,
-        Try, With,
     },
-    Module, ModuleItem, ModuleItemList, Script, StatementList, StatementListItem,
 };
 use boa_interner::Sym;
 

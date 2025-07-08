@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult, JsValue,
     builtins::{iterable::IteratorRecord, object::for_in_iterator::ForInIterator},
     js_string,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult, JsValue,
 };
 
 /// `CreateForInIterator` implements the Opcode Operation for `Opcode::CreateForInIterator`

@@ -1,6 +1,6 @@
 use crate::{
-    vm::opcode::{Operation, VaryingOperand},
     Context, JsValue,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 pub(crate) mod array;

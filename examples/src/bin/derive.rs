@@ -1,5 +1,5 @@
 use boa_engine::value::JsVariant;
-use boa_engine::{value::TryFromJs, Context, JsNativeError, JsResult, JsValue, Source};
+use boa_engine::{Context, JsNativeError, JsResult, JsValue, Source, value::TryFromJs};
 
 /// You can easily derive `TryFromJs` for structures with base Rust types.
 ///

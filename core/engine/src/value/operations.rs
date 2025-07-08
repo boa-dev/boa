@@ -1,12 +1,12 @@
 use crate::{
+    Context, JsBigInt, JsResult, JsValue, JsVariant,
     builtins::{
-        number::{f64_to_int32, f64_to_uint32},
         Number,
+        number::{f64_to_int32, f64_to_uint32},
     },
     error::JsNativeError,
     js_string,
     value::{JsSymbol, Numeric, PreferredType},
-    Context, JsBigInt, JsResult, JsValue, JsVariant,
 };
 
 impl JsValue {
@@ -683,10 +683,6 @@ pub enum AbstractRelation {
 impl From<bool> for AbstractRelation {
     #[inline]
     fn from(value: bool) -> Self {
-        if value {
-            Self::True
-        } else {
-            Self::False
-        }
+        if value { Self::True } else { Self::False }
     }
 }

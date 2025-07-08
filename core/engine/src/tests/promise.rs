@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{run_test_actions, TestAction};
+use crate::{TestAction, run_test_actions};
 
 #[test]
 #[allow(clippy::redundant_closure_for_method_calls)]

@@ -1,7 +1,7 @@
 use boa_macros::{Finalize, Trace};
 
-use super::{run_test, Harness};
-use crate::{force_collect, Gc, GcBox, GcRefCell};
+use super::{Harness, run_test};
+use crate::{Gc, GcBox, GcRefCell, force_collect};
 
 #[test]
 fn gc_basic_cell_allocation() {

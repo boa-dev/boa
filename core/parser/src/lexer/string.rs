@@ -1,6 +1,6 @@
 //! Boa's lexing for ECMAScript string literals.
 
-use crate::lexer::{token::EscapeSequence, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer, token::EscapeSequence};
 use crate::source::ReadChar;
 use boa_ast::{LinearSpan, Position, PositionGroup, Span};
 use boa_interner::Interner;
@@ -373,18 +373,18 @@ impl StringLiteral {
 
         // Grammar: ZeroToThree OctalDigit
         // Grammar: FourToSeven OctalDigit
-        if let Some(c) = cursor.peek_char()? {
-            if (0x30..=0x37/* 0..=7 */).contains(&c) {
-                cursor.next_char()?;
-                code_point = (code_point * 8) + c - 0x30 /* 0 */;
+        if let Some(c) = cursor.peek_char()?
+            && (0x30..=0x37/* 0..=7 */).contains(&c)
+        {
+            cursor.next_char()?;
+            code_point = (code_point * 8) + c - 0x30 /* 0 */;
 
-                if (0x30..=0x33/* 0..=3 */).contains(&init_byte) {
-                    // Grammar: ZeroToThree OctalDigit OctalDigit
-                    if let Some(c) = cursor.peek_char()? {
-                        if (0x30..=0x37/* 0..=7 */).contains(&c) {
-                            cursor.next_char()?;
-                            code_point = (code_point * 8) + c - 0x30 /* 0 */;
-                        }
+            if (0x30..=0x33/* 0..=3 */).contains(&init_byte) {
+                // Grammar: ZeroToThree OctalDigit OctalDigit
+                if let Some(c) = cursor.peek_char()? {
+                    if (0x30..=0x37/* 0..=7 */).contains(&c) {
+                        cursor.next_char()?;
+                        code_point = (code_point * 8) + c - 0x30 /* 0 */;
                     }
                 }
             }

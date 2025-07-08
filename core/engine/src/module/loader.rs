@@ -7,8 +7,8 @@ use boa_parser::Source;
 
 use crate::script::Script;
 use crate::{
-    js_string, object::JsObject, realm::Realm, vm::ActiveRunnable, Context, JsError, JsNativeError,
-    JsResult, JsString,
+    Context, JsError, JsNativeError, JsResult, JsString, js_string, object::JsObject, realm::Realm,
+    vm::ActiveRunnable,
 };
 
 use super::Module;

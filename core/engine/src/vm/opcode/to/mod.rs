@@ -1,5 +1,5 @@
 use super::VaryingOperand;
-use crate::{vm::opcode::Operation, Context, JsResult};
+use crate::{Context, JsResult, vm::opcode::Operation};
 
 /// `ToPropertyKey` implements the Opcode Operation for `Opcode::ToPropertyKey`
 ///

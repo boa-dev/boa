@@ -1,9 +1,9 @@
 //! Boa's implementation of ECMAScript's bigint primitive type.
 
-use crate::{builtins::Number, error::JsNativeError, JsData, JsResult, JsString};
+use crate::{JsData, JsResult, JsString, builtins::Number, error::JsNativeError};
 use boa_gc::{Finalize, Trace};
 use num_integer::Integer;
-use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
+use num_traits::{FromPrimitive, One, ToPrimitive, Zero, pow::Pow};
 use std::{
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},

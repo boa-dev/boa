@@ -1,5 +1,5 @@
 use super::run_test;
-use crate::{force_collect, has_weak_maps, Gc, WeakMap};
+use crate::{Gc, WeakMap, force_collect, has_weak_maps};
 
 #[test]
 fn weak_map_basic() {

@@ -4,29 +4,29 @@ use boa_gc::{Finalize, Trace};
 use fixed_decimal::{Decimal, SignedRoundingMode, UnsignedRoundingMode};
 use icu_locale::Locale;
 use icu_plurals::{
-    provider::PluralsCardinalV1, PluralCategory, PluralRuleType, PluralRules as NativePluralRules,
-    PluralRulesOptions, PluralRulesPreferences, PluralRulesWithRanges,
+    PluralCategory, PluralRuleType, PluralRules as NativePluralRules, PluralRulesOptions,
+    PluralRulesPreferences, PluralRulesWithRanges, provider::PluralsCardinalV1,
 };
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
-        options::get_option, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
-        IntrinsicObject,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::get_option,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectInitializer},
+    object::{ObjectInitializer, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{
+    Service,
     locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     number_format::{DigitFormatOptions, Extrema, NotationKind},
-    options::{coerce_options_to_object, IntlOptions},
-    Service,
+    options::{IntlOptions, coerce_options_to_object},
 };
 
 #[derive(Debug, Trace, Finalize, JsData)]

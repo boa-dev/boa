@@ -2,9 +2,9 @@
 
 use super::Declaration;
 use crate::{
+    LinearPosition,
     statement::Statement,
     visitor::{VisitWith, Visitor, VisitorMut},
-    LinearPosition,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;

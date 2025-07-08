@@ -1,10 +1,10 @@
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        expression::Expression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser, expression::Expression,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{Keyword, Punctuator, Statement};
 use boa_interner::Interner;

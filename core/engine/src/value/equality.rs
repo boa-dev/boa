@@ -1,5 +1,5 @@
 use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
-use crate::{builtins::Number, Context, JsVariant};
+use crate::{Context, JsVariant, builtins::Number};
 use std::collections::HashSet;
 
 impl JsValue {
@@ -104,7 +104,7 @@ impl JsValue {
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
             (JsVariant::Boolean(x), _) => {
-                return other.equals(&JsValue::new(i32::from(x)), context)
+                return other.equals(&JsValue::new(i32::from(x)), context);
             }
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).

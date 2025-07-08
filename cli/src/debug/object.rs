@@ -1,7 +1,6 @@
 use boa_engine::{
-    js_string,
+    Context, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, js_string,
     object::{IndexProperties, ObjectInitializer},
-    Context, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 /// Returns objects pointer in memory.

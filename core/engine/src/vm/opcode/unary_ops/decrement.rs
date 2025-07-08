@@ -1,7 +1,7 @@
 use crate::{
+    Context, JsBigInt, JsResult,
     value::{JsValue, JsVariant, Numeric},
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsBigInt, JsResult,
 };
 
 /// `Dec` implements the Opcode Operation for `Opcode::Dec`

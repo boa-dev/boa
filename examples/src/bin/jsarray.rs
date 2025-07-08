@@ -1,10 +1,9 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    js_string,
+    Context, JsResult, JsValue, js_string,
     native_function::NativeFunction,
-    object::{builtins::JsArray, FunctionObjectBuilder},
-    Context, JsResult, JsValue,
+    object::{FunctionObjectBuilder, builtins::JsArray},
 };
 
 fn main() -> JsResult<()> {

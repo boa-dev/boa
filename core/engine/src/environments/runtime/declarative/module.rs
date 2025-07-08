@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use boa_ast::scope::Scope;
 use boa_gc::{Finalize, GcRefCell, Trace};
 
-use crate::{module::Module, JsString, JsValue};
+use crate::{JsString, JsValue, module::Module};
 
 /// Type of accessor used to access an indirect binding.
 #[derive(Debug, Clone)]

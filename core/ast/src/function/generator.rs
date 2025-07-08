@@ -1,12 +1,11 @@
 use super::{FormalParameterList, FunctionBody};
 use crate::{
-    block_to_string,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -258,10 +257,10 @@ impl GeneratorExpression {
 impl ToIndentedString for GeneratorExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function*".to_owned();
-        if self.has_binding_identifier {
-            if let Some(name) = self.name {
-                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
-            }
+        if self.has_binding_identifier
+            && let Some(name) = self.name
+        {
+            let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
         }
         let _ = write!(
             buf,

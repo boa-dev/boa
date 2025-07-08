@@ -2,14 +2,14 @@ use boa_gc::{Finalize, Trace};
 use itertools::Itertools;
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
     realm::Realm,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{create_segment_data_object, SegmentIterator, Segmenter};
+use super::{SegmentIterator, Segmenter, create_segment_data_object};
 
 #[derive(Debug, Trace, Finalize, JsData)]
 pub(crate) struct Segments {

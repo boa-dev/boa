@@ -1,8 +1,8 @@
 //! Test for the class proc-macro.
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::{js_string, Context, JsObject, JsString, Source};
-use boa_macros::{boa_class, Finalize, JsData, Trace};
+use boa_engine::{Context, JsObject, JsString, Source, js_string};
+use boa_macros::{Finalize, JsData, Trace, boa_class};
 
 #[derive(Clone, Trace, Finalize, JsData)]
 enum AnimalType {

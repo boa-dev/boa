@@ -1,8 +1,8 @@
 use super::VaryingOperand;
 use crate::{
-    module::ModuleKind,
-    vm::{opcode::Operation, ActiveRunnable},
     Context, JsObject, JsValue,
+    module::ModuleKind,
+    vm::{ActiveRunnable, opcode::Operation},
 };
 use std::unreachable;
 

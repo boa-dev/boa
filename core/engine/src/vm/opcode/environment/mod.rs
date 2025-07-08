@@ -1,10 +1,10 @@
 use super::VaryingOperand;
 use crate::{
+    Context, JsResult, JsValue,
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
     object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CallFrameFlags},
-    Context, JsResult, JsValue,
+    vm::{CallFrameFlags, opcode::Operation},
 };
 
 /// `This` implements the Opcode Operation for `Opcode::This`

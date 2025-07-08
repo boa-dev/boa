@@ -4,11 +4,10 @@
 use std::cell::{Cell, RefCell};
 
 use boa_engine::{
-    js_string,
+    Context, JsError, JsNativeError, JsString, JsValue, Source, js_string,
     native_function::NativeFunction,
-    object::{builtins::JsArray, FunctionObjectBuilder, JsObject},
+    object::{FunctionObjectBuilder, JsObject, builtins::JsArray},
     property::{Attribute, PropertyDescriptor},
-    Context, JsError, JsNativeError, JsString, JsValue, Source,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
 

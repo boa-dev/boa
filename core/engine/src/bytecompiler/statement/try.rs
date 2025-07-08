@@ -1,11 +1,11 @@
 use crate::{
-    bytecompiler::{jump_control::JumpControlInfoFlags, ByteCompiler, Register, ToJsString},
+    bytecompiler::{ByteCompiler, Register, ToJsString, jump_control::JumpControlInfoFlags},
     vm::opcode::BindingOpcode,
 };
 use boa_ast::{
+    Statement, StatementListItem,
     declaration::Binding,
     statement::{Block, Catch, Finally, Try},
-    Statement, StatementListItem,
 };
 
 enum TryVariant<'a> {

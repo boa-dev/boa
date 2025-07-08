@@ -1,9 +1,9 @@
 use crate::{
-    builtins::function::{set_function_name, OrdinaryFunction},
+    Context, JsResult,
+    builtins::function::{OrdinaryFunction, set_function_name},
     object::internal_methods::InternalMethodContext,
     property::PropertyDescriptor,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult,
 };
 
 /// `DefineClassStaticMethodByName` implements the Opcode Operation for `Opcode::DefineClassStaticMethodByName`

@@ -1,19 +1,19 @@
 use super::internal_methods::InternalMethodContext;
 use crate::value::JsVariant;
 use crate::{
+    Context, JsResult, JsSymbol, JsValue,
     builtins::{
-        function::{set_function_name, BoundFunction, ClassFieldDefinition, OrdinaryFunction},
         Array, Proxy,
+        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunctionObject,
-    object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
+    object::{CONSTRUCTOR, JsObject, PROTOTYPE, PrivateElement, PrivateName},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsResult, JsSymbol, JsValue,
 };
 
 /// Object integrity level.
@@ -704,29 +704,29 @@ impl JsObject {
                 let desc =
                     self.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-                if let Some(desc) = desc {
-                    if desc.expect_enumerable() {
-                        match kind {
-                            // 1. If kind is key, append key to properties.
-                            PropertyNameKind::Key => properties.push(key_str.into()),
-                            // 2. Else,
-                            // a. Let value be ? Get(O, key).
-                            // b. If kind is value, append value to properties.
-                            PropertyNameKind::Value => {
-                                properties.push(self.get(key.clone(), context)?);
-                            }
-                            // c. Else,
-                            // i. Assert: kind is key+value.
-                            // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                            // iii. Append entry to properties.
-                            PropertyNameKind::KeyAndValue => properties.push(
-                                Array::create_array_from_list(
-                                    [key_str.into(), self.get(key.clone(), context)?],
-                                    context,
-                                )
-                                .into(),
-                            ),
+                if let Some(desc) = desc
+                    && desc.expect_enumerable()
+                {
+                    match kind {
+                        // 1. If kind is key, append key to properties.
+                        PropertyNameKind::Key => properties.push(key_str.into()),
+                        // 2. Else,
+                        // a. Let value be ? Get(O, key).
+                        // b. If kind is value, append value to properties.
+                        PropertyNameKind::Value => {
+                            properties.push(self.get(key.clone(), context)?);
                         }
+                        // c. Else,
+                        // i. Assert: kind is key+value.
+                        // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                        // iii. Append entry to properties.
+                        PropertyNameKind::KeyAndValue => properties.push(
+                            Array::create_array_from_list(
+                                [key_str.into(), self.get(key.clone(), context)?],
+                                context,
+                            )
+                            .into(),
+                        ),
                     }
                 }
             }
@@ -1026,7 +1026,7 @@ impl JsObject {
             None => {
                 return Err(JsNativeError::typ()
                     .with_message("Private element does not exist on object")
-                    .into())
+                    .into());
             }
 
             // 3. If entry.[[Kind]] is field, then
@@ -1040,7 +1040,7 @@ impl JsObject {
             Some(PrivateElement::Method(_)) => {
                 return Err(JsNativeError::typ()
                     .with_message("private method is not writable")
-                    .into())
+                    .into());
             }
 
             // 5. Else,

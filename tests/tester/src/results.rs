@@ -1,7 +1,7 @@
 use crate::{Statistics, VersionedStats};
 
 use super::SuiteResult;
-use color_eyre::{eyre::WrapErr, Result};
+use color_eyre::{Result, eyre::WrapErr};
 use rustc_hash::FxHashSet;
 use serde::{Deserialize, Serialize};
 use std::{

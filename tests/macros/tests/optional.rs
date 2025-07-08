@@ -2,8 +2,8 @@
 
 #![allow(unused_crate_dependencies)]
 
-use boa_engine::value::TryFromJs;
 use boa_engine::Source;
+use boa_engine::value::TryFromJs;
 
 #[derive(PartialEq, Eq, TryFromJs)]
 struct Deserialize {

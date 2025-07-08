@@ -3,8 +3,8 @@ use boa_ast::{
     operations::bound_names,
     scope::BindingLocatorError,
     statement::{
-        iteration::{ForLoopInitializer, IterableLoopInitializer},
         DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop,
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
     },
 };
 use boa_interner::Sym;
@@ -156,16 +156,15 @@ impl ByteCompiler<'_> {
         use_expr: bool,
     ) {
         // Handle https://tc39.es/ecma262/#prod-annexB-ForInOfStatement
-        if let IterableLoopInitializer::Var(var) = for_in_loop.initializer() {
-            if let Binding::Identifier(ident) = var.binding() {
-                let ident = ident.to_js_string(self.interner());
-                if let Some(init) = var.init() {
-                    let value = self.register_allocator.alloc();
-                    self.compile_expr(init, &value);
-                    self.emit_binding(BindingOpcode::InitVar, ident, &value);
-                    self.register_allocator.dealloc(value);
-                }
-            }
+        if let IterableLoopInitializer::Var(var) = for_in_loop.initializer()
+            && let Binding::Identifier(ident) = var.binding()
+            && let Some(init) = var.init()
+        {
+            let ident = ident.to_js_string(self.interner());
+            let value = self.register_allocator.alloc();
+            self.compile_expr(init, &value);
+            self.emit_binding(BindingOpcode::InitVar, ident, &value);
+            self.register_allocator.dealloc(value);
         }
         let outer_scope = self.push_declarative_scope(for_in_loop.target_scope());
         let value = self.register_allocator.alloc();
@@ -296,7 +295,7 @@ impl ByteCompiler<'_> {
         let handler_index = self.push_handler();
 
         match for_of_loop.initializer() {
-            IterableLoopInitializer::Identifier(ref ident) => {
+            IterableLoopInitializer::Identifier(ident) => {
                 let ident = ident.to_js_string(self.interner());
                 match self.lexical_scope.set_mutable_binding(ident.clone()) {
                     Ok(binding) => {

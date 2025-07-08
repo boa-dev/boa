@@ -1,11 +1,11 @@
 use crate::{
     parser::{
-        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
-        TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult, TokenParser,
+        statement::block::Block,
     },
     source::ReadChar,
 };
-use boa_ast::{statement, Keyword};
+use boa_ast::{Keyword, statement};
 use boa_interner::Interner;
 
 /// Finally parsing

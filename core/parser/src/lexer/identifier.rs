@@ -1,7 +1,7 @@
 //! This module implements lexing for identifiers (foo, myvar, etc.) used in ECMAScript.
 
 use crate::lexer::{
-    token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
+    Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer, token::ContainsEscapeSequence,
 };
 use crate::source::ReadChar;
 use boa_ast::PositionGroup;

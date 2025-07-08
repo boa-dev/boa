@@ -151,8 +151,8 @@ pub fn register(
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::{register, RegisterOptions};
-    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
+    use crate::{RegisterOptions, register};
+    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.
@@ -185,7 +185,7 @@ pub(crate) mod test {
         },
         AssertNativeError {
             source: Cow<'static, str>,
-            kind: builtins::error::Error,
+            kind: builtins::error::ErrorKind,
             message: &'static str,
         },
         AssertContext {

@@ -15,12 +15,12 @@ use self::{
     operator::{Assign, Binary, BinaryInPrivate, Conditional, Unary, Update},
 };
 use super::{
+    Statement,
     function::{
         ArrowFunction, AsyncFunctionExpression, AsyncGeneratorExpression, ClassExpression,
         FunctionExpression, GeneratorExpression,
     },
     function::{AsyncArrowFunction, FormalParameterList},
-    Statement,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -41,9 +41,10 @@ mod this;
 mod r#yield;
 
 use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
     Span,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
+pub use r#await::Await;
 pub use call::{Call, ImportCall, SuperCall};
 pub use identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
 pub use import_meta::ImportMeta;
@@ -51,12 +52,11 @@ pub use new::New;
 pub use new_target::NewTarget;
 pub use optional::{Optional, OptionalOperation, OptionalOperationKind};
 pub use parenthesized::Parenthesized;
-pub use r#await::Await;
-pub use r#yield::Yield;
 pub use regexp::RegExpLiteral;
 pub use spread::Spread;
 pub use tagged_template::TaggedTemplate;
 pub use this::This;
+pub use r#yield::Yield;
 
 pub mod access;
 pub mod literal;
@@ -207,7 +207,7 @@ impl Expression {
             Self::AsyncArrowFunction(f) => f.to_indented_string(interner, indentation),
             Self::ArrowFunction(arrf) => arrf.to_indented_string(interner, indentation),
             Self::ClassExpression(cl) => cl.to_indented_string(interner, indentation),
-            Self::GeneratorExpression(gen) => gen.to_indented_string(interner, indentation),
+            Self::GeneratorExpression(r#gen) => r#gen.to_indented_string(interner, indentation),
             Self::AsyncFunctionExpression(asf) => asf.to_indented_string(interner, indentation),
             Self::AsyncGeneratorExpression(asgen) => {
                 asgen.to_indented_string(interner, indentation)
@@ -303,7 +303,7 @@ impl Expression {
             Self::AsyncArrowFunction(f) => f.span(),
             Self::ArrowFunction(arrf) => arrf.span(),
             Self::ClassExpression(cl) => cl.span(),
-            Self::GeneratorExpression(gen) => gen.span(),
+            Self::GeneratorExpression(r#gen) => r#gen.span(),
             Self::AsyncFunctionExpression(asf) => asf.span(),
             Self::AsyncGeneratorExpression(asgen) => asgen.span(),
             Self::TemplateLiteral(tem) => tem.span(),

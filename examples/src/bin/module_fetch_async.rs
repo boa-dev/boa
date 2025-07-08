@@ -1,17 +1,17 @@
 use std::{cell::RefCell, collections::VecDeque, future::Future, pin::Pin, rc::Rc};
 
 use boa_engine::{
+    Context, JsNativeError, JsResult, JsString, JsValue, Module,
     builtins::promise::PromiseState,
     job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     js_string,
     module::ModuleLoader,
-    Context, JsNativeError, JsResult, JsString, JsValue, Module,
 };
 use boa_parser::Source;
 use futures_concurrency::future::FutureGroup;
 use isahc::{
-    config::{Configurable, RedirectPolicy},
     AsyncReadResponseExt, Request, RequestExt,
+    config::{Configurable, RedirectPolicy},
 };
 use smol::{future, stream::StreamExt};
 

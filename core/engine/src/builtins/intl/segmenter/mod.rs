@@ -4,22 +4,22 @@ use boa_gc::{Finalize, Trace};
 use icu_collator::provider::CollationDiacriticsV1;
 use icu_locale::Locale;
 use icu_segmenter::{
-    options::{SentenceBreakOptions, WordBreakOptions},
     GraphemeClusterSegmenter, SentenceSegmenter, WordSegmenter,
+    options::{SentenceBreakOptions, WordBreakOptions},
 };
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsResult, JsStr, JsString, JsSymbol, JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectInitializer},
+    object::{JsObject, ObjectInitializer, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsResult, JsStr, JsString, JsSymbol, JsValue,
 };
 
 mod iterator;
@@ -30,9 +30,9 @@ pub(crate) use options::*;
 pub(crate) use segments::*;
 
 use super::{
+    Service,
     locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     options::IntlOptions,
-    Service,
 };
 
 #[derive(Debug, Trace, Finalize, JsData)]

@@ -1,10 +1,10 @@
-use crate::operations::{contains, ContainsSymbol};
+use crate::operations::{ContainsSymbol, contains};
 use crate::scope::Scope;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
+    Expression,
     declaration::{LexicalDeclaration, VarDeclaration},
     statement::Statement,
-    Expression,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};

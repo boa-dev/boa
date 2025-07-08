@@ -1,10 +1,12 @@
 use std::str::FromStr;
 
 use crate::{
+    Context, JsArgs, JsBigInt, JsData, JsError, JsNativeError, JsObject, JsResult, JsString,
+    JsSymbol, JsValue, JsVariant,
     builtins::{
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
         options::{get_option, get_options_object},
         temporal::options::get_digits_option,
-        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -13,12 +15,11 @@ use crate::{
     realm::Realm,
     string::StaticJsStrings,
     value::{IntoOrUndefined, PreferredType},
-    Context, JsArgs, JsBigInt, JsData, JsError, JsNativeError, JsObject, JsResult, JsString,
-    JsSymbol, JsValue, JsVariant,
 };
 use boa_gc::{Finalize, Trace};
 use cow_utils::CowUtils;
 use temporal_rs::{
+    Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner,
     options::{
         ArithmeticOverflow, Disambiguation, DisplayCalendar, DisplayOffset, DisplayTimeZone,
         OffsetDisambiguation, RoundingIncrement, RoundingMode, RoundingOptions,
@@ -26,14 +27,13 @@ use temporal_rs::{
     },
     partial::{PartialDate, PartialTime, PartialZonedDateTime},
     provider::{TimeZoneProvider, TransitionDirection},
-    Calendar, MonthCode, TimeZone, TinyAsciiStr, UtcOffset, ZonedDateTime as ZonedDateTimeInner,
 };
 
 use super::{
     calendar::{get_temporal_calendar_slot_value_with_default, to_temporal_calendar_slot_value},
     create_temporal_date, create_temporal_datetime, create_temporal_duration,
     create_temporal_instant, create_temporal_time, is_partial_temporal_object,
-    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
+    options::{TemporalUnitGroup, get_difference_settings, get_temporal_unit},
     to_temporal_duration, to_temporal_time,
 };
 
@@ -1504,12 +1504,12 @@ pub(crate) fn to_temporal_timezone_identifier(
     context: &mut Context,
 ) -> JsResult<TimeZone> {
     // 1. If temporalTimeZoneLike is an Object, then
-    if let Some(obj) = value.as_object() {
-        // a. If temporalTimeZoneLike has an [[InitializedTemporalZonedDateTime]] internal slot, then
-        if let Some(zdt) = obj.downcast_ref::<ZonedDateTime>() {
-            // i. Return temporalTimeZoneLike.[[TimeZone]].
-            return Ok(zdt.inner.timezone().clone());
-        }
+    //    a. If temporalTimeZoneLike has an [[InitializedTemporalZonedDateTime]] internal slot, then
+    if let Some(obj) = value.as_object()
+        && let Some(zdt) = obj.downcast_ref::<ZonedDateTime>()
+    {
+        // i. Return temporalTimeZoneLike.[[TimeZone]].
+        return Ok(zdt.inner.timezone().clone());
     }
 
     // 2. If temporalTimeZoneLike is not a String, throw a TypeError exception.

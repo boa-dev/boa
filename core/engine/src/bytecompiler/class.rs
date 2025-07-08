@@ -1,9 +1,12 @@
-use super::{BindingAccessOpcode, ByteCompiler, Literal, Register, ToJsString};
+use super::{
+    BindingAccessOpcode, ByteCompiler, Literal, Register, SourcePositionGuard, ToJsString,
+};
 use crate::{
     js_string,
-    vm::{opcode::BindingOpcode, CodeBlock, CodeBlockFlags},
+    vm::{CodeBlock, CodeBlockFlags, opcode::BindingOpcode},
 };
 use boa_ast::{
+    Expression,
     expression::Identifier,
     function::{
         ClassDeclaration, ClassElement, ClassElementName, ClassExpression, FormalParameterList,
@@ -11,7 +14,6 @@ use boa_ast::{
     },
     property::{MethodDefinitionKind, PropertyName},
     scope::Scope,
-    Expression,
 };
 use boa_gc::Gc;
 use boa_interner::Sym;
@@ -105,6 +107,7 @@ impl ByteCompiler<'_> {
             self.interner,
             self.in_with,
             spanned_source_text,
+            self.source_path.clone(),
         );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
@@ -127,7 +130,10 @@ impl ByteCompiler<'_> {
                 expr.scopes(),
             );
 
-            compiler.compile_statement_list(expr.body().statement_list(), false, false);
+            {
+                let mut compiler = SourcePositionGuard::new(&mut compiler, expr.span().start());
+                compiler.compile_statement_list(expr.body().statement_list(), false, false);
+            }
 
             compiler.bytecode.emit_push_undefined(value.variable());
         } else if class.super_ref.is_some() {
@@ -412,6 +418,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
 
                     // Function environment
@@ -462,6 +469,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -513,6 +521,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -556,6 +565,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
@@ -598,6 +608,7 @@ impl ByteCompiler<'_> {
                         self.interner,
                         self.in_with,
                         self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
                     compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = compiler.push_scope(block.scopes().function_scope());
@@ -611,11 +622,17 @@ impl ByteCompiler<'_> {
                         block.scopes(),
                     );
 
-                    compiler.compile_statement_list(
-                        block.statements().statement_list(),
-                        false,
-                        false,
-                    );
+                    {
+                        let mut compiler = SourcePositionGuard::new(
+                            &mut compiler,
+                            block.statements().span().start(),
+                        );
+                        compiler.compile_statement_list(
+                            block.statements().statement_list(),
+                            false,
+                            false,
+                        );
+                    }
 
                     let code = Gc::new(compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));

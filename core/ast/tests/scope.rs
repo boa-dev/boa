@@ -3,13 +3,13 @@
 #![allow(unused_crate_dependencies)]
 
 use boa_ast::{
+    Declaration, Expression, LinearPosition, LinearSpan, Script, Span, Statement, StatementList,
+    StatementListItem,
     declaration::{LexicalDeclaration, Variable},
     expression::Identifier,
     function::{FormalParameter, FormalParameterList, FunctionBody, FunctionDeclaration},
     scope::Scope,
     statement::Block,
-    Declaration, Expression, LinearPosition, LinearSpan, Script, Span, Statement, StatementList,
-    StatementListItem,
 };
 use boa_interner::Interner;
 use boa_string::JsString;
@@ -84,15 +84,17 @@ fn script_block_let() {
     let a = interner.get_or_intern("a");
     let mut script = Script::new(StatementList::new(
         [Statement::Block(Block::from((
-            vec![Declaration::Lexical(LexicalDeclaration::Let(
-                vec![Variable::from_identifier(
-                    Identifier::new(a, Span::new((1, 1), (1, 1))),
-                    None,
-                )]
-                .try_into()
-                .unwrap(),
-            ))
-            .into()],
+            vec![
+                Declaration::Lexical(LexicalDeclaration::Let(
+                    vec![Variable::from_identifier(
+                        Identifier::new(a, Span::new((1, 1), (1, 1))),
+                        None,
+                    )]
+                    .try_into()
+                    .unwrap(),
+                ))
+                .into(),
+            ],
             LinearPosition::default(),
         )))
         .into()],

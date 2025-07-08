@@ -5,15 +5,15 @@ use icu_segmenter::{
 };
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
-    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{create_segment_data_object, Segmenter};
+use super::{Segmenter, create_segment_data_object};
 
 pub(crate) enum NativeSegmentIterator<'l, 's> {
     GraphemeUtf16(GraphemeClusterBreakIterator<'l, 's, Utf16>),

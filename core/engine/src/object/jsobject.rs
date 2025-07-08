@@ -7,11 +7,12 @@
 )]
 
 use super::{
+    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
     internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
     shape::RootShape,
-    JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
 };
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::{
         array::ARRAY_EXOTIC_INTERNAL_METHODS,
         array_buffer::{ArrayBuffer, BufferObject, SharedArrayBuffer},
@@ -22,7 +23,6 @@ use crate::{
     js_string,
     property::{PropertyDescriptor, PropertyKey},
     value::PreferredType,
-    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, GcBox, GcRefCell, Trace};
 use std::collections::HashSet;
@@ -585,19 +585,16 @@ Cannot both specify accessors and a value or writable attribute",
                 let desc = from.__get_own_property__(&key, context)?;
 
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-                if let Some(desc) = desc {
-                    if let Some(enumerable) = desc.enumerable() {
-                        if enumerable {
-                            // 1. Let propValue be ? Get(from, nextKey).
-                            let prop_value = from.__get__(&key, from.clone().into(), context)?;
+                if let Some(desc) = desc
+                    && let Some(enumerable) = desc.enumerable()
+                    && enumerable
+                {
+                    // 1. Let propValue be ? Get(from, nextKey).
+                    let prop_value = from.__get__(&key, from.clone().into(), context)?;
 
-                            // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
-                            self.create_data_property_or_throw(key, prop_value, context)
-                                .expect(
-                                    "CreateDataPropertyOrThrow should never complete abruptly here",
-                                );
-                        }
-                    }
+                    // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                    self.create_data_property_or_throw(key, prop_value, context)
+                        .expect("CreateDataPropertyOrThrow should never complete abruptly here");
                 }
             }
         }

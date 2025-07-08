@@ -1,9 +1,9 @@
 use boa_engine::{
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
     builtins::function::OrdinaryFunction,
     js_string,
     object::ObjectInitializer,
     vm::flowgraph::{Direction, Graph},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
 use cow_utils::CowUtils;
 
@@ -67,15 +67,10 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             direction = flowgraph_parse_direction_option(
                 &arguments.get(js_string!("direction"), context)?,
             )?;
-        } else if value.is_string() {
-            format = flowgraph_parse_format_option(value)?;
         } else {
-            return Err(JsNativeError::typ()
-                .with_message("options argument must be a string or object")
-                .into());
+            format = flowgraph_parse_format_option(arguments)?;
         }
     }
-
     let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
         return Err(JsNativeError::typ()
             .with_message("expected an ordinary function object")

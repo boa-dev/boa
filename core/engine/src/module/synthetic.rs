@@ -4,14 +4,14 @@ use rustc_hash::FxHashSet;
 
 use super::{BindingName, ResolveExportError, ResolvedBinding};
 use crate::{
+    Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
     builtins::promise::ResolvingFunctions,
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     js_string,
     object::JsPromise,
-    vm::{ActiveRunnable, CallFrame, CodeBlock},
-    Context, JsNativeError, JsResult, JsString, JsValue, Module, SpannedSourceText,
+    vm::{ActiveRunnable, CallFrame, CodeBlock, source_info::SourcePath},
 };
 
 trait TraceableCallback: Trace {
@@ -309,7 +309,7 @@ impl SyntheticModule {
         // TODO: A bit of a hack to be able to pass the currently active runnable without an
         // available codeblock to execute.
         let compiler = ByteCompiler::new(
-            js_string!("<main>"),
+            js_string!("<synthetic>"),
             true,
             false,
             module_scope.clone(),
@@ -320,6 +320,7 @@ impl SyntheticModule {
             false,
             // A synthetic module does not contain `SourceText`
             SpannedSourceText::new_empty(),
+            SourcePath::None,
         );
 
         // 4. For each String exportName in module.[[ExportNames]], do

@@ -3,10 +3,10 @@
 //! Benchmarks of the whole execution engine in Boa.
 
 use boa_engine::{
-    context::DefaultHooks, object::shape::RootShape, optimizer::OptimizerOptions, realm::Realm,
-    script::Script, Context, Source,
+    Context, Source, context::DefaultHooks, object::shape::RootShape, optimizer::OptimizerOptions,
+    realm::Realm, script::Script,
 };
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use std::hint::black_box;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]

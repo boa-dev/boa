@@ -16,19 +16,19 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
 };
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 /// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -89,7 +89,7 @@ impl BuiltInConstructor for TypeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Type,
+            Error::with_caller_position(ErrorKind::Type, context),
         );
 
         // 3. If message is not undefined, then
@@ -133,6 +133,7 @@ impl IntrinsicObject for ThrowTypeError {
                     )
                     .into())
             }),
+            name: js_string!(),
             constructor: None,
             realm: Some(realm.clone()),
         };

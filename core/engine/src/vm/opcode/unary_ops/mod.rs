@@ -1,5 +1,5 @@
 use super::VaryingOperand;
-use crate::{builtins::Number, value::Numeric, vm::opcode::Operation, Context, JsBigInt, JsResult};
+use crate::{Context, JsBigInt, JsResult, builtins::Number, value::Numeric, vm::opcode::Operation};
 use std::ops::Neg as StdNeg;
 
 pub(crate) mod decrement;

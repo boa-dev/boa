@@ -1,4 +1,4 @@
-use boa_engine::{js_string, object::builtins::JsRegExp, Context, JsResult};
+use boa_engine::{Context, JsResult, js_string, object::builtins::JsRegExp};
 
 fn main() -> JsResult<()> {
     let context = &mut Context::default();

@@ -20,10 +20,10 @@ pub use op::*;
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::{
-    expression::{access::PropertyAccess, identifier::Identifier, Expression},
+    Span,
+    expression::{Expression, access::PropertyAccess, identifier::Identifier},
     pattern::Pattern,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 
 /// An assignment operator expression.

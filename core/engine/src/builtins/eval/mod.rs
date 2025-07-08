@@ -10,8 +10,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::{function::OrdinaryFunction, BuiltInObject},
-    bytecompiler::{eval_declaration_instantiation_context, ByteCompiler},
+    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
+    builtins::{BuiltInObject, function::OrdinaryFunction},
+    bytecompiler::{ByteCompiler, eval_declaration_instantiation_context},
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
@@ -20,11 +21,10 @@ use crate::{
     realm::Realm,
     spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant},
-    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
+    vm::{CallFrame, CallFrameFlags, Constant, source_info::SourcePath},
 };
 use boa_ast::{
-    operations::{contains, contains_arguments, ContainsSymbol},
+    operations::{ContainsSymbol, contains, contains_arguments},
     scope::Scope,
 };
 use boa_gc::Gc;
@@ -123,7 +123,9 @@ impl Eval {
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
         let x = x.to_vec();
-        let mut parser = Parser::new(Source::from_utf16(&x));
+        let source = Source::from_utf16(&x);
+
+        let mut parser = Parser::new(source);
         parser.set_identifier(context.next_parser_identifier());
         if strict {
             parser.set_strict();
@@ -263,7 +265,7 @@ impl Eval {
         let spanned_source_text = SpannedSourceText::new_source_only(source_text);
 
         let mut compiler = ByteCompiler::new(
-            js_string!("<main>"),
+            js_string!("<eval>"),
             body.strict(),
             false,
             variable_scope.clone(),
@@ -273,6 +275,8 @@ impl Eval {
             context.interner_mut(),
             in_with,
             spanned_source_text,
+            // TODO: Could give more information from previous shadow stack.
+            SourcePath::Eval,
         );
 
         compiler.current_open_environments_count += 1;

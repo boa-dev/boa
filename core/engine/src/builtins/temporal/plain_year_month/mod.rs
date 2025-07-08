@@ -3,9 +3,11 @@
 use std::str::FromStr;
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -13,21 +15,19 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 
 use temporal_rs::{
-    options::{ArithmeticOverflow, DisplayCalendar},
-    partial::PartialDate,
     Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth,
+    options::{ArithmeticOverflow, DisplayCalendar},
+    partial::{PartialDate, PartialYearMonth},
 };
 
 use super::{
-    calendar::get_temporal_calendar_slot_value_with_default, create_temporal_date,
+    DateTimeValues, calendar::get_temporal_calendar_slot_value_with_default, create_temporal_date,
     create_temporal_duration, is_partial_temporal_object, options::get_difference_settings,
-    to_temporal_duration, DateTimeValues,
+    to_temporal_duration,
 };
 
 /// The `Temporal.PlainYearMonth` object.
@@ -698,7 +698,7 @@ fn add_or_subtract_duration(
 fn to_partial_year_month(
     partial_object: &JsObject,
     context: &mut Context,
-) -> JsResult<PartialDate> {
+) -> JsResult<PartialYearMonth> {
     // a. Let calendar be ? ToTemporalCalendar(item).
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
 
@@ -732,11 +732,9 @@ fn to_partial_year_month(
         })
         .transpose()?;
 
-    Ok(PartialDate {
-        year,
-        month,
-        month_code,
-        calendar,
-        ..Default::default()
-    })
+    Ok(PartialYearMonth::new()
+        .with_year(year)
+        .with_month(month)
+        .with_month_code(month_code)
+        .with_calendar(calendar))
 }

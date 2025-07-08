@@ -1,8 +1,8 @@
 //! Local identifier Expression.
 
 use crate::{
-    visitor::{VisitWith, Visitor, VisitorMut},
     Span, ToStringEscaped,
+    visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;

@@ -11,21 +11,21 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
 use crate::{
-    builtins::{iterable::IteratorHint, BuiltInObject},
+    Context, JsArgs, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, iterable::IteratorHint},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsFunction, JsObject},
+    object::{JsFunction, JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use num_traits::Zero;
 
 use super::{
-    iterable::if_abrupt_close_iterator, BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
+    BuiltInBuilder, BuiltInConstructor, IntrinsicObject, iterable::if_abrupt_close_iterator,
 };
 
 mod map_iterator;
@@ -233,35 +233,32 @@ impl Map {
         let value = args.get_or_undefined(1);
 
         // 1. Let M be the this value.
-        if let Some(object) = this.as_object() {
-            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-            // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(mut map) = object.downcast_mut::<OrderedMap<JsValue>>() {
-                let key = match key.variant() {
-                    JsVariant::Float64(r) => {
-                        // 5. If key is -0𝔽, set key to +0𝔽.
-                        if r.is_zero() {
-                            JsValue::new(0)
-                        } else {
-                            key.clone()
-                        }
-                    }
-                    _ => key.clone(),
-                };
-                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
-                // i. Set p.[[Value]] to value.
-                // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
-                // 7. Append p as the last element of entries.
-                map.insert(key, value.clone());
-                // ii. Return M.
-                // 8. Return M.
-                return Ok(this.clone());
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        // 3. Let entries be the List that is M.[[MapData]].
+        let mut map = this
+            .as_downcast_mut::<OrderedMap<JsValue>>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
+        let key = match key.variant() {
+            JsVariant::Float64(r) => {
+                // 5. If key is -0𝔽, set key to +0𝔽.
+                if r.is_zero() {
+                    JsValue::new(0)
+                } else {
+                    key.clone()
+                }
             }
-        }
-        Err(JsNativeError::typ()
-            .with_message("'this' is not a Map")
-            .into())
+            _ => key.clone(),
+        };
+
+        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
+        // i. Set p.[[Value]] to value.
+        // 6. Let p be the Record { [[Key]]: key, [[Value]]: value }.
+        // 7. Append p as the last element of entries.
+        map.insert(key, value.clone());
+        // 8. Return M.
+        Ok(this.clone())
     }
 
     /// `get Map.prototype.size`
@@ -277,20 +274,17 @@ impl Map {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
     pub(crate) fn get_size(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
-        if let Some(object) = this.as_object() {
-            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-            // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.downcast_mut::<OrderedMap<JsValue>>() {
-                // 4. Let count be 0.
-                // 5. For each Record { [[Key]], [[Value]] } p of entries, do
-                // a. If p.[[Key]] is not empty, set count to count + 1.
-                // 6. Return 𝔽(count).
-                return Ok(map.len().into());
-            }
-        }
-        Err(JsNativeError::typ()
-            .with_message("'this' is not a Map")
-            .into())
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        // 3. Let entries be the List that is M.[[MapData]].
+        let map = this
+            .as_downcast_ref::<OrderedMap<JsValue>>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
+        // 4. Let count be 0.
+        // 5. For each Record { [[Key]], [[Value]] } p of entries, do
+        // a. If p.[[Key]] is not empty, set count to count + 1.
+        // 6. Return 𝔽(count).
+        Ok(map.len().into())
     }
 
     /// `Map.prototype.delete( key )`
@@ -305,28 +299,25 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
     pub(crate) fn delete(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        // 3. Let entries be the List that is M.[[MapData]].
+        let mut map = this
+            .as_downcast_mut::<OrderedMap<JsValue>>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
             Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
-        // 1. Let M be the this value.
-        if let Some(object) = this.as_object() {
-            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-            // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(mut map) = object.downcast_mut::<OrderedMap<JsValue>>() {
-                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
-                // i. Set p.[[Key]] to empty.
-                // ii. Set p.[[Value]] to empty.
-                // iii. Return true.
-                // 5. Return false.
-                return Ok(map.remove(key).is_some().into());
-            }
-        }
-        Err(JsNativeError::typ()
-            .with_message("'this' is not a Map")
-            .into())
+        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, then
+        // i. Set p.[[Key]] to empty.
+        // ii. Set p.[[Value]] to empty.
+        // iii. Return true.
+        // 5. Return false.
+        Ok(map.remove(key).is_some().into())
     }
 
     /// `Map.prototype.get( key )`
@@ -340,27 +331,23 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
     pub(crate) fn get(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        // 3. Let entries be the List that is M.[[MapData]].
+        let map = this
+            .as_downcast_ref::<OrderedMap<JsValue>>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
             Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
-        // 1. Let M be the this value.
-        if let Some(object) = this.as_object() {
-            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-            // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.downcast_ref::<OrderedMap<JsValue>>() {
-                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
-                // 5. Return undefined.
-                return Ok(map.get(key).cloned().unwrap_or_default());
-            }
-        }
-
-        Err(JsNativeError::typ()
-            .with_message("'this' is not a Map")
-            .into())
+        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return p.[[Value]].
+        // 5. Return undefined.
+        Ok(map.get(key).cloned().unwrap_or_default())
     }
 
     /// `Map.prototype.clear( )`
@@ -376,21 +363,18 @@ impl Map {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        if let Some(object) = this.as_object() {
-            // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(mut map) = object.downcast_mut::<OrderedMap<JsValue>>() {
-                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-                // a. Set p.[[Key]] to empty.
-                // b. Set p.[[Value]] to empty.
-                map.clear();
+        // 3. Let entries be the List that is M.[[MapData]].
+        let mut map = this
+            .as_downcast_mut::<OrderedMap<JsValue>>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
-                // 5. Return undefined.
-                return Ok(JsValue::undefined());
-            }
-        }
-        Err(JsNativeError::typ()
-            .with_message("'this' is not a Map")
-            .into())
+        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+        // a. Set p.[[Key]] to empty.
+        // b. Set p.[[Value]] to empty.
+        map.clear();
+
+        // 5. Return undefined.
+        Ok(JsValue::undefined())
     }
 
     /// `Map.prototype.has( key )`
@@ -404,27 +388,23 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        // 3. Let entries be the List that is M.[[MapData]].
+        let map = this
+            .as_downcast_ref::<OrderedMap<JsValue>>()
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
+
         let key = args.get_or_undefined(0);
         let key = match key.as_number() {
             Some(n) if n.is_zero() => &JsValue::new(0),
             _ => key,
         };
 
-        // 1. Let M be the this value.
-        if let Some(object) = this.as_object() {
-            // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-            // 3. Let entries be the List that is M.[[MapData]].
-            if let Some(map) = object.downcast_ref::<OrderedMap<JsValue>>() {
-                // 4. For each Record { [[Key]], [[Value]] } p of entries, do
-                // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
-                // 5. Return false.
-                return Ok(map.contains_key(key).into());
-            }
-        }
-
-        Err(JsNativeError::typ()
-            .with_message("'this' is not a Map")
-            .into())
+        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+        // a. If p.[[Key]] is not empty and SameValueZero(p.[[Key]], key) is true, return true.
+        // 5. Return false.
+        Ok(map.contains_key(key).into())
     }
 
     /// `Map.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -446,7 +426,8 @@ impl Map {
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         let map = this
             .as_object()
-            .filter(|obj| obj.is::<OrderedMap<JsValue>>())
+            .cloned()
+            .and_then(|obj| obj.downcast::<OrderedMap<JsValue>>().ok())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
@@ -466,19 +447,15 @@ impl Map {
         // after it has been visited and then re-added before the forEach call completes.
         // Keys that are deleted after the call to forEach begins and before being visited
         // are not visited unless the key is added again before the forEach call completes.
-        let _lock = map
-            .downcast_mut::<OrderedMap<JsValue>>()
-            .expect("checked that `this` was a map")
-            .lock(map.clone());
+        let _lock = map.borrow_mut().data.lock(map.clone().upcast());
 
         // 4. Let entries be the List that is M.[[MapData]].
         // 5. For each Record { [[Key]], [[Value]] } e of entries, do
         let mut index = 0;
         loop {
             let arguments = {
-                let map = map
-                    .downcast_ref::<OrderedMap<JsValue>>()
-                    .expect("checked that `this` was a map");
+                let map = map.borrow();
+                let map = &map.data;
                 if index < map.full_len() {
                     map.get_index(index)
                         .map(|(k, v)| [v.clone(), k.clone(), this.clone()])
@@ -514,20 +491,17 @@ impl Map {
 
         let map = this
             .as_object()
-            .filter(|obj| obj.is::<OrderedMap<JsValue>>())
+            .cloned()
+            .and_then(|obj| obj.downcast::<OrderedMap<JsValue>>().ok())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
-        let _lock = map
-            .downcast_mut::<OrderedMap<JsValue>>()
-            .expect("checked that `this` was a map")
-            .lock(map.clone());
+        let _lock = map.borrow_mut().data.lock(map.clone().upcast());
 
         let mut index = 0;
         loop {
             let (k, v) = {
-                let map = map
-                    .downcast_ref::<OrderedMap<JsValue>>()
-                    .expect("checked that `this` was a map");
+                let map = map.borrow();
+                let map = &map.data;
 
                 if index < map.full_len() {
                     if let Some((k, v)) = map.get_index(index) {
@@ -578,7 +552,7 @@ impl Map {
         use indexmap::IndexMap;
         use rustc_hash::FxHasher;
 
-        use crate::builtins::{iterable::if_abrupt_close_iterator, Array, Number};
+        use crate::builtins::{Array, Number, iterable::if_abrupt_close_iterator};
 
         let items = args.get_or_undefined(0);
         let callback = args.get_or_undefined(1);

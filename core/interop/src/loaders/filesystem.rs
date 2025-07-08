@@ -1,7 +1,7 @@
 //! Filesystem module loader. Loads modules from the filesystem.
 
-use boa_engine::module::{resolve_module_specifier, ModuleLoader, Referrer};
-use boa_engine::{js_string, Context, JsError, JsNativeError, JsResult, JsString, Module, Source};
+use boa_engine::module::{ModuleLoader, Referrer, resolve_module_specifier};
+use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module, Source, js_string};
 use std::path::{Path, PathBuf};
 
 /// A module loader that loads modules from the filesystem.

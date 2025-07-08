@@ -3,8 +3,8 @@
 //! This module will provides everything needed to implement the `CallFrame`
 
 use crate::{
-    builtins::iterable::IteratorRecord, environments::EnvironmentStack, realm::Realm,
-    vm::CodeBlock, JsValue,
+    JsValue, builtins::iterable::IteratorRecord, environments::EnvironmentStack, realm::Realm,
+    vm::CodeBlock,
 };
 use boa_ast::scope::BindingLocator;
 use boa_gc::{Finalize, Gc, Trace};

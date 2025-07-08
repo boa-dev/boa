@@ -5,6 +5,7 @@ use crate::value::inner::InnerValue;
 use crate::{js_string, string::JsStr};
 
 mod either;
+pub(super) mod nullable;
 mod serde_json;
 pub(super) mod try_from_js;
 pub(super) mod try_into_js;

@@ -1,11 +1,11 @@
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    object::{
-        internal_methods::{CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
-        JsData,
-    },
     Context, JsObject, JsResult, JsValue,
+    object::{
+        JsData,
+        internal_methods::{CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
+    },
 };
 
 /// Binds a `Function Object` when `bind` is called.

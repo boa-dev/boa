@@ -1,6 +1,6 @@
 use crate::{
-    object::{JsObject, JsPrototype},
     Context, JsResult,
+    object::{JsObject, JsPrototype},
 };
 
 use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};

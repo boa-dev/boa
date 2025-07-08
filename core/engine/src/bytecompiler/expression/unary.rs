@@ -1,18 +1,22 @@
-use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
+use crate::bytecompiler::{
+    Access, BindingAccessOpcode, ByteCompiler, Register, SourcePositionGuard, ToJsString,
+};
 use boa_ast::{
-    expression::operator::{unary::UnaryOp, Unary},
     Expression,
+    expression::operator::{Unary, unary::UnaryOp},
 };
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_unary(&mut self, unary: &Unary, dst: &Register) {
         match unary.op() {
             UnaryOp::Delete => {
+                let mut compiler = SourcePositionGuard::new(self, unary.span().start());
+
                 if let Some(access) = Access::from_expression(unary.target()) {
-                    self.access_delete(access, dst);
+                    compiler.access_delete(access, dst);
                 } else {
-                    self.compile_expr(unary.target(), dst);
-                    self.bytecode.emit_push_true(dst.variable());
+                    compiler.compile_expr(unary.target(), dst);
+                    compiler.bytecode.emit_push_true(dst.variable());
                 }
             }
             UnaryOp::Minus => {

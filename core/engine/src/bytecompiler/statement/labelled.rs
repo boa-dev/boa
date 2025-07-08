@@ -1,7 +1,7 @@
 use crate::bytecompiler::{ByteCompiler, NodeKind};
 use boa_ast::{
-    statement::{Labelled, LabelledItem},
     Statement,
+    statement::{Labelled, LabelledItem},
 };
 
 impl ByteCompiler<'_> {

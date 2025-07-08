@@ -1,13 +1,13 @@
 use crate::{
     lexer::{Token, TokenKind},
     parser::{
+        AllowAwait, AllowYield, ParseResult, TokenParser,
         cursor::{Cursor, SemicolonResult},
         expression::Expression,
-        AllowAwait, AllowYield, ParseResult, TokenParser,
     },
     source::ReadChar,
 };
-use boa_ast::{statement::Return, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, statement::Return};
 use boa_interner::Interner;
 
 /// Return statement parsing

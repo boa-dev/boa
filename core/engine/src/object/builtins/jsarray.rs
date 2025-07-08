@@ -1,10 +1,10 @@
 //! A Rust API wrapper for Boa's `Array` Builtin ECMAScript Object
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::Array,
     error::JsNativeError,
     object::{JsFunction, JsObject},
     value::{IntoOrUndefined, TryFromJs},
-    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;

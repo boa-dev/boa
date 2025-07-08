@@ -1,9 +1,9 @@
 //! Tests for the lexer.
 
 use crate::lexer::{
+    Cursor, Error, Interner, Lexer, Punctuator, TokenKind,
     template::TemplateString,
     token::{ContainsEscapeSequence, EscapeSequence, Numeric},
-    Cursor, Error, Interner, Lexer, Punctuator, TokenKind,
 };
 use crate::source::ReadChar;
 use boa_ast::{Keyword, Position, Span};

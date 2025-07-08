@@ -2,8 +2,8 @@
 // the require/module.exports pattern
 
 use boa_engine::{
-    js_string, native_function::NativeFunction, prelude::JsObject, property::Attribute, Context,
-    JsArgs, JsNativeError, JsResult, JsValue, Source,
+    Context, JsArgs, JsNativeError, JsResult, JsValue, Source, js_string,
+    native_function::NativeFunction, prelude::JsObject, property::Attribute,
 };
 use boa_runtime::Console;
 use std::{error::Error, fs::read_to_string};
