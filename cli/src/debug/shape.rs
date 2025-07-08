@@ -3,7 +3,7 @@ use boa_engine::{
     object::ObjectInitializer,
 };
 
-fn get_object(args: &[JsValue], position: usize) -> JsResult<&JsObject> {
+fn get_object(args: &[JsValue], position: usize) -> JsResult<JsObject> {
     let value = args.get_or_undefined(position);
 
     let Some(object) = value.as_object() else {

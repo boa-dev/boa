@@ -40,7 +40,7 @@ impl CallEval {
         // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
-        if JsObject::equals(object, &eval) {
+        if JsObject::equals(&object, &eval) {
             let arguments = context
                 .vm
                 .stack
@@ -110,7 +110,7 @@ impl CallEvalSpread {
 
         let func = context.vm.stack.calling_convention_get_function(0);
 
-        let Some(object) = func.as_object().cloned() else {
+        let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("not a callable function")
                 .into());

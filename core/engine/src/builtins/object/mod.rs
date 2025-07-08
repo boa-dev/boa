@@ -16,6 +16,7 @@
 use super::{
     Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp, error::Error,
 };
+use crate::builtins::function::arguments::{MappedArguments, UnmappedArguments};
 use crate::value::JsVariant;
 use crate::{
     Context, JsArgs, JsData, JsResult, JsString,
@@ -457,7 +458,7 @@ impl OrdinaryObject {
             JsVariant::Object(_) | JsVariant::Null => {
                 JsObject::from_proto_and_data_with_shared_shape(
                     context.root_shape(),
-                    prototype.as_object().cloned(),
+                    prototype.as_object(),
                     OrdinaryObject,
                 )
             }
@@ -789,7 +790,7 @@ impl OrdinaryObject {
         let arg = args.get_or_undefined(0);
         if let Some(obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
-            object_define_properties(obj, props, context)?;
+            object_define_properties(&obj, props, context)?;
             Ok(arg.clone())
         } else {
             Err(JsNativeError::typ()
@@ -838,37 +839,33 @@ impl OrdinaryObject {
         //  5. If isArray is true, let builtinTag be "Array".
         let builtin_tag = if o.is_array_abstract()? {
             js_str!("Array")
+        } else if o.is::<UnmappedArguments>() || o.is::<MappedArguments>() {
+            // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
+            js_str!("Arguments")
+        } else if o.is_callable() {
+            // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
+            js_str!("Function")
+        } else if o.is::<Error>() {
+            // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
+            js_str!("Error")
+        } else if o.is::<bool>() {
+            // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+            js_str!("Boolean")
+        } else if o.is::<f64>() {
+            // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+            js_str!("Number")
+        } else if o.is::<JsString>() {
+            // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
+            js_str!("String")
+        } else if o.is::<Date>() {
+            // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+            js_str!("Date")
+        } else if o.is::<RegExp>() {
+            // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
+            js_str!("RegExp")
         } else {
-            let o_borrow = o.borrow();
-
-            if o_borrow.is_arguments() {
-                // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
-                js_str!("Arguments")
-            } else if o.is_callable() {
-                // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-                js_str!("Function")
-            } else if o.is::<Error>() {
-                // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-                js_str!("Error")
-            } else if o.is::<bool>() {
-                // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-                js_str!("Boolean")
-            } else if o.is::<f64>() {
-                // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
-                js_str!("Number")
-            } else if o.is::<JsString>() {
-                // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-                js_str!("String")
-            } else if o.is::<Date>() {
-                // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
-                js_str!("Date")
-            } else if o.is::<RegExp>() {
-                // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
-                js_str!("RegExp")
-            } else {
-                // 14. Else, let builtinTag be "Object".
-                js_str!("Object")
-            }
+            // 14. Else, let builtinTag be "Object".
+            js_str!("Object")
         };
 
         // 15. Let tag be ? Get(O, @@toStringTag).

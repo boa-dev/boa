@@ -134,9 +134,9 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
 
     let arguments = args.get(2..).unwrap_or(&[]);
 
-    set_trace_flag_in_function_object(callable, true)?;
+    set_trace_flag_in_function_object(&callable, true)?;
     let result = callable.call(this, arguments, context);
-    set_trace_flag_in_function_object(callable, false)?;
+    set_trace_flag_in_function_object(&callable, false)?;
 
     result
 }
@@ -151,7 +151,7 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue
             .into());
     };
 
-    set_trace_flag_in_function_object(callable, traceable)?;
+    set_trace_flag_in_function_object(&callable, traceable)?;
 
     Ok(value.clone())
 }

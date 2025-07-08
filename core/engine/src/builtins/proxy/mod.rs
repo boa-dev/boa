@@ -1232,7 +1232,7 @@ fn proxy_exotic_construct(
     )?;
 
     // 10. If Type(newObj) is not Object, throw a TypeError exception.
-    let new_obj = new_obj.as_object().cloned().ok_or_else(|| {
+    let new_obj = new_obj.as_object().ok_or_else(|| {
         JsNativeError::typ().with_message("Proxy trap constructor returned non-object value")
     })?;
 

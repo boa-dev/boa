@@ -164,7 +164,7 @@ impl Json {
                 .expect("CreateDataPropertyOrThrow should never throw here");
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-            Self::internalize_json_property(&root, js_string!(), obj, context)
+            Self::internalize_json_property(&root, js_string!(), &obj, context)
         } else {
             // 12. Else,
             // a. Return unfiltered.
@@ -200,7 +200,7 @@ impl Json {
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
                     let new_element =
-                        Self::internalize_json_property(obj, i.into(), reviver, context)?;
+                        Self::internalize_json_property(&obj, i.into(), reviver, context)?;
 
                     // 3. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -229,7 +229,7 @@ impl Json {
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
                     let new_element =
-                        Self::internalize_json_property(obj, p.clone(), reviver, context)?;
+                        Self::internalize_json_property(&obj, p.clone(), reviver, context)?;
 
                     // 2. If newElement is undefined, then
                     if new_element.is_undefined() {
@@ -442,7 +442,7 @@ impl Json {
         }
 
         // 4. If Type(value) is Object, then
-        if let Some(obj) = value.as_object().cloned() {
+        if let Some(obj) = value.as_object() {
             // a. If value has a [[NumberData]] internal slot, then
             if obj.is::<f64>() {
                 // i. Set value to ? ToNumber(value).
@@ -508,17 +508,17 @@ impl Json {
         }
 
         // 11. If Type(value) is Object and IsCallable(value) is false, then
-        if let Some(obj) = value.as_object()
-            && !obj.is_callable()
-        {
-            // a. Let isArray be ? IsArray(value).
-            // b. If isArray is true, return ? SerializeJSONArray(state, value).
-            // c. Return ? SerializeJSONObject(state, value).
-            return if obj.is_array_abstract()? {
-                Ok(Some(Self::serialize_json_array(state, obj, context)?))
-            } else {
-                Ok(Some(Self::serialize_json_object(state, obj, context)?))
-            };
+        if let Some(obj) = value.as_object() {
+            if !obj.is_callable() {
+                // a. Let isArray be ? IsArray(value).
+                // b. If isArray is true, return ? SerializeJSONArray(state, value).
+                // c. Return ? SerializeJSONObject(state, value).
+                return if obj.is_array_abstract()? {
+                    Ok(Some(Self::serialize_json_array(state, &obj, context)?))
+                } else {
+                    Ok(Some(Self::serialize_json_object(state, &obj, context)?))
+                };
+            }
         }
 
         // 12. Return undefined.

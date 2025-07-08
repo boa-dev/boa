@@ -775,7 +775,7 @@ pub(crate) fn ordinary_set(
         // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cachable for now.
         context.slot().attributes.set(
             SlotAttributes::NOT_CACHABLE,
-            !JsObject::equals(obj, receiver),
+            !JsObject::equals(obj, &receiver),
         );
 
         // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).

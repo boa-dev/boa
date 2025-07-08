@@ -177,12 +177,10 @@ impl Finalize for SetLock {
     fn finalize(&self) {
         // Avoids panicking inside `Finalize`, with the downside of slightly increasing
         // memory usage if the set could not be borrowed.
-        let Ok(mut set) = self.0.try_borrow_mut() else {
-            return;
-        };
-        let set = set
+        // TODO: try_downcast_mut
+        self.0
             .downcast_mut::<OrderedSet>()
-            .expect("SetLock does not point to a set");
-        set.unlock();
+            .expect("SetLock does not point to a set")
+            .unlock();
     }
 }

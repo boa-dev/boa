@@ -148,9 +148,9 @@ impl BufferObject {
         &self,
     ) -> BufferRef<GcRef<'_, ArrayBuffer>, GcRef<'_, SharedArrayBuffer>> {
         match self {
-            Self::Buffer(buf) => BufferRef::Buffer(GcRef::map(buf.borrow(), |o| &o.data)),
+            Self::Buffer(buf) => BufferRef::Buffer(GcRef::map(buf.borrow(), |o| o.data())),
             Self::SharedBuffer(buf) => {
-                BufferRef::SharedBuffer(GcRef::map(buf.borrow(), |o| &o.data))
+                BufferRef::SharedBuffer(GcRef::map(buf.borrow(), |o| o.data()))
             }
         }
     }
@@ -166,10 +166,10 @@ impl BufferObject {
     > {
         match self {
             Self::Buffer(buf) => {
-                BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+                BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| o.data_mut()))
             }
             Self::SharedBuffer(buf) => {
-                BufferRefMut::SharedBuffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+                BufferRefMut::SharedBuffer(GcRefMut::map(buf.borrow_mut(), |o| o.data_mut()))
             }
         }
     }
@@ -487,8 +487,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -512,8 +513,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -545,8 +547,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -569,8 +572,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()

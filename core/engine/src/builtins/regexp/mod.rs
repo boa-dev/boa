@@ -206,57 +206,56 @@ impl BuiltInConstructor for RegExp {
                 .map_or(JsValue::undefined(), JsValue::new);
 
             // b. If patternIsRegExp is true and flags is undefined, then
-            if let Some(pattern) = pattern_is_regexp
-                && flags.is_undefined()
-            {
-                // i. Let patternConstructor be ? Get(pattern, "constructor").
-                let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
+            if let Some(pattern) = &pattern_is_regexp {
+                if flags.is_undefined() {
+                    // i. Let patternConstructor be ? Get(pattern, "constructor").
+                    let pattern_constructor = pattern.get(CONSTRUCTOR, context)?;
 
-                // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
-                if JsValue::same_value(&new_target, &pattern_constructor) {
-                    return Ok(pattern.clone().into());
+                    // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
+                    if JsValue::same_value(&new_target, &pattern_constructor) {
+                        return Ok(pattern.clone().into());
+                    }
                 }
             }
         }
 
         // 4. If pattern is an Object and pattern has a [[RegExpMatcher]] internal slot, then
-        let (p, f) = if let Some(pattern) = pattern
-            .as_object()
-            .and_then(JsObject::downcast_ref::<RegExp>)
-        {
-            // a. Let P be pattern.[[OriginalSource]].
-            let p = pattern.original_source.clone().into();
+        let object = pattern.clone().as_object();
+        let (p, f) =
+            if let Some(pattern) = object.as_ref().and_then(JsObject::downcast_ref::<RegExp>) {
+                // a. Let P be pattern.[[OriginalSource]].
+                let p = pattern.original_source.clone().into();
 
-            // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
-            let f = if flags.is_undefined() {
-                pattern.original_flags.clone().into()
-            // c. Else, let F be flags.
+                // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
+                let f = if flags.is_undefined() {
+                    pattern.original_flags.clone().into()
+                // c. Else, let F be flags.
+                } else {
+                    flags.clone()
+                };
+
+                (p, f)
+            } else if let Some(pattern) = &pattern_is_regexp {
+                // a. Let P be ? Get(pattern, "source").
+                let p = pattern.get(js_string!("source"), context)?;
+
+                // b. If flags is undefined, then
+                let f = if flags.is_undefined() {
+                    // i. Let F be ? Get(pattern, "flags").
+                    pattern.get(js_string!("flags"), context)?
+                // c. Else,
+                } else {
+                    // i. Let F be flags.
+                    flags.clone()
+                };
+
+                (p, f)
+            // 6. Else,
             } else {
-                flags.clone()
+                // a. Let P be pattern.
+                // b. Let F be flags.
+                (pattern.clone(), flags.clone())
             };
-
-            (p, f)
-        } else if let Some(pattern) = pattern_is_regexp {
-            // a. Let P be ? Get(pattern, "source").
-            let p = pattern.get(js_string!("source"), context)?;
-
-            // b. If flags is undefined, then
-            let f = if flags.is_undefined() {
-                // i. Let F be ? Get(pattern, "flags").
-                pattern.get(js_string!("flags"), context)?
-            // c. Else,
-            } else {
-                // i. Let F be flags.
-                flags.clone()
-            };
-
-            (p, f)
-        // 6. Else,
-        } else {
-            // a. Let P be pattern.
-            // b. Let F be flags.
-            (pattern.clone(), flags.clone())
-        };
 
         // 7. Let O be ? RegExpAlloc(newTarget).
         let proto =
@@ -276,10 +275,10 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isregexp
-    pub(crate) fn is_reg_exp<'a>(
-        argument: &'a JsValue,
+    pub(crate) fn is_reg_exp(
+        argument: &JsValue,
         context: &mut Context,
-    ) -> JsResult<Option<&'a JsObject>> {
+    ) -> JsResult<Option<JsObject>> {
         // 1. If argument is not an Object, return false.
         let Some(argument) = argument.as_object() else {
             return Ok(None);
@@ -443,7 +442,7 @@ impl RegExp {
             }
 
             if JsObject::equals(
-                object,
+                &object,
                 &context.intrinsics().constructors().regexp().prototype(),
             ) {
                 return Ok(JsValue::undefined());
@@ -715,7 +714,8 @@ impl RegExp {
                 .into());
         };
 
-        match object.downcast_ref::<RegExp>() {
+        let casted = object.downcast_ref::<RegExp>();
+        match casted {
             // 3. If R does not have an [[OriginalSource]] internal slot, then
             None => {
                 // a. If SameValue(R, %RegExp.prototype%) is true, return "(?:)".
@@ -804,7 +804,7 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let match be ? RegExpExec(R, string).
-        let m = Self::abstract_exec(this, arg_str, context)?;
+        let m = Self::abstract_exec(&this, arg_str, context)?;
 
         // 5. If match is not null, return true; else return false.
         if m.is_some() {
@@ -833,9 +833,8 @@ impl RegExp {
     ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
+        let this = this.as_object();
         let obj = this
-            .as_object()
-            .cloned()
             .and_then(|o| o.downcast::<RegExp>().ok())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("RegExp.prototype.exec called with invalid value")
@@ -879,7 +878,7 @@ impl RegExp {
             }
 
             // c. Return result.
-            return Ok(result.as_object().cloned());
+            return Ok(result.as_object());
         }
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
@@ -1219,7 +1218,7 @@ impl RegExp {
         // 5. If flags does not contain "g", then
         if !flags.contains(b'g') {
             // a. Return ? RegExpExec(rx, S).
-            return (Self::abstract_exec(rx, arg_str, context)?)
+            return (Self::abstract_exec(&rx, arg_str, context)?)
                 .map_or_else(|| Ok(JsValue::null()), |v| Ok(v.into()));
         }
 
@@ -1240,7 +1239,7 @@ impl RegExp {
         // e. Repeat,
         loop {
             // i. Let result be ? RegExpExec(rx, S).
-            let result = Self::abstract_exec(rx, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(&rx, arg_str.clone(), context)?;
 
             // ii. If result is null, then
             // iii. Else,
@@ -1402,8 +1401,8 @@ impl RegExp {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // Helper enum.
-        enum CallableOrString<'a> {
-            FunctionalReplace(&'a JsObject),
+        enum CallableOrString {
+            FunctionalReplace(JsObject),
             ReplaceValue(JsString),
         }
 
@@ -1463,7 +1462,7 @@ impl RegExp {
         // 12. Repeat, while done is false,
         loop {
             // a. Let result be ? RegExpExec(rx, S).
-            let result = Self::abstract_exec(rx, s.clone(), context)?;
+            let result = Self::abstract_exec(&rx, s.clone(), context)?;
 
             // b. If result is null, set done to true.
             let Some(result) = result else {
@@ -1566,7 +1565,7 @@ impl RegExp {
 
             let replacement = match replace_value {
                 // k. If functionalReplace is true, then
-                CallableOrString::FunctionalReplace(replace_value) => {
+                CallableOrString::FunctionalReplace(ref replace_value) => {
                     // i. Let replacerArgs be the list-concatenation of « matched », captures, and « 𝔽(position), S ».
                     let mut replacer_args = vec![JsValue::new(matched)];
                     replacer_args.extend(captures);
@@ -1671,7 +1670,7 @@ impl RegExp {
         }
 
         // 6. Let result be ? RegExpExec(rx, S).
-        let result = Self::abstract_exec(rx, arg_str, context)?;
+        let result = Self::abstract_exec(&rx, arg_str, context)?;
 
         // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
         let current_last_index = rx.get(js_string!("lastIndex"), context)?;
@@ -1882,7 +1881,6 @@ impl RegExp {
         let this = this
             .as_object()
             .filter(|o| o.is::<RegExp>())
-            .cloned()
             .ok_or_else(|| {
                 JsNativeError::typ()
                     .with_message("`RegExp.prototype.compile` cannot be called for a non-object")

@@ -348,8 +348,9 @@ impl Locale {
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let mut loc = this
-            .as_object()
+        let object = this.as_object();
+        let mut loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -385,8 +386,9 @@ impl Locale {
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let mut loc = this
-            .as_object()
+        let object = this.as_object();
+        let mut loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -419,8 +421,9 @@ impl Locale {
     pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -442,8 +445,9 @@ impl Locale {
     pub(crate) fn base_name(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -466,8 +470,9 @@ impl Locale {
     pub(crate) fn calendar(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -495,8 +500,9 @@ impl Locale {
     pub(crate) fn case_first(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -524,8 +530,9 @@ impl Locale {
     pub(crate) fn collation(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -553,8 +560,9 @@ impl Locale {
     pub(crate) fn hour_cycle(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -582,8 +590,9 @@ impl Locale {
     pub(crate) fn numeric(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -616,8 +625,9 @@ impl Locale {
     ) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -645,8 +655,9 @@ impl Locale {
     pub(crate) fn language(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -670,8 +681,9 @@ impl Locale {
     pub(crate) fn script(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -700,8 +712,9 @@ impl Locale {
     pub(crate) fn region(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let object = this.as_object();
+        let loc = object
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -730,8 +743,9 @@ impl Locale {
     pub(crate) fn variants(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let loc be the this value.
         // 2. Perform ? RequireInternalSlot(loc, [[InitializedLocale]]).
-        let loc = this
-            .as_object()
+        let loc = this.as_object();
+        let loc = loc
+            .as_ref()
             .and_then(|o| o.downcast_ref::<icu_locale::Locale>())
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
