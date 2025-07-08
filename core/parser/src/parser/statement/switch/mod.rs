@@ -11,7 +11,7 @@ use crate::{
     source::ReadChar,
 };
 use ast::operations::{lexically_declared_names_legacy, var_declared_names};
-use boa_ast::{self as ast, Keyword, Punctuator, statement, statement::Switch};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned, statement, statement::Switch};
 use boa_interner::Interner;
 use rustc_hash::FxHashMap;
 

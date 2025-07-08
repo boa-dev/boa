@@ -6,7 +6,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{Keyword, Punctuator, Statement};
+use boa_ast::{Keyword, Punctuator, Spanned, Statement};
 use boa_interner::Interner;
 
 /// Expression statement parsing.

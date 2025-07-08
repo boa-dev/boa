@@ -13,7 +13,7 @@ use crate::{
     parser::{AllowAwait, AllowIn, OrAbrupt, ParseResult, TokenParser, cursor::Cursor},
     source::ReadChar,
 };
-use boa_ast::{Expression, Keyword, Punctuator, Span, expression::Yield};
+use boa_ast::{Expression, Keyword, Punctuator, Span, Spanned, expression::Yield};
 use boa_interner::Interner;
 
 /// `YieldExpression` parsing.

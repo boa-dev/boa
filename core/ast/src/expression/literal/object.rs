@@ -1,7 +1,7 @@
 //! Object Expression.
 
 use crate::{
-    LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
+    LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{
         Expression, Identifier, RESERVED_IDENTIFIERS_STRICT,
         operator::assign::{AssignOp, AssignTarget},
@@ -63,13 +63,6 @@ impl ObjectLiteral {
     #[must_use]
     pub const fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
-    }
-
-    /// Get the [`Span`] of the [`ObjectLiteral`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
     }
 
     /// Converts the object literal into an [`ObjectPattern`].
@@ -225,6 +218,12 @@ impl ObjectLiteral {
         }
 
         Some(ObjectPattern::new(bindings.into(), self.span))
+    }
+}
+
+impl Spanned for ObjectLiteral {
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

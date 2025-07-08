@@ -5,7 +5,7 @@ use crate::operations::{ContainsSymbol, contains};
 use crate::scope::{FunctionScopes, Scope};
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
-    Declaration, block_to_string,
+    Declaration, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
 };
@@ -248,11 +248,10 @@ impl AsyncGeneratorExpression {
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
     }
+}
 
-    /// Get the [`Span`] of the [`AsyncGeneratorExpression`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+impl Spanned for AsyncGeneratorExpression {
+    fn span(&self) -> Span {
         self.span
     }
 }

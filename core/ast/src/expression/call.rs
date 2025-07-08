@@ -53,19 +53,12 @@ impl Call {
     pub const fn args(&self) -> &[Expression] {
         &self.args
     }
-
-    /// Gets the [`Span`] of the [`Call`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
-        self.span
-    }
 }
 
 impl Spanned for Call {
     #[inline]
     fn span(&self) -> Span {
-        self.span()
+        self.span
     }
 }
 
@@ -144,11 +137,10 @@ impl SuperCall {
     pub const fn arguments(&self) -> &[Expression] {
         &self.args
     }
+}
 
-    /// Get the [`Span`] of the [`SuperCall`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+impl Spanned for SuperCall {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -224,11 +216,10 @@ impl ImportCall {
     pub const fn argument(&self) -> &Expression {
         &self.arg
     }
+}
 
-    /// Get the [`Span`] of the [`ImportCall`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+impl Spanned for ImportCall {
+    fn span(&self) -> Span {
         self.span
     }
 }

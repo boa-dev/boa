@@ -1,6 +1,6 @@
 use super::{Expression, access::PropertyAccessField};
 use crate::{
-    Span,
+    Span, Spanned,
     function::PrivateName,
     join_nodes,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -104,11 +104,10 @@ impl OptionalOperation {
     pub const fn shorted(&self) -> bool {
         self.shorted
     }
+}
 
-    /// Get the [`Span`] of the [`OptionalOperation`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for OptionalOperation {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -223,11 +222,10 @@ impl Optional {
     pub fn chain(&self) -> &[OptionalOperation] {
         self.chain.as_ref()
     }
+}
 
-    /// Get the [`Span`] of the [`Optional`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for Optional {
+    fn span(&self) -> Span {
         self.span
     }
 }

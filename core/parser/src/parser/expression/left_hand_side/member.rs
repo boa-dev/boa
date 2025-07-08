@@ -19,7 +19,7 @@ use crate::{
 };
 use ast::function::PrivateName;
 use boa_ast::{
-    self as ast, Keyword, Punctuator, Span,
+    self as ast, Keyword, Punctuator, Span, Spanned,
     expression::{
         Call, Identifier, ImportMeta, New, NewTarget,
         access::{PrivatePropertyAccess, SimplePropertyAccess, SuperPropertyAccess},

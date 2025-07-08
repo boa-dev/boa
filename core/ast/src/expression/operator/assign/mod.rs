@@ -70,18 +70,12 @@ impl Assign {
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
     }
-
-    /// Get the [`Span`] of the [`Assign`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
-        Span::new(self.lhs.span().start(), self.rhs.span().end())
-    }
 }
 
 impl Spanned for Assign {
+    #[inline]
     fn span(&self) -> Span {
-        self.span()
+        Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
@@ -174,11 +168,10 @@ impl AssignTarget {
             _ => None,
         }
     }
+}
 
-    /// Get the [`Span`] of the [`AssignTarget`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for AssignTarget {
+    fn span(&self) -> Span {
         match self {
             AssignTarget::Identifier(identifier) => identifier.span(),
             AssignTarget::Access(property_access) => property_access.span(),

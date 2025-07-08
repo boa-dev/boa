@@ -28,7 +28,7 @@ use crate::{
     parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
     source::ReadChar,
 };
-use boa_ast::{self as ast, Keyword};
+use boa_ast::{self as ast, Keyword, Spanned};
 use boa_interner::{Interner, Sym};
 
 /// Parses a declaration.

@@ -36,21 +36,13 @@ pub enum PropertyAccessField {
     Expr(Box<Expression>),
 }
 
-impl PropertyAccessField {
-    /// Get the [`Span`] of the [`PropertyAccessField`] node.
+impl Spanned for PropertyAccessField {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         match self {
             Self::Const(identifier) => identifier.span(),
             Self::Expr(expression) => expression.span(),
         }
-    }
-}
-
-impl Spanned for PropertyAccessField {
-    fn span(&self) -> Span {
-        self.span()
     }
 }
 
@@ -105,11 +97,8 @@ pub enum PropertyAccess {
     Super(SuperPropertyAccess),
 }
 
-impl PropertyAccess {
-    /// Get the [`Span`] of the [`PropertyAccess`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for PropertyAccess {
+    fn span(&self) -> Span {
         match self {
             Self::Simple(access) => access.span(),
             Self::Private(access) => access.span(),
@@ -194,18 +183,11 @@ impl SimplePropertyAccess {
             field: field.into(),
         }
     }
-
-    /// Get the [`Span`] of the [`SimplePropertyAccess`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
-        Span::new(self.target.span().start(), self.field.span().end())
-    }
 }
 
 impl Spanned for SimplePropertyAccess {
     fn span(&self) -> Span {
-        self.span()
+        Span::new(self.target.span().start(), self.field.span().end())
     }
 }
 
@@ -293,11 +275,10 @@ impl PrivatePropertyAccess {
     pub const fn field(&self) -> PrivateName {
         self.field
     }
+}
 
-    /// Get the [`Span`] of the [`PrivatePropertyAccess`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for PrivatePropertyAccess {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -366,11 +347,10 @@ impl SuperPropertyAccess {
     pub const fn field(&self) -> &PropertyAccessField {
         &self.field
     }
+}
 
-    /// Get the [`Span`] of the [`SuperPropertyAccess`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for SuperPropertyAccess {
+    fn span(&self) -> Span {
         self.span
     }
 }

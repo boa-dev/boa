@@ -12,7 +12,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Declaration, Keyword, Punctuator, StatementListItem,
+    Declaration, Keyword, Punctuator, Spanned, StatementListItem,
     statement::{Block, If},
 };
 use boa_interner::Interner;

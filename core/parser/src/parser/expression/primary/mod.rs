@@ -44,7 +44,7 @@ use crate::{
 };
 use ast::expression::RegExpLiteral as AstRegExp;
 use boa_ast::{
-    self as ast, Keyword, Punctuator, Span,
+    self as ast, Keyword, Punctuator, Span, Spanned,
     declaration::Variable,
     expression::{
         Identifier, Parenthesized, This,

@@ -12,7 +12,7 @@ use std::ops::ControlFlow;
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::{
-    Span,
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 
@@ -60,11 +60,10 @@ impl RegExpLiteral {
     pub const fn flags(&self) -> Sym {
         self.flags
     }
+}
 
-    /// Get the [`Span`] of the [`RegExpLiteral`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+impl Spanned for RegExpLiteral {
+    fn span(&self) -> Span {
         self.span
     }
 }

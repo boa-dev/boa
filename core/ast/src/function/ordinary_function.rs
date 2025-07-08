@@ -269,13 +269,6 @@ impl FunctionExpression {
         self.contains_direct_eval
     }
 
-    /// Get the [`Span`] of the [`FunctionExpression`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
-
     /// Analyze the scope of the function expression.
     pub fn analyze_scope(&mut self, strict: bool, scope: &Scope, interner: &Interner) -> bool {
         if !collect_bindings(self, strict, false, scope, interner) {

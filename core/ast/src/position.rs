@@ -261,6 +261,7 @@ impl fmt::Display for Span {
 /// An element of the AST or any type that can be located in the source with a Span.
 pub trait Spanned {
     /// Returns a span from the current type.
+    #[must_use]
     fn span(&self) -> Span;
 }
 

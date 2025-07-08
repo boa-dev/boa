@@ -17,7 +17,7 @@
 mod op;
 
 use crate::{
-    Span,
+    Span, Spanned,
     expression::Expression,
     function::PrivateName,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -85,11 +85,10 @@ impl Binary {
     pub fn rhs_mut(&mut self) -> &mut Expression {
         &mut self.rhs
     }
+}
 
-    /// Get the [`Span`] of the [`Binary`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for Binary {
+    fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
@@ -168,11 +167,10 @@ impl BinaryInPrivate {
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
     }
+}
 
-    /// Get the [`Span`] of the [`BinaryInPrivate`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for BinaryInPrivate {
+    fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }

@@ -8,7 +8,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{Keyword, Punctuator, statement::With};
+use boa_ast::{Keyword, Punctuator, Spanned, statement::With};
 use boa_interner::Interner;
 
 /// With statement parsing.

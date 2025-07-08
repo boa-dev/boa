@@ -104,13 +104,6 @@ impl FunctionBody {
     pub const fn linear_pos_end(&self) -> LinearPosition {
         self.statements.linear_pos_end()
     }
-
-    /// Get the [`Span`] of the [`FunctionBody`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
 }
 
 impl Spanned for FunctionBody {

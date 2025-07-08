@@ -287,11 +287,10 @@ impl Expression {
         }
         expression
     }
+}
 
-    /// Get [`Span`] of the [`Expression`].
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+impl Spanned for Expression {
+    fn span(&self) -> Span {
         match self {
             Self::This(this) => this.span(),
             Self::Identifier(id) => id.span(),
@@ -329,12 +328,6 @@ impl Expression {
             // TODO: Remove `FormalParameterList` and `Debugger` nodes
             Self::FormalParameterList(_) | Self::Debugger => Span::EMPTY,
         }
-    }
-}
-
-impl Spanned for Expression {
-    fn span(&self) -> Span {
-        self.span()
     }
 }
 

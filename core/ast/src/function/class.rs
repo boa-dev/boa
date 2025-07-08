@@ -242,11 +242,10 @@ impl ClassExpression {
     pub const fn name_scope(&self) -> Option<&Scope> {
         self.name_scope.as_ref()
     }
+}
 
-    /// Get the [`Span`] of the [`ClassExpression`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+impl Spanned for ClassExpression {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -876,13 +875,6 @@ impl PrivateName {
     #[must_use]
     pub const fn description(&self) -> Sym {
         self.description
-    }
-
-    /// Get the [`Span`] of the [`PrivateName`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
-        self.span
     }
 }
 

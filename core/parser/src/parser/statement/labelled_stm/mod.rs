@@ -9,7 +9,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{self as ast, Keyword, Punctuator};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned};
 use boa_interner::Interner;
 
 /// Labelled Statement Parsing

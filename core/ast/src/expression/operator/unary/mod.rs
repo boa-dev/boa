@@ -70,13 +70,6 @@ impl Unary {
     pub fn target_mut(&mut self) -> &mut Expression {
         self.target.as_mut()
     }
-
-    /// Get the [`Span`] of the [`Unary`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
 }
 
 impl Spanned for Unary {

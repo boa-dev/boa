@@ -7,7 +7,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{self as ast, PositionGroup, Punctuator, Span, expression::TaggedTemplate};
+use boa_ast::{self as ast, PositionGroup, Punctuator, Span, Spanned, expression::TaggedTemplate};
 use boa_interner::Interner;
 
 /// Parses a tagged template.

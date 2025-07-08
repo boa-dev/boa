@@ -1,7 +1,7 @@
 //! Local identifier Expression.
 
 use crate::{
-    Span, ToStringEscaped,
+    Span, Spanned, ToStringEscaped,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -88,11 +88,10 @@ impl Identifier {
     pub const fn sym_mut(&mut self) -> &mut Sym {
         &mut self.ident
     }
+}
 
-    /// Get the [`Span`] of the [`Identifier`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+impl Spanned for Identifier {
+    fn span(&self) -> Span {
         self.span
     }
 }

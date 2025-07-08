@@ -61,13 +61,6 @@ impl Update {
     pub fn target(&self) -> &UpdateTarget {
         self.target.as_ref()
     }
-
-    /// Get the [`Span`] of the [`Update`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
 }
 
 impl Spanned for Update {

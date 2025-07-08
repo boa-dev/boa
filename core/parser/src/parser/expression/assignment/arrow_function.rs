@@ -21,7 +21,7 @@ use crate::{
 };
 use ast::operations::{bound_names, lexically_declared_names};
 use boa_ast::{
-    self as ast, Expression, Punctuator, Span, StatementList,
+    self as ast, Expression, Punctuator, Span, Spanned, StatementList,
     declaration::Variable,
     function::{FormalParameter, FormalParameterList},
     operations::{ContainsSymbol, contains},

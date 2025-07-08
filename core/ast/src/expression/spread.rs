@@ -2,7 +2,7 @@ use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
 use crate::{
-    Span,
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 
@@ -49,11 +49,10 @@ impl Spread {
     pub const fn target(&self) -> &Expression {
         &self.target
     }
+}
 
-    /// Get the [`Span`] of the [`Span`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+impl Spanned for Spread {
+    fn span(&self) -> Span {
         self.span
     }
 }

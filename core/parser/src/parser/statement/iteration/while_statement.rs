@@ -6,7 +6,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{Keyword, Punctuator, statement::WhileLoop};
+use boa_ast::{Keyword, Punctuator, Spanned, statement::WhileLoop};
 use boa_interner::Interner;
 
 /// While statement parsing

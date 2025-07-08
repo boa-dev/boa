@@ -7,7 +7,7 @@ use crate::{
     parser::{OrAbrupt, ParseResult},
     source::ReadChar,
 };
-use boa_ast::{LinearPosition, PositionGroup, Punctuator};
+use boa_ast::{LinearPosition, PositionGroup, Punctuator, Spanned};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
 

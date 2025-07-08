@@ -34,7 +34,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Expression, Keyword, Position, Punctuator, Span,
+    Expression, Keyword, Position, Punctuator, Span, Spanned,
     expression::{ImportCall, SuperCall},
 };
 use boa_interner::Interner;

@@ -37,7 +37,7 @@ use crate::{
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
 };
 use boa_ast::{
-    Position, Span, StatementList,
+    Position, Span, Spanned, StatementList,
     function::{FormalParameterList, FunctionBody},
     operations::{
         ContainsSymbol, all_private_identifiers_valid, bound_names, contains,
