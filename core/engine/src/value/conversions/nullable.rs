@@ -1,6 +1,6 @@
 //! A value that can be `null` in JavaScript, but not `undefined`.
 
-use crate::value::TryFromJs;
+use crate::value::{TryFromJs, TryIntoJs};
 use boa_engine::{Context, JsResult, JsValue};
 
 /// A value that can be `null` in JavaScript, but not `undefined`.
@@ -81,6 +81,16 @@ pub enum Nullable<T> {
 }
 
 impl<T> Nullable<T> {
+    /// Returns `true` if this value is `Nullable::Null`.
+    pub const fn is_null(&self) -> bool {
+        matches!(self, Nullable::Null)
+    }
+
+    /// Returns `true` if this value is `Nullable::NotNull`.
+    pub const fn is_not_null(&self) -> bool {
+        matches!(self, Nullable::NonNull(_))
+    }
+
     /// Returns an iterator over the possibly contained value.
     ///
     /// # Examples
@@ -178,6 +188,15 @@ impl<T: TryFromJs> TryFromJs for Nullable<T> {
     }
 }
 
+impl<T: TryIntoJs> TryIntoJs for Nullable<T> {
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        match self {
+            Nullable::Null => Ok(JsValue::null()),
+            Nullable::NonNull(t) => t.try_into_js(context),
+        }
+    }
+}
+
 impl<T> From<Nullable<T>> for Option<T> {
     #[inline]
     fn from(value: Nullable<T>) -> Self {
@@ -256,4 +275,40 @@ impl<T> Nullable<Option<T>> {
             Nullable::NonNull(Some(t)) => Some(t),
         }
     }
+}
+
+#[test]
+fn not_null() {
+    let context = &mut Context::default();
+    let v: Nullable<i32> = JsValue::new(42)
+        .try_js_into(context)
+        .expect("Failed to convert value from js");
+
+    assert!(!v.is_null());
+    assert!(v.is_not_null());
+    assert_eq!(v, Nullable::NonNull(42));
+
+    assert_eq!(v.try_into_js(context).unwrap(), JsValue::new(42));
+}
+
+#[test]
+fn null() {
+    let context = &mut Context::default();
+    let v: Nullable<i32> = JsValue::null()
+        .try_js_into(context)
+        .expect("Failed to convert value from js");
+
+    assert!(v.is_null());
+    assert!(!v.is_not_null());
+    assert_eq!(v, Nullable::Null);
+
+    assert_eq!(v.try_into_js(context).unwrap(), JsValue::null());
+}
+
+#[test]
+fn invalid() {
+    let context = &mut Context::default();
+    let v: JsResult<Nullable<i32>> = JsValue::undefined().try_js_into(context);
+
+    assert!(v.is_err());
 }
