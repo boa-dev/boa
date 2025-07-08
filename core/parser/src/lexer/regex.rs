@@ -211,7 +211,7 @@ impl RegExpFlags {
                     return Err(format!(
                         "invalid regular expression flag {}",
                         char::from(c.to_owned())
-                    ))
+                    ));
                 }
             };
 
