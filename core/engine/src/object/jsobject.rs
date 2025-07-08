@@ -114,16 +114,12 @@ impl JsObject {
         object: Object<T>,
         vtable: &'static InternalObjectMethods,
     ) -> Self {
-        let gc = Gc::new(VTableObject {
+        let inner = Gc::new(VTableObject {
             object: GcRefCell::new(object),
             vtable,
         });
 
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        let inner = unsafe { Gc::cast_unchecked::<ErasedVTableObject>(gc) };
-
-        JsObject { inner }
+        JsObject { inner }.upcast()
     }
 
     /// Creates a new ordinary object with its prototype set to the `Object` prototype.
@@ -165,7 +161,7 @@ impl JsObject {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let gc = Gc::new(VTableObject {
+        let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
                 data: Box::new(data),
                 properties: PropertyMap::from_prototype_unique_shape(prototype.into()),
@@ -175,11 +171,7 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        let inner = unsafe { Gc::cast_unchecked::<ErasedVTableObject>(gc) };
-
-        JsObject { inner }
+        JsObject { inner }.upcast()
     }
 
     /// Creates a new object with the provided prototype and object data.
@@ -195,7 +187,7 @@ impl JsObject {
         data: T,
     ) -> Self {
         let internal_methods = data.internal_methods();
-        let gc = Gc::new(VTableObject {
+        let inner = Gc::new(VTableObject {
             object: GcRefCell::new(Object {
                 data: Box::new(data),
                 properties: PropertyMap::from_prototype_with_shared_shape(
@@ -208,11 +200,7 @@ impl JsObject {
             vtable: internal_methods,
         });
 
-        // SAFETY: The pointer is guaranteed to be valid because we just created it.
-        // `VTableObject<ErasedObjectData>` and `VTableObject<T>` have the same size and alignment.
-        let inner = unsafe { Gc::cast_unchecked::<ErasedVTableObject>(gc) };
-
-        JsObject { inner }
+        JsObject { inner }.upcast()
     }
 
     /// Downcasts the object's inner data if the object is of type `T`.
@@ -223,9 +211,9 @@ impl JsObject {
     pub fn downcast<T: NativeObject>(self) -> Result<JsObject<T>, Self> {
         if self.is::<T>() {
             // SAFETY: We have verified that the object is of type `T`, so we can safely cast it.
-            let inner = unsafe { Gc::cast_unchecked::<VTableObject<T>>(self.inner) };
+            let object = unsafe { self.downcast_unchecked::<T>() };
 
-            Ok(JsObject { inner })
+            Ok(object)
         } else {
             Err(self)
         }
@@ -651,20 +639,12 @@ Cannot both specify accessors and a value or writable attribute",
     /// Casts to a `BufferObject` if the object is an `ArrayBuffer` or a `SharedArrayBuffer`.
     #[inline]
     pub(crate) fn into_buffer_object(self) -> Result<BufferObject, JsObject> {
-        if self.is::<ArrayBuffer>() {
-            // SAFETY: We have verified that the inner data of `self` is of type `ArrayBuffer`.
-            return Ok(BufferObject::Buffer(unsafe {
-                self.downcast_unchecked::<ArrayBuffer>()
-            }));
+        match self.downcast::<ArrayBuffer>() {
+            Ok(buffer) => Ok(BufferObject::Buffer(buffer)),
+            Err(object) => object
+                .downcast::<SharedArrayBuffer>()
+                .map(BufferObject::SharedBuffer),
         }
-        if self.is::<SharedArrayBuffer>() {
-            // SAFETY: We have verified that the inner data of `self` is of type `SharedArrayBuffer`.
-            return Ok(BufferObject::SharedBuffer(unsafe {
-                self.downcast_unchecked::<SharedArrayBuffer>()
-            }));
-        }
-
-        Err(self)
     }
 }
 
