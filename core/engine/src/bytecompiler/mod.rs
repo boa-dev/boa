@@ -29,7 +29,8 @@ use crate::{
     },
 };
 use boa_ast::{
-    Declaration, Expression, LinearSpan, Position, Statement, StatementList, StatementListItem,
+    Declaration, Expression, LinearSpan, Position, Spanned, Statement, StatementList,
+    StatementListItem,
     declaration::{Binding, LexicalDeclaration, VarDeclaration},
     expression::{
         Call, Identifier, New, Optional, OptionalOperationKind,
@@ -416,7 +417,10 @@ pub(crate) struct SourcePositionGuard<'a, 'b> {
     compiler: &'a mut ByteCompiler<'b>,
 }
 impl<'a, 'b> SourcePositionGuard<'a, 'b> {
-    pub(crate) fn new(compiler: &'a mut ByteCompiler<'b>, position: Position) -> Self {
+    pub(crate) fn new(
+        compiler: &'a mut ByteCompiler<'b>,
+        position: impl Into<Option<Position>>,
+    ) -> Self {
         compiler.push_source_position(position);
         Self { compiler }
     }
@@ -788,6 +792,13 @@ impl<'ctx> ByteCompiler<'ctx> {
         self.bytecode.next_opcode_location()
     }
 
+    pub(crate) fn position_guard(
+        &mut self,
+        spanned: impl Spanned,
+    ) -> SourcePositionGuard<'_, 'ctx> {
+        SourcePositionGuard::new(self, spanned.span().start())
+    }
+
     pub(crate) fn push_source_position<T>(&mut self, position: T)
     where
         T: Into<Option<Position>>,
@@ -1100,8 +1111,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => {
-                    let mut compiler =
-                        SourcePositionGuard::new(self, access.field().span().start());
+                    let mut compiler = self.position_guard(access.field());
 
                     let object = compiler.register_allocator.alloc();
                     compiler.compile_expr(access.target(), &object);
@@ -1125,8 +1135,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     compiler.register_allocator.dealloc(object);
                 }
                 PropertyAccess::Private(access) => {
-                    let mut compiler =
-                        SourcePositionGuard::new(self, access.field().span().start());
+                    let mut compiler = self.position_guard(access.field());
 
                     let index = compiler.get_or_insert_private_name(access.field());
                     let object = compiler.register_allocator.alloc();
@@ -1139,8 +1148,7 @@ impl<'ctx> ByteCompiler<'ctx> {
                     compiler.register_allocator.dealloc(object);
                 }
                 PropertyAccess::Super(access) => {
-                    let mut compiler =
-                        SourcePositionGuard::new(self, access.field().span().start());
+                    let mut compiler = self.position_guard(access.field());
 
                     let value = compiler.register_allocator.alloc();
                     let receiver = compiler.register_allocator.alloc();
@@ -2001,7 +2009,7 @@ impl<'ctx> ByteCompiler<'ctx> {
             }
         }
 
-        let mut compiler = SourcePositionGuard::new(self, call.span().start());
+        let mut compiler = self.position_guard(call);
 
         let contains_spread = call
             .args()

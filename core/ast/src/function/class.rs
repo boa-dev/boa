@@ -1,6 +1,6 @@
 use super::{FormalParameterList, FunctionBody, FunctionExpression};
 use crate::{
-    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
+    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
     operations::{ContainsSymbol, contains},
@@ -882,6 +882,12 @@ impl PrivateName {
     #[inline]
     #[must_use]
     pub fn span(&self) -> Span {
+        self.span
+    }
+}
+
+impl Spanned for PrivateName {
+    fn span(&self) -> Span {
         self.span
     }
 }

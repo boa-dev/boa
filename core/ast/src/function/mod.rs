@@ -48,7 +48,7 @@ pub use ordinary_function::{FunctionDeclaration, FunctionExpression};
 pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
 use crate::{
-    LinearPosition, Span, StatementList, StatementListItem,
+    LinearPosition, Span, Spanned, StatementList, StatementListItem,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 
@@ -109,6 +109,13 @@ impl FunctionBody {
     #[inline]
     #[must_use]
     pub const fn span(&self) -> Span {
+        self.span
+    }
+}
+
+impl Spanned for FunctionBody {
+    #[inline]
+    fn span(&self) -> Span {
         self.span
     }
 }

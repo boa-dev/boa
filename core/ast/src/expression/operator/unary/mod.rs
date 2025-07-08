@@ -12,7 +12,7 @@
 mod op;
 
 use crate::{
-    Span,
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -75,6 +75,13 @@ impl Unary {
     #[inline]
     #[must_use]
     pub const fn span(&self) -> Span {
+        self.span
+    }
+}
+
+impl Spanned for Unary {
+    #[inline]
+    fn span(&self) -> Span {
         self.span
     }
 }

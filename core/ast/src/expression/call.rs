@@ -1,5 +1,5 @@
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{Span, join_nodes};
+use crate::{Span, Spanned, join_nodes};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -59,6 +59,13 @@ impl Call {
     #[must_use]
     pub fn span(&self) -> Span {
         self.span
+    }
+}
+
+impl Spanned for Call {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span()
     }
 }
 

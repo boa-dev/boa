@@ -203,12 +203,38 @@ impl Span {
     }
 }
 
+impl From<Span> for Option<Position> {
+    fn from(value: Span) -> Self {
+        Some(value.start)
+    }
+}
+
+impl<'a> From<&'a Span> for Option<Position> {
+    fn from(value: &'a Span) -> Self {
+        Some(value.start)
+    }
+}
+
 impl From<Position> for Span {
     fn from(pos: Position) -> Self {
         Self {
             start: pos,
             end: pos,
         }
+    }
+}
+
+impl Spanned for Span {
+    #[inline]
+    fn span(&self) -> Span {
+        *self
+    }
+}
+
+impl<T: Spanned> Spanned for &T {
+    #[inline]
+    fn span(&self) -> Span {
+        T::span(*self)
     }
 }
 
@@ -230,6 +256,12 @@ impl fmt::Display for Span {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[{}..{}]", self.start, self.end)
     }
+}
+
+/// An element of the AST or any type that can be located in the source with a Span.
+pub trait Spanned {
+    /// Returns a span from the current type.
+    fn span(&self) -> Span;
 }
 
 /// A linear span in the ECMAScript source code.

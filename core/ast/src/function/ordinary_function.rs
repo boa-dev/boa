@@ -1,6 +1,6 @@
 use super::{FormalParameterList, FunctionBody};
 use crate::{
-    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
     operations::{ContainsSymbol, contains},
@@ -176,6 +176,12 @@ impl PartialEq for FunctionExpression {
             && self.name_scope == other.name_scope
             && self.scopes == other.scopes
             && self.span == other.span
+    }
+}
+
+impl Spanned for FunctionExpression {
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

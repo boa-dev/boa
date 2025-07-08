@@ -1,17 +1,15 @@
-use crate::bytecompiler::{
-    Access, BindingAccessOpcode, ByteCompiler, Register, SourcePositionGuard, ToJsString,
-};
+use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::{Update, update::UpdateOp},
+        operator::{update::UpdateOp, Update},
     },
     scope::BindingLocatorError,
 };
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register) {
-        let mut compiler = SourcePositionGuard::new(self, update.span().start());
+        let mut compiler = self.position_guard(update);
         let increment = matches!(
             update.op(),
             UpdateOp::IncrementPost | UpdateOp::IncrementPre

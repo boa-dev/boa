@@ -15,7 +15,7 @@ use self::{
     operator::{Assign, Binary, BinaryInPrivate, Conditional, Unary, Update},
 };
 use super::{
-    Statement,
+    Spanned, Statement,
     function::{
         ArrowFunction, AsyncFunctionExpression, AsyncGeneratorExpression, ClassExpression,
         FunctionExpression, GeneratorExpression,
@@ -329,6 +329,12 @@ impl Expression {
             // TODO: Remove `FormalParameterList` and `Debugger` nodes
             Self::FormalParameterList(_) | Self::Debugger => Span::EMPTY,
         }
+    }
+}
+
+impl Spanned for Expression {
+    fn span(&self) -> Span {
+        self.span()
     }
 }
 

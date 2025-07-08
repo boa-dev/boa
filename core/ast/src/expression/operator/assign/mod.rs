@@ -20,7 +20,7 @@ pub use op::*;
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::{
-    Span,
+    Span, Spanned,
     expression::{Expression, access::PropertyAccess, identifier::Identifier},
     pattern::Pattern,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -76,6 +76,12 @@ impl Assign {
     #[must_use]
     pub fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
+    }
+}
+
+impl Spanned for Assign {
+    fn span(&self) -> Span {
+        self.span()
     }
 }
 

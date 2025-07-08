@@ -14,10 +14,10 @@
 //! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
-use crate::Span;
 use crate::expression::Expression;
 use crate::function::PrivateName;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{Span, Spanned};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -45,6 +45,12 @@ impl PropertyAccessField {
             Self::Const(identifier) => identifier.span(),
             Self::Expr(expression) => expression.span(),
         }
+    }
+}
+
+impl Spanned for PropertyAccessField {
+    fn span(&self) -> Span {
+        self.span()
     }
 }
 
@@ -194,6 +200,12 @@ impl SimplePropertyAccess {
     #[must_use]
     pub fn span(&self) -> Span {
         Span::new(self.target.span().start(), self.field.span().end())
+    }
+}
+
+impl Spanned for SimplePropertyAccess {
+    fn span(&self) -> Span {
+        self.span()
     }
 }
 

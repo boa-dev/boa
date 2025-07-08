@@ -10,7 +10,7 @@
 mod op;
 
 use crate::{
-    Expression, Span,
+    Expression, Span, Spanned,
     expression::{Identifier, access::PropertyAccess},
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -66,6 +66,13 @@ impl Update {
     #[inline]
     #[must_use]
     pub const fn span(&self) -> Span {
+        self.span
+    }
+}
+
+impl Spanned for Update {
+    #[inline]
+    fn span(&self) -> Span {
         self.span
     }
 }
