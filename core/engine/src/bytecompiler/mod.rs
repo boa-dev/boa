@@ -417,10 +417,7 @@ pub(crate) struct SourcePositionGuard<'a, 'b> {
     compiler: &'a mut ByteCompiler<'b>,
 }
 impl<'a, 'b> SourcePositionGuard<'a, 'b> {
-    pub(crate) fn new(
-        compiler: &'a mut ByteCompiler<'b>,
-        position: impl Into<Option<Position>>,
-    ) -> Self {
+    fn new(compiler: &'a mut ByteCompiler<'b>, position: Position) -> Self {
         compiler.push_source_position(position);
         Self { compiler }
     }

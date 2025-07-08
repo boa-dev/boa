@@ -203,18 +203,6 @@ impl Span {
     }
 }
 
-impl From<Span> for Option<Position> {
-    fn from(value: Span) -> Self {
-        Some(value.start)
-    }
-}
-
-impl<'a> From<&'a Span> for Option<Position> {
-    fn from(value: &'a Span) -> Self {
-        Some(value.start)
-    }
-}
-
 impl From<Position> for Span {
     fn from(pos: Position) -> Self {
         Self {
