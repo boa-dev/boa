@@ -3,26 +3,29 @@
 use crate::value::{TryFromJs, TryIntoJs};
 use boa_engine::{Context, JsResult, JsValue};
 
+#[cfg(tests)]
+mod tests;
+
 /// A value that can be `null` in JavaScript, but not `undefined`.
 ///
 /// This is used to distinguish between values in JavaScript that can be
-/// `null` (i.e. `Nullable<T>`) vs. those of which that can be `undefined`
-/// (i.e. `Option<T>`).
+/// `null` (i.e. [`Nullable<T>`]) vs. those of which that can be `undefined`
+/// (i.e. [`Option<T>`]).
 ///
-/// `Nullable<T>` tries to be close in API surface to the standard
-/// `Option<T>`, though with a much smaller API scope, and can be
-/// transformed into and from `Option<T>` for free.
+/// [`Nullable<T>`] tries to be close in API surface to the standard
+/// [`Option<T>`], though with a much smaller API scope, and can be
+/// transformed into and from [`Option<T>`] for free.
 ///
-/// # Why a new type?
+/// ## Why a new type?
 /// There are in the standard 2 different values that are "null coalescing":
 /// 1. `undefined`, which is its own type (`typeof void 0 == "undefined"`),
 /// 2. `null`, which is different from `undefined` (`undefined !== null`) but
 ///    is of type object (`typeof null === "object"`) for legacy reasons.
 ///
-/// `Option<T>` sets up the first case, so we needed to add a new type for
+/// [`Option<T>`] sets up the first case, so we needed to add a new type for
 /// the second case.
 ///
-/// # Would it be bad to use `Option::<T>::None` as both undefined _or_ null?
+/// ## Would it be bad to use `Option::<T>::None` as both undefined _or_ null?
 /// Many values in the standard can be `null` but not `undefined`, or the other
 /// way around. Coalescing these two into `Option::None` means that any
 /// conversions using boa's traits (such as `TryFromJs`) would result in
@@ -30,18 +33,18 @@ use boa_engine::{Context, JsResult, JsValue};
 /// would be to get `JsValue` and manually verify it's not undefined/null, then
 /// do the conversion. This new type makes this process much simpler.
 ///
-/// It also means that there is an asymmetry between `JsValue` to `Option<T>`
-/// then `Option<T>` back to `JsValue`, leading to unintuitive errors. Having
-/// a type `Nullable<T>` that acts like `Option<T>` but (de-)serialize to
+/// It also means that there is an asymmetry between `JsValue` to [`Option<T>`]
+/// then [`Option<T>`] back to `JsValue`, leading to unintuitive errors. Having
+/// a type [`Nullable<T>`] that acts like [`Option<T>`] but (de-)serialize to
 /// `null` clarifies all usage.
 ///
-/// # How can I do `EitherNullOrUndefined<T>`?
-/// The best way is to use `Nullable<Option<T>>` and convert into `Option<T>`
-/// using `.flatten()`. Please note that the reverse (`Nullable<Option<T>>`)
-/// results in the same deserializing behaviour, but does not implement
-/// `flatten()`.
+/// ## How can I do `EitherNullOrUndefined<T>`?
+/// The best way is to use `Nullable<Option<T>>` and convert into [`Option<T>`]
+/// using [`Nullable::flatten()`]. Please note that the reverse
+/// (`Nullable<Option<T>>`) results in the same deserializing behaviour but
+/// does not implement `flatten()`.
 ///
-/// Please note that JavaScript cannot make a distinction between `Option<T>` and
+/// Please note that JavaScript cannot make a distinction between [`Option<T>`] and
 /// `Option<Option<T>>`. This cannot be resolved using this type, as it suffers
 /// from the same limitation. There is no way to distinguish between `Null` and
 /// `NonNull(Null)`. `Nullable<Nullable<T>>` does not provide additional
@@ -65,8 +68,10 @@ use boa_engine::{Context, JsResult, JsValue};
 /// # let context = &mut Context::default();
 /// let mut v: JsResult<Nullable<Option<u8>>> = JsValue::undefined().try_js_into(context);
 /// assert_eq!(v, Ok(Nullable::NonNull(None)));
+///
 /// v = JsValue::null().try_js_into(context);
 /// assert_eq!(v, Ok(Nullable::Null));
+///
 /// v = JsValue::from(42).try_js_into(context);
 /// assert_eq!(v, Ok(Nullable::NonNull(Some(42))));
 /// assert_eq!(v.unwrap().flatten(), Some(42));
@@ -114,6 +119,7 @@ impl<T> Nullable<T> {
     /// ```
     /// # use boa_engine::value::Nullable;
     /// let text: Nullable<String> = Nullable::NonNull("Hello, world!".to_string());
+    ///
     /// // First, cast `Nullable<String>` to `Nullable<&String>` with `as_ref`,
     /// // then consume *that* with `map`, leaving `text` on the stack.
     /// let text_length: Nullable<usize> = text.as_ref().map(|s| s.len());
@@ -127,7 +133,7 @@ impl<T> Nullable<T> {
         }
     }
 
-    /// Maps a `Nullable<T>` to `Nullable<U>` by applying a function to a contained
+    /// Maps a [`Nullable<T>`] to [`Nullable<U>`] by applying a function to a contained
     /// value.
     #[inline]
     pub fn map<U, F>(self, f: F) -> Nullable<U>
@@ -267,7 +273,7 @@ impl<A> ExactSizeIterator for IntoIter<A> {
 }
 
 impl<T> Nullable<Option<T>> {
-    /// Converts from `Nullable<Option<T>>` to `Option<T>`.
+    /// Converts from `Nullable<Option<T>>` to [`Option<T>`].
     #[inline]
     pub fn flatten(self) -> Option<T> {
         match self {
@@ -275,40 +281,4 @@ impl<T> Nullable<Option<T>> {
             Nullable::NonNull(Some(t)) => Some(t),
         }
     }
-}
-
-#[test]
-fn not_null() {
-    let context = &mut Context::default();
-    let v: Nullable<i32> = JsValue::new(42)
-        .try_js_into(context)
-        .expect("Failed to convert value from js");
-
-    assert!(!v.is_null());
-    assert!(v.is_not_null());
-    assert_eq!(v, Nullable::NonNull(42));
-
-    assert_eq!(v.try_into_js(context).unwrap(), JsValue::new(42));
-}
-
-#[test]
-fn null() {
-    let context = &mut Context::default();
-    let v: Nullable<i32> = JsValue::null()
-        .try_js_into(context)
-        .expect("Failed to convert value from js");
-
-    assert!(v.is_null());
-    assert!(!v.is_not_null());
-    assert_eq!(v, Nullable::Null);
-
-    assert_eq!(v.try_into_js(context).unwrap(), JsValue::null());
-}
-
-#[test]
-fn invalid() {
-    let context = &mut Context::default();
-    let v: JsResult<Nullable<i32>> = JsValue::undefined().try_js_into(context);
-
-    assert!(v.is_err());
 }
