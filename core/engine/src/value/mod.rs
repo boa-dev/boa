@@ -19,6 +19,8 @@ pub use boa_macros::TryFromJs;
 pub use boa_macros::TryIntoJs;
 #[doc(inline)]
 pub use conversions::convert::Convert;
+#[doc(inline)]
+pub use conversions::nullable::Nullable;
 
 pub(crate) use self::conversions::IntoOrUndefined;
 #[doc(inline)]
