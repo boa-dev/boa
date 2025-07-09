@@ -87,6 +87,7 @@ impl Literal {
 }
 
 impl Spanned for Literal {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

@@ -140,6 +140,7 @@ impl SuperCall {
 }
 
 impl Spanned for SuperCall {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }
@@ -219,6 +220,7 @@ impl ImportCall {
 }
 
 impl Spanned for ImportCall {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

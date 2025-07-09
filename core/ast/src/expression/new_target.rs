@@ -27,6 +27,7 @@ impl NewTarget {
 }
 
 impl Spanned for NewTarget {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

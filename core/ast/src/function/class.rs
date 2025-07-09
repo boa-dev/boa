@@ -245,6 +245,7 @@ impl ClassExpression {
 }
 
 impl Spanned for ClassExpression {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }
@@ -879,6 +880,7 @@ impl PrivateName {
 }
 
 impl Spanned for PrivateName {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

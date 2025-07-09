@@ -290,6 +290,7 @@ impl Expression {
 }
 
 impl Spanned for Expression {
+    #[inline]
     fn span(&self) -> Span {
         match self {
             Self::This(this) => this.span(),

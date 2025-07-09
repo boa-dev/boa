@@ -248,6 +248,7 @@ impl GeneratorExpression {
 }
 
 impl Spanned for GeneratorExpression {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

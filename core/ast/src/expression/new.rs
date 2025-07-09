@@ -58,6 +58,7 @@ impl From<Call> for New {
 }
 
 impl Spanned for New {
+    #[inline]
     fn span(&self) -> Span {
         self.call.span()
     }

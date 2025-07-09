@@ -27,6 +27,7 @@ impl This {
 }
 
 impl Spanned for This {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

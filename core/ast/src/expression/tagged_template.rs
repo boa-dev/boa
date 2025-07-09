@@ -85,6 +85,7 @@ impl TaggedTemplate {
 }
 
 impl Spanned for TaggedTemplate {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

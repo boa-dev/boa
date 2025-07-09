@@ -27,6 +27,7 @@ impl ImportMeta {
 }
 
 impl Spanned for ImportMeta {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

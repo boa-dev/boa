@@ -164,6 +164,7 @@ impl ArrayLiteral {
 }
 
 impl Spanned for ArrayLiteral {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

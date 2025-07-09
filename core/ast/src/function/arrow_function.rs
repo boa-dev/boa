@@ -108,6 +108,7 @@ impl ArrowFunction {
 }
 
 impl Spanned for ArrowFunction {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

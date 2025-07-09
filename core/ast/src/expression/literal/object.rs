@@ -222,6 +222,7 @@ impl ObjectLiteral {
 }
 
 impl Spanned for ObjectLiteral {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

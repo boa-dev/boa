@@ -52,6 +52,7 @@ impl Spread {
 }
 
 impl Spanned for Spread {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

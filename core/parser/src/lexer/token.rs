@@ -83,6 +83,7 @@ impl Token {
 }
 
 impl Spanned for Token {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

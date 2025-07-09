@@ -91,6 +91,7 @@ impl Identifier {
 }
 
 impl Spanned for Identifier {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

@@ -42,6 +42,7 @@ impl Parenthesized {
 }
 
 impl Spanned for Parenthesized {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

@@ -180,6 +180,7 @@ impl PartialEq for FunctionExpression {
 }
 
 impl Spanned for FunctionExpression {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

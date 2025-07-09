@@ -171,6 +171,7 @@ impl AssignTarget {
 }
 
 impl Spanned for AssignTarget {
+    #[inline]
     fn span(&self) -> Span {
         match self {
             AssignTarget::Identifier(identifier) => identifier.span(),

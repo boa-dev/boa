@@ -98,6 +98,7 @@ pub enum PropertyAccess {
 }
 
 impl Spanned for PropertyAccess {
+    #[inline]
     fn span(&self) -> Span {
         match self {
             Self::Simple(access) => access.span(),
@@ -186,6 +187,7 @@ impl SimplePropertyAccess {
 }
 
 impl Spanned for SimplePropertyAccess {
+    #[inline]
     fn span(&self) -> Span {
         Span::new(self.target.span().start(), self.field.span().end())
     }
@@ -278,6 +280,7 @@ impl PrivatePropertyAccess {
 }
 
 impl Spanned for PrivatePropertyAccess {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }
@@ -350,6 +353,7 @@ impl SuperPropertyAccess {
 }
 
 impl Spanned for SuperPropertyAccess {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

@@ -63,6 +63,7 @@ impl RegExpLiteral {
 }
 
 impl Spanned for RegExpLiteral {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

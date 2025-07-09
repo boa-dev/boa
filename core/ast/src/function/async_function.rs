@@ -250,6 +250,7 @@ impl AsyncFunctionExpression {
 }
 
 impl Spanned for AsyncFunctionExpression {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

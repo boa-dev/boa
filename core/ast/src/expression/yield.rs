@@ -52,6 +52,7 @@ impl Yield {
 }
 
 impl Spanned for Yield {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

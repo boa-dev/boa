@@ -42,6 +42,7 @@ impl Await {
 }
 
 impl Spanned for Await {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

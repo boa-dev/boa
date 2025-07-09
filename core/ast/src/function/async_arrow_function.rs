@@ -109,6 +109,7 @@ impl AsyncArrowFunction {
 }
 
 impl Spanned for AsyncArrowFunction {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

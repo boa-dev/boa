@@ -251,6 +251,7 @@ impl AsyncGeneratorExpression {
 }
 
 impl Spanned for AsyncGeneratorExpression {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

@@ -107,6 +107,7 @@ impl OptionalOperation {
 }
 
 impl Spanned for OptionalOperation {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }
@@ -225,6 +226,7 @@ impl Optional {
 }
 
 impl Spanned for Optional {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

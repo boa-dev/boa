@@ -67,6 +67,7 @@ impl TemplateLiteral {
 }
 
 impl Spanned for TemplateLiteral {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

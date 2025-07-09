@@ -45,6 +45,7 @@ pub enum Pattern {
 }
 
 impl Spanned for Pattern {
+    #[inline]
     fn span(&self) -> Span {
         match self {
             Pattern::Object(object_pattern) => object_pattern.span(),
@@ -161,6 +162,7 @@ impl ObjectPattern {
 }
 
 impl Spanned for ObjectPattern {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }
@@ -244,6 +246,7 @@ impl ArrayPattern {
 }
 
 impl Spanned for ArrayPattern {
+    #[inline]
     fn span(&self) -> Span {
         self.span
     }

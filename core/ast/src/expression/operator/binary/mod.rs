@@ -88,6 +88,7 @@ impl Binary {
 }
 
 impl Spanned for Binary {
+    #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
@@ -170,6 +171,7 @@ impl BinaryInPrivate {
 }
 
 impl Spanned for BinaryInPrivate {
+    #[inline]
     fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }

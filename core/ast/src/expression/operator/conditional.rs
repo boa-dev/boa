@@ -64,6 +64,7 @@ impl Conditional {
 }
 
 impl Spanned for Conditional {
+    #[inline]
     fn span(&self) -> Span {
         Span::new(self.condition.span().start(), self.if_false.span().end())
     }
