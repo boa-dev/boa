@@ -76,8 +76,7 @@ where
     T: TryFromJs,
 {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
-        // TODO: remove NULL -> None conversion.
-        if value.is_null_or_undefined() {
+        if value.is_undefined() {
             Ok(None)
         } else {
             Ok(Some(T::try_from_js(value, context)?))
