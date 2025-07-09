@@ -7,7 +7,7 @@
 
 use crate::lexer::template::TemplateString;
 use bitflags::bitflags;
-use boa_ast::{Keyword, LinearSpan, PositionGroup, Punctuator, Span};
+use boa_ast::{Keyword, LinearSpan, PositionGroup, Punctuator, Span, Spanned};
 use boa_interner::{Interner, Sym};
 use num_bigint::BigInt;
 
@@ -61,13 +61,6 @@ impl Token {
         &self.kind
     }
 
-    /// Gets the token span in the original source code.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
-
     /// Gets the starting position group of the token.
     #[inline]
     #[must_use]
@@ -86,6 +79,13 @@ impl Token {
     #[inline]
     pub(crate) fn to_string(&self, interner: &Interner) -> String {
         self.kind.to_string(interner)
+    }
+}
+
+impl Spanned for Token {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

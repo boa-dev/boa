@@ -23,7 +23,7 @@
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
 use crate::{
-    Expression, Span,
+    Expression, Span, Spanned,
     expression::{Identifier, access::PropertyAccess},
     property::PropertyName,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -44,11 +44,9 @@ pub enum Pattern {
     Array(ArrayPattern),
 }
 
-impl Pattern {
-    /// Get the [`Span`] of the [`Pattern`] node.
+impl Spanned for Pattern {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         match self {
             Pattern::Object(object_pattern) => object_pattern.span(),
             Pattern::Array(array_pattern) => array_pattern.span(),
@@ -161,11 +159,11 @@ impl ObjectPattern {
             Some(ObjectPatternElement::RestProperty { .. })
         )
     }
+}
 
-    /// Get the [`Span`] of the [`ObjectPattern`] node.
+impl Spanned for ObjectPattern {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -245,11 +243,11 @@ impl ArrayPattern {
     pub const fn bindings(&self) -> &[ArrayPatternElement] {
         &self.bindings
     }
+}
 
-    /// Get the [`Span`] of the [`ArrayPattern`] node.
+impl Spanned for ArrayPattern {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

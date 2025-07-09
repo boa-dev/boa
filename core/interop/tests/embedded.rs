@@ -45,7 +45,6 @@ fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
                 .get(js_string!("bar"), &mut context)
                 .unwrap()
                 .as_callable()
-                .cloned()
                 .unwrap();
             let value = bar.call(&JsValue::undefined(), &[], &mut context).unwrap();
             assert_eq!(

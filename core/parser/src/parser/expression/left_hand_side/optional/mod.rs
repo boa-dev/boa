@@ -12,7 +12,7 @@ use crate::{
 };
 use ast::function::PrivateName;
 use boa_ast::{
-    self as ast, Punctuator, Span,
+    self as ast, Punctuator, Span, Spanned,
     expression::{
         Identifier, Optional, OptionalOperation, OptionalOperationKind, access::PropertyAccessField,
     },

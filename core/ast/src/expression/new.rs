@@ -1,6 +1,6 @@
-use crate::Span;
 use crate::expression::Call;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{Span, Spanned};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -48,19 +48,19 @@ impl New {
     pub const fn call(&self) -> &Call {
         &self.call
     }
-
-    /// Gets the [`Span`] of the [`New`] node.
-    #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
-        self.call.span()
-    }
 }
 
 impl From<Call> for New {
     #[inline]
     fn from(call: Call) -> Self {
         Self { call }
+    }
+}
+
+impl Spanned for New {
+    #[inline]
+    fn span(&self) -> Span {
+        self.call.span()
     }
 }
 

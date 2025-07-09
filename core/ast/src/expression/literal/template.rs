@@ -1,7 +1,7 @@
 //! Template literal Expression.
 
 use crate::{
-    Span,
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -64,11 +64,11 @@ impl TemplateLiteral {
     pub const fn elements(&self) -> &[TemplateElement] {
         &self.elements
     }
+}
 
-    /// Get the [`Span`] of the [`TemplateLiteral`] node.
+impl Spanned for TemplateLiteral {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

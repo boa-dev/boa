@@ -1,6 +1,6 @@
 use super::Expression;
 use crate::{
-    Span,
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -82,11 +82,11 @@ impl TaggedTemplate {
     pub const fn identifier(&self) -> u64 {
         self.identifier
     }
+}
 
-    /// Get the [`Span`] of the [`TaggedTemplate`] node.
+impl Spanned for TaggedTemplate {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

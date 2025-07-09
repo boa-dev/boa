@@ -59,7 +59,7 @@ impl UniqueShape {
     }
 
     /// Get the property table of the [`UniqueShape`].
-    pub(crate) fn property_table(&self) -> &RefCell<PropertyTableInner> {
+    fn property_table(&self) -> &RefCell<PropertyTableInner> {
         &self.inner.property_table
     }
 

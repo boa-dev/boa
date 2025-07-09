@@ -1009,8 +1009,8 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // Helper enum.
-        enum CallableOrString<'a> {
-            FunctionalReplace(&'a JsObject),
+        enum CallableOrString {
+            FunctionalReplace(JsObject),
             ReplaceValue(JsString),
         }
 
@@ -1209,7 +1209,7 @@ impl String {
             // c. Else,
             let replacement = match replace {
                 // b. If functionalReplace is true, then
-                Ok(replace_fn) => {
+                Ok(ref replace_fn) => {
                     // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
                     replace_fn
                         .call(
@@ -1439,19 +1439,19 @@ impl String {
                     context,
                 )?;
 
-                let collator = collator
-                    .as_object()
-                    .map(JsObject::borrow)
-                    .expect("constructor must return a JsObject");
-                let collator = collator
-                    .downcast_ref::<Collator>()
-                    .expect("constructor must return a `Collator` object")
-                    .collator();
+                let object = collator.as_object();
+                let collator = object
+                    .as_ref()
+                    .and_then(|o| o.downcast_ref::<Collator>())
+                    .expect("constructor must return a `Collator` object");
 
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
 
-                collator.as_borrowed().compare_utf16(&s, &that_value) as i8
+                collator
+                    .collator()
+                    .as_borrowed()
+                    .compare_utf16(&s, &that_value) as i8
             }
 
             // Default to common comparison if the user doesn't have `Intl` enabled.

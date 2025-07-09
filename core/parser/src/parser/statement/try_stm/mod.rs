@@ -13,7 +13,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Keyword,
+    Keyword, Spanned,
     statement::{ErrorHandler, Try},
 };
 use boa_interner::Interner;

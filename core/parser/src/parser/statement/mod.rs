@@ -52,7 +52,7 @@ use ast::{
     operations::{all_private_identifiers_valid, check_labels, contains_invalid_object_literal},
 };
 use boa_ast::{
-    self as ast, Keyword, Punctuator, Span,
+    self as ast, Keyword, Punctuator, Span, Spanned,
     pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement},
 };
 use boa_interner::Interner;

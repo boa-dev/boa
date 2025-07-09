@@ -760,7 +760,6 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
         if let Some(nf) = nf_o
             .get(fallback_symbol, context)?
             .as_object()
-            .cloned()
             .and_then(|o| o.downcast::<NumberFormat>().ok())
         {
             return Ok(nf);

@@ -235,8 +235,10 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         // 3. Let entries be the List that is M.[[MapData]].
-        let mut map = this
-            .as_downcast_mut::<OrderedMap<JsValue>>()
+        let map = this.as_object();
+        let mut map = map
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         let key = match key.variant() {
@@ -276,8 +278,10 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         // 3. Let entries be the List that is M.[[MapData]].
-        let map = this
-            .as_downcast_ref::<OrderedMap<JsValue>>()
+        let map = this.as_object();
+        let map = map
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         // 4. Let count be 0.
@@ -302,8 +306,10 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         // 3. Let entries be the List that is M.[[MapData]].
-        let mut map = this
-            .as_downcast_mut::<OrderedMap<JsValue>>()
+        let map = this.as_object();
+        let mut map = map
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         let key = args.get_or_undefined(0);
@@ -334,8 +340,10 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         // 3. Let entries be the List that is M.[[MapData]].
-        let map = this
-            .as_downcast_ref::<OrderedMap<JsValue>>()
+        let map = this.as_object();
+        let map = map
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         let key = args.get_or_undefined(0);
@@ -364,8 +372,10 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         // 3. Let entries be the List that is M.[[MapData]].
-        let mut map = this
-            .as_downcast_mut::<OrderedMap<JsValue>>()
+        let map = this.as_object();
+        let mut map = map
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         // 4. For each Record { [[Key]], [[Value]] } p of entries, do
@@ -391,8 +401,10 @@ impl Map {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         // 3. Let entries be the List that is M.[[MapData]].
-        let map = this
-            .as_downcast_ref::<OrderedMap<JsValue>>()
+        let map = this.as_object();
+        let map = map
+            .as_ref()
+            .and_then(|obj| obj.downcast_mut::<OrderedMap<JsValue>>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
         let key = args.get_or_undefined(0);
@@ -424,9 +436,8 @@ impl Map {
     ) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
-        let map = this
-            .as_object()
-            .cloned()
+        let map = this.as_object();
+        let map = map
             .and_then(|obj| obj.downcast::<OrderedMap<JsValue>>().ok())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
@@ -489,9 +500,8 @@ impl Map {
     {
         // See `Self::for_each` for comments on the algo.
 
-        let map = this
-            .as_object()
-            .cloned()
+        let map = this.as_object();
+        let map = map
             .and_then(|obj| obj.downcast::<OrderedMap<JsValue>>().ok())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 

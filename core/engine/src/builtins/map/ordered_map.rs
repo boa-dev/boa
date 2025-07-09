@@ -220,10 +220,9 @@ impl Finalize for MapLock {
     fn finalize(&self) {
         // Avoids panicking inside `Finalize`, with the downside of slightly increasing
         // memory usage if the map could not be borrowed.
-        let Ok(mut map) = self.0.try_borrow_mut() else {
-            return;
-        };
-        map.downcast_mut::<OrderedMap<JsValue>>()
+        // TODO: try_downcast_mut
+        self.0
+            .downcast_mut::<OrderedMap<JsValue>>()
             .expect("MapLock does not point to a map")
             .unlock();
     }

@@ -19,7 +19,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Keyword, Punctuator,
+    Keyword, Punctuator, Spanned,
     declaration::{
         ImportDeclaration as AstImportDeclaration, ImportKind,
         ImportSpecifier as AstImportSpecifier, ModuleSpecifier,

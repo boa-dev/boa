@@ -25,7 +25,7 @@ use ast::{
     operations::{check_labels, contains_invalid_object_literal},
 };
 use boa_ast::{
-    self as ast, Punctuator, Span,
+    self as ast, Punctuator, Span, Spanned,
     declaration::Variable,
     expression::Identifier,
     function::{FormalParameterList, FormalParameterListFlags, FunctionBody as AstFunctionBody},

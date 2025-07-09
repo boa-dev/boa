@@ -1,6 +1,6 @@
 use super::{FormalParameterList, FunctionBody, FunctionExpression};
 use crate::{
-    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
+    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
     operations::{ContainsSymbol, contains},
@@ -242,11 +242,11 @@ impl ClassExpression {
     pub const fn name_scope(&self) -> Option<&Scope> {
         self.name_scope.as_ref()
     }
+}
 
-    /// Get the [`Span`] of the [`ClassExpression`] node.
+impl Spanned for ClassExpression {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -877,11 +877,11 @@ impl PrivateName {
     pub const fn description(&self) -> Sym {
         self.description
     }
+}
 
-    /// Get the [`Span`] of the [`PrivateName`] node.
+impl Spanned for PrivateName {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

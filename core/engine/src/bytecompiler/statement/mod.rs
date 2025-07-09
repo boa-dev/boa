@@ -1,7 +1,4 @@
-use super::{
-    SourcePositionGuard,
-    jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind},
-};
+use super::jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind};
 use crate::bytecompiler::ByteCompiler;
 use boa_ast::Statement;
 
@@ -61,7 +58,7 @@ impl ByteCompiler<'_> {
                 self.compile_break(*node, use_expr);
             }
             Statement::Throw(throw) => {
-                let mut compiler = SourcePositionGuard::new(self, throw.target().span().start());
+                let mut compiler = self.position_guard(throw.target());
 
                 let error = compiler.register_allocator.alloc();
                 compiler.compile_expr(throw.target(), &error);

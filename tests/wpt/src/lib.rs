@@ -118,6 +118,10 @@ impl TestSuiteSource {
 
     fn scripts(&self) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let mut scripts: Vec<String> = Vec::new();
+        let dir = self
+            .path
+            .parent()
+            .expect("Could not get the parent directory");
 
         'outer: for script in self.meta()?.get("script").unwrap_or(&Vec::new()) {
             let script = script
@@ -126,7 +130,11 @@ impl TestSuiteSource {
 
             // Resolve the source path relative to the script path, but under the wpt_path.
             let script_path = Path::new(&script);
-            let path = script_path.to_path_buf();
+            let path = if script_path.is_relative() {
+                dir.join(script_path)
+            } else {
+                script_path.to_path_buf()
+            };
 
             for (from, to) in REWRITE_RULES {
                 if path.to_string_lossy().as_ref() == *from {

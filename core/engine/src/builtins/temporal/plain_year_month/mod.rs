@@ -245,8 +245,9 @@ impl PlainYearMonth {
 
 impl PlainYearMonth {
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -290,8 +291,9 @@ impl PlainYearMonth {
     }
 
     fn get_days_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -301,8 +303,9 @@ impl PlainYearMonth {
     }
 
     fn get_days_in_month(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -312,8 +315,9 @@ impl PlainYearMonth {
     }
 
     fn get_months_in_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -323,8 +327,9 @@ impl PlainYearMonth {
     }
 
     fn get_in_leap_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -340,8 +345,9 @@ impl PlainYearMonth {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let yearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -357,7 +363,7 @@ impl PlainYearMonth {
         // 5. Let fields be ISODateToFields(calendar, yearMonth.[[ISODate]], year-month).
         // TODO: We may need to throw early on an empty partial for Order of operations, but ideally this is enforced by `temporal_rs`
         // 6. Let partialYearMonth be ? PrepareCalendarFields(calendar, temporalYearMonthLike, « year, month, month-code », « », partial).
-        let partial = to_partial_year_month(obj, context)?;
+        let partial = to_partial_year_month(&obj, context)?;
         // 7. Set fields to CalendarMergeFields(calendar, fields, partialYearMonth).
         // 8. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(args.get_or_undefined(1))?;
@@ -387,8 +393,9 @@ impl PlainYearMonth {
 
     /// 9.3.16 `Temporal.PlainYearMonth.prototype.until ( other [ , options ] )`
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -411,8 +418,9 @@ impl PlainYearMonth {
 
     /// 9.3.17 `Temporal.PlainYearMonth.prototype.since ( other [ , options ] )`
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -435,8 +443,9 @@ impl PlainYearMonth {
 
     /// 9.3.18 `Temporal.PlainYearMonth.prototype.equals ( other )`
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -451,8 +460,9 @@ impl PlainYearMonth {
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let YearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -477,8 +487,9 @@ impl PlainYearMonth {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -489,8 +500,9 @@ impl PlainYearMonth {
 
     /// 9.3.21 `Temporal.PlainYearMonth.prototype.toJSON ( )`
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -510,8 +522,9 @@ impl PlainYearMonth {
     fn to_plain_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let yearMonth be the this value.
         // 2. Perform ? RequireInternalSlot(yearMonth, [[InitializedTemporalYearMonth]]).
-        let year_month = this
-            .as_object()
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
@@ -577,7 +590,7 @@ fn to_temporal_year_month(
         }
         // b. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(item).
         // c. Let fields be ? PrepareCalendarFields(calendar, item, « year, month, month-code », «», «»).
-        let partial = to_partial_year_month(obj, context)?;
+        let partial = to_partial_year_month(&obj, context)?;
         // d. Let resolvedOptions be ? GetOptionsObject(options).
         let resolved_options = get_options_object(&options)?;
         // e. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
@@ -678,8 +691,9 @@ fn add_or_subtract_duration(
     let overflow = get_option(options, js_string!("overflow"), context)?
         .unwrap_or(ArithmeticOverflow::Constrain);
 
-    let year_month = this
-        .as_object()
+    let object = this.as_object();
+    let year_month = object
+        .as_ref()
         .and_then(JsObject::downcast_ref::<PlainYearMonth>)
         .ok_or_else(|| {
             JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")

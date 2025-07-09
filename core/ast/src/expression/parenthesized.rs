@@ -1,6 +1,6 @@
 use super::Expression;
 use crate::{
-    Span,
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
@@ -39,11 +39,11 @@ impl Parenthesized {
     pub const fn expression(&self) -> &Expression {
         &self.expression
     }
+}
 
-    /// Get the [`Span`] of the [`Parenthesized`] node.
+impl Spanned for Parenthesized {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

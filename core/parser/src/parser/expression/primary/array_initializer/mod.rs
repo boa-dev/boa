@@ -20,7 +20,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Punctuator, Span,
+    Punctuator, Span, Spanned,
     expression::{Spread, literal},
 };
 use boa_interner::Interner;

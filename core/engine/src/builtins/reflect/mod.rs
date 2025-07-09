@@ -123,7 +123,7 @@ impl Reflect {
             })?
         } else {
             // 2. If newTarget is not present, set newTarget to target.
-            target
+            target.clone()
         };
 
         // 4. Let args be ? CreateListFromArrayLike(argumentsList).
@@ -133,7 +133,7 @@ impl Reflect {
 
         // 5. Return ? Construct(target, args, newTarget).
         target
-            .construct(&args, Some(new_target), context)
+            .construct(&args, Some(&new_target), context)
             .map(JsValue::from)
     }
 
@@ -157,7 +157,7 @@ impl Reflect {
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let prop_desc: JsValue = args
             .get(2)
-            .and_then(|v| v.as_object().cloned())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("property descriptor must be an object")
             })?

@@ -151,8 +151,8 @@ pub fn register(
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::{RegisterOptions, register};
-    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
+    use crate::{register, RegisterOptions};
+    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.

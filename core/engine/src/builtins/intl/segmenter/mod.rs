@@ -258,8 +258,9 @@ impl Segmenter {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
-        let segmenter = this
-            .as_object()
+        let object = this.as_object();
+        let segmenter = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -298,14 +299,10 @@ impl Segmenter {
     fn segment(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segmenter be the this value.
         // 2. Perform ? RequireInternalSlot(segmenter, [[InitializedSegmenter]]).
-        let segmenter = this
-            .as_object()
-            .filter(|o| o.borrow().is::<Self>())
-            .ok_or_else(|| {
-                JsNativeError::typ().with_message(
-                    "`resolved_options` can only be called on an `Intl.Segmenter` object",
-                )
-            })?;
+        let segmenter = this.as_object().filter(|o| o.is::<Self>()).ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("`resolved_options` can only be called on an `Intl.Segmenter` object")
+        })?;
 
         // 3. Let string be ? ToString(string).
         let string = args.get_or_undefined(0).to_string(context)?;

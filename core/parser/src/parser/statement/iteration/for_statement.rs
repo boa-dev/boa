@@ -26,7 +26,7 @@ use ast::{
     operations::{bound_names, var_declared_names},
 };
 use boa_ast::{
-    self as ast, Keyword, Position, Punctuator,
+    self as ast, Keyword, Position, Punctuator, Spanned,
     statement::{
         ForInLoop, ForLoop, ForOfLoop,
         iteration::{ForLoopInitializer, IterableLoopInitializer},

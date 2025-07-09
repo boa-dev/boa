@@ -15,7 +15,7 @@ use self::{
     operator::{Assign, Binary, BinaryInPrivate, Conditional, Unary, Update},
 };
 use super::{
-    Statement,
+    Spanned, Statement,
     function::{
         ArrowFunction, AsyncFunctionExpression, AsyncGeneratorExpression, ClassExpression,
         FunctionExpression, GeneratorExpression,
@@ -287,11 +287,11 @@ impl Expression {
         }
         expression
     }
+}
 
-    /// Get [`Span`] of the [`Expression`].
+impl Spanned for Expression {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         match self {
             Self::This(this) => this.span(),
             Self::Identifier(id) => id.span(),

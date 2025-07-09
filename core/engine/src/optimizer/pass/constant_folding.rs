@@ -5,7 +5,7 @@ use crate::{
 };
 use boa_ast::expression::literal::Literal;
 use boa_ast::{
-    Expression,
+    Expression, Spanned,
     expression::{
         literal::LiteralKind,
         operator::{

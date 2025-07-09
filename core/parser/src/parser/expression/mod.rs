@@ -29,7 +29,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    self as ast, Keyword, Position, Punctuator,
+    self as ast, Keyword, Position, Punctuator, Spanned,
     expression::{
         Identifier,
         operator::{

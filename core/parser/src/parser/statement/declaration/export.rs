@@ -20,7 +20,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Keyword, Punctuator,
+    Keyword, Punctuator, Spanned,
     declaration::{ExportDeclaration as AstExportDeclaration, ReExportKind},
 };
 use boa_interner::{Interner, Sym};

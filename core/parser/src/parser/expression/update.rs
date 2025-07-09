@@ -18,7 +18,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Expression, Position, Punctuator, Span,
+    Expression, Position, Punctuator, Span, Spanned,
     expression::operator::{
         Update,
         update::{UpdateOp, UpdateTarget},

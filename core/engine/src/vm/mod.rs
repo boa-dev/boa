@@ -256,21 +256,18 @@ impl Stack {
             .stack
             .get(frame.promise_capability_promise_register_index())
             .expect("stack must have a promise capability")
-            .as_object()
-            .cloned()?;
+            .as_object()?;
         let resolve = self
             .stack
             .get(frame.promise_capability_resolve_register_index())
             .expect("stack must have a resolve function")
             .as_object()
-            .cloned()
             .and_then(JsFunction::from_object)?;
         let reject = self
             .stack
             .get(frame.promise_capability_reject_register_index())
             .expect("stack must have a reject function")
             .as_object()
-            .cloned()
             .and_then(JsFunction::from_object)?;
 
         Some(PromiseCapability {
@@ -296,7 +293,6 @@ impl Stack {
             .get(frame.async_generator_object_register_index())
             .expect("stack must have an async generator object")
             .as_object()
-            .cloned()
     }
 
     /// Push a value on the stack.

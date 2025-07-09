@@ -212,6 +212,20 @@ impl From<Position> for Span {
     }
 }
 
+impl Spanned for Span {
+    #[inline]
+    fn span(&self) -> Span {
+        *self
+    }
+}
+
+impl<T: Spanned> Spanned for &T {
+    #[inline]
+    fn span(&self) -> Span {
+        T::span(*self)
+    }
+}
+
 impl PartialOrd for Span {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         if self == other {
@@ -230,6 +244,13 @@ impl fmt::Display for Span {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[{}..{}]", self.start, self.end)
     }
+}
+
+/// An element of the AST or any type that can be located in the source with a Span.
+pub trait Spanned {
+    /// Returns a span from the current type.
+    #[must_use]
+    fn span(&self) -> Span;
 }
 
 /// A linear span in the ECMAScript source code.

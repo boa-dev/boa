@@ -226,14 +226,14 @@ impl ListFormat {
     fn format(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`format` can only be called on a `ListFormat` object")
-        })?;
-        let lf = lf.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`format` can only be called on a `ListFormat` object")
-        })?;
+        let object = this.as_object();
+        let lf = object
+            .as_ref()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`format` can only be called on a `ListFormat` object")
+            })?;
 
         // 3. Let stringList be ? StringListFromIterable(list).
         // TODO: support for UTF-16 unpaired surrogates formatting
@@ -344,14 +344,14 @@ impl ListFormat {
 
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`formatToParts` can only be called on a `ListFormat` object")
-        })?;
-        let lf = lf.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`formatToParts` can only be called on a `ListFormat` object")
-        })?;
+        let object = this.as_object();
+        let lf = object
+            .as_ref()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`formatToParts` can only be called on a `ListFormat` object")
+            })?;
 
         // 3. Let stringList be ? StringListFromIterable(list).
         // TODO: support for UTF-16 unpaired surrogates formatting
@@ -418,14 +418,14 @@ impl ListFormat {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let lf be the this value.
         // 2. Perform ? RequireInternalSlot(lf, [[InitializedListFormat]]).
-        let lf = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
-        })?;
-        let lf = lf.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
-        })?;
+        let object = this.as_object();
+        let lf = object
+            .as_ref()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`resolvedOptions` can only be called on a `ListFormat` object")
+            })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         let options = context

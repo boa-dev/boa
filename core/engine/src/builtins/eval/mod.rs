@@ -142,7 +142,11 @@ impl Eval {
             //     b. If thisEnvRec is a Function Environment Record, then
             Some(function_env) if direct => {
                 // i. Let F be thisEnvRec.[[FunctionObject]].
-                let function_object = function_env.slots().function_object().borrow();
+                let function_object = function_env
+                    .slots()
+                    .function_object()
+                    .downcast_ref::<OrdinaryFunction>()
+                    .expect("must be function object");
 
                 // ii. Set inFunction to true.
                 let mut flags = Flags::IN_FUNCTION;
@@ -151,10 +155,6 @@ impl Eval {
                 if function_env.has_super_binding() {
                     flags |= Flags::IN_METHOD;
                 }
-
-                let function_object = function_object
-                    .downcast_ref::<OrdinaryFunction>()
-                    .expect("must be function object");
 
                 // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
                 if function_object.is_derived_constructor() {

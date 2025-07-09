@@ -1,6 +1,4 @@
-use super::{
-    BindingAccessOpcode, ByteCompiler, Literal, Register, SourcePositionGuard, ToJsString,
-};
+use super::{BindingAccessOpcode, ByteCompiler, Literal, Register, ToJsString};
 use crate::{
     js_string,
     vm::{CodeBlock, CodeBlockFlags, opcode::BindingOpcode},
@@ -131,7 +129,7 @@ impl ByteCompiler<'_> {
             );
 
             {
-                let mut compiler = SourcePositionGuard::new(&mut compiler, expr.span().start());
+                let mut compiler = compiler.position_guard(expr);
                 compiler.compile_statement_list(expr.body().statement_list(), false, false);
             }
 
@@ -623,10 +621,7 @@ impl ByteCompiler<'_> {
                     );
 
                     {
-                        let mut compiler = SourcePositionGuard::new(
-                            &mut compiler,
-                            block.statements().span().start(),
-                        );
+                        let mut compiler = compiler.position_guard(block.statements());
                         compiler.compile_statement_list(
                             block.statements().statement_list(),
                             false,

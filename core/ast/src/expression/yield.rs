@@ -2,7 +2,7 @@ use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
 use crate::{
-    Span,
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 
@@ -49,11 +49,11 @@ impl Yield {
     pub const fn delegate(&self) -> bool {
         self.delegate
     }
+}
 
-    /// Get the [`Span`] of the [`Yield`] node.
+impl Spanned for Yield {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

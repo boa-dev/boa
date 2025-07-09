@@ -25,7 +25,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Expression, Keyword, Punctuator, Span,
+    Expression, Keyword, Punctuator, Span, Spanned,
     expression::{
         Identifier,
         literal::{

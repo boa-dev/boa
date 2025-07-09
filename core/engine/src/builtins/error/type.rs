@@ -121,24 +121,24 @@ impl IntrinsicObject for ThrowTypeError {
             .static_property(js_string!("name"), js_string!(), Attribute::empty())
             .build();
 
-        let mut obj = obj.borrow_mut();
-
-        *obj.downcast_mut::<NativeFunctionObject>()
-            .expect("`%ThrowTypeError%` must be a function") = NativeFunctionObject {
-            f: NativeFunction::from_fn_ptr(|_, _, _| {
+        {
+            let mut obj = obj
+                .downcast_mut::<NativeFunctionObject>()
+                .expect("`%ThrowTypeError%` must be a function");
+            obj.f = NativeFunction::from_fn_ptr(|_, _, _| {
                 Err(JsNativeError::typ()
                     .with_message(
                         "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode \
                         functions or the arguments objects for calls to them",
                     )
                     .into())
-            }),
-            name: js_string!(),
-            constructor: None,
-            realm: Some(realm.clone()),
-        };
+            });
+            obj.name = js_string!();
+            obj.constructor = None;
+            obj.realm = Some(realm.clone());
+        }
 
-        obj.extensible = false;
+        obj.borrow_mut().extensible = false;
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

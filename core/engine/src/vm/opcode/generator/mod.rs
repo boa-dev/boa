@@ -42,16 +42,13 @@ impl Generator {
             .get(PROTOTYPE, context)
             .expect("generator must have a prototype property")
             .as_object()
-            .map_or_else(
-                || {
-                    if r#async {
-                        context.intrinsics().objects().async_generator()
-                    } else {
-                        context.intrinsics().objects().generator()
-                    }
-                },
-                Clone::clone,
-            );
+            .unwrap_or_else(|| {
+                if r#async {
+                    context.intrinsics().objects().async_generator()
+                } else {
+                    context.intrinsics().objects().generator()
+                }
+            });
 
         let generator = if r#async {
             JsObject::from_proto_and_data_with_shared_shape(

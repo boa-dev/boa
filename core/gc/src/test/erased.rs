@@ -18,12 +18,12 @@ fn erased_gc() {
         assert_eq!(erased.type_id(), TypeId::of::<Vec<i32>>());
         assert!(erased.is::<Vec<i32>>());
 
-        assert_eq!(erased.downcast::<i32>(), None);
+        assert_eq!(erased.clone().downcast::<i32>(), None);
 
         let gc_from_erased = erased.downcast::<Vec<i32>>().unwrap();
         assert_eq!(**gc_from_erased, value);
 
-        assert!(Gc::ptr_eq(&gc, gc_from_erased));
+        assert!(Gc::ptr_eq(&gc, &gc_from_erased));
     });
 }
 
@@ -52,7 +52,7 @@ fn nested_erased_gc() {
         force_collect();
         Harness::assert_exact_bytes_allocated(100 * size_of::<GcBox<List>>());
 
-        let mut head = root.downcast::<List>().cloned();
+        let mut head = root.downcast::<List>();
         for value in (0..100).rev() {
             let head_unwrap = head.as_ref().unwrap();
 
@@ -60,9 +60,8 @@ fn nested_erased_gc() {
 
             head = head_unwrap
                 .next
-                .as_ref()
-                .and_then(GcErased::downcast::<List>)
-                .cloned();
+                .clone()
+                .and_then(GcErased::downcast::<List>);
         }
     });
 }
@@ -95,17 +94,17 @@ fn c_style_inheritance() {
         assert!(Gc::is::<Derived>(&derived));
 
         // SAFETY: The structs have #[repr(C)] so this is safe.
-        let base = unsafe { Gc::cast_unchecked::<Base>(&derived) };
+        let base = unsafe { Gc::cast_unchecked::<Base>(derived.clone()) };
 
-        assert_eq!(Gc::type_id(base), TypeId::of::<Derived>());
-        assert!(Gc::is::<Derived>(base));
+        assert_eq!(Gc::type_id(&base), TypeId::of::<Derived>());
+        assert!(Gc::is::<Derived>(&base));
 
         assert_eq!(base.base_field, value);
         assert_eq!(base.base_field, derived.base.base_field);
 
-        assert!(Gc::ptr_eq(base, &derived));
+        assert!(Gc::ptr_eq(&base, &derived));
 
-        assert_eq!(Gc::downcast::<i32>(base), None);
-        assert_eq!(*Gc::downcast::<Derived>(base).unwrap(), derived);
+        assert_eq!(Gc::downcast::<i32>(base.clone()), None);
+        assert_eq!(*Gc::downcast::<Derived>(base).unwrap(), *derived);
     });
 }
