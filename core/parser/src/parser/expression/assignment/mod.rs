@@ -29,7 +29,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Expression, Keyword, Punctuator, Span,
+    Expression, Keyword, Punctuator, Span, Spanned,
     expression::operator::assign::{Assign, AssignOp, AssignTarget},
     operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };

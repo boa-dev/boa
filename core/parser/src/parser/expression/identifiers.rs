@@ -11,6 +11,7 @@ use crate::{
     parser::{AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser, cursor::Cursor},
     source::ReadChar,
 };
+use boa_ast::Spanned;
 use boa_ast::expression::Identifier as AstIdentifier;
 use boa_interner::{Interner, Sym};
 

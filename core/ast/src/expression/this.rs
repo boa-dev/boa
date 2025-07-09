@@ -1,7 +1,7 @@
 //! `this` ECMAScript expression.
 
 use crate::{
-    Span,
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToInternedString};
@@ -24,11 +24,11 @@ impl This {
     pub const fn new(span: Span) -> Self {
         Self { span }
     }
+}
 
-    /// Get the [`Span`] of the [`This`] node.
+impl Spanned for This {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

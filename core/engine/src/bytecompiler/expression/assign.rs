@@ -1,7 +1,5 @@
 use crate::{
-    bytecompiler::{
-        Access, BindingAccessOpcode, ByteCompiler, Label, Register, SourcePositionGuard, ToJsString,
-    },
+    bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Label, Register, ToJsString},
     vm::opcode::BindingOpcode,
 };
 use boa_ast::{
@@ -15,7 +13,7 @@ use boa_ast::{
 
 impl ByteCompiler<'_> {
     pub(crate) fn compile_assign(&mut self, assign: &Assign, dst: &Register) {
-        let mut compiler = SourcePositionGuard::new(self, assign.span().start());
+        let mut compiler = self.position_guard(assign);
 
         if assign.op() == AssignOp::Assign {
             match Access::from_assign_target(assign.lhs()) {

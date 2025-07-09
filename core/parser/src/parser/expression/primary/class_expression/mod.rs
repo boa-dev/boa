@@ -6,7 +6,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{Keyword, Span, function::ClassExpression as ClassExpressionNode};
+use boa_ast::{Keyword, Span, Spanned, function::ClassExpression as ClassExpressionNode};
 use boa_interner::Interner;
 
 /// Class expression parsing.

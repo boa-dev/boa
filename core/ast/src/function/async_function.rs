@@ -2,7 +2,7 @@
 
 use super::{FormalParameterList, FunctionBody};
 use crate::{
-    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, block_to_string,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
     operations::{ContainsSymbol, contains},
@@ -247,11 +247,11 @@ impl AsyncFunctionExpression {
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
     }
+}
 
-    /// Get the [`Span`] of the [`AsyncFunctionExpression`] node.
+impl Spanned for AsyncFunctionExpression {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

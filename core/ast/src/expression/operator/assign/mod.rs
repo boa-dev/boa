@@ -20,7 +20,7 @@ pub use op::*;
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::{
-    Span,
+    Span, Spanned,
     expression::{Expression, access::PropertyAccess, identifier::Identifier},
     pattern::Pattern,
     visitor::{VisitWith, Visitor, VisitorMut},
@@ -70,11 +70,11 @@ impl Assign {
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
     }
+}
 
-    /// Get the [`Span`] of the [`Assign`] node.
+impl Spanned for Assign {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
@@ -168,11 +168,11 @@ impl AssignTarget {
             _ => None,
         }
     }
+}
 
-    /// Get the [`Span`] of the [`AssignTarget`] node.
+impl Spanned for AssignTarget {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         match self {
             AssignTarget::Identifier(identifier) => identifier.span(),
             AssignTarget::Access(property_access) => property_access.span(),

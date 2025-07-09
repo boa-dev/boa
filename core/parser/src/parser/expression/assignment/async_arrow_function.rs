@@ -24,7 +24,7 @@ use ast::{
     operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_ast::{
-    self as ast, Punctuator, Span, StatementList,
+    self as ast, Punctuator, Span, Spanned, StatementList,
     declaration::Variable,
     function::{FormalParameter, FormalParameterList},
     statement::Return,

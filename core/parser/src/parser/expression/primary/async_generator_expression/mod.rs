@@ -22,7 +22,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Keyword, Punctuator, Span,
+    Keyword, Punctuator, Span, Spanned,
     function::AsyncGeneratorExpression as AsyncGeneratorExpressionNode,
     operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };

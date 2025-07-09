@@ -6,7 +6,7 @@ use crate::lexer::{
     token::{ContainsEscapeSequence, EscapeSequence, Numeric},
 };
 use crate::source::ReadChar;
-use boa_ast::{Keyword, Position, Span};
+use boa_ast::{Keyword, Position, Span, Spanned};
 use boa_interner::Sym;
 use boa_macros::utf16;
 use std::str;

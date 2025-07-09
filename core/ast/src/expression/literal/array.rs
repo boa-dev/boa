@@ -1,10 +1,10 @@
 //! Array declaration Expression.
 
-use crate::Span;
 use crate::expression::Expression;
 use crate::expression::operator::assign::{AssignOp, AssignTarget};
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{Span, Spanned};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -51,13 +51,6 @@ impl ArrayLiteral {
     #[must_use]
     pub const fn has_trailing_comma_spread(&self) -> bool {
         self.has_trailing_comma_spread
-    }
-
-    /// Get the [`Span`] of the [`ArrayLiteral`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
     }
 
     /// Converts this `ArrayLiteral` into an [`ArrayPattern`].
@@ -167,6 +160,13 @@ impl ArrayLiteral {
             }
         }
         Some(ArrayPattern::new(bindings.into(), self.span))
+    }
+}
+
+impl Spanned for ArrayLiteral {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

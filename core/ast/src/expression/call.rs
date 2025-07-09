@@ -1,5 +1,5 @@
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{Span, join_nodes};
+use crate::{Span, Spanned, join_nodes};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -53,11 +53,11 @@ impl Call {
     pub const fn args(&self) -> &[Expression] {
         &self.args
     }
+}
 
-    /// Gets the [`Span`] of the [`Call`] node.
+impl Spanned for Call {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -137,11 +137,11 @@ impl SuperCall {
     pub const fn arguments(&self) -> &[Expression] {
         &self.args
     }
+}
 
-    /// Get the [`Span`] of the [`SuperCall`] node.
+impl Spanned for SuperCall {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -217,11 +217,11 @@ impl ImportCall {
     pub const fn argument(&self) -> &Expression {
         &self.arg
     }
+}
 
-    /// Get the [`Span`] of the [`ImportCall`] node.
+impl Spanned for ImportCall {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

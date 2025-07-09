@@ -16,7 +16,7 @@ use crate::{
     },
     source::ReadChar,
 };
-use boa_ast::{Expression, Punctuator, Span, expression::Spread};
+use boa_ast::{Expression, Punctuator, Span, Spanned, expression::Spread};
 use boa_interner::Interner;
 
 /// Parses a list of arguments.

@@ -2,7 +2,7 @@ use super::{FormalParameterList, FunctionBody};
 use crate::operations::{ContainsSymbol, contains};
 use crate::scope::FunctionScopes;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{LinearSpan, LinearSpanIgnoreEq, Span};
+use crate::{LinearSpan, LinearSpanIgnoreEq, Span, Spanned};
 use crate::{
     expression::{Expression, Identifier},
     join_nodes,
@@ -106,11 +106,11 @@ impl AsyncArrowFunction {
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
     }
+}
 
-    /// Get the [`Span`] of the [`AsyncArrowFunction`] node.
+impl Spanned for AsyncArrowFunction {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

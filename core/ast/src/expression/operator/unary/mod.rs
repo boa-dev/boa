@@ -12,7 +12,7 @@
 mod op;
 
 use crate::{
-    Span,
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -70,11 +70,11 @@ impl Unary {
     pub fn target_mut(&mut self) -> &mut Expression {
         self.target.as_mut()
     }
+}
 
-    /// Get the [`Span`] of the [`Unary`] node.
+impl Spanned for Unary {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

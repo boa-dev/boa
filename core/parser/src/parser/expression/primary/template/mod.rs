@@ -14,7 +14,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    PositionGroup, Punctuator, Span,
+    PositionGroup, Punctuator, Span, Spanned,
     expression::literal::{self, TemplateElement},
 };
 use boa_interner::{Interner, Sym};

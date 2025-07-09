@@ -24,7 +24,7 @@ use ast::{
     property::MethodDefinitionKind,
 };
 use boa_ast::{
-    self as ast, Expression, Keyword, Position, Punctuator, Span,
+    self as ast, Expression, Keyword, Position, Punctuator, Span, Spanned,
     expression::Identifier,
     function::{
         self, ClassDeclaration as ClassDeclarationNode, ClassElementName, ClassFieldDefinition,

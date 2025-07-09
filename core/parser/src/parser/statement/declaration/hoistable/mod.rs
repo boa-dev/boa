@@ -28,7 +28,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    self as ast, Declaration, Keyword, Punctuator,
+    self as ast, Declaration, Keyword, Punctuator, Spanned,
     expression::Identifier,
     function::FormalParameterList,
     operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},

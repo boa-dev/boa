@@ -19,7 +19,7 @@ use crate::{
     source::ReadChar,
 };
 use ast::operations::bound_names;
-use boa_ast::{self as ast, Keyword, Punctuator, declaration::Variable};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned, declaration::Variable};
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashSet;
 

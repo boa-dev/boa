@@ -8,7 +8,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Keyword, Punctuator,
+    Keyword, Punctuator, Spanned,
     declaration::Binding,
     operations::{bound_names, lexically_declared_names, var_declared_names},
     statement,

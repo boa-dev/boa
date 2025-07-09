@@ -20,7 +20,7 @@ use crate::{
     source::ReadChar,
 };
 use boa_ast::{
-    Punctuator,
+    Punctuator, Spanned,
     operations::{lexically_declared_names_legacy, var_declared_names},
     statement,
 };
