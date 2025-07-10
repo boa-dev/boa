@@ -1,6 +1,8 @@
-// TODO: Maybe extract to a separate crate? It could be useful for some applications.
-#![allow(unreachable_pub)]
-#![allow(unused)]
+//! A crate that provides a `SmallBTreeMap` collection, which is initially backed by an inline vec
+//! but changes its backing to a heap map if its number of elements exceeds `ARRAY_SIZE`.
+//!
+//! This provides performance benefits for maps that are expected to be small most of the time,
+//! by avoiding heap allocations for the common case while still supporting larger collections when needed.
 
 use std::{
     borrow::Borrow,
@@ -22,7 +24,7 @@ use Entry::{Occupied, Vacant};
 /// A map that is initially backed by an inline vec, but changes its backing to a heap map if its
 /// number of elements exceeds `ARRAY_SIZE`.
 #[derive(Clone)]
-pub(crate) struct SmallMap<K, V, const ARRAY_SIZE: usize> {
+pub struct SmallBTreeMap<K, V, const ARRAY_SIZE: usize> {
     inner: Inner<K, V, ARRAY_SIZE>,
 }
 
@@ -32,12 +34,12 @@ enum Inner<K, V, const ARRAY_SIZE: usize> {
     Heap(BTreeMap<K, V>),
 }
 
-/// An iterator over the entries of a `SmallMap`.
+/// An iterator over the entries of a `SmallBTreeMap`.
 ///
-/// This `struct` is created by the [`iter`] method on [`SmallMap`]. See its
+/// This `struct` is created by the [`iter`] method on [`SmallBTreeMap`]. See its
 /// documentation for more.
 ///
-/// [`iter`]: SmallMap::iter
+/// [`iter`]: SmallBTreeMap::iter
 #[derive(Clone)]
 pub struct Iter<'a, K, V> {
     inner: InnerIter<'a, K, V>,
@@ -59,7 +61,7 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for Iter<'_, K, V> {
 }
 
 impl<K, V> Default for Iter<'_, K, V> {
-    /// Creates an empty `small_map::Iter`.
+    /// Creates an empty `small_btree::Iter`.
     fn default() -> Self {
         Self {
             inner: InnerIter::Inline(std::slice::Iter::default()),
@@ -67,12 +69,12 @@ impl<K, V> Default for Iter<'_, K, V> {
     }
 }
 
-/// A mutable iterator over the entries of a `SmallMap`.
+/// A mutable iterator over the entries of a `SmallBTreeMap`.
 ///
-/// This `struct` is created by the [`iter_mut`] method on [`SmallMap`]. See its
+/// This `struct` is created by the [`iter_mut`] method on [`SmallBTreeMap`]. See its
 /// documentation for more.
 ///
-/// [`iter_mut`]: SmallMap::iter_mut
+/// [`iter_mut`]: SmallBTreeMap::iter_mut
 pub struct IterMut<'a, K, V> {
     inner: InnerIterMut<'a, K, V>,
 }
@@ -92,7 +94,7 @@ impl<K: fmt::Debug, V: fmt::Debug> fmt::Debug for IterMut<'_, K, V> {
 }
 
 impl<K, V> Default for IterMut<'_, K, V> {
-    /// Creates an empty `small_map::IterMut`.
+    /// Creates an empty `small_btree::IterMut`.
     fn default() -> Self {
         Self {
             inner: InnerIterMut::Inline(std::slice::IterMut::default()),
@@ -100,9 +102,9 @@ impl<K, V> Default for IterMut<'_, K, V> {
     }
 }
 
-/// An owning iterator over the entries of a `SmallMap`.
+/// An owning iterator over the entries of a `SmallBTreeMap`.
 ///
-/// This `struct` is created by the [`into_iter`] method on [`SmallMap`]
+/// This `struct` is created by the [`into_iter`] method on [`SmallBTreeMap`]
 /// (provided by the [`IntoIterator`] trait). See its documentation for more.
 ///
 /// [`into_iter`]: IntoIterator::into_iter
@@ -127,7 +129,7 @@ impl<K: fmt::Debug, V: fmt::Debug, const ARRAY_SIZE: usize> fmt::Debug
 }
 
 impl<K, V, const ARRAY_SIZE: usize> Default for IntoIter<K, V, ARRAY_SIZE> {
-    /// Creates an empty `small_map::IntoIter`.
+    /// Creates an empty `small_btree::IntoIter`.
     fn default() -> Self {
         Self {
             inner: InnerIntoIter::Inline(ArrayVec::new().into_iter()),
@@ -135,8 +137,9 @@ impl<K, V, const ARRAY_SIZE: usize> Default for IntoIter<K, V, ARRAY_SIZE> {
     }
 }
 
-impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
-    /// Makes a new, empty `SmallMap`.
+impl<K, V, const ARRAY_SIZE: usize> SmallBTreeMap<K, V, ARRAY_SIZE> {
+    /// Makes a new, empty `SmallBTreeMap`.
+    #[must_use]
     pub const fn new() -> Self {
         Self {
             inner: Inner::Inline(ArrayVec::new_const()),
@@ -291,7 +294,7 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     ///
     /// If a key from `other` is already present in `self`, the respective
     /// value from `self` will be overwritten with the respective value from `other`.
-    pub fn append<const OTHER_SIZE: usize>(&mut self, other: &mut SmallMap<K, V, OTHER_SIZE>)
+    pub fn append<const OTHER_SIZE: usize>(&mut self, other: &mut SmallBTreeMap<K, V, OTHER_SIZE>)
     where
         K: Ord + Eq,
     {
@@ -303,7 +306,7 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
 
         let other = std::mem::replace(
             other,
-            SmallMap {
+            SmallBTreeMap {
                 inner: if inline {
                     Inner::Inline(ArrayVec::new())
                 } else {
@@ -360,7 +363,7 @@ impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
     }
 }
 
-impl<'a, K, V, const ARRAY_SIZE: usize> IntoIterator for &'a SmallMap<K, V, ARRAY_SIZE> {
+impl<'a, K, V, const ARRAY_SIZE: usize> IntoIterator for &'a SmallBTreeMap<K, V, ARRAY_SIZE> {
     type Item = (&'a K, &'a V);
     type IntoIter = Iter<'a, K, V>;
 
@@ -417,7 +420,7 @@ impl<K, V> ExactSizeIterator for Iter<'_, K, V> {
     }
 }
 
-impl<'a, K, V, const ARRAY_SIZE: usize> IntoIterator for &'a mut SmallMap<K, V, ARRAY_SIZE> {
+impl<'a, K, V, const ARRAY_SIZE: usize> IntoIterator for &'a mut SmallBTreeMap<K, V, ARRAY_SIZE> {
     type Item = (&'a K, &'a mut V);
     type IntoIter = IterMut<'a, K, V>;
 
@@ -471,7 +474,7 @@ impl<K, V> ExactSizeIterator for IterMut<'_, K, V> {
     }
 }
 
-impl<K, V, const ARRAY_SIZE: usize> IntoIterator for SmallMap<K, V, ARRAY_SIZE> {
+impl<K, V, const ARRAY_SIZE: usize> IntoIterator for SmallBTreeMap<K, V, ARRAY_SIZE> {
     type Item = (K, V);
     type IntoIter = IntoIter<K, V, ARRAY_SIZE>;
 
@@ -525,7 +528,7 @@ impl<K, V, const ARRAY_SIZE: usize> ExactSizeIterator for IntoIter<K, V, ARRAY_S
 
 impl<K, V, const ARRAY_SIZE: usize> FusedIterator for IntoIter<K, V, ARRAY_SIZE> {}
 
-impl<K: Eq + Ord, V, const ARRAY_SIZE: usize> Extend<(K, V)> for SmallMap<K, V, ARRAY_SIZE> {
+impl<K: Eq + Ord, V, const ARRAY_SIZE: usize> Extend<(K, V)> for SmallBTreeMap<K, V, ARRAY_SIZE> {
     fn extend<T: IntoIterator<Item = (K, V)>>(&mut self, iter: T) {
         iter.into_iter().for_each(move |(k, v)| {
             self.insert(k, v);
@@ -534,14 +537,14 @@ impl<K: Eq + Ord, V, const ARRAY_SIZE: usize> Extend<(K, V)> for SmallMap<K, V, 
 }
 
 impl<'a, K: Eq + Ord + Copy, V: Copy, const ARRAY_SIZE: usize> Extend<(&'a K, &'a V)>
-    for SmallMap<K, V, ARRAY_SIZE>
+    for SmallBTreeMap<K, V, ARRAY_SIZE>
 {
     fn extend<I: IntoIterator<Item = (&'a K, &'a V)>>(&mut self, iter: I) {
         self.extend(iter.into_iter().map(|(&key, &value)| (key, value)));
     }
 }
 
-impl<K: Hash, V: Hash, const ARRAY_SIZE: usize> Hash for SmallMap<K, V, ARRAY_SIZE> {
+impl<K: Hash, V: Hash, const ARRAY_SIZE: usize> Hash for SmallBTreeMap<K, V, ARRAY_SIZE> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         // TODO: track https://github.com/rust-lang/rust/issues/96762
         // state.write_length_prefix(self.len());
@@ -552,17 +555,17 @@ impl<K: Hash, V: Hash, const ARRAY_SIZE: usize> Hash for SmallMap<K, V, ARRAY_SI
     }
 }
 
-impl<K, V, const ARRAY_SIZE: usize> Default for SmallMap<K, V, ARRAY_SIZE> {
-    /// Creates an empty `SmallMap`.
+impl<K, V, const ARRAY_SIZE: usize> Default for SmallBTreeMap<K, V, ARRAY_SIZE> {
+    /// Creates an empty `SmallBTreeMap`.
     fn default() -> Self {
         Self::new()
     }
 }
 
 impl<K: PartialEq + Ord, V: PartialEq, const LHS_SIZE: usize, const RHS_SIZE: usize>
-    PartialEq<SmallMap<K, V, RHS_SIZE>> for SmallMap<K, V, LHS_SIZE>
+    PartialEq<SmallBTreeMap<K, V, RHS_SIZE>> for SmallBTreeMap<K, V, LHS_SIZE>
 {
-    fn eq(&self, other: &SmallMap<K, V, RHS_SIZE>) -> bool {
+    fn eq(&self, other: &SmallBTreeMap<K, V, RHS_SIZE>) -> bool {
         if let (Inner::Heap(lhs), Inner::Heap(rhs)) = (&self.inner, &other.inner) {
             return lhs == rhs;
         }
@@ -576,17 +579,17 @@ impl<K: PartialEq + Ord, V: PartialEq, const LHS_SIZE: usize, const RHS_SIZE: us
     }
 }
 
-impl<K: Eq + Ord, V: Eq, const ARRAY_SIZE: usize> Eq for SmallMap<K, V, ARRAY_SIZE> {}
+impl<K: Eq + Ord, V: Eq, const ARRAY_SIZE: usize> Eq for SmallBTreeMap<K, V, ARRAY_SIZE> {}
 
 impl<K: fmt::Debug, V: fmt::Debug, const ARRAY_SIZE: usize> fmt::Debug
-    for SmallMap<K, V, ARRAY_SIZE>
+    for SmallBTreeMap<K, V, ARRAY_SIZE>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_map().entries(self.iter()).finish()
     }
 }
 
-impl<K, Q: ?Sized, V, const ARRAY_SIZE: usize> Index<&Q> for SmallMap<K, V, ARRAY_SIZE>
+impl<K, Q: ?Sized, V, const ARRAY_SIZE: usize> Index<&Q> for SmallBTreeMap<K, V, ARRAY_SIZE>
 where
     K: Eq + Ord + Borrow<Q>,
     Q: Eq + Ord,
@@ -598,7 +601,7 @@ where
     }
 }
 
-impl<K, Q: ?Sized, V, const ARRAY_SIZE: usize> IndexMut<&Q> for SmallMap<K, V, ARRAY_SIZE>
+impl<K, Q: ?Sized, V, const ARRAY_SIZE: usize> IndexMut<&Q> for SmallBTreeMap<K, V, ARRAY_SIZE>
 where
     K: Eq + Ord + Borrow<Q>,
     Q: Eq + Ord,
@@ -608,7 +611,7 @@ where
     }
 }
 
-impl<K, V, const ARRAY_SIZE: usize> SmallMap<K, V, ARRAY_SIZE> {
+impl<K, V, const ARRAY_SIZE: usize> SmallBTreeMap<K, V, ARRAY_SIZE> {
     /// Gets an iterator over the entries of the map.
     pub fn iter(&self) -> Iter<'_, K, V> {
         match &self.inner {
