@@ -427,7 +427,7 @@ mod bits {
     ///
     /// # Safety
     ///
-    /// The pointer must be a valid pointer to a T on the heap, otherwise this
+    /// The pointer must be a valid pointer to a [`JsString`], otherwise this
     /// will result in undefined behavior.
     pub(super) unsafe fn untag_string_owned(value: u64) -> JsString {
         let value = (value & MASK_POINTER_VALUE) as *mut RawJsString;
