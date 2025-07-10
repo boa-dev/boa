@@ -429,7 +429,6 @@ mod bits {
     ///
     /// The pointer must be a valid pointer to a T on the heap, otherwise this
     /// will result in undefined behavior.
-    #[allow(clippy::unnecessary_box_returns)]
     pub(super) unsafe fn untag_string_owned(value: u64) -> JsString {
         let value = (value & MASK_POINTER_VALUE) as *mut RawJsString;
 
