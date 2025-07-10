@@ -9,7 +9,7 @@ use crate::{
 use boa_engine::{
     Context, JsArgs, JsError, JsNativeErrorKind, JsResult, JsValue, Source,
     builtins::promise::PromiseState,
-    js_str, js_string,
+    js_str,
     module::{Module, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
@@ -667,16 +667,15 @@ fn parse_module_and_register(
 ) -> JsResult<Module> {
     let module = Module::parse(source, None, context)?;
 
-    let path = js_string!(
-        &*path
-            .canonicalize()
-            .expect("test path should be canonicalizable")
-            .to_string_lossy()
-    );
+    let path = path
+        .canonicalize()
+        .expect("test path should be canonicalizable");
 
-    context
-        .module_loader()
-        .register_module(path, module.clone());
+    let loader = context
+        .downcast_module_loader::<SimpleModuleLoader>()
+        .expect("context must use a SimpleModuleLoader");
+
+    loader.insert(path, module.clone());
 
     Ok(module)
 }

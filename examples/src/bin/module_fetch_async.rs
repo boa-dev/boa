@@ -19,71 +19,36 @@ use smol::{future, stream::StreamExt};
 struct HttpModuleLoader;
 
 impl ModuleLoader for HttpModuleLoader {
-    fn load_imported_module(
-        &self,
+    async fn load_imported_module(
+        self: Rc<Self>,
         _referrer: boa_engine::module::Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
+        context: &RefCell<&mut Context>,
+    ) -> JsResult<Module> {
         let url = specifier.to_std_string_escaped();
 
-        // Just enqueue the future for now. We'll advance all the enqueued futures inside our custom
-        // `JobExecutor`.
-        context.enqueue_job(
-            NativeAsyncJob::with_realm(
-                move |context| {
-                    Box::pin(async move {
-                        // Adding some prints to show the non-deterministic nature of the async fetches.
-                        // Try to run the example several times to see how sometimes the fetches start in order
-                        // but finish in disorder.
-                        println!("Fetching `{url}`...");
+        // Adding some prints to show the non-deterministic nature of the async fetches.
+        // Try to run the example several times to see how sometimes the fetches start in order
+        // but finish in disorder.
+        println!("Fetching `{url}`...");
 
-                        // This could also retry fetching in case there's an error while requesting the module.
-                        let body: Result<_, isahc::Error> = async {
-                            let mut response = Request::get(&url)
-                                .redirect_policy(RedirectPolicy::Limit(5))
-                                .body(())?
-                                .send_async()
-                                .await?;
+        // This could also retry fetching in case there's an error while requesting the module.
+        let response = async {
+            let request = Request::get(&url)
+                .redirect_policy(RedirectPolicy::Limit(5))
+                .body(())?;
+            let response = request.send_async().await?.text().await?;
+            Ok(response)
+        }
+        .await
+        .map_err(|err: isahc::Error| JsNativeError::typ().with_message(err.to_string()))?;
 
-                            Ok(response.text().await?)
-                        }
-                        .await;
+        println!("Finished fetching `{url}`");
 
-                        println!("Finished fetching `{url}`");
+        // Could also add a path if needed.
+        let source = Source::from_bytes(&response);
 
-                        let body = match body {
-                            Ok(body) => body,
-                            Err(err) => {
-                                // On error we always call `finish_load` to notify the load promise about the
-                                // error.
-                                finish_load(
-                                    Err(JsNativeError::typ().with_message(err.to_string()).into()),
-                                    &mut context.borrow_mut(),
-                                );
-
-                                // Just returns anything to comply with `NativeAsyncJob::new`'s signature.
-                                return Ok(JsValue::undefined());
-                            }
-                        };
-
-                        // Could also add a path if needed.
-                        let source = Source::from_bytes(body.as_bytes());
-
-                        let module = Module::parse(source, None, &mut context.borrow_mut());
-
-                        // We don't do any error handling, `finish_load` takes care of that for us.
-                        finish_load(module, &mut context.borrow_mut());
-
-                        // Also needed to match `NativeAsyncJob::new`.
-                        Ok(JsValue::undefined())
-                    })
-                },
-                context.realm().clone(),
-            )
-            .into(),
-        );
+        Module::parse(source, None, &mut context.borrow_mut())
     }
 }
 

@@ -1,4 +1,7 @@
 //! A `ModuleLoader` that loads modules from a `HashMap` based on the name.
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use rustc_hash::FxHashMap;
 
 use boa_engine::module::{ModuleLoader, Referrer};
@@ -39,25 +42,19 @@ impl FromIterator<(JsString, Module)> for HashMapModuleLoader {
 
 impl ModuleLoader for HashMapModuleLoader {
     fn load_imported_module(
-        &self,
+        self: Rc<Self>,
         _referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        // First, try to resolve from our internal cached.
-        if let Some(module) = self.0.borrow().get(&specifier) {
-            finish_load(Ok(module.clone()), context);
-        } else {
-            let err = JsNativeError::typ().with_message(format!(
-                "could not find module `{}`",
-                specifier.to_std_string_escaped()
-            ));
-            finish_load(Err(err.into()), context);
-        }
-    }
-
-    fn get_module(&self, specifier: JsString) -> Option<Module> {
-        self.0.borrow().get(&specifier).cloned()
+        _context: &RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<Module>> {
+        let result = self.0.borrow().get(&specifier).cloned().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message(format!(
+                    "could not find module `{}`",
+                    specifier.display_escaped()
+                ))
+                .into()
+        });
+        async { result }
     }
 }
