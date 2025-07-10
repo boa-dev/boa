@@ -4,6 +4,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::Path;
+use std::rc::Rc;
 
 use boa_engine::module::{ModuleLoader, Referrer};
 use boa_engine::{Context, JsNativeError, JsResult, JsString, Module, Source};
@@ -102,6 +103,16 @@ pub struct EmbeddedModuleLoader {
     map: HashMap<JsString, RefCell<EmbeddedModuleEntry>>,
 }
 
+impl EmbeddedModuleLoader {
+    /// Gets a module in the `EmbeddedModuleLoader`.
+    #[must_use]
+    pub fn get_module(&self, specifier: &JsString) -> Option<Module> {
+        self.map
+            .get(specifier)
+            .and_then(|module| module.borrow().as_module().cloned())
+    }
+}
+
 impl FromIterator<(&'static str, &'static str, &'static [u8])> for EmbeddedModuleLoader {
     fn from_iter<T: IntoIterator<Item = (&'static str, &'static str, &'static [u8])>>(
         iter: T,
@@ -127,46 +138,41 @@ impl FromIterator<(&'static str, &'static str, &'static [u8])> for EmbeddedModul
 
 impl ModuleLoader for EmbeddedModuleLoader {
     fn load_imported_module(
-        &self,
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        let Ok(specifier_path) = boa_engine::module::resolve_module_specifier(
-            None,
-            &specifier,
-            referrer.path(),
-            context,
-        ) else {
-            let err = JsNativeError::typ().with_message(format!(
-                "could not resolve module specifier `{}`",
-                specifier.to_std_string_escaped()
-            ));
-            finish_load(Err(err.into()), context);
-            return;
-        };
+        context: &RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<Module>> {
+        let result = (|| {
+            let specifier_path = boa_engine::module::resolve_module_specifier(
+                None,
+                &specifier,
+                referrer.path(),
+                &mut context.borrow_mut(),
+            )
+            .map_err(|e| {
+                JsNativeError::typ()
+                    .with_message(format!(
+                        "could not resolve module specifier `{}`",
+                        specifier.display_escaped()
+                    ))
+                    .with_cause(e)
+            })?;
 
-        if let Some(module) = self
-            .map
-            .get(&JsString::from(specifier_path.to_string_lossy().as_ref()))
-        {
+            let module = self
+                .map
+                .get(&JsString::from(specifier_path.to_string_lossy().as_ref()))
+                .ok_or_else(|| {
+                    JsNativeError::typ().with_message(format!(
+                        "could not find module `{}`",
+                        specifier.display_escaped()
+                    ))
+                })?;
+
             let mut embedded = module.borrow_mut();
-            let module = embedded.cache(context);
+            embedded.cache(&mut context.borrow_mut()).cloned()
+        })();
 
-            finish_load(module.cloned(), context);
-        } else {
-            let err = JsNativeError::typ().with_message(format!(
-                "could not find module `{}`",
-                specifier.to_std_string_escaped()
-            ));
-            finish_load(Err(err.into()), context);
-        }
-    }
-
-    fn get_module(&self, specifier: JsString) -> Option<Module> {
-        self.map
-            .get(&specifier)
-            .and_then(|module| module.borrow().as_module().cloned())
+        async { result }
     }
 }

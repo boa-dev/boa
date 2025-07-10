@@ -13,6 +13,7 @@ use intrinsics::Intrinsics;
 use temporal_rs::tzdb::FsTzdbProvider;
 
 use crate::job::Job;
+use crate::module::DynModuleLoader;
 use crate::vm::RuntimeLimits;
 use crate::{
     HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
@@ -118,7 +119,7 @@ pub struct Context {
 
     job_executor: Rc<dyn JobExecutor>,
 
-    module_loader: Rc<dyn ModuleLoader>,
+    module_loader: Rc<dyn DynModuleLoader>,
 
     optimizer_options: OptimizerOptions,
     root_shape: RootShape,
@@ -559,10 +560,11 @@ impl Context {
         Rc::downcast(self.job_executor.clone()).ok()
     }
 
-    /// Gets the module loader.
+    /// Gets the current module loader, or `None` if the current module loader
+    /// is not a `T`.
     #[must_use]
-    pub fn module_loader(&self) -> Rc<dyn ModuleLoader> {
-        self.module_loader.clone()
+    pub fn downcast_module_loader<T: 'static>(&self) -> Option<Rc<T>> {
+        Rc::downcast(self.module_loader.clone()).ok()
     }
 
     /// Get the [`RuntimeLimits`].
@@ -624,6 +626,11 @@ impl Context {
     /// Gets the current job executor.
     pub(crate) fn job_executor(&self) -> Rc<dyn JobExecutor> {
         self.job_executor.clone()
+    }
+
+    /// Gets the current module loader.
+    pub(crate) fn module_loader(&self) -> Rc<dyn DynModuleLoader> {
+        self.module_loader.clone()
     }
 
     /// Swaps the currently active realm with `realm`.
@@ -894,7 +901,7 @@ pub struct ContextBuilder {
     host_hooks: Option<Rc<dyn HostHooks>>,
     clock: Option<Rc<dyn Clock>>,
     job_executor: Option<Rc<dyn JobExecutor>>,
-    module_loader: Option<Rc<dyn ModuleLoader>>,
+    module_loader: Option<Rc<dyn DynModuleLoader>>,
     can_block: bool,
     #[cfg(feature = "intl")]
     icu: Option<icu::IntlProvider>,
@@ -1073,7 +1080,7 @@ impl ContextBuilder {
         let realm = Realm::create(host_hooks.as_ref(), &root_shape)?;
         let vm = Vm::new(realm);
 
-        let module_loader: Rc<dyn ModuleLoader> = if let Some(loader) = self.module_loader {
+        let module_loader: Rc<dyn DynModuleLoader> = if let Some(loader) = self.module_loader {
             loader
         } else if let Ok(loader) = SimpleModuleLoader::new(Path::new(".")) {
             Rc::new(loader)
