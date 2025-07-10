@@ -872,10 +872,11 @@ impl OrdinaryObject {
         let tag = o.get(JsSymbol::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
+        let tag = tag.as_string();
+        let tag = tag.as_ref().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(js_string!(js_str!("[object "), tag_str, js_str!("]")).into())
+        Ok(js_string!(js_str!("[object "), tag, js_str!("]")).into())
     }
 
     /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`

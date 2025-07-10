@@ -806,7 +806,6 @@ impl JsTypedArray {
         )
         .map(|x| {
             x.as_string()
-                .cloned()
                 .expect("TypedArray.prototype.join always returns string")
         })
     }

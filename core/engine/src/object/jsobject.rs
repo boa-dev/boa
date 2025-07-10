@@ -1024,7 +1024,6 @@ impl<T: NativeObject> Debug for JsObject<T> {
                     Some(prop) => prop
                         .value()
                         .and_then(JsValue::as_string)
-                        .cloned()
                         .unwrap_or_default(),
                 };
 

@@ -86,7 +86,7 @@ fn decoder_js() {
                     .global_object()
                     .get(js_str!("decoded"), context)
                     .unwrap();
-                assert_eq!(decoded.as_string(), Some(&js_string!("Hello, World!")));
+                assert_eq!(decoded.as_string(), Some(js_string!("Hello, World!")));
             }),
         ],
         context,
@@ -116,7 +116,7 @@ fn decoder_js_invalid() {
                     .unwrap();
                 assert_eq!(
                     decoded.as_string(),
-                    Some(&js_string!("Hello\u{FFFD}World\u{FFFD}"))
+                    Some(js_string!("Hello\u{FFFD}World\u{FFFD}"))
                 );
             }),
         ],
@@ -144,7 +144,7 @@ fn roundtrip() {
                     .global_object()
                     .get(js_str!("decoded"), context)
                     .unwrap();
-                assert_eq!(decoded.as_string(), Some(&js_string!("Hello, World!")));
+                assert_eq!(decoded.as_string(), Some(js_string!("Hello, World!")));
             }),
         ],
         context,

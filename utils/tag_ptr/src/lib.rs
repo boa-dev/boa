@@ -96,6 +96,16 @@ impl<T> Tagged<T> {
         self.0.as_ptr().addr()
     }
 
+    /// Gets the inner pointer.
+    ///
+    /// This may be a pointer or a tag, you can use
+    /// [`Self::is_tagged()`] to check.
+    #[inline]
+    #[must_use]
+    pub const fn as_inner_ptr(&self) -> NonNull<T> {
+        self.0
+    }
+
     /// Returns `true` if `self ` is a tagged pointer.
     #[inline]
     #[must_use]

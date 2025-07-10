@@ -232,7 +232,8 @@ union RefCount {
 
 /// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
-struct RawJsString {
+#[allow(missing_debug_implementations)]
+pub struct RawJsString {
     tagged_len: TaggedLen,
     refcount: RefCount,
     data: [u8; 0],
@@ -511,6 +512,35 @@ impl JsString {
     #[must_use]
     pub fn display_lossy(&self) -> JsStrDisplayLossy<'_> {
         self.as_str().display_lossy()
+    }
+
+    /// Consumes the [`JsString`], returning a wrapped raw pointer.
+    ///
+    /// The pointer will be properly aligned and non-null or a tag as a pointer.
+    #[inline]
+    #[must_use]
+    pub fn into_raw(self) -> NonNull<RawJsString> {
+        let addr = self.ptr.as_inner_ptr();
+
+        // SAFETY: Dropping the value here would result in a use-after-free.
+        std::mem::forget(self);
+
+        addr
+    }
+
+    /// Constructs a box from a raw pointer.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because improper use may lead to memory problems.
+    /// For example, a double-free may occur if the function is called twice on
+    /// the same raw pointer.
+    #[inline]
+    #[must_use]
+    pub unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
+        Self {
+            ptr: Tagged::from_non_null(ptr),
+        }
     }
 }
 

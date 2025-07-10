@@ -797,7 +797,7 @@ fn to_intl_mathematical_value(value: &JsValue, context: &mut Context) -> JsResul
             //     c. If rounded is +∞𝔽, return positive-infinity.
             //     d. If rounded is +0𝔽 and intlMV < 0, return negative-zero.
             //     e. If rounded is +0𝔽, return 0.
-            js_string_to_fixed_decimal(s).ok_or_else(|| {
+            js_string_to_fixed_decimal(&s).ok_or_else(|| {
                 JsNativeError::syntax()
                     .with_message("could not parse the provided string")
                     .into()

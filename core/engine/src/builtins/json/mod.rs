@@ -224,8 +224,7 @@ impl Json {
                     // This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
                     let p = p
                         .as_string()
-                        .expect("EnumerableOwnPropertyNames only returns strings")
-                        .clone();
+                        .expect("EnumerableOwnPropertyNames only returns strings");
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
                     let new_element =
@@ -315,7 +314,7 @@ impl Json {
                         // g. If item is not undefined and item is not currently an element of PropertyList, then
                         // i. Append item to the end of PropertyList.
                         if let Some(s) = v.as_string() {
-                            property_set.insert(s.clone());
+                            property_set.insert(s);
                         } else if v.is_number() {
                             property_set.insert(
                                 v.to_string(context)
@@ -482,7 +481,7 @@ impl Json {
 
         // 8. If Type(value) is String, return QuoteJSONString(value).
         if let Some(s) = value.as_string() {
-            return Ok(Some(Self::quote_json_string(s)));
+            return Ok(Some(Self::quote_json_string(&s)));
         }
 
         // 9. If Type(value) is Number, then

@@ -237,7 +237,7 @@ impl BuiltInConstructor for Date {
                         if let Some(v) = v.as_string() {
                             // 1. Assert: The next step never returns an abrupt completion because v is a String.
                             // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the parse method (21.4.3.2).
-                            let tv = parse_date(v, context.host_hooks().as_ref());
+                            let tv = parse_date(&v, context.host_hooks().as_ref());
                             if let Some(tv) = tv {
                                 tv as f64
                             } else {

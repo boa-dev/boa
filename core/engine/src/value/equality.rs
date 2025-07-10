@@ -94,12 +94,12 @@ impl JsValue {
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
             (JsVariant::BigInt(a), JsVariant::String(b)) => {
-                JsBigInt::from_js_string(b).as_ref() == Some(a)
+                JsBigInt::from_js_string(&b).as_ref() == Some(a)
             }
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
             (JsVariant::String(a), JsVariant::BigInt(b)) => {
-                JsBigInt::from_js_string(a).as_ref() == Some(b)
+                JsBigInt::from_js_string(&a).as_ref() == Some(b)
             }
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.

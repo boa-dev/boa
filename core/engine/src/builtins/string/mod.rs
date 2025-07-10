@@ -299,7 +299,6 @@ impl String {
     fn this_string_value(this: &JsValue) -> JsResult<JsString> {
         // 1. If Type(value) is String, return value.
         this.as_string()
-            .cloned()
             // 2. If Type(value) is Object and value has a [[StringData]] internal slot, then
             //     a. Let s be value.[[StringData]].
             //     b. Assert: Type(s) is String.
