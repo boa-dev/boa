@@ -3,16 +3,16 @@ use std::borrow::Cow;
 use boa_gc::{Finalize, Trace};
 use fixed_decimal::{Decimal, FloatPrecision, SignDisplay};
 use icu_decimal::{
+    DecimalFormatter, FormattedDecimal,
     options::{DecimalFormatterOptions, GroupingStrategy},
     preferences::NumberingSystem,
     provider::DecimalSymbolsV1,
-    DecimalFormatter, FormattedDecimal,
 };
 
 mod options;
 use icu_locale::{
-    extensions::unicode::{key, Value},
     Locale,
+    extensions::unicode::{Value, key},
 };
 use icu_provider::DataMarkerAttributes;
 use num_bigint::BigInt;
@@ -20,28 +20,28 @@ use num_traits::Num;
 pub(crate) use options::*;
 
 use super::{
-    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
-    options::{coerce_options_to_object, IntlOptions},
     Service,
+    locale::{canonicalize_locale_list, filter_locales, resolve_locale, validate_extension},
+    options::{IntlOptions, coerce_options_to_object},
 };
 use crate::value::JsVariant;
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    NativeFunction,
     builtins::{
-        builder::BuiltInBuilder, options::get_option, string::is_trimmable_whitespace,
-        BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        BuiltInConstructor, BuiltInObject, IntrinsicObject, builder::BuiltInBuilder,
+        options::get_option, string::is_trimmable_whitespace,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
     object::{
-        internal_methods::get_prototype_from_constructor, FunctionObjectBuilder, JsFunction,
-        ObjectInitializer,
+        FunctionObjectBuilder, JsFunction, ObjectInitializer,
+        internal_methods::get_prototype_from_constructor,
     },
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
     string::StaticJsStrings,
     value::PreferredType,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
-    NativeFunction,
 };
 
 #[cfg(test)]
@@ -429,7 +429,7 @@ impl NumberFormat {
                         .with_message(
                             "expected one of `min2`, `auto`, `always`, `true`, or `false`",
                         )
-                        .into())
+                        .into());
                 }
             }
         };
@@ -667,7 +667,7 @@ impl NumberFormat {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("unsupported useGrouping value")
-                    .into())
+                    .into());
             }
         };
 
@@ -696,7 +696,7 @@ impl NumberFormat {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("unsupported signDisplay value")
-                    .into())
+                    .into());
             }
         };
 
@@ -757,11 +757,12 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
             .fallback_symbol();
 
         //    a. Return ? Get(nf, %Intl%.[[FallbackSymbol]]).
-        let nf = nf_o.get(fallback_symbol, context)?;
-        if let Some(nf) = nf.as_object() {
-            if let Ok(nf) = nf.clone().downcast::<NumberFormat>() {
-                return Ok(nf);
-            }
+        if let Some(nf) = nf_o
+            .get(fallback_symbol, context)?
+            .as_object()
+            .and_then(|o| o.downcast::<NumberFormat>().ok())
+        {
+            return Ok(nf);
         }
     }
 

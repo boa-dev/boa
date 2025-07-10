@@ -1,4 +1,4 @@
-use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, rc::Rc};
+use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, path::PathBuf, rc::Rc};
 
 use boa_ast::{
     declaration::{
@@ -6,8 +6,8 @@ use boa_ast::{
         ReExportImportName,
     },
     operations::{
-        bound_names, contains, lexically_scoped_declarations, var_scoped_declarations,
-        ContainsSymbol, LexicallyScopedDeclaration,
+        ContainsSymbol, LexicallyScopedDeclaration, bound_names, contains,
+        lexically_scoped_declarations, var_scoped_declarations,
     },
     scope::BindingLocator,
 };
@@ -18,7 +18,9 @@ use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
-    builtins::{promise::PromiseCapability, Promise},
+    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
+    SpannedSourceText,
+    builtins::{Promise, promise::PromiseCapability},
     bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
     js_string,
@@ -26,11 +28,9 @@ use crate::{
     object::{FunctionObjectBuilder, JsPromise},
     realm::Realm,
     vm::{
-        create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
-        CompletionRecord,
+        ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock, CompletionRecord,
+        create_function_object_fast,
     },
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
-    SpannedSourceText,
 };
 
 use super::{
@@ -235,6 +235,7 @@ struct ModuleCode {
     requested_modules: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
     source: boa_ast::Module,
     source_text: SourceText,
+    path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
@@ -247,7 +248,12 @@ impl SourceTextModule {
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: boa_ast::Module, interner: &Interner, source_text: SourceText) -> Self {
+    pub(super) fn new(
+        code: boa_ast::Module,
+        interner: &Interner,
+        source_text: SourceText,
+        path: Option<PathBuf>,
+    ) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = code
             .items()
@@ -339,6 +345,7 @@ impl SourceTextModule {
             code: ModuleCode {
                 source: code,
                 source_text,
+                path,
                 requested_modules,
                 has_tla,
                 import_entries,
@@ -867,7 +874,9 @@ impl SourceTextModule {
                 | ModuleStatus::Linking { .. }
                 | ModuleStatus::PreLinked { .. }
                 | ModuleStatus::Evaluating { .. } => {
-                    unreachable!("2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.")
+                    unreachable!(
+                        "2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated."
+                    )
                 }
                 ModuleStatus::Linked { .. } => (module_self.clone(), None),
                 // 3. If module.[[Status]] is either evaluating-async or evaluated, set module to module.[[CycleRoot]].
@@ -1023,7 +1032,7 @@ impl SourceTextModule {
         match &*self.status.borrow() {
             // 3. If module.[[Status]] is evaluating, return index.
             ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. } => {
-                return Ok(index)
+                return Ok(index);
             }
             //     a. If module.[[EvaluationError]] is empty, return index.
             //     b. Otherwise, return ? module.[[EvaluationError]].
@@ -1084,7 +1093,10 @@ impl SourceTextModule {
                     _ => false,
                 });
 
-                let (required_module, async_eval, req_info) = match &*required_module_src.status.borrow() {
+                let (required_module, async_eval, req_info) = match &*required_module_src
+                    .status
+                    .borrow()
+                {
                     // iii. If requiredModule.[[Status]] is evaluating, then
                     ModuleStatus::Evaluating {
                         info,
@@ -1092,7 +1104,11 @@ impl SourceTextModule {
                         ..
                     } => {
                         // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
-                        (required_module.clone(), async_eval_index.is_some(), Some(*info))
+                        (
+                            required_module.clone(),
+                            async_eval_index.is_some(),
+                            Some(*info),
+                        )
                     }
                     // iv. Else,
                     ModuleStatus::EvaluatingAsync { cycle_root, .. }
@@ -1104,14 +1120,22 @@ impl SourceTextModule {
 
                         // 2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
                         match &*cycle_root_src.status.borrow() {
-                            ModuleStatus::EvaluatingAsync { .. } => (cycle_root.clone(), true, None),
+                            ModuleStatus::EvaluatingAsync { .. } => {
+                                (cycle_root.clone(), true, None)
+                            }
                             // 3. If requiredModule.[[EvaluationError]] is not empty, return ? requiredModule.[[EvaluationError]].
-                            ModuleStatus::Evaluated { error: Some(error), .. } => return Err(error.clone()),
+                            ModuleStatus::Evaluated {
+                                error: Some(error), ..
+                            } => return Err(error.clone()),
                             ModuleStatus::Evaluated { .. } => (cycle_root.clone(), false, None),
-                            _ => unreachable!("2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated."),
+                            _ => unreachable!(
+                                "2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated."
+                            ),
                         }
                     }
-                    _ => unreachable!("i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated."),
+                    _ => unreachable!(
+                        "i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated."
+                    ),
                 };
 
                 let ModuleKind::SourceText(required_module) = required_module.kind() else {
@@ -1440,6 +1464,7 @@ impl SourceTextModule {
             context.interner_mut(),
             false,
             spanned_source_text,
+            self.code.path.clone().into(),
         );
 
         compiler.async_handler = Some(compiler.push_handler());

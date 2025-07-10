@@ -1,4 +1,4 @@
-use crate::{pointers::RawWeakMap, GcRefCell, Trace, Tracer, WeakGc};
+use crate::{GcRefCell, Trace, Tracer, WeakGc, pointers::RawWeakMap};
 
 /// A box that is used to track [`WeakMap`][`crate::WeakMap`]s.
 pub(crate) struct WeakMapBox<K: Trace + ?Sized + 'static, V: Trace + Sized + 'static> {
@@ -19,10 +19,10 @@ pub(crate) trait ErasedWeakMapBox {
 
 impl<K: Trace + ?Sized, V: Trace + Clone> ErasedWeakMapBox for WeakMapBox<K, V> {
     fn clear_dead_entries(&self) {
-        if let Some(map) = self.map.upgrade() {
-            if let Ok(mut map) = map.try_borrow_mut() {
-                map.clear_expired();
-            }
+        if let Some(map) = self.map.upgrade()
+            && let Ok(mut map) = map.try_borrow_mut()
+        {
+            map.clear_expired();
         }
     }
 

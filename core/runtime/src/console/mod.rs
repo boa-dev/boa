@@ -16,11 +16,10 @@ mod tests;
 
 use boa_engine::property::Attribute;
 use boa_engine::{
-    js_str, js_string,
+    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -114,6 +113,32 @@ impl Logger for DefaultLogger {
     fn error(&self, msg: String, state: &ConsoleState, _context: &mut Context) -> JsResult<()> {
         let indent = state.indent();
         writeln!(std::io::stderr(), "{msg:>indent$}").map_err(JsError::from_rust)
+    }
+}
+
+/// A logger that drops all logging. Useful for testing.
+#[derive(Debug, Trace, Finalize)]
+pub struct NullLogger;
+
+impl Logger for NullLogger {
+    #[inline]
+    fn log(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn info(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn warn(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn error(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
     }
 }
 

@@ -17,8 +17,8 @@ pub use object::{ObjectLiteral, ObjectMethodDefinition, PropertyDefinition};
 pub use template::{TemplateElement, TemplateLiteral};
 
 use crate::{
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 use num_bigint::BigInt;
@@ -68,13 +68,6 @@ impl Literal {
         &mut self.kind
     }
 
-    /// Get the [`Span`] of the [`Literal`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
-
     /// Get position of the node.
     #[inline]
     #[must_use]
@@ -90,6 +83,13 @@ impl Literal {
     #[must_use]
     pub const fn is_undefined(&self) -> bool {
         matches!(self.kind(), LiteralKind::Undefined)
+    }
+}
+
+impl Spanned for Literal {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

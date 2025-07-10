@@ -1,8 +1,8 @@
 //! A garbage collected cell implementation
 
 use crate::{
-    trace::{Finalize, Trace},
     Tracer,
+    trace::{Finalize, Trace},
 };
 use std::{
     cell::{Cell, UnsafeCell},
@@ -255,6 +255,29 @@ pub struct GcRef<'a, T: ?Sized + 'static> {
 }
 
 impl<'a, T: ?Sized> GcRef<'a, T> {
+    /// Casts to a `GcRef` of another type.
+    ///
+    /// # Safety
+    /// * The caller must ensure that `T` can be safeley cast to `U`.
+    #[must_use]
+    pub unsafe fn cast<U>(self) -> GcRef<'a, U> {
+        let value = ptr::from_ref(self.value);
+
+        // SAFETY: This is safe as `GcCellRef` is already borrowed, so the value is rooted.
+        // The caller must ensure that `T` can be safeley cast to `U`.
+        let value = unsafe { &*(value.cast::<U>()) };
+        let cell = GcRef {
+            flags: self.flags,
+            value,
+        };
+
+        // We have to tell the compiler not to call the destructor of GcCellRef,
+        // because it will update the borrow flags.
+        core::mem::forget(self);
+
+        cell
+    }
+
     /// Copies a `GcCellRef`.
     ///
     /// The `GcCell` is already immutably borrowed, so this cannot fail.
@@ -391,6 +414,30 @@ pub struct GcRefMut<'a, T: ?Sized + 'static, U: ?Sized = T> {
 }
 
 impl<'a, T: ?Sized, U: ?Sized> GcRefMut<'a, T, U> {
+    /// Casts to a `GcRefMut` of another type.
+    ///
+    /// # Safety
+    /// * The caller must ensure that `U` can be safeley cast to `V`.
+    #[must_use]
+    pub unsafe fn cast<V>(self) -> GcRefMut<'a, T, V> {
+        let value = ptr::from_mut::<U>(self.value);
+
+        // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
+        // The caller must ensure that `U` can be safeley cast to `V`.
+        let value = unsafe { &mut *(value.cast::<V>()) };
+
+        let cell = GcRefMut {
+            gc_cell: self.gc_cell,
+            value,
+        };
+
+        // We have to tell the compiler not to call the destructor of GcCellRef,
+        // because it will update the borrow flags.
+        std::mem::forget(self);
+
+        cell
+    }
+
     /// Tries to make a new `GcCellRefMut` for a component of the borrowed data, returning `None`
     /// if the mapping function returns `None`.
     ///

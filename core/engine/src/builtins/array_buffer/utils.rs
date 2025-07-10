@@ -3,8 +3,9 @@ use std::{ptr, slice::SliceIndex, sync::atomic::Ordering};
 use portable_atomic::AtomicU8;
 
 use crate::{
+    Context, JsResult,
     builtins::typed_array::{ClampedU8, Element, TypedArrayElement, TypedArrayKind},
-    Context, JsObject, JsResult,
+    object::JsObject,
 };
 
 use super::ArrayBuffer;

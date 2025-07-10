@@ -10,9 +10,9 @@
 mod op;
 
 use crate::{
-    expression::{access::PropertyAccess, Identifier},
+    Expression, Span, Spanned,
+    expression::{Identifier, access::PropertyAccess},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Expression, Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
@@ -61,11 +61,11 @@ impl Update {
     pub fn target(&self) -> &UpdateTarget {
         self.target.as_ref()
     }
+}
 
-    /// Get the [`Span`] of the [`Update`] node.
+impl Spanned for Update {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

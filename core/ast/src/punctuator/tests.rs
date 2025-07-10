@@ -86,25 +86,27 @@ fn as_assign_op() {
             Some(AssignOp::Sub) => assert_eq!(p, Punctuator::AssignSub),
             Some(AssignOp::Ushr) => assert_eq!(p, Punctuator::AssignURightSh),
             Some(AssignOp::Xor) => assert_eq!(p, Punctuator::AssignXor),
-            None => assert!(![
-                Punctuator::Assign,
-                Punctuator::AssignAdd,
-                Punctuator::AssignAnd,
-                Punctuator::AssignBoolAnd,
-                Punctuator::AssignBoolOr,
-                Punctuator::AssignCoalesce,
-                Punctuator::AssignDiv,
-                Punctuator::AssignLeftSh,
-                Punctuator::AssignMod,
-                Punctuator::AssignMul,
-                Punctuator::AssignOr,
-                Punctuator::AssignPow,
-                Punctuator::AssignRightSh,
-                Punctuator::AssignSub,
-                Punctuator::AssignURightSh,
-                Punctuator::AssignXor,
-            ]
-            .contains(&p)),
+            None => assert!(
+                ![
+                    Punctuator::Assign,
+                    Punctuator::AssignAdd,
+                    Punctuator::AssignAnd,
+                    Punctuator::AssignBoolAnd,
+                    Punctuator::AssignBoolOr,
+                    Punctuator::AssignCoalesce,
+                    Punctuator::AssignDiv,
+                    Punctuator::AssignLeftSh,
+                    Punctuator::AssignMod,
+                    Punctuator::AssignMul,
+                    Punctuator::AssignOr,
+                    Punctuator::AssignPow,
+                    Punctuator::AssignRightSh,
+                    Punctuator::AssignSub,
+                    Punctuator::AssignURightSh,
+                    Punctuator::AssignXor,
+                ]
+                .contains(&p)
+            ),
         }
     }
 }
@@ -151,32 +153,34 @@ fn as_binary_op() {
             Some(BinaryOp::Arithmetic(ArithmeticOp::Exp)) => {
                 assert_eq!(p, Punctuator::Exp);
             }
-            None => assert!(![
-                Punctuator::Add,
-                Punctuator::Sub,
-                Punctuator::Mul,
-                Punctuator::Div,
-                Punctuator::Mod,
-                Punctuator::And,
-                Punctuator::Or,
-                Punctuator::Xor,
-                Punctuator::BoolAnd,
-                Punctuator::BoolOr,
-                Punctuator::Coalesce,
-                Punctuator::Eq,
-                Punctuator::NotEq,
-                Punctuator::StrictEq,
-                Punctuator::StrictNotEq,
-                Punctuator::LessThan,
-                Punctuator::GreaterThan,
-                Punctuator::GreaterThanOrEq,
-                Punctuator::LessThanOrEq,
-                Punctuator::LeftSh,
-                Punctuator::RightSh,
-                Punctuator::URightSh,
-                Punctuator::Comma
-            ]
-            .contains(&p)),
+            None => assert!(
+                ![
+                    Punctuator::Add,
+                    Punctuator::Sub,
+                    Punctuator::Mul,
+                    Punctuator::Div,
+                    Punctuator::Mod,
+                    Punctuator::And,
+                    Punctuator::Or,
+                    Punctuator::Xor,
+                    Punctuator::BoolAnd,
+                    Punctuator::BoolOr,
+                    Punctuator::Coalesce,
+                    Punctuator::Eq,
+                    Punctuator::NotEq,
+                    Punctuator::StrictEq,
+                    Punctuator::StrictNotEq,
+                    Punctuator::LessThan,
+                    Punctuator::GreaterThan,
+                    Punctuator::GreaterThanOrEq,
+                    Punctuator::LessThanOrEq,
+                    Punctuator::LeftSh,
+                    Punctuator::RightSh,
+                    Punctuator::URightSh,
+                    Punctuator::Comma
+                ]
+                .contains(&p)
+            ),
             Some(BinaryOp::Relational(RelationalOp::In | RelationalOp::InstanceOf)) => {
                 unreachable!()
             }

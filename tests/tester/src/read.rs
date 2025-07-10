@@ -8,8 +8,8 @@ use std::{
 };
 
 use color_eyre::{
-    eyre::{OptionExt, WrapErr},
     Result,
+    eyre::{OptionExt, WrapErr},
 };
 use cow_utils::CowUtils;
 use rustc_hash::{FxBuildHasher, FxHashMap};

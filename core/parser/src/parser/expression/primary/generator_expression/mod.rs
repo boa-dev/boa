@@ -11,19 +11,20 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{Error as LexError, TokenKind},
     parser::{
+        Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseResult, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Keyword, Punctuator, Span, Spanned,
     function::GeneratorExpression as GeneratorExpressionNode,
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Keyword, Punctuator, Span,
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_interner::{Interner, Sym};
 
@@ -111,15 +112,14 @@ where
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        if let Some(name) = name {
-            if (cursor.strict() || body.strict())
-                && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
-            {
-                return Err(Error::lex(LexError::Syntax(
-                    "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
-                    name_span.start(),
-                )));
-            }
+        if let Some(name) = name
+            && (cursor.strict() || body.strict())
+            && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
+        {
+            return Err(Error::lex(LexError::Syntax(
+                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                name_span.start(),
+            )));
         }
 
         // Catch early error for BindingIdentifier, because strictness of the functions body is also

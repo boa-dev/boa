@@ -20,25 +20,24 @@ pub(in crate::parser) mod await_expr;
 mod tests;
 
 use crate::{
+    Error,
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
-        OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::assignment::ExponentiationExpression,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Position, Punctuator, Spanned,
     expression::{
-        operator::{
-            binary::{BinaryOp, LogicalOp},
-            Binary, BinaryInPrivate,
-        },
         Identifier,
+        operator::{
+            Binary, BinaryInPrivate,
+            binary::{BinaryOp, LogicalOp},
+        },
     },
     function::PrivateName,
-    Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 
@@ -259,7 +258,8 @@ where
                     if previous == PreviousExpr::Coalesce {
                         return Err(Error::expected(
                             ["??".to_owned()],
-                            tok.to_string(interner), tok.span(),
+                            tok.to_string(interner),
+                            tok.span(),
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }
@@ -276,7 +276,8 @@ where
                     if previous == PreviousExpr::Coalesce {
                         return Err(Error::expected(
                             ["??".to_owned()],
-                            tok.to_string(interner), tok.span(),
+                            tok.to_string(interner),
+                            tok.span(),
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }

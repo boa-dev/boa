@@ -4,8 +4,8 @@ use core::ops::ControlFlow;
 
 use super::Expression;
 use crate::{
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
@@ -39,11 +39,11 @@ impl Await {
     pub const fn target(&self) -> &Expression {
         &self.target
     }
+}
 
-    /// Get the [`Span`] of the [`Await`] node.
+impl Spanned for Await {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

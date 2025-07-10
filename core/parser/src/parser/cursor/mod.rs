@@ -2,12 +2,12 @@
 mod buffered_lexer;
 
 use crate::{
+    Error,
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::{OrAbrupt, ParseResult},
     source::ReadChar,
-    Error,
 };
-use boa_ast::{LinearPosition, PositionGroup, Punctuator};
+use boa_ast::{LinearPosition, PositionGroup, Punctuator, Spanned};
 use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
 
@@ -294,15 +294,13 @@ where
     where
         K: Into<TokenKind>,
     {
-        Ok(if let Some(token) = self.peek(0, interner)? {
-            if token.kind() == &kind.into() {
-                self.next(interner)?
-            } else {
-                None
-            }
+        if let Some(token) = self.peek(0, interner)?
+            && token.kind() == &kind.into()
+        {
+            self.next(interner)
         } else {
-            None
-        })
+            Ok(None)
+        }
     }
 
     /// Gets current linear position in the source code.

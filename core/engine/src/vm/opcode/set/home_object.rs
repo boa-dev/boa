@@ -1,7 +1,7 @@
 use crate::{
+    Context,
     builtins::function::OrdinaryFunction,
     vm::opcode::{Operation, VaryingOperand},
-    Context,
 };
 
 /// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`

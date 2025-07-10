@@ -8,13 +8,13 @@ mod tests;
 
 use crate::{
     parser::{
-        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+        statement::declaration::hoistable::{CallableDeclaration, parse_callable_declaration},
     },
     source::ReadChar,
 };
 use boa_ast::{
-    function::AsyncGeneratorDeclaration as AsyncGeneratorDeclarationNode, Keyword, Punctuator,
+    Keyword, Punctuator, function::AsyncGeneratorDeclaration as AsyncGeneratorDeclarationNode,
 };
 use boa_interner::Interner;
 

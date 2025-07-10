@@ -45,6 +45,8 @@
 )]
 #![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+// Currently throws a false positive regarding dependencies that are only used in tests.
+#![allow(unused_crate_dependencies)]
 #![allow(
     clippy::module_name_repetitions,
     clippy::redundant_pub_crate,
@@ -54,7 +56,7 @@
 mod console;
 
 #[doc(inline)]
-pub use console::{Console, ConsoleState, Logger};
+pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 mod text;
 
@@ -71,15 +73,15 @@ pub struct RegisterOptions<L: Logger> {
     console_logger: L,
 }
 
-impl Default for RegisterOptions<console::DefaultLogger> {
+impl Default for RegisterOptions<DefaultLogger> {
     fn default() -> Self {
         Self {
-            console_logger: console::DefaultLogger,
+            console_logger: DefaultLogger,
         }
     }
 }
 
-impl RegisterOptions<console::DefaultLogger> {
+impl RegisterOptions<DefaultLogger> {
     /// Create a new `RegisterOptions` with the default options.
     #[must_use]
     pub fn new() -> Self {
@@ -118,8 +120,8 @@ pub fn register(
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::{register, RegisterOptions};
-    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
+    use crate::{RegisterOptions, register};
+    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.
@@ -152,7 +154,7 @@ pub(crate) mod test {
         },
         AssertNativeError {
             source: Cow<'static, str>,
-            kind: builtins::error::Error,
+            kind: builtins::error::ErrorKind,
             message: &'static str,
         },
         AssertContext {

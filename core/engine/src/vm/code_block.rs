@@ -3,22 +3,23 @@
 //! This module is for the `CodeBlock` which implements a function representation in the VM
 
 use crate::{
+    Context, JsBigInt, JsString, JsValue, SpannedSourceText,
     builtins::{
-        function::{OrdinaryFunction, ThisMode},
         OrdinaryObject,
+        function::{OrdinaryFunction, ThisMode},
     },
     object::JsObject,
-    Context, JsBigInt, JsString, JsValue, SpannedSourceText,
 };
 use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
-use boa_gc::{empty_trace, Finalize, Gc, Trace};
+use boa_gc::{Finalize, Gc, Trace, empty_trace};
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
 use thin_vec::ThinVec;
 
 use super::{
-    opcode::{ByteCode, Instruction, InstructionIterator},
     InlineCache,
+    opcode::{ByteCode, Instruction, InstructionIterator},
+    source_info::{SourceInfo, SourceMap, SourcePath},
 };
 
 bitflags! {
@@ -113,10 +114,6 @@ pub(crate) enum Constant {
 /// attributes of the function.
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
-    /// Name of this function
-    #[unsafe_ignore_trace]
-    pub(crate) name: JsString,
-
     #[unsafe_ignore_trace]
     pub(crate) flags: Cell<CodeBlockFlags>,
 
@@ -151,8 +148,8 @@ pub struct CodeBlock {
     /// inline caching
     pub(crate) ic: Box<[InlineCache]>,
 
-    /// source text of the code block
-    pub(crate) source_text_spanned: SpannedSourceText,
+    /// Bytecode to source code mapping.
+    pub(crate) source_info: SourceInfo,
 }
 
 /// ---- `CodeBlock` public API ----
@@ -166,7 +163,6 @@ impl CodeBlock {
             bytecode: ByteCode::default(),
             constants: ThinVec::default(),
             bindings: Box::default(),
-            name,
             flags: Cell::new(flags),
             length,
             register_count: 0,
@@ -175,14 +171,18 @@ impl CodeBlock {
             parameter_length: 0,
             handlers: ThinVec::default(),
             ic: Box::default(),
-            source_text_spanned: SpannedSourceText::new_empty(),
+            source_info: SourceInfo::new(
+                SourceMap::new(Box::default(), SourcePath::None),
+                name,
+                SpannedSourceText::new_empty(),
+            ),
         }
     }
 
     /// Retrieves the name associated with this code block.
     #[must_use]
-    pub const fn name(&self) -> &JsString {
-        &self.name
+    pub fn name(&self) -> &JsString {
+        self.source_info.function_name()
     }
 
     /// Check if the function is traced.
@@ -316,6 +316,10 @@ impl CodeBlock {
         }
 
         panic!("expected scope constant at index {index}")
+    }
+
+    pub(crate) fn source_info(&self) -> &SourceInfo {
+        &self.source_info
     }
 }
 
@@ -993,6 +997,35 @@ impl Display for CodeBlock {
                     handler.handler(),
                     handler.environment_count,
                 )?;
+            }
+        }
+        f.write_str("Source Map:")?;
+        if self.source_info().map().entries().is_empty() {
+            f.write_str(" <empty>\n")?;
+        } else {
+            f.write_char('\n')?;
+
+            let bytecode_len = self.bytecode.bytecode.len() as u32;
+            for (i, handler) in self.source_info().map().entries().windows(2).enumerate() {
+                let current = handler[0];
+                let next = handler.get(1);
+
+                write!(
+                    f,
+                    "    {i:04}: {:?}: ",
+                    current.pc..next.map_or(bytecode_len, |entry| entry.pc),
+                )?;
+
+                if let Some(position) = current.position {
+                    writeln!(
+                        f,
+                        "({}, {})",
+                        position.line_number(),
+                        position.column_number()
+                    )?;
+                } else {
+                    f.write_str("unknown")?;
+                }
             }
         }
         Ok(())

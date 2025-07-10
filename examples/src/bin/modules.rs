@@ -1,8 +1,8 @@
 use std::{error::Error, path::Path, rc::Rc};
 
 use boa_engine::{
-    builtins::promise::PromiseState, js_string, module::SimpleModuleLoader, Context, JsError,
-    JsNativeError, JsValue, Module, NativeFunction,
+    Context, JsError, JsNativeError, JsValue, Module, NativeFunction,
+    builtins::promise::PromiseState, js_string, module::SimpleModuleLoader,
 };
 use boa_parser::Source;
 
@@ -96,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             assert_eq!(v, JsValue::undefined());
         }
         PromiseState::Rejected(err) => {
-            return Err(JsError::from_opaque(err).try_native(context)?.into())
+            return Err(JsError::from_opaque(err).try_native(context)?.into());
         }
     }
 
@@ -114,7 +114,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mix = namespace
         .get(js_string!("mix"), context)?
         .as_callable()
-        .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("mix export wasn't a function!"))?;
     let result = mix.call(&JsValue::undefined(), &[5.into(), 10.into()], context)?;
 

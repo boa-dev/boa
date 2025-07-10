@@ -12,16 +12,16 @@ use std::{convert::identity, ops::BitAnd};
 use bytemuck::{AnyBitPattern, NoUninit};
 use num_traits::{WrappingAdd, WrappingSub};
 use portable_atomic::{
-    AtomicI16, AtomicI32, AtomicI64, AtomicI8, AtomicU16, AtomicU32, AtomicU64, AtomicU8,
+    AtomicI8, AtomicI16, AtomicI32, AtomicI64, AtomicU8, AtomicU16, AtomicU32, AtomicU64,
 };
 
 use crate::{
+    Context, JsResult, JsValue,
     builtins::{
         array_buffer::utils::{SliceRef, SliceRefMut},
         typed_array::TypedArrayElement,
     },
     value::Numeric,
-    Context, JsResult, JsValue,
 };
 
 /// A reference to an element inside an array buffer.

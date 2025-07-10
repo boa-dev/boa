@@ -3,11 +3,11 @@ use boa_macros::js_str;
 use crate::value::JsVariant;
 use crate::vm::opcode::VaryingOperand;
 use crate::{
+    Context, JsNativeError, JsResult,
     builtins::function::set_function_name,
     object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::opcode::Operation,
-    Context, JsNativeError, JsResult,
 };
 
 /// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
@@ -384,7 +384,7 @@ impl SetFunctionName {
         };
 
         set_function_name(
-            function.as_object().expect("function is not an object"),
+            &function.as_object().expect("function is not an object"),
             &name,
             prefix,
             context,

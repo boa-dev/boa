@@ -3,15 +3,15 @@
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    builtins::{iterable::IteratorPrototypes, uri::UriFunctions, Array, OrdinaryObject},
+    JsSymbol,
+    builtins::{Array, OrdinaryObject, iterable::IteratorPrototypes, uri::UriFunctions},
     js_string,
     object::{
+        CONSTRUCTOR, JsFunction, JsObject, Object, PROTOTYPE,
         internal_methods::immutable_prototype::IMMUTABLE_PROTOTYPE_EXOTIC_INTERNAL_METHODS,
-        shape::{shared_shape::template::ObjectTemplate, RootShape},
-        JsFunction, JsObject, Object, CONSTRUCTOR, PROTOTYPE,
+        shape::{RootShape, shared_shape::template::ObjectTemplate},
     },
     property::{Attribute, PropertyKey},
-    JsSymbol,
 };
 
 #[cfg(feature = "intl")]

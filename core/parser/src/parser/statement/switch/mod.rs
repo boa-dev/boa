@@ -2,16 +2,16 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-        Cursor, OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression, statement::StatementList,
     },
     source::ReadChar,
-    Error,
 };
 use ast::operations::{lexically_declared_names_legacy, var_declared_names};
-use boa_ast::{self as ast, statement, statement::Switch, Keyword, Punctuator};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned, statement, statement::Switch};
 use boa_interner::Interner;
 use rustc_hash::FxHashMap;
 
@@ -210,7 +210,7 @@ where
                         token.to_string(interner),
                         token.span(),
                         "switch case block",
-                    ))
+                    ));
                 }
             }
         }

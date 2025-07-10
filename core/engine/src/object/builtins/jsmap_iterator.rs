@@ -1,7 +1,7 @@
 //! A Rust API wrapper for Boa's `MapIterator` Builtin ECMAScript Object
 use crate::{
-    builtins::map::MapIterator, error::JsNativeError, object::JsObject, value::TryFromJs, Context,
-    JsResult, JsValue,
+    Context, JsResult, JsValue, builtins::map::MapIterator, error::JsNativeError, object::JsObject,
+    value::TryFromJs,
 };
 
 use boa_gc::{Finalize, Trace};

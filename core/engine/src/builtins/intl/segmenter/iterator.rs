@@ -5,15 +5,15 @@ use icu_segmenter::{
 };
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
-    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{create_segment_data_object, Segmenter};
+use super::{Segmenter, create_segment_data_object};
 
 pub(crate) enum NativeSegmentIterator<'l, 's> {
     GraphemeUtf16(GraphemeClusterBreakIterator<'l, 's, Utf16>),
@@ -106,8 +106,9 @@ impl SegmentIterator {
     fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
-        let mut iter = this
-            .as_object()
+        let object = this.as_object();
+        let mut iter = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -121,8 +122,8 @@ impl SegmentIterator {
         // 6. Let endIndex be ! FindBoundary(segmenter, string, startIndex, after).
         let Some((end, is_word_like)) = iter.string.get(start..).and_then(|string| {
             // 3. Let segmenter be iterator.[[IteratingSegmenter]].
-            let segmenter = iter.segmenter.borrow();
-            let segmenter = segmenter
+            let segmenter = iter
+                .segmenter
                 .downcast_ref::<Segmenter>()
                 .expect("segment iterator object should contain a segmenter");
             let mut segments = segmenter.native.segment(string);

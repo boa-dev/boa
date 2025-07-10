@@ -1,13 +1,12 @@
 use super::{FormalParameterList, FunctionBody, FunctionExpression};
 use crate::{
-    block_to_string,
+    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     property::{MethodDefinitionKind, PropertyName},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -243,11 +242,11 @@ impl ClassExpression {
     pub const fn name_scope(&self) -> Option<&Scope> {
         self.name_scope.as_ref()
     }
+}
 
-    /// Get the [`Span`] of the [`ClassExpression`] node.
+impl Spanned for ClassExpression {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -255,10 +254,10 @@ impl ClassExpression {
 impl ToIndentedString for ClassExpression {
     fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "class".to_string();
-        if self.name_scope.is_some() {
-            if let Some(name) = self.name {
-                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
-            }
+        if self.name_scope.is_some()
+            && let Some(name) = self.name
+        {
+            let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
         }
         if let Some(super_ref) = self.super_ref.as_ref() {
             let _ = write!(buf, " extends {}", super_ref.to_interned_string(interner));
@@ -878,11 +877,11 @@ impl PrivateName {
     pub const fn description(&self) -> Sym {
         self.description
     }
+}
 
-    /// Get the [`Span`] of the [`PrivateName`] node.
+impl Spanned for PrivateName {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

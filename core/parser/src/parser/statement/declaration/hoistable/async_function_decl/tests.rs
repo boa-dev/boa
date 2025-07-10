@@ -1,8 +1,8 @@
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    Declaration, LinearPosition, LinearSpan, Span, StatementList,
     expression::Identifier,
     function::{AsyncFunctionDeclaration, FormalParameterList, FunctionBody},
-    Declaration, LinearPosition, LinearSpan, Span, StatementList,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;

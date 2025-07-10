@@ -6,23 +6,23 @@
 //! [spec]: https://tc39.es/ecma262/#sec-update-expressions
 
 use crate::{
+    Error,
     lexer::{Error as LexError, TokenKind},
     parser::{
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
             check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression,
             unary::UnaryExpression,
         },
-        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Expression, Position, Punctuator, Span, Spanned,
     expression::operator::{
-        update::{UpdateOp, UpdateTarget},
         Update,
+        update::{UpdateOp, UpdateTarget},
     },
-    Expression, Position, Punctuator, Span,
 };
 use boa_interner::Interner;
 

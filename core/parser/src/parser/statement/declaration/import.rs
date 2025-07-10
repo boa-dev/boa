@@ -12,19 +12,19 @@
 use crate::{
     lexer::TokenKind,
     parser::{
-        cursor::Cursor,
-        statement::{declaration::FromClause, BindingIdentifier},
         Error, OrAbrupt, ParseResult, TokenParser,
+        cursor::Cursor,
+        statement::{BindingIdentifier, declaration::FromClause},
     },
     source::ReadChar,
 };
 use boa_ast::{
+    Keyword, Punctuator, Spanned,
     declaration::{
         ImportDeclaration as AstImportDeclaration, ImportKind,
         ImportSpecifier as AstImportSpecifier, ModuleSpecifier,
     },
     expression::Identifier,
-    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 
@@ -129,7 +129,7 @@ where
                                     tok.to_string(interner),
                                     tok.span(),
                                     "import declaration",
-                                ))
+                                ));
                             }
                         }
                     }
@@ -147,7 +147,7 @@ where
                     tok.to_string(interner),
                     tok.span(),
                     "import declaration",
-                ))
+                ));
             }
         };
 

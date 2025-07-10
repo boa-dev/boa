@@ -1,13 +1,12 @@
 use super::{FormalParameterList, FunctionBody};
 use crate::{
-    block_to_string,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     scope::{FunctionScopes, Scope},
     scope_analyzer::{analyze_binding_escapes, collect_bindings},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -180,6 +179,13 @@ impl PartialEq for FunctionExpression {
     }
 }
 
+impl Spanned for FunctionExpression {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 impl FunctionExpression {
     /// Creates a new function expression.
     #[inline]
@@ -264,13 +270,6 @@ impl FunctionExpression {
         self.contains_direct_eval
     }
 
-    /// Get the [`Span`] of the [`FunctionExpression`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
-
     /// Analyze the scope of the function expression.
     pub fn analyze_scope(&mut self, strict: bool, scope: &Scope, interner: &Interner) -> bool {
         if !collect_bindings(self, strict, false, scope, interner) {
@@ -283,10 +282,10 @@ impl FunctionExpression {
 impl ToIndentedString for FunctionExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function".to_owned();
-        if self.has_binding_identifier {
-            if let Some(name) = self.name {
-                let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
-            }
+        if self.has_binding_identifier
+            && let Some(name) = self.name
+        {
+            let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
         }
         let _ = write!(
             buf,

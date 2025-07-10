@@ -127,10 +127,10 @@ pub mod prelude {
         script::Script,
         string::{JsStr, JsString},
         symbol::JsSymbol,
-        value::{js_object, js_value, JsValue, JsVariant},
+        value::{JsValue, JsVariant, js_object, js_value},
     };
     pub use boa_gc::{Finalize, Trace};
-    pub use boa_macros::{js_str, JsData};
+    pub use boa_macros::{JsData, js_str};
     pub use boa_parser::Source;
 }
 

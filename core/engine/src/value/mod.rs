@@ -19,6 +19,8 @@ pub use boa_macros::TryFromJs;
 pub use boa_macros::TryIntoJs;
 #[doc(inline)]
 pub use conversions::convert::Convert;
+#[doc(inline)]
+pub use conversions::nullable::Nullable;
 
 pub(crate) use self::conversions::IntoOrUndefined;
 #[doc(inline)]
@@ -28,18 +30,18 @@ pub use self::{
     variant::JsVariant,
 };
 use crate::builtins::RegExp;
-use crate::object::{ErasedObject, JsFunction, JsPromise, JsRegExp};
+use crate::object::{JsFunction, JsPromise, JsRegExp};
 use crate::{
+    Context, JsBigInt, JsResult, JsString,
     builtins::{
-        number::{f64_to_int32, f64_to_uint32},
         Number, Promise,
+        number::{f64_to_int32, f64_to_uint32},
     },
     error::JsNativeError,
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     symbol::JsSymbol,
-    Context, JsBigInt, JsResult, JsString, NativeObject,
 };
 
 mod conversions;
@@ -141,7 +143,7 @@ impl JsValue {
     /// Return the variant of this value.
     #[inline]
     #[must_use]
-    pub const fn variant(&self) -> JsVariant<'_> {
+    pub fn variant(&self) -> JsVariant<'_> {
         self.0.as_variant()
     }
 
@@ -197,36 +199,15 @@ impl JsValue {
     /// Returns the object if the value is object, otherwise `None`.
     #[inline]
     #[must_use]
-    pub const fn as_object(&self) -> Option<&JsObject> {
+    pub fn as_object(&self) -> Option<JsObject> {
         self.0.as_object()
-    }
-
-    /// Returns a downcasted ref object if the type matches. This is a shorthand
-    /// for `value.as_object().and_then(|o| o.downcast_ref<T>())`, which at time
-    /// can be contriving.
-    #[inline]
-    #[must_use]
-    pub fn as_downcast_ref<T: NativeObject>(&self) -> Option<boa_engine::object::Ref<'_, T>> {
-        self.as_object().and_then(|o| o.downcast_ref::<T>())
-    }
-
-    /// Returns a downcasted mut ref object if the type matches.
-    ///
-    /// This is a shorthand for `value.as_object().and_then(|o| o.downcast_ref<T>())`,
-    /// which at time can be contriving.
-    #[inline]
-    #[must_use]
-    pub fn as_downcast_mut<T: NativeObject>(
-        &self,
-    ) -> Option<boa_engine::object::RefMut<'_, ErasedObject, T>> {
-        self.as_object().and_then(JsObject::downcast_mut::<T>)
     }
 
     /// Consumes the value and return the inner object if it was an object.
     #[inline]
     #[must_use]
     pub fn into_object(self) -> Option<JsObject> {
-        self.0.as_object().cloned()
+        self.0.as_object()
     }
 
     /// It determines if the value is a callable function with a `[[Call]]` internal method.
@@ -238,14 +219,14 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn is_callable(&self) -> bool {
-        self.as_object().is_some_and(JsObject::is_callable)
+        self.as_object().as_ref().is_some_and(JsObject::is_callable)
     }
 
     /// Returns the callable value if the value is callable, otherwise `None`.
     #[inline]
     #[must_use]
-    pub fn as_callable(&self) -> Option<&JsObject> {
-        self.as_object().filter(|obj| obj.is_callable())
+    pub fn as_callable(&self) -> Option<JsObject> {
+        self.as_object().filter(JsObject::is_callable)
     }
 
     /// Returns a [`JsFunction`] if the value is callable, otherwise `None`.
@@ -253,23 +234,23 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn as_function(&self) -> Option<JsFunction> {
-        self.as_callable()
-            .cloned()
-            .and_then(JsFunction::from_object)
+        self.as_callable().and_then(JsFunction::from_object)
     }
 
     /// Returns true if the value is a constructor object.
     #[inline]
     #[must_use]
     pub fn is_constructor(&self) -> bool {
-        self.as_object().is_some_and(JsObject::is_constructor)
+        self.as_object()
+            .as_ref()
+            .is_some_and(JsObject::is_constructor)
     }
 
     /// Returns the constructor if the value is a constructor, otherwise `None`.
     #[inline]
     #[must_use]
-    pub fn as_constructor(&self) -> Option<&JsObject> {
-        self.as_object().filter(|obj| obj.is_constructor())
+    pub fn as_constructor(&self) -> Option<JsObject> {
+        self.as_object().filter(JsObject::is_constructor)
     }
 
     /// Returns true if the value is a promise object.
@@ -282,7 +263,7 @@ impl JsValue {
     /// Returns the value as an object if the value is a promise, otherwise `None`.
     #[inline]
     #[must_use]
-    pub(crate) fn as_promise_object(&self) -> Option<&JsObject> {
+    pub(crate) fn as_promise_object(&self) -> Option<JsObject> {
         self.as_object().filter(|obj| obj.is::<Promise>())
     }
 
@@ -291,7 +272,6 @@ impl JsValue {
     #[must_use]
     pub fn as_promise(&self) -> Option<JsPromise> {
         self.as_promise_object()
-            .cloned()
             .and_then(|o| JsPromise::from_object(o).ok())
     }
 
@@ -308,7 +288,6 @@ impl JsValue {
     pub fn as_regexp(&self) -> Option<JsRegExp> {
         self.as_object()
             .filter(|obj| obj.is::<RegExp>())
-            .cloned()
             .and_then(|o| JsRegExp::from_object(o).ok())
     }
 
@@ -683,10 +662,10 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-touint32>
     pub fn to_u32(&self, context: &mut Context) -> JsResult<u32> {
         // This is the fast path, if the value is Integer we can just return it.
-        if let Some(number) = self.0.as_integer32() {
-            if let Ok(number) = u32::try_from(number) {
-                return Ok(number);
-            }
+        if let Some(number) = self.0.as_integer32()
+            && let Ok(number) = u32::try_from(number)
+        {
+            return Ok(number);
         }
         let number = self.to_number(context)?;
 
@@ -1150,6 +1129,7 @@ impl JsValue {
 
         // 1. If Type(argument) is not Object, return false.
         self.as_object()
+            .as_ref()
             .map_or(Ok(false), JsObject::is_array_abstract)
     }
 }

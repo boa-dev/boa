@@ -1,11 +1,11 @@
 use std::ops::ControlFlow;
 
 use crate::{
-    vm::{
-        opcode::{Operation, VaryingOperand},
-        CompletionRecord,
-    },
     Context, JsNativeError,
+    vm::{
+        CompletionRecord,
+        opcode::{Operation, VaryingOperand},
+    },
 };
 
 /// `Return` implements the Opcode Operation for `Opcode::Return`
@@ -57,7 +57,7 @@ impl CheckReturn {
                     .with_realm(realm)
                     .into(),
             );
-            return context.handle_thow();
+            return context.handle_throw();
         } else {
             let frame = context.vm.frame();
             if frame.has_this_value_cached() {
@@ -69,7 +69,7 @@ impl CheckReturn {
                     Err(err) => {
                         let err = err.inject_realm(realm);
                         context.vm.pending_exception = Some(err);
-                        return context.handle_thow();
+                        return context.handle_throw();
                     }
                     Ok(Some(this)) => this,
                     Ok(None) => context.realm().global_this().clone().into(),

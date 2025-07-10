@@ -2,8 +2,8 @@ use std::{cell::Cell, rc::Rc};
 
 use super::run_test;
 use crate::{
-    force_collect, internals::EphemeronBox, test::Harness, Ephemeron, Finalize, Gc, GcBox,
-    GcRefCell, Trace, WeakGc,
+    Ephemeron, Finalize, Gc, GcBox, GcRefCell, Trace, WeakGc, force_collect,
+    internals::EphemeronBox, test::Harness,
 };
 
 #[test]

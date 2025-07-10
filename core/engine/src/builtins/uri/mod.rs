@@ -21,12 +21,12 @@ use self::consts::{
 
 use super::{BuiltInBuilder, BuiltInObject, IntrinsicObject};
 use crate::{
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     context::intrinsics::Intrinsics,
     js_string,
     object::{JsFunction, JsObject},
     realm::Realm,
     string::{CodePoint, StaticJsStrings},
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 /// Intrinsics for the [`URI Handling Functions`][spec].
@@ -487,7 +487,7 @@ where
                     Err(_) => {
                         return Err(JsNativeError::uri()
                             .with_message("invalid UTF-8 encoding found")
-                            .into())
+                            .into());
                     }
                     Ok(v) => {
                         // 8. Let V be the code point obtained by applying the UTF-8 transformation to Octets, that is, from a List of octets into a 21-bit value.

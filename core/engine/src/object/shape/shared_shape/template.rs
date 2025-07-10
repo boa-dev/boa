@@ -2,11 +2,11 @@ use boa_gc::{Finalize, Trace};
 use thin_vec::ThinVec;
 
 use crate::{
+    JsValue,
     object::{
-        shape::slot::SlotAttributes, IndexedProperties, JsObject, NativeObject, Object, PropertyMap,
+        IndexedProperties, JsObject, NativeObject, Object, PropertyMap, shape::slot::SlotAttributes,
     },
     property::{Attribute, PropertyKey},
-    JsValue,
 };
 
 use super::{SharedShape, TransitionKey};
@@ -110,7 +110,7 @@ impl ObjectTemplate {
         let internal_methods = data.internal_methods();
 
         let mut object = Object {
-            data,
+            data: Box::new(data),
             extensible: true,
             properties: PropertyMap::new(self.shape.clone().into(), IndexedProperties::default()),
             private_elements: ThinVec::new(),
@@ -133,7 +133,7 @@ impl ObjectTemplate {
     ) -> JsObject {
         let internal_methods = data.internal_methods();
         let mut object = Object {
-            data,
+            data: Box::new(data),
             extensible: true,
             properties: PropertyMap::new(self.shape.clone().into(), indexed_properties),
             private_elements: ThinVec::new(),

@@ -16,7 +16,7 @@ pub use boa_engine::{IntoJsFunctionCopied, IntoJsModule, UnsafeIntoJsFunction};
 #[test]
 #[allow(clippy::missing_panics_doc)]
 fn into_js_module() {
-    use boa_engine::{js_string, Context, JsValue, Module, Source};
+    use boa_engine::{Context, JsValue, Module, Source, js_string};
     use boa_gc::{Gc, GcRefCell};
     use std::cell::RefCell;
     use std::rc::Rc;
@@ -43,8 +43,8 @@ fn into_js_module() {
                     let counter = foo_count.clone();
                     move || {
                         *counter.borrow_mut() += 1;
-                        let result = *counter.borrow();
-                        result
+
+                        *counter.borrow()
                     }
                 }
                 .into_js_function_unsafe(&mut context),
@@ -126,7 +126,7 @@ fn into_js_module() {
 
 #[test]
 fn can_throw_exception() {
-    use boa_engine::{js_string, Context, JsError, JsResult, JsValue, Module, Source};
+    use boa_engine::{Context, JsError, JsResult, JsValue, Module, Source, js_string};
     use std::rc::Rc;
 
     let loader = Rc::new(loaders::HashMapModuleLoader::new());
@@ -172,7 +172,7 @@ fn can_throw_exception() {
 fn class() {
     use boa_engine::class::{Class, ClassBuilder};
     use boa_engine::property::Attribute;
-    use boa_engine::{js_string, Context, JsResult, JsValue, Module, Source};
+    use boa_engine::{Context, JsResult, JsValue, Module, Source, js_string};
     use boa_macros::{Finalize, JsData, Trace};
     use std::rc::Rc;
 

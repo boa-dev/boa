@@ -1,7 +1,7 @@
 use super::VaryingOperand;
 use crate::{
-    builtins::array::Array, js_string, object::IntegrityLevel, property::PropertyDescriptor,
-    vm::opcode::Operation, Context,
+    Context, builtins::array::Array, js_string, object::IntegrityLevel,
+    property::PropertyDescriptor, vm::opcode::Operation,
 };
 use thin_vec::ThinVec;
 

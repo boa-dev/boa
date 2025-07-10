@@ -1,5 +1,5 @@
 use boa_engine::{
-    context::HostHooks, js_string, object::builtins::JsDate, Context, JsResult, JsValue,
+    Context, JsResult, JsValue, context::HostHooks, js_string, object::builtins::JsDate,
 };
 use std::rc::Rc;
 

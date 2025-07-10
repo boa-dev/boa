@@ -3,7 +3,7 @@
 #![allow(clippy::inline_always)]
 
 use crate::{Context, JsError, JsResult, JsValue};
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use std::ops::ControlFlow;
 
 /// An implementation of the ECMAScript's `CompletionRecord` [specification] for

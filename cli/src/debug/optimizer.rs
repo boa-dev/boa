@@ -1,9 +1,8 @@
 use boa_engine::{
-    js_string,
+    Context, JsArgs, JsObject, JsResult, JsValue, NativeFunction, js_string,
     object::{FunctionObjectBuilder, ObjectInitializer},
     optimizer::OptimizerOptions,
     property::Attribute,
-    Context, JsArgs, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 fn get_constant_folding(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {

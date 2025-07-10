@@ -1,22 +1,22 @@
 use crate::{
+    Context, JsData, JsResult, JsValue,
     bytecompiler::ToJsString,
     environments::DeclarativeEnvironment,
     object::{
-        internal_methods::{
-            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_set, ordinary_try_get, InternalMethodContext, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
-        },
         JsObject,
+        internal_methods::{
+            InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
+            ordinary_set, ordinary_try_get,
+        },
     },
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
-    Context, JsData, JsResult, JsValue,
 };
 use boa_ast::{function::FormalParameterList, operations::bound_names, scope::Scope};
 use boa_gc::{Finalize, Gc, Trace};
 use boa_interner::Interner;
 use rustc_hash::FxHashMap;
-use thin_vec::{thin_vec, ThinVec};
+use thin_vec::{ThinVec, thin_vec};
 
 #[derive(Debug, Copy, Clone, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
@@ -293,22 +293,21 @@ pub(crate) fn arguments_exotic_get_own_property(
     // 3. Let map be args.[[ParameterMap]].
     // 4. Let isMapped be ! HasOwnProperty(map, P).
     // 5. If isMapped is true, then
-    if let PropertyKey::Index(index) = key {
-        if let Some(value) = obj
+    if let PropertyKey::Index(index) = key
+        && let Some(value) = obj
             .downcast_ref::<MappedArguments>()
             .expect("arguments exotic method must only be callable from arguments objects")
             .get(index.get())
-        {
-            // a. Set desc.[[Value]] to Get(map, P).
-            return Ok(Some(
-                PropertyDescriptor::builder()
-                    .value(value)
-                    .maybe_writable(desc.writable())
-                    .maybe_enumerable(desc.enumerable())
-                    .maybe_configurable(desc.configurable())
-                    .build(),
-            ));
-        }
+    {
+        // a. Set desc.[[Value]] to Get(map, P).
+        return Ok(Some(
+            PropertyDescriptor::builder()
+                .value(value)
+                .maybe_writable(desc.writable())
+                .maybe_enumerable(desc.enumerable())
+                .maybe_configurable(desc.configurable())
+                .build(),
+        ));
     }
 
     // 6. Return desc.
@@ -421,18 +420,17 @@ pub(crate) fn arguments_exotic_try_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<Option<JsValue>> {
-    if let PropertyKey::Index(index) = key {
-        // 1. Let map be args.[[ParameterMap]].
-        // 2. Let isMapped be ! HasOwnProperty(map, P).
-        if let Some(value) = obj
+    // 1. Let map be args.[[ParameterMap]].
+    // 2. Let isMapped be ! HasOwnProperty(map, P).
+    if let PropertyKey::Index(index) = key
+        && let Some(value) = obj
             .downcast_ref::<MappedArguments>()
             .expect("arguments exotic method must only be callable from arguments objects")
             .get(index.get())
-        {
-            // a. Assert: map contains a formal parameter mapping for P.
-            // b. Return Get(map, P).
-            return Ok(Some(value));
-        }
+    {
+        // a. Assert: map contains a formal parameter mapping for P.
+        // b. Return Get(map, P).
+        return Ok(Some(value));
     }
 
     // 3. If isMapped is false, then
@@ -452,18 +450,17 @@ pub(crate) fn arguments_exotic_get(
     receiver: JsValue,
     context: &mut InternalMethodContext<'_>,
 ) -> JsResult<JsValue> {
-    if let PropertyKey::Index(index) = key {
-        // 1. Let map be args.[[ParameterMap]].
-        // 2. Let isMapped be ! HasOwnProperty(map, P).
-        if let Some(value) = obj
+    // 1. Let map be args.[[ParameterMap]].
+    // 2. Let isMapped be ! HasOwnProperty(map, P).
+    if let PropertyKey::Index(index) = key
+        && let Some(value) = obj
             .downcast_ref::<MappedArguments>()
             .expect("arguments exotic method must only be callable from arguments objects")
             .get(index.get())
-        {
-            // a. Assert: map contains a formal parameter mapping for P.
-            // b. Return Get(map, P).
-            return Ok(value);
-        }
+    {
+        // a. Assert: map contains a formal parameter mapping for P.
+        // b. Return Get(map, P).
+        return Ok(value);
     }
 
     // 3. If isMapped is false, then
@@ -487,17 +484,17 @@ pub(crate) fn arguments_exotic_set(
     // 1. If SameValue(args, Receiver) is false, then
     // a. Let isMapped be false.
     // 2. Else,
-    if let PropertyKey::Index(index) = &key {
-        if JsValue::same_value(&obj.clone().into(), &receiver) {
-            // a. Let map be args.[[ParameterMap]].
-            // b. Let isMapped be ! HasOwnProperty(map, P).
-            // 3. If isMapped is true, then
-            // a. Let setStatus be Set(map, P, V, false).
-            // b. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
-            obj.downcast_ref::<MappedArguments>()
-                .expect("arguments exotic method must only be callable from arguments objects")
-                .set(index.get(), &value);
-        }
+    if let PropertyKey::Index(index) = &key
+        && JsValue::same_value(&obj.clone().into(), &receiver)
+    {
+        // a. Let map be args.[[ParameterMap]].
+        // b. Let isMapped be ! HasOwnProperty(map, P).
+        // 3. If isMapped is true, then
+        // a. Let setStatus be Set(map, P, V, false).
+        // b. Assert: setStatus is true because formal parameters mapped by argument objects are always writable.
+        obj.downcast_ref::<MappedArguments>()
+            .expect("arguments exotic method must only be callable from arguments objects")
+            .set(index.get(), &value);
     }
 
     // 4. Return ? OrdinarySet(args, P, V, Receiver).
@@ -518,16 +515,14 @@ pub(crate) fn arguments_exotic_delete(
     // 3. Let result be ? OrdinaryDelete(args, P).
     let result = ordinary_delete(obj, key, context)?;
 
-    if result {
-        if let PropertyKey::Index(index) = key {
-            // 1. Let map be args.[[ParameterMap]].
-            // 2. Let isMapped be ! HasOwnProperty(map, P).
-            // 4. If result is true and isMapped is true, then
-            // a. Call map.[[Delete]](P).
-            obj.downcast_mut::<MappedArguments>()
-                .expect("arguments exotic method must only be callable from arguments objects")
-                .delete(index.get());
-        }
+    if result && let PropertyKey::Index(index) = key {
+        // 1. Let map be args.[[ParameterMap]].
+        // 2. Let isMapped be ! HasOwnProperty(map, P).
+        // 4. If result is true and isMapped is true, then
+        // a. Call map.[[Delete]](P).
+        obj.downcast_mut::<MappedArguments>()
+            .expect("arguments exotic method must only be callable from arguments objects")
+            .delete(index.get());
     }
 
     // 5. Return result.

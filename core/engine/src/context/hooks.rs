@@ -1,10 +1,10 @@
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::promise::OperationType,
     context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
     realm::Realm,
-    Context, JsResult, JsString, JsValue,
 };
 use time::{OffsetDateTime, UtcOffset};
 
@@ -45,9 +45,11 @@ use time::{OffsetDateTime, UtcOffset};
 ///
 /// let context = &mut ContextBuilder::new().host_hooks(Rc::new(Hooks)).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
-/// assert_eq!(
-///     result.unwrap_err().to_string(),
-///     "TypeError: eval calls not available"
+/// assert!(
+///     result
+///         .unwrap_err()
+///         .to_string()
+///         .starts_with("TypeError: eval calls not available")
 /// );
 /// ```
 ///

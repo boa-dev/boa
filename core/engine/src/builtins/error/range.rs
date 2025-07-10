@@ -10,17 +10,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 /// JavaScript `RangeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -81,7 +81,7 @@ impl BuiltInConstructor for RangeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Range,
+            Error::with_caller_position(ErrorKind::Range, context),
         );
 
         // 3. If message is not undefined, then

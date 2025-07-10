@@ -9,21 +9,14 @@ use thin_vec::ThinVec;
 
 use self::{internal_methods::ORDINARY_INTERNAL_METHODS, shape::Shape};
 use crate::{
-    builtins::{
-        function::{
-            arguments::{MappedArguments, UnmappedArguments},
-            ConstructorKind,
-        },
-        typed_array::{TypedArray, TypedArrayKind},
-        OrdinaryObject,
-    },
+    Context, JsString, JsSymbol, JsValue,
+    builtins::{OrdinaryObject, function::ConstructorKind},
     context::intrinsics::StandardConstructor,
     js_string,
     native_function::{NativeFunction, NativeFunctionObject},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsString, JsSymbol, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -180,7 +173,7 @@ pub struct Object<T: ?Sized> {
     /// The `[[PrivateElements]]` internal slot.
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
     /// The inner object data
-    pub(crate) data: T,
+    pub(crate) data: Box<T>,
 }
 
 impl<T: Default> Default for Object<T> {
@@ -189,7 +182,7 @@ impl<T: Default> Default for Object<T> {
             properties: PropertyMap::default(),
             extensible: true,
             private_elements: ThinVec::new(),
-            data: T::default(),
+            data: Box::default(),
         }
     }
 }
@@ -312,139 +305,24 @@ impl<T: ?Sized> Object<T> {
     pub(crate) fn append_private_element(&mut self, name: PrivateName, element: PrivateElement) {
         if let PrivateElement::Accessor { getter, setter } = &element {
             for (key, value) in &mut self.private_elements {
-                if name == *key {
-                    if let PrivateElement::Accessor {
+                if name == *key
+                    && let PrivateElement::Accessor {
                         getter: existing_getter,
                         setter: existing_setter,
                     } = value
-                    {
-                        if existing_getter.is_none() {
-                            existing_getter.clone_from(getter);
-                        }
-                        if existing_setter.is_none() {
-                            existing_setter.clone_from(setter);
-                        }
-                        return;
+                {
+                    if existing_getter.is_none() {
+                        existing_getter.clone_from(getter);
                     }
+                    if existing_setter.is_none() {
+                        existing_setter.clone_from(setter);
+                    }
+                    return;
                 }
             }
         }
 
         self.private_elements.push((name, element));
-    }
-}
-
-impl Object<dyn NativeObject> {
-    /// Return `true` if it is a native object and the native type is `T`.
-    #[must_use]
-    pub fn is<T: NativeObject>(&self) -> bool {
-        self.data.is::<T>()
-    }
-
-    /// Downcast a reference to the object,
-    /// if the object is type native object type `T`.
-    #[must_use]
-    pub fn downcast_ref<T: NativeObject>(&self) -> Option<&T> {
-        self.data.downcast_ref::<T>()
-    }
-
-    /// Downcast a mutable reference to the object,
-    /// if the object is type native object type `T`.
-    pub fn downcast_mut<T: NativeObject>(&mut self) -> Option<&mut T> {
-        self.data.downcast_mut::<T>()
-    }
-
-    /// Checks if this object is an `Arguments` object.
-    pub(crate) fn is_arguments(&self) -> bool {
-        self.is::<UnmappedArguments>() || self.is::<MappedArguments>()
-    }
-
-    /// Checks if it a `Uint8Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_uint8_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Uint8)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Int8Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_int8_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Int8)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Uint16Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_uint16_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Uint16)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Int16Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_int16_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Int16)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Uint32Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_uint32_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Uint32)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Int32Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_int32_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Int32)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Float32Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_float32_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Float32)
-        } else {
-            false
-        }
-    }
-
-    /// Checks if it a `Float64Array` object.
-    #[inline]
-    #[must_use]
-    pub fn is_typed_float64_array(&self) -> bool {
-        if let Some(int) = self.downcast_ref::<TypedArray>() {
-            matches!(int.kind(), TypedArrayKind::Float64)
-        } else {
-            false
-        }
     }
 }
 
@@ -563,6 +441,7 @@ impl<'realm> FunctionObjectBuilder<'realm> {
         let object = self.realm.intrinsics().templates().function().create(
             NativeFunctionObject {
                 f: self.function,
+                name: self.name.clone(),
                 constructor: self.constructor,
                 realm: Some(self.realm.clone()),
             },
@@ -743,13 +622,13 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             context,
             function,
             constructor_object: Object {
-                data: OrdinaryObject,
+                data: Box::new(OrdinaryObject),
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
             },
             prototype: Object {
-                data: OrdinaryObject,
+                data: Box::new(OrdinaryObject),
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
@@ -1008,15 +887,18 @@ impl<'ctx> ConstructorBuilder<'ctx> {
         };
 
         let constructor = {
+            let data = NativeFunctionObject {
+                f: self.function,
+                name: self.name.clone(),
+                constructor: self.kind,
+                realm: Some(self.context.realm().clone()),
+            };
+            let internal_methods = data.internal_methods();
             let mut constructor = Object {
                 properties: self.constructor_object.properties,
                 extensible: self.constructor_object.extensible,
                 private_elements: self.constructor_object.private_elements,
-                data: NativeFunctionObject {
-                    f: self.function,
-                    constructor: self.kind,
-                    realm: Some(self.context.realm().clone()),
-                },
+                data: Box::new(data),
             };
 
             constructor.insert(StaticJsStrings::LENGTH, length);
@@ -1045,7 +927,6 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 );
             }
 
-            let internal_methods = constructor.data.internal_methods();
             JsObject::from_object_and_vtable(constructor, internal_methods)
         };
 

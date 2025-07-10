@@ -1,15 +1,15 @@
 use boa_gc::{Finalize, Trace, WeakGc};
 
 use crate::{
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
+    object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 
 /// Boa's implementation of ECMAScript's `WeakRef` builtin object.
@@ -108,8 +108,9 @@ impl WeakRef {
     pub(crate) fn deref(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let weakRef be the this value.
         // 2. Perform ? RequireInternalSlot(weakRef, [[WeakRefTarget]]).
-        let weak_ref = this
-            .as_object()
+        let object = this.as_object();
+        let weak_ref = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<WeakGc<ErasedVTableObject>>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -142,7 +143,7 @@ impl WeakRef {
 mod tests {
     use indoc::indoc;
 
-    use crate::{run_test_actions, JsValue, TestAction};
+    use crate::{JsValue, TestAction, run_test_actions};
 
     #[test]
     fn weak_ref_collected() {

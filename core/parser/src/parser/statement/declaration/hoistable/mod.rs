@@ -16,23 +16,22 @@ mod generator_decl;
 pub(crate) mod class_decl;
 
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
+        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
         name_in_lexically_declared_names,
         statement::LexError,
-        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Declaration, Keyword, Punctuator, Spanned,
     expression::Identifier,
     function::FormalParameterList,
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Declaration, Keyword, Punctuator,
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_interner::{Interner, Sym};
 

@@ -10,24 +10,24 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 
 use crate::{
-    lexer::{token::ContainsEscapeSequence, TokenKind},
+    lexer::{TokenKind, token::ContainsEscapeSequence},
     parser::{
+        Error, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
         expression::AssignmentExpression,
         statement::{declaration::ClassDeclaration, variable::VariableStatement},
-        Error, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
 };
 use boa_ast::{
+    Keyword, Punctuator, Spanned,
     declaration::{ExportDeclaration as AstExportDeclaration, ReExportKind},
-    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 
 use super::{
-    hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
     Declaration, FromClause, FunctionDeclaration,
+    hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
 };
 
 /// Parses an export declaration.
@@ -72,7 +72,7 @@ where
                                     tok.to_string(interner),
                                     tok.span(),
                                     "export declaration",
-                                ))
+                                ));
                             }
                         };
 
@@ -99,7 +99,7 @@ where
                             next.to_string(interner),
                             next.span(),
                             "export declaration",
-                        ))
+                        ));
                     }
                 };
 

@@ -1,6 +1,6 @@
 use crate::{
-    vm::opcode::{Operation, VaryingOperand},
     Context,
+    vm::opcode::{Operation, VaryingOperand},
 };
 use thin_vec::ThinVec;
 

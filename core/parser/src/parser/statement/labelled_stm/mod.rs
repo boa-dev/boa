@@ -1,15 +1,15 @@
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
+        AllowYield, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
         expression::LabelIdentifier,
-        statement::{declaration::FunctionDeclaration, AllowAwait, AllowReturn, Statement},
-        AllowYield, OrAbrupt, ParseResult, TokenParser,
+        statement::{AllowAwait, AllowReturn, Statement, declaration::FunctionDeclaration},
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{self as ast, Keyword, Punctuator};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned};
 use boa_interner::Interner;
 
 /// Labelled Statement Parsing
@@ -68,7 +68,7 @@ where
                 return Err(Error::misplaced_function_declaration(
                     next_token.span().start(),
                     strict,
-                ))
+                ));
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
                 FunctionDeclaration::new(self.allow_yield, self.allow_await, false)

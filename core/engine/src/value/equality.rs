@@ -1,5 +1,5 @@
 use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
-use crate::{builtins::Number, Context, JsVariant};
+use crate::{Context, JsVariant, builtins::Number};
 use std::collections::HashSet;
 
 impl JsValue {
@@ -12,7 +12,7 @@ impl JsValue {
     ) -> JsResult<bool> {
         match (self.as_object(), other.as_object()) {
             (None, None) => Ok(self.strict_equals(other)),
-            (Some(x), Some(y)) => JsObject::deep_strict_equals_inner(x, y, encounters, context),
+            (Some(x), Some(y)) => JsObject::deep_strict_equals_inner(&x, &y, encounters, context),
             _ => Ok(false),
         }
     }
@@ -104,7 +104,7 @@ impl JsValue {
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
             (JsVariant::Boolean(x), _) => {
-                return other.equals(&JsValue::new(i32::from(x)), context)
+                return other.equals(&JsValue::new(i32::from(x)), context);
             }
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
@@ -225,7 +225,7 @@ impl JsValue {
             }
             (JsVariant::String(x), JsVariant::String(y)) => x == y,
             (JsVariant::Boolean(x), JsVariant::Boolean(y)) => x == y,
-            (JsVariant::Object(x), JsVariant::Object(y)) => JsObject::equals(x, y),
+            (JsVariant::Object(x), JsVariant::Object(y)) => JsObject::equals(&x, &y),
             (JsVariant::Symbol(x), JsVariant::Symbol(y)) => x == y,
             _ => false,
         }

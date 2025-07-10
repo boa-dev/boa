@@ -16,19 +16,18 @@ use temporal_rs::tzdb::FsTzdbProvider;
 use crate::job::Job;
 use crate::vm::RuntimeLimits;
 use crate::{
-    builtins,
+    HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source, builtins,
     class::{Class, ClassBuilder},
     job::{JobExecutor, SimpleJobExecutor},
     js_string,
     module::{IdleModuleLoader, ModuleLoader, SimpleModuleLoader},
     native_function::NativeFunction,
-    object::{shape::RootShape, FunctionObjectBuilder, JsObject},
+    object::{FunctionObjectBuilder, JsObject, shape::RootShape},
     optimizer::{Optimizer, OptimizerOptions, OptimizerStatistics},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     script::Script,
     vm::{ActiveRunnable, CallFrame, Vm},
-    HostDefined, JsNativeError, JsResult, JsString, JsValue, NativeObject, Source,
 };
 
 use self::intrinsics::StandardConstructor;

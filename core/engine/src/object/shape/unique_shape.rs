@@ -5,8 +5,8 @@ use boa_gc::{Finalize, Gc, GcRefCell, Trace, WeakGc};
 use crate::property::PropertyKey;
 
 use super::{
-    property_table::PropertyTableInner, shared_shape::TransitionKey, ChangeTransition,
-    ChangeTransitionAction, JsPrototype, Shape, Slot,
+    ChangeTransition, ChangeTransitionAction, JsPrototype, Shape, Slot,
+    property_table::PropertyTableInner, shared_shape::TransitionKey,
 };
 
 /// The internal representation of [`UniqueShape`].
@@ -59,7 +59,7 @@ impl UniqueShape {
     }
 
     /// Get the property table of the [`UniqueShape`].
-    pub(crate) fn property_table(&self) -> &RefCell<PropertyTableInner> {
+    fn property_table(&self) -> &RefCell<PropertyTableInner> {
         &self.inner.property_table
     }
 

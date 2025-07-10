@@ -3,9 +3,9 @@ use std::{fmt, str::FromStr};
 use num_traits::FromPrimitive;
 
 use crate::{
-    builtins::{options::ParsableOptionType, OrdinaryObject},
-    object::JsObject,
     Context, JsNativeError, JsResult, JsString, JsValue,
+    builtins::{OrdinaryObject, options::ParsableOptionType},
+    object::JsObject,
 };
 
 /// `IntlOptions` aggregates the `locale_matcher` selector and any other object

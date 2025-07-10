@@ -23,10 +23,10 @@
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
 use crate::{
-    expression::{access::PropertyAccess, Identifier},
+    Expression, Span, Spanned,
+    expression::{Identifier, access::PropertyAccess},
     property::PropertyName,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Expression, Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -44,11 +44,9 @@ pub enum Pattern {
     Array(ArrayPattern),
 }
 
-impl Pattern {
-    /// Get the [`Span`] of the [`Pattern`] node.
+impl Spanned for Pattern {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         match self {
             Pattern::Object(object_pattern) => object_pattern.span(),
             Pattern::Array(array_pattern) => array_pattern.span(),
@@ -161,11 +159,11 @@ impl ObjectPattern {
             Some(ObjectPatternElement::RestProperty { .. })
         )
     }
+}
 
-    /// Get the [`Span`] of the [`ObjectPattern`] node.
+impl Spanned for ObjectPattern {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -245,11 +243,11 @@ impl ArrayPattern {
     pub const fn bindings(&self) -> &[ArrayPatternElement] {
         &self.bindings
     }
+}
 
-    /// Get the [`Span`] of the [`ArrayPattern`] node.
+impl Spanned for ArrayPattern {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -398,7 +396,7 @@ impl ToInternedString for ObjectPatternElement {
                         )
                     }
                 };
-                if let Some(ref init) = default_init {
+                if let Some(init) = default_init {
                     let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
@@ -456,7 +454,7 @@ impl ToInternedString for ObjectPatternElement {
                         )
                     }
                 };
-                if let Some(ref init) = default_init {
+                if let Some(init) = default_init {
                     let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
@@ -680,7 +678,7 @@ impl ToInternedString for ArrayPatternElement {
                 default_init,
             } => {
                 let mut buf = format!(" {}", interner.resolve_expect(ident.sym()));
-                if let Some(ref init) = default_init {
+                if let Some(init) = default_init {
                     let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf

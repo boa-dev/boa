@@ -1,7 +1,7 @@
 use crate::{
+    Context,
     builtins::OrdinaryObject,
     vm::opcode::{Operation, VaryingOperand},
-    Context,
 };
 
 /// `PushEmptyObject` implements the Opcode Operation for `Opcode::PushEmptyObject`

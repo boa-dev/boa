@@ -2,12 +2,12 @@
 
 use super::JsValue;
 use crate::{
+    Context, JsResult, JsVariant,
     builtins::Array,
     error::JsNativeError,
     js_string,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsVariant,
 };
 use serde_json::{Map, Value};
 use std::collections::HashSet;
@@ -133,7 +133,7 @@ impl JsValue {
                 .with_message("cannot convert bigint to JSON")
                 .into()),
             JsVariant::Object(obj) => {
-                if seen_objects.contains(obj) {
+                if seen_objects.contains(&obj) {
                     return Err(JsNativeError::typ()
                         .with_message("cyclic object value")
                         .into());
@@ -165,7 +165,7 @@ impl JsValue {
                     }
                     // Passing the object rather than its clone that was inserted to the set should be fine
                     // as they hash to the same value and therefore HashSet can still remove the clone
-                    seen_objects.remove(obj);
+                    seen_objects.remove(&obj);
                     Ok(Some(Value::Array(arr)))
                 } else {
                     let mut map = Map::new();
@@ -185,7 +185,7 @@ impl JsValue {
                             PropertyKey::Symbol(_sym) => {
                                 return Err(JsNativeError::typ()
                                     .with_message("cannot convert Symbol to JSON")
-                                    .into())
+                                    .into());
                             }
                         };
                         let value = value_by_prop_key(property_key, context)?;
@@ -193,7 +193,7 @@ impl JsValue {
                             map.insert(key, value);
                         }
                     }
-                    seen_objects.remove(obj);
+                    seen_objects.remove(&obj);
                     Ok(Some(Value::Object(map)))
                 }
             }
@@ -211,7 +211,7 @@ mod tests {
     use serde_json::json;
 
     use crate::{
-        js_string, object::JsArray, run_test_actions, Context, JsObject, JsValue, TestAction,
+        Context, JsObject, JsValue, TestAction, js_string, object::JsArray, run_test_actions,
     };
 
     #[test]

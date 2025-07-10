@@ -2,18 +2,18 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        expression::Expression,
-        statement::{declaration::FunctionDeclaration, Statement},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression,
+        statement::{Statement, declaration::FunctionDeclaration},
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Declaration, Keyword, Punctuator, Spanned, StatementListItem,
     statement::{Block, If},
-    Declaration, Keyword, Punctuator, StatementListItem,
 };
 use boa_interner::Interner;
 

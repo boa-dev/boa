@@ -13,24 +13,24 @@
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
 use crate::value::JsVariant;
 use crate::{
-    builtins::{array, BuiltInObject},
+    Context, JsArgs, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, array},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{
+        JsData, JsFunction, JsObject, JsPrototype,
         internal_methods::{
-            is_compatible_property_descriptor, CallValue, InternalMethodContext,
-            InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            CallValue, InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            is_compatible_property_descriptor,
         },
         shape::slot::SlotAttributes,
-        JsData, JsFunction, JsObject, JsPrototype,
     },
     property::{PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
 use rustc_hash::FxHashSet;
@@ -282,7 +282,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Proxy trap result is neither object nor null")
-                .into())
+                .into());
         }
     };
 
@@ -570,7 +570,7 @@ pub(crate) fn proxy_exotic_get_own_property(
                     .with_message(
                         "Proxy trap result is not configurable and target result is undefined",
                     )
-                    .into())
+                    .into());
             }
         }
     }
@@ -824,26 +824,26 @@ pub(crate) fn proxy_exotic_get(
     let target_desc = target.__get_own_property__(key, context)?;
 
     // 9. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
-    if let Some(target_desc) = target_desc {
-        if !target_desc.expect_configurable() {
-            // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
-            if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
-                // i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
-                if !JsValue::same_value(&trap_result, target_desc.expect_value()) {
-                    return Err(JsNativeError::typ()
-                        .with_message("Proxy trap returned unexpected data descriptor")
-                        .into());
-                }
+    if let Some(target_desc) = target_desc
+        && !target_desc.expect_configurable()
+    {
+        // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
+        if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
+            // i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
+            if !JsValue::same_value(&trap_result, target_desc.expect_value()) {
+                return Err(JsNativeError::typ()
+                    .with_message("Proxy trap returned unexpected data descriptor")
+                    .into());
             }
+        }
 
-            // b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
-            if target_desc.is_accessor_descriptor() && target_desc.expect_get().is_undefined() {
-                // i. If trapResult is not undefined, throw a TypeError exception.
-                if !trap_result.is_undefined() {
-                    return Err(JsNativeError::typ()
-                        .with_message("Proxy trap returned unexpected accessor descriptor")
-                        .into());
-                }
+        // b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
+        if target_desc.is_accessor_descriptor() && target_desc.expect_get().is_undefined() {
+            // i. If trapResult is not undefined, throw a TypeError exception.
+            if !trap_result.is_undefined() {
+                return Err(JsNativeError::typ()
+                    .with_message("Proxy trap returned unexpected accessor descriptor")
+                    .into());
             }
         }
     }
@@ -905,29 +905,29 @@ pub(crate) fn proxy_exotic_set(
     let target_desc = target.__get_own_property__(&key, context)?;
 
     // 10. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
-    if let Some(target_desc) = target_desc {
-        if !target_desc.expect_configurable() {
-            // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
-            if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
-                // i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
-                if !JsValue::same_value(&value, target_desc.expect_value()) {
+    if let Some(target_desc) = target_desc
+        && !target_desc.expect_configurable()
+    {
+        // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
+        if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
+            // i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
+            if !JsValue::same_value(&value, target_desc.expect_value()) {
+                return Err(JsNativeError::typ()
+                    .with_message("Proxy trap set unexpected data descriptor")
+                    .into());
+            }
+        }
+
+        // b. If IsAccessorDescriptor(targetDesc) is true, then
+        if target_desc.is_accessor_descriptor() {
+            // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
+            match target_desc.set().map(JsValue::is_undefined) {
+                None | Some(true) => {
                     return Err(JsNativeError::typ()
-                        .with_message("Proxy trap set unexpected data descriptor")
+                        .with_message("Proxy trap set unexpected accessor descriptor")
                         .into());
                 }
-            }
-
-            // b. If IsAccessorDescriptor(targetDesc) is true, then
-            if target_desc.is_accessor_descriptor() {
-                // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
-                match target_desc.set().map(JsValue::is_undefined) {
-                    None | Some(true) => {
-                        return Err(JsNativeError::typ()
-                            .with_message("Proxy trap set unexpected accessor descriptor")
-                            .into());
-                    }
-                    _ => {}
-                }
+                _ => {}
             }
         }
     }
@@ -1232,7 +1232,7 @@ fn proxy_exotic_construct(
     )?;
 
     // 10. If Type(newObj) is not Object, throw a TypeError exception.
-    let new_obj = new_obj.as_object().cloned().ok_or_else(|| {
+    let new_obj = new_obj.as_object().ok_or_else(|| {
         JsNativeError::typ().with_message("Proxy trap constructor returned non-object value")
     })?;
 

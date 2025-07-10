@@ -8,14 +8,14 @@
 //! [spec]: https://tc39.es/ecma262/#sec-template-literals
 
 use crate::{
-    lexer::TokenKind,
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
-    source::ReadChar,
     Error,
+    lexer::TokenKind,
+    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser, expression::Expression},
+    source::ReadChar,
 };
 use boa_ast::{
+    PositionGroup, Punctuator, Span, Spanned,
     expression::literal::{self, TemplateElement},
-    PositionGroup, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 

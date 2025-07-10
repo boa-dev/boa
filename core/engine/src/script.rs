@@ -13,15 +13,15 @@ use std::path::{Path, PathBuf};
 use rustc_hash::FxHashMap;
 
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
-use boa_parser::{source::ReadChar, Parser, Source};
+use boa_parser::{Parser, Source, source::ReadChar};
 
 use crate::{
-    bytecompiler::{global_declaration_instantiation_context, ByteCompiler},
+    Context, HostDefined, JsResult, JsString, JsValue, Module, SpannedSourceText,
+    bytecompiler::{ByteCompiler, global_declaration_instantiation_context},
     js_string,
     realm::Realm,
     spanned_source_text::SourceText,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, HostDefined, JsResult, JsString, JsValue, Module, SpannedSourceText,
 };
 
 /// ECMAScript's [**Script Record**][spec].
@@ -142,6 +142,7 @@ impl Script {
             context.interner_mut(),
             false,
             spanned_source_text,
+            self.path().map(Path::to_owned).into(),
         );
 
         #[cfg(feature = "annex-b")]

@@ -10,28 +10,28 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
+    Context, JsArgs, JsData, JsResult, JsString,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use bytemuck::{bytes_of, bytes_of_mut};
 
 use super::{
+    BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
     array_buffer::{
-        utils::{memcpy, BytesConstPtr, BytesMutPtr},
         BufferObject,
+        utils::{BytesConstPtr, BytesMutPtr, memcpy},
     },
     typed_array::{self, TypedArrayElement},
-    BuiltInBuilder, BuiltInConstructor, IntrinsicObject,
 };
 
 /// The internal representation of a `DataView` object.
@@ -278,13 +278,14 @@ impl BuiltInConstructor for DataView {
         }
 
         // 14. If byteLength is not undefined, then
-        if let Some(view_byte_len) = view_byte_len.filter(|_| !byte_len.is_undefined()) {
-            // a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
-            if offset + view_byte_len > buf_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("DataView offset outside of buffer array bounds")
-                    .into());
-            }
+        //     a. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
+        if !byte_len.is_undefined()
+            && let Some(view_byte_len) = view_byte_len
+            && offset + view_byte_len > buf_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("DataView offset outside of buffer array bounds")
+                .into());
         }
 
         let obj = JsObject::from_proto_and_data_with_shared_shape(
@@ -324,8 +325,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let view = this
-            .as_object()
+        let object = this.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
@@ -353,8 +355,9 @@ impl DataView {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let view = this
-            .as_object()
+        let object = this.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 
@@ -395,8 +398,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let view = this
-            .as_object()
+        let object = this.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 
@@ -438,8 +442,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view
-            .as_object()
+        let object = view.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 
@@ -755,8 +760,9 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view
-            .as_object()
+        let object = view.as_object();
+        let view = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
 

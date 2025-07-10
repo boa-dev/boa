@@ -1,15 +1,16 @@
 // Boa's implementation of the `Temporal.Duration` Builtin Object.
 
 use super::{
-    get_relative_to_option,
-    options::{get_digits_option, get_temporal_unit, TemporalUnitGroup},
-    DateTimeValues,
+    DateTimeValues, get_relative_to_option,
+    options::{TemporalUnitGroup, get_digits_option, get_temporal_unit},
 };
 use crate::value::JsVariant;
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -17,14 +18,12 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use temporal_rs::{
+    Duration as InnerDuration,
     options::{RoundingIncrement, RoundingMode, RoundingOptions, ToStringRoundingOptions, Unit},
     partial::PartialDuration,
-    Duration as InnerDuration,
 };
 
 #[cfg(test)]
@@ -324,8 +323,9 @@ impl BuiltInConstructor for Duration {
 impl Duration {
     // Internal utility function for getting `Duration` field values.
     fn get_internal_field(this: &JsValue, field: &DateTimeValues) -> JsResult<JsValue> {
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -404,8 +404,9 @@ impl Duration {
     fn get_sign(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -421,8 +422,9 @@ impl Duration {
     fn get_blank(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -443,7 +445,8 @@ impl Duration {
     fn from(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let item = args.get_or_undefined(0);
         // 1. If item is an Object and item has an [[InitializedTemporalDuration]] internal slot, then
-        if let Some(duration) = item.as_object().and_then(JsObject::downcast_ref::<Self>) {
+        let object = item.as_object();
+        if let Some(duration) = object.as_ref().and_then(JsObject::downcast_ref::<Self>) {
             // a. Return ! CreateTemporalDuration(item.[[Years]], item.[[Months]], item.[[Weeks]],
             // item.[[Days]], item.[[Hours]], item.[[Minutes]], item.[[Seconds]], item.[[Milliseconds]],
             // item.[[Microseconds]], item.[[Nanoseconds]]).
@@ -480,8 +483,9 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -594,8 +598,9 @@ impl Duration {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
         // 3. Return ! CreateNegatedTemporalDuration(duration).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -611,8 +616,9 @@ impl Duration {
         // 3. Return ! CreateTemporalDuration(abs(duration.[[Years]]), abs(duration.[[Months]]),
         //    abs(duration.[[Weeks]]), abs(duration.[[Days]]), abs(duration.[[Hours]]), abs(duration.[[Minutes]]),
         //    abs(duration.[[Seconds]]), abs(duration.[[Milliseconds]]), abs(duration.[[Microseconds]]), abs(duration.[[Nanoseconds]])).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -629,8 +635,9 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1.Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -650,8 +657,9 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1.Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -671,8 +679,9 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -683,7 +692,7 @@ impl Duration {
             None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
-                    .into())
+                    .into());
             }
             // 4. If Type(roundTo) is String, then
             Some(JsVariant::String(rt)) => {
@@ -762,8 +771,9 @@ impl Duration {
     ) -> JsResult<JsValue> {
         // 1. Let duration be the this value.
         // 2. Perform ? RequireInternalSlot(duration, [[InitializedTemporalDuration]]).
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -827,8 +837,9 @@ impl Duration {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -851,8 +862,9 @@ impl Duration {
 
     /// 7.3.23 `Temporal.Duration.prototype.toJSON ( )`
     pub(crate) fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -873,8 +885,9 @@ impl Duration {
         _: &mut Context,
     ) -> JsResult<JsValue> {
         // TODO: Update for ECMA-402 compliance
-        let duration = this
-            .as_object()
+        let object = this.as_object();
+        let duration = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("this value must be a Duration object.")
@@ -904,10 +917,8 @@ pub(crate) fn to_temporal_duration(
 ) -> JsResult<InnerDuration> {
     // 1a. If Type(item) is Object
     // 1b. and item has an [[InitializedTemporalDuration]] internal slot, then
-    if let Some(duration) = item
-        .as_object()
-        .and_then(JsObject::downcast_ref::<Duration>)
-    {
+    let object = item.as_object();
+    if let Some(duration) = object.as_ref().and_then(JsObject::downcast_ref::<Duration>) {
         return Ok(duration.inner);
     }
 

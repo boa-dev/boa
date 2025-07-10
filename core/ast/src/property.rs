@@ -1,6 +1,6 @@
 //! Property definition related types, used in object literals and class definitions.
 
-use super::Expression;
+use super::{Expression, Spanned};
 use crate::{
     expression::Identifier,
     visitor::{VisitWith, Visitor, VisitorMut},

@@ -37,6 +37,7 @@ pub mod weak_set;
 mod builder;
 
 use builder::BuiltInBuilder;
+use error::Error;
 
 #[cfg(feature = "annex-b")]
 pub mod escape;
@@ -59,8 +60,7 @@ pub(crate) use self::{
     dataview::DataView,
     date::Date,
     error::{
-        AggregateError, Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError,
-        UriError,
+        AggregateError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError,
     },
     eval::Eval,
     function::BuiltInFunctionObject,
@@ -77,12 +77,13 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     typed_array::{
-        BigInt64Array, BigUint64Array, Float32Array, Float64Array, Int16Array, Int32Array,
-        Int8Array, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
+        BigInt64Array, BigUint64Array, Float32Array, Float64Array, Int8Array, Int16Array,
+        Int32Array, Uint8Array, Uint8ClampedArray, Uint16Array, Uint32Array,
     },
 };
 
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::{
         array::ArrayIterator,
         array_buffer::{ArrayBuffer, SharedArrayBuffer},
@@ -109,7 +110,6 @@ use crate::{
     object::JsObject,
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
-    Context, JsResult, JsString, JsValue,
 };
 
 /// A [Well-Known Intrinsic Object].

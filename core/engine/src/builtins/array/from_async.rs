@@ -1,13 +1,13 @@
 use boa_gc::{Finalize, Trace};
 
 use super::Array;
+use crate::builtins::AsyncFromSyncIterator;
 use crate::builtins::iterable::IteratorRecord;
 use crate::builtins::promise::ResolvingFunctions;
-use crate::builtins::AsyncFromSyncIterator;
 use crate::native_function::{CoroutineState, NativeCoroutine};
 use crate::object::{JsFunction, JsPromise};
 use crate::{
-    js_string, Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsSymbol, JsValue,
+    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsSymbol, JsValue, js_string,
 };
 use std::cell::Cell;
 
@@ -47,7 +47,7 @@ impl Array {
             } else {
                 // b. Else,
                 //     i. If IsCallable(mapfn) is false, throw a TypeError exception.
-                let Some(callable) = mapfn.as_callable().cloned() else {
+                let Some(callable) = mapfn.as_callable() else {
                     return Err(JsNativeError::typ()
                         .with_message("Array.fromAsync: mapping function must be callable")
                         .into());

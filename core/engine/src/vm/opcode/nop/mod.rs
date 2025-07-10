@@ -1,4 +1,4 @@
-use crate::{vm::opcode::Operation, Context};
+use crate::{Context, vm::opcode::Operation};
 
 /// `Reserved` implements the Opcode Operation for `Opcode::Reserved`
 ///

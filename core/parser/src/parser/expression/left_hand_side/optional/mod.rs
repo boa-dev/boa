@@ -2,21 +2,20 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{Token, TokenKind},
     parser::{
-        cursor::Cursor, expression::left_hand_side::arguments::Arguments, expression::Expression,
-        AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser, cursor::Cursor,
+        expression::Expression, expression::left_hand_side::arguments::Arguments,
     },
     source::ReadChar,
-    Error,
 };
 use ast::function::PrivateName;
 use boa_ast::{
-    self as ast,
+    self as ast, Punctuator, Span, Spanned,
     expression::{
-        access::PropertyAccessField, Identifier, Optional, OptionalOperation, OptionalOperationKind,
+        Identifier, Optional, OptionalOperation, OptionalOperationKind, access::PropertyAccessField,
     },
-    Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 
@@ -98,7 +97,7 @@ where
                         token.to_string(interner),
                         token.span(),
                         "optional chain",
-                    ))
+                    ));
                 }
             };
             Ok((item, token.span()))
@@ -130,7 +129,7 @@ where
                     return Err(Error::general(
                         "Invalid tagged template on optional chain",
                         token.span().start(),
-                    ))
+                    ));
                 }
                 _ => break,
             };
@@ -163,7 +162,7 @@ where
                     return Err(Error::general(
                         "Invalid tagged template on optional chain",
                         token_span.start(),
-                    ))
+                    ));
                 }
                 _ => {
                     let token = cursor.next(interner)?.expect("token disappeared");

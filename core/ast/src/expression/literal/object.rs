@@ -1,19 +1,18 @@
 //! Object Expression.
 
 use crate::{
-    block_to_string,
+    LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{
-        operator::assign::{AssignOp, AssignTarget},
         Expression, Identifier, RESERVED_IDENTIFIERS_STRICT,
+        operator::assign::{AssignOp, AssignTarget},
     },
     function::{FormalParameterList, FunctionBody},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     pattern::{ObjectPattern, ObjectPatternElement},
     property::{MethodDefinitionKind, PropertyName},
     scope::FunctionScopes,
     visitor::{VisitWith, Visitor, VisitorMut},
-    LinearPosition, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -66,13 +65,6 @@ impl ObjectLiteral {
         &self.properties
     }
 
-    /// Get the [`Span`] of the [`ObjectLiteral`] node.
-    #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
-        self.span
-    }
-
     /// Converts the object literal into an [`ObjectPattern`].
     #[must_use]
     pub fn to_pattern(&self, strict: bool) -> Option<ObjectPattern> {
@@ -80,7 +72,7 @@ impl ObjectLiteral {
         for (i, property) in self.properties.iter().enumerate() {
             match property {
                 PropertyDefinition::IdentifierReference(ident) if strict && *ident == Sym::EVAL => {
-                    return None
+                    return None;
                 }
                 PropertyDefinition::IdentifierReference(ident) => {
                     if strict && RESERVED_IDENTIFIERS_STRICT.contains(&ident.sym()) {
@@ -226,6 +218,13 @@ impl ObjectLiteral {
         }
 
         Some(ObjectPattern::new(bindings.into(), self.span))
+    }
+}
+
+impl Spanned for ObjectLiteral {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

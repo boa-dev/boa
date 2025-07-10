@@ -1,5 +1,5 @@
 use super::VaryingOperand;
-use crate::{builtins::Array, vm::opcode::Operation, Context};
+use crate::{Context, builtins::Array, vm::opcode::Operation};
 
 /// `RestParameterInit` implements the Opcode Operation for `Opcode::RestParameterInit`
 ///

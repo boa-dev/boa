@@ -44,12 +44,12 @@ pub use synthetic::{SyntheticModule, SyntheticModuleInitializer};
 use crate::object::TypedJsFunction;
 use crate::spanned_source_text::SourceText;
 use crate::{
+    Context, HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeFunction,
     builtins,
     builtins::promise::{PromiseCapability, PromiseState},
     environments::DeclarativeEnvironment,
     object::{JsObject, JsPromise},
     realm::Realm,
-    Context, HostDefined, JsError, JsNativeError, JsResult, JsString, JsValue, NativeFunction,
 };
 
 mod loader;
@@ -170,7 +170,7 @@ impl Module {
             parser.parse_module_with_source(realm.scope(), context.interner_mut())?;
 
         let source_text = SourceText::new(source);
-        let src = SourceTextModule::new(module, context.interner(), source_text);
+        let src = SourceTextModule::new(module, context.interner(), source_text, path.clone());
 
         Ok(Self {
             inner: Gc::new(ModuleRepr {
@@ -535,8 +535,7 @@ impl Module {
     #[allow(dropping_copy_types)]
     #[inline]
     pub fn load_link_evaluate(&self, context: &mut Context) -> JsPromise {
-        let promise = self
-            .load(context)
+        self.load(context)
             .then(
                 Some(
                     NativeFunction::from_copy_closure_with_captures(
@@ -561,9 +560,7 @@ impl Module {
                 ),
                 None,
                 context,
-            );
-
-        promise
+            )
     }
 
     /// Abstract operation [`GetModuleNamespace ( module )`][spec].

@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult, JsValue,
     builtins::Array,
     string::StaticJsStrings,
     vm::opcode::{Operation, VaryingOperand},
-    Context, JsResult, JsValue,
 };
 
 /// `PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`

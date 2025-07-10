@@ -4,7 +4,7 @@
 use boa_engine::job::{NativeJob, TimeoutJob};
 use boa_engine::object::builtins::JsFunction;
 use boa_engine::value::IntegerOrInfinity;
-use boa_engine::{js_error, js_string, Context, Finalize, JsData, JsResult, JsValue, Trace};
+use boa_engine::{Context, Finalize, JsData, JsResult, JsValue, Trace, js_error, js_string};
 use boa_gc::{Gc, GcRefCell};
 use boa_interop::{IntoJsFunctionCopied, JsRest};
 use std::collections::HashSet;
@@ -101,11 +101,15 @@ fn handle(
 /// Any errors when trying to read the context, converting the arguments or
 /// enqueuing the job.
 pub fn set_timeout(
-    function_ref: JsFunction,
+    function_ref: Option<JsFunction>,
     delay_in_msec: Option<JsValue>,
     rest: JsRest<'_>,
     context: &mut Context,
 ) -> JsResult<u32> {
+    let Some(function_ref) = function_ref else {
+        return Ok(0);
+    };
+
     let handler_map = IntervalInnerState::from_context(context);
     let id = handler_map.borrow_mut().new_interval()?;
 
@@ -138,11 +142,15 @@ pub fn set_timeout(
 /// Any errors when trying to read the context, converting the arguments or
 /// enqueuing the job.
 pub fn set_interval(
-    function_ref: JsFunction,
+    function_ref: Option<JsFunction>,
     delay_in_msec: Option<JsValue>,
     rest: JsRest<'_>,
     context: &mut Context,
 ) -> JsResult<u32> {
+    let Some(function_ref) = function_ref else {
+        return Ok(0);
+    };
+
     let handler_map = IntervalInnerState::from_context(context);
     let id = handler_map.borrow_mut().new_interval()?;
 
@@ -173,7 +181,10 @@ pub fn set_interval(
 ///
 /// Please note that this is the same exact method as `clearInterval`, as both can be
 /// used interchangeably.
-pub fn clear_timeout(id: u32, context: &mut Context) {
+pub fn clear_timeout(id: Option<u32>, context: &mut Context) {
+    let Some(id) = id else {
+        return;
+    };
     let handler_map = IntervalInnerState::from_context(context);
     handler_map.borrow_mut().clear_interval(id);
 }

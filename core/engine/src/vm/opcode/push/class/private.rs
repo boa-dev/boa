@@ -1,10 +1,10 @@
 use crate::{
+    Context,
     builtins::function::OrdinaryFunction,
     js_str, js_string,
-    object::{internal_methods::InternalMethodContext, PrivateElement},
+    object::{PrivateElement, internal_methods::InternalMethodContext},
     property::PropertyDescriptor,
     vm::opcode::{Operation, VaryingOperand},
-    Context,
 };
 
 /// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`

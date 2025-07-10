@@ -1,16 +1,17 @@
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        statement::{block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern, block::Block},
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Keyword, Punctuator, Spanned,
     declaration::Binding,
     operations::{bound_names, lexically_declared_names, var_declared_names},
-    statement, Keyword, Punctuator,
+    statement,
 };
 use boa_interner::Interner;
 use rustc_hash::FxHashSet;

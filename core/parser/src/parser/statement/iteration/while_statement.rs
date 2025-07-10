@@ -1,12 +1,12 @@
 use crate::{
+    Error,
     parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression, statement::Statement,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{statement::WhileLoop, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, Spanned, statement::WhileLoop};
 use boa_interner::Interner;
 
 /// While statement parsing

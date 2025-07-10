@@ -8,15 +8,15 @@
 use std::ops::{Deref, DerefMut};
 
 use super::{
-    shape::slot::{Slot, SlotAttributes},
     JsPrototype, PROTOTYPE,
+    shape::slot::{Slot, SlotAttributes},
 };
 use crate::{
+    Context, JsNativeError, JsResult,
     context::intrinsics::{StandardConstructor, StandardConstructors},
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
-    Context, JsNativeError, JsResult,
 };
 
 pub(crate) mod immutable_prototype;
@@ -775,7 +775,7 @@ pub(crate) fn ordinary_set(
         // NOTE(HaledOdat): If the object and receiver are not the same then it's not inline cachable for now.
         context.slot().attributes.set(
             SlotAttributes::NOT_CACHABLE,
-            !JsObject::equals(obj, receiver),
+            !JsObject::equals(obj, &receiver),
         );
 
         // c. Let existingDescriptor be ? Receiver.[[GetOwnProperty]](P).

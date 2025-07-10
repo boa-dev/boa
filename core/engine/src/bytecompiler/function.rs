@@ -1,9 +1,9 @@
 use crate::{
+    JsString, SpannedSourceText,
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     js_string,
-    vm::{CodeBlock, CodeBlockFlags},
-    JsString, SpannedSourceText,
+    vm::{CodeBlock, CodeBlockFlags, source_info::SourcePath},
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -26,6 +26,7 @@ pub(crate) struct FunctionCompiler {
     force_function_scope: bool,
     name_scope: Option<Scope>,
     spanned_source_text: SpannedSourceText,
+    source_path: SourcePath,
 }
 
 impl FunctionCompiler {
@@ -42,6 +43,7 @@ impl FunctionCompiler {
             force_function_scope: false,
             name_scope: None,
             spanned_source_text,
+            source_path: SourcePath::None,
         }
     }
 
@@ -103,6 +105,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Set source map file path.
+    pub(crate) fn source_path(mut self, source_path: SourcePath) -> Self {
+        self.source_path = source_path;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
@@ -130,6 +138,7 @@ impl FunctionCompiler {
             interner,
             self.in_with,
             self.spanned_source_text,
+            self.source_path,
         );
 
         compiler.length = length;
@@ -142,11 +151,11 @@ impl FunctionCompiler {
             compiler.this_mode = ThisMode::Lexical;
         }
 
-        if let Some(scope) = self.name_scope {
-            if !scope.all_bindings_local() {
-                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-                let _ = compiler.push_scope(&scope);
-            }
+        if let Some(scope) = self.name_scope
+            && !scope.all_bindings_local()
+        {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
+            let _ = compiler.push_scope(&scope);
         }
 
         if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
@@ -212,7 +221,10 @@ impl FunctionCompiler {
             }
         }
 
-        compiler.compile_statement_list(body.statement_list(), false, false);
+        {
+            let mut compiler = compiler.position_guard(body);
+            compiler.compile_statement_list(body.statement_list(), false, false);
+        }
 
         compiler.params = parameters.clone();
         compiler.parameter_scope = scopes.parameter_scope();

@@ -1,5 +1,5 @@
 use crate::object::JsArrayBuffer;
-use crate::{run_test_actions, Context, TestAction};
+use crate::{Context, TestAction, run_test_actions};
 
 #[test]
 fn create_byte_data_block() {

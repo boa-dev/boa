@@ -2,6 +2,7 @@ pub(crate) mod yield_stm;
 
 use super::VaryingOperand;
 use crate::{
+    Context, JsError, JsObject, JsResult,
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         generator::{GeneratorContext, GeneratorState},
@@ -9,11 +10,10 @@ use crate::{
     js_string,
     object::PROTOTYPE,
     vm::{
+        CompletionRecord,
         call_frame::GeneratorResumeKind,
         opcode::{Operation, ReThrow},
-        CompletionRecord,
     },
-    Context, JsError, JsObject, JsResult,
 };
 use std::{collections::VecDeque, ops::ControlFlow};
 
@@ -42,16 +42,13 @@ impl Generator {
             .get(PROTOTYPE, context)
             .expect("generator must have a prototype property")
             .as_object()
-            .map_or_else(
-                || {
-                    if r#async {
-                        context.intrinsics().objects().async_generator()
-                    } else {
-                        context.intrinsics().objects().generator()
-                    }
-                },
-                Clone::clone,
-            );
+            .unwrap_or_else(|| {
+                if r#async {
+                    context.intrinsics().objects().async_generator()
+                } else {
+                    context.intrinsics().objects().generator()
+                }
+            });
 
         let generator = if r#async {
             JsObject::from_proto_and_data_with_shared_shape(
@@ -77,19 +74,19 @@ impl Generator {
             let generator_context =
                 GeneratorContext::from_current(context, Some(generator.clone()));
 
-            let mut gen = generator
+            let mut r#gen = generator
                 .downcast_mut::<AsyncGenerator>()
                 .expect("must be object here");
 
-            gen.context = Some(generator_context);
+            r#gen.context = Some(generator_context);
         } else {
             let generator_context = GeneratorContext::from_current(context, None);
 
-            let mut gen = generator
+            let mut r#gen = generator
                 .downcast_mut::<crate::builtins::generator::Generator>()
                 .expect("must be object here");
 
-            gen.state = GeneratorState::SuspendedStart {
+            r#gen.state = GeneratorState::SuspendedStart {
                 context: generator_context,
             };
         }
@@ -124,13 +121,13 @@ impl AsyncGeneratorClose {
             .downcast::<AsyncGenerator>()
             .expect("must be async generator");
 
-        let mut gen = generator.borrow_mut();
+        let mut r#gen = generator.borrow_mut();
 
         // e. Assert: If we return here, the async generator either threw an exception or performed either an implicit or explicit return.
         // f. Remove acGenContext from the execution context stack and restore the execution context that is at the top of the execution context stack as the running execution context.
 
         // g. Set acGenerator.[[AsyncGeneratorState]] to draining-queue.
-        gen.data.state = AsyncGeneratorState::DrainingQueue;
+        r#gen.data.state = AsyncGeneratorState::DrainingQueue;
 
         // h. If result is a normal completion, set result to NormalCompletion(undefined).
         // i. If result is a return completion, set result to NormalCompletion(result.[[Value]]).
@@ -142,7 +139,7 @@ impl AsyncGeneratorClose {
             .take()
             .map_or(Ok(return_value), Err);
 
-        drop(gen);
+        drop(r#gen);
 
         // j. Perform AsyncGeneratorCompleteStep(acGenerator, result, true).
         AsyncGenerator::complete_step(&generator, result, true, None, context);

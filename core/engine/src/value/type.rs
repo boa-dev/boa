@@ -37,7 +37,7 @@ impl JsValue {
     ///
     /// Check [`JsValue::type_of`] if you need to call the `typeof` operator.
     #[must_use]
-    pub const fn get_type(&self) -> Type {
+    pub fn get_type(&self) -> Type {
         match self.variant() {
             JsVariant::Float64(_) | JsVariant::Integer32(_) => Type::Number,
             JsVariant::String(_) => Type::String,

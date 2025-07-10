@@ -1,6 +1,6 @@
 use crate::utils::{
-    error, take_error_from_attrs, take_length_from_attrs, take_name_value_attr, take_path_attr,
-    RenameScheme, SpannedResult,
+    RenameScheme, SpannedResult, error, take_error_from_attrs, take_length_from_attrs,
+    take_name_value_attr, take_path_attr,
 };
 use proc_macro::TokenStream;
 use proc_macro2::{Span as Span2, TokenStream as TokenStream2};
@@ -58,12 +58,14 @@ impl Function {
         // `&mut self`
         let downcast = if receiver.mutability.is_some() {
             quote! {
-                let self_ = &mut *this.as_downcast_mut::< #class_ty >()
+                let object = this.as_object();
+                let self_ = &mut *object.as_ref().and_then(|o| o.downcast_mut::< #class_ty >())
                     .ok_or( boa_engine::js_error!( #err ))?;
             }
         } else {
             quote! {
-                let self_ = &*this.as_downcast_ref::< #class_ty >()
+                let object = this.as_object();
+                let self_ = &*object.as_ref().and_then(|o| o.downcast_ref::< #class_ty >())
                     .ok_or( boa_engine::js_error!( #err ))?;
             }
         };
@@ -256,7 +258,10 @@ impl Function {
                     } else if t.ident == "JsResult" {
                         quote! { result.into() }
                     } else {
-                        return error(&fn_.sig.output, "Invalid return type: constructors should return Self or JsResult<Self>.");
+                        return error(
+                            &fn_.sig.output,
+                            "Invalid return type: constructors should return Self or JsResult<Self>.",
+                        );
                     }
                 } else {
                     quote! { Ok(result) }

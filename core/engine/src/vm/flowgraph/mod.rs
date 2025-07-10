@@ -14,8 +14,8 @@ pub use graph::*;
 pub use node::*;
 
 use super::{
-    opcode::{Instruction, InstructionIterator},
     Constant,
+    opcode::{Instruction, InstructionIterator},
 };
 
 impl CodeBlock {

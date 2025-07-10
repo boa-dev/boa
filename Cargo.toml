@@ -18,13 +18,14 @@ members = [
 
 exclude = [
     "tests/fuzz", # Does weird things on Windows tests
-    "tests/src",  # Just a hack to have fuzz inside tests
+    "tests/src", # Just a hack to have fuzz inside tests
+    "tests/wpt", # Should not run WPT by default.
 ]
 
 [workspace.package]
-edition = "2021"
+edition = "2024"
 version = "0.20.0"
-rust-version = "1.85.0"
+rust-version = "1.88.0"
 authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense OR MIT"
@@ -60,6 +61,7 @@ indexmap = { version = "2.9.0", default-features = false }
 indoc = "2.0.6"
 itoa = "1.0.15"
 jemallocator = "0.5.4"
+mimalloc-safe = "0.1.53"
 lz4_flex = "0.11.5"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
@@ -121,7 +123,7 @@ intrusive-collections = "0.9.7"
 cfg-if = "1.0.1"
 either = "1.15.0"
 sys-locale = "0.3.2"
-temporal_rs = { version = "0.0.9", default-features = false, features = [
+temporal_rs = { version = "0.0.10", default-features = false, features = [
     "tzdb",
 ] }
 web-time = "1.1.0"
@@ -129,8 +131,9 @@ criterion = "0.5.1"
 float-cmp = "0.10.0"
 futures-lite = "2.6.0"
 test-case = "3.3.1"
+rstest = "0.25.0"
 url = "2.5.4"
-tokio = { version = "1.45.1", default-features = false }
+tokio = { version = "1.46.1", default-features = false }
 futures-concurrency = "7.6.3"
 
 

@@ -9,7 +9,7 @@ use thiserror::Error;
 use yoke::Yokeable;
 use zerofrom::ZeroFrom;
 
-use crate::{builtins::string::StringNormalizers, JsError, JsNativeError};
+use crate::{JsError, JsNativeError, builtins::string::StringNormalizers};
 
 /// Error thrown when the engine cannot initialize the ICU4X utilities from a data provider.
 #[derive(Debug, Error, Copy, Clone)]

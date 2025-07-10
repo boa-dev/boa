@@ -2,19 +2,19 @@
 
 use crate::parser::tests::check_script_parser;
 use boa_ast::{
+    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
     declaration::{VarDeclaration, Variable},
     expression::{
+        Call, Identifier,
         literal::Literal,
         operator::{
+            Assign, Update,
             assign::AssignOp,
             update::{UpdateOp, UpdateTarget},
-            Assign, Update,
         },
-        Call, Identifier,
     },
     function::{FormalParameterList, FunctionBody, FunctionDeclaration},
     statement::{Block, Return},
-    Declaration, Expression, Span, Statement, StatementList, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

@@ -314,6 +314,32 @@ function x() {
 x(); // RuntimeLimit: Maximum recursion limit 100 exceeded
 ```
 
+### Getter & Setter `$boa.limits.backtrace`
+
+This is an accessor property on the module, its getter returns the backtrace limit for a thrown error.
+Its setter can be used to set the backtrace limit.
+
+```javascript
+$boa.limits.backtrace = 100;
+
+function x() {
+  function y() {
+    function z() {
+      throw "Hello";
+    }
+    z();
+  }
+  y();
+}
+x();
+
+// Uncaught "Hello"
+//     at z (test.js:6:13)
+//     at y (test.js:8:6)
+//     at x (test.js:10:4)
+//     at <main> (test.js:12:2)
+```
+
 ## Module `$boa.string`
 
 This module contains helpful functions for getting information about a strings.

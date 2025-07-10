@@ -141,22 +141,23 @@
 use std::{cell::UnsafeCell, sync::atomic::Ordering};
 
 use crate::{
+    JsNativeError, JsResult,
     builtins::{
-        array_buffer::{utils::SliceRef, SharedArrayBuffer},
+        array_buffer::{SharedArrayBuffer, utils::SliceRef},
         typed_array::Element,
     },
     sys::time::{Duration, Instant},
-    JsNativeError, JsResult,
 };
 
 mod sync {
     use std::sync::{Condvar, Mutex, MutexGuard};
 
-    use intrusive_collections::{intrusive_adapter, LinkedList, LinkedListLink, UnsafeRef};
+    use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
 
-    use small_btree::{Entry, SmallBTreeMap};
-
-    use crate::{JsNativeError, JsResult};
+    use crate::{
+        JsNativeError, JsResult,
+        small_btree::{Entry, SmallBtreeMap},
+    };
 
     /// A waiter of a memory address.
     #[derive(Debug, Default)]

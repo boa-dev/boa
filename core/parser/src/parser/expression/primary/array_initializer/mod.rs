@@ -11,17 +11,17 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult,
-        TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::AssignmentExpression,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    expression::{literal, Spread},
-    Punctuator, Span,
+    Punctuator, Span, Spanned,
+    expression::{Spread, literal},
 };
 use boa_interner::Interner;
 

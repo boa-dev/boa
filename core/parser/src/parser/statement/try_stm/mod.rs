@@ -7,14 +7,14 @@ mod tests;
 use self::{catch::Catch, finally::Finally};
 use super::block::Block;
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Keyword, Spanned,
     statement::{ErrorHandler, Try},
-    Keyword,
 };
 use boa_interner::Interner;
 

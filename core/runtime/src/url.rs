@@ -17,7 +17,7 @@ mod tests;
 
 use boa_engine::class::Class;
 use boa_engine::value::Convert;
-use boa_engine::{js_error, Context, Finalize, JsData, JsResult, JsString, JsValue, Trace};
+use boa_engine::{Context, Finalize, JsData, JsResult, JsString, JsValue, Trace, js_error};
 use boa_interop::boa_macros::boa_class;
 use std::fmt::Display;
 
@@ -207,6 +207,7 @@ impl Url {
         JsString::from(format!("{}", self.0))
     }
 
+    #[boa(rename = "toJSON")]
     fn to_json(&self) -> JsString {
         JsString::from(format!("{}", self.0))
     }

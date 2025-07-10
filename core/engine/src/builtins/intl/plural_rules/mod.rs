@@ -4,29 +4,29 @@ use boa_gc::{Finalize, Trace};
 use fixed_decimal::{Decimal, SignedRoundingMode, UnsignedRoundingMode};
 use icu_locale::Locale;
 use icu_plurals::{
-    provider::PluralsCardinalV1, PluralCategory, PluralRuleType, PluralRules as NativePluralRules,
-    PluralRulesOptions, PluralRulesPreferences, PluralRulesWithRanges,
+    PluralCategory, PluralRuleType, PluralRules as NativePluralRules, PluralRulesOptions,
+    PluralRulesPreferences, PluralRulesWithRanges, provider::PluralsCardinalV1,
 };
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{
-        options::get_option, Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject,
-        IntrinsicObject,
+        Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::get_option,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ObjectInitializer},
+    object::{ObjectInitializer, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{
+    Service,
     locale::{canonicalize_locale_list, filter_locales, resolve_locale},
     number_format::{DigitFormatOptions, Extrema, NotationKind},
-    options::{coerce_options_to_object, IntlOptions},
-    Service,
+    options::{IntlOptions, coerce_options_to_object},
 };
 
 #[derive(Debug, Trace, Finalize, JsData)]
@@ -178,17 +178,18 @@ impl PluralRules {
     fn select(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let plural_rules = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`select` can only be called on an `Intl.PluralRules` object")
-        })?;
-        let plural_rules = plural_rules.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`select` can only be called on an `Intl.PluralRules` object")
-        })?;
+        let object = this.as_object();
+        let plural_rules = object
+            .as_ref()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`select` can only be called on an `Intl.PluralRules` object")
+            })?;
 
         let n = args.get_or_undefined(0).to_number(context)?;
-        Ok(plural_category_to_js_string(resolve_plural(plural_rules, n).category).into())
+
+        Ok(plural_category_to_js_string(resolve_plural(&plural_rules, n).category).into())
     }
 
     /// [`Intl.PluralRules.prototype.selectRange ( start, end )`][spec].
@@ -204,14 +205,15 @@ impl PluralRules {
     fn select_range(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let plural_rules = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`select_range` can only be called on an `Intl.PluralRules` object")
-        })?;
-        let plural_rules = plural_rules.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`select_range` can only be called on an `Intl.PluralRules` object")
-        })?;
+        let object = this.as_object();
+        let plural_rules = object
+            .as_ref()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`select_range` can only be called on an `Intl.PluralRules` object",
+                )
+            })?;
 
         // 3. If start is undefined or end is undefined, throw a TypeError exception.
         let x = args.get_or_undefined(0);
@@ -239,9 +241,9 @@ impl PluralRules {
         }
 
         // 2. Let xp be ResolvePlural(pluralRules, x).
-        let x = resolve_plural(plural_rules, x);
+        let x = resolve_plural(&plural_rules, x);
         // 3. Let yp be ResolvePlural(pluralRules, y).
-        let y = resolve_plural(plural_rules, y);
+        let y = resolve_plural(&plural_rules, y);
 
         // 4. If xp.[[FormattedString]] is yp.[[FormattedString]], then
         if x.formatted == y.formatted {
@@ -297,16 +299,15 @@ impl PluralRules {
     fn resolved_options(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let pr be the this value.
         // 2. Perform ? RequireInternalSlot(pr, [[InitializedPluralRules]]).
-        let plural_rules = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ().with_message(
-                "`resolved_options` can only be called on an `Intl.PluralRules` object",
-            )
-        })?;
-        let plural_rules = plural_rules.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ().with_message(
-                "`resolved_options` can only be called on an `Intl.PluralRules` object",
-            )
-        })?;
+        let object = this.as_object();
+        let plural_rules = object
+            .as_ref()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message(
+                    "`resolved_options` can only be called on an `Intl.PluralRules` object",
+                )
+            })?;
 
         // 3. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 4. Let pluralCategories be a List of Strings containing all possible results of

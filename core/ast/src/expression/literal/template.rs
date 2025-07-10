@@ -1,9 +1,9 @@
 //! Template literal Expression.
 
 use crate::{
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -64,11 +64,11 @@ impl TemplateLiteral {
     pub const fn elements(&self) -> &[TemplateElement] {
         &self.elements
     }
+}
 
-    /// Get the [`Span`] of the [`TemplateLiteral`] node.
+impl Spanned for TemplateLiteral {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

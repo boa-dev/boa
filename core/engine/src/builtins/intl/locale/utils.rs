@@ -1,16 +1,16 @@
 use crate::{
+    Context, JsNativeError, JsResult, JsValue,
     builtins::{
+        Array,
         intl::{
-            options::{coerce_options_to_object, IntlOptions, LocaleMatcher},
             Service,
+            options::{IntlOptions, LocaleMatcher, coerce_options_to_object},
         },
         options::get_option,
-        Array,
     },
     context::icu::IntlProvider,
     js_string,
     object::JsObject,
-    Context, JsNativeError, JsResult, JsValue,
 };
 
 use icu_locale::{LanguageIdentifier, Locale, LocaleCanonicalizer};
@@ -49,13 +49,11 @@ pub(crate) fn locale_from_value(tag: &JsValue, context: &mut Context) -> JsResul
             .into());
     }
     // iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
-    if let Some(tag) = tag
-        .as_object()
-        .and_then(|obj| obj.borrow().downcast_ref::<Locale>().cloned())
-    {
+    let object = tag.as_object();
+    if let Some(tag) = object.as_ref().and_then(|obj| obj.downcast_ref::<Locale>()) {
         // 1. Let tag be kValue.[[Locale]].
         // No need to canonicalize since all `Locale` objects should already be canonicalized.
-        return Ok(tag);
+        return Ok(tag.clone());
     }
 
     // iv. Else,
@@ -113,11 +111,7 @@ pub(crate) fn canonicalize_locale_list(
     let mut seen = IndexSet::new();
 
     // 3. If Type(locales) is String or Type(locales) is Object and locales has an [[InitializedLocale]] internal slot, then
-    let o = if locales.is_string()
-        || locales
-            .as_object()
-            .is_some_and(|o| o.borrow().is::<Locale>())
-    {
+    let o = if locales.is_string() || locales.as_object().is_some_and(|o| o.is::<Locale>()) {
         // a. Let O be CreateArrayFromList(« locales »).
         Array::create_array_from_list([locales.clone()], context)
     } else {
@@ -490,7 +484,7 @@ pub(in crate::builtins::intl) fn validate_extension<M: DataMarker>(
 
 #[cfg(all(test, feature = "intl_bundled"))]
 mod tests {
-    use icu_locale::{langid, locale, Locale};
+    use icu_locale::{Locale, langid, locale};
     use icu_plurals::provider::PluralsCardinalV1;
 
     struct TestService;
@@ -502,8 +496,8 @@ mod tests {
 
     use crate::{
         builtins::intl::{
-            locale::utils::{lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix},
             Service,
+            locale::utils::{lookup_matching_locale_by_best_fit, lookup_matching_locale_by_prefix},
         },
         context::icu::IntlProvider,
     };

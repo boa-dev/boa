@@ -4,11 +4,10 @@
 use std::cell::{Cell, RefCell};
 
 use boa_engine::{
-    js_string,
+    Context, JsError, JsNativeError, JsString, JsValue, Source, js_string,
     native_function::NativeFunction,
-    object::{builtins::JsArray, FunctionObjectBuilder, JsObject},
+    object::{FunctionObjectBuilder, JsObject, builtins::JsArray},
     property::{Attribute, PropertyDescriptor},
-    Context, JsError, JsNativeError, JsString, JsValue, Source,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
 
@@ -173,7 +172,6 @@ fn main() -> Result<(), JsError> {
     let result = context.eval(Source::from_bytes("enumerate()"))?;
     let object = result
         .as_object()
-        .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
     let array = JsArray::from_object(object)?;
 
@@ -184,7 +182,6 @@ fn main() -> Result<(), JsError> {
     let result = context.eval(Source::from_bytes("enumerate()"))?;
     let object = result
         .as_object()
-        .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("not an array!"))?;
     let array = JsArray::from_object(object)?;
 

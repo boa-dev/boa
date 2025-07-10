@@ -11,7 +11,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-regexp-string-iterator-objects
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, regexp, BuiltInBuilder, IntrinsicObject},
+    Context, JsData, JsResult, JsString, JsValue,
+    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object, regexp},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
@@ -19,10 +20,9 @@ use crate::{
     property::Attribute,
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use regexp::{advance_string_index, RegExp};
+use regexp::{RegExp, advance_string_index};
 
 /// The `RegExp String Iterator` object.
 ///
@@ -120,8 +120,9 @@ impl RegExpStringIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%regexpstringiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut iterator = this
-            .as_object()
+        let object = this.as_object();
+        let mut iterator = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("`this` is not a RegExpStringIterator")

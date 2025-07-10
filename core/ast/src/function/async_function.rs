@@ -2,13 +2,12 @@
 
 use super::{FormalParameterList, FunctionBody};
 use crate::{
-    block_to_string,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration, LinearSpan, LinearSpanIgnoreEq, Span,
 };
 use boa_interner::{Interner, ToIndentedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -248,11 +247,11 @@ impl AsyncFunctionExpression {
     pub const fn contains_direct_eval(&self) -> bool {
         self.contains_direct_eval
     }
+}
 
-    /// Get the [`Span`] of the [`AsyncFunctionExpression`] node.
+impl Spanned for AsyncFunctionExpression {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

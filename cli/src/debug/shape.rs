@@ -1,9 +1,9 @@
 use boa_engine::{
-    js_string, object::ObjectInitializer, Context, JsArgs, JsNativeError, JsObject, JsResult,
-    JsValue, NativeFunction,
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction, js_string,
+    object::ObjectInitializer,
 };
 
-fn get_object(args: &[JsValue], position: usize) -> JsResult<&JsObject> {
+fn get_object(args: &[JsValue], position: usize) -> JsResult<JsObject> {
     let value = args.get_or_undefined(position);
 
     let Some(object) = value.as_object() else {

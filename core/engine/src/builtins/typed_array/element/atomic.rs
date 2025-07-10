@@ -1,7 +1,7 @@
 use std::{convert::identity, sync::atomic::Ordering};
 
 use portable_atomic::{
-    AtomicI16, AtomicI32, AtomicI64, AtomicI8, AtomicU16, AtomicU32, AtomicU64, AtomicU8,
+    AtomicI8, AtomicI16, AtomicI32, AtomicI64, AtomicU8, AtomicU16, AtomicU32, AtomicU64,
 };
 
 /// An atomic type that supports atomic operations.

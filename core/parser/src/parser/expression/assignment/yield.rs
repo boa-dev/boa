@@ -10,10 +10,10 @@
 use super::AssignmentExpression;
 use crate::{
     lexer::TokenKind,
-    parser::{cursor::Cursor, AllowAwait, AllowIn, OrAbrupt, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowIn, OrAbrupt, ParseResult, TokenParser, cursor::Cursor},
     source::ReadChar,
 };
-use boa_ast::{expression::Yield, Expression, Keyword, Punctuator, Span};
+use boa_ast::{Expression, Keyword, Punctuator, Span, Spanned, expression::Yield};
 use boa_interner::Interner;
 
 /// `YieldExpression` parsing.

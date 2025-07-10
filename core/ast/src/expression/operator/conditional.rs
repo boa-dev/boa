@@ -1,7 +1,7 @@
 use crate::{
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
@@ -61,11 +61,11 @@ impl Conditional {
             if_false: Box::new(if_false),
         }
     }
+}
 
-    /// Get the [`Span`] of the [`Conditional`] node.
+impl Spanned for Conditional {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         Span::new(self.condition.span().start(), self.if_false.span().end())
     }
 }

@@ -4,7 +4,7 @@
 
 use crate::{JsBigInt, JsObject, JsSymbol};
 use boa_engine::JsVariant;
-use boa_gc::{custom_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace, custom_trace};
 use boa_string::JsString;
 
 #[derive(Clone, Debug)]
@@ -32,7 +32,7 @@ impl Finalize for EnumBasedValue {
 unsafe impl Trace for EnumBasedValue {
     custom_trace! {this, mark, {
         if let Some(o) = this.as_object() {
-            mark(o);
+            mark(&o);
         }
     }}
 }
@@ -208,9 +208,9 @@ impl EnumBasedValue {
     /// Returns the value as a boxed `[JsObject]`.
     #[must_use]
     #[inline]
-    pub(crate) const fn as_object(&self) -> Option<&JsObject> {
+    pub(crate) fn as_object(&self) -> Option<JsObject> {
         match self {
-            Self::Object(value) => Some(value),
+            Self::Object(value) => Some(value.clone()),
             _ => None,
         }
     }
@@ -238,7 +238,7 @@ impl EnumBasedValue {
     /// Returns the `[JsVariant]` of this inner value.
     #[must_use]
     #[inline]
-    pub(crate) const fn as_variant(&self) -> JsVariant<'_> {
+    pub(crate) fn as_variant(&self) -> JsVariant<'_> {
         match self {
             Self::Undefined => JsVariant::Undefined,
             Self::Null => JsVariant::Null,
@@ -246,7 +246,7 @@ impl EnumBasedValue {
             Self::Integer32(v) => JsVariant::Integer32(*v),
             Self::Float64(v) => JsVariant::Float64(*v),
             Self::BigInt(v) => JsVariant::BigInt(v),
-            Self::Object(v) => JsVariant::Object(v),
+            Self::Object(v) => JsVariant::Object(v.clone()),
             Self::Symbol(v) => JsVariant::Symbol(v),
             Self::String(v) => JsVariant::String(v),
         }

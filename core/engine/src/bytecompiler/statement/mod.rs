@@ -58,10 +58,12 @@ impl ByteCompiler<'_> {
                 self.compile_break(*node, use_expr);
             }
             Statement::Throw(throw) => {
-                let error = self.register_allocator.alloc();
-                self.compile_expr(throw.target(), &error);
-                self.bytecode.emit_throw(error.variable());
-                self.register_allocator.dealloc(error);
+                let mut compiler = self.position_guard(throw.target());
+
+                let error = compiler.register_allocator.alloc();
+                compiler.compile_expr(throw.target(), &error);
+                compiler.bytecode.emit_throw(error.variable());
+                compiler.register_allocator.dealloc(error);
             }
             Statement::Switch(switch) => {
                 self.compile_switch(switch, use_expr);
@@ -120,14 +122,14 @@ impl ByteCompiler<'_> {
             let count = self.jump_info_open_environment_count(i);
             actions.push(JumpRecordAction::PopEnvironments { count });
 
-            if !info.in_finally() {
-                if let Some(finally_throw) = info.finally_throw {
-                    actions.push(JumpRecordAction::HandleFinally {
-                        index: info.jumps.len() as u32,
-                        finally_throw,
-                    });
-                    actions.push(JumpRecordAction::Transfer { index: i as u32 });
-                }
+            if !info.in_finally()
+                && let Some(finally_throw) = info.finally_throw
+            {
+                actions.push(JumpRecordAction::HandleFinally {
+                    index: info.jumps.len() as u32,
+                    finally_throw,
+                });
+                actions.push(JumpRecordAction::Transfer { index: i as u32 });
             }
 
             if info.iterator_loop() {

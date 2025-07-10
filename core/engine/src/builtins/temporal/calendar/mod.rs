@@ -3,7 +3,7 @@
 use std::str::FromStr;
 
 use super::extract_from_temporal_type;
-use crate::{js_string, Context, JsNativeError, JsObject, JsResult, JsValue};
+use crate::{Context, JsNativeError, JsObject, JsResult, JsValue, js_string};
 use temporal_rs::Calendar;
 
 // -- `Calendar` Abstract Operations --
@@ -18,11 +18,11 @@ pub(crate) fn get_temporal_calendar_slot_value_with_default(
     // a. Return item.[[Calendar]].
     if let Some(calendar) = extract_from_temporal_type(
         item,
-        |d| Ok(Some(d.borrow().data().inner.calendar().clone())),
-        |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
-        |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
-        |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
-        |zdt| Ok(Some(zdt.borrow().data().inner.calendar().clone())),
+        |d| Ok(Some(d.inner.calendar().clone())),
+        |dt| Ok(Some(dt.inner.calendar().clone())),
+        |ym| Ok(Some(ym.inner.calendar().clone())),
+        |md| Ok(Some(md.inner.calendar().clone())),
+        |zdt| Ok(Some(zdt.inner.calendar().clone())),
     )? {
         return Ok(calendar);
     }
@@ -46,12 +46,12 @@ pub(crate) fn to_temporal_calendar_slot_value(calendar_like: &JsValue) -> JsResu
         // a. If temporalCalendarLike has an [[InitializedTemporalDate]], [[InitializedTemporalDateTime]], [[InitializedTemporalMonthDay]], [[InitializedTemporalYearMonth]], or [[InitializedTemporalZonedDateTime]] internal slot, then
         // i. Return temporalCalendarLike.[[Calendar]].
         if let Some(calendar) = extract_from_temporal_type(
-            calendar_like,
-            |d| Ok(Some(d.borrow().data().inner.calendar().clone())),
-            |dt| Ok(Some(dt.borrow().data().inner.calendar().clone())),
-            |ym| Ok(Some(ym.borrow().data().inner.calendar().clone())),
-            |md| Ok(Some(md.borrow().data().inner.calendar().clone())),
-            |zdt| Ok(Some(zdt.borrow().data().inner.calendar().clone())),
+            &calendar_like,
+            |d| Ok(Some(d.inner.calendar().clone())),
+            |dt| Ok(Some(dt.inner.calendar().clone())),
+            |ym| Ok(Some(ym.inner.calendar().clone())),
+            |md| Ok(Some(md.inner.calendar().clone())),
+            |zdt| Ok(Some(zdt.inner.calendar().clone())),
         )? {
             return Ok(calendar);
         }

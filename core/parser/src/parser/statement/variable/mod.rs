@@ -3,16 +3,16 @@
 use crate::{
     lexer::TokenKind,
     parser::{
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
 };
 use boa_ast::{
-    declaration::{VarDeclaration, Variable},
     Keyword, Punctuator,
+    declaration::{VarDeclaration, Variable},
 };
 use boa_interner::Interner;
 use std::convert::TryInto;

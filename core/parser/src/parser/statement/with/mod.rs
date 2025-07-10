@@ -1,14 +1,14 @@
 //! With statement parsing.
 
 use crate::{
+    Error,
     parser::{
-        cursor::Cursor, expression::Expression, statement::Statement, AllowAwait, AllowReturn,
-        AllowYield, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, ParseResult, TokenParser, cursor::Cursor,
+        expression::Expression, statement::Statement,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{statement::With, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, Spanned, statement::With};
 use boa_interner::Interner;
 
 /// With statement parsing.

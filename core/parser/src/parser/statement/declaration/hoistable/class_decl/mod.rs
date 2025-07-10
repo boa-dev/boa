@@ -2,18 +2,18 @@
 mod tests;
 
 use crate::{
-    lexer::{token::ContainsEscapeSequence, Error as LexError, TokenKind},
+    Error,
+    lexer::{Error as LexError, TokenKind, token::ContainsEscapeSequence},
     parser::{
+        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::{
             AssignmentExpression, AsyncGeneratorMethod, AsyncMethod, BindingIdentifier,
             GeneratorMethod, LeftHandSideExpression, PropertyName,
         },
-        function::{FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
+        function::{FUNCTION_BREAK_TOKENS, FunctionBody, UniqueFormalParameters},
         statement::StatementList,
-        AllowAwait, AllowDefault, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use ast::{
     function::FunctionBody as AstFunctionBody,
@@ -24,15 +24,14 @@ use ast::{
     property::MethodDefinitionKind,
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Expression, Keyword, Position, Punctuator, Span, Spanned,
     expression::Identifier,
     function::{
         self, ClassDeclaration as ClassDeclarationNode, ClassElementName, ClassFieldDefinition,
         ClassMethodDefinition, FormalParameterList, FunctionExpression, PrivateFieldDefinition,
         StaticBlockBody,
     },
-    operations::{contains, contains_arguments, ContainsSymbol},
-    Expression, Keyword, Position, Punctuator, Span,
+    operations::{ContainsSymbol, contains, contains_arguments},
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -99,7 +98,7 @@ where
                     token.to_string(interner),
                     token.span(),
                     "expected class identifier",
-                ))
+                ));
             }
         };
         cursor.set_strict(strict);
@@ -816,7 +815,7 @@ where
                         return Err(Error::general(
                             "class constructor may not be an async method",
                             token.span().start(),
-                        ))
+                        ));
                     }
                     _ => {
                         let name_position = token.span().start();
@@ -866,7 +865,7 @@ where
                 return Err(Error::general(
                     "keyword must not contain escaped characters",
                     token.span().start(),
-                ))
+                ));
             }
             TokenKind::IdentifierName((Sym::GET, ContainsEscapeSequence(false))) if is_keyword => {
                 cursor.advance(interner);
@@ -877,7 +876,7 @@ where
                         return Err(Error::general(
                             "class constructor may not be a private method",
                             token.span().start(),
-                        ))
+                        ));
                     }
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
@@ -913,7 +912,7 @@ where
                         return Err(Error::general(
                             "class constructor may not be a getter method",
                             token.span().start(),
-                        ))
+                        ));
                     }
                     TokenKind::IdentifierName(_)
                     | TokenKind::StringLiteral(_)
@@ -978,7 +977,7 @@ where
                         return Err(Error::general(
                             "class constructor may not be a private method",
                             token.span().start(),
-                        ))
+                        ));
                     }
                     TokenKind::PrivateIdentifier(name) => {
                         let name = *name;
@@ -1015,7 +1014,7 @@ where
                         return Err(Error::general(
                             "class constructor may not be a setter method",
                             start,
-                        ))
+                        ));
                     }
                     TokenKind::IdentifierName(_)
                     | TokenKind::StringLiteral(_)
@@ -1074,7 +1073,7 @@ where
                 return Err(Error::general(
                     "class constructor may not be a private method",
                     token.span().start(),
-                ))
+                ));
             }
             TokenKind::PrivateIdentifier(name) => {
                 let name = *name;

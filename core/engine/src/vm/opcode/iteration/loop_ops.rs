@@ -1,5 +1,5 @@
 use crate::JsNativeError;
-use crate::{vm::opcode::Operation, Context, JsResult};
+use crate::{Context, JsResult, vm::opcode::Operation};
 
 /// `IncrementLoopIteration` implements the Opcode Operation for `Opcode::IncrementLoopIteration`.
 ///

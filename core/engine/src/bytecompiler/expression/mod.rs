@@ -12,6 +12,7 @@ use crate::{
     vm::GeneratorResumeKind,
 };
 use boa_ast::{
+    Expression,
     expression::{
         access::{PropertyAccess, PropertyAccessField},
         literal::{
@@ -19,7 +20,6 @@ use boa_ast::{
         },
         operator::Conditional,
     },
-    Expression,
 };
 use thin_vec::ThinVec;
 

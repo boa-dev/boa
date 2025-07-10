@@ -1,4 +1,4 @@
-use crate::{run_test_actions, TestAction};
+use crate::{TestAction, run_test_actions};
 
 #[test]
 fn abs() {

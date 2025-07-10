@@ -17,18 +17,18 @@ mod tests;
 pub(in crate::parser) use self::{
     export::ExportDeclaration,
     hoistable::{
-        class_decl::ClassTail, ClassDeclaration, FunctionDeclaration, HoistableDeclaration,
+        ClassDeclaration, FunctionDeclaration, HoistableDeclaration, class_decl::ClassTail,
     },
     import::ImportDeclaration,
-    lexical::{allowed_token_after_let, LexicalDeclaration},
+    lexical::{LexicalDeclaration, allowed_token_after_let},
 };
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
     source::ReadChar,
-    Error,
 };
-use boa_ast::{self as ast, Keyword};
+use boa_ast::{self as ast, Keyword, Spanned};
 use boa_interner::{Interner, Sym};
 
 /// Parses a declaration.

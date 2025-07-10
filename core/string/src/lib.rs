@@ -33,7 +33,7 @@ pub use crate::{
 use std::borrow::Cow;
 use std::fmt::Write;
 use std::{
-    alloc::{alloc, dealloc, Layout},
+    alloc::{Layout, alloc, dealloc},
     cell::Cell,
     convert::Infallible,
     hash::{Hash, Hasher},
@@ -794,11 +794,7 @@ impl JsString {
                 // And `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
                 // which means it is safe to read the `refcount` as `read_only` here.
                 let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
-                if rc == 0 {
-                    None
-                } else {
-                    Some(rc)
-                }
+                if rc == 0 { None } else { Some(rc) }
             }
             UnwrappedTagged::Tag(_inner) => None,
         }

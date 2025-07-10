@@ -13,6 +13,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -23,7 +24,6 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, PreferredType},
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
 };
 use num_bigint::ToBigInt;
 
@@ -193,7 +193,7 @@ impl BigInt {
             _ => {
                 return Err(JsNativeError::range()
                     .with_message("radix must be an integer at least 2 and no greater than 36")
-                    .into())
+                    .into());
             }
         };
 

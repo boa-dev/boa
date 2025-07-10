@@ -1,8 +1,8 @@
 //! `import.meta` ECMAScript expression.
 
 use crate::{
+    Span, Spanned,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
@@ -24,11 +24,11 @@ impl ImportMeta {
     pub const fn new(span: Span) -> Self {
         Self { span }
     }
+}
 
-    /// Get the [`Span`] of the [`ImportMeta`] node.
+impl Spanned for ImportMeta {
     #[inline]
-    #[must_use]
-    pub const fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

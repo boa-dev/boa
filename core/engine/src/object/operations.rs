@@ -1,19 +1,19 @@
 use super::internal_methods::InternalMethodContext;
 use crate::value::JsVariant;
 use crate::{
+    Context, JsResult, JsSymbol, JsValue,
     builtins::{
-        function::{set_function_name, BoundFunction, ClassFieldDefinition, OrdinaryFunction},
         Array, Proxy,
+        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunctionObject,
-    object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
+    object::{CONSTRUCTOR, JsObject, PROTOTYPE, PrivateElement, PrivateName},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsResult, JsSymbol, JsValue,
 };
 
 /// Object integrity level.
@@ -704,29 +704,29 @@ impl JsObject {
                 let desc =
                     self.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-                if let Some(desc) = desc {
-                    if desc.expect_enumerable() {
-                        match kind {
-                            // 1. If kind is key, append key to properties.
-                            PropertyNameKind::Key => properties.push(key_str.into()),
-                            // 2. Else,
-                            // a. Let value be ? Get(O, key).
-                            // b. If kind is value, append value to properties.
-                            PropertyNameKind::Value => {
-                                properties.push(self.get(key.clone(), context)?);
-                            }
-                            // c. Else,
-                            // i. Assert: kind is key+value.
-                            // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                            // iii. Append entry to properties.
-                            PropertyNameKind::KeyAndValue => properties.push(
-                                Array::create_array_from_list(
-                                    [key_str.into(), self.get(key.clone(), context)?],
-                                    context,
-                                )
-                                .into(),
-                            ),
+                if let Some(desc) = desc
+                    && desc.expect_enumerable()
+                {
+                    match kind {
+                        // 1. If kind is key, append key to properties.
+                        PropertyNameKind::Key => properties.push(key_str.into()),
+                        // 2. Else,
+                        // a. Let value be ? Get(O, key).
+                        // b. If kind is value, append value to properties.
+                        PropertyNameKind::Value => {
+                            properties.push(self.get(key.clone(), context)?);
                         }
+                        // c. Else,
+                        // i. Assert: kind is key+value.
+                        // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                        // iii. Append entry to properties.
+                        PropertyNameKind::KeyAndValue => properties.push(
+                            Array::create_array_from_list(
+                                [key_str.into(), self.get(key.clone(), context)?],
+                                context,
+                            )
+                            .into(),
+                        ),
                     }
                 }
             }
@@ -791,8 +791,7 @@ impl JsObject {
         }
 
         // 3. If argument is a Proxy exotic object, then
-        let object = self.borrow();
-        if let Some(proxy) = object.downcast_ref::<Proxy>() {
+        if let Some(proxy) = self.downcast_ref::<Proxy>() {
             // a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
             // b. Let target be argument.[[ProxyTarget]].
             let (target, _) = proxy.try_data()?;
@@ -809,24 +808,21 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
     pub(crate) fn get_function_realm(&self, context: &mut Context) -> JsResult<Realm> {
-        let constructor = self.borrow();
-        if let Some(fun) = constructor.downcast_ref::<OrdinaryFunction>() {
+        if let Some(fun) = self.downcast_ref::<OrdinaryFunction>() {
             return Ok(fun.realm().clone());
         }
 
-        if let Some(f) = constructor.downcast_ref::<NativeFunctionObject>() {
+        if let Some(f) = self.downcast_ref::<NativeFunctionObject>() {
             return Ok(f.realm.clone().unwrap_or_else(|| context.realm().clone()));
         }
 
-        if let Some(bound) = constructor.downcast_ref::<BoundFunction>() {
+        if let Some(bound) = self.downcast_ref::<BoundFunction>() {
             let fun = bound.target_function().clone();
-            drop(constructor);
             return fun.get_function_realm(context);
         }
 
-        if let Some(proxy) = constructor.downcast_ref::<Proxy>() {
+        if let Some(proxy) = self.downcast_ref::<Proxy>() {
             let (fun, _) = proxy.try_data()?;
-            drop(constructor);
             return fun.get_function_realm(context);
         }
 
@@ -1026,7 +1022,7 @@ impl JsObject {
             None => {
                 return Err(JsNativeError::typ()
                     .with_message("Private element does not exist on object")
-                    .into())
+                    .into());
             }
 
             // 3. If entry.[[Kind]] is field, then
@@ -1040,7 +1036,7 @@ impl JsObject {
             Some(PrivateElement::Method(_)) => {
                 return Err(JsNativeError::typ()
                     .with_message("private method is not writable")
-                    .into())
+                    .into());
             }
 
             // 5. Else,
@@ -1099,7 +1095,7 @@ impl JsObject {
             ClassFieldDefinition::Public(field_name, _, function_name) => {
                 if let Some(function_name) = function_name {
                     set_function_name(
-                        init_value
+                        &init_value
                             .as_object()
                             .expect("init value must be a function object"),
                         function_name,
@@ -1358,7 +1354,7 @@ impl JsValue {
             return object.instance_of(&bound_function.target_function().clone().into(), context);
         }
 
-        let Some(mut object) = object.as_object().cloned() else {
+        let Some(mut object) = object.as_object() else {
             // 3. If Type(O) is not Object, return false.
             return Ok(false);
         };
@@ -1382,7 +1378,7 @@ impl JsValue {
             };
 
             // c. If SameValue(P, O) is true, return true.
-            if JsObject::equals(&object, prototype) {
+            if JsObject::equals(&object, &prototype) {
                 return Ok(true);
             }
         }

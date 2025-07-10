@@ -1,13 +1,13 @@
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseResult,
-        TokenParser,
+        AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser, cursor::Cursor,
+        expression::Expression,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{self as ast, expression::TaggedTemplate, PositionGroup, Punctuator, Span};
+use boa_ast::{self as ast, PositionGroup, Punctuator, Span, Spanned, expression::TaggedTemplate};
 use boa_interner::Interner;
 
 /// Parses a tagged template.
@@ -89,7 +89,7 @@ where
                     return Err(Error::general(
                         "cannot parse tagged template literal",
                         self.start,
-                    ))
+                    ));
                 }
             }
             token = cursor.lex_template(self.start, interner)?;

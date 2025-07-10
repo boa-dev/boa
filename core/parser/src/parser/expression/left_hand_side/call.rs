@@ -9,22 +9,21 @@
 
 use super::arguments::Arguments;
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{Expression, left_hand_side::template::TaggedTemplateLiteral},
     },
     source::ReadChar,
-    Error,
 };
 use ast::function::PrivateName;
 use boa_ast::{
-    self as ast,
+    self as ast, Punctuator, Span, Spanned,
     expression::{
-        access::{PrivatePropertyAccess, SimplePropertyAccess},
         Call, Identifier,
+        access::{PrivatePropertyAccess, SimplePropertyAccess},
     },
-    Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 

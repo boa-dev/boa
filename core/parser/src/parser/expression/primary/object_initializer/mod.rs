@@ -11,35 +11,35 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{
-        token::{ContainsEscapeSequence, Numeric},
         Error as LexError, InputElement, TokenKind,
+        token::{ContainsEscapeSequence, Numeric},
     },
     parser::{
-        expression::{identifiers::IdentifierReference, AssignmentExpression},
+        AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{AssignmentExpression, identifiers::IdentifierReference},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Expression, Keyword, Punctuator, Span, Spanned,
     expression::{
+        Identifier,
         literal::{
             self, Literal, ObjectMethodDefinition, PropertyDefinition as PropertyDefinitionNode,
         },
-        Identifier,
     },
     function::{
         ClassElementName as ClassElementNameNode, FormalParameterList,
         FunctionBody as FunctionBodyAst, PrivateName,
     },
     operations::{
-        bound_names, contains, has_direct_super_new, lexically_declared_names, ContainsSymbol,
+        ContainsSymbol, bound_names, contains, has_direct_super_new, lexically_declared_names,
     },
     property::{MethodDefinitionKind, PropertyName as PropertyNameNode},
-    Expression, Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 
@@ -608,7 +608,7 @@ where
                     token.to_string(interner),
                     token.span(),
                     "property name",
-                ))
+                ));
             }
         };
         cursor.advance(interner);

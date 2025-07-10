@@ -1,9 +1,9 @@
-use super::{access::PropertyAccessField, Expression};
+use super::{Expression, access::PropertyAccessField};
 use crate::{
+    Span, Spanned,
     function::PrivateName,
     join_nodes,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Span,
 };
 use boa_interner::{Interner, ToInternedString};
 use core::{fmt::Write as _, ops::ControlFlow};
@@ -104,11 +104,11 @@ impl OptionalOperation {
     pub const fn shorted(&self) -> bool {
         self.shorted
     }
+}
 
-    /// Get the [`Span`] of the [`OptionalOperation`] node.
+impl Spanned for OptionalOperation {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }
@@ -223,11 +223,11 @@ impl Optional {
     pub fn chain(&self) -> &[OptionalOperation] {
         self.chain.as_ref()
     }
+}
 
-    /// Get the [`Span`] of the [`Optional`] node.
+impl Spanned for Optional {
     #[inline]
-    #[must_use]
-    pub fn span(&self) -> Span {
+    fn span(&self) -> Span {
         self.span
     }
 }

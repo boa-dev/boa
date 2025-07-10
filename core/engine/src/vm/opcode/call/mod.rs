@@ -1,11 +1,11 @@
 use super::VaryingOperand;
 use crate::{
-    builtins::{promise::PromiseCapability, Promise},
+    Context, JsError, JsObject, JsResult, JsValue, NativeFunction,
+    builtins::{Promise, promise::PromiseCapability},
     error::JsNativeError,
     module::{ModuleKind, Referrer},
     object::FunctionObjectBuilder,
     vm::opcode::Operation,
-    Context, JsObject, JsResult, JsValue, NativeFunction,
 };
 
 /// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
@@ -40,7 +40,7 @@ impl CallEval {
         // 6. If ref is a Reference Record, IsPropertyReference(ref) is false, and ref.[[ReferencedName]] is "eval", then
         //     a. If SameValue(func, %eval%) is true, then
         let eval = context.intrinsics().objects().eval();
-        if JsObject::equals(object, &eval) {
+        if JsObject::equals(&object, &eval) {
             let arguments = context
                 .vm
                 .stack
@@ -110,7 +110,7 @@ impl CallEvalSpread {
 
         let func = context.vm.stack.calling_convention_get_function(0);
 
-        let Some(object) = func.as_object().cloned() else {
+        let Some(object) = func.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("not a callable function")
                 .into());
@@ -184,14 +184,20 @@ impl Call {
             .calling_convention_get_function(argument_count.into());
 
         let Some(object) = func.as_object() else {
-            return Err(JsNativeError::typ()
-                .with_message("not a callable function")
-                .into());
+            return Err(Self::handle_not_callable());
         };
 
         object.__call__(argument_count.into()).resolve(context)?;
 
         Ok(())
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn handle_not_callable() -> JsError {
+        JsNativeError::typ()
+            .with_message("not a callable function")
+            .into()
     }
 }
 

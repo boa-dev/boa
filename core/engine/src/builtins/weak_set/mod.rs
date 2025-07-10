@@ -8,15 +8,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet
 
 use crate::{
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, ErasedVTableObject, JsObject},
+    object::{ErasedVTableObject, JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -141,8 +141,9 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let mut set = this
-            .as_object()
+        let object = this.as_object();
+        let mut set = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.add: called with non-object value")
@@ -190,8 +191,9 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let mut set = this
-            .as_object()
+        let object = this.as_object();
+        let mut set = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<NativeWeakSet>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.delete: called with non-object value")
@@ -229,8 +231,9 @@ impl WeakSet {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Perform ? RequireInternalSlot(S, [[WeakSetData]]).
-        let set = this
-            .as_object()
+        let object = this.as_object();
+        let set = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<NativeWeakSet>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("WeakSet.has: called with non-object value")

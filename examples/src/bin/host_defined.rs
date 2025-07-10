@@ -1,8 +1,8 @@
 // This example goes into the details on how to store user defined structs/state that is shared.
 
 use boa_engine::{
-    native_function::NativeFunction, Context, JsArgs, JsData, JsError, JsNativeError, JsString,
-    JsValue, Source,
+    Context, JsArgs, JsData, JsError, JsNativeError, JsString, JsValue, Source,
+    native_function::NativeFunction,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -81,10 +81,12 @@ fn main() -> Result<(), JsError> {
     }
 
     // Remove a type from the [[HostDefined]] field.
-    assert!(realm
-        .host_defined_mut()
-        .remove::<AnotherCustomHostDefinedStruct>()
-        .is_some());
+    assert!(
+        realm
+            .host_defined_mut()
+            .remove::<AnotherCustomHostDefinedStruct>()
+            .is_some()
+    );
 
     // Create and register function for getting and setting the realm value.
     //

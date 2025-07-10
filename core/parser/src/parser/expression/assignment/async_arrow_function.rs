@@ -12,22 +12,22 @@ use crate::{
     error::{Error, ErrorContext, ParseResult},
     lexer::{Error as LexError, TokenKind},
     parser::{
+        AllowIn, AllowYield, Cursor, OrAbrupt, TokenParser,
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, AllowIn, AllowYield, Cursor, OrAbrupt, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
 };
 use ast::{
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
     Keyword,
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Punctuator, Span, Spanned, StatementList,
     declaration::Variable,
     function::{FormalParameter, FormalParameterList},
     statement::Return,
-    Punctuator, Span, StatementList,
 };
 use boa_interner::Interner;
 

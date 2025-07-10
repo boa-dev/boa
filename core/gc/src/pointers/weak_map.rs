@@ -2,11 +2,11 @@
 // but with some adjustments to use `Ephemeron<K,V>` instead of `(K,V)`
 
 use hashbrown::{
-    hash_table::{Entry as RawEntry, Iter as RawIter},
     DefaultHashBuilder, HashTable, TryReserveError,
+    hash_table::{Entry as RawEntry, Iter as RawIter},
 };
 
-use crate::{custom_trace, Allocator, Ephemeron, Finalize, Gc, GcRefCell, Trace};
+use crate::{Allocator, Ephemeron, Finalize, Gc, GcRefCell, Trace, custom_trace};
 use std::{fmt, hash::BuildHasher, marker::PhantomData};
 
 /// A map that holds weak references to its keys and is traced by the garbage collector.
