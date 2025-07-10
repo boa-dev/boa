@@ -35,5 +35,6 @@ Try out the most recent release with Boa's live demo
 [runtime]: https://docs.rs/boa_runtime/latest/boa_runtime/index.html
 [string]: https://docs.rs/boa_string/latest/boa_string/index.html
 [tag_ptr]: https://docs.rs/tag_ptr/latest/tag_ptr/index.html
+[small_btree]: https://docs.rs/small_btree/latest/small_btree/index.html
 [macros]: https://docs.rs/boa_macros/latest/boa_macros/index.html
 [cli]: https://crates.io/crates/boa_cli
