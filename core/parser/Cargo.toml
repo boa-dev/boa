@@ -21,6 +21,7 @@ bitflags.workspace = true
 num-bigint.workspace = true
 regress.workspace = true
 icu_properties.workspace = true
+stacker.workspace = true
 
 [dev-dependencies]
 indoc.workspace = true

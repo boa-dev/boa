@@ -131,15 +131,12 @@ impl Expression {
             allow_await: allow_await.into(),
         }
     }
-}
 
-impl<R> TokenParser<R> for Expression
-where
-    R: ReadChar,
-{
-    type Output = ast::Expression;
-
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+    fn parse_impl<R: ReadChar>(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<ast::Expression> {
         let mut lhs = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -178,6 +175,31 @@ where
         }
 
         Ok(lhs)
+    }
+}
+
+/// See [Rustc](https://github.com/rust-lang/rust/blob/master/compiler/rustc_data_structures/src/stack.rs)
+#[cfg(not(target_arch = "wasm32"))]
+#[inline]
+fn ensure_sufficient_stack<R, F: FnOnce() -> R>(f: F) -> R {
+    const RED_ZONE: usize = 100 * 1024; // 100k
+    const STACK_PER_RECURSION: usize = 1024 * 1024; // 1MB
+    stacker::maybe_grow(RED_ZONE, STACK_PER_RECURSION, f)
+}
+#[cfg(target_arch = "wasm32")]
+#[inline]
+fn ensure_sufficient_stack<R, F: FnOnce() -> R>(f: F) -> R {
+    f()
+}
+
+impl<R> TokenParser<R> for Expression
+where
+    R: ReadChar,
+{
+    type Output = ast::Expression;
+
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        ensure_sufficient_stack(|| self.parse_impl(cursor, interner))
     }
 }
 
