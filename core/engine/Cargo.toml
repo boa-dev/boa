@@ -72,6 +72,9 @@ experimental = ["temporal"]
 # Enable binding to JS APIs for system related utilities.
 js = ["dep:web-time", "dep:getrandom"]
 
+# Native Backtraces
+native-backtrace = []
+
 [dependencies]
 tag_ptr.workspace = true
 boa_interner.workspace = true

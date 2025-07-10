@@ -1298,6 +1298,7 @@ impl JsValue {
     ///
     /// [call]: https://tc39.es/ecma262/#sec-call
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn call(&self, this: &Self, args: &[Self], context: &mut Context) -> JsResult<Self> {
         let Some(object) = self.as_object() else {
             return Err(JsNativeError::typ()
@@ -1319,6 +1320,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invoke
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn invoke<K>(&self, key: K, args: &[Self], context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
