@@ -153,11 +153,9 @@ mod sync {
     use std::sync::{Condvar, Mutex, MutexGuard};
 
     use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
+    use small_btree::{Entry, SmallBTreeMap};
 
-    use crate::{
-        JsNativeError, JsResult,
-        small_btree::{Entry, SmallBtreeMap},
-    };
+    use crate::{JsNativeError, JsResult};
 
     /// A waiter of a memory address.
     #[derive(Debug, Default)]

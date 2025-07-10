@@ -4,7 +4,6 @@
 //! This provides performance benefits for maps that are expected to be small most of the time,
 //! by avoiding heap allocations for the common case while still supporting larger collections when needed.
 
-
 use std::{
     borrow::Borrow,
     collections::{BTreeMap, btree_map},

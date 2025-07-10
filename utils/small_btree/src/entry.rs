@@ -105,6 +105,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> Entry<'a, K, V, ARRAY_SIZE> {
     }
 
     /// Returns a reference to this entry's key.
+    #[must_use]
     pub fn key(&self) -> &K {
         match self {
             Occupied(entry) => entry.key(),
@@ -114,7 +115,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> Entry<'a, K, V, ARRAY_SIZE> {
 
     /// Provides in-place mutable access to an occupied entry before any
     /// potential inserts into the map.
-    #[must_use]
+    #[allow(clippy::return_self_not_must_use)]
     pub fn and_modify<F>(self, f: F) -> Self
     where
         F: FnOnce(&mut V),
@@ -143,6 +144,7 @@ impl<'a, K: Ord, V: Default, const ARRAY_SIZE: usize> Entry<'a, K, V, ARRAY_SIZE
 impl<'a, K: Ord, V, const ARRAY_SIZE: usize> VacantEntry<'a, K, V, ARRAY_SIZE> {
     /// Gets a reference to the key that would be used when inserting a value
     /// through the `VacantEntry`.
+    #[must_use]
     pub fn key(&self) -> &K {
         match &self.inner {
             InnerVacant::Inline(i) => i.key(),
@@ -151,6 +153,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> VacantEntry<'a, K, V, ARRAY_SIZE> {
     }
 
     /// Takes ownership of the key.
+    #[must_use]
     pub fn into_key(self) -> K {
         match self.inner {
             InnerVacant::Inline(i) => i.into_key(),
@@ -179,7 +182,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     }
 
     /// Takes ownership of the key and value from the map.
-    #[must_use]
+    #[allow(clippy::must_use_candidate)]
     pub fn remove_entry(self) -> (K, V) {
         match self.inner {
             InnerOccupied::Inline(o) => o.remove_entry(),
@@ -202,6 +205,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     /// destruction of the `Entry` value, see [`into_mut`].
     ///
     /// [`into_mut`]: OccupiedEntry::into_mut
+    #[must_use]
     pub fn get_mut(&mut self) -> &mut V {
         match &mut self.inner {
             InnerOccupied::Inline(o) => o.get_mut(),
@@ -224,7 +228,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
 
     /// Sets the value of the entry with the `OccupiedEntry`'s key,
     /// and returns the entry's old value.
-    #[must_use]
+    #[allow(clippy::must_use_candidate)]
     pub fn insert(&mut self, value: V) -> V {
         match &mut self.inner {
             InnerOccupied::Inline(o) => o.insert(value),
@@ -233,7 +237,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     }
 
     /// Takes the value of the entry out of the map, and returns it.
-    #[must_use]
+    #[allow(clippy::must_use_candidate)]
     pub fn remove(self) -> V {
         match self.inner {
             InnerOccupied::Inline(o) => o.remove(),
