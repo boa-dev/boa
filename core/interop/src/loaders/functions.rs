@@ -1,10 +1,12 @@
 //! This module contains types that help create custom module loaders from functions.
 use boa_engine::module::{ModuleLoader, Referrer, resolve_module_specifier};
-use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module, Source};
+use boa_engine::{Context, JsNativeError, JsResult, JsString, Module, Source};
+use std::cell::RefCell;
 use std::io::Cursor;
+use std::rc::Rc;
 
-/// Create a [`ModuleLoader`] from a function that takes a referrer and a path,
-/// and returns a [Module] if it exists, or an error.
+/// Create a [`ModuleLoader`] from a function that
+/// takes a referrer and a path, and returns a [Module] if it exists, or an error.
 ///
 /// This function cannot be `async` and must be blocking. An `async` version of
 /// this code will likely exist as a separate function in the future.
@@ -47,16 +49,16 @@ where
 
 impl<F> ModuleLoader for FnModuleLoader<F>
 where
-    F: Fn(&Referrer, &JsString) -> JsResult<Module>,
+    F: Fn(&Referrer, &JsString) -> JsResult<Module> + 'static,
 {
     fn load_imported_module(
-        &self,
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        finish_load((self.factory)(&referrer, &specifier), context);
+        _context: &RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<Module>> {
+        let module = (self.factory)(&referrer, &specifier);
+        async { module }
     }
 }
 
@@ -102,29 +104,28 @@ where
 
 impl<F> ModuleLoader for SourceFnModuleLoader<F>
 where
-    F: Fn(&str) -> Option<String>,
+    F: Fn(&str) -> Option<String> + 'static,
 {
     fn load_imported_module(
-        &self,
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        match resolve_module_specifier(None, &specifier, referrer.path(), context) {
-            Err(e) => finish_load(Err(e), context),
-            Ok(p) => {
-                let m = match self.0(&p.to_string_lossy()) {
-                    Some(source) => Ok(Source::from_reader(
-                        Cursor::new(source.into_bytes()),
-                        Some(&p),
-                    )),
-                    None => Err(JsError::from_native(
-                        JsNativeError::error().with_message("Module not found"),
-                    )),
-                };
-                finish_load(m.and_then(|s| Module::parse(s, None, context)), context);
-            }
-        }
+        context: &RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<Module>> {
+        let result = (|| {
+            let p = resolve_module_specifier(
+                None,
+                &specifier,
+                referrer.path(),
+                &mut context.borrow_mut(),
+            )?;
+
+            let m = self.0(&p.to_string_lossy())
+                .ok_or_else(|| JsNativeError::error().with_message("Module not found"))?;
+            let s = Source::from_reader(Cursor::new(m.as_bytes()), Some(&p));
+
+            Module::parse(s, None, &mut context.borrow_mut())
+        })();
+        async { result }
     }
 }

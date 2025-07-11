@@ -1,5 +1,6 @@
 #![allow(unused_crate_dependencies, missing_docs)]
 
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
@@ -10,19 +11,16 @@ use boa_engine::{Context, JsResult, JsString, Module, Source, js_string};
 fn test_json_module_from_str() {
     struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
-        fn load_imported_module(
-            &self,
+        async fn load_imported_module(
+            self: Rc<Self>,
             _referrer: Referrer,
             specifier: JsString,
-            finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-            context: &mut Context,
-        ) {
+            context: &RefCell<&mut Context>,
+        ) -> JsResult<Module> {
             assert_eq!(specifier.to_std_string_escaped(), "basic");
+            let src = self.0.clone();
 
-            finish_load(
-                Ok(Module::parse_json(self.0.clone(), context).unwrap()),
-                context,
-            );
+            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
         }
     }
 

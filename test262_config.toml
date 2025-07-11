@@ -57,6 +57,12 @@ features = [
     # https://github.com/tc39/proposal-upsert
     "upsert",
 
+    # Source Phase Imports
+    # https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports",
+    # test262 special specifier
+    "source-phase-imports-module-source",
+
     ### Non-standard
     "caller",
 ]

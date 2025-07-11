@@ -1,5 +1,9 @@
+use std::any::Any;
+use std::cell::RefCell;
 use std::path::{Component, Path, PathBuf};
+use std::rc::Rc;
 
+use dynify::{Fn, from_fn};
 use rustc_hash::FxHashMap;
 
 use boa_gc::GcRefCell;
@@ -145,19 +149,19 @@ impl From<ActiveRunnable> for Referrer {
 ///
 /// This trait allows to customize the behaviour of the engine on module load requests and
 /// `import.meta` requests.
-pub trait ModuleLoader {
+pub trait ModuleLoader: Any {
     /// Host hook [`HostLoadImportedModule ( referrer, specifier, hostDefined, payload )`][spec].
     ///
     /// This hook allows to customize the module loading functionality of the engine. Technically,
     /// this should call the [`FinishLoadingImportedModule`][finish] operation, but this simpler API just provides
-    /// a closure that replaces `FinishLoadingImportedModule`.
+    /// an async method that replaces `FinishLoadingImportedModule`.
     ///
     /// # Requirements
     ///
     /// - The host environment must perform `FinishLoadingImportedModule(referrer, specifier, payload, result)`,
     ///   where result is either a normal completion containing the loaded Module Record or a throw
-    ///   completion, either synchronously or asynchronously. This is equivalent to calling the `finish_load`
-    ///   callback.
+    ///   completion, either synchronously or asynchronously. This is replaced by simply returning from
+    ///   the method.
     /// - If this operation is called multiple times with the same `(referrer, specifier)` pair and
     ///   it performs FinishLoadingImportedModule(referrer, specifier, payload, result) where result
     ///   is a normal completion, then it must perform
@@ -168,34 +172,13 @@ pub trait ModuleLoader {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-HostLoadImportedModule
     /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
-    #[allow(clippy::type_complexity)]
-    fn load_imported_module(
-        &self,
+    #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
+    async fn load_imported_module(
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    );
-
-    /// Registers a new module into the module loader.
-    ///
-    /// This is a convenience method for module loaders caching already parsed modules, since it
-    /// allows registering a new module through the `&dyn ModuleLoader` provided by
-    /// [`Context::module_loader`].
-    ///
-    /// Does nothing by default.
-    fn register_module(&self, _specifier: JsString, _module: Module) {}
-
-    /// Gets the module associated with the provided specifier.
-    ///
-    /// This is a convenience method for module loaders caching already parsed modules, since it
-    /// allows getting a cached module through the `&dyn ModuleLoader` provided by
-    /// [`Context::module_loader`].
-    ///
-    /// Returns `None` by default.
-    fn get_module(&self, _specifier: JsString) -> Option<Module> {
-        None
-    }
+        context: &RefCell<&mut Context>,
+    ) -> JsResult<Module>;
 
     /// Host hooks [`HostGetImportMetaProperties ( moduleRecord )`][meta] and
     /// [`HostFinalizeImportMeta ( importMeta, moduleRecord )`][final].
@@ -209,7 +192,59 @@ pub trait ModuleLoader {
     ///
     /// [meta]: https://tc39.es/ecma262/#sec-hostgetimportmetaproperties
     /// [final]: https://tc39.es/ecma262/#sec-hostfinalizeimportmeta
-    fn init_import_meta(&self, _import_meta: &JsObject, _module: &Module, _context: &mut Context) {}
+    fn init_import_meta(
+        self: Rc<Self>,
+        _import_meta: &JsObject,
+        _module: &Module,
+        _context: &mut Context,
+    ) {
+    }
+}
+
+/// A dyn-compatible version of [`ModuleLoader`].
+pub(crate) trait DynModuleLoader: Any {
+    /// See [`ModuleLoader::load_imported_module`].
+    fn load_imported_module<'a, 'b, 'fut>(
+        self: Rc<Self>,
+        referrer: Referrer,
+        specifier: JsString,
+        context: &'a RefCell<&'b mut Context>,
+    ) -> Fn!(Rc<Self>, Referrer, JsString, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
+    where
+        'a: 'fut,
+        'b: 'fut;
+
+    /// See [`ModuleLoader::init_import_meta`].
+    fn init_import_meta(
+        self: Rc<Self>,
+        import_meta: &JsObject,
+        module: &Module,
+        context: &mut Context,
+    );
+}
+
+impl<T: ModuleLoader> DynModuleLoader for T {
+    fn load_imported_module<'a, 'b, 'fut>(
+        self: Rc<Self>,
+        referrer: Referrer,
+        specifier: JsString,
+        context: &'a RefCell<&'b mut Context>,
+    ) -> Fn!(Rc<Self>, Referrer, JsString, &'a RefCell<&'b mut Context> => dyn 'fut + Future<Output = JsResult<Module>>)
+    where
+        'a: 'fut,
+        'b: 'fut,
+    {
+        from_fn!(T::load_imported_module, self, referrer, specifier, context)
+    }
+
+    fn init_import_meta(
+        self: Rc<Self>,
+        import_meta: &JsObject,
+        module: &Module,
+        context: &mut Context,
+    ) {
+        T::init_import_meta(self, import_meta, module, context);
+    }
 }
 
 /// A module loader that throws when trying to load any modules.
@@ -219,19 +254,15 @@ pub trait ModuleLoader {
 pub struct IdleModuleLoader;
 
 impl ModuleLoader for IdleModuleLoader {
-    fn load_imported_module(
-        &self,
+    async fn load_imported_module(
+        self: Rc<Self>,
         _referrer: Referrer,
         _specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        finish_load(
-            Err(JsNativeError::typ()
-                .with_message("module resolution is disabled for this context")
-                .into()),
-            context,
-        );
+        _context: &RefCell<&mut Context>,
+    ) -> JsResult<Module> {
+        Err(JsNativeError::typ()
+            .with_message("module resolution is disabled for this context")
+            .into())
     }
 }
 
@@ -283,16 +314,19 @@ impl SimpleModuleLoader {
 
 impl ModuleLoader for SimpleModuleLoader {
     fn load_imported_module(
-        &self,
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
+        context: &RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<Module>> {
         let result = (|| {
             let short_path = specifier.to_std_string_escaped();
-            let path =
-                resolve_module_specifier(Some(&self.root), &specifier, referrer.path(), context)?;
+            let path = resolve_module_specifier(
+                Some(&self.root),
+                &specifier,
+                referrer.path(),
+                &mut context.borrow_mut(),
+            )?;
             if let Some(module) = self.get(&path) {
                 return Ok(module);
             }
@@ -302,7 +336,7 @@ impl ModuleLoader for SimpleModuleLoader {
                     .with_message(format!("could not open file `{short_path}`"))
                     .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
             })?;
-            let module = Module::parse(source, None, context).map_err(|err| {
+            let module = Module::parse(source, None, &mut context.borrow_mut()).map_err(|err| {
                 JsNativeError::syntax()
                     .with_message(format!("could not parse module `{short_path}`"))
                     .with_cause(err)
@@ -311,19 +345,7 @@ impl ModuleLoader for SimpleModuleLoader {
             Ok(module)
         })();
 
-        finish_load(result, context);
-    }
-
-    fn register_module(&self, specifier: JsString, module: Module) {
-        let path = PathBuf::from(specifier.to_std_string_escaped());
-
-        self.insert(path, module);
-    }
-
-    fn get_module(&self, specifier: JsString) -> Option<Module> {
-        let path = specifier.to_std_string_escaped();
-
-        self.get(Path::new(&path))
+        async { result }
     }
 }
 

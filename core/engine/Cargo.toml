@@ -158,6 +158,7 @@ fixed_decimal = { workspace = true, features = [
     "experimental",
 ], optional = true }
 tinystr = { workspace = true, optional = true }
+dynify.workspace = true
 
 # temporal deps
 temporal_rs = { workspace = true, optional = true }

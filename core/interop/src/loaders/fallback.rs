@@ -1,4 +1,7 @@
 //! A module loader that tries to load modules from multiple loaders.
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use boa_engine::module::{ModuleLoader, Referrer};
 use boa_engine::{Context, JsResult, JsString, Module};
 
@@ -6,41 +9,38 @@ use boa_engine::{Context, JsResult, JsString, Module};
 /// falls back to another loader.
 #[allow(clippy::module_name_repetitions)]
 #[derive(Clone, Debug)]
-pub struct FallbackModuleLoader<L, R>(L, R);
+pub struct FallbackModuleLoader<L, R>(Rc<L>, Rc<R>);
 
 impl<L, R> FallbackModuleLoader<L, R> {
     /// Create a new [`FallbackModuleLoader`] from two loaders.
     pub fn new(loader: L, fallback: R) -> Self {
-        Self(loader, fallback)
+        Self(Rc::new(loader), Rc::new(fallback))
     }
 }
 
 impl<L, R> ModuleLoader for FallbackModuleLoader<L, R>
 where
     L: ModuleLoader,
-    R: ModuleLoader + Clone + 'static,
+    R: ModuleLoader,
 {
-    fn load_imported_module(
-        &self,
+    async fn load_imported_module(
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        self.0.load_imported_module(
-            referrer.clone(),
-            specifier.clone(),
-            {
-                let fallback = self.1.clone();
-                Box::new(move |result, context| {
-                    if result.is_ok() {
-                        finish_load(result, context);
-                    } else {
-                        fallback.load_imported_module(referrer, specifier, finish_load, context);
-                    }
-                })
-            },
-            context,
-        );
+        context: &RefCell<&mut Context>,
+    ) -> JsResult<Module> {
+        if let Ok(module) = self
+            .0
+            .clone()
+            .load_imported_module(referrer.clone(), specifier.clone(), context)
+            .await
+        {
+            return Ok(module);
+        }
+
+        self.1
+            .clone()
+            .load_imported_module(referrer, specifier, context)
+            .await
     }
 }
