@@ -469,7 +469,7 @@ struct Executor {
 }
 
 impl JobExecutor for Executor {
-    fn enqueue_job(&self, job: Job, _: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, _: &mut Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
@@ -477,7 +477,7 @@ impl JobExecutor for Executor {
         }
     }
 
-    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         loop {
             if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
                 return Ok(());
