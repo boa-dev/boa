@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::io::Cursor;
 use std::rc::Rc;
 
-/// Create a [`ModuleLoader`][boa_engine::module::ModuleLoader] from a function that
+/// Create a [`ModuleLoader`] from a function that
 /// takes a referrer and a path, and returns a [Module] if it exists, or an error.
 ///
 /// This function cannot be `async` and must be blocking. An `async` version of
