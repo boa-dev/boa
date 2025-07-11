@@ -621,7 +621,6 @@ impl Context {
 // ==== Private API ====
 
 impl Context {
-
     /// Gets the current job executor.
     pub(crate) fn job_executor(&self) -> Rc<dyn JobExecutor> {
         self.job_executor.clone()
