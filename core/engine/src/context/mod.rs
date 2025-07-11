@@ -1,6 +1,5 @@
 //! The ECMAScript context.
 
-use std::cell::RefCell;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -480,23 +479,6 @@ impl Context {
         result
     }
 
-    /// Asynchronously runs all the jobs with the provided job executor.
-    ///
-    /// # Note
-    ///
-    /// Concurrent job execution cannot be guaranteed by the engine, since this depends on the
-    /// specific handling of each [`JobExecutor`]. If you want to execute jobs concurrently, you must
-    /// provide a custom implementatin of `JobExecutor` to the context.
-    #[allow(clippy::future_not_send)]
-    pub async fn run_jobs_async(&mut self) -> JsResult<()> {
-        let result = self
-            .job_executor()
-            .run_jobs_async(&RefCell::new(self))
-            .await;
-        self.clear_kept_objects();
-        result
-    }
-
     /// Abstract operation [`ClearKeptObjects`][clear].
     ///
     /// Clears all objects maintained alive by calls to the [`AddToKeptObjects`][add] abstract
@@ -569,11 +551,12 @@ impl Context {
         self.clock.as_ref()
     }
 
-    /// Gets the job executor.
+    /// Gets the current job executor, or `None` if the current job executor
+    /// is not a `T`.
     #[inline]
     #[must_use]
-    pub fn job_executor(&self) -> Rc<dyn JobExecutor> {
-        self.job_executor.clone()
+    pub fn downcast_job_executor<T: 'static>(&self) -> Option<Rc<T>> {
+        Rc::downcast(self.job_executor.clone()).ok()
     }
 
     /// Gets the module loader.
@@ -638,6 +621,12 @@ impl Context {
 // ==== Private API ====
 
 impl Context {
+
+    /// Gets the current job executor.
+    pub(crate) fn job_executor(&self) -> Rc<dyn JobExecutor> {
+        self.job_executor.clone()
+    }
+
     /// Swaps the currently active realm with `realm`.
     pub(crate) fn swap_realm(&mut self, realm: &mut Realm) {
         std::mem::swap(&mut self.vm.realm, realm);
