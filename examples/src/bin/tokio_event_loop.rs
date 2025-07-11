@@ -132,20 +132,13 @@ impl JobExecutor for Queue {
             // We have some jobs pending on the microtask queue. Try to poll the pending
             // tasks once to see if any of them finished, and run the pending microtasks
             // otherwise.
-            let Some(result) = future::poll_once(group.next()).await.flatten() else {
-                // No completed jobs. Run the microtask queue once.
-                self.drain_jobs(&mut context.borrow_mut());
-
-                task::yield_now().await;
-                continue;
-            };
-
-            if let Err(err) = result {
+            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
                 eprintln!("Uncaught {err}");
-            }
+            };
 
             // Only one macrotask can be executed before the next drain of the microtask queue.
             self.drain_jobs(&mut context.borrow_mut());
+            task::yield_now().await
         }
     }
 }
