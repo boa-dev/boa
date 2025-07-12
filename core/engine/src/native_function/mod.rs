@@ -293,19 +293,17 @@ impl NativeFunction {
             let args = args.to_vec();
 
             context.enqueue_job(
-                NativeAsyncJob::new(move |context| {
-                    Box::pin(async move {
-                        let result = f(&this, &args, context).await;
+                NativeAsyncJob::new(async move |context| {
+                    let result = f(&this, &args, context).await;
 
-                        let context = &mut context.borrow_mut();
-                        match result {
-                            Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
-                            Err(e) => {
-                                let e = e.to_opaque(context);
-                                resolvers.reject.call(&JsValue::undefined(), &[e], context)
-                            }
+                    let context = &mut context.borrow_mut();
+                    match result {
+                        Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
+                        Err(e) => {
+                            let e = e.to_opaque(context);
+                            resolvers.reject.call(&JsValue::undefined(), &[e], context)
                         }
-                    })
+                    }
                 })
                 .into(),
             );
