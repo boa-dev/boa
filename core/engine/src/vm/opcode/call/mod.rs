@@ -473,11 +473,9 @@ impl ImportCall {
             // 8. Perform HostLoadImportedModule(referrer, specifierString, empty, promiseCapability).
             Ok(specifier) => {
                 let job = NativeAsyncJob::with_realm(
-                    move |context| {
-                        Box::pin(async move {
-                            load_dyn_import(referrer, specifier, cap, context).await;
-                            Ok(JsValue::undefined())
-                        })
+                    async move |context| {
+                        load_dyn_import(referrer, specifier, cap, context).await;
+                        Ok(JsValue::undefined())
                     },
                     context.realm().clone(),
                 );

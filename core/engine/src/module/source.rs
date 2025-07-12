@@ -486,12 +486,10 @@ impl SourceTextModule {
                     let src = module_self.clone();
                     let state = state.clone();
                     let async_job = NativeAsyncJob::with_realm(
-                        move |context| {
-                            Box::pin(async move {
-                                finish_loading_imported_module(name_specifier, src, state, context)
-                                    .await;
-                                Ok(JsValue::undefined())
-                            })
+                        async move |context| {
+                            finish_loading_imported_module(name_specifier, src, state, context)
+                                .await;
+                            Ok(JsValue::undefined())
                         },
                         context.realm().clone(),
                     );

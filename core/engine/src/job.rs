@@ -217,24 +217,24 @@ impl Debug for NativeAsyncJob {
 }
 
 impl NativeAsyncJob {
-    /// Creates a new `NativeAsyncJob` from a closure.
+    /// Creates a new `NativeAsyncJob` from an async closure.
     pub fn new<F>(f: F) -> Self
     where
-        F: for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a> + 'static,
+        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
     {
         Self {
-            f: Box::new(f),
+            f: Box::new(move |ctx| Box::pin(async move { f(ctx).await })),
             realm: None,
         }
     }
 
-    /// Creates a new `NativeAsyncJob` from a closure and an execution realm.
+    /// Creates a new `NativeAsyncJob` from an async closure and an execution realm.
     pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
-        F: for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a> + 'static,
+        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
     {
         Self {
-            f: Box::new(f),
+            f: Box::new(move |ctx| Box::pin(async move { f(ctx).await })),
             realm: Some(realm),
         }
     }

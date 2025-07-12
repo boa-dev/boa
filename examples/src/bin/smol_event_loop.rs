@@ -147,8 +147,8 @@ fn delay(
     }
 }
 
-// Example interval function. We cannot use a function returning async in this case since it would
-// borrow the context for too long, but using a `NativeAsyncJob` we can!
+// Example interval function, but using a `NativeAsyncJob` instead of an async
+// function to schedule the async job.
 fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let Some(function) = args.get_or_undefined(0).as_callable() else {
         return Err(JsNativeError::typ()
@@ -162,17 +162,15 @@ fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult
 
     context.enqueue_job(
         NativeAsyncJob::with_realm(
-            move |context| {
-                Box::pin(async move {
-                    let mut timer = smol::Timer::interval(Duration::from_millis(u64::from(delay)));
-                    for _ in 0..10 {
-                        timer.next().await;
-                        if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
-                            eprintln!("Uncaught {err}");
-                        }
+            async move |context: &RefCell<&mut Context>| {
+                let mut timer = smol::Timer::interval(Duration::from_millis(u64::from(delay)));
+                for _ in 0..10 {
+                    timer.next().await;
+                    if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
+                        eprintln!("Uncaught {err}");
                     }
-                    Ok(JsValue::undefined())
-                })
+                }
+                Ok(JsValue::undefined())
             },
             context.realm().clone(),
         )
