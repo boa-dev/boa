@@ -293,19 +293,17 @@ impl JsPromise {
         let (promise, resolvers) = Self::new_pending(context);
 
         context.enqueue_job(
-            NativeAsyncJob::new(move |context| {
-                Box::pin(async move {
-                    let result = future.await;
+            NativeAsyncJob::new(async move |context| {
+                let result = future.await;
 
-                    let context = &mut context.borrow_mut();
-                    match result {
-                        Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
-                        Err(e) => {
-                            let e = e.to_opaque(context);
-                            resolvers.reject.call(&JsValue::undefined(), &[e], context)
-                        }
+                let context = &mut context.borrow_mut();
+                match result {
+                    Ok(v) => resolvers.resolve.call(&JsValue::undefined(), &[v], context),
+                    Err(e) => {
+                        let e = e.to_opaque(context);
+                        resolvers.reject.call(&JsValue::undefined(), &[e], context)
                     }
-                })
+                }
             })
             .into(),
         );
