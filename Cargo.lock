@@ -561,7 +561,6 @@ dependencies = [
  "rustc-hash 2.1.1",
  "ryu-js",
  "static_assertions",
- "tag_ptr",
 ]
 
 [[package]]
