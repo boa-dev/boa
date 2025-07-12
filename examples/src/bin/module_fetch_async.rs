@@ -220,16 +220,9 @@ impl JobExecutor for Queue {
                 group.insert(job.call(context));
             }
 
-            if self.promise_jobs.borrow().is_empty() {
-                let Some(result) = group.next().await else {
-                    // Both queues are empty. We can exit.
-                    return Ok(());
-                };
-
-                if let Err(err) = result {
-                    eprintln!("Uncaught {err}");
-                }
-                continue;
+            if group.is_empty() && self.promise_jobs.borrow().is_empty() {
+                // Both queues are empty. We can exit.
+                return Ok(());
             }
 
             // We have some jobs pending on the microtask queue. Try to poll the pending
