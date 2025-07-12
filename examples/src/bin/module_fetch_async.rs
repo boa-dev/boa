@@ -176,7 +176,10 @@ impl JobExecutor for Queue {
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
         // Early return in case there were no jobs scheduled.
-        if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+        if self.promise_jobs.borrow().is_empty()
+            && self.async_jobs.borrow().is_empty()
+            && context.borrow().enqueue_resolved_context_jobs()
+        {
             return Ok(());
         }
         let mut group = FutureGroup::new();

@@ -75,7 +75,7 @@ impl NativeJob {
     }
 
     /// Creates a new `NativeJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm, _context: &mut Context) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
@@ -162,19 +162,11 @@ impl TimeoutJob {
 
     /// Creates a new `TimeoutJob` from a closure, a timeout, and an execution realm.
     #[must_use]
-    pub fn with_realm<F>(
-        f: F,
-        realm: Realm,
-        timeout: std::time::Duration,
-        context: &mut Context,
-    ) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm, timeout: std::time::Duration) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
-        Self::new(
-            NativeJob::with_realm(f, realm, context),
-            timeout.as_millis() as u64,
-        )
+        Self::new(NativeJob::with_realm(f, realm), timeout.as_millis() as u64)
     }
 
     /// Calls the native job with the specified [`Context`].
@@ -192,6 +184,46 @@ impl TimeoutJob {
     #[must_use]
     pub fn timeout(&self) -> JsDuration {
         self.timeout
+    }
+}
+
+/// An ECMAScript Generic [Job].
+///
+/// This represents the [HostEnqueueGenericJob] operation from the specification, which
+/// enqueues a job that is just like a [`PromiseJob`], but unconstrained in relation
+/// to priority and ordering.
+///
+/// [HostEnqueueGenericJob]: https://tc39.es/ecma262/#sec-hostenqueuegenericjob
+pub struct GenericJob(NativeJob);
+
+impl Debug for GenericJob {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GenericJob").finish_non_exhaustive()
+    }
+}
+
+impl GenericJob {
+    /// Creates a new `GenericJob` from a closure and an execution realm.
+    pub fn new<F>(f: F, realm: Realm) -> Self
+    where
+        F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
+    {
+        Self(NativeJob::with_realm(f, realm))
+    }
+
+    /// Gets a reference to the execution realm of the job.
+    #[must_use]
+    pub const fn realm(&self) -> &Realm {
+        self.0
+            .realm
+            .as_ref()
+            .expect("all generic jobs must have an execution realm")
+    }
+
+    /// Calls the `GenericJob` with the specified [`Context`], setting the execution
+    /// context to the job's realm before calling the inner closure, and resets it after execution.
+    pub fn call(self, context: &mut Context) -> JsResult<JsValue> {
+        self.0.call(context)
     }
 }
 
@@ -333,11 +365,11 @@ impl PromiseJob {
     }
 
     /// Creates a new `PromiseJob` from a closure and an execution realm.
-    pub fn with_realm<F>(f: F, realm: Realm, context: &mut Context) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
-        Self(NativeJob::with_realm(f, realm, context))
+        Self(NativeJob::with_realm(f, realm))
     }
 
     /// Gets a reference to the execution realm of the `PromiseJob`.
@@ -441,6 +473,10 @@ pub enum Job {
     ///
     /// See [`TimeoutJob`] for more information.
     TimeoutJob(TimeoutJob),
+    /// A generic job.
+    ///
+    /// See [`GenericJob`] for more information.
+    GenericJob(GenericJob),
 }
 
 impl From<NativeAsyncJob> for Job {
@@ -458,6 +494,12 @@ impl From<PromiseJob> for Job {
 impl From<TimeoutJob> for Job {
     fn from(job: TimeoutJob) -> Self {
         Job::TimeoutJob(job)
+    }
+}
+
+impl From<GenericJob> for Job {
+    fn from(job: GenericJob) -> Self {
+        Job::GenericJob(job)
     }
 }
 
@@ -578,7 +620,10 @@ impl JobExecutor for SimpleJobExecutor {
 
         let context = RefCell::new(context);
         loop {
-            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            if self.promise_jobs.borrow().is_empty()
+                && self.async_jobs.borrow().is_empty()
+                && !context.borrow_mut().enqueue_resolved_context_jobs()
+            {
                 break;
             }
 
@@ -601,6 +646,8 @@ impl JobExecutor for SimpleJobExecutor {
                 }
                 next_job = self.promise_jobs.borrow_mut().pop_front();
             }
+            let context = &mut context.borrow_mut();
+            context.clear_kept_objects();
         }
 
         Ok(())
