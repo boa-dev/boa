@@ -23,6 +23,7 @@ use crate::{
     value::PreferredType,
 };
 use boa_gc::{self, Finalize, Gc, GcRef, GcRefCell, GcRefMut, Trace};
+use boa_string::StaticJsStrings;
 use core::ptr::fn_addr_eq;
 use std::collections::HashSet;
 use std::{
@@ -633,6 +634,16 @@ Cannot both specify accessors and a value or writable attribute",
         let mut obj = Some(self.clone());
 
         while let Some(o) = obj {
+            if o.is_array() && *key == PropertyKey::String(StaticJsStrings::LENGTH) {
+                return Some(
+                    PropertyDescriptor::builder()
+                        .value(o.borrow().properties().indexed_properties.array_length())
+                        .enumerable(false)
+                        .writable(false)
+                        .configurable(false)
+                        .build(),
+                );
+            }
             if let Some(v) = o.borrow().properties.get(key) {
                 return Some(v);
             }

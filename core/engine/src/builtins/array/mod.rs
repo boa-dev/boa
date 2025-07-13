@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
 use boa_gc::{Finalize, Trace};
-use thin_vec::ThinVec;
+use thin_vec::{ThinVec, thin_vec};
 
 use crate::{
     Context, JsArgs, JsResult, JsString,
@@ -22,7 +22,7 @@ use crate::{
         CONSTRUCTOR, IndexedProperties, JsData, JsObject,
         internal_methods::{
             InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-            get_prototype_from_constructor, ordinary_define_own_property,
+            get_prototype_from_constructor, ordinary_define_own_property, ordinary_delete,
             ordinary_get_own_property,
         },
     },
@@ -66,6 +66,9 @@ pub(crate) struct Array;
 /// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects
 pub(crate) static ARRAY_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
     __define_own_property__: array_exotic_define_own_property,
+    __get_own_property__: array_exotic_get_own_property,
+    __own_property_keys__: array_exotic_own_property_keys,
+    __delete__: array_exotic_delete,
     ..ORDINARY_INTERNAL_METHODS
 };
 
@@ -263,8 +266,11 @@ impl BuiltInConstructor for Array {
             };
             // e. Perform ! Set(array, "length", intLen, true).
             array
-                .set(StaticJsStrings::LENGTH, int_len, true, context)
-                .expect("this Set call must not fail");
+                .borrow_mut()
+                .properties_mut()
+                .indexed_properties
+                .set_array_length(int_len);
+
             // f. Return array.
             Ok(array.into())
         // 6. Else,
@@ -298,17 +304,17 @@ impl Array {
     fn set_length(o: &JsObject, len: u64, context: &mut Context) -> JsResult<()> {
         if o.is_array() && len < (2u64.pow(32) - 1) {
             let mut borrowed_object = o.borrow_mut();
-            if borrowed_object.properties().shape.to_addr_usize()
-                == context
-                    .intrinsics()
-                    .templates()
-                    .array()
-                    .shape()
-                    .to_addr_usize()
-            {
-                // NOTE: The "length" property is the first element.
-                borrowed_object.properties_mut().storage[0] = JsValue::new(len);
-                return Ok(());
+
+            let indexed = &mut borrowed_object.properties_mut().indexed_properties;
+
+            // NOTE: The "length" property is the first element.
+            let success = indexed.array_length_writable() && indexed.set_array_length(len as u32);
+
+            // 5. If success is false and Throw is true, throw a TypeError exception.
+            if !success {
+                return Err(JsNativeError::typ()
+                    .with_message("cannot set non-writable property: length")
+                    .into());
             }
         }
 
@@ -340,7 +346,11 @@ impl Array {
                 .intrinsics()
                 .templates()
                 .array()
-                .create(Array, vec![JsValue::new(length)]));
+                .create_with_indexed_properties(
+                    Array,
+                    thin_vec![],
+                    IndexedProperties::new(length as u32),
+                ));
         }
 
         // 7. Return A.
@@ -358,11 +368,18 @@ impl Array {
             .array()
             .has_prototype(&prototype)
         {
-            return Ok(context
+            let array = context
                 .intrinsics()
                 .templates()
                 .array()
-                .create(Array, vec![JsValue::new(length)]));
+                .create(Array, thin_vec![]);
+
+            array
+                .borrow_mut()
+                .properties_mut()
+                .indexed_properties
+                .set_array_length(length as u32);
+            return Ok(array);
         }
 
         let array =
@@ -370,17 +387,11 @@ impl Array {
                 .upcast();
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-        ordinary_define_own_property(
-            &array,
-            &StaticJsStrings::LENGTH.into(),
-            PropertyDescriptor::builder()
-                .value(length)
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-            &mut InternalMethodPropertyContext::new(context),
-        )?;
+        array
+            .borrow_mut()
+            .properties_mut()
+            .indexed_properties
+            .set_array_length(length as u32);
 
         Ok(array)
     }
@@ -406,15 +417,23 @@ impl Array {
         let elements: ThinVec<_> = elements.into_iter().collect();
         let length = elements.len();
 
-        context
+        let array = context
             .intrinsics()
             .templates()
             .array()
             .create_with_indexed_properties(
                 Array,
-                vec![JsValue::new(length)],
+                thin_vec![],
                 IndexedProperties::from_dense_js_value(elements),
-            )
+            );
+
+        array
+            .borrow_mut()
+            .properties_mut()
+            .indexed_properties
+            .set_array_length(length as u32);
+
+        array
     }
 
     /// Utility function for concatenating array objects.
@@ -1199,38 +1218,37 @@ impl Array {
             return Ok(JsValue::undefined());
         }
 
-        // Small optimization for arrays using dense properties
-        // TODO: this optimization could be generalized to many other objects with
-        // slot-based dense property maps.
-        if o.is_array() {
-            let mut o_borrow = o.borrow_mut();
-            if let IndexedProperties::DenseI32(dense) =
-                &mut o_borrow.properties_mut().indexed_properties
-                && len <= dense.len() as u64
-            {
-                let v = dense.remove(0);
-                drop(o_borrow);
-                Self::set_length(&o, len - 1, context)?;
-                return Ok(v.into());
-            }
-            if let IndexedProperties::DenseF64(dense) =
-                &mut o_borrow.properties_mut().indexed_properties
-                && len <= dense.len() as u64
-            {
-                let v = dense.remove(0);
-                drop(o_borrow);
-                Self::set_length(&o, len - 1, context)?;
-                return Ok(v.into());
-            }
-            if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut()
-                && len <= dense.len() as u64
-            {
-                let v = dense.remove(0);
-                drop(o_borrow);
-                Self::set_length(&o, len - 1, context)?;
-                return Ok(v);
-            }
-        }
+        // // Small optimization for arrays using dense properties
+        // // TODO: this optimization could be generalized to many other objects with
+        // // slot-based dense property maps.
+        // if o.is_array() {
+        //     let mut o_borrow = o.borrow_mut();
+        //     if let IndexedProperties::DenseI32 { vec: dense, length } =
+        //         &mut o_borrow.properties_mut().indexed_properties
+        //     {
+        //         if len <= dense.len() as u64 {
+        //             let v = dense.remove(0);
+        //             *length = (len - 1) as u32;
+        //             return Ok(v.into());
+        //         }
+        //     }
+        //     if let IndexedProperties::DenseF64 { vec: dense, length } =
+        //         &mut o_borrow.properties_mut().indexed_properties
+        //     {
+        //         if len <= dense.len() as u64 {
+        //             let v = dense.remove(0);
+        //             *length = (len - 1) as u32;
+        //             return Ok(v.into());
+        //         }
+        //     }
+        //     if let Some((dense, length)) = o_borrow.properties_mut().dense_indexed_properties_mut()
+        //         && len <= dense.len() as u64
+        //     {
+        //         let v = dense.remove(0);
+        //         *length = (len - 1) as u32;
+        //         return Ok(v);
+        //     }
+        // }
 
         // 4. Let first be ? Get(O, "0").
         let first = o.get(0, context)?;
@@ -3429,60 +3447,28 @@ fn array_exotic_define_own_property(
         PropertyKey::String(s) if s == &StaticJsStrings::LENGTH => {
             // a. Return ? ArraySetLength(A, Desc).
 
-            array_set_length(obj, desc, context)
+            array_set_length(obj, &desc, context)
         }
         // 3. Else if P is an array index, then
         PropertyKey::Index(index) => {
             let index = index.get();
             let new_len = index + 1;
 
-            // Optimization: If the shape of the object is the array template shape,
-            // we know the position of the "length" property.
-            if u64::from(new_len) < (2u64.pow(32) - 1) {
-                let borrowed_object = obj.borrow();
-                if borrowed_object.properties().shape.to_addr_usize()
-                    == context
-                        .intrinsics()
-                        .templates()
-                        .array()
-                        .shape()
-                        .to_addr_usize()
-                {
-                    let old_len = borrowed_object.properties().storage[0].clone();
-                    drop(borrowed_object);
-                    let old_len = old_len.to_u32(context)?;
-                    if new_len >= old_len {
-                        if ordinary_define_own_property(obj, key, desc, context)? {
-                            let mut borrowed_object = obj.borrow_mut();
-                            borrowed_object.properties_mut().storage[0] = JsValue::new(new_len);
-                            return Ok(true);
-                        }
-                        return Ok(false);
-                    }
-                }
-            }
-
-            // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-            let old_len_desc =
-                ordinary_get_own_property(obj, &StaticJsStrings::LENGTH.into(), context)?
-                    .expect("the property descriptor must exist");
-
-            // b. Assert: ! IsDataDescriptor(oldLenDesc) is true.
-            debug_assert!(old_len_desc.is_data_descriptor());
-
-            // c. Assert: oldLenDesc.[[Configurable]] is false.
-            debug_assert!(!old_len_desc.expect_configurable());
-
-            // d. Let oldLen be oldLenDesc.[[Value]].
-            // e. Assert: oldLen is a non-negative integral Number.
-            // f. Let index be ! ToUint32(P).
-            let old_len = old_len_desc
-                .expect_value()
-                .to_u32(context)
-                .expect("this ToUint32 call must not fail");
+            // SKIP: a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
+            // SKIP: b. Assert: ! IsDataDescriptor(oldLenDesc) is true.
+            // SKIP: c. Assert: oldLenDesc.[[Configurable]] is false.
+            // SKIP: d. Let oldLen be oldLenDesc.[[Value]].
+            // SKIP: e. Assert: oldLen is a non-negative integral Number.
+            // SKIP: f. Let index be ! ToUint32(P).
+            let old_len = obj.borrow().properties().indexed_properties.array_length();
+            let old_len_writable = obj
+                .borrow()
+                .properties()
+                .indexed_properties
+                .array_length_writable();
 
             // g. If index ≥ oldLen and oldLenDesc.[[Writable]] is false, return false.
-            if index >= old_len && !old_len_desc.expect_writable() {
+            if index >= old_len && !old_len_writable {
                 return Ok(false);
             }
 
@@ -3491,22 +3477,20 @@ fn array_exotic_define_own_property(
                 // j. If index ≥ oldLen, then
                 if index >= old_len {
                     // i. Set oldLenDesc.[[Value]] to index + 1𝔽.
-                    let old_len_desc = PropertyDescriptor::builder()
-                        .value(new_len)
-                        .maybe_writable(old_len_desc.writable())
-                        .maybe_enumerable(old_len_desc.enumerable())
-                        .maybe_configurable(old_len_desc.configurable());
+                    // let old_len_desc = PropertyDescriptor::builder()
+                    //     .value(new_len)
+                    //     .maybe_writable(old_len_desc.writable())
+                    //     .maybe_enumerable(old_len_desc.enumerable())
+                    //     .maybe_configurable(old_len_desc.configurable());
 
                     // ii. Set succeeded to OrdinaryDefineOwnProperty(A, "length", oldLenDesc).
-                    let succeeded = ordinary_define_own_property(
-                        obj,
-                        &StaticJsStrings::LENGTH.into(),
-                        old_len_desc.into(),
-                        context,
-                    )?;
+                    obj.borrow_mut()
+                        .properties_mut()
+                        .indexed_properties
+                        .set_array_length(new_len);
 
                     // iii. Assert: succeeded is true.
-                    debug_assert!(succeeded);
+                    // debug_assert!(succeeded);
                 }
 
                 // k. Return true.
@@ -3529,149 +3513,179 @@ fn array_exotic_define_own_property(
 /// [spec]: https://tc39.es/ecma262/#sec-arraysetlength
 fn array_set_length(
     obj: &JsObject,
-    desc: PropertyDescriptor,
+    desc: &PropertyDescriptor,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
-    // 1. If Desc.[[Value]] is absent, then
-    let Some(new_len_val) = desc.value() else {
-        // a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
-        return ordinary_define_own_property(obj, &StaticJsStrings::LENGTH.into(), desc, context);
-    };
+    // // 1. If Desc.[[Value]] is absent, then
+    // let Some(new_len_val) = desc.value() else {
+    //     // a. Return OrdinaryDefineOwnProperty(A, "length", Desc).
+    //     return ordinary_define_own_property(obj, &StaticJsStrings::LENGTH.into(), desc, context);
+    // };
 
-    // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
-    let new_len = new_len_val.to_u32(context)?;
+    // let new_len = new_len_val.to_u32(context)?;
 
-    // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
-    let number_len = new_len_val.to_number(context)?;
+    // // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
+    // let number_len = new_len_val.to_number(context)?;
 
-    // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
-    #[allow(clippy::float_cmp)]
-    if f64::from(new_len) != number_len {
-        return Err(JsNativeError::range()
-            .with_message("bad length for array")
-            .into());
+    // // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
+    // #[allow(clippy::float_cmp)]
+    // if f64::from(new_len) != number_len {
+    //     return Err(JsNativeError::range()
+    //         .with_message("bad length for array")
+    //         .into());
+    // }
+
+    let mut new_len = obj.borrow().properties().indexed_properties.array_length();
+    if let Some(value) = desc.value() {
+        // 3. Let newLen be ? ToUint32(Desc.[[Value]]).
+        new_len = value.to_u32(context)?;
+
+        // 4. Let numberLen be ? ToNumber(Desc.[[Value]]).
+        let number_len = value.to_number(context)?;
+
+        // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
+        #[allow(clippy::float_cmp)]
+        if f64::from(new_len) != number_len {
+            return Err(JsNativeError::range()
+                .with_message("bad length for array")
+                .into());
+        }
     }
 
-    // 2. Let newLenDesc be a copy of Desc.
-    // 6. Set newLenDesc.[[Value]] to newLen.
-    let mut new_len_desc = PropertyDescriptor::builder()
-        .value(new_len)
-        .maybe_writable(desc.writable())
-        .maybe_enumerable(desc.enumerable())
-        .maybe_configurable(desc.configurable());
+    let new_writable = desc.writable().unwrap_or(true);
 
-    // 7. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
-    let old_len_desc = ordinary_get_own_property(obj, &StaticJsStrings::LENGTH.into(), context)?
-        .expect("the property descriptor must exist");
-
-    // 8. Assert: ! IsDataDescriptor(oldLenDesc) is true.
-    debug_assert!(old_len_desc.is_data_descriptor());
-
-    // 9. Assert: oldLenDesc.[[Configurable]] is false.
-    debug_assert!(!old_len_desc.expect_configurable());
-
-    // 10. Let oldLen be oldLenDesc.[[Value]].
-    let old_len = old_len_desc.expect_value();
-
-    // 11. If newLen ≥ oldLen, then
-    if new_len >= old_len.to_u32(context)? {
-        // a. Return OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-        return ordinary_define_own_property(
-            obj,
-            &StaticJsStrings::LENGTH.into(),
-            new_len_desc.build(),
-            context,
-        );
-    }
-
-    // 12. If oldLenDesc.[[Writable]] is false, return false.
-    if !old_len_desc.expect_writable() {
+    if desc.configurable() == Some(true) {
         return Ok(false);
     }
 
-    // 13. If newLenDesc.[[Writable]] is absent or has the value true, let newWritable be true.
-    let new_writable = if new_len_desc.inner().writable().unwrap_or(true) {
-        true
+    // b. If Desc has an [[Enumerable]] field and SameValue(Desc.[[Enumerable]], current.[[Enumerable]]) is false, return false.
+    if desc.enumerable() == Some(true) {
+        return Ok(false);
     }
-    // 14. Else,
-    else {
-        // a. NOTE: Setting the [[Writable]] attribute to false is deferred in case any
-        // elements cannot be deleted.
-        // c. Set newLenDesc.[[Writable]] to true.
-        new_len_desc = new_len_desc.writable(true);
 
-        // b. Let newWritable be false.
-        false
-    };
+    // c. If IsGenericDescriptor(Desc) is false and SameValue(IsAccessorDescriptor(Desc), IsAccessorDescriptor(current)) is false, return false.
+    if !desc.is_generic_descriptor() && desc.is_accessor_descriptor() {
+        return Ok(false);
+    }
 
-    // 15. Let succeeded be ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-    // 16. If succeeded is false, return false.
-    if !ordinary_define_own_property(
-        obj,
-        &StaticJsStrings::LENGTH.into(),
-        new_len_desc.clone().build(),
-        context,
-    )
-    .expect("this OrdinaryDefineOwnProperty call must not fail")
+    // NOTE: Step d. doesn't apply here.
+    // e. Else if current.[[Writable]] is false, then
+    if !obj
+        .borrow()
+        .properties()
+        .indexed_properties
+        .array_length_writable()
     {
-        return Ok(false);
-    }
-
-    // 17. For each own property key P of A that is an array index, whose numeric value is
-    // greater than or equal to newLen, in descending numeric index order, do
-    let ordered_keys = {
-        let mut keys: Vec<_> = obj
-            .borrow()
-            .properties
-            .index_property_keys()
-            .filter(|idx| new_len <= *idx && *idx < u32::MAX)
-            .collect();
-        keys.sort_unstable_by(|x, y| y.cmp(x));
-        keys
-    };
-
-    for index in ordered_keys {
-        // a. Let deleteSucceeded be ! A.[[Delete]](P).
-        // b. If deleteSucceeded is false, then
-        if !obj.__delete__(&index.into(), context)? {
-            // i. Set newLenDesc.[[Value]] to ! ToUint32(P) + 1𝔽.
-            new_len_desc = new_len_desc.value(index + 1);
-
-            // ii. If newWritable is false, set newLenDesc.[[Writable]] to false.
-            if !new_writable {
-                new_len_desc = new_len_desc.writable(false);
-            }
-
-            // iii. Perform ! OrdinaryDefineOwnProperty(A, "length", newLenDesc).
-            ordinary_define_own_property(
-                obj,
-                &StaticJsStrings::LENGTH.into(),
-                new_len_desc.build(),
-                context,
-            )
-            .expect("this OrdinaryDefineOwnProperty call must not fail");
-
-            // iv. Return false.
+        // i. If Desc has a [[Writable]] field and Desc.[[Writable]] is true, return false.
+        if desc.writable() == Some(true) {
+            return Ok(false);
+        }
+        // ii. If Desc has a [[Value]] field and SameValue(Desc.[[Value]], current.[[Value]]) is false, return false.
+        if new_len != obj.borrow().properties().indexed_properties.array_length() {
             return Ok(false);
         }
     }
 
-    // 18. If newWritable is false, then
-    if !new_writable {
-        // a. Set succeeded to ! OrdinaryDefineOwnProperty(A, "length",
-        // PropertyDescriptor { [[Writable]]: false }).
-        let succeeded = ordinary_define_own_property(
-            obj,
-            &StaticJsStrings::LENGTH.into(),
-            PropertyDescriptor::builder().writable(false).build(),
-            context,
-        )
-        .expect("this OrdinaryDefineOwnProperty call must not fail");
+    let success = obj
+        .borrow_mut()
+        .properties_mut()
+        .indexed_properties
+        .set_array_length(new_len);
 
-        // b. Assert: succeeded is true.
-        debug_assert!(succeeded);
+    if !new_writable {
+        obj.borrow_mut()
+            .properties_mut()
+            .indexed_properties
+            .set_array_length_writable(false);
+    }
+
+    if !success {
+        return Ok(false);
     }
 
     // 19. Return true.
     Ok(true)
+}
+
+fn array_exotic_get_own_property(
+    obj: &JsObject,
+    key: &PropertyKey,
+    context: &mut InternalMethodPropertyContext<'_>,
+) -> JsResult<Option<PropertyDescriptor>> {
+    match key {
+        PropertyKey::Index(index) => {
+            return Ok(obj
+                .borrow()
+                .properties()
+                .indexed_properties
+                .get(index.get()));
+        }
+        PropertyKey::String(key) if *key == StaticJsStrings::LENGTH => {
+            let obj = obj.borrow();
+            let len = obj.properties().indexed_properties.array_length();
+            let writable = obj.properties().indexed_properties.array_length_writable();
+            return Ok(Some(
+                PropertyDescriptor::builder()
+                    .value(len)
+                    .configurable(false)
+                    .writable(writable)
+                    .enumerable(false)
+                    .build(),
+            ));
+        }
+        _ => {}
+    }
+
+    ordinary_get_own_property(obj, key, context)
+}
+
+/// Abstract operation `OrdinaryOwnPropertyKeys`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn array_exotic_own_property_keys(
+    obj: &JsObject,
+    _context: &mut Context,
+) -> JsResult<Vec<PropertyKey>> {
+    // 1. Let keys be a new empty List.
+    let mut keys = Vec::new();
+
+    let ordered_indexes = {
+        let mut indexes: Vec<_> = obj.borrow().properties.index_property_keys().collect();
+        indexes.sort_unstable();
+        indexes
+    };
+
+    // 2. For each own property key P of O such that P is an array index, in ascending numeric index order, do
+    // a. Add P as the last element of keys.
+    keys.extend(ordered_indexes.into_iter().map(Into::into));
+
+    // Special length property.
+    keys.push(StaticJsStrings::LENGTH.into());
+
+    // 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
+    //     a. Add P as the last element of keys.
+    //
+    // 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
+    //     a. Add P as the last element of keys.
+    keys.extend(obj.borrow().properties.shape.keys());
+
+    // 5. Return keys.
+    Ok(keys)
+}
+
+pub(crate) fn array_exotic_delete(
+    obj: &JsObject,
+    key: &PropertyKey,
+    context: &mut InternalMethodPropertyContext<'_>,
+) -> JsResult<bool> {
+    if let PropertyKey::String(key) = key
+        && *key == StaticJsStrings::LENGTH
+    {
+        return Ok(false);
+    }
+    ordinary_delete(obj, key, context)
 }

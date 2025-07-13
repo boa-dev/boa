@@ -615,11 +615,12 @@ impl JsObject {
         //       is for arrays. The "length" property of an array is stored in the first index.
         if self.is_array() {
             let borrowed_object = self.borrow();
-            // NOTE: using `to_u32` instead of `to_length` is an optimization,
-            //       since arrays are limited to [0, 2^32 - 1] range.
-            return borrowed_object.properties().storage[0]
-                .to_u32(context)
-                .map(u64::from);
+            return Ok(u64::from(
+                borrowed_object
+                    .properties()
+                    .indexed_properties
+                    .array_length(),
+            ));
         }
 
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).

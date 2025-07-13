@@ -106,16 +106,7 @@ fn log_array_to(
     print_internals: bool,
     print_children: bool,
 ) -> fmt::Result {
-    let len = x
-        .borrow()
-        .properties()
-        .get(&js_string!("length").into())
-        .expect("array object must have 'length' property")
-        // FIXME: handle accessor descriptors
-        .expect_value()
-        .as_number()
-        .map(|n| n as i32)
-        .unwrap_or_default();
+    let len = x.borrow().properties().indexed_properties.array_length();
 
     if print_children {
         if len == 0 {

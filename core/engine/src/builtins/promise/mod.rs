@@ -28,6 +28,7 @@ use crate::{
 use boa_gc::{Finalize, Gc, GcRefCell, Trace, custom_trace};
 use boa_macros::JsData;
 use std::{cell::Cell, rc::Rc};
+use thin_vec::thin_vec;
 
 // ==================== Public API ====================
 
@@ -545,7 +546,7 @@ impl Promise {
         // 6. Perform ! CreateDataPropertyOrThrow(obj, "reject", promiseCapability.[[Reject]]).
         let obj = context.intrinsics().templates().with_resolvers().create(
             OrdinaryObject,
-            vec![promise.into(), resolve.into(), reject.into()],
+            thin_vec![promise.into(), resolve.into(), reject.into()],
         );
 
         // 7. Return obj.

@@ -46,7 +46,7 @@ impl UnmappedArguments {
             .unmapped_arguments()
             .create(
                 Self,
-                vec![
+                thin_vec![
                     // 4. Perform DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
                     // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
                     len.into(),
@@ -243,7 +243,7 @@ impl MappedArguments {
         // 11. Set obj.[[ParameterMap]] to map.
         let obj = context.intrinsics().templates().mapped_arguments().create(
             map,
-            vec![
+            thin_vec![
                 // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
                 // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
                 len.into(),

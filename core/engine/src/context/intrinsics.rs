@@ -1413,12 +1413,9 @@ impl ObjectTemplates {
         let ordinary_object =
             ObjectTemplate::with_prototype(root_shape, constructors.object().prototype());
         let mut array = ObjectTemplate::new(root_shape);
-        let length_property_key: PropertyKey = js_string!("length").into();
-        array.property(
-            length_property_key.clone(),
-            Attribute::WRITABLE | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
-        );
         array.set_prototype(constructors.array().prototype());
+
+        let length_property_key: PropertyKey = js_string!("length").into();
 
         let number = ObjectTemplate::with_prototype(root_shape, constructors.number().prototype());
         let symbol = ObjectTemplate::with_prototype(root_shape, constructors.symbol().prototype());
@@ -1597,8 +1594,7 @@ impl ObjectTemplates {
     ///
     /// Transitions:
     ///
-    /// 1. `"length"`: (`WRITABLE`, `PERMANENT`,`NON_ENUMERABLE`)
-    /// 2. `__proto__`: `Array.prototype`
+    /// 1. `__proto__`: `Array.prototype`
     pub(crate) const fn array(&self) -> &ObjectTemplate {
         &self.array
     }

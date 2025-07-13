@@ -27,6 +27,7 @@ use boa_macros::{js_str, utf16};
 use boa_parser::lexer::regex::RegExpFlags;
 use regress::{Flags, Range, Regex};
 use std::str::FromStr;
+use thin_vec::thin_vec;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -385,13 +386,13 @@ impl RegExp {
                 .regexp_without_proto()
                 .clone();
             template.set_prototype(prototype);
-            template.create(regexp, vec![0.into()])
+            template.create(regexp, thin_vec![0.into()])
         } else {
             context
                 .intrinsics()
                 .templates()
                 .regexp()
-                .create(regexp, vec![0.into()])
+                .create(regexp, thin_vec![0.into()])
         };
 
         // 23. Return obj.

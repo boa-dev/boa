@@ -6,7 +6,7 @@ use datatypes::ObjectData;
 pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
-use thin_vec::ThinVec;
+use thin_vec::{ThinVec, thin_vec};
 
 use self::{internal_methods::ORDINARY_INTERNAL_METHODS, shape::Shape};
 use crate::{
@@ -58,7 +58,7 @@ pub type JsPrototype = Option<JsObject>;
 /// The internal storage of an object's property values.
 ///
 /// The [`shape::Shape`] contains the property names and attributes.
-pub(crate) type ObjectStorage = Vec<JsValue>;
+pub(crate) type ObjectStorage = ThinVec<JsValue>;
 
 /// This trait allows Rust types to be passed around as objects.
 ///
@@ -450,7 +450,7 @@ impl<'realm> FunctionObjectBuilder<'realm> {
                 constructor: self.constructor,
                 realm: Some(self.realm.clone()),
             },
-            vec![self.length.into(), self.name.into()],
+            thin_vec![self.length.into(), self.name.into()],
         );
 
         JsFunction::from_object_unchecked(object)

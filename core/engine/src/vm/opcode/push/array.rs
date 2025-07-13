@@ -1,5 +1,7 @@
+use thin_vec::ThinVec;
+
 use crate::{
-    Context, JsResult, JsValue,
+    Context, JsResult,
     builtins::Array,
     string::StaticJsStrings,
     vm::opcode::{Operation, VaryingOperand},
@@ -19,7 +21,7 @@ impl PushNewArray {
             .intrinsics()
             .templates()
             .array()
-            .create(Array, Vec::from([JsValue::new(0)]));
+            .create(Array, ThinVec::default());
         context.vm.set_register(array.into(), value.into());
     }
 }

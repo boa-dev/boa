@@ -14,7 +14,7 @@ use bitflags::bitflags;
 use boa_ast::scope::{BindingLocator, Scope};
 use boa_gc::{Finalize, Gc, Trace, empty_trace};
 use std::{cell::Cell, fmt::Display, fmt::Write as _};
-use thin_vec::ThinVec;
+use thin_vec::{ThinVec, thin_vec};
 
 use super::{
     InlineCache,
@@ -1091,25 +1091,25 @@ pub(crate) fn create_function_object(
 
         (
             templates.function_with_prototype_without_proto().clone(),
-            vec![length, name, prototype.into()],
+            thin_vec![length, name, prototype.into()],
             None,
         )
     } else if is_async {
         (
             templates.function_without_proto().clone(),
-            vec![length, name],
+            thin_vec![length, name],
             None,
         )
     } else {
         let constructor_prototype = templates
             .function_prototype()
-            .create(OrdinaryObject, vec![JsValue::undefined()]);
+            .create(OrdinaryObject, thin_vec![JsValue::undefined()]);
 
         let template = templates.function_with_prototype_without_proto();
 
         (
             template.clone(),
-            vec![length, name, constructor_prototype.clone().into()],
+            thin_vec![length, name, constructor_prototype.clone().into()],
             Some(constructor_prototype),
         )
     };
@@ -1161,31 +1161,31 @@ pub(crate) fn create_function_object_fast(code: Gc<CodeBlock>, context: &mut Con
             context.intrinsics().templates().generator_function()
         };
 
-        template.create(function, vec![length, name, prototype.into()])
+        template.create(function, thin_vec![length, name, prototype.into()])
     } else if is_async {
         context
             .intrinsics()
             .templates()
             .async_function()
-            .create(function, vec![length, name])
+            .create(function, thin_vec![length, name])
     } else if !has_prototype_property {
         context
             .intrinsics()
             .templates()
             .function()
-            .create(function, vec![length, name])
+            .create(function, thin_vec![length, name])
     } else {
         let prototype = context
             .intrinsics()
             .templates()
             .function_prototype()
-            .create(OrdinaryObject, vec![JsValue::undefined()]);
+            .create(OrdinaryObject, thin_vec![JsValue::undefined()]);
 
         let constructor = context
             .intrinsics()
             .templates()
             .function_with_prototype()
-            .create(function, vec![length, name, prototype.clone().into()]);
+            .create(function, thin_vec![length, name, prototype.clone().into()]);
 
         prototype.borrow_mut().properties_mut().storage[0] = constructor.clone().into();
 

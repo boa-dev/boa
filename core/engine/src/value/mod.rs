@@ -20,6 +20,7 @@ pub use boa_macros::TryIntoJs;
 pub use conversions::convert::Convert;
 #[doc(inline)]
 pub use conversions::nullable::Nullable;
+use thin_vec::{ThinVec, thin_vec};
 
 pub(crate) use self::conversions::IntoOrUndefined;
 #[doc(inline)]
@@ -584,32 +585,32 @@ impl JsValue {
                 .intrinsics()
                 .templates()
                 .boolean()
-                .create(boolean, Vec::default())),
+                .create(boolean, ThinVec::default())),
             JsVariant::Integer32(integer) => Ok(context
                 .intrinsics()
                 .templates()
                 .number()
-                .create(f64::from(integer), Vec::default())),
+                .create(f64::from(integer), ThinVec::default())),
             JsVariant::Float64(rational) => Ok(context
                 .intrinsics()
                 .templates()
                 .number()
-                .create(rational, Vec::default())),
+                .create(rational, ThinVec::default())),
             JsVariant::String(string) => Ok(context
                 .intrinsics()
                 .templates()
                 .string()
-                .create(string.clone(), vec![string.len().into()])),
+                .create(string.clone(), thin_vec![string.len().into()])),
             JsVariant::Symbol(symbol) => Ok(context
                 .intrinsics()
                 .templates()
                 .symbol()
-                .create(symbol.clone(), Vec::default())),
+                .create(symbol.clone(), ThinVec::default())),
             JsVariant::BigInt(bigint) => Ok(context
                 .intrinsics()
                 .templates()
                 .bigint()
-                .create(bigint.clone(), Vec::default())),
+                .create(bigint.clone(), ThinVec::default())),
             JsVariant::Object(jsobject) => Ok(jsobject.clone()),
         }
     }

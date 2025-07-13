@@ -107,7 +107,7 @@ impl ObjectTemplate {
     /// Create an object from the [`ObjectTemplate`]
     ///
     /// The storage must match the properties provided.
-    pub(crate) fn create<T: NativeObject>(&self, data: T, storage: Vec<JsValue>) -> JsObject {
+    pub(crate) fn create<T: NativeObject>(&self, data: T, storage: ThinVec<JsValue>) -> JsObject {
         let internal_methods = data.internal_methods();
 
         let mut object = Object {
@@ -129,7 +129,7 @@ impl ObjectTemplate {
     pub(crate) fn create_with_indexed_properties<T: NativeObject>(
         &self,
         data: T,
-        storage: Vec<JsValue>,
+        storage: ThinVec<JsValue>,
         indexed_properties: IndexedProperties,
     ) -> JsObject {
         let internal_methods = data.internal_methods();

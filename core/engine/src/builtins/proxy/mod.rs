@@ -479,8 +479,10 @@ pub(crate) fn proxy_exotic_get_own_property(
         .expect("Proxy object internal internal method called on non-proxy object")
         .try_data()?;
 
+    // dbg!(key);
     // 5. Let trap be ? GetMethod(handler, "getOwnPropertyDescriptor").
     let Some(trap) = handler.get_method(js_string!("getOwnPropertyDescriptor"), context)? else {
+        // dbg!("here");
         // 6. If trap is undefined, then
         // a. Return ? target.[[GetOwnProperty]](P).
         return target.__get_own_property__(key, context);
@@ -949,6 +951,8 @@ pub(crate) fn proxy_exotic_delete(
     key: &PropertyKey,
     context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
+    context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
+
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.

@@ -1,3 +1,5 @@
+use thin_vec::ThinVec;
+
 use crate::{
     Context,
     builtins::OrdinaryObject,
@@ -18,7 +20,7 @@ impl PushEmptyObject {
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(OrdinaryObject, Vec::default());
+            .create(OrdinaryObject, ThinVec::default());
         context.vm.set_register(dst.into(), o.into());
     }
 }

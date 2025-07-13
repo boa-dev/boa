@@ -4,6 +4,7 @@ use indexmap::IndexSet;
 use rustc_hash::FxHasher;
 
 use boa_gc::{Finalize, Trace};
+use thin_vec::thin_vec;
 
 use crate::object::internal_methods::immutable_prototype::immutable_prototype_exotic_set_prototype_of;
 use crate::object::internal_methods::{
@@ -73,11 +74,10 @@ impl ModuleNamespace {
         // Ignored because this is done by `Module::namespace`
 
         // 10. Return M.
-        context
-            .intrinsics()
-            .templates()
-            .namespace()
-            .create(Self { module, exports }, vec![js_string!("Module").into()])
+        context.intrinsics().templates().namespace().create(
+            Self { module, exports },
+            thin_vec![js_string!("Module").into()],
+        )
     }
 
     /// Gets the export names of the Module Namespace object.
