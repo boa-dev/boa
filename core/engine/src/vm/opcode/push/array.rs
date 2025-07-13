@@ -1,5 +1,7 @@
+use thin_vec::ThinVec;
+
 use crate::{
-    Context, JsExpect, JsResult, JsValue,
+    Context, JsExpect, JsResult,
     builtins::Array,
     string::StaticJsStrings,
     vm::opcode::{Operation, RegisterOperand},
@@ -19,7 +21,7 @@ impl StoreNewArray {
             .intrinsics()
             .templates()
             .array()
-            .create(Array, Vec::from([JsValue::new(0)]));
+            .create(Array, ThinVec::default());
         context.vm.set_register(array.into(), value.into());
     }
 }
@@ -50,24 +52,12 @@ impl PushValueToArray {
             .as_object()
             .js_expect("should be an object")?;
 
-        // Fast path: push directly to dense indexed storage.
-        {
-            let mut o_mut = o.borrow_mut();
-            let len = o_mut.properties().storage[0].as_i32();
-            if let Some(len) = len
-                && o_mut.properties_mut().indexed_properties.push_dense(&value)
-            {
-                o_mut.properties_mut().storage[0] = JsValue::new(len + 1);
-                return Ok(());
-            }
-        }
-
-        // Slow path: fall through to the generic property machinery.
-        let len = o
-            .length_of_array_like(context)
-            .js_expect("should have 'length' property")?;
-        o.create_data_property_or_throw(len, value, context)
-            .js_expect("should be able to create new data property")?;
+        let mut o_borrow = o.borrow_mut();
+        let key = o_borrow.properties().indexed_properties.array_length();
+        o_borrow
+            .properties_mut()
+            .indexed_properties
+            .insert_value(key, &value);
         Ok(())
     }
 }

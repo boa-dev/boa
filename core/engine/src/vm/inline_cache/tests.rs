@@ -1,5 +1,6 @@
 use boa_gc::Gc;
 use boa_parser::Source;
+use thin_vec::ThinVec;
 
 use crate::{
     Context, JsObject, JsResult, JsValue,
@@ -21,7 +22,7 @@ fn get_own_property_internal_method() {
         .intrinsics()
         .templates()
         .ordinary_object()
-        .create(OrdinaryObject, Vec::default());
+        .create(OrdinaryObject, ThinVec::default());
 
     let property: PropertyKey = js_string!("prop").into();
     let value = 100;
@@ -66,7 +67,7 @@ fn get_internal_method() {
         .intrinsics()
         .templates()
         .ordinary_object()
-        .create(OrdinaryObject, Vec::default());
+        .create(OrdinaryObject, ThinVec::default());
 
     let property: PropertyKey = js_string!("prop").into();
     let value = 100;
@@ -111,7 +112,7 @@ fn get_internal_method_in_prototype() {
         .intrinsics()
         .templates()
         .ordinary_object()
-        .create(OrdinaryObject, Vec::default());
+        .create(OrdinaryObject, ThinVec::default());
 
     let property: PropertyKey = js_string!("prop").into();
     let value = 100;
@@ -159,7 +160,7 @@ fn define_own_property_internal_method_non_existent_property() {
         .intrinsics()
         .templates()
         .ordinary_object()
-        .create(OrdinaryObject, Vec::default());
+        .create(OrdinaryObject, ThinVec::default());
 
     let property: PropertyKey = js_string!("prop").into();
     let value = 100;
@@ -213,7 +214,7 @@ fn define_own_property_internal_method_existing_property_property() {
         .intrinsics()
         .templates()
         .ordinary_object()
-        .create(OrdinaryObject, Vec::default());
+        .create(OrdinaryObject, ThinVec::default());
 
     let property: PropertyKey = js_string!("prop").into();
     let value = 100;
@@ -279,7 +280,7 @@ fn set_internal_method() {
         .intrinsics()
         .templates()
         .ordinary_object()
-        .create(OrdinaryObject, Vec::default());
+        .create(OrdinaryObject, ThinVec::default());
 
     let property: PropertyKey = js_string!("prop").into();
     let value = 100;

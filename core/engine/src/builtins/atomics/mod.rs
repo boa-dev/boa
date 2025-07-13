@@ -14,6 +14,8 @@ mod futex;
 
 use std::sync::atomic::Ordering;
 
+use thin_vec::thin_vec;
+
 use crate::{
     Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
     builtins::{BuiltInObject, OrdinaryObject},
@@ -494,7 +496,7 @@ impl Atomics {
                 .intrinsics()
                 .templates()
                 .wait_async()
-                .create(OrdinaryObject, vec![is_async.into(), value])
+                .create(OrdinaryObject, thin_vec![is_async.into(), value])
                 .into())
         } else {
             let result = unsafe {

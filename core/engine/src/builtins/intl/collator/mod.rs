@@ -7,6 +7,7 @@ use icu_collator::{
 };
 
 use icu_locale::{Locale, extensions::unicode};
+use thin_vec::thin_vec;
 
 use crate::{
     Context, JsArgs, JsData, JsExpect, JsNativeError, JsResult, JsString, JsValue,
@@ -427,7 +428,7 @@ impl Collator {
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(OrdinaryObject, vec![]);
+            .create(OrdinaryObject, thin_vec![]);
 
         // 4. For each row of Table 4, except the header row, in table order, do
         //     a. Let p be the Property value of the current row.

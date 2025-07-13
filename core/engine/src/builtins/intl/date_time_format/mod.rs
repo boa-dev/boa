@@ -58,6 +58,7 @@ use icu_time::{
         models::{AtTime, Base},
     },
 };
+use thin_vec::thin_vec;
 use timezone_provider::provider::TimeZoneId;
 use writeable::{PartsWrite, Writeable, adapters::CoreWriteAsPartsWrite};
 
@@ -992,7 +993,7 @@ pub(crate) fn format_date_time_to_parts(
             .intrinsics()
             .templates()
             .ordinary_object()
-            .create(OrdinaryObject, vec![]);
+            .create(OrdinaryObject, thin_vec![]);
 
         // b. Perform ! CreateDataPropertyOrThrow(partObj, "type", part.[[Type]]).
         part_obj

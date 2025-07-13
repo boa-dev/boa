@@ -9,14 +9,7 @@ pub(super) fn log_array_to(
     print_internals: bool,
     print_children: bool,
 ) -> fmt::Result {
-    let len = x
-        .borrow()
-        .properties()
-        .get(&js_string!("length").into())
-        .expect("array object must have 'length' property")
-        .value()
-        .and_then(JsValue::as_number)
-        .map_or_default(|n| n.max(0.0) as u32);
+    let len = x.borrow().properties().indexed_properties.array_length();
 
     if print_children {
         // Cap the number of elements we iterate over to avoid hangs on very large/sparse arrays.

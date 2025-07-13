@@ -13,6 +13,7 @@ use icu_locale::{Locale, extensions::unicode::Value};
 use icu_provider::{DataMarker, DataMarkerAttributes, DynamicDataProvider, buf::BufferMarker};
 use num_bigint::BigInt;
 use num_traits::Num;
+use thin_vec::thin_vec;
 use writeable::{PartsWrite, Writeable, adapters::CoreWriteAsPartsWrite};
 
 use super::{
@@ -714,7 +715,7 @@ impl NumberFormat {
                 .intrinsics()
                 .templates()
                 .ordinary_object()
-                .create(OrdinaryObject, vec![]);
+                .create(OrdinaryObject, thin_vec![]);
             // b. Perform ! CreateDataPropertyOrThrow(partObj, "type", part.[[Type]]).
             part_obj
                 .create_data_property_or_throw(js_string!("type"), JsString::from(typ), context)
