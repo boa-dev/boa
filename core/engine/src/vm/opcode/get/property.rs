@@ -33,12 +33,6 @@ pub(crate) fn get_by_name<const LENGTH: bool>(
                 .vm
                 .set_register(dst.into(), (string.len() as u32).into());
             return Ok(());
-        } else if let Some(object) = value_object.as_object()
-            && object.is_array()
-        {
-            let value = object.borrow().properties().storage[0].clone();
-            context.vm.set_register(dst.into(), value);
-            return Ok(());
         }
     }
 
