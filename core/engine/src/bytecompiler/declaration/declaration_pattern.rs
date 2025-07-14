@@ -39,43 +39,59 @@ impl ByteCompiler<'_> {
                             let dst = self.register_allocator.alloc();
 
                             match name {
-                                PropertyName::Literal(ident) => {
+                                PropertyName::Literal(field_ident) => {
                                     self.emit_get_property_by_name(
                                         &dst,
                                         object,
                                         object,
-                                        ident.sym(),
+                                        field_ident.sym(),
                                     );
                                     let key = self.register_allocator.alloc();
                                     self.emit_push_literal(
                                         Literal::String(
                                             self.interner()
-                                                .resolve_expect(ident.sym())
+                                                .resolve_expect(field_ident.sym())
                                                 .into_common(false),
                                         ),
                                         &key,
                                     );
                                     excluded_keys_registers.push(key);
+                                    self.emit_binding(
+                                        def,
+                                        ident.to_js_string(self.interner()),
+                                        &dst,
+                                    );
                                 }
                                 PropertyName::Computed(node) => {
                                     let key = self.register_allocator.alloc();
                                     self.compile_expr(node, &key);
+                                    let property_key = self.register_allocator.alloc();
+                                    self.bytecode.emit_to_property_key(
+                                        key.variable(),
+                                        property_key.variable(),
+                                    );
+                                    self.register_allocator.dealloc(key);
+                                    self.emit_binding(
+                                        def,
+                                        ident.to_js_string(self.interner()),
+                                        &dst,
+                                    );
                                     if rest_exits {
                                         self.bytecode.emit_get_property_by_value_push(
                                             dst.variable(),
-                                            key.variable(),
+                                            property_key.variable(),
                                             object.variable(),
                                             object.variable(),
                                         );
-                                        excluded_keys_registers.push(key);
+                                        excluded_keys_registers.push(property_key);
                                     } else {
                                         self.bytecode.emit_get_property_by_value(
                                             dst.variable(),
-                                            key.variable(),
+                                            property_key.variable(),
                                             object.variable(),
                                             object.variable(),
                                         );
-                                        self.register_allocator.dealloc(key);
+                                        self.register_allocator.dealloc(property_key);
                                     }
                                 }
                             }
@@ -86,7 +102,6 @@ impl ByteCompiler<'_> {
                                 self.patch_jump(skip);
                             }
 
-                            self.emit_binding(def, ident.to_js_string(self.interner()), &dst);
                             self.register_allocator.dealloc(dst);
                         }
                         //  BindingRestProperty : ... BindingIdentifier
