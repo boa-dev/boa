@@ -170,14 +170,15 @@ impl TestSuiteSource {
 }
 
 /// Create the BOA context and add the necessary global objects for WPT.
-fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
+fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher::WptFetcher) {
     let mut context = Context::default();
     let logger = logger::RecordingLogger::new();
+    let fetcher = fetcher::WptFetcher::new(wpt_path);
     boa_runtime::register(
         &mut context,
         RegisterOptions::new()
             .with_console_logger(logger.clone())
-            .with_fetcher(fetcher::WptFetcher::new(wpt_path)),
+            .with_fetcher(fetcher.clone()),
     )
     .expect("Failed to register boa_runtime");
 
@@ -200,10 +201,10 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger) {
     let harness = Source::from_filepath(&harness_path).expect("Could not create a source.");
 
     if let Err(e) = context.eval(harness) {
-        panic!("Failed to eval testharness.js: {e:#?}");
+        panic!("Failed to eval testharness.js: {}", e.to_string(),);
     }
 
-    (context, logger)
+    (context, logger, fetcher)
 }
 
 /// The result callback for the WPT test.
@@ -279,7 +280,16 @@ fn execute_test_file(path: &Path) {
     let wpt_path = PathBuf::from(
         std::env::var("WPT_ROOT").expect("Could not find the WPT_ROOT environment variable"),
     );
-    let (mut context, logger) = create_context(&wpt_path);
+    let wpt_path = if wpt_path.is_absolute() {
+        wpt_path
+    } else {
+        std::env::current_dir()
+            .unwrap()
+            .join(wpt_path)
+            .canonicalize()
+            .unwrap()
+    };
+    let (mut context, logger, mut fetcher) = create_context(&wpt_path);
     let test_done = TestCompletion::new();
 
     // Insert the logger to be able to access the logs after the test is done.
@@ -330,15 +340,19 @@ fn execute_test_file(path: &Path) {
             panic!("Script does not exist, path = {path:?}");
         }
     }
+
+    fetcher.set_current_file(&source.path);
+
     context
         .eval(source.source())
         .expect("Could not evaluate the test source");
-    context.run_jobs();
 
     // Done()
     context
         .eval(Source::from_bytes(b"done()"))
         .expect("Done unexpectedly threw an error.");
+
+    context.run_jobs().expect("Could not run jobs");
 
     let start = std::time::Instant::now();
     while !test_done.is_done() {

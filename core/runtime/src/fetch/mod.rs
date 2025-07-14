@@ -33,11 +33,15 @@ pub mod fetchers;
 /// A trait for backend implementation of an HTTP fetcher.
 // TODO: consider implementing an async version of this.
 pub trait Fetcher: NativeObject + Sized {
-    /// Resolve a URI to a URL. URIs can be any strings, but to do an `HttpRequest`
-    /// we need a proper URL.
+    /// Resolve a string to a URL. This is used when a string (e.g., the first argument to
+    /// `fetch()`) is passed, and we need resolution. Some cases require resolution of
+    /// a relative path, for example (to the "page" base URL).
     /// By default, this will return the `URI` as is.
-    fn resolve_uri(&self, uri: &http::Uri) -> String {
-        uri.to_string()
+    ///
+    /// # Errors
+    /// This function should return an error if the URL cannot be handled by the [`Fetcher`].
+    fn resolve_uri(&self, uri: String, _context: &mut Context) -> JsResult<String> {
+        Ok(uri)
     }
 
     /// Fetch an HTTP document, returning an HTTP response.
@@ -52,20 +56,12 @@ pub trait Fetcher: NativeObject + Sized {
     ) -> JsResult<HttpResponse<Option<Vec<u8>>>>;
 }
 
-/// The `fetch` function.
-///
-/// A [`Gc`]<[`Fetcher`]> implementation MUST be inserted in the [`Context`] (or
-/// [`Realm`] if you're using multiple contexts) before calling this function.
-///
-/// # Errors
-/// If the fetcher is not registered in the context, an error is returned.
-/// This function will also return any error that the fetcher returns, or
-/// any conversion to/from JavaScript types.
-pub fn fetch<T: Fetcher>(
+/// The `fetch` function internals.
+fn fetch_inner<T: Fetcher>(
     resource: Either<JsString, JsObject>,
     options: Option<RequestInit>,
     context: &mut Context,
-) -> JsResult<JsPromise> {
+) -> JsResult<JsObject> {
     // Try fetching from the context first, then the current realm. Else fail.
     let Some(fetcher) = context
         .get_data::<Gc<T>>()
@@ -82,6 +78,9 @@ pub fn fetch<T: Fetcher>(
     let request: Request<Option<Vec<u8>>> = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
+            let url = fetcher
+                .resolve_uri(url, context)
+                .map_err(JsError::from_rust)?;
 
             let r = HttpRequest::get(url).body(Some(Vec::new()));
             r.map_err(JsError::from_rust)?
@@ -109,7 +108,27 @@ pub fn fetch<T: Fetcher>(
     let response = fetcher.fetch_blocking(request, context)?;
 
     let result = Class::from_data(JsResponse::new(url, response), context)?;
-    Ok(JsPromise::resolve(result, context))
+    Ok(result)
+}
+
+/// The `fetch` function.
+///
+/// A [`Gc`]<[`Fetcher`]> implementation MUST be inserted in the [`Context`] (or
+/// [`Realm`] if you're using multiple contexts) before calling this function.
+///
+/// # Errors
+/// If the fetcher is not registered in the context, an error is returned.
+/// This function will also return any error that the fetcher returns, or
+/// any conversion to/from JavaScript types.
+pub fn fetch<T: Fetcher>(
+    resource: Either<JsString, JsObject>,
+    options: Option<RequestInit>,
+    context: &mut Context,
+) -> JsPromise {
+    match fetch_inner::<T>(resource, options, context) {
+        Ok(v) => JsPromise::resolve(v, context),
+        Err(e) => JsPromise::reject(e, context),
+    }
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.

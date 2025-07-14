@@ -85,7 +85,11 @@ impl JsHeaders {
         // `init` can be a simple object literal with String values, an array of name-value
         // pairs, where each pair is a 2-element string array; or an existing Headers object.
         let mut h = headers.headers.borrow_mut();
-        if let Some(other_header) = init.as_downcast_ref::<JsHeaders>() {
+        if let Some(other_header) = init
+            .as_object()
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<JsHeaders>)
+        {
             for (key, value) in other_header.headers.borrow().iter() {
                 if h.contains_key(key) {
                     h.append(key, value.clone());

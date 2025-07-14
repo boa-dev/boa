@@ -67,9 +67,17 @@ fn request_constructor() {
             let response = ctx.global_object().get(js_str!("response"), ctx).unwrap();
             let response = response.as_promise().unwrap().await_blocking(ctx).unwrap();
 
-            let js = response.as_downcast_ref::<JsResponse>().unwrap();
             assert_eq!(
-                js.inner().borrow().body().as_ref().map(Vec::as_slice),
+                response
+                    .as_object()
+                    .as_ref()
+                    .and_then(|o| o.downcast_ref::<JsResponse>())
+                    .unwrap()
+                    .inner()
+                    .borrow()
+                    .body()
+                    .as_ref()
+                    .map(Vec::as_slice),
                 Some("Hello World".as_bytes())
             );
         }),
