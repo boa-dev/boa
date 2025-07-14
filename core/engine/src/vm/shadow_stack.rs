@@ -1,3 +1,5 @@
+use std::fmt::{Display, Write};
+
 use boa_gc::{Finalize, Trace};
 use boa_string::JsString;
 use thin_vec::ThinVec;
@@ -20,13 +22,55 @@ impl Backtrace {
 #[derive(Debug, Clone)]
 pub(crate) enum ShadowEntry {
     Native {
-        function_name: JsString,
+        function_name: Option<JsString>,
         source_info: NativeSourceInfo,
     },
     Bytecode {
         pc: u32,
         source_info: SourceInfo,
     },
+}
+
+impl Display for ShadowEntry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ShadowEntry::Native {
+                function_name,
+                source_info,
+            } => {
+                if function_name.is_some() || source_info.as_location().is_some() {
+                    f.write_str(" (native")?;
+                    if let Some(function_name) = function_name {
+                        write!(f, " {}", function_name.to_std_string_escaped())?;
+                    }
+                    if let Some(location) = source_info.as_location() {
+                        write!(f, " at {location}")?;
+                    }
+                    f.write_char(')')?;
+                }
+            }
+            ShadowEntry::Bytecode { pc, source_info } => {
+                let path = source_info.map().path();
+                let position = source_info.map().find(*pc);
+
+                if path.is_some() || position.is_some() {
+                    write!(f, " ({}", source_info.map().path())?;
+
+                    if let Some(position) = position {
+                        write!(
+                            f,
+                            ":{}:{}",
+                            position.line_number(),
+                            position.column_number()
+                        )?;
+                    }
+
+                    f.write_char(')')?;
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug, Default, Clone)]
@@ -50,7 +94,7 @@ impl ShadowStack {
             _ => {}
         }
         self.stack.push(ShadowEntry::Native {
-            function_name,
+            function_name: Some(function_name),
             source_info: native_source_info,
         });
     }

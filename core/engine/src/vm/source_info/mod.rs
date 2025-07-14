@@ -181,6 +181,16 @@ impl Display for SourcePath {
     }
 }
 
+impl SourcePath {
+    pub(crate) fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+
+    pub(crate) fn is_some(&self) -> bool {
+        !self.is_none()
+    }
+}
+
 /// A struct containing information about native source code.
 ///
 /// # Note

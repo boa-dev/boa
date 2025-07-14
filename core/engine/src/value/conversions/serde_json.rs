@@ -308,12 +308,13 @@ mod tests {
         let obj = JsObject::with_null_proto();
         obj.create_data_property(js_string!("a"), obj.clone(), &mut context)
             .expect("should create data property");
-        assert_eq!(
+
+        assert!(
             JsValue::from(obj)
                 .to_json(&mut context)
                 .unwrap_err()
-                .to_string(),
-            "TypeError: cyclic object value"
+                .to_string()
+                .starts_with("TypeError: cyclic object value"),
         );
     }
 
