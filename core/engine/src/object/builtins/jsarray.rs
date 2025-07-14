@@ -130,7 +130,6 @@ impl JsArray {
         )
         .map(|x| {
             x.as_string()
-                .cloned()
                 .expect("Array.prototype.join always returns string")
         })
     }

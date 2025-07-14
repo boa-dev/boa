@@ -37,7 +37,9 @@ use crate::{
     realm::Realm,
 };
 use boa_gc::{Finalize, Trace};
+use std::any::Any;
 use std::collections::BTreeMap;
+use std::rc::Rc;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
 /// An ECMAScript [Job Abstract Closure].
@@ -215,24 +217,24 @@ impl Debug for NativeAsyncJob {
 }
 
 impl NativeAsyncJob {
-    /// Creates a new `NativeAsyncJob` from a closure.
+    /// Creates a new `NativeAsyncJob` from an async closure.
     pub fn new<F>(f: F) -> Self
     where
-        F: for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a> + 'static,
+        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
     {
         Self {
-            f: Box::new(f),
+            f: Box::new(move |ctx| Box::pin(async move { f(ctx).await })),
             realm: None,
         }
     }
 
-    /// Creates a new `NativeAsyncJob` from a closure and an execution realm.
+    /// Creates a new `NativeAsyncJob` from an async closure and an execution realm.
     pub fn with_realm<F>(f: F, realm: Realm) -> Self
     where
-        F: for<'a> FnOnce(&'a RefCell<&mut Context>) -> BoxedFuture<'a> + 'static,
+        F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
     {
         Self {
-            f: Box::new(f),
+            f: Box::new(move |ctx| Box::pin(async move { f(ctx).await })),
             realm: Some(realm),
         }
     }
@@ -464,31 +466,32 @@ impl From<TimeoutJob> for Job {
 /// This is the main API that allows creating custom event loops.
 ///
 /// [Jobs]: https://tc39.es/ecma262/#sec-jobs
-pub trait JobExecutor {
+pub trait JobExecutor: Any {
     /// Enqueues a `Job` on the executor.
     ///
     /// This method combines all the host-defined job enqueueing operations into a single method.
     /// See the [spec] for more information on the requirements that each operation must follow.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-jobs
-    fn enqueue_job(&self, job: Job, context: &mut Context);
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context);
 
     /// Runs all jobs in the executor.
-    fn run_jobs(&self, context: &mut Context) -> JsResult<()>;
+    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()>;
 
     /// Asynchronously runs all jobs in the executor.
     ///
     /// By default forwards to [`JobExecutor::run_jobs`]. Implementors using async should override this
     /// with a proper algorithm to run jobs asynchronously.
-    fn run_jobs_async<'a, 'b, 'fut>(
-        &'a self,
-        context: &'b RefCell<&mut Context>,
-    ) -> Pin<Box<dyn Future<Output = JsResult<()>> + 'fut>>
+    #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
+    #[expect(
+        clippy::unused_async,
+        reason = "public async API with a non-async default implementation"
+    )]
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
     where
-        'a: 'fut,
-        'b: 'fut,
+        Self: Sized,
     {
-        Box::pin(async { self.run_jobs(&mut context.borrow_mut()) })
+        self.run_jobs(&mut context.borrow_mut())
     }
 }
 
@@ -513,17 +516,17 @@ pub trait JobExecutor {
 pub struct IdleJobExecutor;
 
 impl JobExecutor for IdleJobExecutor {
-    fn enqueue_job(&self, _: Job, _: &mut Context) {}
+    fn enqueue_job(self: Rc<Self>, _: Job, _: &mut Context) {}
 
-    fn run_jobs(&self, _: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, _: &mut Context) -> JsResult<()> {
         Ok(())
     }
 }
 
 /// A simple FIFO executor that bails on the first error.
 ///
-/// This is the default job executor for the [`Context`], but it is mostly pretty limited for
-/// custom event loop.
+/// This is the default job executor for the [`Context`], but it is mostly pretty limited
+/// for a custom event loop.
 ///
 /// To disable running promise jobs on the engine, see [`IdleJobExecutor`].
 #[allow(clippy::struct_field_names)]
@@ -549,7 +552,7 @@ impl SimpleJobExecutor {
 }
 
 impl JobExecutor for SimpleJobExecutor {
-    fn enqueue_job(&self, job: Job, context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
         match job {
             Job::PromiseJob(p) => self.promise_jobs.borrow_mut().push_back(p),
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
@@ -560,7 +563,7 @@ impl JobExecutor for SimpleJobExecutor {
         }
     }
 
-    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         let now = context.clock().now();
 
         {

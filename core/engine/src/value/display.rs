@@ -202,6 +202,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         || "<error>".into(),
                         |v| {
                             v.as_string()
+                                .as_ref()
                                 .map_or_else(
                                     || v.display().to_string(),
                                     JsString::to_std_string_escaped,
@@ -214,7 +215,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map(|v| {
-                        v.as_string().map_or_else(
+                        v.as_string().as_ref().map_or_else(
                             || v.display().to_string(),
                             JsString::to_std_string_escaped,
                         )

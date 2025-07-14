@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::VecDeque, future::Future, pin::Pin, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use boa_engine::{
     Context, JsNativeError, JsResult, JsString, JsValue, Module,
@@ -19,71 +19,36 @@ use smol::{future, stream::StreamExt};
 struct HttpModuleLoader;
 
 impl ModuleLoader for HttpModuleLoader {
-    fn load_imported_module(
-        &self,
+    async fn load_imported_module(
+        self: Rc<Self>,
         _referrer: boa_engine::module::Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
+        context: &RefCell<&mut Context>,
+    ) -> JsResult<Module> {
         let url = specifier.to_std_string_escaped();
 
-        // Just enqueue the future for now. We'll advance all the enqueued futures inside our custom
-        // `JobExecutor`.
-        context.enqueue_job(
-            NativeAsyncJob::with_realm(
-                move |context| {
-                    Box::pin(async move {
-                        // Adding some prints to show the non-deterministic nature of the async fetches.
-                        // Try to run the example several times to see how sometimes the fetches start in order
-                        // but finish in disorder.
-                        println!("Fetching `{url}`...");
+        // Adding some prints to show the non-deterministic nature of the async fetches.
+        // Try to run the example several times to see how sometimes the fetches start in order
+        // but finish in disorder.
+        println!("Fetching `{url}`...");
 
-                        // This could also retry fetching in case there's an error while requesting the module.
-                        let body: Result<_, isahc::Error> = async {
-                            let mut response = Request::get(&url)
-                                .redirect_policy(RedirectPolicy::Limit(5))
-                                .body(())?
-                                .send_async()
-                                .await?;
+        // This could also retry fetching in case there's an error while requesting the module.
+        let response = async {
+            let request = Request::get(&url)
+                .redirect_policy(RedirectPolicy::Limit(5))
+                .body(())?;
+            let response = request.send_async().await?.text().await?;
+            Ok(response)
+        }
+        .await
+        .map_err(|err: isahc::Error| JsNativeError::typ().with_message(err.to_string()))?;
 
-                            Ok(response.text().await?)
-                        }
-                        .await;
+        println!("Finished fetching `{url}`");
 
-                        println!("Finished fetching `{url}`");
+        // Could also add a path if needed.
+        let source = Source::from_bytes(&response);
 
-                        let body = match body {
-                            Ok(body) => body,
-                            Err(err) => {
-                                // On error we always call `finish_load` to notify the load promise about the
-                                // error.
-                                finish_load(
-                                    Err(JsNativeError::typ().with_message(err.to_string()).into()),
-                                    &mut context.borrow_mut(),
-                                );
-
-                                // Just returns anything to comply with `NativeAsyncJob::new`'s signature.
-                                return Ok(JsValue::undefined());
-                            }
-                        };
-
-                        // Could also add a path if needed.
-                        let source = Source::from_bytes(body.as_bytes());
-
-                        let module = Module::parse(source, None, &mut context.borrow_mut());
-
-                        // We don't do any error handling, `finish_load` takes care of that for us.
-                        finish_load(module, &mut context.borrow_mut());
-
-                        // Also needed to match `NativeAsyncJob::new`.
-                        Ok(JsValue::undefined())
-                    })
-                },
-                context.realm().clone(),
-            )
-            .into(),
-        );
+        Module::parse(source, None, &mut context.borrow_mut())
     }
 }
 
@@ -156,14 +121,14 @@ fn main() -> JsResult<()> {
             .get(0, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        &js_string!("aGVsbG8=")
+        js_string!("aGVsbG8=")
     );
     assert_eq!(
         default
             .get(1, context)?
             .as_string()
             .ok_or_else(|| JsNativeError::typ().with_message("array element was not a string"))?,
-        &js_string!("d29ybGQ=")
+        js_string!("d29ybGQ=")
     );
 
     Ok(())
@@ -195,7 +160,7 @@ impl Queue {
 }
 
 impl JobExecutor for Queue {
-    fn enqueue_job(&self, job: Job, _context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, _context: &mut Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
@@ -204,58 +169,37 @@ impl JobExecutor for Queue {
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
-    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         smol::block_on(smol::LocalExecutor::new().run(self.run_jobs_async(&RefCell::new(context))))
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
-    fn run_jobs_async<'a, 'b, 'fut>(
-        &'a self,
-        context: &'b RefCell<&mut Context>,
-    ) -> Pin<Box<dyn Future<Output = JsResult<()>> + 'fut>>
-    where
-        'a: 'fut,
-        'b: 'fut,
-    {
-        Box::pin(async move {
-            // Early return in case there were no jobs scheduled.
-            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
+        // Early return in case there were no jobs scheduled.
+        if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            return Ok(());
+        }
+        let mut group = FutureGroup::new();
+        loop {
+            for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
+                group.insert(job.call(context));
+            }
+
+            if group.is_empty() && self.promise_jobs.borrow().is_empty() {
+                // Both queues are empty. We can exit.
                 return Ok(());
             }
-            let mut group = FutureGroup::new();
-            loop {
-                for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
-                    group.insert(job.call(context));
-                }
 
-                if self.promise_jobs.borrow().is_empty() {
-                    let Some(result) = group.next().await else {
-                        // Both queues are empty. We can exit.
-                        return Ok(());
-                    };
+            // We have some jobs pending on the microtask queue. Try to poll the pending
+            // tasks once to see if any of them finished, and run the pending microtasks
+            // otherwise.
+            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
+                eprintln!("Uncaught {err}");
+            };
 
-                    if let Err(err) = result {
-                        eprintln!("Uncaught {err}");
-                    }
-                    continue;
-                }
-
-                // We have some jobs pending on the microtask queue. Try to poll the pending
-                // tasks once to see if any of them finished, and run the pending microtasks
-                // otherwise.
-                let Some(result) = future::poll_once(group.next()).await.flatten() else {
-                    // No completed jobs. Run the microtask queue once.
-                    self.drain_jobs(&mut context.borrow_mut());
-                    continue;
-                };
-
-                if let Err(err) = result {
-                    eprintln!("Uncaught {err}");
-                }
-
-                // Only one macrotask can be executed before the next drain of the microtask queue.
-                self.drain_jobs(&mut context.borrow_mut());
-            }
-        })
+            // Only one macrotask can be executed before the next drain of the microtask queue.
+            self.drain_jobs(&mut context.borrow_mut());
+            future::yield_now().await
+        }
     }
 }

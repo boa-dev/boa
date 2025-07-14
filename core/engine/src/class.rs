@@ -96,7 +96,7 @@
 //!
 //!     assert_eq!(
 //!         result.as_string().unwrap(),
-//!         &js_str!("My pet is 3 years old. Right, buddy? - woof!")
+//!         js_str!("My pet is 3 years old. Right, buddy? - woof!")
 //!     );
 //! }
 //! ```

@@ -1,4 +1,11 @@
-use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, path::PathBuf, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    collections::HashSet,
+    hash::BuildHasherDefault,
+    mem::MaybeUninit,
+    path::PathBuf,
+    rc::Rc,
+};
 
 use boa_ast::{
     declaration::{
@@ -14,6 +21,7 @@ use boa_ast::{
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_macros::js_str;
+use dynify::Dynify;
 use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
@@ -23,6 +31,7 @@ use crate::{
     builtins::{Promise, promise::PromiseCapability},
     bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
+    job::NativeAsyncJob,
     js_string,
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise},
@@ -365,6 +374,89 @@ impl SourceTextModule {
         state: &Rc<GraphLoadingState>,
         context: &mut Context,
     ) {
+        /// Loads the module of an import.
+        ///
+        /// This combines the operations:
+        /// - [`HostLoadImportedModule(module, required, state.[[HostDefined]], state)`][load]
+        /// - [`FinishLoadingImportedModule ( referrer, specifier, payload, result )`][finish]
+        /// - [`ContinueModuleLoading ( state, moduleCompletion )`][continue]
+        ///
+        /// [load]: https://tc39.es/ecma262/#sec-HostLoadImportedModule
+        /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
+        /// [continue]: https://tc39.es/ecma262/#sec-ContinueModuleLoading
+        async fn finish_loading_imported_module(
+            specifier: JsString,
+            src: Module,
+            state: Rc<GraphLoadingState>,
+            context: &RefCell<&mut Context>,
+        ) {
+            let loader = context.borrow().module_loader();
+            let fut = loader.load_imported_module(
+                Referrer::Module(src.clone()),
+                specifier.clone(),
+                context,
+            );
+            let mut stack = [MaybeUninit::<u8>::uninit(); 16];
+            let mut heap = Vec::<MaybeUninit<u8>>::new();
+            let completion = fut.init2(&mut stack, &mut heap).await;
+
+            // FinishLoadingImportedModule ( referrer, specifier, payload, result )
+            // https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
+
+            // 1. If result is a normal completion, then
+            if let Ok(loaded) = &completion {
+                let ModuleKind::SourceText(src) = src.kind() else {
+                    unreachable!("captured src must be a source text module");
+                };
+                // a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
+                // b. Else,
+                //    i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
+                let mut loaded_modules = src.loaded_modules.borrow_mut();
+                let entry = loaded_modules
+                    .entry(specifier)
+                    .or_insert_with(|| loaded.clone());
+
+                //    i. Assert: That Record's [[Module]] is result.[[Value]].
+                assert_eq!(entry, loaded);
+            }
+
+            // 2. If payload is a GraphLoadingState Record, then
+            //    a. Perform ContinueModuleLoading(payload, result).
+
+            // Abstract operation `ContinueModuleLoading ( state, moduleCompletion )`.
+            //
+            // https://tc39.es/ecma262/#sec-ContinueModuleLoading
+
+            // 1. If state.[[IsLoading]] is false, return unused.
+            if !state.loading.get() {
+                return;
+            }
+
+            // 2. If moduleCompletion is a normal completion, then
+            match completion {
+                Ok(m) => {
+                    // a. Perform InnerModuleLoading(state, moduleCompletion.[[Value]]).
+                    m.inner_load(&state, &mut context.borrow_mut());
+                }
+                // 3. Else,
+                Err(err) => {
+                    // a. Set state.[[IsLoading]] to false.
+                    state.loading.set(false);
+
+                    let err = err.to_opaque(&mut context.borrow_mut());
+
+                    // b. Perform ! Call(state.[[PromiseCapability]].[[Reject]], undefined, « moduleCompletion.[[Value]] »).
+                    state
+                        .capability
+                        .reject()
+                        .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
+                        .expect("cannot fail for the default reject function");
+                }
+            }
+
+            // 4. Return unused.
+        }
+
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
@@ -378,9 +470,9 @@ impl SourceTextModule {
                 .pending_modules
                 .set(state.pending_modules.get() + requested.len());
             // d. For each String required of module.[[RequestedModules]], do
-            for required in requested.iter().cloned() {
+            for required in requested {
                 // i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
-                let loaded = self.loaded_modules.borrow().get(&required).cloned();
+                let loaded = self.loaded_modules.borrow().get(required).cloned();
                 if let Some(loaded) = loaded {
                     // 1. Let record be that Record.
                     // 2. Perform InnerModuleLoading(state, record.[[Module]]).
@@ -393,70 +485,15 @@ impl SourceTextModule {
                     let name_specifier = required.clone();
                     let src = module_self.clone();
                     let state = state.clone();
-                    context.module_loader().load_imported_module(
-                        Referrer::Module(module_self.clone()),
-                        name_specifier,
-                        Box::new(move |completion, context| {
-                            // FinishLoadingImportedModule ( referrer, specifier, payload, result )
-                            // https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
-
-                            // 1. If result is a normal completion, then
-                            if let Ok(loaded) = &completion {
-                                let ModuleKind::SourceText(src) = src.kind() else {
-                                    unreachable!("captured src must be a source text module");
-                                };
-                                // a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
-                                // b. Else,
-                                //    i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
-                                let mut loaded_modules = src.loaded_modules.borrow_mut();
-                                let entry = loaded_modules
-                                    .entry(required)
-                                    .or_insert_with(|| loaded.clone());
-
-                                //    i. Assert: That Record's [[Module]] is result.[[Value]].
-                                assert_eq!(entry, loaded);
-                            }
-
-                            // 2. If payload is a GraphLoadingState Record, then
-                            //    a. Perform ContinueModuleLoading(payload, result).
-
-                            // Abstract operation `ContinueModuleLoading ( state, moduleCompletion )`.
-                            //
-                            // https://tc39.es/ecma262/#sec-ContinueModuleLoading
-
-                            // 1. If state.[[IsLoading]] is false, return unused.
-                            if !state.loading.get() {
-                                return;
-                            }
-
-                            // 2. If moduleCompletion is a normal completion, then
-                            match completion {
-                                Ok(m) => {
-                                    // a. Perform InnerModuleLoading(state, moduleCompletion.[[Value]]).
-                                    m.inner_load(&state, context);
-                                }
-                                // 3. Else,
-                                Err(err) => {
-                                    // a. Set state.[[IsLoading]] to false.
-                                    state.loading.set(false);
-
-                                    // b. Perform ! Call(state.[[PromiseCapability]].[[Reject]], undefined, « moduleCompletion.[[Value]] »).
-                                    state
-                                        .capability
-                                        .reject()
-                                        .call(
-                                            &JsValue::undefined(),
-                                            &[err.to_opaque(context)],
-                                            context,
-                                        )
-                                        .expect("cannot fail for the default reject function");
-                                }
-                            }
-
-                            // 4. Return unused.
-                        }),
-                        context,
+                    let async_job = NativeAsyncJob::with_realm(
+                        async move |context| {
+                            finish_loading_imported_module(name_specifier, src, state, context)
+                                .await;
+                            Ok(JsValue::undefined())
+                        },
+                        context.realm().clone(),
                     );
+                    context.enqueue_job(async_job.into());
                 }
                 // iii. If state.[[IsLoading]] is false, return unused.
                 if !state.loading.get() {

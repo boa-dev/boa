@@ -378,7 +378,7 @@ impl JsValue {
     /// Returns the string if the value is a string, otherwise `None`.
     #[inline]
     #[must_use]
-    pub const fn as_string(&self) -> Option<&JsString> {
+    pub fn as_string(&self) -> Option<JsString> {
         self.0.as_string()
     }
 
@@ -499,7 +499,7 @@ impl JsValue {
             JsVariant::Undefined => Err(JsNativeError::typ()
                 .with_message("cannot convert undefined to a BigInt")
                 .into()),
-            JsVariant::String(string) => JsBigInt::from_js_string(string).map_or_else(
+            JsVariant::String(string) => JsBigInt::from_js_string(&string).map_or_else(
                 || {
                     Err(JsNativeError::syntax()
                         .with_message(format!(

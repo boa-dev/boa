@@ -95,6 +95,7 @@ indexmap = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
 fast-float2.workspace = true
 tap.workspace = true
+small_btree.workspace = true
 paste.workspace = true
 
 thiserror.workspace = true
@@ -157,6 +158,7 @@ fixed_decimal = { workspace = true, features = [
     "experimental",
 ], optional = true }
 tinystr = { workspace = true, optional = true }
+dynify.workspace = true
 
 # temporal deps
 temporal_rs = { workspace = true, optional = true }

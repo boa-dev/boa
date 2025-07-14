@@ -496,7 +496,7 @@ fn string_list_from_iterable(iterable: &JsValue, context: &mut Context) -> JsRes
     //     a. Let next be ? IteratorStepValue(iteratorRecord).
     while let Some(next) = iterator.step_value(context)? {
         // c. If next is not a String, then
-        let Some(s) = next.as_string().cloned() else {
+        let Some(s) = next.as_string() else {
             // i. Let error be ThrowCompletion(a newly created TypeError object).
             // ii. Return ? IteratorClose(iteratorRecord, error).
             return Err(iterator

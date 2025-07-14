@@ -5,7 +5,6 @@
 use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
-use boa_engine::module::ModuleLoader;
 use boa_engine::{Context, JsString, JsValue, Module, Source, js_string};
 use boa_interop::embed_module;
 use boa_interop::loaders::embedded::EmbeddedModuleLoader;
@@ -17,9 +16,9 @@ fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
         .unwrap();
 
     // Resolving modules that exist but haven't been cached yet should return None.
-    assert_eq!(module_loader.get_module(JsString::from("/file1.js")), None);
+    assert_eq!(module_loader.get_module(&JsString::from("/file1.js")), None);
     assert_eq!(
-        module_loader.get_module(JsString::from("/non-existent.js")),
+        module_loader.get_module(&JsString::from("/non-existent.js")),
         None
     );
 

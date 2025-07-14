@@ -37,12 +37,10 @@ use std::{
     cell::Cell,
     convert::Infallible,
     hash::{Hash, Hasher},
-    mem::ManuallyDrop,
     process::abort,
     ptr::{self, NonNull},
     str::FromStr,
 };
-use tag_ptr::{Tagged, UnwrappedTagged};
 
 fn alloc_overflow() -> ! {
     panic!("detected overflow during string allocation")
@@ -151,6 +149,7 @@ impl CodePoint {
 }
 
 impl std::fmt::Display for CodePoint {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CodePoint::Unicode(c) => f.write_char(*c),
@@ -189,52 +188,12 @@ impl TaggedLen {
     }
 }
 
-/// The raw representation of a [`JsString`] from a string literal.
-#[derive(Debug)]
-#[repr(C)]
-pub struct StaticJsString {
-    tagged_len: TaggedLen,
-    _zero: usize,
-    ptr: *const u8,
-}
-
-// SAFETY: This is Sync because reads to `_zero` will always read 0 and
-// `ptr` cannot be mutated thanks to the 'static requirement.
-unsafe impl Sync for StaticJsString {}
-
-impl StaticJsString {
-    /// Create a `StaticJsString` from a static `JsStr`.
-    #[must_use]
-    pub const fn new(string: JsStr<'static>) -> StaticJsString {
-        match string.variant() {
-            JsStrVariant::Latin1(l) => StaticJsString {
-                tagged_len: TaggedLen::new(l.len(), true),
-                _zero: 0,
-                ptr: l.as_ptr(),
-            },
-            JsStrVariant::Utf16(u) => StaticJsString {
-                tagged_len: TaggedLen::new(u.len(), false),
-                _zero: 0,
-                ptr: u.as_ptr().cast(),
-            },
-        }
-    }
-}
-
-/// Memory variant to pass `Miri` test.
-///
-/// If it equals to `0usize`,
-/// we mark it read-only, otherwise it is readable and writable
-union RefCount {
-    read_only: usize,
-    read_write: ManuallyDrop<Cell<usize>>,
-}
-
 /// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
-struct RawJsString {
+#[allow(missing_debug_implementations)]
+pub struct RawJsString {
     tagged_len: TaggedLen,
-    refcount: RefCount,
+    refcount: Cell<usize>,
     data: [u8; 0],
 }
 
@@ -250,6 +209,11 @@ impl RawJsString {
 
 const DATA_OFFSET: usize = size_of::<RawJsString>();
 
+enum Unwrapped<'a> {
+    Heap(NonNull<RawJsString>),
+    Static(&'a JsStr<'static>),
+}
+
 /// A Latin1 or UTF-16–encoded, reference counted, immutable string.
 ///
 /// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][slice]\></code>, but without the
@@ -262,7 +226,7 @@ const DATA_OFFSET: usize = size_of::<RawJsString>();
 /// memory on the heap to reduce the overhead of memory allocation and reference counting.
 #[allow(clippy::module_name_repetitions)]
 pub struct JsString {
-    ptr: Tagged<RawJsString>,
+    ptr: NonNull<RawJsString>,
 }
 
 // JsString should always be pointer sized.
@@ -512,67 +476,102 @@ impl JsString {
     pub fn display_lossy(&self) -> JsStrDisplayLossy<'_> {
         self.as_str().display_lossy()
     }
+
+    /// Consumes the [`JsString`], returning a wrapped raw pointer.
+    ///
+    /// The pointer will be properly aligned and non-null or a tag as a pointer.
+    #[inline]
+    #[must_use]
+    pub fn into_raw(self) -> NonNull<RawJsString> {
+        let ptr = self.ptr;
+
+        // SAFETY: Dropping the value here would result in a use-after-free.
+        std::mem::forget(self);
+
+        ptr
+    }
+
+    /// Constructs a box from a raw pointer.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because improper use may lead to memory problems.
+    /// For example, a double-free may occur if the function is called twice on
+    /// the same raw pointer.
+    #[inline]
+    #[must_use]
+    pub unsafe fn from_raw(ptr: NonNull<RawJsString>) -> Self {
+        Self { ptr }
+    }
 }
+
+// `&JsStr<'static>` must always be aligned so it can be taggged.
+static_assertions::const_assert!(align_of::<*const JsStr<'static>>() >= 2);
 
 impl JsString {
     /// Create a [`JsString`] from a static js string.
     #[must_use]
-    pub const fn from_static_js_string(src: &'static StaticJsString) -> Self {
-        let src = ptr::from_ref(src).cast::<RawJsString>();
+    pub const fn from_static_js_str(src: &'static JsStr<'static>) -> Self {
+        let src = ptr::from_ref(src);
+
+        // SAFETY: A reference cannot be null, so this is safe.
+        //
+        // TODO: Replace once `NonNull::from_ref()` is stabilized.
+        let ptr = unsafe { NonNull::new_unchecked(src.cast_mut()) };
+
+        // SAFETY:
+        // - Adding one to an aligned pointer will tag the pointer's last bit.
+        // - The pointer's provenance remains unchanged, so this is safe.
+        let tagged_ptr = unsafe { ptr.byte_add(1) };
+
         JsString {
-            // SAFETY:
-            // `StaticJsString` has the same memory layout as `RawJsString` for the first 2 fields
-            // which means it is safe to use it to represent `RawJsString` as long as we only acccess the first 2 fields,
-            // and the static reference indicates that the pointer cast is valid.
-            ptr: unsafe { Tagged::from_ptr(src.cast_mut()) },
+            ptr: tagged_ptr.cast::<RawJsString>(),
+        }
+    }
+
+    /// Check if the [`JsString`] is static.
+    #[inline]
+    #[must_use]
+    pub fn is_static(&self) -> bool {
+        self.ptr.addr().get() & 1 != 0
+    }
+
+    pub(crate) fn unwrap(&self) -> Unwrapped<'_> {
+        if self.is_static() {
+            // SAFETY: Static pointer is tagged and already checked, so this is safe.
+            let ptr = unsafe { self.ptr.byte_sub(1) };
+
+            // SAFETY: A static pointer always points to a valid JsStr, so this is safe.
+            Unwrapped::Static(unsafe { ptr.cast::<JsStr<'static>>().as_ref() })
+        } else {
+            Unwrapped::Heap(self.ptr)
         }
     }
 
     /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
     #[inline]
     #[must_use]
-    #[allow(clippy::cast_ptr_alignment)]
     pub fn as_str(&self) -> JsStr<'_> {
-        match self.ptr.unwrap() {
-            UnwrappedTagged::Ptr(h) => {
-                // SAFETY:
-                // - The `RawJsString` type has all the necessary information to reconstruct a valid
-                //   slice (length and starting pointer).
-                //
-                // - We aligned `h.data()` on allocation, and the block is of size `h.len`, so this
-                //   should only generate valid reads.
-                //
-                // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
-                //   by its signature, so this doesn't outlive `self`.
-                //
-                // - The `RawJsString` created from string literal has a static reference to the string literal,
-                //   making it safe to be dereferenced and used as a static `JsStr`.
-                //
-                // - `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
-                //   which means it is safe to read the `refcount` as `read_only` here.
-                unsafe {
-                    let h = h.as_ptr();
-                    let tagged_len = (*h).tagged_len;
-                    let len = tagged_len.len();
-                    let is_latin1 = tagged_len.is_latin1();
-                    let ptr = if (*h).refcount.read_only == 0 {
-                        let h = h.cast::<StaticJsString>();
-                        (*h).ptr
-                    } else {
-                        (&raw const (*h).data).cast::<u8>()
-                    };
+        let ptr = match self.unwrap() {
+            Unwrapped::Heap(ptr) => ptr.as_ptr(),
+            Unwrapped::Static(js_str) => return *js_str,
+        };
 
-                    if is_latin1 {
-                        JsStr::latin1(std::slice::from_raw_parts(ptr, len))
-                    } else {
-                        JsStr::utf16(std::slice::from_raw_parts(ptr.cast::<u16>(), len))
-                    }
-                }
-            }
-            UnwrappedTagged::Tag(index) => {
-                // SAFETY: all static strings are valid indices on `STATIC_JS_STRINGS`, so `get` should always
-                // return `Some`.
-                unsafe { StaticJsStrings::get(index).unwrap_unchecked() }
+        // SAFETY:
+        // - Unwrapped heap ptr is always a valid heap allocated RawJsString.
+        // - Length of a heap allocated string always contains the correct size of the string.
+        unsafe {
+            let tagged_len = (*ptr).tagged_len;
+            let len = tagged_len.len();
+            let is_latin1 = tagged_len.is_latin1();
+            let ptr = (&raw const (*ptr).data).cast::<u8>();
+
+            if is_latin1 {
+                JsStr::latin1(std::slice::from_raw_parts(ptr, len))
+            } else {
+                // SAFETY: Raw data string is always correctly aligned when allocated.
+                #[allow(clippy::cast_ptr_alignment)]
+                JsStr::utf16(std::slice::from_raw_parts(ptr.cast::<u16>(), len))
             }
         }
     }
@@ -646,7 +645,7 @@ impl JsString {
             }
             Self {
                 // SAFETY: We already know it's a valid heap pointer.
-                ptr: unsafe { Tagged::from_ptr(ptr.as_ptr()) },
+                ptr: unsafe { NonNull::new_unchecked(ptr.as_ptr()) },
             }
         };
 
@@ -707,9 +706,7 @@ impl JsString {
             // Write the first part, the `RawJsString`.
             inner.as_ptr().write(RawJsString {
                 tagged_len: TaggedLen::new(str_len, latin1),
-                refcount: RefCount {
-                    read_write: ManuallyDrop::new(Cell::new(1)),
-                },
+                refcount: Cell::new(1),
                 data: [0; 0],
             });
         }
@@ -762,10 +759,7 @@ impl JsString {
                 }
             }
         }
-        Self {
-            // SAFETY: `allocate_inner` guarantees `ptr` is a valid heap pointer.
-            ptr: Tagged::from_non_null(ptr),
-        }
+        Self { ptr }
     }
 
     /// Creates a new [`JsString`] from `data`.
@@ -776,58 +770,38 @@ impl JsString {
         Self::from_slice_skip_interning(string)
     }
 
-    /// Check if the [`JsString`] is static.
-    #[inline]
-    #[must_use]
-    pub fn is_static(&self) -> bool {
-        self.refcount().is_none()
-    }
-
     /// Gets the number of `JsString`s which point to this allocation.
     #[inline]
     #[must_use]
     pub fn refcount(&self) -> Option<usize> {
-        match self.ptr.unwrap() {
-            UnwrappedTagged::Ptr(inner) => {
-                // SAFETY:
-                // `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
-                // And `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
-                // which means it is safe to read the `refcount` as `read_only` here.
-                let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
-                if rc == 0 { None } else { Some(rc) }
-            }
-            UnwrappedTagged::Tag(_inner) => None,
+        if self.is_static() {
+            return None;
         }
+
+        // SAFETY:
+        // `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
+        let rc = unsafe { self.ptr.as_ref().refcount.get() };
+        Some(rc)
     }
 }
 
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        if let UnwrappedTagged::Ptr(inner) = self.ptr.unwrap() {
-            // SAFETY:
-            // `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
-            // And `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
-            // which means it is safe to read the `refcount` as `read_only` here.
-            let rc = unsafe { (*inner.as_ptr()).refcount.read_only };
-            if rc == 0 {
-                // pointee is a static string
-                return Self { ptr: self.ptr };
-            }
-            // SAFETY: `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
-            let inner = unsafe { inner.as_ref() };
-
-            let strong = rc.wrapping_add(1);
-            if strong == 0 {
-                abort()
-            }
-            // SAFETY:
-            // This has been checked aboved to ensure it is a `read_write` variant,
-            // which means it is safe to write the `refcount` as `read_write` here.
-            unsafe {
-                inner.refcount.read_write.set(strong);
-            }
+        if self.is_static() {
+            return Self { ptr: self.ptr };
         }
+
+        // SAFETY: `NonNull` and the constructions of `JsString` guarantee that `inner` is always valid.
+        let inner = unsafe { self.ptr.as_ref() };
+
+        let strong = inner.refcount.get().wrapping_add(1);
+        if strong == 0 {
+            abort()
+        }
+
+        inner.refcount.set(strong);
+
         Self { ptr: self.ptr }
     }
 }
@@ -842,57 +816,44 @@ impl Default for JsString {
 impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
-        if let UnwrappedTagged::Ptr(raw) = self.ptr.unwrap() {
-            // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
+        // See https://doc.rust-lang.org/src/alloc/sync.rs.html#1672 for details.
 
-            // SAFETY:
-            // `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
-            // And `Cell<usize>` is readable as an usize as long as we don't try to mutate the pointed variable,
-            // which means it is safe to read the `refcount` as `read_only` here.
-            let refcount = unsafe { (*raw.as_ptr()).refcount.read_only };
-            if refcount == 0 {
-                // Just a static string. No need to drop.
-                return;
+        if self.is_static() {
+            return;
+        }
+
+        // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
+        let inner = unsafe { self.ptr.as_ref() };
+
+        inner.refcount.set(inner.refcount.get() - 1);
+        if inner.refcount.get() != 0 {
+            return;
+        }
+
+        // SAFETY:
+        // All the checks for the validity of the layout have already been made on `alloc_inner`,
+        // so we can skip the unwrap.
+        let layout = unsafe {
+            if inner.is_latin1() {
+                Layout::for_value(inner)
+                    .extend(Layout::array::<u8>(inner.len()).unwrap_unchecked())
+                    .unwrap_unchecked()
+                    .0
+                    .pad_to_align()
+            } else {
+                Layout::for_value(inner)
+                    .extend(Layout::array::<u16>(inner.len()).unwrap_unchecked())
+                    .unwrap_unchecked()
+                    .0
+                    .pad_to_align()
             }
+        };
 
-            // SAFETY: `NonNull` and the constructions of `JsString` guarantees that `raw` is always valid.
-            let inner = unsafe { raw.as_ref() };
-
-            // SAFETY:
-            // This has been checked aboved to ensure it is a `read_write` variant,
-            // which means it is safe to write the `refcount` as `read_write` here.
-            unsafe {
-                inner.refcount.read_write.set(refcount - 1);
-                if inner.refcount.read_write.get() != 0 {
-                    return;
-                }
-            }
-
-            // SAFETY:
-            // All the checks for the validity of the layout have already been made on `alloc_inner`,
-            // so we can skip the unwrap.
-            let layout = unsafe {
-                if inner.is_latin1() {
-                    Layout::for_value(inner)
-                        .extend(Layout::array::<u8>(inner.len()).unwrap_unchecked())
-                        .unwrap_unchecked()
-                        .0
-                        .pad_to_align()
-                } else {
-                    Layout::for_value(inner)
-                        .extend(Layout::array::<u16>(inner.len()).unwrap_unchecked())
-                        .unwrap_unchecked()
-                        .0
-                        .pad_to_align()
-                }
-            };
-
-            // SAFETY:
-            // If refcount is 0 and we call drop, that means this is the last `JsString` which
-            // points to this memory allocation, so deallocating it is safe.
-            unsafe {
-                dealloc(raw.as_ptr().cast(), layout);
-            }
+        // SAFETY:
+        // If refcount is 0 and we call drop, that means this is the last `JsString` which
+        // points to this memory allocation, so deallocating it is safe.
+        unsafe {
+            dealloc(self.ptr.cast().as_ptr(), layout);
         }
     }
 }

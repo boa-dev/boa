@@ -17,7 +17,6 @@ use std::{
     cell::RefCell,
     collections::VecDeque,
     future::Future,
-    pin::Pin,
     rc::Rc,
     time::{Duration, Instant},
 };
@@ -83,7 +82,7 @@ impl Queue {
 }
 
 impl JobExecutor for Queue {
-    fn enqueue_job(&self, job: Job, context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
         match job {
             Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
             Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
@@ -96,7 +95,7 @@ impl JobExecutor for Queue {
     }
 
     // While the sync flavor of `run_jobs` will block the current thread until all the jobs have finished...
-    fn run_jobs(&self, context: &mut Context) -> JsResult<()> {
+    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         let runtime = tokio::runtime::Builder::new_current_thread()
             .enable_time()
             .build()
@@ -106,57 +105,33 @@ impl JobExecutor for Queue {
     }
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
-    fn run_jobs_async<'a, 'b, 'fut>(
-        &'a self,
-        context: &'b RefCell<&mut Context>,
-    ) -> Pin<Box<dyn Future<Output = JsResult<()>> + 'fut>>
-    where
-        'a: 'fut,
-        'b: 'fut,
-    {
-        Box::pin(async move {
-            // Early return in case there were no jobs scheduled.
-            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
+        // Early return in case there were no jobs scheduled.
+        if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+            return Ok(());
+        }
+        let mut group = FutureGroup::new();
+        loop {
+            for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
+                group.insert(job.call(context));
+            }
+
+            if group.is_empty() && self.promise_jobs.borrow().is_empty() {
+                // Both queues are empty. We can exit.
                 return Ok(());
             }
-            let mut group = FutureGroup::new();
-            loop {
-                for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
-                    group.insert(job.call(context));
-                }
 
-                if self.promise_jobs.borrow().is_empty() {
-                    let Some(result) = group.next().await else {
-                        // Both queues are empty. We can exit.
-                        return Ok(());
-                    };
+            // We have some jobs pending on the microtask queue. Try to poll the pending
+            // tasks once to see if any of them finished, and run the pending microtasks
+            // otherwise.
+            if let Some(Err(err)) = future::poll_once(group.next()).await.flatten() {
+                eprintln!("Uncaught {err}");
+            };
 
-                    if let Err(err) = result {
-                        eprintln!("Uncaught {err}");
-                    }
-
-                    continue;
-                }
-
-                // We have some jobs pending on the microtask queue. Try to poll the pending
-                // tasks once to see if any of them finished, and run the pending microtasks
-                // otherwise.
-                let Some(result) = future::poll_once(group.next()).await.flatten() else {
-                    // No completed jobs. Run the microtask queue once.
-                    self.drain_jobs(&mut context.borrow_mut());
-
-                    task::yield_now().await;
-                    continue;
-                };
-
-                if let Err(err) = result {
-                    eprintln!("Uncaught {err}");
-                }
-
-                // Only one macrotask can be executed before the next drain of the microtask queue.
-                self.drain_jobs(&mut context.borrow_mut());
-            }
-        })
+            // Only one macrotask can be executed before the next drain of the microtask queue.
+            self.drain_jobs(&mut context.borrow_mut());
+            task::yield_now().await
+        }
     }
 }
 
@@ -178,8 +153,8 @@ fn delay(
     }
 }
 
-// Example interval function. We cannot use a function returning async in this case since it would
-// borrow the context for too long, but using a `NativeAsyncJob` we can!
+// Example interval function, but using a `NativeAsyncJob` instead of an async
+// function to schedule the async job.
 fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     let Some(function) = args.get_or_undefined(0).as_callable() else {
         return Err(JsNativeError::typ()
@@ -193,17 +168,15 @@ fn interval(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult
 
     context.enqueue_job(
         NativeAsyncJob::with_realm(
-            move |context| {
-                Box::pin(async move {
-                    let mut timer = time::interval(Duration::from_millis(u64::from(delay)));
-                    for _ in 0..10 {
-                        timer.tick().await;
-                        if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
-                            eprintln!("Uncaught {err}");
-                        }
+            async move |context: &RefCell<&mut Context>| {
+                let mut timer = time::interval(Duration::from_millis(u64::from(delay)));
+                for _ in 0..10 {
+                    timer.tick().await;
+                    if let Err(err) = function.call(&this, &args, &mut context.borrow_mut()) {
+                        eprintln!("Uncaught {err}");
                     }
-                    Ok(JsValue::undefined())
-                })
+                }
+                Ok(JsValue::undefined())
             },
             context.realm().clone(),
         )
@@ -301,9 +274,9 @@ fn internally_async_event_loop() -> JsResult<()> {
 async fn externally_async_event_loop() -> JsResult<()> {
     println!("====== Externally async event loop. ======");
     // Initialize the queue and the context
-    let queue = Queue::new();
+    let queue = Rc::new(Queue::new());
     let context = &mut ContextBuilder::new()
-        .job_executor(Rc::new(queue))
+        .job_executor(queue.clone())
         .build()
         .unwrap();
 
@@ -338,7 +311,7 @@ async fn externally_async_event_loop() -> JsResult<()> {
 
         // Run the jobs asynchronously, which avoids blocking the main thread.
         println!("Running jobs...");
-        context.run_jobs_async().await
+        queue.run_jobs_async(&RefCell::new(context)).await
     });
 
     tokio::try_join!(counter, engine)?;

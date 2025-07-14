@@ -153,11 +153,9 @@ mod sync {
     use std::sync::{Condvar, Mutex, MutexGuard};
 
     use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
+    use small_btree::{Entry, SmallBTreeMap};
 
-    use crate::{
-        JsNativeError, JsResult,
-        small_map::{Entry, SmallMap},
-    };
+    use crate::{JsNativeError, JsResult};
 
     /// A waiter of a memory address.
     #[derive(Debug, Default)]
@@ -173,7 +171,7 @@ mod sync {
     /// List of memory addresses and its corresponding list of waiters for that address.
     #[derive(Debug)]
     pub(super) struct FutexWaiters {
-        waiters: SmallMap<usize, LinkedList<FutexWaiterAdapter>, 16>,
+        waiters: SmallBTreeMap<usize, LinkedList<FutexWaiterAdapter>, 16>,
     }
 
     // SAFETY: `FutexWaiters` is not constructable outside its `get` method, and it's only exposed by
@@ -185,7 +183,7 @@ mod sync {
         /// Gets the map of all shared data addresses and its corresponding list of agents waiting on that location.
         pub(super) fn get() -> JsResult<MutexGuard<'static, Self>> {
             static CRITICAL_SECTION: Mutex<FutexWaiters> = Mutex::new(FutexWaiters {
-                waiters: SmallMap::new(),
+                waiters: SmallBTreeMap::new(),
             });
 
             CRITICAL_SECTION.lock().map_err(|_| {

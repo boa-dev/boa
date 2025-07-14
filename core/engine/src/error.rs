@@ -428,6 +428,7 @@ impl JsError {
                 {
                     Cow::Owned(
                         msg.as_string()
+                            .as_ref()
                             .map(JsString::to_std_string)
                             .transpose()
                             .map_err(|_| TryNativeError::InvalidMessageEncoding)?

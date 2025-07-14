@@ -5,15 +5,15 @@ use std::{
 
 use arrayvec::ArrayVec;
 
-use super::SmallMap;
+use super::SmallBTreeMap;
 
 use Entry::{Occupied, Vacant};
 
 /// A view into a single entry in a map, which may either be vacant or occupied.
 ///
-/// This `enum` is constructed from the [`entry`] method on [`SmallMap`].
+/// This `enum` is constructed from the [`entry`] method on [`SmallBTreeMap`].
 ///
-/// [`entry`]: SmallMap::entry
+/// [`entry`]: SmallBTreeMap::entry
 pub enum Entry<'a, K, V, const ARRAY_SIZE: usize> {
     /// A vacant entry.
     Vacant(VacantEntry<'a, K, V, ARRAY_SIZE>),
@@ -30,7 +30,7 @@ impl<K: Debug + Ord, V: Debug, const ARRAY_SIZE: usize> Debug for Entry<'_, K, V
     }
 }
 
-/// A view into a vacant entry in a `SmallMap`.
+/// A view into a vacant entry in a `SmallBTreeMap`.
 /// It is part of the [`Entry`] enum.
 pub struct VacantEntry<'a, K, V, const ARRAY_SIZE: usize> {
     pub(super) inner: InnerVacant<'a, K, V, ARRAY_SIZE>,
@@ -47,7 +47,7 @@ impl<K: Debug + Ord, V, const ARRAY_SIZE: usize> Debug for VacantEntry<'_, K, V,
     }
 }
 
-/// A view into an occupied entry in a `SmallMap`.
+/// A view into an occupied entry in a `SmallBTreeMap`.
 /// It is part of the [`Entry`] enum.
 pub struct OccupiedEntry<'a, K, V, const ARRAY_SIZE: usize> {
     pub(super) inner: InnerOccupied<'a, K, V, ARRAY_SIZE>,
@@ -105,6 +105,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> Entry<'a, K, V, ARRAY_SIZE> {
     }
 
     /// Returns a reference to this entry's key.
+    #[must_use]
     pub fn key(&self) -> &K {
         match self {
             Occupied(entry) => entry.key(),
@@ -114,6 +115,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> Entry<'a, K, V, ARRAY_SIZE> {
 
     /// Provides in-place mutable access to an occupied entry before any
     /// potential inserts into the map.
+    #[allow(clippy::return_self_not_must_use)]
     pub fn and_modify<F>(self, f: F) -> Self
     where
         F: FnOnce(&mut V),
@@ -142,6 +144,7 @@ impl<'a, K: Ord, V: Default, const ARRAY_SIZE: usize> Entry<'a, K, V, ARRAY_SIZE
 impl<'a, K: Ord, V, const ARRAY_SIZE: usize> VacantEntry<'a, K, V, ARRAY_SIZE> {
     /// Gets a reference to the key that would be used when inserting a value
     /// through the `VacantEntry`.
+    #[must_use]
     pub fn key(&self) -> &K {
         match &self.inner {
             InnerVacant::Inline(i) => i.key(),
@@ -150,6 +153,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> VacantEntry<'a, K, V, ARRAY_SIZE> {
     }
 
     /// Takes ownership of the key.
+    #[must_use]
     pub fn into_key(self) -> K {
         match self.inner {
             InnerVacant::Inline(i) => i.into_key(),
@@ -169,6 +173,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> VacantEntry<'a, K, V, ARRAY_SIZE> {
 
 impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE> {
     /// Gets a reference to the key in the entry.
+    #[must_use]
     pub fn key(&self) -> &K {
         match &self.inner {
             InnerOccupied::Inline(o) => o.key(),
@@ -177,6 +182,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     }
 
     /// Takes ownership of the key and value from the map.
+    #[allow(clippy::must_use_candidate)]
     pub fn remove_entry(self) -> (K, V) {
         match self.inner {
             InnerOccupied::Inline(o) => o.remove_entry(),
@@ -185,6 +191,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     }
 
     /// Gets a reference to the value in the entry.
+    #[must_use]
     pub fn get(&self) -> &V {
         match &self.inner {
             InnerOccupied::Inline(o) => o.get(),
@@ -198,6 +205,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     /// destruction of the `Entry` value, see [`into_mut`].
     ///
     /// [`into_mut`]: OccupiedEntry::into_mut
+    #[must_use]
     pub fn get_mut(&mut self) -> &mut V {
         match &mut self.inner {
             InnerOccupied::Inline(o) => o.get_mut(),
@@ -210,6 +218,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     /// If you need multiple references to the `OccupiedEntry`, see [`get_mut`].
     ///
     /// [`get_mut`]: OccupiedEntry::get_mut
+    #[must_use]
     pub fn into_mut(self) -> &'a mut V {
         match self.inner {
             InnerOccupied::Inline(o) => o.into_mut(),
@@ -219,6 +228,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
 
     /// Sets the value of the entry with the `OccupiedEntry`'s key,
     /// and returns the entry's old value.
+    #[allow(clippy::must_use_candidate)]
     pub fn insert(&mut self, value: V) -> V {
         match &mut self.inner {
             InnerOccupied::Inline(o) => o.insert(value),
@@ -227,6 +237,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
     }
 
     /// Takes the value of the entry out of the map, and returns it.
+    #[allow(clippy::must_use_candidate)]
     pub fn remove(self) -> V {
         match self.inner {
             InnerOccupied::Inline(o) => o.remove(),
@@ -237,7 +248,7 @@ impl<'a, K: Ord, V, const ARRAY_SIZE: usize> OccupiedEntry<'a, K, V, ARRAY_SIZE>
 
 pub(super) struct InlineVacantEntry<'a, K, V, const ARRAY_SIZE: usize> {
     pub(super) key: K,
-    pub(super) map: &'a mut SmallMap<K, V, ARRAY_SIZE>,
+    pub(super) map: &'a mut SmallBTreeMap<K, V, ARRAY_SIZE>,
 }
 
 impl<'a, K: Ord + Eq, V, const ARRAY_SIZE: usize> InlineVacantEntry<'a, K, V, ARRAY_SIZE> {
@@ -276,7 +287,7 @@ impl<'a, K: Ord + Eq, V, const ARRAY_SIZE: usize> InlineVacantEntry<'a, K, V, AR
 
         let btree = BTreeMap::from_iter(vec);
 
-        *map = SmallMap {
+        *map = SmallBTreeMap {
             inner: super::Inner::Heap(btree),
         };
 

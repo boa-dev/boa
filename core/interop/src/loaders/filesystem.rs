@@ -2,7 +2,9 @@
 
 use boa_engine::module::{ModuleLoader, Referrer, resolve_module_specifier};
 use boa_engine::{Context, JsError, JsNativeError, JsResult, JsString, Module, Source, js_string};
+use std::cell::RefCell;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 /// A module loader that loads modules from the filesystem.
 #[derive(Clone, Debug)]
@@ -30,30 +32,32 @@ impl FsModuleLoader {
 
 impl ModuleLoader for FsModuleLoader {
     fn load_imported_module(
-        &self,
+        self: Rc<Self>,
         referrer: Referrer,
         specifier: JsString,
-        finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-        context: &mut Context,
-    ) {
-        let result = (|| -> JsResult<Module> {
+        context: &RefCell<&mut Context>,
+    ) -> impl Future<Output = JsResult<Module>> {
+        let result = (|| {
             let short_path = specifier.to_std_string_escaped();
-            let path =
-                resolve_module_specifier(Some(&self.root), &specifier, referrer.path(), context)?;
+            let path = resolve_module_specifier(
+                Some(&self.root),
+                &specifier,
+                referrer.path(),
+                &mut context.borrow_mut(),
+            )?;
 
             let source = Source::from_filepath(&path).map_err(|err| {
                 JsNativeError::typ()
                     .with_message(format!("could not open file `{short_path}`"))
                     .with_cause(JsError::from_opaque(js_string!(err.to_string()).into()))
             })?;
-            let module = Module::parse(source, None, context).map_err(|err| {
+            let module = Module::parse(source, None, &mut context.borrow_mut()).map_err(|err| {
                 JsNativeError::syntax()
                     .with_message(format!("could not parse module `{short_path}`"))
                     .with_cause(err)
             })?;
             Ok(module)
         })();
-
-        finish_load(result, context);
+        async { result }
     }
 }
