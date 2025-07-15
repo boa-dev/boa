@@ -20,6 +20,7 @@ url = { workspace = true, optional = true }
 [dev-dependencies]
 indoc.workspace = true
 textwrap.workspace = true
+futures-lite.workspace = true
 
 [lints]
 workspace = true
