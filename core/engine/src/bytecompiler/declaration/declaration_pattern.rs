@@ -100,6 +100,7 @@ impl ByteCompiler<'_> {
                                 let skip = self.emit_jump_if_not_undefined(&dst);
                                 self.compile_expr(init, &dst);
                                 self.patch_jump(skip);
+                                self.emit_binding(def, ident.to_js_string(self.interner()), &dst);
                             }
 
                             self.register_allocator.dealloc(dst);
