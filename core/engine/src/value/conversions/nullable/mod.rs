@@ -146,10 +146,10 @@ impl<T> Nullable<T> {
         }
     }
 
-    /// Returns the contained [`Some`] value or a default.
+    /// Returns the contained [`NonNull`] value or a default.
     ///
-    /// Consumes the `self` argument then, if [`Some`], returns the contained
-    /// value, otherwise if [`None`], returns the [default value] for that
+    /// Consumes the `self` argument then, if [`NonNull`], returns the contained
+    /// value, otherwise if [`Null`], returns the [default value] for that
     /// type.
     ///
     /// # Examples
