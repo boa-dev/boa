@@ -1,7 +1,5 @@
 //! The ECMAScript context.
 
-use std::num::NonZeroU64;
-use std::sync::atomic::Ordering;
 use std::{cell::Cell, path::Path, rc::Rc};
 
 use boa_ast::StatementList;
@@ -11,7 +9,6 @@ pub use hooks::{DefaultHooks, HostHooks};
 #[cfg(feature = "intl")]
 pub use icu::IcuError;
 use intrinsics::Intrinsics;
-use portable_atomic::AtomicU64;
 #[cfg(feature = "temporal")]
 use temporal_rs::tzdb::FsTzdbProvider;
 
@@ -479,14 +476,15 @@ impl Context {
     }
 
     /// Enqueues resolved context jobs.
-    ///
-    /// Returns `true` if the context is still waiting on additional signals to enqueue more
-    /// jobs.
-    pub fn enqueue_resolved_context_jobs(&mut self) -> bool {
+    pub fn enqueue_resolved_context_jobs(&mut self) {
         let mut waiters = std::mem::take(&mut self.pending_waiters);
-        let still_waiting = waiters.enqueue_waiter_jobs(self);
+        waiters.enqueue_waiter_jobs(self);
         self.pending_waiters = waiters;
-        still_waiting
+    }
+
+    /// Returns `true` if the context will enqueue more jobs in the future.
+    pub fn has_pending_context_jobs(&self) -> bool {
+        self.pending_waiters.len() > 0
     }
 
     /// Runs all the jobs with the provided job executor.

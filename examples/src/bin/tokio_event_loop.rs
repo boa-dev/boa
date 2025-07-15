@@ -1,5 +1,5 @@
 use boa_engine::context::time::{JsDuration, JsInstant};
-use boa_engine::job::TimeoutJob;
+use boa_engine::job::{GenericJob, TimeoutJob};
 use boa_engine::{
     Context, JsArgs, JsNativeError, JsResult, JsValue, Script, Source,
     context::ContextBuilder,
@@ -39,6 +39,7 @@ struct Queue {
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    generic_jobs: RefCell<VecDeque<GenericJob>>,
 }
 
 impl Queue {
@@ -47,6 +48,7 @@ impl Queue {
             async_jobs: RefCell::default(),
             promise_jobs: RefCell::default(),
             timeout_jobs: RefCell::default(),
+            generic_jobs: RefCell::default(),
         }
     }
 
@@ -69,8 +71,17 @@ impl Queue {
     }
 
     fn drain_jobs(&self, context: &mut Context) {
+        context.enqueue_resolved_context_jobs();
+
         // Run the timeout jobs first.
         self.drain_timeout_jobs(context);
+
+        let job = self.generic_jobs.borrow_mut().pop_front();
+        if let Some(generic) = job
+            && let Err(err) = generic.call(context)
+        {
+            eprintln!("Uncaught {err}");
+        }
 
         let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
         for job in jobs {
@@ -79,7 +90,6 @@ impl Queue {
             }
         }
         context.clear_kept_objects();
-        context.enqueue_internal_jobs();
     }
 }
 
@@ -92,6 +102,7 @@ impl JobExecutor for Queue {
                 let now = context.clock().now();
                 self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
             }
+            Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
             _ => panic!("unsupported job type"),
         }
     }
@@ -108,13 +119,6 @@ impl JobExecutor for Queue {
 
     // ...the async flavor won't, which allows concurrent execution with external async tasks.
     async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()> {
-        // Early return in case there were no jobs scheduled.
-        if self.promise_jobs.borrow().is_empty()
-            && self.async_jobs.borrow().is_empty()
-            && context.borrow_mut().enqueue_resolved_context_jobs()
-        {
-            return Ok(());
-        }
         let mut group = FutureGroup::new();
         loop {
             for job in std::mem::take(&mut *self.async_jobs.borrow_mut()) {
@@ -124,7 +128,8 @@ impl JobExecutor for Queue {
             if group.is_empty()
                 && self.promise_jobs.borrow().is_empty()
                 && self.timeout_jobs.borrow().is_empty()
-                && !context.borrow_mut().enqueue_resolved_context_jobs()
+                && self.generic_jobs.borrow().is_empty()
+                && !context.borrow().has_pending_context_jobs()
             {
                 // All queues are empty. We can exit.
                 return Ok(());
