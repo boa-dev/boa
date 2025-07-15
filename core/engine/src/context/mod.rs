@@ -483,6 +483,7 @@ impl Context {
     }
 
     /// Returns `true` if the context will enqueue more jobs in the future.
+    #[must_use]
     pub fn has_pending_context_jobs(&self) -> bool {
         self.pending_waiters.len() > 0
     }

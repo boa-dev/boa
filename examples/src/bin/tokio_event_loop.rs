@@ -1,4 +1,4 @@
-use boa_engine::context::time::{JsDuration, JsInstant};
+use boa_engine::context::time::JsInstant;
 use boa_engine::job::{GenericJob, TimeoutJob};
 use boa_engine::{
     Context, JsArgs, JsNativeError, JsResult, JsValue, Script, Source,
@@ -56,10 +56,7 @@ impl Queue {
         let now = context.clock().now();
 
         let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
-        // `split_off` returns the jobs after (or equal to) the key. So we need to add 1ms to
-        // the current time to get the jobs that are due, then swap with the inner timeout
-        // tree so that we get the jobs to actually run.
-        let jobs_to_keep = timeouts_borrow.split_off(&(now + JsDuration::from_millis(1)));
+        let jobs_to_keep = timeouts_borrow.split_off(&now);
         let jobs_to_run = std::mem::replace(timeouts_borrow.deref_mut(), jobs_to_keep);
         drop(timeouts_borrow);
 

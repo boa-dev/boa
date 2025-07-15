@@ -30,7 +30,7 @@
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 //! [`Gc`]: boa_gc::Gc
 
-use crate::context::time::JsDuration;
+use crate::context::time::{JsDuration, JsInstant};
 use crate::sys::time;
 use crate::{
     Context, JsResult, JsValue,
@@ -574,7 +574,7 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<BTreeMap<time::Instant, TimeoutJob>>,
+    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
     generic_jobs: RefCell<VecDeque<GenericJob>>,
 }
 
@@ -602,22 +602,26 @@ impl SimpleJobExecutor {
 }
 
 impl JobExecutor for SimpleJobExecutor {
-    fn enqueue_job(self: Rc<Self>, job: Job, _context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
         match job {
             Job::PromiseJob(p) => self.promise_jobs.borrow_mut().push_back(p),
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
             Job::TimeoutJob(t) => {
-                let now = time::Instant::now();
-                self.timeout_jobs
-                    .borrow_mut()
-                    .insert(now + time::Duration::from(t.timeout()), t);
+                let now = context.clock().now();
+                self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
             }
             Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
         }
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
-        let context = RefCell::new(context);
+        futures_lite::future::block_on(self.run_jobs_async(&RefCell::new(context)))
+    }
+
+    async fn run_jobs_async(self: Rc<Self>, context: &RefCell<&mut Context>) -> JsResult<()>
+    where
+        Self: Sized,
+    {
         loop {
             if self.promise_jobs.borrow().is_empty()
                 && self.async_jobs.borrow().is_empty()
@@ -633,14 +637,14 @@ impl JobExecutor for SimpleJobExecutor {
             // Block on each job running in the queue.
             let jobs = mem::take(&mut *self.async_jobs.borrow_mut());
             for job in jobs {
-                if let Err(err) = futures_lite::future::block_on(job.call(&context)) {
+                if let Err(err) = job.call(context).await {
                     self.clear();
                     return Err(err);
                 }
             }
 
             {
-                let now = time::Instant::now();
+                let now = context.borrow().clock().now();
                 let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
                 let jobs_to_keep = timeouts_borrow.split_off(&now);
                 let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
@@ -670,6 +674,7 @@ impl JobExecutor for SimpleJobExecutor {
                 }
             }
             context.borrow_mut().clear_kept_objects();
+            futures_lite::future::yield_now().await;
         }
 
         Ok(())
