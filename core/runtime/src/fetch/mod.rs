@@ -17,8 +17,8 @@ use boa_engine::object::builtins::JsPromise;
 use boa_engine::property::Attribute;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    js_error, js_string, Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue,
-    NativeObject, Trace,
+    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
+    js_error, js_string,
 };
 use boa_interop::IntoJsFunctionCopied;
 use either::Either;

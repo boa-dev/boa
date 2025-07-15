@@ -1,9 +1,9 @@
 //! Module containing various implementations of the [`Fetcher`] trait.
 
+use crate::fetch::Fetcher;
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use crate::fetch::Fetcher;
-use boa_engine::{js_error, Context, Finalize, JsData, JsError, JsResult, JsString, Trace};
+use boa_engine::{Context, Finalize, JsData, JsError, JsResult, JsString, Trace, js_error};
 use std::cell::RefCell;
 use std::rc::Rc;
 

@@ -3,7 +3,7 @@ use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{TryFromJs, TryIntoJs};
 use boa_engine::{
-    js_error, js_str, js_string, Context, JsData, JsNativeError, JsResult, JsString, JsValue,
+    Context, JsData, JsNativeError, JsResult, JsString, JsValue, js_error, js_str, js_string,
 };
 use boa_gc::{Finalize, Trace};
 use boa_interop::boa_macros::boa_class;

@@ -5,14 +5,14 @@ use std::{future::Future, pin::Pin, task};
 use super::{JsArray, JsFunction};
 use crate::value::TryIntoJs;
 use crate::{
+    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
     builtins::{
-        promise::{PromiseState, ResolvingFunctions},
         Promise,
-    }, job::NativeAsyncJob, object::JsObject, value::TryFromJs, Context, JsArgs, JsError,
-    JsNativeError,
-    JsResult,
-    JsValue,
-    NativeFunction,
+        promise::{PromiseState, ResolvingFunctions},
+    },
+    job::NativeAsyncJob,
+    object::JsObject,
+    value::TryFromJs,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
