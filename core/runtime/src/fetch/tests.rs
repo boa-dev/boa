@@ -2,7 +2,7 @@
 
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use boa_engine::{Context, Finalize, JsData, JsResult, JsString, Trace, js_error};
+use boa_engine::{js_error, Context, Finalize, JsData, JsResult, JsString, Trace};
 use http::{Request, Response, Uri};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -16,14 +16,14 @@ use std::rc::Rc;
 #[derive(Default, Debug, Trace, Finalize, JsData)]
 pub struct TestFetcher {
     #[unsafe_ignore_trace]
-    requests_received: RefCell<Vec<Request<Option<Vec<u8>>>>>,
+    requests_received: RefCell<Vec<Request<Vec<u8>>>>,
     #[unsafe_ignore_trace]
-    request_mapper: HashMap<Uri, Response<Option<Vec<u8>>>>,
+    request_mapper: HashMap<Uri, Response<Vec<u8>>>,
 }
 
 impl TestFetcher {
     /// Add a response mapping for a URL.
-    pub fn add_response(&mut self, url: Uri, response: Response<Option<Vec<u8>>>) {
+    pub fn add_response(&mut self, url: Uri, response: Response<Vec<u8>>) {
         self.request_mapper.insert(url, response);
     }
 }
@@ -49,7 +49,7 @@ impl crate::fetch::Fetcher for TestFetcher {
 fn request_constructor() {
     use crate::fetch::request::JsRequest;
     use crate::fetch::response::JsResponse;
-    use crate::test::{TestAction, run_test_actions};
+    use crate::test::{run_test_actions, TestAction};
     use boa_engine::{js_str, js_string};
     use either::Either;
 
@@ -58,7 +58,7 @@ fn request_constructor() {
             let mut fetcher = TestFetcher::default();
             fetcher.add_response(
                 Uri::from_static("http://example.com"),
-                Response::new(Some("Hello World".as_bytes().to_vec())),
+                Response::new("Hello World".as_bytes().to_vec()),
             );
             crate::fetch::register(fetcher, None, ctx).expect("failed to register fetch");
         }),
@@ -78,12 +78,10 @@ fn request_constructor() {
                     .as_ref()
                     .and_then(|o| o.downcast_ref::<JsResponse>())
                     .unwrap()
-                    .inner()
-                    .borrow()
                     .body()
                     .as_ref()
-                    .map(Vec::as_slice),
-                Some("Hello World".as_bytes())
+                    .as_slice(),
+                "Hello World".as_bytes()
             );
         }),
         TestAction::inspect_context(|_ctx| {

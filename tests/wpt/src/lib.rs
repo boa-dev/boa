@@ -177,7 +177,8 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher
     } else {
         logger::RecordingLogger::new(NullLogger)
     };
-    let fetcher = fetcher::WptFetcher::new(wpt_path);
+
+    let fetcher = fetcher::WptFetcher::new(wpt_path, "web-platform.test:8000".to_string());
     boa_runtime::register(
         &mut context,
         RegisterOptions::new()
@@ -333,10 +334,12 @@ fn execute_test_file(path: &Path) {
         let script_path = Path::new(&script);
         let path = if script_path.is_relative() {
             dir.join(script_path)
-        } else {
+        } else if script_path.starts_with(&wpt_path) {
             script_path.to_path_buf()
+        } else {
+            wpt_path.join(script_path.strip_prefix("/").unwrap())
         };
-        eprintln!("wpt_path = {wpt_path:?}, script_path = {script_path:?}, path = {path:?}");
+        eprintln!("path: {:?}", path);
         let path = path.canonicalize().expect("Could not canonicalize path");
 
         if path.exists() {
@@ -422,12 +425,12 @@ fn url(
 
 /// Test the `fetch` with the WPT test suite.
 #[cfg(not(clippy))]
+#[ignore] // This is nowhere near ready for production. It also requires a web-server.
 #[rstest::rstest]
 fn fetch(
     #[base_dir = "${WPT_ROOT}"]
     #[files("fetch/api/**/*.any.js")]
     #[exclude("idlharness")]
-    #[exclude("abort")]
     path: PathBuf,
 ) {
     execute_test_file(&path);

@@ -17,12 +17,12 @@ use boa_engine::object::builtins::JsPromise;
 use boa_engine::property::Attribute;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
-    js_error, js_string,
+    js_error, js_string, Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue,
+    NativeObject, Trace,
 };
 use boa_interop::IntoJsFunctionCopied;
 use either::Either;
-use http::{Request as HttpRequest, Request};
+use http::{HeaderName, Request as HttpRequest, Request};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -51,6 +51,7 @@ pub trait Fetcher: NativeObject {
     ///
     /// # Errors
     /// Any errors returned by the HTTP implementation must conform to [`JsError`].
+    #[expect(async_fn_in_trait, reason = "all our APIs are single-threaded")]
     async fn fetch(
         self: Rc<Self>,
         request: JsRequest,
@@ -98,14 +99,14 @@ async fn fetch_inner<T: Fetcher>(
 
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
-    let request: Request<Option<Vec<u8>>> = match resource {
+    let request: Request<Vec<u8>> = match resource {
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
             let url = fetcher
                 .resolve_uri(url, &mut context.borrow_mut())
                 .map_err(JsError::from_rust)?;
 
-            let r = HttpRequest::get(url).body(Some(Vec::new()));
+            let r = HttpRequest::get(url).body(Vec::new());
             r.map_err(JsError::from_rust)?
         }
         Either::Right(request) => {
@@ -121,11 +122,23 @@ async fn fetch_inner<T: Fetcher>(
         }
     };
 
-    let request = if let Some(options) = options {
+    let mut request = if let Some(options) = options {
         options.into_request_builder(Some(request))?
     } else {
         request
     };
+
+    // Add the `Accept-Language` which should be automatically included, unless specified.
+    if !request.headers().contains_key(
+        "accept-language"
+            .parse::<HeaderName>()
+            .map_err(JsError::from_rust)?,
+    ) {
+        request
+            .headers_mut()
+            .append("Accept-Language", "en-US".parse().unwrap());
+    }
+
     let response = fetcher.fetch(JsRequest::from(request), context).await?;
     let result = Class::from_data(response, &mut context.borrow_mut())?;
     Ok(result.into())
@@ -145,9 +158,10 @@ pub fn fetch<T: Fetcher>(
     options: Option<RequestInit>,
     context: &mut Context,
 ) -> JsPromise {
-    let context = RefCell::new(context);
-    let future = async move { fetch_inner::<T>(resource, options, &context).await };
-    JsPromise::from_future(future, &mut context.borrow_mut())
+    JsPromise::from_future(
+        async move |context| fetch_inner::<T>(resource, options, context).await,
+        context,
+    )
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.

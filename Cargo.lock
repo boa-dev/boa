@@ -439,6 +439,7 @@ version = "0.20.0"
 dependencies = [
  "boa_macros",
  "boa_string",
+ "either",
  "hashbrown 0.15.4",
  "icu_locale_core",
  "thin-vec",

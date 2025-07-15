@@ -6,10 +6,10 @@
 use boa_engine::object::builtins::{JsArray, TypedJsFunction};
 use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
-    Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error,
+    js_error, Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace,
 };
-use boa_interop::JsClass;
 use boa_interop::boa_macros::boa_class;
+use boa_interop::JsClass;
 use http::header::HeaderMap as HttpHeaderMap;
 use http::{HeaderName, HeaderValue};
 use std::cell::RefCell;
@@ -62,6 +62,16 @@ impl TryFromJs for JsHeaders {
             )?;
         }
         Ok(this)
+    }
+}
+
+impl JsHeaders {
+    /// Creates a JsHeader from an internal [`http::HeaderMap`]. Takes ownership
+    /// of the inner map.
+    pub fn from_http(http: HttpHeaderMap) -> Self {
+        Self {
+            headers: Rc::new(RefCell::new(http)),
+        }
     }
 }
 
@@ -188,7 +198,8 @@ impl JsHeaders {
     ///
     /// # Errors
     /// If the key is not valid ASCII, an error is returned.
-    pub fn get(&self, key: Convert<String>) -> JsResult<JsValue> {
+    pub fn get(&self, key: JsValue, context: &mut Context) -> JsResult<JsValue> {
+        let key: Convert<String> = Convert::try_from_js(&key, context)?;
         let name = to_header_name(key.as_ref())?;
         let value = self
             .headers

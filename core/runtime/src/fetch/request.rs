@@ -5,11 +5,56 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
 use boa_engine::value::{Convert, TryFromJs};
-use boa_engine::{Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error};
+use boa_engine::{js_error, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace};
 use boa_interop::boa_macros::boa_class;
 use either::Either;
 use std::collections::BTreeMap;
 use std::mem;
+
+fn add_headers_to_builder<'a>(
+    headers: impl Iterator<Item = (&'a JsString, &'a Convert<JsString>)>,
+    mut builder: http::request::Builder,
+) -> JsResult<http::request::Builder> {
+    for (hkey, Convert(hvalue)) in headers {
+        // Make sure key and value can be represented by regular strings.
+        // Keys also cannot have any extended characters (>128).
+        // Values cannot have unpaired surrogates.
+        let key = hkey.to_std_string().map_err(|_| {
+            js_error!(TypeError: "Request constructor: {} is an invalid header name", hkey.to_std_string_escaped())
+        })?;
+        if !key.is_ascii() {
+            return Err(
+                js_error!(TypeError: "Request constructor: {} is an invalid header name", hkey.to_std_string_escaped()),
+            );
+        }
+        let value = hvalue.to_std_string().map_err(|_| {
+            js_error!(
+                TypeError: "Request constructor: {:?} is an invalid header value",
+                hvalue.to_std_string_escaped()
+            )
+        })?;
+
+        builder = builder.header(key, value);
+    }
+
+    Ok(builder)
+}
+
+fn add_vec_headers_to_builder(
+    headers: &[(JsString, Convert<JsString>)],
+    builder: http::request::Builder,
+) -> JsResult<http::request::Builder> {
+    add_headers_to_builder(headers.iter().map(|(k, v)| (k, v)), builder)
+}
+
+fn add_btree_headers_to_builder(
+    headers: &BTreeMap<JsString, Convert<JsString>>,
+    builder: http::request::Builder,
+) -> JsResult<http::request::Builder> {
+    add_headers_to_builder(headers.iter(), builder)
+}
+
+type VecOrMap<K, V> = Either<Vec<(K, V)>, BTreeMap<K, V>>;
 
 /// A [RequestInit][mdn] object. This is a JavaScript object (not a
 /// class) that can be used as options for creating a [`JsRequest`].
@@ -19,7 +64,7 @@ use std::mem;
 #[derive(Debug, Clone, TryFromJs, Trace, Finalize)]
 pub struct RequestInit {
     body: Option<JsValue>,
-    headers: Option<BTreeMap<JsString, Convert<JsString>>>,
+    headers: Option<VecOrMap<JsString, Convert<JsString>>>,
     method: Option<Convert<JsString>>,
 }
 
@@ -31,8 +76,8 @@ impl RequestInit {
     /// If the body is not a valid type, an error is returned.
     pub fn into_request_builder(
         mut self,
-        maybe_request: Option<HttpRequest<Option<Vec<u8>>>>,
-    ) -> JsResult<HttpRequest<Option<Vec<u8>>>> {
+        maybe_request: Option<HttpRequest<Vec<u8>>>,
+    ) -> JsResult<HttpRequest<Vec<u8>>> {
         let mut builder = HttpRequest::builder();
         if let Some(r) = maybe_request {
             let (parts, _body) = r.into_parts();
@@ -47,26 +92,13 @@ impl RequestInit {
         }
 
         if let Some(ref headers) = self.headers.take() {
-            for (hkey, Convert(hvalue)) in headers {
-                // Make sure key and value can be represented by regular strings.
-                // Keys also cannot have any extended characters (>128).
-                // Values cannot have unpaired surrogates.
-                let key = hkey.to_std_string().map_err(|_| {
-                    js_error!(TypeError: "Request constructor: {} is an invalid header name", hkey.to_std_string_escaped())
-                })?;
-                if !key.is_ascii() {
-                    return Err(
-                        js_error!(TypeError: "Request constructor: {} is an invalid header name", hkey.to_std_string_escaped()),
-                    );
+            match headers {
+                Either::Left(headers) => {
+                    builder = add_vec_headers_to_builder(headers, builder)?;
                 }
-                let value = hvalue.to_std_string().map_err(|_| {
-                    js_error!(
-                        TypeError: "Request constructor: {:?} is an invalid header value",
-                        hvalue.to_std_string_escaped()
-                    )
-                })?;
-
-                builder = builder.header(key, value);
+                Either::Right(headers) => {
+                    builder = add_btree_headers_to_builder(headers, builder)?;
+                }
             }
         }
 
@@ -92,7 +124,7 @@ impl RequestInit {
         }
 
         builder
-            .body(request_body)
+            .body(request_body.unwrap_or_default())
             .map_err(|_| js_error!(Error: "Cannot construct request"))
     }
 }
@@ -105,17 +137,17 @@ impl RequestInit {
 #[derive(Clone, Debug, JsData, Trace, Finalize)]
 pub struct JsRequest {
     #[unsafe_ignore_trace]
-    inner: HttpRequest<Option<Vec<u8>>>,
+    inner: HttpRequest<Vec<u8>>,
 }
 
 impl JsRequest {
     /// Get the inner `http::Request` object. This drops the body (if any).
-    pub fn into_inner(mut self) -> HttpRequest<Option<Vec<u8>>> {
-        mem::replace(&mut self.inner, HttpRequest::new(None))
+    pub fn into_inner(mut self) -> HttpRequest<Vec<u8>> {
+        mem::replace(&mut self.inner, HttpRequest::new(Vec::new()))
     }
 
     /// Get a reference to the inner `http::Request` object.
-    pub fn inner(&self) -> &HttpRequest<Option<Vec<u8>>> {
+    pub fn inner(&self) -> &HttpRequest<Vec<u8>> {
         &self.inner
     }
 
@@ -142,7 +174,7 @@ impl JsRequest {
                 .map_err(|_| js_error!(URIError: "Invalid URI"))?;
                 http::request::Request::builder()
                     .uri(uri)
-                    .body(Some(Vec::<u8>::new()))
+                    .body(Vec::<u8>::new())
                     .map_err(|_| js_error!(Error: "Cannot construct request"))?
             }
             Either::Right(r) => r.into_inner(),
@@ -157,8 +189,8 @@ impl JsRequest {
     }
 }
 
-impl From<HttpRequest<Option<Vec<u8>>>> for JsRequest {
-    fn from(inner: HttpRequest<Option<Vec<u8>>>) -> Self {
+impl From<HttpRequest<Vec<u8>>> for JsRequest {
+    fn from(inner: HttpRequest<Vec<u8>>) -> Self {
         Self { inner }
     }
 }
@@ -167,7 +199,7 @@ impl From<HttpRequest<Option<Vec<u8>>>> for JsRequest {
 #[boa(rename_all = "camelCase")]
 impl JsRequest {
     /// # Errors
-    /// Will return an error if the URL or any underlying error occured in the
+    /// Will return an error if the URL or any underlying error occurred in the
     /// context.
     #[boa(constructor)]
     pub fn constructor(
@@ -179,7 +211,6 @@ impl JsRequest {
         let input = match input {
             Either::Right(r) => {
                 if let Ok(request) = r.clone().downcast::<JsRequest>() {
-                    // TODO: why do we need to clone? We can just drop the `JsObject`.
                     Either::Right(request.borrow().data().clone())
                 } else {
                     return Err(js_error!(TypeError: "invalid input argument"));

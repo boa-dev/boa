@@ -6,8 +6,8 @@ use std::{
     hash::{BuildHasher, Hash},
     marker::PhantomData,
     num::{
-        NonZeroI8, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI128, NonZeroIsize, NonZeroU8,
-        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU128, NonZeroUsize,
+        NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
     },
     path::{Path, PathBuf},
     rc::Rc,
@@ -548,4 +548,21 @@ mod boa_string_trace {
     }
 
     impl Finalize for boa_string::JsString {}
+}
+
+#[cfg(feature = "either")]
+mod either_trace {
+    use crate::{Finalize, Trace};
+
+    impl<L: Trace, R: Trace> Finalize for either::Either<L, R> {}
+
+    unsafe impl<L: Trace, R: Trace> Trace for either::Either<L, R> {
+        custom_trace!(this, mark, {
+            if let either::Either::Left(l) = this {
+                mark(l);
+            } else if let either::Either::Right(r) = this {
+                mark(r);
+            }
+        });
+    }
 }

@@ -3,13 +3,11 @@ use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{TryFromJs, TryIntoJs};
 use boa_engine::{
-    Context, JsData, JsNativeError, JsResult, JsString, JsValue, js_error, js_str, js_string,
+    js_error, js_str, js_string, Context, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Gc, Trace};
 use boa_interop::boa_macros::boa_class;
-use std::borrow::Cow;
-use std::cell::RefCell;
-use std::rc::Rc;
+use http::StatusCode;
 
 /// The type read-only property of the Response interface contains the type of the
 /// response. The type determines whether scripts are able to access the response body
@@ -46,6 +44,7 @@ pub enum ResponseType {
 }
 
 impl ResponseType {
+    /// Return the Javascript String representing this response type.
     pub fn to_string(self) -> JsString {
         match self {
             ResponseType::Basic => js_string!("basic"),
@@ -95,17 +94,28 @@ pub struct JsResponse {
     r#type: ResponseType,
 
     #[unsafe_ignore_trace]
-    inner: Rc<RefCell<http::Response<Option<Vec<u8>>>>>,
+    status: Option<StatusCode>,
+
+    headers: JsHeaders,
+
+    body: Gc<Vec<u8>>,
 }
 
 impl JsResponse {
     /// Create a new instance from the HTTP response and the URL that requested it.
     #[must_use]
-    pub fn basic(url: JsString, inner: http::Response<Option<Vec<u8>>>) -> Self {
+    pub fn basic(url: JsString, inner: http::Response<Vec<u8>>) -> Self {
+        let (parts, body) = inner.into_parts();
+        let status = Some(parts.status);
+        let headers = JsHeaders::from_http(parts.headers);
+        let body = Gc::new(body);
+
         Self {
             url,
             r#type: ResponseType::Basic,
-            inner: Rc::new(RefCell::new(inner)),
+            status,
+            headers,
+            body,
         }
     }
 
@@ -115,14 +125,15 @@ impl JsResponse {
         Self {
             url: js_string!(""),
             r#type: ResponseType::Error,
-            inner: Rc::new(RefCell::new(http::Response::default())),
+            status: None,
+            headers: JsHeaders::default(),
+            body: Gc::new(Vec::new()),
         }
     }
 
-    /// Return a copy of the inner response.
-    #[must_use]
-    pub fn inner(&self) -> Rc<RefCell<http::Response<Option<Vec<u8>>>>> {
-        self.inner.clone()
+    /// Return a copy of the body.
+    pub fn body(&self) -> Gc<Vec<u8>> {
+        self.body.clone()
     }
 }
 
@@ -146,19 +157,27 @@ impl JsResponse {
 
     #[boa(constructor)]
     fn constructor(_body: Option<JsValue>, _options: JsResponseOptions) -> Self {
-        Self::basic(js_string!(""), http::Response::new(Some(Vec::new())))
+        Self::basic(js_string!(""), http::Response::new(Vec::new()))
     }
 
     #[boa(getter)]
     fn status(&self) -> u16 {
-        self.inner.borrow().status().as_u16()
+        // 0 is a special case for error responses.
+        self.status.map(|s| s.as_u16()).unwrap_or(0)
     }
 
     #[boa(getter)]
     fn status_text(&self) -> JsString {
-        let status = self.inner.borrow().status();
+        if let Some(status) = self.status {
+            JsString::from(status.canonical_reason().unwrap_or_else(|| status.as_str()))
+        } else {
+            JsString::default()
+        }
+    }
 
-        JsString::from(status.canonical_reason().unwrap_or_else(|| status.as_str()))
+    #[boa(getter)]
+    fn headers(&self) -> JsHeaders {
+        self.headers.clone()
     }
 
     #[boa(getter)]
@@ -173,27 +192,27 @@ impl JsResponse {
     }
 
     fn text(&self, context: &mut Context) -> JsPromise {
-        let body = JsString::from(
-            self.inner
-                .borrow()
-                .body()
-                .as_ref()
-                .map_or_else(|| Cow::Borrowed(""), |body| String::from_utf8_lossy(body)),
-        );
-
-        JsPromise::resolve(body, context)
+        let body = self.body();
+        JsPromise::from_future(
+            async move |_| {
+                let body = String::from_utf8_lossy(body.as_ref());
+                Ok(JsString::from(body).into())
+            },
+            context,
+        )
     }
 
-    fn json(&self, context: &mut Context) -> JsResult<JsPromise> {
-        let resp = self.inner.borrow();
-        let json_string = resp
-            .body()
-            .as_ref()
-            .map_or_else(|| Cow::Borrowed(""), |body| String::from_utf8_lossy(body));
+    fn json(&self, context: &mut Context) -> JsPromise {
+        let body = self.body();
+        JsPromise::from_future(
+            async move |context| {
+                let json_string = String::from_utf8_lossy(body.as_ref());
+                let json = serde_json::from_str::<serde_json::Value>(&json_string)
+                    .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
 
-        let json = serde_json::from_str::<serde_json::Value>(&json_string)
-            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
-
-        JsValue::from_json(&json, context).map(|v| JsPromise::resolve(v, context))
+                JsValue::from_json(&json, &mut context.borrow_mut())
+            },
+            context,
+        )
     }
 }

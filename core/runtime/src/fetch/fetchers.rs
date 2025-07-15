@@ -1,9 +1,9 @@
 //! Module containing various implementations of the [`Fetcher`] trait.
 
-use crate::fetch::Fetcher;
 use crate::fetch::request::JsRequest;
 use crate::fetch::response::JsResponse;
-use boa_engine::{Context, Finalize, JsData, JsError, JsResult, JsString, Trace, js_error};
+use crate::fetch::Fetcher;
+use boa_engine::{js_error, Context, Finalize, JsData, JsError, JsResult, JsString, Trace};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -43,12 +43,10 @@ impl Fetcher for BlockingReqwestFetcher {
             .request(request.method().clone(), &url)
             .headers(request.headers().clone());
 
-        let req = if let Some(body) = request.body().clone() {
-            req.body(body).build()
-        } else {
-            req.build()
-        }
-        .map_err(JsError::from_rust)?;
+        let req = req
+            .body(request.body().clone())
+            .build()
+            .map_err(JsError::from_rust)?;
 
         let resp = self.client.execute(req).map_err(JsError::from_rust)?;
 
@@ -64,7 +62,7 @@ impl Fetcher for BlockingReqwestFetcher {
         }
 
         builder
-            .body(bytes.is_empty().then(|| bytes.to_vec()))
+            .body(bytes.to_vec())
             .map_err(JsError::from_rust)
             .map(|request| JsResponse::basic(JsString::from(url), request))
     }
