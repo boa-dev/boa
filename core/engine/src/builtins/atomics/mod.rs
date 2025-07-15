@@ -16,9 +16,16 @@ pub(crate) use futex::AsyncPendingWaiters;
 use std::sync::atomic::Ordering;
 
 use crate::{
-    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue, builtins::BuiltInObject,
-    context::intrinsics::Intrinsics, js_string, object::JsObject, property::Attribute,
-    realm::Realm, string::StaticJsStrings, symbol::JsSymbol, sys::time::Duration,
+    Context, JsArgs, JsNativeError, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, OrdinaryObject},
+    context::intrinsics::Intrinsics,
+    js_string,
+    object::{JsObject, JsPromise},
+    property::Attribute,
+    realm::Realm,
+    string::StaticJsStrings,
+    symbol::JsSymbol,
+    sys::time::Duration,
     value::IntegerOrInfinity,
 };
 
@@ -49,7 +56,8 @@ impl IntrinsicObject for Atomics {
             .static_method(Atomics::bit_or, js_string!("or"), 3)
             .static_method(Atomics::store, js_string!("store"), 3)
             .static_method(Atomics::sub, js_string!("sub"), 3)
-            .static_method(Atomics::wait, js_string!("wait"), 4)
+            .static_method(Atomics::wait::<false>, js_string!("wait"), 4)
+            .static_method(Atomics::wait::<true>, js_string!("waitAsync"), 4)
             .static_method(Atomics::notify, js_string!("notify"), 3)
             .static_method(Atomics::bit_xor, js_string!("xor"), 3);
 
@@ -395,8 +403,11 @@ impl Atomics {
     /// [`Atomics.wait ( typedArray, index, value, timeout )`][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-atomics.wait
-    // TODO: rewrite this to support Atomics.waitAsync
-    fn wait(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn wait<const ASYNC: bool>(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let array = args.get_or_undefined(0);
         let index = args.get_or_undefined(1);
         let value = args.get_or_undefined(2);
@@ -406,7 +417,7 @@ impl Atomics {
         let (ta, buf_len) = validate_integer_typed_array(array, true)?;
 
         // 2. Let buffer be taRecord.[[Object]].[[ViewedArrayBuffer]].
-        // 2. If IsSharedArrayBuffer(buffer) is false, throw a TypeError exception.
+        // 3. If IsSharedArrayBuffer(buffer) is false, throw a TypeError exception.
         let buffer = match ta.borrow().data().viewed_array_buffer() {
             BufferObject::SharedBuffer(buf) => buf.clone(),
             BufferObject::Buffer(_) => {
@@ -416,22 +427,20 @@ impl Atomics {
             }
         };
 
-        // 3. Let indexedPosition be ? ValidateAtomicAccess(typedArray, index).
+        // 4. Let i be ? ValidateAtomicAccess(taRecord, index).
         let access = validate_atomic_access(&ta, buf_len, index, context)?;
 
-        // spec expects the evaluation of this first, then the timeout.
+        // 5. Let arrayTypeName be typedArray.[[TypedArrayName]].
         let value = if access.kind == TypedArrayKind::BigInt64 {
-            // 4. If typedArray.[[TypedArrayName]] is "BigInt64Array", let v be ? ToBigInt64(value).
+            // 6. If typedArray.[[TypedArrayName]] is "BigInt64Array", let v be ? ToBigInt64(value).
             value.to_big_int64(context)?
         } else {
-            // 5. Otherwise, let v be ? ToInt32(value).
+            // 7. Else, let v be ? ToInt32(value).
             i64::from(value.to_i32(context)?)
         };
 
-        // moving above since we need to make a generic call next.
-
-        // 6. Let q be ? ToNumber(timeout).
-        // 7. If q is either NaN or +∞𝔽, let t be +∞; else if q is -∞𝔽, let t be 0; else let t be max(ℝ(q), 0).
+        // 8. Let q be ? ToNumber(timeout).
+        // 9. If q is either NaN or +∞𝔽, let t be +∞; else if q is -∞𝔽, let t be 0; else let t be max(ℝ(q), 0).
         let mut timeout = timeout.to_number(context)?;
         // convert to nanoseconds to discard any excessively big timeouts.
         timeout = timeout.clamp(0.0, f64::INFINITY) * 1000.0 * 1000.0;
@@ -441,42 +450,82 @@ impl Atomics {
             Some(Duration::from_nanos(timeout as u64))
         };
 
-        // 8. Let B be AgentCanSuspend().
-        // 9. If B is false, throw a TypeError exception.
-        if !context.can_block() {
+        // 10. If mode is sync and AgentCanSuspend() is false, throw a TypeError exception.
+        if !ASYNC && !context.can_block() {
             return Err(JsNativeError::typ()
                 .with_message("agent cannot be suspended")
                 .into());
         }
 
         // SAFETY: the validity of `addr` is verified by our call to `validate_atomic_access`.
-        let result = unsafe {
-            if access.kind == TypedArrayKind::BigInt64 {
-                futex::wait(
-                    buffer.borrow().data(),
-                    buf_len,
-                    access.byte_offset,
-                    value,
-                    timeout,
-                )?
-            } else {
-                // value must fit into `i32` since it came from an `i32` above.
-                futex::wait(
-                    buffer.borrow().data(),
-                    buf_len,
-                    access.byte_offset,
-                    value as i32,
-                    timeout,
-                )?
-            }
-        };
+        if ASYNC {
+            let (promise, resolvers) = JsPromise::new_pending(context);
+            let result = unsafe {
+                if access.kind == TypedArrayKind::BigInt64 {
+                    futex::wait_async(
+                        &buffer.borrow().data(),
+                        buf_len,
+                        access.byte_offset,
+                        value,
+                        timeout,
+                        resolvers,
+                        context,
+                    )?
+                } else {
+                    // value must fit into `i32` since it came from an `i32` above.
+                    futex::wait_async(
+                        &buffer.borrow().data(),
+                        buf_len,
+                        access.byte_offset,
+                        value as i32,
+                        timeout,
+                        resolvers,
+                        context,
+                    )?
+                }
+            };
 
-        Ok(match result {
-            futex::AtomicsWaitResult::NotEqual => js_string!("not-equal"),
-            futex::AtomicsWaitResult::TimedOut => js_string!("timed-out"),
-            futex::AtomicsWaitResult::Ok => js_string!("ok"),
+            let (is_async, value) = match result {
+                futex::AtomicsWaitResult::NotEqual => (false, js_string!("not-equal").into()),
+                futex::AtomicsWaitResult::TimedOut => (false, js_string!("timed-out").into()),
+                futex::AtomicsWaitResult::Ok => (true, promise.into()),
+            };
+
+            Ok(context
+                .intrinsics()
+                .templates()
+                .wait_async()
+                .create(OrdinaryObject, vec![is_async.into(), value])
+                .into())
+        } else {
+            let result = unsafe {
+                if access.kind == TypedArrayKind::BigInt64 {
+                    futex::wait(
+                        &buffer.borrow().data(),
+                        buf_len,
+                        access.byte_offset,
+                        value,
+                        timeout,
+                    )?
+                } else {
+                    // value must fit into `i32` since it came from an `i32` above.
+                    futex::wait(
+                        &buffer.borrow().data(),
+                        buf_len,
+                        access.byte_offset,
+                        value as i32,
+                        timeout,
+                    )?
+                }
+            };
+
+            Ok(match result {
+                futex::AtomicsWaitResult::NotEqual => js_string!("not-equal"),
+                futex::AtomicsWaitResult::TimedOut => js_string!("timed-out"),
+                futex::AtomicsWaitResult::Ok => js_string!("ok"),
+            }
+            .into())
         }
-        .into())
     }
 
     /// [`Atomics.notify ( typedArray, index, count )`][spec]
@@ -606,6 +655,7 @@ fn validate_integer_typed_array(
     Ok(ta_record)
 }
 
+#[derive(Debug, Copy, Clone)]
 struct AtomicAccess {
     byte_offset: usize,
     kind: TypedArrayKind,

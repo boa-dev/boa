@@ -30,7 +30,8 @@
 //! [JobCallback]: https://tc39.es/ecma262/#sec-jobcallback-records
 //! [`Gc`]: boa_gc::Gc
 
-use crate::context::time::{JsDuration, JsInstant};
+use crate::context::time::JsDuration;
+use crate::sys::time;
 use crate::{
     Context, JsResult, JsValue,
     object::{JsFunction, NativeObject},
@@ -39,6 +40,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::any::Any;
 use std::collections::BTreeMap;
+use std::mem;
 use std::rc::Rc;
 use std::{cell::RefCell, collections::VecDeque, fmt::Debug, future::Future, pin::Pin};
 
@@ -162,7 +164,7 @@ impl TimeoutJob {
 
     /// Creates a new `TimeoutJob` from a closure, a timeout, and an execution realm.
     #[must_use]
-    pub fn with_realm<F>(f: F, realm: Realm, timeout: std::time::Duration) -> Self
+    pub fn with_realm<F>(f: F, realm: Realm, timeout: time::Duration) -> Self
     where
         F: FnOnce(&mut Context) -> JsResult<JsValue> + 'static,
     {
@@ -572,7 +574,17 @@ impl JobExecutor for IdleJobExecutor {
 pub struct SimpleJobExecutor {
     promise_jobs: RefCell<VecDeque<PromiseJob>>,
     async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
-    timeout_jobs: RefCell<BTreeMap<JsInstant, TimeoutJob>>,
+    timeout_jobs: RefCell<BTreeMap<time::Instant, TimeoutJob>>,
+    generic_jobs: RefCell<VecDeque<GenericJob>>,
+}
+
+impl SimpleJobExecutor {
+    fn clear(&self) {
+        self.promise_jobs.borrow_mut().clear();
+        self.async_jobs.borrow_mut().clear();
+        self.timeout_jobs.borrow_mut().clear();
+        self.generic_jobs.borrow_mut().clear();
+    }
 }
 
 impl Debug for SimpleJobExecutor {
@@ -590,64 +602,74 @@ impl SimpleJobExecutor {
 }
 
 impl JobExecutor for SimpleJobExecutor {
-    fn enqueue_job(self: Rc<Self>, job: Job, context: &mut Context) {
+    fn enqueue_job(self: Rc<Self>, job: Job, _context: &mut Context) {
         match job {
             Job::PromiseJob(p) => self.promise_jobs.borrow_mut().push_back(p),
             Job::AsyncJob(a) => self.async_jobs.borrow_mut().push_back(a),
             Job::TimeoutJob(t) => {
-                let now = context.clock().now();
-                self.timeout_jobs.borrow_mut().insert(now + t.timeout(), t);
+                let now = time::Instant::now();
+                self.timeout_jobs
+                    .borrow_mut()
+                    .insert(now + time::Duration::from(t.timeout()), t);
             }
+            Job::GenericJob(g) => self.generic_jobs.borrow_mut().push_back(g),
         }
     }
 
     fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
-        let now = context.clock().now();
-
-        {
-            let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
-            // `split_off` returns the jobs after (or equal to) the key. So we need to add 1ms to
-            // the current time to get the jobs that are due, then swap with the inner timeout
-            // tree so that we get the jobs to actually run.
-            let jobs_to_keep = timeouts_borrow.split_off(&(now + JsDuration::from_millis(1)));
-            let jobs_to_run = std::mem::replace(&mut *timeouts_borrow, jobs_to_keep);
-            drop(timeouts_borrow);
-
-            for job in jobs_to_run.into_values() {
-                job.call(context)?;
-            }
-        }
-
         let context = RefCell::new(context);
         loop {
             if self.promise_jobs.borrow().is_empty()
                 && self.async_jobs.borrow().is_empty()
-                && !context.borrow_mut().enqueue_resolved_context_jobs()
+                && self.generic_jobs.borrow().is_empty()
+                && self.timeout_jobs.borrow().is_empty()
+                && !context.borrow().has_pending_context_jobs()
             {
                 break;
             }
 
-            // Block on each async jobs running in the queue.
-            let mut next_job = self.async_jobs.borrow_mut().pop_front();
-            while let Some(job) = next_job {
+            context.borrow_mut().enqueue_resolved_context_jobs();
+
+            // Block on each job running in the queue.
+            let jobs = mem::take(&mut *self.async_jobs.borrow_mut());
+            for job in jobs {
                 if let Err(err) = futures_lite::future::block_on(job.call(&context)) {
-                    self.async_jobs.borrow_mut().clear();
-                    self.promise_jobs.borrow_mut().clear();
+                    self.clear();
                     return Err(err);
                 }
-                next_job = self.async_jobs.borrow_mut().pop_front();
             }
-            let mut next_job = self.promise_jobs.borrow_mut().pop_front();
-            while let Some(job) = next_job {
+
+            {
+                let now = time::Instant::now();
+                let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
+                let jobs_to_keep = timeouts_borrow.split_off(&now);
+                let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
+                drop(timeouts_borrow);
+
+                for job in jobs_to_run.into_values() {
+                    if let Err(err) = job.call(&mut context.borrow_mut()) {
+                        self.clear();
+                        return Err(err);
+                    }
+                }
+            }
+
+            let jobs = mem::take(&mut *self.promise_jobs.borrow_mut());
+            for job in jobs {
                 if let Err(err) = job.call(&mut context.borrow_mut()) {
-                    self.async_jobs.borrow_mut().clear();
-                    self.promise_jobs.borrow_mut().clear();
+                    self.clear();
                     return Err(err);
                 }
-                next_job = self.promise_jobs.borrow_mut().pop_front();
             }
-            let context = &mut context.borrow_mut();
-            context.clear_kept_objects();
+
+            let jobs = mem::take(&mut *self.generic_jobs.borrow_mut());
+            for job in jobs {
+                if let Err(err) = job.call(&mut context.borrow_mut()) {
+                    self.clear();
+                    return Err(err);
+                }
+            }
+            context.borrow_mut().clear_kept_objects();
         }
 
         Ok(())

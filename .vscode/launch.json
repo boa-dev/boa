@@ -42,7 +42,7 @@
         "program": "${workspaceFolder}/target/debug/boa_tester.exe"
       },
       "program": "${workspaceFolder}/target/debug/boa_tester",
-      "args": ["run", "-s", "${input:testPath}", "-vvv", "-d"],
+      "args": ["run", "-s", "{input:testPath}", "-vvv", "-d"],
       "sourceLanguages": ["rust"],
       "preLaunchTask": "Cargo Build boa_tester"
     }

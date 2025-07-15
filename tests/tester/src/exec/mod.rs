@@ -540,7 +540,7 @@ impl Test {
         register_print_fn(&mut context, async_result.clone());
 
         // add the $262 object.
-        let _js262 = js262::register_js262(handles.clone(), &mut context);
+        let _js262 = js262::register_js262(handles.clone(), console, &mut context);
 
         if console {
             let console = boa_runtime::Console::init(&mut context);
