@@ -296,7 +296,7 @@ impl JsPromise {
 
         context.enqueue_job(
             NativeAsyncJob::new(async move |context| {
-                let result = f(&context).await;
+                let result = f(context).await;
 
                 let context = &mut context.borrow_mut();
                 match result {

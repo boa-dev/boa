@@ -66,8 +66,9 @@ impl TryFromJs for JsHeaders {
 }
 
 impl JsHeaders {
-    /// Creates a JsHeader from an internal [`http::HeaderMap`]. Takes ownership
+    /// Creates a [`JsHeaders`] from an internal [`http::HeaderMap`]. Takes ownership
     /// of the inner map.
+    #[must_use]
     pub fn from_http(http: HttpHeaderMap) -> Self {
         Self {
             headers: Rc::new(RefCell::new(http)),

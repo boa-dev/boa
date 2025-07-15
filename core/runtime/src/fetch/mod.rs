@@ -22,7 +22,7 @@ use boa_engine::{
 };
 use boa_interop::IntoJsFunctionCopied;
 use either::Either;
-use http::{HeaderName, Request as HttpRequest, Request};
+use http::{HeaderName, HeaderValue, Request as HttpRequest, Request};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -134,9 +134,8 @@ async fn fetch_inner<T: Fetcher>(
             .parse::<HeaderName>()
             .map_err(JsError::from_rust)?,
     ) {
-        request
-            .headers_mut()
-            .append("Accept-Language", "en-US".parse().unwrap());
+        let lang = HeaderValue::from_static("en-US");
+        request.headers_mut().append("Accept-Language", lang);
     }
 
     let response = fetcher.fetch(JsRequest::from(request), context).await?;

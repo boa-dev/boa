@@ -339,7 +339,7 @@ fn execute_test_file(path: &Path) {
         } else {
             wpt_path.join(script_path.strip_prefix("/").unwrap())
         };
-        eprintln!("path: {:?}", path);
+
         let path = path.canonicalize().expect("Could not canonicalize path");
 
         if path.exists() {

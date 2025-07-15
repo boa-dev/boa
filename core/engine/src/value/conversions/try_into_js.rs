@@ -106,6 +106,27 @@ impl TryIntoJs for u64 {
         }
     }
 }
+impl TryIntoJs for isize {
+    fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
+        let value = *self;
+        #[allow(clippy::manual_range_contains)]
+        if value < MIN_SAFE_INTEGER_I64 as isize || (MAX_SAFE_INTEGER_I64 as isize) < value {
+            Err(err_outside_safe_range())
+        } else {
+            Ok(convert_safe_i64(value as i64))
+        }
+    }
+}
+impl TryIntoJs for usize {
+    fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
+        let value = *self;
+        if (MAX_SAFE_INTEGER_I64 as usize) < value {
+            Err(err_outside_safe_range())
+        } else {
+            Ok(convert_safe_i64(value as i64))
+        }
+    }
+}
 impl TryIntoJs for i128 {
     fn try_into_js(&self, _context: &mut Context) -> JsResult<JsValue> {
         let value = *self;

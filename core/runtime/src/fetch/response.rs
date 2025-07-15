@@ -13,7 +13,7 @@ use http::StatusCode;
 /// response. The type determines whether scripts are able to access the response body
 /// and headers.
 ///
-/// See https://developer.mozilla.org/en-US/docs/Web/API/Response/type.
+/// See <https://developer.mozilla.org/en-US/docs/Web/API/Response/type>.
 #[derive(Debug, Copy, Clone)]
 pub enum ResponseType {
     /// This applies in any of the following cases:
@@ -45,6 +45,7 @@ pub enum ResponseType {
 
 impl ResponseType {
     /// Return the Javascript String representing this response type.
+    #[must_use]
     pub fn to_string(self) -> JsString {
         match self {
             ResponseType::Basic => js_string!("basic"),
@@ -132,6 +133,7 @@ impl JsResponse {
     }
 
     /// Return a copy of the body.
+    #[must_use]
     pub fn body(&self) -> Gc<Vec<u8>> {
         self.body.clone()
     }
@@ -163,7 +165,7 @@ impl JsResponse {
     #[boa(getter)]
     fn status(&self) -> u16 {
         // 0 is a special case for error responses.
-        self.status.map(|s| s.as_u16()).unwrap_or(0)
+        self.status.map_or(0, |s| s.as_u16())
     }
 
     #[boa(getter)]
