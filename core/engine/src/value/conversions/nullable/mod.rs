@@ -145,6 +145,37 @@ impl<T> Nullable<T> {
             Nullable::Null => Nullable::Null,
         }
     }
+
+    /// Returns the contained [`Some`] value or a default.
+    ///
+    /// Consumes the `self` argument then, if [`Some`], returns the contained
+    /// value, otherwise if [`None`], returns the [default value] for that
+    /// type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use boa_engine::value::Nullable;
+    /// let x: Nullable<u32> = Nullable::Null;
+    /// let y: Nullable<u32> = Nullable::NonNull(12);
+    ///
+    /// assert_eq!(x.unwrap_or_default(), 0);
+    /// assert_eq!(y.unwrap_or_default(), 12);
+    /// ```
+    ///
+    /// [default value]: Default::default
+    /// [`parse`]: str::parse
+    /// [`FromStr`]: crate::str::FromStr
+    #[inline]
+    pub fn unwrap_or_default(self) -> T
+    where
+        T: Default,
+    {
+        match self {
+            Nullable::NonNull(x) => x,
+            Nullable::Null => T::default(),
+        }
+    }
 }
 
 impl<'a, T> IntoIterator for &'a Nullable<T> {

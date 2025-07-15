@@ -4,14 +4,14 @@
 use boa_engine::class::Class;
 use boa_engine::parser::source::UTF16Input;
 use boa_engine::property::Attribute;
-use boa_engine::value::TryFromJs;
+use boa_engine::value::{Nullable, TryFromJs};
 use boa_engine::{
     js_error, js_str, js_string, Context, Finalize, JsData, JsResult, JsString, JsValue, Source,
     Trace,
 };
 use boa_interop::{ContextData, IntoJsFunctionCopied};
 use boa_runtime::url::Url;
-use boa_runtime::RegisterOptions;
+use boa_runtime::{DefaultLogger, NullLogger, RegisterOptions};
 use logger::RecordingLogEvent;
 use std::cell::{OnceCell, RefCell};
 use std::collections::BTreeMap;
@@ -61,7 +61,7 @@ impl TryFromJs for TestStatus {
 struct Test {
     name: JsString,
     status: TestStatus,
-    message: Option<JsString>,
+    message: Nullable<JsString>,
     properties: BTreeMap<JsString, JsValue>,
 }
 
@@ -172,7 +172,11 @@ impl TestSuiteSource {
 /// Create the BOA context and add the necessary global objects for WPT.
 fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher::WptFetcher) {
     let mut context = Context::default();
-    let logger = logger::RecordingLogger::new();
+    let logger = if std::env::var("WPT_CONSOLE").is_ok() {
+        logger::RecordingLogger::new(DefaultLogger)
+    } else {
+        logger::RecordingLogger::new(NullLogger)
+    };
     let fetcher = fetcher::WptFetcher::new(wpt_path);
     boa_runtime::register(
         &mut context,
@@ -201,13 +205,14 @@ fn create_context(wpt_path: &Path) -> (Context, logger::RecordingLogger, fetcher
     let harness = Source::from_filepath(&harness_path).expect("Could not create a source.");
 
     if let Err(e) = context.eval(harness) {
-        panic!("Failed to eval testharness.js: {}", e.to_string(),);
+        panic!("Failed to eval testharness.js: {e}");
     }
 
     (context, logger, fetcher)
 }
 
 /// The result callback for the WPT test.
+#[track_caller]
 fn result_callback__(
     ContextData(logger): ContextData<logger::RecordingLogger>,
     test: Test,
@@ -250,6 +255,7 @@ fn result_callback__(
     Ok(())
 }
 
+#[track_caller]
 fn complete_callback__(ContextData(test_done): ContextData<TestCompletion>) {
     test_done.done();
 }
@@ -328,8 +334,10 @@ fn execute_test_file(path: &Path) {
         let path = if script_path.is_relative() {
             dir.join(script_path)
         } else {
-            wpt_path.join(script_path.to_string_lossy().trim_start_matches('/'))
+            script_path.to_path_buf()
         };
+        eprintln!("wpt_path = {wpt_path:?}, script_path = {script_path:?}, path = {path:?}");
+        let path = path.canonicalize().expect("Could not canonicalize path");
 
         if path.exists() {
             let source = Source::from_filepath(&path).expect("Could not parse the source.");
@@ -343,16 +351,16 @@ fn execute_test_file(path: &Path) {
 
     fetcher.set_current_file(&source.path);
 
-    context
-        .eval(source.source())
-        .expect("Could not evaluate the test source");
-
-    // Done()
-    context
-        .eval(Source::from_bytes(b"done()"))
-        .expect("Done unexpectedly threw an error.");
+    if let Err(e) = context.eval(source.source()) {
+        panic!("Could not run the test source:\n{e}")
+    }
 
     context.run_jobs().expect("Could not run jobs");
+
+    // Done()
+    if let Err(e) = context.eval(Source::from_bytes(b"done()")) {
+        panic!("`done()` returned an error\n{e}");
+    }
 
     let start = std::time::Instant::now();
     while !test_done.is_done() {

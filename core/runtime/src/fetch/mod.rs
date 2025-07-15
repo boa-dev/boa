@@ -17,12 +17,14 @@ use boa_engine::object::builtins::JsPromise;
 use boa_engine::property::Attribute;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    js_error, js_string, Context, JsError, JsObject, JsResult, JsString, NativeObject,
+    js_error, js_string, Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue,
+    NativeObject, Trace,
 };
-use boa_gc::Gc;
 use boa_interop::IntoJsFunctionCopied;
 use either::Either;
-use http::{Request as HttpRequest, Request, Response as HttpResponse};
+use http::{Request as HttpRequest, Request};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub mod headers;
 pub mod request;
@@ -32,7 +34,7 @@ pub mod fetchers;
 
 /// A trait for backend implementation of an HTTP fetcher.
 // TODO: consider implementing an async version of this.
-pub trait Fetcher: NativeObject + Sized {
+pub trait Fetcher: NativeObject {
     /// Resolve a string to a URL. This is used when a string (e.g., the first argument to
     /// `fetch()`) is passed, and we need resolution. Some cases require resolution of
     /// a relative path, for example (to the "page" base URL).
@@ -44,34 +46,55 @@ pub trait Fetcher: NativeObject + Sized {
         Ok(uri)
     }
 
-    /// Fetch an HTTP document, returning an HTTP response.
+    /// Perform the Fetch execution, taking a [`request::JsRequest`] and returning a
+    /// [`response::JsResponse`].
     ///
     /// # Errors
-    /// Any errors returned by the HTTP implementation must conform to
-    /// [`JsError`].
-    fn fetch_blocking(
-        &self,
-        request: HttpRequest<Option<Vec<u8>>>,
-        context: &mut Context,
-    ) -> JsResult<HttpResponse<Option<Vec<u8>>>>;
+    /// Any errors returned by the HTTP implementation must conform to [`JsError`].
+    async fn fetch(
+        self: Rc<Self>,
+        request: JsRequest,
+        context: &RefCell<&mut Context>,
+    ) -> JsResult<JsResponse>;
 }
 
-/// The `fetch` function internals.
-fn fetch_inner<T: Fetcher>(
-    resource: Either<JsString, JsObject>,
-    options: Option<RequestInit>,
-    context: &mut Context,
-) -> JsResult<JsObject> {
+/// A reference counted pointer to a `Fetcher` implementation. This is so we can
+/// add this to the context, but we need to be able to keep an `Rc<>` structure
+/// to make API calls.
+#[derive(Debug, Trace, Finalize, JsData)]
+struct FetcherRc<T: Fetcher>(#[unsafe_ignore_trace] pub Rc<T>);
+
+impl<T: Fetcher> Clone for FetcherRc<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+/// Get a Fetcher instance from the context.
+fn get_fetcher<T: Fetcher>(context: &mut Context) -> JsResult<Rc<T>> {
     // Try fetching from the context first, then the current realm. Else fail.
-    let Some(fetcher) = context
-        .get_data::<Gc<T>>()
-        .cloned()
-        .or_else(|| context.realm().host_defined().get::<Gc<T>>().cloned())
-    else {
+    let Some(fetcher) = context.get_data::<FetcherRc<T>>().cloned().or_else(|| {
+        context
+            .realm()
+            .host_defined()
+            .get::<FetcherRc<T>>()
+            .cloned()
+    }) else {
         return Err(
             js_error!(Error: "Implementation of fetch requires a fetcher registered in the context"),
         );
     };
+
+    Ok(fetcher.0.clone())
+}
+
+/// The `fetch` function internals.
+async fn fetch_inner<T: Fetcher>(
+    resource: Either<JsString, JsObject>,
+    options: Option<RequestInit>,
+    context: &RefCell<&mut Context>,
+) -> JsResult<JsValue> {
+    let fetcher = get_fetcher::<T>(&mut context.borrow_mut())?;
 
     // The resource parsing is complicated, so we parse it in Rust here (instead of relying on
     // `TryFromJs` and friends).
@@ -79,7 +102,7 @@ fn fetch_inner<T: Fetcher>(
         Either::Left(url) => {
             let url = url.to_std_string().map_err(JsError::from_rust)?;
             let url = fetcher
-                .resolve_uri(url, context)
+                .resolve_uri(url, &mut context.borrow_mut())
                 .map_err(JsError::from_rust)?;
 
             let r = HttpRequest::get(url).body(Some(Vec::new()));
@@ -103,12 +126,9 @@ fn fetch_inner<T: Fetcher>(
     } else {
         request
     };
-    let url = JsString::from(request.uri().to_string());
-
-    let response = fetcher.fetch_blocking(request, context)?;
-
-    let result = Class::from_data(JsResponse::new(url, response), context)?;
-    Ok(result)
+    let response = fetcher.fetch(JsRequest::from(request), context).await?;
+    let result = Class::from_data(response, &mut context.borrow_mut())?;
+    Ok(result.into())
 }
 
 /// The `fetch` function.
@@ -125,10 +145,9 @@ pub fn fetch<T: Fetcher>(
     options: Option<RequestInit>,
     context: &mut Context,
 ) -> JsPromise {
-    match fetch_inner::<T>(resource, options, context) {
-        Ok(v) => JsPromise::resolve(v, context),
-        Err(e) => JsPromise::reject(e, context),
-    }
+    let context = RefCell::new(context);
+    let future = async move { fetch_inner::<T>(resource, options, &context).await };
+    JsPromise::from_future(future, &mut context.borrow_mut())
 }
 
 /// Register the `fetch` function in the realm, as well as ALL supporting classes.
@@ -142,7 +161,7 @@ pub fn register<F: Fetcher>(
     context: &mut Context,
 ) -> JsResult<()> {
     if let Some(realm) = realm {
-        realm.host_defined_mut().insert(Gc::new(fetcher));
+        realm.host_defined_mut().insert(FetcherRc(Rc::new(fetcher)));
 
         let mut class_builder = ClassBuilder::new::<JsHeaders>(context);
         JsHeaders::init(&mut class_builder)?;
@@ -167,7 +186,7 @@ pub fn register<F: Fetcher>(
             .into_js_function_copied(context)
             .to_js_function(&realm.unwrap_or_else(|| context.realm().clone()));
 
-        context.insert_data(Gc::new(fetcher));
+        context.insert_data(FetcherRc(Rc::new(fetcher)));
         context.register_global_property(js_string!("fetch"), fetch_fn, Attribute::all())?;
     }
 

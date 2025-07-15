@@ -157,6 +157,12 @@ impl JsRequest {
     }
 }
 
+impl From<HttpRequest<Option<Vec<u8>>>> for JsRequest {
+    fn from(inner: HttpRequest<Option<Vec<u8>>>) -> Self {
+        Self { inner }
+    }
+}
+
 #[boa_class(rename = "Request")]
 #[boa(rename_all = "camelCase")]
 impl JsRequest {

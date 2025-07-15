@@ -1,4 +1,5 @@
 use boa_engine::{Context, Finalize, JsData, JsResult, Trace};
+use boa_gc::Gc;
 use boa_runtime::{ConsoleState, Logger};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -24,7 +25,7 @@ impl RecordingLogEvent {
     }
 }
 
-#[derive(Trace, Finalize, JsData)]
+#[derive(Default, Trace, Finalize, JsData)]
 struct RecordingLoggerInner {
     pub log: Vec<RecordingLogEvent>,
     pub error: Vec<RecordingLogEvent>,
@@ -32,54 +33,61 @@ struct RecordingLoggerInner {
 
 #[derive(Clone, Trace, Finalize, JsData)]
 pub(crate) struct RecordingLogger {
+    /// Also send logs to this logger.
+    tee: Gc<Box<dyn Logger>>,
+
     #[unsafe_ignore_trace]
     inner: Rc<RefCell<RecordingLoggerInner>>,
 }
 
 impl Logger for RecordingLogger {
-    fn log(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn log(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .log
-            .push(RecordingLogEvent::new(msg, state));
+            .push(RecordingLogEvent::new(msg.clone(), state));
+        self.tee.log(msg, state, ctx)?;
         Ok(())
     }
 
-    fn info(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn info(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .log
-            .push(RecordingLogEvent::new(msg, state));
+            .push(RecordingLogEvent::new(msg.clone(), state));
+        self.tee.info(msg, state, ctx)?;
         Ok(())
     }
 
-    fn warn(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn warn(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .log
-            .push(RecordingLogEvent::new(msg, state));
+            .push(RecordingLogEvent::new(msg.clone(), state));
+        self.tee.warn(msg, state, ctx)?;
         Ok(())
     }
 
-    fn error(&self, msg: String, state: &ConsoleState, _: &mut Context) -> JsResult<()> {
+    fn error(&self, msg: String, state: &ConsoleState, ctx: &mut Context) -> JsResult<()> {
         self.inner
             .borrow_mut()
             .error
-            .push(RecordingLogEvent::new(msg, state));
+            .push(RecordingLogEvent::new(msg.clone(), state));
+        self.tee.error(msg, state, ctx)?;
         Ok(())
     }
 }
 
 impl RecordingLogger {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new<L: Logger + 'static>(tee: L) -> Self {
         Self {
-            inner: Rc::new(RefCell::new(RecordingLoggerInner {
-                log: Vec::new(),
-                error: Vec::new(),
-            })),
+            tee: Gc::new(Box::new(tee)),
+            inner: Rc::new(RefCell::new(Default::default())),
         }
     }
+}
 
+impl RecordingLogger {
     pub(crate) fn all_logs(&self) -> Vec<RecordingLogEvent> {
         let mut all: Vec<RecordingLogEvent> = self.log().into_iter().chain(self.error()).collect();
         all.sort_by_key(|x| x.index);

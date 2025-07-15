@@ -16,10 +16,10 @@ mod tests;
 
 use boa_engine::property::Attribute;
 use boa_engine::{
-    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
-    native_function::NativeFunction,
-    object::{JsObject, ObjectInitializer},
-    value::{JsValue, Numeric},
+    js_str, js_string, native_function::NativeFunction, object::{JsObject, ObjectInitializer}, value::{JsValue, Numeric}, Context, JsArgs, JsData, JsError,
+    JsResult,
+    JsString,
+    JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
@@ -29,7 +29,7 @@ use std::{
 };
 
 /// A trait that can be used to forward console logs to an implementation.
-pub trait Logger: Trace + Sized {
+pub trait Logger: Trace {
     /// Log a trace message (`console.trace`). By default, passes the message and the
     /// code block names of each stack trace frame to `log`.
     ///

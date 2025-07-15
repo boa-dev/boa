@@ -1,9 +1,19 @@
+use crate::class::Class;
 use crate::{Context, JsNativeError, JsResult, JsString, JsValue};
 
 /// This trait adds a conversions from a Rust Type into [`JsValue`].
 pub trait TryIntoJs: Sized {
     /// This function tries to convert a `Self` into [`JsValue`].
     fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue>;
+}
+
+impl<T> TryIntoJs for T
+where
+    T: Class + Clone,
+{
+    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
+        T::from_data(self.clone(), context).map(JsValue::from)
+    }
 }
 
 impl TryIntoJs for bool {

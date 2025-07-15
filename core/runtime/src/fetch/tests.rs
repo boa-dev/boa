@@ -1,9 +1,12 @@
 //! Test types and methods to help with testing the Fetch API.
 
-use boa_engine::{js_error, Context, Finalize, JsData, JsResult, Trace};
+use crate::fetch::request::JsRequest;
+use crate::fetch::response::JsResponse;
+use boa_engine::{js_error, Context, Finalize, JsData, JsResult, JsString, Trace};
 use http::{Request, Response, Uri};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 /// A [`Fetcher`] implementation for tests. Maps a URL to a response,
 /// and record requests received for later use.
@@ -26,16 +29,18 @@ impl TestFetcher {
 }
 
 impl crate::fetch::Fetcher for TestFetcher {
-    fn fetch_blocking(
-        &self,
-        request: Request<Option<Vec<u8>>>,
-        _context: &mut Context,
-    ) -> JsResult<Response<Option<Vec<u8>>>> {
+    async fn fetch(
+        self: Rc<Self>,
+        request: JsRequest,
+        _context: &RefCell<&mut Context>,
+    ) -> JsResult<JsResponse> {
+        let request = request.into_inner();
         self.requests_received.borrow_mut().push(request.clone());
         let url = request.uri();
         self.request_mapper
             .get(url)
             .cloned()
+            .map(|response| JsResponse::basic(JsString::from(url.to_string()), response))
             .ok_or_else(|| js_error!("No response found for URL"))
     }
 }

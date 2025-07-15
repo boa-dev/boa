@@ -1,39 +1,46 @@
-//! Module containing various implementations of the [`super::Fetcher`] trait.
-use crate::fetch::Fetcher;
-use boa_engine::{js_error, Context, Finalize, JsData, JsError, JsResult, Trace};
+//! Module containing various implementations of the [`Fetcher`] trait.
 
-/// Implementation of `Fetcher` which will always return an error.
+use crate::fetch::request::JsRequest;
+use crate::fetch::response::JsResponse;
+use crate::fetch::Fetcher;
+use boa_engine::{js_error, Context, Finalize, JsData, JsError, JsResult, JsString, Trace};
+use std::cell::RefCell;
+use std::rc::Rc;
+
+/// Implementation of `Fetcher` which will always reject any fetch.
 #[derive(Clone, Debug, Trace, Finalize, JsData)]
 pub struct ErrorFetcher;
 
 impl Fetcher for ErrorFetcher {
-    fn fetch_blocking(
-        &self,
-        _request: http::Request<Option<Vec<u8>>>,
-        _context: &mut Context,
-    ) -> JsResult<http::Response<Option<Vec<u8>>>> {
-        Err(js_error!(ReferenceError: "Invalid Fetcher used in fetch API."))
+    async fn fetch(
+        self: Rc<Self>,
+        _request: JsRequest,
+        _context: &RefCell<&mut Context>,
+    ) -> JsResult<JsResponse> {
+        Err(js_error!(ReferenceError: "ErrorFetcher used in fetch API."))
     }
 }
 
-/// Implementation of `Fetcher` that uses `reqwest` as the backend.
+/// Implementation of `Fetcher` that uses the blocking `reqwest` library as the backend.
 #[cfg(feature = "reqwest")]
 #[derive(Default, Debug, Clone, Trace, Finalize, JsData)]
-pub struct ReqwestFetcher {
+pub struct BlockingReqwestFetcher {
     #[unsafe_ignore_trace]
     client: reqwest::blocking::Client,
 }
 
 #[cfg(feature = "reqwest")]
-impl Fetcher for ReqwestFetcher {
-    fn fetch_blocking(
-        &self,
-        request: http::Request<Option<Vec<u8>>>,
-        _context: &mut Context,
-    ) -> JsResult<http::Response<Option<Vec<u8>>>> {
+impl Fetcher for BlockingReqwestFetcher {
+    async fn fetch(
+        self: Rc<Self>,
+        request: JsRequest,
+        _context: &RefCell<&mut Context>,
+    ) -> JsResult<JsResponse> {
+        let request = request.into_inner();
+        let url = request.uri().to_string();
         let req = self
             .client
-            .request(request.method().clone(), request.uri().to_string())
+            .request(request.method().clone(), &url)
             .headers(request.headers().clone());
 
         let req = if let Some(body) = request.body().clone() {
@@ -59,5 +66,6 @@ impl Fetcher for ReqwestFetcher {
         builder
             .body(bytes.is_empty().then(|| bytes.to_vec()))
             .map_err(JsError::from_rust)
+            .map(|request| JsResponse::basic(JsString::from(url), request))
     }
 }

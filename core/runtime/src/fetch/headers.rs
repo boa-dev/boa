@@ -3,9 +3,8 @@
 //! See <https://developer.mozilla.org/en-US/docs/Web/API/Headers>.
 #![allow(clippy::needless_pass_by_value)]
 
-use boa_engine::class::Class;
 use boa_engine::object::builtins::{JsArray, TypedJsFunction};
-use boa_engine::value::{Convert, TryFromJs, TryIntoJs};
+use boa_engine::value::{Convert, TryFromJs};
 use boa_engine::{
     js_error, Context, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace,
 };
@@ -63,12 +62,6 @@ impl TryFromJs for JsHeaders {
             )?;
         }
         Ok(this)
-    }
-}
-
-impl TryIntoJs for JsHeaders {
-    fn try_into_js(&self, context: &mut Context) -> JsResult<JsValue> {
-        Class::from_data(self.clone(), context).map(Into::into)
     }
 }
 

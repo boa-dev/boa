@@ -3,15 +3,16 @@
 use std::{future::Future, pin::Pin, task};
 
 use super::{JsArray, JsFunction};
+use crate::value::TryIntoJs;
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
     builtins::{
-        Promise,
         promise::{PromiseState, ResolvingFunctions},
-    },
-    job::NativeAsyncJob,
-    object::JsObject,
-    value::TryFromJs,
+        Promise,
+    }, job::NativeAsyncJob, object::JsObject, value::TryFromJs, Context, JsArgs, JsError,
+    JsNativeError,
+    JsResult,
+    JsValue,
+    NativeFunction,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 
@@ -1323,6 +1324,12 @@ impl TryFromJs for JsPromise {
                 .with_message("value is not a Promise object")
                 .into())
         }
+    }
+}
+
+impl TryIntoJs for JsPromise {
+    fn try_into_js(&self, _: &mut Context) -> JsResult<JsValue> {
+        Ok(self.clone().into())
     }
 }
 

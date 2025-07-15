@@ -127,8 +127,9 @@ impl Fetcher for WptFetcher {
         request: http::request::Request<Option<Vec<u8>>>,
         _context: &mut Context,
     ) -> JsResult<http::response::Response<Option<Vec<u8>>>> {
+        eprintln!("fetch --- {}", request.uri().path());
         match request.uri().path() {
-            "/fetch/resources/inspect-headers.py" => {
+            "/fetch/api/resources/inspect-headers.py" => {
                 self.inner.borrow().fetch_inspect_header(request)
             }
             "/xhr/resources/parse-headers.py" => self.inner.borrow().parse_headers(request),

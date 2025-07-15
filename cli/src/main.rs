@@ -11,24 +11,24 @@ mod debug;
 mod helper;
 
 use boa_engine::{
-    Context, JsError, JsResult, Source,
-    builtins::promise::PromiseState,
-    context::ContextBuilder,
-    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
-    module::{Module, SimpleModuleLoader},
+    builtins::promise::PromiseState, context::ContextBuilder, job::{Job, JobExecutor, NativeAsyncJob, PromiseJob}, module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
     vm::flowgraph::{Direction, Graph},
+    Context,
+    JsError,
+    JsResult,
+    Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
 use color_eyre::{
-    Result, Section,
-    eyre::{WrapErr, eyre},
+    eyre::{eyre, WrapErr}, Result,
+    Section,
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
-use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
+use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{
     cell::RefCell,
     collections::VecDeque,
@@ -461,7 +461,7 @@ fn add_runtime(context: &mut Context) {
     boa_runtime::register(
         context,
         boa_runtime::RegisterOptions::default()
-            .with_fetcher(boa_runtime::fetch::fetchers::ReqwestFetcher::default()),
+            .with_fetcher(boa_runtime::fetch::fetchers::BlockingReqwestFetcher::default()),
     )
     .expect("should not fail while registering the runtime");
 }
