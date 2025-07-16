@@ -67,15 +67,28 @@ pub mod fetch;
 pub mod interval;
 pub mod url;
 
+#[cfg(feature = "fetch")]
 use crate::fetch::fetchers::ErrorFetcher;
 
-/// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
-#[derive(Debug)]
-pub struct RegisterOptions<F: fetch::Fetcher, L: Logger> {
-    realm: Option<Realm>,
-    console_logger: L,
-    fetcher: Option<F>,
+/// Internal module to declare variations of the [`RegisterOptions`] based on whether or
+/// not some features are enabled.
+mod register_options {
+    /// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
+
+    #[derive(Debug)]
+    pub struct RegisterOptions<#[cfg(feature = "fetch")] F: super::fetch::Fetcher, L: super::Logger> {
+        pub(super) realm: Option<super::Realm>,
+        pub(super) console_logger: L,
+
+        #[cfg(feature = "fetch")]
+        pub(super) fetcher: Option<F>,
+
+        #[cfg(not(feature = "fetch"))]
+        pub(super) fetcher: Option<!>,
+    }
 }
+
+pub use register_options::RegisterOptions;
 
 impl Default for RegisterOptions<ErrorFetcher, DefaultLogger> {
     fn default() -> Self {
@@ -95,7 +108,7 @@ impl RegisterOptions<ErrorFetcher, DefaultLogger> {
     }
 }
 
-impl<F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
+impl<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
     /// Set the realm to which we should register the APIs.
     #[must_use]
     pub fn with_realm(self, realm: Realm) -> Self {
@@ -113,7 +126,9 @@ impl<F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
             fetcher: self.fetcher,
         }
     }
+}
 
+impl<F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
     /// Set the fetch provider for the fetch API.
     pub fn with_fetcher<F2: fetch::Fetcher>(self, new_fetcher: F2) -> RegisterOptions<F2, L> {
         RegisterOptions::<F2, L> {
