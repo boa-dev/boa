@@ -1,4 +1,9 @@
-//! Module containing the `Response` JavaScript class and its helpers.
+//! Module containing the `Response` JavaScript class and its helpers, implemented as
+//! [`JsResponse`].
+//!
+//! See the [Response interface documentation][mdn] for more information.
+//!
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Response
 use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::JsPromise;
 use boa_engine::value::{TryFromJs, TryIntoJs};
@@ -19,7 +24,7 @@ pub enum ResponseType {
     /// This applies in any of the following cases:
     ///
     /// The request is same-origin.
-    /// The requested URL's scheme is data:.
+    /// The requested URL's scheme is `data:`.
     /// The request's mode is navigate or websocket.
     ///
     /// With this type, all response headers are exposed except Set-Cookie.

@@ -8,7 +8,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-/// A [`Fetcher`] implementation for tests. Maps a URL to a response,
+/// A [`crate::fetch::Fetcher`] implementation for tests. Maps a URL to a response,
 /// and record requests received for later use.
 ///
 /// The actual safety of this implementation is not guaranteed, as it

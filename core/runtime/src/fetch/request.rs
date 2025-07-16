@@ -1,4 +1,4 @@
-//! The [`Request`] JavaScript class and adjacent types.
+//! The `Request` JavaScript class and adjacent types, implemented as [`JsRequest`].
 //!
 //! See the [Request interface documentation][mdn] for more information.
 //!
