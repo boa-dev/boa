@@ -143,10 +143,8 @@ async fn fetch_inner<T: Fetcher>(
     Ok(result.into())
 }
 
-/// The `fetch` function.
-///
-/// A [`Gc`]<[`Fetcher`]> implementation MUST be inserted in the [`Context`] (or
-/// [`Realm`] if you're using multiple contexts) before calling this function.
+/// The `fetch` function. This function MUST be registered using the [`register`]
+/// function, as it uses host-defined data in the realm to handle fetching.
 ///
 /// # Errors
 /// If the fetcher is not registered in the context, an error is returned.
