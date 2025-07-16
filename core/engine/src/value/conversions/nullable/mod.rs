@@ -146,10 +146,10 @@ impl<T> Nullable<T> {
         }
     }
 
-    /// Returns the contained [`NonNull`] value or a default.
+    /// Returns the contained [`Nullable::NonNull`] value or a default.
     ///
-    /// Consumes the `self` argument then, if [`NonNull`], returns the contained
-    /// value, otherwise if [`Null`], returns the [default value] for that
+    /// Consumes the `self` argument then, if [`Nullable::NonNull`], returns the contained
+    /// value, otherwise if [`Nullable::Null`], returns the [default value] for that
     /// type.
     ///
     /// # Examples
@@ -165,7 +165,6 @@ impl<T> Nullable<T> {
     ///
     /// [default value]: Default::default
     /// [`parse`]: str::parse
-    /// [`FromStr`]: crate::str::FromStr
     #[inline]
     pub fn unwrap_or_default(self) -> T
     where
