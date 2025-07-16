@@ -149,7 +149,7 @@ use crate::{
         promise::ResolvingFunctions,
         typed_array::Element,
     },
-    job::{GenericJob, TimeoutJob},
+    job::{GenericJob, OnceFlag, TimeoutJob},
     js_string,
     sys::time::{Duration, Instant},
 };
@@ -249,7 +249,7 @@ impl Eq for AsyncFutexWaiter {}
 
 #[derive(Debug, Default)]
 pub(crate) struct AsyncPendingWaiters {
-    waiters: FxHashMap<AsyncFutexWaiter, ResolvingFunctions>,
+    waiters: FxHashMap<AsyncFutexWaiter, (ResolvingFunctions, Option<OnceFlag>)>,
 }
 
 impl AsyncPendingWaiters {
@@ -260,13 +260,21 @@ impl AsyncPendingWaiters {
         }
     }
 
-    fn insert(&mut self, waiter: AsyncFutexWaiter, cap: ResolvingFunctions) {
+    fn insert(
+        &mut self,
+        waiter: AsyncFutexWaiter,
+        cap: ResolvingFunctions,
+        timeout_cancel: Option<OnceFlag>,
+    ) {
         // Should have been added to the waiters list at this point.
         debug_assert!(waiter.0.link.is_linked());
-        self.waiters.insert(waiter, cap);
+        self.waiters.insert(waiter, (cap, timeout_cancel));
     }
 
-    fn remove(&mut self, waiter: &AsyncFutexWaiter) -> Option<ResolvingFunctions> {
+    fn remove(
+        &mut self,
+        waiter: &AsyncFutexWaiter,
+    ) -> Option<(ResolvingFunctions, Option<OnceFlag>)> {
         self.waiters.remove(waiter)
     }
 
@@ -283,7 +291,7 @@ impl AsyncPendingWaiters {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-enqueueresolveinagentjob
     pub(crate) fn enqueue_waiter_jobs(&mut self, context: &mut Context) {
-        for (waiter, functions) in self.waiters.extract_if(|k, _| {
+        for (waiter, (functions, timeout_cancel)) in self.waiters.extract_if(|k, _| {
             k.0.async_data
                 .as_ref()
                 .is_some_and(|data| data.notified.load(Ordering::Relaxed))
@@ -307,6 +315,9 @@ impl AsyncPendingWaiters {
                 )
                 .into(),
             );
+            if let Some(timeout_cancel) = timeout_cancel {
+                timeout_cancel.set();
+            }
         }
     }
 }
@@ -389,7 +400,7 @@ impl FutexWaiters {
                     AsyncFutexWaiter(Arc::from_raw(UnsafeRef::into_raw(elem).cast_const()))
                 };
 
-                if let Some(functions) = context.pending_waiters.remove(&elem) {
+                if let Some((functions, timeout_cancel)) = context.pending_waiters.remove(&elem) {
                     // The waiter was part of this context, so we can safely resolve the promise from here.
                     functions
                         .resolve
@@ -399,6 +410,10 @@ impl FutexWaiters {
                             context,
                         )
                         .expect("cannot fail per the spec");
+
+                    if let Some(timeout_cancel) = timeout_cancel {
+                        timeout_cancel.set();
+                    }
                 }
             }
         }
@@ -647,11 +662,9 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
         waiters.add_async_waiter(Arc::clone(&waiter.0));
     }
 
-    context.pending_waiters.insert(waiter.clone(), functions);
-
     // 30. Else if timeoutTime is finite, then
     //     a. Perform EnqueueAtomicsWaitAsyncTimeoutJob(WL, waiterRecord).
-    if let Some(timeout) = timeout {
+    let timeout_cancel = if let Some(timeout) = timeout {
         // EnqueueAtomicsWaitAsyncTimeoutJob ( WL, waiterRecord )
         // https://tc39.es/ecma262/#sec-enqueueatomicswaitasynctimeoutjob
         #[derive(Debug)]
@@ -679,7 +692,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
         // TODO: this design is a bit suboptimal since most event loops will wait until all timeouts
         // are resolved. If we can, we should make it possible to remove the timeout if the waiter
         // was notified.
-        let mut waiter_guard = WaiterDropGuard(Some(waiter));
+        let mut waiter_guard = WaiterDropGuard(Some(waiter.clone()));
         let job = TimeoutJob::with_realm(
             move |context| {
                 //    a. Perform EnterCriticalSection(WL).
@@ -700,7 +713,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
                         waiters.remove_waiter(&waiter.0);
                     }
 
-                    let Some(functions) = context.pending_waiters.remove(&waiter) else {
+                    let Some((functions, _)) = context.pending_waiters.remove(&waiter) else {
                         panic!("timeout job was not executed by its original context")
                     };
 
@@ -725,11 +738,20 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
             timeout,
         );
 
+        let tc = job.cancelled_flag();
+
         // 4. Perform HostEnqueueTimeoutJob(timeoutJob, currentRealm, 𝔽(waiterRecord.[[TimeoutTime]]) - now).
         context.enqueue_job(job.into());
 
         // 5. Return unused.
-    }
+        Some(tc)
+    } else {
+        None
+    };
+
+    context
+        .pending_waiters
+        .insert(waiter, functions, timeout_cancel);
 
     Ok(AtomicsWaitResult::Ok)
 }

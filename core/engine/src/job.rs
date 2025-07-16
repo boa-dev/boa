@@ -39,6 +39,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Trace};
 use std::any::Any;
+use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::mem;
 use std::rc::Rc;
@@ -121,26 +122,41 @@ impl NativeJob {
     }
 }
 
+/// Flag that can only be set once.
+#[derive(Debug, Clone)]
+pub(crate) struct OnceFlag(Rc<Cell<bool>>);
+
+impl OnceFlag {
+    /// Creates a new `OnceFlag`.
+    pub(crate) fn new() -> Self {
+        Self(Rc::new(Cell::new(false)))
+    }
+
+    /// Sets this `OnceFlag` to `true`.
+    pub(crate) fn set(&self) {
+        self.0.set(true);
+    }
+
+    /// Returns `true` if this `OnceFlag` has been set, or `false` otherwise.
+    pub(crate) fn is_set(&self) -> bool {
+        self.0.get()
+    }
+}
+
 /// An ECMAScript [Job] that runs after a certain amount of time.
 ///
 /// This represents the [HostEnqueueTimeoutJob] operation from the specification.
 ///
 /// [HostEnqueueTimeoutJob]: https://tc39.es/ecma262/#sec-hostenqueuetimeoutjob
+#[derive(Debug)]
 pub struct TimeoutJob {
     /// The distance in milliseconds in the future when the job should run.
     /// This will be added to the current time when the job is enqueued.
     timeout: JsDuration,
     /// The job to run after the time has passed.
     job: NativeJob,
-}
-
-impl Debug for TimeoutJob {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("TimeoutJob")
-            .field("timeout", &self.timeout)
-            .field("job", &self.job)
-            .finish()
-    }
+    /// Signals if the timeout job was cancelled.
+    cancelled: OnceFlag,
 }
 
 impl TimeoutJob {
@@ -150,6 +166,7 @@ impl TimeoutJob {
         Self {
             timeout: JsDuration::from_millis(timeout_in_millis),
             job,
+            cancelled: OnceFlag::new(),
         }
     }
 
@@ -186,6 +203,18 @@ impl TimeoutJob {
     #[must_use]
     pub fn timeout(&self) -> JsDuration {
         self.timeout
+    }
+
+    /// Returns `true` if the timeout was cancelled, and its execution can be skipped.
+    #[inline]
+    #[must_use]
+    pub fn is_cancelled(&self) -> bool {
+        self.cancelled.is_set()
+    }
+
+    /// Returns the `OnceFlag` to cancel this timeout job.
+    pub(crate) fn cancelled_flag(&self) -> OnceFlag {
+        self.cancelled.clone()
     }
 }
 
@@ -646,7 +675,8 @@ impl JobExecutor for SimpleJobExecutor {
             {
                 let now = context.borrow().clock().now();
                 let mut timeouts_borrow = self.timeout_jobs.borrow_mut();
-                let jobs_to_keep = timeouts_borrow.split_off(&now);
+                let mut jobs_to_keep = timeouts_borrow.split_off(&now);
+                jobs_to_keep.retain(|_, job| !job.is_cancelled());
                 let jobs_to_run = mem::replace(&mut *timeouts_borrow, jobs_to_keep);
                 drop(timeouts_borrow);
 
