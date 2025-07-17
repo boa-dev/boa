@@ -733,7 +733,7 @@ impl fmt::Display for JsError {
 }
 
 /// Helper struct that ignores equality operator.
-#[derive(Debug, Clone, Finalize, Error)]
+#[derive(Debug, Clone, Finalize)]
 pub(crate) struct IgnoreEq<T>(pub(crate) T);
 
 impl<T> Eq for IgnoreEq<T> {}
@@ -743,6 +743,10 @@ impl<T> PartialEq for IgnoreEq<T> {
     fn eq(&self, _: &Self) -> bool {
         true
     }
+}
+
+impl<T> std::hash::Hash for IgnoreEq<T> {
+    fn hash<H: std::hash::Hasher>(&self, _state: &mut H) {}
 }
 
 impl<T> From<T> for IgnoreEq<T> {
