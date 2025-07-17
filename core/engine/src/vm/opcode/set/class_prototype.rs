@@ -3,7 +3,7 @@ use crate::vm::opcode::VaryingOperand;
 use crate::{
     Context,
     builtins::{OrdinaryObject, function::OrdinaryFunction},
-    object::{CONSTRUCTOR, JsObject, PROTOTYPE, internal_methods::InternalMethodContext},
+    object::{CONSTRUCTOR, JsObject, PROTOTYPE, internal_methods::InternalMethodPropertyContext},
     property::PropertyDescriptorBuilder,
     vm::opcode::Operation,
 };
@@ -65,7 +65,7 @@ impl SetClassPrototype {
                     .enumerable(false)
                     .configurable(true)
                     .build(),
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )
             .expect("cannot fail per spec");
 

@@ -1,6 +1,6 @@
 use crate::{
     Context, JsResult,
-    object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
+    object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
     vm::opcode::{Operation, VaryingOperand},
 };
@@ -54,7 +54,7 @@ impl GetPropertyByName {
 
         let key: PropertyKey = ic.name.clone().into();
 
-        let context = &mut InternalMethodContext::new(context);
+        let context = &mut InternalMethodPropertyContext::new(context);
         let result = object.__get__(&key, receiver.clone(), context)?;
 
         // Cache the property.
@@ -118,7 +118,7 @@ impl GetPropertyByValue {
         let result = object.__get__(
             &key,
             receiver.clone(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         context.vm.set_register(dst.into(), result);
@@ -174,7 +174,7 @@ impl GetPropertyByValuePush {
         let result = object.__get__(
             &key_value,
             receiver.clone(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         context.vm.set_register(key.into(), key_value.into());

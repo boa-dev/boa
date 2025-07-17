@@ -4,7 +4,9 @@ use crate::{
     Context, JsObject, JsResult, JsValue,
     object::{
         JsData,
-        internal_methods::{CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
+        internal_methods::{
+            CallValue, InternalMethodCallContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+        },
     },
 };
 
@@ -103,7 +105,7 @@ impl BoundFunction {
 fn bound_function_exotic_call(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     let bound_function = obj
         .downcast_ref::<BoundFunction>()
@@ -146,7 +148,7 @@ fn bound_function_exotic_call(
 fn bound_function_exotic_construct(
     function_object: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     let new_target = context.vm.stack.pop();
 

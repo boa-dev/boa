@@ -180,3 +180,64 @@ impl Display for SourcePath {
         }
     }
 }
+
+impl SourcePath {
+    pub(crate) fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+
+    pub(crate) fn is_some(&self) -> bool {
+        !self.is_none()
+    }
+}
+
+/// A struct containing information about native source code.
+///
+/// # Note
+///
+/// If the `native-backtrace` feature is not enabled the this becomes [zero sized type][zst].
+///
+/// [zst]: https://doc.rust-lang.org/nomicon/exotic-sizes.html#zero-sized-types-zsts
+#[derive(Debug, Clone, Copy)]
+pub struct NativeSourceInfo {
+    #[cfg(feature = "native-backtrace")]
+    inner: &'static std::panic::Location<'static>,
+
+    #[cfg(not(feature = "native-backtrace"))]
+    inner: std::marker::PhantomData<()>,
+}
+
+impl NativeSourceInfo {
+    /// Returns the source location of the caller of this function.
+    ///
+    /// If that function’s caller is annotated with `#[track_caller]`, then its call
+    /// location will be returned, and so on up the stack to the first call within
+    /// a non-tracked function body.
+    #[inline]
+    #[must_use]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
+    pub const fn caller() -> Self {
+        Self {
+            #[cfg(feature = "native-backtrace")]
+            inner: std::panic::Location::caller(),
+
+            #[cfg(not(feature = "native-backtrace"))]
+            inner: std::marker::PhantomData,
+        }
+    }
+
+    /// Return a [`std::panic::Location`].
+    ///
+    /// # Note
+    ///
+    /// If the `native-backtrace` feature is not enabled, then this always returns [`None`].
+    #[inline]
+    #[must_use]
+    pub const fn as_location(self) -> Option<&'static std::panic::Location<'static>> {
+        #[cfg(feature = "native-backtrace")]
+        return Some(self.inner);
+
+        #[cfg(not(feature = "native-backtrace"))]
+        return None;
+    }
+}

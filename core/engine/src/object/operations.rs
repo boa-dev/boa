@@ -1,4 +1,4 @@
-use super::internal_methods::InternalMethodContext;
+use super::internal_methods::InternalMethodPropertyContext;
 use crate::value::JsVariant;
 use crate::{
     Context, JsResult, JsSymbol, JsValue,
@@ -80,7 +80,7 @@ impl JsObject {
         self.__get__(
             &key.into(),
             self.clone().into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -104,7 +104,7 @@ impl JsObject {
             key.clone(),
             value.into(),
             self.clone().into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         // 5. If success is false and Throw is true, throw a TypeError exception.
         if !success && throw {
@@ -144,7 +144,7 @@ impl JsObject {
         self.__define_own_property__(
             &key.into(),
             new_desc.into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -158,7 +158,7 @@ impl JsObject {
         &self,
         key: K,
         value: V,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -269,7 +269,7 @@ impl JsObject {
         let success = self.__define_own_property__(
             &key,
             desc.into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
@@ -295,7 +295,7 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let success be ? O.[[Delete]](P).
-        let success = self.__delete__(&key, &mut InternalMethodContext::new(context))?;
+        let success = self.__delete__(&key, &mut InternalMethodPropertyContext::new(context))?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
             return Err(JsNativeError::typ()
@@ -320,7 +320,10 @@ impl JsObject {
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Return ? O.[[HasProperty]](P).
 
-        self.__has_property__(&key.into(), &mut InternalMethodContext::new(context))
+        self.__has_property__(
+            &key.into(),
+            &mut InternalMethodPropertyContext::new(context),
+        )
     }
 
     /// Abstract optimization operation.
@@ -341,7 +344,7 @@ impl JsObject {
         self.__try_get__(
             &key.into(),
             self.clone().into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -359,7 +362,8 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let desc be ? O.[[GetOwnProperty]](P).
-        let desc = self.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+        let desc =
+            self.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
         // 4. If desc is undefined, return false.
         // 5. Return true.
         Ok(desc.is_some())
@@ -491,14 +495,15 @@ impl JsObject {
         // 2. Assert: level is either sealed or frozen.
 
         // 3. Let status be ? O.[[PreventExtensions]]().
-        let status = self.__prevent_extensions__(&mut InternalMethodContext::new(context))?;
+        let status =
+            self.__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?;
         // 4. If status is false, return false.
         if !status {
             return Ok(false);
         }
 
         // 5. Let keys be ? O.[[OwnPropertyKeys]]().
-        let keys = self.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+        let keys = self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
         match level {
             // 6. If level is sealed, then
@@ -519,8 +524,10 @@ impl JsObject {
                 // b. For each element k of keys, do
                 for k in keys {
                     // i. Let currentDesc be ? O.[[GetOwnProperty]](k).
-                    let current_desc =
-                        self.__get_own_property__(&k, &mut InternalMethodContext::new(context))?;
+                    let current_desc = self.__get_own_property__(
+                        &k,
+                        &mut InternalMethodPropertyContext::new(context),
+                    )?;
                     // ii. If currentDesc is not undefined, then
                     if let Some(current_desc) = current_desc {
                         // 1. If IsAccessorDescriptor(currentDesc) is true, then
@@ -570,13 +577,13 @@ impl JsObject {
 
         // 5. NOTE: If the object is extensible, none of its properties are examined.
         // 6. Let keys be ? O.[[OwnPropertyKeys]]().
-        let keys = self.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+        let keys = self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
         // 7. For each element k of keys, do
         for k in keys {
             // a. Let currentDesc be ? O.[[GetOwnProperty]](k).
             let current_desc =
-                self.__get_own_property__(&k, &mut InternalMethodContext::new(context))?;
+                self.__get_own_property__(&k, &mut InternalMethodPropertyContext::new(context))?;
             // b. If currentDesc is not undefined, then
             if let Some(current_desc) = current_desc {
                 // i. If currentDesc.[[Configurable]] is true, return false.
@@ -686,7 +693,8 @@ impl JsObject {
     ) -> JsResult<Vec<JsValue>> {
         // 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
-        let own_keys = self.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+        let own_keys =
+            self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
         // 3. Let properties be a new empty List.
         let mut properties = vec![];
 
@@ -701,8 +709,8 @@ impl JsObject {
 
             if let Some(key_str) = key_str {
                 // i. Let desc be ? O.[[GetOwnProperty]](key).
-                let desc =
-                    self.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+                let desc = self
+                    .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc
                     && desc.expect_enumerable()
@@ -758,7 +766,7 @@ impl JsObject {
             .__get__(
                 &key.into(),
                 self.clone().into(),
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )?
             .variant()
         {
@@ -1175,7 +1183,7 @@ impl JsObject {
         let func = self.__get__(
             &key.into(),
             this_value.clone(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         // 3. Return ? Call(func, V, argumentsList)
@@ -1206,7 +1214,7 @@ impl JsValue {
         o.__get__(
             &key.into(),
             self.clone(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -1298,6 +1306,7 @@ impl JsValue {
     ///
     /// [call]: https://tc39.es/ecma262/#sec-call
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn call(&self, this: &Self, args: &[Self], context: &mut Context) -> JsResult<Self> {
         let Some(object) = self.as_object() else {
             return Err(JsNativeError::typ()
@@ -1319,6 +1328,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invoke
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn invoke<K>(&self, key: K, args: &[Self], context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
@@ -1371,7 +1381,9 @@ impl JsValue {
         // 6. Repeat,
         loop {
             // a. Set O to ? O.[[GetPrototypeOf]]().
-            object = match object.__get_prototype_of__(&mut InternalMethodContext::new(context))? {
+            object = match object
+                .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?
+            {
                 Some(obj) => obj,
                 // b. If O is null, return false.
                 None => return Ok(false),

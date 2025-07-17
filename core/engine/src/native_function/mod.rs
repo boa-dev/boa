@@ -9,6 +9,7 @@ use boa_gc::{Finalize, Gc, Trace, custom_trace};
 use boa_string::JsString;
 
 use crate::job::NativeAsyncJob;
+use crate::object::internal_methods::InternalMethodCallContext;
 use crate::value::JsVariant;
 use crate::{
     Context, JsNativeError, JsObject, JsResult, JsValue,
@@ -412,7 +413,7 @@ impl NativeFunction {
 pub(crate) fn native_function_call(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     let args = context
         .vm
@@ -436,10 +437,12 @@ pub(crate) fn native_function_call(
         .expect("the object should be a native function object")
         .clone();
 
+    let pc = context.vm.frame.pc;
+    let native_source_info = context.native_source_info();
     context
         .vm
         .shadow_stack
-        .push_native(context.vm.frame.pc, name);
+        .push_native(pc, name, native_source_info);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 
@@ -472,7 +475,7 @@ pub(crate) fn native_function_call(
 fn native_function_construct(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     // We technically don't need this since native functions don't push any new frames to the
     // vm, but we'll eventually have to combine the native stack with the vm stack.
@@ -489,10 +492,12 @@ fn native_function_construct(
         .expect("the object should be a native function object")
         .clone();
 
+    let pc = context.vm.frame.pc;
+    let native_source_info = context.native_source_info();
     context
         .vm
         .shadow_stack
-        .push_native(context.vm.frame.pc, name);
+        .push_native(pc, name, native_source_info);
 
     let mut realm = realm.unwrap_or_else(|| context.realm().clone());
 

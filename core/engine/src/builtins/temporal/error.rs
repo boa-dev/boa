@@ -3,6 +3,7 @@ use temporal_rs::error::{ErrorKind, TemporalError};
 use crate::{JsError, JsNativeError};
 
 impl From<TemporalError> for JsNativeError {
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn from(value: TemporalError) -> Self {
         match value.kind() {
             ErrorKind::Range | ErrorKind::Syntax => {
@@ -16,6 +17,7 @@ impl From<TemporalError> for JsNativeError {
 }
 
 impl From<TemporalError> for JsError {
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn from(value: TemporalError) -> Self {
         let native: JsNativeError = value.into();
         native.into()

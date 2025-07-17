@@ -10,10 +10,17 @@ use crate::{
     object::JsObject,
     property::PropertyDescriptor,
     realm::Realm,
-    vm::shadow_stack::{Backtrace, ShadowEntry},
+    vm::{
+        NativeSourceInfo,
+        shadow_stack::{Backtrace, ShadowEntry},
+    },
 };
 use boa_gc::{Finalize, Trace, custom_trace};
-use std::{borrow::Cow, error, fmt};
+use std::{
+    borrow::Cow,
+    error,
+    fmt::{self},
+};
 use thiserror::Error;
 
 /// Create an error object from a value or string literal. Optionally the
@@ -223,7 +230,7 @@ impl PartialEq for JsError {
 #[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize)]
 #[boa_gc(unsafe_no_drop)]
 enum Repr {
-    Native(JsNativeError),
+    Native(Box<JsNativeError>),
     Opaque(JsValue),
 }
 
@@ -295,9 +302,9 @@ impl JsError {
     /// assert!(error.as_native().is_some());
     /// ```
     #[must_use]
-    pub const fn from_native(err: JsNativeError) -> Self {
+    pub fn from_native(err: JsNativeError) -> Self {
         Self {
-            inner: Repr::Native(err),
+            inner: Repr::Native(Box::new(err)),
             backtrace: None,
         }
     }
@@ -405,7 +412,7 @@ impl JsError {
     /// ```
     pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
-            Repr::Native(e) => Ok(e.clone()),
+            Repr::Native(e) => Ok(e.as_ref().clone()),
             Repr::Opaque(val) => {
                 let obj = val
                     .as_object()
@@ -440,6 +447,7 @@ impl JsError {
 
                 let cause = try_get_property(js_string!("cause"), "cause", context)?;
 
+                let position = error_data.position.clone();
                 let kind = match error_data.tag {
                     ErrorKind::Error => JsNativeErrorKind::Error,
                     ErrorKind::Eval => JsNativeErrorKind::Eval,
@@ -494,6 +502,7 @@ impl JsError {
                     message,
                     cause: cause.map(|v| Box::new(Self::from_opaque(v))),
                     realm: Some(realm),
+                    position,
                 })
             }
         }
@@ -645,6 +654,7 @@ impl JsError {
 }
 
 impl From<boa_parser::Error> for JsError {
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn from(err: boa_parser::Error) -> Self {
         Self::from(JsNativeError::from(err))
     }
@@ -653,7 +663,7 @@ impl From<boa_parser::Error> for JsError {
 impl From<JsNativeError> for JsError {
     fn from(error: JsNativeError) -> Self {
         Self {
-            inner: Repr::Native(error),
+            inner: Repr::Native(Box::new(error)),
             backtrace: None,
         }
     }
@@ -670,8 +680,27 @@ impl fmt::Display for JsError {
             for entry in shadow_stack.iter().rev() {
                 write!(f, "\n    at ")?;
                 match entry {
-                    ShadowEntry::Native { function_name } => {
-                        write!(f, "{} (native)", function_name.to_std_string_escaped())?;
+                    ShadowEntry::Native {
+                        function_name,
+                        source_info,
+                    } => {
+                        if let Some(function_name) = function_name {
+                            write!(f, "{}", function_name.to_std_string_escaped())?;
+                        } else {
+                            f.write_str("<anonymous>")?;
+                        }
+
+                        if let Some(loc) = source_info.as_location() {
+                            write!(
+                                f,
+                                " (native at {}:{}:{})",
+                                loc.file(),
+                                loc.line(),
+                                loc.column()
+                            )?;
+                        } else {
+                            f.write_str(" (native)")?;
+                        }
                     }
                     ShadowEntry::Bytecode { pc, source_info } => {
                         let has_function_name = !source_info.function_name().is_empty();
@@ -700,6 +729,30 @@ impl fmt::Display for JsError {
             }
         }
         Ok(())
+    }
+}
+
+/// Helper struct that ignores equality operator.
+#[derive(Debug, Clone, Finalize)]
+pub(crate) struct IgnoreEq<T>(pub(crate) T);
+
+impl<T> Eq for IgnoreEq<T> {}
+
+impl<T> PartialEq for IgnoreEq<T> {
+    #[inline]
+    fn eq(&self, _: &Self) -> bool {
+        true
+    }
+}
+
+impl<T> std::hash::Hash for IgnoreEq<T> {
+    fn hash<H: std::hash::Hasher>(&self, _state: &mut H) {}
+}
+
+impl<T> From<T> for IgnoreEq<T> {
+    #[inline]
+    fn from(value: T) -> Self {
+        Self(value)
     }
 }
 
@@ -732,6 +785,7 @@ pub struct JsNativeError {
     #[source]
     cause: Option<Box<JsError>>,
     realm: Option<Realm>,
+    position: IgnoreEq<Option<ShadowEntry>>,
 }
 
 impl fmt::Display for JsNativeError {
@@ -741,6 +795,10 @@ impl fmt::Display for JsNativeError {
         let message = self.message.trim();
         if !message.is_empty() {
             write!(f, ": {message}")?;
+        }
+
+        if let Some(position) = &self.position.0 {
+            position.fmt(f)?;
         }
 
         Ok(())
@@ -790,6 +848,7 @@ impl JsNativeError {
     pub const RUNTIME_LIMIT: Self = Self::runtime_limit();
 
     /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     const fn new(
         kind: JsNativeErrorKind,
         message: Cow<'static, str>,
@@ -800,6 +859,10 @@ impl JsNativeError {
             message,
             cause,
             realm: None,
+            position: IgnoreEq(Some(ShadowEntry::Native {
+                function_name: None,
+                source_info: NativeSourceInfo::caller(),
+            })),
         }
     }
 
@@ -823,6 +886,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn aggregate(errors: Vec<JsError>) -> Self {
         Self::new(
             JsNativeErrorKind::Aggregate(errors),
@@ -850,6 +914,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn error() -> Self {
         Self::new(JsNativeErrorKind::Error, Cow::Borrowed(""), None)
     }
@@ -873,6 +938,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn eval() -> Self {
         Self::new(JsNativeErrorKind::Eval, Cow::Borrowed(""), None)
     }
@@ -896,6 +962,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn range() -> Self {
         Self::new(JsNativeErrorKind::Range, Cow::Borrowed(""), None)
     }
@@ -919,6 +986,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn reference() -> Self {
         Self::new(JsNativeErrorKind::Reference, Cow::Borrowed(""), None)
     }
@@ -942,6 +1010,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn syntax() -> Self {
         Self::new(JsNativeErrorKind::Syntax, Cow::Borrowed(""), None)
     }
@@ -965,6 +1034,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn typ() -> Self {
         Self::new(JsNativeErrorKind::Type, Cow::Borrowed(""), None)
     }
@@ -988,6 +1058,7 @@ impl JsNativeError {
     /// ```
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn uri() -> Self {
         Self::new(JsNativeErrorKind::Uri, Cow::Borrowed(""), None)
     }
@@ -1003,6 +1074,7 @@ impl JsNativeError {
     /// is only used in a fuzzing context.
     #[cfg(feature = "fuzz")]
     #[must_use]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn no_instructions_remain() -> Self {
         Self::new(
             JsNativeErrorKind::NoInstructionsRemain,
@@ -1022,6 +1094,7 @@ impl JsNativeError {
     /// Creates a new `JsNativeError` that indicates that the context exceeded the runtime limits.
     #[must_use]
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub const fn runtime_limit() -> Self {
         Self::new(JsNativeErrorKind::RuntimeLimit, Cow::Borrowed(""), None)
     }
@@ -1146,6 +1219,7 @@ impl JsNativeError {
             message,
             cause,
             realm,
+            position,
         } = self;
         let constructors = realm.as_ref().map_or_else(
             || context.intrinsics().constructors(),
@@ -1182,7 +1256,7 @@ impl JsNativeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::new(tag),
+            Error::with_shadow_entry(tag, position.0.clone()),
         );
 
         o.create_non_enumerable_data_property_or_throw(
@@ -1233,6 +1307,7 @@ impl JsNativeError {
 }
 
 impl From<boa_parser::Error> for JsNativeError {
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn from(err: boa_parser::Error) -> Self {
         Self::syntax().with_message(err.to_string())
     }

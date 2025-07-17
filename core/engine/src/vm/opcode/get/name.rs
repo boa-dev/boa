@@ -1,7 +1,7 @@
 use crate::{
     Context, JsResult, JsValue,
     error::JsNativeError,
-    object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
+    object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::PropertyKey,
     vm::opcode::{Operation, VaryingOperand},
 };
@@ -85,7 +85,7 @@ impl GetNameGlobal {
 
             let key: PropertyKey = ic.name.clone().into();
 
-            let context = &mut InternalMethodContext::new(context);
+            let context = &mut InternalMethodPropertyContext::new(context);
             let Some(result) = object.__try_get__(&key, object.clone().into(), context)? else {
                 let name = binding_locator.name().to_std_string_escaped();
                 return Err(JsNativeError::reference()

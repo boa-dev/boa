@@ -17,6 +17,7 @@ use crate::{
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
+    vm::source_info::NativeSourceInfo,
 };
 
 pub(crate) mod immutable_prototype;
@@ -24,13 +25,13 @@ pub(crate) mod string;
 
 /// A lightweight wrapper around [`Context`] used in [`InternalObjectMethods`].
 #[derive(Debug)]
-pub(crate) struct InternalMethodContext<'ctx> {
+pub(crate) struct InternalMethodPropertyContext<'ctx> {
     context: &'ctx mut Context,
     slot: Slot,
 }
 
-impl<'ctx> InternalMethodContext<'ctx> {
-    /// Create a new [`InternalMethodContext`].
+impl<'ctx> InternalMethodPropertyContext<'ctx> {
+    /// Create a new [`InternalMethodPropertyContext`].
     pub(crate) fn new(context: &'ctx mut Context) -> Self {
         Self {
             context,
@@ -38,14 +39,14 @@ impl<'ctx> InternalMethodContext<'ctx> {
         }
     }
 
-    /// Gets the [`Slot`] associated with this [`InternalMethodContext`].
+    /// Gets the [`Slot`] associated with this [`InternalMethodPropertyContext`].
     #[inline]
     pub(crate) fn slot(&mut self) -> &mut Slot {
         &mut self.slot
     }
 }
 
-impl Deref for InternalMethodContext<'_> {
+impl Deref for InternalMethodPropertyContext<'_> {
     type Target = Context;
 
     #[inline]
@@ -54,14 +55,78 @@ impl Deref for InternalMethodContext<'_> {
     }
 }
 
-impl DerefMut for InternalMethodContext<'_> {
+impl DerefMut for InternalMethodPropertyContext<'_> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.context
     }
 }
 
-impl<'context> From<&'context mut Context> for InternalMethodContext<'context> {
+impl<'context> From<&'context mut Context> for InternalMethodPropertyContext<'context> {
+    #[inline]
+    fn from(context: &'context mut Context) -> Self {
+        Self::new(context)
+    }
+}
+
+/// A lightweight wrapper around [`Context`] used in internal call methods.
+#[derive(Debug)]
+pub(crate) struct InternalMethodCallContext<'ctx> {
+    context: &'ctx mut Context,
+    native_source_info: NativeSourceInfo,
+}
+
+impl<'ctx> InternalMethodCallContext<'ctx> {
+    /// Create a new [`InternalMethodCallContext`].
+    #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
+    pub(crate) fn new(context: &'ctx mut Context) -> Self {
+        Self {
+            context,
+            native_source_info: NativeSourceInfo::caller(),
+        }
+    }
+
+    /// Create a new [`InternalMethodCallContext`].
+    #[inline]
+    pub(crate) fn with_native_source_info(
+        context: &'ctx mut Context,
+        native_source_info: NativeSourceInfo,
+    ) -> Self {
+        Self {
+            context,
+            native_source_info,
+        }
+    }
+
+    #[inline]
+    pub(crate) fn context(&mut self) -> &mut Context {
+        self.context
+    }
+
+    #[inline]
+    pub(crate) fn native_source_info(&self) -> NativeSourceInfo {
+        self.native_source_info
+    }
+}
+
+impl Deref for InternalMethodCallContext<'_> {
+    type Target = Context;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.context
+    }
+}
+
+impl DerefMut for InternalMethodCallContext<'_> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.context
+    }
+}
+
+impl<'context> From<&'context mut Context> for InternalMethodCallContext<'context> {
     #[inline]
     fn from(context: &'context mut Context) -> Self {
         Self::new(context)
@@ -133,7 +198,7 @@ impl JsObject {
     pub(crate) fn __get_own_property__(
         &self,
         key: &PropertyKey,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<Option<PropertyDescriptor>> {
         (self.vtable().__get_own_property__)(self, key, context)
     }
@@ -150,7 +215,7 @@ impl JsObject {
         &self,
         key: &PropertyKey,
         desc: PropertyDescriptor,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool> {
         (self.vtable().__define_own_property__)(self, key, desc, context)
     }
@@ -166,7 +231,7 @@ impl JsObject {
     pub(crate) fn __has_property__(
         &self,
         key: &PropertyKey,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool> {
         (self.vtable().__has_property__)(self, key, context)
     }
@@ -185,7 +250,7 @@ impl JsObject {
         &self,
         key: &PropertyKey,
         receiver: JsValue,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<Option<JsValue>> {
         (self.vtable().__try_get__)(self, key, receiver, context)
     }
@@ -202,7 +267,7 @@ impl JsObject {
         &self,
         key: &PropertyKey,
         receiver: JsValue,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<JsValue> {
         (self.vtable().__get__)(self, key, receiver, context)
     }
@@ -220,7 +285,7 @@ impl JsObject {
         key: PropertyKey,
         value: JsValue,
         receiver: JsValue,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool> {
         (self.vtable().__set__)(self, key, value, receiver, context)
     }
@@ -236,7 +301,7 @@ impl JsObject {
     pub(crate) fn __delete__(
         &self,
         key: &PropertyKey,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool> {
         (self.vtable().__delete__)(self, key, context)
     }
@@ -273,6 +338,7 @@ impl JsObject {
             func: self.vtable().__call__,
             object: self.clone(),
             argument_count,
+            native_source_info: NativeSourceInfo::caller(),
         }
     }
 
@@ -292,6 +358,7 @@ impl JsObject {
             func: self.vtable().__construct__,
             object: self.clone(),
             argument_count,
+            native_source_info: NativeSourceInfo::caller(),
         }
     }
 }
@@ -341,39 +408,49 @@ pub struct InternalObjectMethods {
     pub(crate) __get_own_property__: fn(
         &JsObject,
         &PropertyKey,
-        &mut InternalMethodContext<'_>,
+        &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<Option<PropertyDescriptor>>,
     pub(crate) __define_own_property__: fn(
         &JsObject,
         &PropertyKey,
         PropertyDescriptor,
-        &mut InternalMethodContext<'_>,
+        &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool>,
     pub(crate) __has_property__:
-        fn(&JsObject, &PropertyKey, &mut InternalMethodContext<'_>) -> JsResult<bool>,
-    pub(crate) __get__:
-        fn(&JsObject, &PropertyKey, JsValue, &mut InternalMethodContext<'_>) -> JsResult<JsValue>,
+        fn(&JsObject, &PropertyKey, &mut InternalMethodPropertyContext<'_>) -> JsResult<bool>,
+    pub(crate) __get__: fn(
+        &JsObject,
+        &PropertyKey,
+        JsValue,
+        &mut InternalMethodPropertyContext<'_>,
+    ) -> JsResult<JsValue>,
     pub(crate) __try_get__: fn(
         &JsObject,
         &PropertyKey,
         JsValue,
-        &mut InternalMethodContext<'_>,
+        &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<Option<JsValue>>,
     pub(crate) __set__: fn(
         &JsObject,
         PropertyKey,
         JsValue,
         JsValue,
-        &mut InternalMethodContext<'_>,
+        &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool>,
     pub(crate) __delete__:
-        fn(&JsObject, &PropertyKey, &mut InternalMethodContext<'_>) -> JsResult<bool>,
+        fn(&JsObject, &PropertyKey, &mut InternalMethodPropertyContext<'_>) -> JsResult<bool>,
     pub(crate) __own_property_keys__:
         fn(&JsObject, context: &mut Context) -> JsResult<Vec<PropertyKey>>,
-    pub(crate) __call__:
-        fn(&JsObject, argument_count: usize, context: &mut Context) -> JsResult<CallValue>,
-    pub(crate) __construct__:
-        fn(&JsObject, argument_count: usize, context: &mut Context) -> JsResult<CallValue>,
+    pub(crate) __call__: fn(
+        &JsObject,
+        argument_count: usize,
+        context: &mut InternalMethodCallContext<'_>,
+    ) -> JsResult<CallValue>,
+    pub(crate) __construct__: fn(
+        &JsObject,
+        argument_count: usize,
+        context: &mut InternalMethodCallContext<'_>,
+    ) -> JsResult<CallValue>,
 }
 
 /// The return value of an internal method (`[[Call]]` or `[[Construct]]`).
@@ -388,9 +465,14 @@ pub(crate) enum CallValue {
 
     /// Further processing is needed.
     Pending {
-        func: fn(&JsObject, argument_count: usize, &mut Context) -> JsResult<CallValue>,
+        func: fn(
+            &JsObject,
+            argument_count: usize,
+            context: &mut InternalMethodCallContext<'_>,
+        ) -> JsResult<CallValue>,
         object: JsObject,
         argument_count: usize,
+        native_source_info: NativeSourceInfo,
     },
 
     /// The value has been computed and is the first element on the stack.
@@ -399,14 +481,23 @@ pub(crate) enum CallValue {
 
 impl CallValue {
     /// Resolves the [`CallValue`], and return if the value is complete.
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn resolve(mut self, context: &mut Context) -> JsResult<bool> {
         while let Self::Pending {
             func,
             object,
             argument_count,
+            native_source_info,
         } = self
         {
-            self = func(&object, argument_count, context)?;
+            self = func(
+                &object,
+                argument_count,
+                &mut InternalMethodCallContext::with_native_source_info(
+                    context,
+                    native_source_info,
+                ),
+            )?;
         }
 
         match self {
@@ -528,7 +619,7 @@ pub(crate) fn ordinary_prevent_extensions(
 pub(crate) fn ordinary_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. If O does not have an own property with key P, return undefined.
@@ -557,7 +648,7 @@ pub(crate) fn ordinary_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     let current = obj.__get_own_property__(key, context)?;
@@ -584,7 +675,7 @@ pub(crate) fn ordinary_define_own_property(
 pub(crate) fn ordinary_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
@@ -616,7 +707,7 @@ pub(crate) fn ordinary_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
@@ -669,7 +760,7 @@ pub(crate) fn ordinary_try_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be ? O.[[GetOwnProperty]](P).
@@ -719,7 +810,7 @@ pub(crate) fn ordinary_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let ownDesc be ? O.[[GetOwnProperty]](P).
@@ -832,7 +923,7 @@ pub(crate) fn ordinary_set(
 pub(crate) fn ordinary_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     Ok(
@@ -1094,7 +1185,7 @@ where
 fn non_existant_call(
     _obj: &JsObject,
     _argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
         .with_message("not a callable function")
@@ -1105,7 +1196,7 @@ fn non_existant_call(
 fn non_existant_construct(
     _obj: &JsObject,
     _argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
         .with_message("not a constructor")

@@ -20,12 +20,14 @@ pub enum IcuError {
 }
 
 impl From<IcuError> for JsNativeError {
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn from(value: IcuError) -> Self {
         JsNativeError::typ().with_message(value.to_string())
     }
 }
 
 impl From<IcuError> for JsError {
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn from(value: IcuError) -> Self {
         JsNativeError::from(value).into()
     }

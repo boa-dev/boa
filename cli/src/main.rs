@@ -318,21 +318,17 @@ fn evaluate_file(
         Ok(v) => println!("{}", v.display()),
         Err(v) => eprintln!("Uncaught {v}"),
     }
+
     context
         .run_jobs()
         .map_err(|err| err.into_erased(context).into())
 }
 
-fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) {
+fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) -> Result<()> {
     for file in &args.files {
-        let Err(err) = evaluate_file(file, args, context, loader)
-            .wrap_err_with(|| eyre!("could not evaluate file `{}`", file.display()))
-        else {
-            continue;
-        };
-
-        eprintln!("{err:?}");
+        evaluate_file(file, args, context, loader)?;
     }
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -374,7 +370,7 @@ fn main() -> Result<()> {
     context.set_optimizer_options(optimizer_options);
 
     if !args.files.is_empty() {
-        evaluate_files(&args, &mut context, &loader);
+        evaluate_files(&args, &mut context, &loader)?;
         return Ok(());
     }
 
@@ -408,16 +404,16 @@ fn main() -> Result<()> {
             Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
             Ok(line) => {
-                editor.add_history_entry(&line).map_err(io::Error::other)?;
+                let line = line.trim_end();
 
-                if args.has_dump_flag()
-                    && let Err(e) = dump(Source::from_bytes(&line), &args, &mut context)
-                {
-                    eprintln!("{e:?}");
+                editor.add_history_entry(line).map_err(io::Error::other)?;
+
+                if args.has_dump_flag() {
+                    dump(Source::from_bytes(&line), &args, &mut context)?;
                 } else if let Some(flowgraph) = args.flowgraph {
                     match generate_flowgraph(
                         &mut context,
-                        Source::from_bytes(line.trim_end()),
+                        Source::from_bytes(line),
                         flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
                         args.flowgraph_direction,
                     ) {
@@ -425,7 +421,7 @@ fn main() -> Result<()> {
                         Err(v) => eprintln!("{v:?}"),
                     }
                 } else {
-                    match context.eval(Source::from_bytes(line.trim_end())) {
+                    match context.eval(Source::from_bytes(line)) {
                         Ok(v) => {
                             println!("{}", v.display());
                         }

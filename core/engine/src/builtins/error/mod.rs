@@ -14,7 +14,7 @@ use crate::{
     Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::JsNativeError,
+    error::{IgnoreEq, JsNativeError},
     js_string,
     object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
@@ -130,20 +130,13 @@ pub enum ErrorKind {
 /// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
-#[derive(Debug, Clone, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize, JsData)]
 pub struct Error {
     pub(crate) tag: ErrorKind,
-    #[unsafe_ignore_trace]
-    pub(crate) position: Option<ShadowEntry>,
-}
 
-impl Eq for Error {}
-impl PartialEq for Error {
     // The position of where the Error was created does not affect equality check.
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        self.tag == other.tag
-    }
+    #[unsafe_ignore_trace]
+    pub(crate) position: IgnoreEq<Option<ShadowEntry>>,
 }
 
 impl Error {
@@ -153,7 +146,15 @@ impl Error {
     pub fn new(tag: ErrorKind) -> Self {
         Self {
             tag,
-            position: None,
+            position: IgnoreEq(None),
+        }
+    }
+
+    /// Create a new [`Error`] with the given optional [`ShadowEntry`].
+    pub(crate) fn with_shadow_entry(tag: ErrorKind, entry: Option<ShadowEntry>) -> Self {
+        Self {
+            tag,
+            position: IgnoreEq(entry),
         }
     }
 
@@ -161,7 +162,7 @@ impl Error {
     pub(crate) fn with_caller_position(tag: ErrorKind, context: &Context) -> Self {
         Self {
             tag,
-            position: context.vm.shadow_stack.caller_position(),
+            position: IgnoreEq(context.vm.shadow_stack.caller_position()),
         }
     }
 }
