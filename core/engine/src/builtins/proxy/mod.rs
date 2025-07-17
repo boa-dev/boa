@@ -11,8 +11,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
+use crate::object::internal_methods::InternalMethodCallContext;
 use crate::value::JsVariant;
-use crate::vm::source_info::NativeSourceInfo;
 use crate::{
     Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{BuiltInObject, array},
@@ -1145,8 +1145,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
 fn proxy_exotic_call(
     obj: &JsObject,
     argument_count: usize,
-    _native_source_info: NativeSourceInfo,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1194,8 +1193,7 @@ fn proxy_exotic_call(
 fn proxy_exotic_construct(
     obj: &JsObject,
     argument_count: usize,
-    _native_source_info: NativeSourceInfo,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.

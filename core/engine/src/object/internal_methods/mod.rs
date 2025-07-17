@@ -69,6 +69,70 @@ impl<'context> From<&'context mut Context> for InternalMethodContext<'context> {
     }
 }
 
+/// A lightweight wrapper around [`Context`] used in internal call methods.
+#[derive(Debug)]
+pub(crate) struct InternalMethodCallContext<'ctx> {
+    context: &'ctx mut Context,
+    native_source_info: NativeSourceInfo,
+}
+
+impl<'ctx> InternalMethodCallContext<'ctx> {
+    /// Create a new [`InternalMethodCallContext`].
+    #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
+    pub(crate) fn new(context: &'ctx mut Context) -> Self {
+        Self {
+            context,
+            native_source_info: NativeSourceInfo::caller(),
+        }
+    }
+
+    /// Create a new [`InternalMethodCallContext`].
+    #[inline]
+    pub(crate) fn with_native_source_info(
+        context: &'ctx mut Context,
+        native_source_info: NativeSourceInfo,
+    ) -> Self {
+        Self {
+            context,
+            native_source_info,
+        }
+    }
+
+    #[inline]
+    pub(crate) fn context(&mut self) -> &mut Context {
+        self.context
+    }
+
+    #[inline]
+    pub(crate) fn native_source_info(&self) -> NativeSourceInfo {
+        self.native_source_info
+    }
+}
+
+impl Deref for InternalMethodCallContext<'_> {
+    type Target = Context;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.context
+    }
+}
+
+impl DerefMut for InternalMethodCallContext<'_> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.context
+    }
+}
+
+impl<'context> From<&'context mut Context> for InternalMethodCallContext<'context> {
+    #[inline]
+    fn from(context: &'context mut Context) -> Self {
+        Self::new(context)
+    }
+}
+
 impl JsObject {
     /// Internal method `[[GetPrototypeOf]]`
     ///
@@ -274,7 +338,7 @@ impl JsObject {
             func: self.vtable().__call__,
             object: self.clone(),
             argument_count,
-            source_info: NativeSourceInfo::caller(),
+            native_source_info: NativeSourceInfo::caller(),
         }
     }
 
@@ -294,7 +358,7 @@ impl JsObject {
             func: self.vtable().__construct__,
             object: self.clone(),
             argument_count,
-            source_info: NativeSourceInfo::caller(),
+            native_source_info: NativeSourceInfo::caller(),
         }
     }
 }
@@ -376,14 +440,12 @@ pub struct InternalObjectMethods {
     pub(crate) __call__: fn(
         &JsObject,
         argument_count: usize,
-        native_source_info: NativeSourceInfo,
-        context: &mut Context,
+        context: &mut InternalMethodCallContext<'_>,
     ) -> JsResult<CallValue>,
     pub(crate) __construct__: fn(
         &JsObject,
         argument_count: usize,
-        native_source_info: NativeSourceInfo,
-        context: &mut Context,
+        context: &mut InternalMethodCallContext<'_>,
     ) -> JsResult<CallValue>,
 }
 
@@ -402,12 +464,11 @@ pub(crate) enum CallValue {
         func: fn(
             &JsObject,
             argument_count: usize,
-            native_source_info: NativeSourceInfo,
-            &mut Context,
+            context: &mut InternalMethodCallContext<'_>,
         ) -> JsResult<CallValue>,
         object: JsObject,
         argument_count: usize,
-        source_info: NativeSourceInfo,
+        native_source_info: NativeSourceInfo,
     },
 
     /// The value has been computed and is the first element on the stack.
@@ -422,10 +483,17 @@ impl CallValue {
             func,
             object,
             argument_count,
-            source_info,
+            native_source_info,
         } = self
         {
-            self = func(&object, argument_count, source_info, context)?;
+            self = func(
+                &object,
+                argument_count,
+                &mut InternalMethodCallContext::with_native_source_info(
+                    context,
+                    native_source_info,
+                ),
+            )?;
         }
 
         match self {
@@ -1113,8 +1181,7 @@ where
 fn non_existant_call(
     _obj: &JsObject,
     _argument_count: usize,
-    _native_source_info: NativeSourceInfo,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
         .with_message("not a callable function")
@@ -1125,8 +1192,7 @@ fn non_existant_call(
 fn non_existant_construct(
     _obj: &JsObject,
     _argument_count: usize,
-    _native_source_info: NativeSourceInfo,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     Err(JsNativeError::typ()
         .with_message("not a constructor")

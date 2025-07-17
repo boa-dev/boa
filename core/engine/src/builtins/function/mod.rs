@@ -25,7 +25,7 @@ use crate::{
     object::{
         JsData, JsFunction, JsObject, PrivateElement, PrivateName,
         internal_methods::{
-            CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            CallValue, InternalMethodCallContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             get_prototype_from_constructor,
         },
     },
@@ -34,7 +34,7 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock, source_info::NativeSourceInfo},
+    vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
 };
 use boa_ast::{
     Position, Span, Spanned, StatementList,
@@ -980,8 +980,7 @@ pub(crate) fn function_call(
         unused_variables,
         reason = "Only used if native-backtrace feature is enabled"
     )]
-    native_source_info: NativeSourceInfo,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
 
@@ -1014,16 +1013,20 @@ pub(crate) fn function_call(
         .with_env_fp(env_fp);
 
     #[cfg(feature = "native-backtrace")]
-    context
-        .vm
-        .shadow_stack
-        .patch_last_native(native_source_info);
+    {
+        let native_source_info = context.native_source_info();
+        context
+            .vm
+            .shadow_stack
+            .patch_last_native(native_source_info);
+    }
 
     context.vm.push_frame(frame);
     let this = context.vm.stack.get_this(context.vm.frame());
 
-    let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+    let context = context.context();
 
+    let lexical_this_mode = code.this_mode == ThisMode::Lexical;
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else if code.strict() {
@@ -1075,8 +1078,7 @@ pub(crate) fn function_call(
 fn function_construct(
     this_function_object: &JsObject,
     argument_count: usize,
-    _native_source_info: NativeSourceInfo,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
 
@@ -1162,6 +1164,7 @@ fn function_construct(
         );
     }
 
+    let context = context.context();
     context.vm.stack.set_this(
         &context.vm.frame,
         this.map(JsValue::new).unwrap_or_default(),
