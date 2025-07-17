@@ -4,7 +4,8 @@ use thin_vec::ThinVec;
 use crate::{
     JsValue,
     object::{
-        IndexedProperties, JsObject, NativeObject, Object, PropertyMap, shape::slot::SlotAttributes,
+        IndexedProperties, JsObject, NativeObject, Object, ObjectData, PropertyMap,
+        shape::slot::SlotAttributes,
     },
     property::{Attribute, PropertyKey},
 };
@@ -110,7 +111,7 @@ impl ObjectTemplate {
         let internal_methods = data.internal_methods();
 
         let mut object = Object {
-            data: Box::new(data),
+            data: ObjectData::new(data),
             extensible: true,
             properties: PropertyMap::new(self.shape.clone().into(), IndexedProperties::default()),
             private_elements: ThinVec::new(),
@@ -133,7 +134,7 @@ impl ObjectTemplate {
     ) -> JsObject {
         let internal_methods = data.internal_methods();
         let mut object = Object {
-            data: Box::new(data),
+            data: ObjectData::new(data),
             extensible: true,
             properties: PropertyMap::new(self.shape.clone().into(), indexed_properties),
             private_elements: ThinVec::new(),

@@ -41,12 +41,14 @@ use super::{
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
 #[boa_gc(unsafe_empty_trace)]
 pub struct ZonedDateTime {
-    pub(crate) inner: ZonedDateTimeInner,
+    pub(crate) inner: Box<ZonedDateTimeInner>,
 }
 
 impl ZonedDateTime {
     pub(crate) fn new(inner: ZonedDateTimeInner) -> Self {
-        Self { inner }
+        Self {
+            inner: Box::new(inner),
+        }
     }
 }
 
@@ -1162,7 +1164,7 @@ impl ZonedDateTime {
             })?;
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
-        Ok((zdt.inner == other).into())
+        Ok((*zdt.inner == other).into())
     }
 
     fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
@@ -1464,7 +1466,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                     get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
                         .unwrap_or_default();
                 // vi. Return ! CreateTemporalZonedDateTime(item.[[EpochNanoseconds]], item.[[TimeZone]], item.[[Calendar]]).
-                return Ok(zdt.inner.clone());
+                return Ok(zdt.inner.as_ref().clone());
             }
             let partial = to_partial_zoneddatetime(&object, context)?;
             // f. If offsetString is unset, the
