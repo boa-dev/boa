@@ -1,6 +1,6 @@
 use crate::{
     Context, JsError, JsResult, error::JsNativeError,
-    object::internal_methods::InternalMethodContext, vm::opcode::Operation,
+    object::internal_methods::InternalMethodPropertyContext, vm::opcode::Operation,
 };
 
 use super::VaryingOperand;
@@ -24,7 +24,7 @@ impl DeletePropertyByName {
         let key = code_block.constant_string(index.into()).into();
         let strict = code_block.strict();
 
-        let result = object.__delete__(&key, &mut InternalMethodContext::new(context))?;
+        let result = object.__delete__(&key, &mut InternalMethodPropertyContext::new(context))?;
         if !result && strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
@@ -61,7 +61,10 @@ impl DeletePropertyByValue {
         let object = object.to_object(context)?;
         let property_key = key.to_property_key(context)?;
 
-        let result = object.__delete__(&property_key, &mut InternalMethodContext::new(context))?;
+        let result = object.__delete__(
+            &property_key,
+            &mut InternalMethodPropertyContext::new(context),
+        )?;
         if !result && context.vm.frame().code_block().strict() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")

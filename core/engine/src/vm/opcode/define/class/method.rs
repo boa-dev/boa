@@ -1,7 +1,7 @@
 use crate::{
     Context, JsResult,
     builtins::function::{OrdinaryFunction, set_function_name},
-    object::internal_methods::InternalMethodContext,
+    object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
     vm::opcode::{Operation, VaryingOperand},
 };
@@ -47,7 +47,7 @@ impl DefineClassStaticMethodByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }
@@ -100,7 +100,7 @@ impl DefineClassMethodByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }
@@ -202,7 +202,7 @@ impl DefineClassMethodByValue {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }

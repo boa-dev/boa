@@ -8,7 +8,7 @@ use crate::{
     object::{
         JsData, JsObject,
         internal_methods::{
-            InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
             ordinary_has_property, ordinary_set, ordinary_try_get,
         },
@@ -289,7 +289,7 @@ fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
 pub(crate) fn typed_array_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -331,7 +331,7 @@ pub(crate) fn typed_array_exotic_get_own_property(
 pub(crate) fn typed_array_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -362,7 +362,7 @@ pub(crate) fn typed_array_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -428,7 +428,7 @@ pub(crate) fn typed_array_exotic_try_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -460,7 +460,7 @@ pub(crate) fn typed_array_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -493,7 +493,7 @@ pub(crate) fn typed_array_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -535,7 +535,7 @@ pub(crate) fn typed_array_exotic_set(
 pub(crate) fn typed_array_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -654,7 +654,7 @@ pub(crate) fn typed_array_set_element(
     obj: &JsObject,
     index: f64,
     value: &JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<()> {
     let obj = obj
         .clone()

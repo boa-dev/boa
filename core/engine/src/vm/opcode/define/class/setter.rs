@@ -3,7 +3,7 @@ use boa_macros::js_str;
 use crate::{
     Context, JsResult,
     builtins::function::{OrdinaryFunction, set_function_name},
-    object::internal_methods::InternalMethodContext,
+    object::internal_methods::InternalMethodPropertyContext,
     property::PropertyDescriptor,
     vm::opcode::{Operation, VaryingOperand},
 };
@@ -41,7 +41,7 @@ impl DefineClassStaticSetterByName {
                 .set_home_object(class.clone());
         }
         let get = class
-            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -54,7 +54,7 @@ impl DefineClassStaticSetterByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }
@@ -99,7 +99,7 @@ impl DefineClassSetterByName {
                 .set_home_object(class_proto.clone());
         }
         let get = class_proto
-            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -112,7 +112,7 @@ impl DefineClassSetterByName {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         Ok(())
@@ -156,7 +156,7 @@ impl DefineClassStaticSetterByValue {
                 .set_home_object(class.clone());
         }
         let get = class
-            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -213,7 +213,7 @@ impl DefineClassSetterByValue {
                 .set_home_object(class_proto.clone());
         }
         let get = class_proto
-            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -226,7 +226,7 @@ impl DefineClassSetterByValue {
                 .enumerable(false)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         Ok(())

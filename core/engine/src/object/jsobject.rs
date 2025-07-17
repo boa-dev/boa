@@ -4,7 +4,9 @@
 
 use super::{
     JsPrototype, NativeObject, Object, PrivateName, PropertyMap,
-    internal_methods::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS},
+    internal_methods::{
+        InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+    },
     shape::RootShape,
 };
 use crate::{
@@ -568,7 +570,7 @@ Cannot both specify accessors and a value or writable attribute",
     where
         K: Into<PropertyKey>,
     {
-        let context = &mut InternalMethodContext::new(context);
+        let context = &mut InternalMethodPropertyContext::new(context);
 
         // 1. Assert: Type(target) is Object.
         // 2. Assert: excludedItems is a List of property keys.

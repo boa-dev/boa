@@ -2,7 +2,7 @@ use boa_macros::js_str;
 use indoc::indoc;
 
 use super::*;
-use crate::object::internal_methods::InternalMethodContext;
+use crate::object::internal_methods::InternalMethodPropertyContext;
 use crate::{TestAction, js_string, run_test_actions};
 
 use std::collections::hash_map::DefaultHasher;
@@ -206,7 +206,7 @@ fn string_length_is_not_enumerable() {
         let length_desc = object
             .__get_own_property__(
                 &PropertyKey::from(js_string!("length")),
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )
             .unwrap()
             .unwrap();
@@ -223,7 +223,7 @@ fn string_length_is_in_utf16_codeunits() {
         let length_desc = object
             .__get_own_property__(
                 &PropertyKey::from(js_string!("length")),
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )
             .unwrap()
             .unwrap();

@@ -5,7 +5,7 @@ use crate::vm::opcode::VaryingOperand;
 use crate::{
     Context, JsNativeError, JsResult,
     builtins::function::set_function_name,
-    object::{internal_methods::InternalMethodContext, shape::slot::SlotAttributes},
+    object::{internal_methods::InternalMethodPropertyContext, shape::slot::SlotAttributes},
     property::{PropertyDescriptor, PropertyKey},
     vm::opcode::Operation,
 };
@@ -73,7 +73,7 @@ impl SetPropertyByName {
 
         let name: PropertyKey = ic.name.clone().into();
 
-        let context = &mut InternalMethodContext::new(context);
+        let context = &mut InternalMethodPropertyContext::new(context);
         let succeeded = object.__set__(name.clone(), value.clone(), receiver.clone(), context)?;
         if !succeeded && context.vm.frame().code_block.strict() {
             return Err(JsNativeError::typ()
@@ -194,7 +194,7 @@ impl SetPropertyGetterByName {
 
         let object = object.to_object(context)?;
         let set = object
-            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&name, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -206,7 +206,7 @@ impl SetPropertyGetterByName {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }
@@ -238,7 +238,7 @@ impl SetPropertyGetterByValue {
         let name = key.to_property_key(context)?;
 
         let set = object
-            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&name, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::set)
             .cloned();
@@ -250,7 +250,7 @@ impl SetPropertyGetterByValue {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }
@@ -287,7 +287,7 @@ impl SetPropertySetterByName {
         let object = object.to_object(context)?;
 
         let get = object
-            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&name, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -299,7 +299,7 @@ impl SetPropertySetterByName {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }
@@ -332,7 +332,7 @@ impl SetPropertySetterByValue {
         let name = key.to_property_key(context)?;
 
         let get = object
-            .__get_own_property__(&name, &mut InternalMethodContext::new(context))?
+            .__get_own_property__(&name, &mut InternalMethodPropertyContext::new(context))?
             .as_ref()
             .and_then(PropertyDescriptor::get)
             .cloned();
@@ -344,7 +344,7 @@ impl SetPropertySetterByValue {
                 .enumerable(true)
                 .configurable(true)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         Ok(())
     }

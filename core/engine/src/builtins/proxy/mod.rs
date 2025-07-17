@@ -23,8 +23,8 @@ use crate::{
     object::{
         JsData, JsFunction, JsObject, JsPrototype,
         internal_methods::{
-            CallValue, InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-            is_compatible_property_descriptor,
+            CallValue, InternalMethodPropertyContext, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS, is_compatible_property_descriptor,
         },
         shape::slot::SlotAttributes,
     },
@@ -465,7 +465,7 @@ pub(crate) fn proxy_exotic_prevent_extensions(
 pub(crate) fn proxy_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -590,7 +590,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -702,7 +702,7 @@ pub(crate) fn proxy_exotic_define_own_property(
 pub(crate) fn proxy_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -773,7 +773,7 @@ pub(crate) fn proxy_exotic_try_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     // Note: For now, this just calls the normal methods. Could be optimized further.
     if proxy_exotic_has_property(obj, key, context)? {
@@ -793,7 +793,7 @@ pub(crate) fn proxy_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     // Proxy object can't be cached.
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
@@ -864,7 +864,7 @@ pub(crate) fn proxy_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -946,7 +946,7 @@ pub(crate) fn proxy_exotic_set(
 pub(crate) fn proxy_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
