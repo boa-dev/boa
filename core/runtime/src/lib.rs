@@ -53,7 +53,6 @@
 
 pub mod console;
 
-use boa_engine::realm::Realm;
 #[doc(inline)]
 pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
@@ -67,85 +66,17 @@ pub mod fetch;
 pub mod interval;
 pub mod url;
 
-#[cfg(feature = "fetch")]
-use crate::fetch::fetchers::ErrorFetcher;
+mod options;
 
-/// Internal module to declare variations of the [`RegisterOptions`] based on whether or
-/// not some features are enabled.
-mod register_options {
-    /// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
-
-    #[derive(Debug)]
-    pub struct RegisterOptions<#[cfg(feature = "fetch")] F: super::fetch::Fetcher, L: super::Logger> {
-        pub(super) realm: Option<super::Realm>,
-        pub(super) console_logger: L,
-
-        #[cfg(feature = "fetch")]
-        pub(super) fetcher: Option<F>,
-
-        #[cfg(not(feature = "fetch"))]
-        pub(super) fetcher: Option<!>,
-    }
-}
-
-pub use register_options::RegisterOptions;
-
-impl Default for RegisterOptions<ErrorFetcher, DefaultLogger> {
-    fn default() -> Self {
-        Self {
-            realm: None,
-            console_logger: DefaultLogger,
-            fetcher: None,
-        }
-    }
-}
-
-impl RegisterOptions<ErrorFetcher, DefaultLogger> {
-    /// Create a new `RegisterOptions` with the default options.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
-    /// Set the realm to which we should register the APIs.
-    #[must_use]
-    pub fn with_realm(self, realm: Realm) -> Self {
-        Self {
-            realm: Some(realm),
-            ..self
-        }
-    }
-
-    /// Set the logger for the console object.
-    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptions<F, L2> {
-        RegisterOptions::<F, L2> {
-            realm: self.realm,
-            console_logger: logger,
-            fetcher: self.fetcher,
-        }
-    }
-}
-
-impl<F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
-    /// Set the fetch provider for the fetch API.
-    pub fn with_fetcher<F2: fetch::Fetcher>(self, new_fetcher: F2) -> RegisterOptions<F2, L> {
-        RegisterOptions::<F2, L> {
-            realm: self.realm,
-            fetcher: Some(new_fetcher),
-            console_logger: self.console_logger,
-        }
-    }
-}
+pub use options::RegisterOptions;
 
 /// Register all the built-in objects and functions of the `WebAPI` runtime.
 ///
 /// # Errors
 /// This will error is any of the built-in objects or functions cannot be registered.
-pub fn register(
+pub fn register<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger + 'static>(
     ctx: &mut boa_engine::Context,
-    options: RegisterOptions<impl fetch::Fetcher, impl Logger + 'static>,
+    options: options::RegisterOptionsType![F, L],
 ) -> boa_engine::JsResult<()> {
     Console::register_with_logger(ctx, options.console_logger)?;
     TextDecoder::register(ctx)?;
