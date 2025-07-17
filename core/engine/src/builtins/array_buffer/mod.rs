@@ -188,7 +188,7 @@ impl BufferObject {
                 let lhs = lhs.borrow();
                 let rhs = rhs.borrow();
 
-                std::ptr::eq(lhs.data.as_ptr(), rhs.data.as_ptr())
+                std::ptr::eq(lhs.data().as_ptr(), rhs.data().as_ptr())
             }
             _ => false,
         }
@@ -651,13 +651,13 @@ impl ArrayBuffer {
         let len = {
             let buf = buf.borrow();
             // 4. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-            if buf.data.is_detached() {
+            if buf.data().is_detached() {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer.slice called with detached buffer")
                     .into());
             }
             // 5. Let len be O.[[ArrayBufferByteLength]].
-            buf.data.len() as u64
+            buf.data().len() as u64
         };
 
         // 6. Let relativeStart be ? ToIntegerOrInfinity(start).
@@ -703,7 +703,7 @@ impl ArrayBuffer {
             // 19. If IsDetachedBuffer(new) is true, throw a TypeError exception.
             // 25. Let toBuf be new.[[ArrayBufferData]].
             let mut new = new.borrow_mut();
-            let Some(to_buf) = new.data.bytes_mut() else {
+            let Some(to_buf) = new.data_mut().bytes_mut() else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer constructor returned detached ArrayBuffer")
                     .into());
@@ -720,7 +720,7 @@ impl ArrayBuffer {
             // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
             // 24. Let fromBuf be O.[[ArrayBufferData]].
             let buf = buf.borrow();
-            let Some(from_buf) = buf.data.bytes() else {
+            let Some(from_buf) = buf.data().bytes() else {
                 return Err(JsNativeError::typ()
                     .with_message("ArrayBuffer detached while ArrayBuffer.slice was running")
                     .into());
@@ -771,7 +771,7 @@ impl ArrayBuffer {
         // 3. If newLength is undefined, then
         let new_len = if new_length.is_undefined() {
             // a. Let newByteLength be arrayBuffer.[[ArrayBufferByteLength]].
-            buf.borrow().data.len() as u64
+            buf.borrow().data().len() as u64
         } else {
             // 4. Else,
             //     a. Let newByteLength be ? ToIndex(newLength).
@@ -779,7 +779,7 @@ impl ArrayBuffer {
         };
 
         // 5. If IsDetachedBuffer(arrayBuffer) is true, throw a TypeError exception.
-        let Some(mut bytes) = buf.borrow_mut().data.data.take() else {
+        let Some(mut bytes) = buf.borrow_mut().data_mut().data.take() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot transfer a detached buffer")
                 .into());
@@ -790,11 +790,15 @@ impl ArrayBuffer {
         //     a. Let newMaxByteLength be arrayBuffer.[[ArrayBufferMaxByteLength]].
         // 7. Else,
         //     a. Let newMaxByteLength be empty.
-        let new_max_len = buf.borrow().data.max_byte_len.filter(|_| !TO_FIXED_LENGTH);
+        let new_max_len = buf
+            .borrow()
+            .data()
+            .max_byte_len
+            .filter(|_| !TO_FIXED_LENGTH);
 
         // 8. If arrayBuffer.[[ArrayBufferDetachKey]] is not undefined, throw a TypeError exception.
-        if !buf.borrow().data.detach_key.is_undefined() {
-            buf.borrow_mut().data.data = Some(bytes);
+        if !buf.borrow().data().detach_key.is_undefined() {
+            buf.borrow_mut().data_mut().data = Some(bytes);
             return Err(JsNativeError::typ()
                 .with_message("cannot transfer a buffer with a detach key")
                 .into());
@@ -814,7 +818,7 @@ impl ArrayBuffer {
         // 16. Return newBuffer.
         if let Some(new_max_len) = new_max_len {
             if new_len > new_max_len {
-                buf.borrow_mut().data.data = Some(bytes);
+                buf.borrow_mut().data_mut().data = Some(bytes);
                 return Err(JsNativeError::range()
                     .with_message("`length` cannot be bigger than `maxByteLength`")
                     .into());

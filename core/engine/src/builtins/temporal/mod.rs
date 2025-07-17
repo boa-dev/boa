@@ -173,7 +173,7 @@ pub(crate) fn get_relative_to_option(
         // a. If value has an [[InitializedTemporalZonedDateTime]] internal slot, then
         if let Some(zdt) = object.downcast_ref::<ZonedDateTime>() {
             // i. Return the Record { [[PlainRelativeTo]]: undefined, [[ZonedRelativeTo]]: value }.
-            return Ok(Some(RelativeTo::ZonedDateTime(zdt.inner.clone())));
+            return Ok(Some(RelativeTo::ZonedDateTime(zdt.inner.as_ref().clone())));
         // b. If value has an [[InitializedTemporalDate]] internal slot, then
         } else if let Some(date) = object.downcast_ref::<PlainDate>() {
             // i. Return the Record { [[PlainRelativeTo]]: value, [[ZonedRelativeTo]]: undefined }.

@@ -51,14 +51,16 @@ use super::{
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/ZonedDateTime
 /// [temporal_rs-docs]: https://docs.rs/temporal_rs/latest/temporal_rs/struct.ZonedDateTime.html
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
-#[boa_gc(unsafe_empty_trace)]
+#[boa_gc(unsafe_empty_trace)] // Safety: Does not contain any traceable fields.
 pub struct ZonedDateTime {
-    pub(crate) inner: ZonedDateTimeInner,
+    pub(crate) inner: Box<ZonedDateTimeInner>,
 }
 
 impl ZonedDateTime {
     pub(crate) fn new(inner: ZonedDateTimeInner) -> Self {
-        Self { inner }
+        Self {
+            inner: Box::new(inner),
+        }
     }
 }
 
@@ -1578,7 +1580,7 @@ impl ZonedDateTime {
             })?;
 
         let other = to_temporal_zoneddatetime(args.get_or_undefined(0), None, context)?;
-        Ok((zdt.inner == other).into())
+        Ok((*zdt.inner == other).into())
     }
 
     /// 6.3.41 `Temporal.ZonedDateTime.prototype.toString ( [ options ] )`
@@ -1977,7 +1979,7 @@ pub(crate) fn to_temporal_zoneddatetime(
                     get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
                         .unwrap_or_default();
                 // vi. Return ! CreateTemporalZonedDateTime(item.[[EpochNanoseconds]], item.[[TimeZone]], item.[[Calendar]]).
-                return Ok(zdt.inner.clone());
+                return Ok(zdt.inner.as_ref().clone());
             }
             let partial = to_partial_zoneddatetime(&object, context)?;
             // f. If offsetString is unset, the

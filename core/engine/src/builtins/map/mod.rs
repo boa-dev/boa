@@ -458,7 +458,7 @@ impl Map {
         // after it has been visited and then re-added before the forEach call completes.
         // Keys that are deleted after the call to forEach begins and before being visited
         // are not visited unless the key is added again before the forEach call completes.
-        let _lock = map.borrow_mut().data.lock(map.clone().upcast());
+        let _lock = map.borrow_mut().data_mut().lock(map.clone().upcast());
 
         // 4. Let entries be the List that is M.[[MapData]].
         // 5. For each Record { [[Key]], [[Value]] } e of entries, do
@@ -466,7 +466,7 @@ impl Map {
         loop {
             let arguments = {
                 let map = map.borrow();
-                let map = &map.data;
+                let map = map.data();
                 if index < map.full_len() {
                     map.get_index(index)
                         .map(|(k, v)| [v.clone(), k.clone(), this.clone()])
@@ -505,13 +505,13 @@ impl Map {
             .and_then(|obj| obj.downcast::<OrderedMap<JsValue>>().ok())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a Map"))?;
 
-        let _lock = map.borrow_mut().data.lock(map.clone().upcast());
+        let _lock = map.borrow_mut().data_mut().lock(map.clone().upcast());
 
         let mut index = 0;
         loop {
             let (k, v) = {
                 let map = map.borrow();
-                let map = &map.data;
+                let map = map.data();
 
                 if index < map.full_len() {
                     if let Some((k, v)) = map.get_index(index) {

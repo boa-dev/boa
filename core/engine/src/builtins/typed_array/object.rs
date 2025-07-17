@@ -204,13 +204,13 @@ impl TypedArray {
 
         let len = {
             let array = obj.borrow();
-            let buffer = array.data.viewed_array_buffer().as_buffer();
+            let buffer = array.data().viewed_array_buffer().as_buffer();
             // 2. Assert: O has a [[ViewedArrayBuffer]] internal slot.
             // 3. Let taRecord be MakeTypedArrayWithBufferWitnessRecord(O, order).
             // 4. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
             let Some(buf) = buffer
                 .bytes(order)
-                .filter(|buf| !array.data.is_out_of_bounds(buf.len()))
+                .filter(|buf| !array.data().is_out_of_bounds(buf.len()))
             else {
                 return Err(JsNativeError::typ()
                     .with_message("typed array is outside the bounds of its inner buffer")
@@ -663,7 +663,7 @@ pub(crate) fn typed_array_set_element(
 
     // b. Let arrayTypeName be the String value of O.[[TypedArrayName]].
     // e. Let elementType be the Element Type value in Table 73 for arrayTypeName.
-    let elem_type = obj.borrow().data.kind();
+    let elem_type = obj.borrow().data().kind();
 
     // 1. If O.[[ContentType]] is BigInt, let numValue be ? ToBigInt(value).
     // 2. Otherwise, let numValue be ? ToNumber(value).
@@ -671,16 +671,16 @@ pub(crate) fn typed_array_set_element(
 
     // 3. If IsValidIntegerIndex(O, index) is true, then
     let array = obj.borrow();
-    let mut buffer = array.data.viewed_array_buffer().as_buffer_mut();
+    let mut buffer = array.data().viewed_array_buffer().as_buffer_mut();
     let Some(mut buffer) = buffer.bytes(Ordering::Relaxed) else {
         return Ok(());
     };
-    let Some(index) = array.data.validate_index(index, buffer.len()) else {
+    let Some(index) = array.data().validate_index(index, buffer.len()) else {
         return Ok(());
     };
 
     //     a. Let offset be O.[[ByteOffset]].
-    let offset = array.data.byte_offset();
+    let offset = array.data().byte_offset();
 
     //     b. Let elementSize be TypedArrayElementSize(O).
     let size = elem_type.element_size();

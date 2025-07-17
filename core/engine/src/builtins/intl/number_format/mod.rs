@@ -248,7 +248,7 @@ impl BuiltInConstructor for NumberFormat {
                 .objects()
                 .intl()
                 .borrow()
-                .data
+                .data()
                 .fallback_symbol();
 
             // a. Perform ? DefinePropertyOrThrow(this, %Intl%.[[FallbackSymbol]], PropertyDescriptor{ [[Value]]: numberFormat, [[Writable]]: false, [[Enumerable]]: false, [[Configurable]]: false }).
@@ -500,7 +500,7 @@ impl NumberFormat {
         let nf_clone = nf.clone();
         let mut nf = nf.borrow_mut();
 
-        let bound_format = if let Some(f) = nf.data.bound_format.clone() {
+        let bound_format = if let Some(f) = nf.data_mut().bound_format.clone() {
             f
         } else {
             // 4. If nf.[[BoundFormat]] is undefined, then
@@ -523,7 +523,7 @@ impl NumberFormat {
                         let mut x = to_intl_mathematical_value(value, context)?;
 
                         // 5. Return FormatNumeric(nf, x).
-                        Ok(js_string!(nf.borrow().data.format(&mut x).to_string()).into())
+                        Ok(js_string!(nf.borrow().data().format(&mut x).to_string()).into())
                     },
                     nf_clone,
                 ),
@@ -531,7 +531,7 @@ impl NumberFormat {
             .length(2)
             .build();
 
-            nf.data.bound_format = Some(bound_format.clone());
+            nf.data_mut().bound_format = Some(bound_format.clone());
             bound_format
         };
 
@@ -558,7 +558,7 @@ impl NumberFormat {
         // 3. Perform ? RequireInternalSlot(nf, [[InitializedNumberFormat]]).
         let nf = unwrap_number_format(this, context)?;
         let nf = nf.borrow();
-        let nf = &nf.data;
+        let nf = nf.data();
 
         // 4. Let options be OrdinaryObjectCreate(%Object.prototype%).
         // 5. For each row of Table 12, except the header row, in table order, do
@@ -753,7 +753,7 @@ fn unwrap_number_format(nf: &JsValue, context: &mut Context) -> JsResult<JsObjec
             .objects()
             .intl()
             .borrow()
-            .data
+            .data()
             .fallback_symbol();
 
         //    a. Return ? Get(nf, %Intl%.[[FallbackSymbol]]).

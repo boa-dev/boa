@@ -81,14 +81,14 @@ impl JsSharedArrayBuffer {
     #[inline]
     #[must_use]
     pub fn byte_length(&self) -> usize {
-        self.borrow().data.len(Ordering::SeqCst)
+        self.borrow().data().len(Ordering::SeqCst)
     }
 
     /// Gets the raw buffer of this `JsSharedArrayBuffer`.
     #[inline]
     #[must_use]
     pub fn inner(&self) -> SharedArrayBuffer {
-        self.borrow().data.as_ref().clone()
+        self.borrow().data().clone()
     }
 }
 

@@ -371,7 +371,7 @@ impl BuiltinTypedArray {
         let (o, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = o.borrow().data.array_length(buf_len) as i64;
+        let len = o.borrow().data().array_length(buf_len) as i64;
 
         // 4. Let relativeIndex be ? ToIntegerOrInfinity(index).
         let relative_index = args.get_or_undefined(0).to_integer_or_infinity(context)?;
@@ -503,7 +503,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. Let relativeTarget be ? ToIntegerOrInfinity(target).
         // 5. If relativeTarget is -∞, let to be 0.
@@ -532,7 +532,7 @@ impl BuiltinTypedArray {
         // 17. If count > 0, then
         if count > 0 {
             let ta = ta.borrow();
-            let ta = &ta.data;
+            let ta = ta.data();
 
             // a. NOTE: The copying must be performed in a manner that preserves the bit-level encoding of the source data.
             // b. Let buffer be O.[[ViewedArrayBuffer]].
@@ -653,7 +653,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback_fn = match args.get_or_undefined(0).as_object() {
@@ -710,9 +710,9 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
-        let value: JsValue = if ta.borrow().data.kind().content_type() == ContentType::BigInt {
+        let value: JsValue = if ta.borrow().data().kind().content_type() == ContentType::BigInt {
             // 4. If O.[[ContentType]] is BigInt, set value to ? ToBigInt(value).
             args.get_or_undefined(0).to_bigint(context)?.into()
         } else {
@@ -738,11 +738,11 @@ impl BuiltinTypedArray {
             let ta = ta.borrow();
 
             let Some(buf_len) = ta
-                .data
+                .data()
                 .viewed_array_buffer()
                 .as_buffer()
                 .bytes(Ordering::SeqCst)
-                .filter(|b| !ta.data.is_out_of_bounds(b.len()))
+                .filter(|b| !ta.data().is_out_of_bounds(b.len()))
                 .map(|b| b.len())
             else {
                 return Err(JsNativeError::typ()
@@ -751,7 +751,7 @@ impl BuiltinTypedArray {
             };
 
             // 16. Set len to TypedArrayLength(taRecord).
-            ta.data.array_length(buf_len)
+            ta.data().array_length(buf_len)
         };
 
         // 17. Set endIndex to min(endIndex, len).
@@ -790,8 +790,8 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
-        let typed_array_kind = ta.borrow().data.kind();
+        let len = ta.borrow().data().array_length(buf_len);
+        let typed_array_kind = ta.borrow().data().kind();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback_fn =
@@ -869,7 +869,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
@@ -905,7 +905,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
@@ -941,7 +941,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
@@ -977,7 +977,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         let predicate = args.get_or_undefined(0);
         let this_arg = args.get_or_undefined(1);
@@ -1013,7 +1013,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback_fn =
@@ -1062,7 +1062,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If len is 0, return false.
         if len == 0 {
@@ -1126,7 +1126,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If len is 0, return -1𝔽.
         if len == 0 {
@@ -1193,7 +1193,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If separator is undefined, let sep be the single-element String ",".
         let separator = args.get_or_undefined(0);
@@ -1265,7 +1265,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If len is 0, return -1𝔽.
         if len == 0 {
@@ -1361,9 +1361,9 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
-        let typed_array_kind = ta.borrow().data.kind();
+        let typed_array_kind = ta.borrow().data().kind();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback_fn = match args.get_or_undefined(0).as_object() {
@@ -1420,7 +1420,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback_fn =
@@ -1495,7 +1495,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback_fn = match args.get_or_undefined(0).as_object() {
@@ -1569,7 +1569,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         let ta = ta.upcast();
 
@@ -1618,8 +1618,8 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
-        let kind = ta.borrow().data.kind();
+        let len = ta.borrow().data().array_length(buf_len);
+        let kind = ta.borrow().data().kind();
 
         // 4. Let A be ? TypedArrayCreateSameType(O, « 𝔽(length) »).
         let new_array = Self::from_kind_and_length(kind, len, context)?;
@@ -1721,11 +1721,11 @@ impl BuiltinTypedArray {
         // 2. Let targetRecord be MakeTypedArrayWithBufferWitnessRecord(target, seq-cst).
         // 3. If IsTypedArrayOutOfBounds(targetRecord) is true, throw a TypeError exception.
         let target_array = target.borrow();
-        let target_buf_obj = target_array.data.viewed_array_buffer().clone();
+        let target_buf_obj = target_array.data().viewed_array_buffer().clone();
         let Some(target_buf_len) = target_buf_obj
             .as_buffer()
             .bytes(Ordering::SeqCst)
-            .filter(|s| !target_array.data.is_out_of_bounds(s.len()))
+            .filter(|s| !target_array.data().is_out_of_bounds(s.len()))
             .map(|s| s.len())
         else {
             return Err(JsNativeError::typ()
@@ -1734,17 +1734,17 @@ impl BuiltinTypedArray {
         };
 
         // 4. Let targetLength be TypedArrayLength(targetRecord).
-        let target_length = target_array.data.array_length(target_buf_len);
+        let target_length = target_array.data().array_length(target_buf_len);
 
         // 5. Let srcBuffer be source.[[ViewedArrayBuffer]].
         // 6. Let srcRecord be MakeTypedArrayWithBufferWitnessRecord(source, seq-cst).
         // 7. If IsTypedArrayOutOfBounds(srcRecord) is true, throw a TypeError exception.
         let src_array = source.borrow();
-        let mut src_buf_obj = src_array.data.viewed_array_buffer().clone();
+        let mut src_buf_obj = src_array.data().viewed_array_buffer().clone();
         let Some(mut src_buf_len) = src_buf_obj
             .as_buffer()
             .bytes(Ordering::SeqCst)
-            .filter(|s| !src_array.data.is_out_of_bounds(s.len()))
+            .filter(|s| !src_array.data().is_out_of_bounds(s.len()))
             .map(|s| s.len())
         else {
             return Err(JsNativeError::typ()
@@ -1753,28 +1753,28 @@ impl BuiltinTypedArray {
         };
 
         // 8. Let srcLength be TypedArrayLength(srcRecord).
-        let src_length = src_array.data.array_length(src_buf_len);
+        let src_length = src_array.data().array_length(src_buf_len);
 
         // 9. Let targetType be TypedArrayElementType(target).
-        let target_type = target_array.data.kind();
+        let target_type = target_array.data().kind();
 
         // 10. Let targetElementSize be TypedArrayElementSize(target).
         let target_element_size = target_type.element_size();
 
         // 11. Let targetByteOffset be target.[[ByteOffset]].
-        let target_byte_offset = target_array.data.byte_offset();
+        let target_byte_offset = target_array.data().byte_offset();
 
         // 12. Let srcType be TypedArrayElementType(source).
-        let src_type = src_array.data.kind();
+        let src_type = src_array.data().kind();
 
         // 13. Let srcElementSize be TypedArrayElementSize(source).
         let src_element_size = src_type.element_size();
 
         // 14. Let srcByteOffset be source.[[ByteOffset]].
-        let src_byte_offset = src_array.data.byte_offset();
+        let src_byte_offset = src_array.data().byte_offset();
 
         // a. Let srcByteLength be source.[[ByteLength]].
-        let src_byte_length = src_array.data.byte_length(src_buf_len);
+        let src_byte_length = src_array.data().byte_length(src_buf_len);
 
         drop(target_array);
         drop(src_array);
@@ -1933,7 +1933,7 @@ impl BuiltinTypedArray {
         // 3. Let targetLength be TypedArrayLength(targetRecord).
         let target_length = {
             let target = target.borrow();
-            let target = &target.data;
+            let target = target.data();
 
             // 1. Let targetRecord be MakeTypedArrayWithBufferWitnessRecord(target, seq-cst).
             // 2. If IsTypedArrayOutOfBounds(targetRecord) is true, throw a TypeError exception.
@@ -2015,10 +2015,10 @@ impl BuiltinTypedArray {
         let src_borrow = src.borrow();
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let src_len = src_borrow.data.array_length(buf_len);
+        let src_len = src_borrow.data().array_length(buf_len);
 
         // e. Let srcType be TypedArrayElementType(O).
-        let src_type = src_borrow.data.kind();
+        let src_type = src_borrow.data().kind();
 
         drop(src_borrow);
 
@@ -2052,10 +2052,10 @@ impl BuiltinTypedArray {
 
         // a. Set taRecord to MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // b. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
-        let src_buf_borrow = src_borrow.data.viewed_array_buffer().as_buffer();
+        let src_buf_borrow = src_borrow.data().viewed_array_buffer().as_buffer();
         let Some(src_buf) = src_buf_borrow
             .bytes(Ordering::SeqCst)
-            .filter(|s| !src_borrow.data.is_out_of_bounds(s.len()))
+            .filter(|s| !src_borrow.data().is_out_of_bounds(s.len()))
         else {
             return Err(JsNativeError::typ()
                 .with_message("typed array is outside the bounds of its inner buffer")
@@ -2065,13 +2065,13 @@ impl BuiltinTypedArray {
         let src_buf_len = src_buf.len();
 
         // c. Set endIndex to min(endIndex, TypedArrayLength(taRecord)).
-        let end_index = min(end_index, src_borrow.data.array_length(src_buf_len));
+        let end_index = min(end_index, src_borrow.data().array_length(src_buf_len));
 
         // d. Set countBytes to max(endIndex - startIndex, 0).
         let count = end_index.saturating_sub(start_index) as usize;
 
         // f. Let targetType be TypedArrayElementType(A).
-        let target_type = target_borrow.data.kind();
+        let target_type = target_borrow.data().kind();
 
         if src_type != target_type {
             // h. Else,
@@ -2113,13 +2113,13 @@ impl BuiltinTypedArray {
             let element_size = src_type.element_size();
 
             // v. Let srcByteOffset be O.[[ByteOffset]].
-            let src_byte_offset = src_borrow.data.byte_offset();
+            let src_byte_offset = src_borrow.data().byte_offset();
 
             // vi. Let srcByteIndex be (startIndex × elementSize) + srcByteOffset.
             let src_byte_index = (start_index * element_size + src_byte_offset) as usize;
 
             // vii. Let targetByteIndex be A.[[ByteOffset]].
-            let target_byte_index = target_borrow.data.byte_offset() as usize;
+            let target_byte_index = target_borrow.data().byte_offset() as usize;
 
             // viii. Let endByteIndex be targetByteIndex + (countBytes × elementSize).
             // Not needed by the impl.
@@ -2130,13 +2130,13 @@ impl BuiltinTypedArray {
             //     3. Set srcByteIndex to srcByteIndex + 1.
             //     4. Set targetByteIndex to targetByteIndex + 1.
             if BufferObject::equals(
-                src_borrow.data.viewed_array_buffer(),
-                target_borrow.data.viewed_array_buffer(),
+                src_borrow.data().viewed_array_buffer(),
+                target_borrow.data().viewed_array_buffer(),
             ) {
                 // cannot borrow the target mutably (overlapping bytes), but we can move the data instead.
                 drop(src_buf_borrow);
 
-                let mut src_buf_borrow = src_borrow.data.viewed_array_buffer().as_buffer_mut();
+                let mut src_buf_borrow = src_borrow.data().viewed_array_buffer().as_buffer_mut();
                 let mut src_buf = src_buf_borrow
                     .bytes_with_len(src_buf_len)
                     .expect("already checked that the buffer is not detached");
@@ -2157,7 +2157,7 @@ impl BuiltinTypedArray {
                     );
                 }
             } else {
-                let mut target_buf = target_borrow.data.viewed_array_buffer().as_buffer_mut();
+                let mut target_buf = target_borrow.data().viewed_array_buffer().as_buffer_mut();
                 let mut target_buf = target_buf
                     .bytes(Ordering::SeqCst)
                     .expect("newly created array cannot be detached");
@@ -2200,7 +2200,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback_fn = match args.get_or_undefined(0).as_object() {
@@ -2267,7 +2267,7 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 4. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 5. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.30.
         // 6. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
@@ -2319,10 +2319,10 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 4. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
+        let len = ta.borrow().data().array_length(buf_len);
 
         // 5. Let A be ? TypedArrayCreateSameType(O, « 𝔽(len) »).
-        let new_array = Self::from_kind_and_length(ta.borrow().data.kind(), len, context)?;
+        let new_array = Self::from_kind_and_length(ta.borrow().data().kind(), len, context)?;
 
         // 6. NOTE: The following closure performs a numeric comparison rather than the string comparison used in 23.1.3.34.
         // 7. Let SortCompare be a new Abstract Closure with parameters (x, y) that captures comparefn and performs the following steps when called:
@@ -2375,7 +2375,7 @@ impl BuiltinTypedArray {
         let src_borrow = src.borrow();
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
-        let buffer = src_borrow.data.viewed_array_buffer().clone();
+        let buffer = src_borrow.data().viewed_array_buffer().clone();
 
         // 5. Let srcRecord be MakeTypedArrayWithBufferWitnessRecord(O, seq-cst).
         // 6. If IsTypedArrayOutOfBounds(srcRecord) is true, then
@@ -2383,22 +2383,22 @@ impl BuiltinTypedArray {
         // 7. Else,
         //     a. Let srcLength be TypedArrayLength(srcRecord).
         let src_len = if let Some(buf) = buffer.as_buffer().bytes(Ordering::SeqCst)
-            && !src_borrow.data.is_out_of_bounds(buf.len())
+            && !src_borrow.data().is_out_of_bounds(buf.len())
         {
-            src_borrow.data.array_length(buf.len())
+            src_borrow.data().array_length(buf.len())
         } else {
             0
         };
 
-        let kind = src_borrow.data.kind();
+        let kind = src_borrow.data().kind();
 
         // 12. Let elementSize be TypedArrayElementSize(O).
         let element_size = kind.element_size();
 
         // 13. Let srcByteOffset be O.[[ByteOffset]].
-        let src_byte_offset = src_borrow.data.byte_offset();
+        let src_byte_offset = src_borrow.data().byte_offset();
 
-        let is_auto_length = src_borrow.data.is_auto_length();
+        let is_auto_length = src_borrow.data().is_auto_length();
 
         drop(src_borrow);
 
@@ -2563,8 +2563,8 @@ impl BuiltinTypedArray {
         let (ta, buf_len) = TypedArray::validate(this, Ordering::SeqCst)?;
 
         // 3. Let len be TypedArrayLength(taRecord).
-        let len = ta.borrow().data.array_length(buf_len);
-        let kind = ta.borrow().data.kind();
+        let len = ta.borrow().data().array_length(buf_len);
+        let kind = ta.borrow().data().kind();
 
         // 4. Let relativeIndex be ? ToIntegerOrInfinity(index).
         // triggers any conversion errors before throwing range errors.
@@ -2673,7 +2673,7 @@ impl BuiltinTypedArray {
 
         // 4. Assert: result has [[TypedArrayName]] and [[ContentType]] internal slots.
         // 5. If result.[[ContentType]] ≠ exemplar.[[ContentType]], throw a TypeError exception.
-        if result.borrow().data.kind().content_type() != kind.content_type() {
+        if result.borrow().data().kind().content_type() != kind.content_type() {
             return Err(JsNativeError::typ()
                 .with_message("New typed array has different context type than exemplar")
                 .into());
@@ -2704,7 +2704,7 @@ impl BuiltinTypedArray {
         {
             let new_ta = new_ta.borrow();
             // a. If IsTypedArrayOutOfBounds(taRecord) is true, throw a TypeError exception.
-            if new_ta.data.is_out_of_bounds(buf_len) {
+            if new_ta.data().is_out_of_bounds(buf_len) {
                 return Err(JsNativeError::typ()
                     .with_message("new typed array outside of the bounds of its inner buffer")
                     .into());
@@ -2712,7 +2712,7 @@ impl BuiltinTypedArray {
 
             // b. Let length be TypedArrayLength(taRecord).
             // c. If length < ℝ(argumentList[0]), throw a TypeError exception.
-            if (new_ta.data.array_length(buf_len) as f64) < number {
+            if (new_ta.data().array_length(buf_len) as f64) < number {
                 return Err(JsNativeError::typ()
                     .with_message("new typed array length is smaller than expected")
                     .into());
@@ -2844,7 +2844,7 @@ impl BuiltinTypedArray {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         let src_array = src_array.borrow();
-        let src_array = &src_array.data;
+        let src_array = src_array.data();
 
         // 1. Let srcData be srcArray.[[ViewedArrayBuffer]].
         let src_data = src_array.viewed_array_buffer();
@@ -2903,7 +2903,7 @@ impl BuiltinTypedArray {
             {
                 let mut data = data_obj.borrow_mut();
                 let mut data = SliceRefMut::Slice(
-                    data.data
+                    data.data_mut()
                         .bytes_mut()
                         .expect("a new buffer cannot be detached"),
                 );

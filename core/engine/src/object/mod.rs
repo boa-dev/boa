@@ -161,6 +161,42 @@ impl dyn NativeObject {
     }
 }
 
+// Force alignment to be the same for all JsData types.
+#[derive(Debug, Finalize, Trace)]
+// SAFETY: This does not implement drop, so this is safe.
+#[boa_gc(unsafe_no_drop)]
+#[repr(C, align(8))]
+struct ObjectData<T: ?Sized> {
+    // MUST BE PRIVATE, should not be constructed directly. i.e. { data: ... }
+    // Because we want to trigger the assertion below.
+    //
+    // It is fine if we have deref/deref_mut to it or any access.
+    data: T,
+}
+
+impl<T: Default> Default for ObjectData<T> {
+    #[inline]
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+
+static_assertions::const_assert!(align_of::<Box<()>>() <= 8);
+
+impl<T> ObjectData<T> {
+    const OBJECT_DATA_ALIGNMENT_REQUIREMENT: () = assert!(
+        align_of::<T>() <= 8,
+        "Alignment of JsData must be <= 8, NOTE: you can wrap the data in a Box<T>."
+    );
+
+    pub(crate) fn new(value: T) -> Self {
+        // force assertion to triger when we instantiate
+        let () = Self::OBJECT_DATA_ALIGNMENT_REQUIREMENT;
+
+        Self { data: value }
+    }
+}
+
 /// The internal representation of a JavaScript object.
 #[derive(Debug, Finalize, Trace)]
 // SAFETY: This does not implement drop, so this is safe.
@@ -176,7 +212,7 @@ pub struct Object<T: ?Sized> {
     /// The `[[PrivateElements]]` internal slot.
     private_elements: ThinVec<(PrivateName, PrivateElement)>,
     /// The inner object data
-    pub(crate) data: Box<T>,
+    data: ObjectData<T>,
 }
 
 impl<T: Default> Default for Object<T> {
@@ -185,7 +221,7 @@ impl<T: Default> Default for Object<T> {
             properties: PropertyMap::default(),
             extensible: true,
             private_elements: ThinVec::new(),
-            data: Box::default(),
+            data: ObjectData::default(),
         }
     }
 }
@@ -237,14 +273,14 @@ impl<T: ?Sized> Object<T> {
     #[inline]
     #[must_use]
     pub const fn data(&self) -> &T {
-        &self.data
+        &self.data.data
     }
 
     /// Returns the data of the object.
     #[inline]
     #[must_use]
     pub fn data_mut(&mut self) -> &mut T {
-        &mut self.data
+        &mut self.data.data
     }
 
     /// Gets the prototype instance of this object.
@@ -625,13 +661,13 @@ impl<'ctx> ConstructorBuilder<'ctx> {
             context,
             function,
             constructor_object: Object {
-                data: Box::new(OrdinaryObject),
+                data: ObjectData::new(OrdinaryObject),
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
             },
             prototype: Object {
-                data: Box::new(OrdinaryObject),
+                data: ObjectData::new(OrdinaryObject),
                 properties: PropertyMap::default(),
                 extensible: true,
                 private_elements: ThinVec::new(),
@@ -901,7 +937,7 @@ impl<'ctx> ConstructorBuilder<'ctx> {
                 properties: self.constructor_object.properties,
                 extensible: self.constructor_object.extensible,
                 private_elements: self.constructor_object.private_elements,
-                data: Box::new(data),
+                data: ObjectData::new(data),
             };
 
             constructor.insert(StaticJsStrings::LENGTH, length);
