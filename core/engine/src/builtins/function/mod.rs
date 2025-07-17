@@ -1132,6 +1132,15 @@ fn function_construct(
         .flags
         .set(CallFrameFlags::THIS_VALUE_CACHED, this.is_some());
 
+    #[cfg(feature = "native-backtrace")]
+    {
+        let native_source_info = context.native_source_info();
+        context
+            .vm
+            .shadow_stack
+            .patch_last_native(native_source_info);
+    }
+
     context.vm.push_frame(frame);
 
     let mut last_env = 0;
