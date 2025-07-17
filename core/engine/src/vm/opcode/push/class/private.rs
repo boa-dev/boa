@@ -2,7 +2,7 @@ use crate::{
     Context,
     builtins::function::OrdinaryFunction,
     js_str, js_string,
-    object::{PrivateElement, internal_methods::InternalMethodContext},
+    object::{PrivateElement, internal_methods::InternalMethodPropertyContext},
     property::PropertyDescriptor,
     vm::opcode::{Operation, VaryingOperand},
 };
@@ -51,7 +51,7 @@ impl PushClassPrivateMethod {
             .__define_own_property__(
                 &js_string!("name").into(),
                 desc,
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )
             .expect("failed to set name property on private method");
         value

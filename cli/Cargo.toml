@@ -28,7 +28,13 @@ color-eyre.workspace = true
 cow-utils.workspace = true
 
 [features]
-default = ["boa_engine/annex-b", "boa_engine/experimental", "boa_engine/intl_bundled", "fast-allocator"]
+default = [
+    "boa_engine/annex-b",
+    "boa_engine/experimental",
+    "boa_engine/intl_bundled",
+    "boa_engine/native-backtrace",
+    "fast-allocator",
+]
 dhat = ["dep:dhat"]
 fast-allocator = ["dep:mimalloc-safe", "dep:jemallocator"]
 
@@ -36,7 +42,9 @@ fast-allocator = ["dep:mimalloc-safe", "dep:jemallocator"]
 jemallocator = { workspace = true, optional = true }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-mimalloc-safe = { workspace = true, optional = true, features = ["skip_collect_on_exit"] }
+mimalloc-safe = { workspace = true, optional = true, features = [
+    "skip_collect_on_exit",
+] }
 
 [[bin]]
 name = "boa"

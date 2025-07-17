@@ -21,7 +21,7 @@ use crate::{
     object::{
         CONSTRUCTOR, IndexedProperties, JsData, JsObject,
         internal_methods::{
-            InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             get_prototype_from_constructor, ordinary_define_own_property,
             ordinary_get_own_property,
         },
@@ -378,7 +378,7 @@ impl Array {
                 .enumerable(false)
                 .configurable(false)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         Ok(array)
@@ -3422,7 +3422,7 @@ fn array_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     match key {
@@ -3531,7 +3531,7 @@ fn array_exotic_define_own_property(
 fn array_set_length(
     obj: &JsObject,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. If Desc.[[Value]] is absent, then
     let Some(new_len_val) = desc.value() else {

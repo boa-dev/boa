@@ -7,7 +7,7 @@ use boa_gc::{Finalize, Trace};
 
 use crate::object::internal_methods::immutable_prototype::immutable_prototype_exotic_set_prototype_of;
 use crate::object::internal_methods::{
-    InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+    InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
     ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
     ordinary_has_property, ordinary_own_property_keys, ordinary_try_get,
 };
@@ -142,7 +142,7 @@ fn module_namespace_exotic_prevent_extensions(_: &JsObject, _: &mut Context) -> 
 fn module_namespace_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. If P is a Symbol, return OrdinaryGetOwnProperty(O, P).
     let key = match key {
@@ -185,7 +185,7 @@ fn module_namespace_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. If P is a Symbol, return ! OrdinaryDefineOwnProperty(O, P, Desc).
     if let PropertyKey::Symbol(_) = key {
@@ -221,7 +221,7 @@ fn module_namespace_exotic_define_own_property(
 fn module_namespace_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. If P is a Symbol, return ! OrdinaryHasProperty(O, P).
     let key = match key {
@@ -256,7 +256,7 @@ fn module_namespace_exotic_try_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     // 1. If P is a Symbol, then
     //     a. Return ! OrdinaryGet(O, P, Receiver).
@@ -337,7 +337,7 @@ fn module_namespace_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     // 1. If P is a Symbol, then
     //     a. Return ! OrdinaryGet(O, P, Receiver).
@@ -419,7 +419,7 @@ fn module_namespace_exotic_set(
     _key: PropertyKey,
     _value: JsValue,
     _receiver: JsValue,
-    _context: &mut InternalMethodContext<'_>,
+    _context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Return false.
     Ok(false)
@@ -431,7 +431,7 @@ fn module_namespace_exotic_set(
 fn module_namespace_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. If P is a Symbol, then
     //     a. Return ! OrdinaryDelete(O, P).

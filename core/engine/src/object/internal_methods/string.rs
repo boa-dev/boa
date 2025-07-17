@@ -4,7 +4,7 @@ use crate::{
     property::{PropertyDescriptor, PropertyKey},
 };
 
-use super::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+use super::{InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 impl JsData for JsString {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
@@ -28,7 +28,7 @@ impl JsData for JsString {
 pub(crate) fn string_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be OrdinaryGetOwnProperty(S, P).
@@ -53,7 +53,7 @@ pub(crate) fn string_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).

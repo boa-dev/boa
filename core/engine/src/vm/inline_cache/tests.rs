@@ -7,7 +7,7 @@ use crate::{
     js_string,
     object::{
         ObjectInitializer,
-        internal_methods::InternalMethodContext,
+        internal_methods::InternalMethodPropertyContext,
         shape::{WeakShape, slot::SlotAttributes},
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -30,7 +30,7 @@ fn get_own_property_internal_method() {
     o.set(property.clone(), value, true, context)
         .expect("should not fail");
 
-    let context = &mut InternalMethodContext::new(context);
+    let context = &mut InternalMethodPropertyContext::new(context);
 
     assert_eq!(context.slot().index, 0);
     assert_eq!(context.slot().attributes, SlotAttributes::empty());
@@ -75,7 +75,7 @@ fn get_internal_method() {
     o.set(property.clone(), value, true, context)
         .expect("should not fail");
 
-    let context = &mut InternalMethodContext::new(context);
+    let context = &mut InternalMethodPropertyContext::new(context);
 
     assert_eq!(context.slot().index, 0);
     assert_eq!(context.slot().attributes, SlotAttributes::empty());
@@ -123,7 +123,7 @@ fn get_internal_method_in_prototype() {
         .set(property.clone(), value, true, context)
         .expect("should not fail");
 
-    let context = &mut InternalMethodContext::new(context);
+    let context = &mut InternalMethodPropertyContext::new(context);
 
     assert_eq!(context.slot().index, 0);
     assert_eq!(context.slot().attributes, SlotAttributes::empty());
@@ -168,7 +168,7 @@ fn define_own_property_internal_method_non_existant_property() {
     o.set(property.clone(), value, true, context)
         .expect("should not fail");
 
-    let context = &mut InternalMethodContext::new(context);
+    let context = &mut InternalMethodPropertyContext::new(context);
 
     assert_eq!(context.slot().index, 0);
     assert_eq!(context.slot().attributes, SlotAttributes::empty());
@@ -234,7 +234,7 @@ fn define_own_property_internal_method_existing_property_property() {
     )
     .expect("should not fail");
 
-    let context = &mut InternalMethodContext::new(context);
+    let context = &mut InternalMethodPropertyContext::new(context);
 
     assert_eq!(context.slot().index, 0);
     assert_eq!(context.slot().attributes, SlotAttributes::empty());
@@ -288,7 +288,7 @@ fn set_internal_method() {
     o.set(property.clone(), value, true, context)
         .expect("should not fail");
 
-    let context = &mut InternalMethodContext::new(context);
+    let context = &mut InternalMethodPropertyContext::new(context);
 
     assert_eq!(context.slot().index, 0);
     assert_eq!(context.slot().attributes, SlotAttributes::empty());

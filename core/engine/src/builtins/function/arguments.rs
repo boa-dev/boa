@@ -5,7 +5,7 @@ use crate::{
     object::{
         JsObject,
         internal_methods::{
-            InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
             ordinary_set, ordinary_try_get,
         },
@@ -282,7 +282,7 @@ impl MappedArguments {
 pub(crate) fn arguments_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. Let desc be OrdinaryGetOwnProperty(args, P).
     // 2. If desc is undefined, return desc.
@@ -325,7 +325,7 @@ pub(crate) fn arguments_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 2. Let isMapped be HasOwnProperty(map, P).
     let mapped = if let &PropertyKey::Index(index) = &key {
@@ -418,7 +418,7 @@ pub(crate) fn arguments_exotic_try_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     // 1. Let map be args.[[ParameterMap]].
     // 2. Let isMapped be ! HasOwnProperty(map, P).
@@ -448,7 +448,7 @@ pub(crate) fn arguments_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     // 1. Let map be args.[[ParameterMap]].
     // 2. Let isMapped be ! HasOwnProperty(map, P).
@@ -479,7 +479,7 @@ pub(crate) fn arguments_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. If SameValue(args, Receiver) is false, then
     // a. Let isMapped be false.
@@ -510,7 +510,7 @@ pub(crate) fn arguments_exotic_set(
 pub(crate) fn arguments_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 3. Let result be ? OrdinaryDelete(args, P).
     let result = ordinary_delete(obj, key, context)?;

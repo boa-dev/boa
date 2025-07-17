@@ -7,7 +7,6 @@ use crate::{
     },
     js_string,
     property::PropertyDescriptor,
-    vm::shadow_stack::ShadowEntry,
 };
 use std::{borrow::Cow, fmt::Write};
 
@@ -232,33 +231,8 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                     .downcast_ref::<Error>()
                     .expect("already checked object type");
 
-                if let Some(position) = &data.position {
-                    match position {
-                        ShadowEntry::Native { function_name } => {
-                            write!(
-                                &mut result,
-                                " (native at {})",
-                                function_name.to_std_string_escaped()
-                            )
-                            .expect("should not fail");
-                        }
-                        ShadowEntry::Bytecode { pc, source_info } => {
-                            write!(&mut result, " ({}", source_info.map().path())
-                                .expect("should not fail");
-
-                            if let Some(position) = source_info.map().find(*pc) {
-                                write!(
-                                    &mut result,
-                                    ":{}:{}",
-                                    position.line_number(),
-                                    position.column_number()
-                                )
-                                .expect("should not fail");
-                            }
-
-                            result.push(')');
-                        }
-                    }
+                if let Some(position) = &data.position.0 {
+                    write!(&mut result, "{position}").expect("should not fail");
                 }
                 result
             } else if let Some(promise) = v.downcast_ref::<Promise>() {

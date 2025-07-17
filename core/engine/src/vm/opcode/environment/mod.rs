@@ -3,7 +3,7 @@ use crate::{
     Context, JsResult, JsValue,
     builtins::function::OrdinaryFunction,
     error::JsNativeError,
-    object::internal_methods::InternalMethodContext,
+    object::internal_methods::InternalMethodPropertyContext,
     vm::{CallFrameFlags, opcode::Operation},
 };
 
@@ -100,7 +100,7 @@ impl Super {
         };
 
         let value = home_object
-            .map(|o| o.__get_prototype_of__(&mut InternalMethodContext::new(context)))
+            .map(|o| o.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context)))
             .transpose()?
             .flatten()
             .map_or_else(JsValue::null, JsValue::from);
@@ -134,7 +134,7 @@ impl SuperCallPrepare {
             .expect("super call must be in function environment");
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
-            .__get_prototype_of__(&mut InternalMethodContext::new(context))
+            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype");
         context.vm.set_register(
             dst.into(),
@@ -286,7 +286,7 @@ impl SuperCallDerived {
             .clone();
         let active_function = this_env.slots().function_object().clone();
         let super_constructor = active_function
-            .__get_prototype_of__(&mut InternalMethodContext::new(context))
+            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))
             .expect("function object must have prototype")
             .expect("function object must have prototype");
 

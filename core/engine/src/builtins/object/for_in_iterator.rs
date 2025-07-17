@@ -14,7 +14,7 @@ use crate::{
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{JsObject, internal_methods::InternalMethodContext},
+    object::{JsObject, internal_methods::InternalMethodPropertyContext},
     property::PropertyKey,
     realm::Realm,
 };
@@ -103,8 +103,8 @@ impl ForInIterator {
         let mut object = iterator.object.to_object(context)?;
         loop {
             if !iterator.object_was_visited {
-                let keys =
-                    object.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+                let keys = object
+                    .__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
                 for k in keys {
                     match k {
                         PropertyKey::String(ref k) => {
@@ -122,7 +122,7 @@ impl ForInIterator {
                 if !iterator.visited_keys.contains(&r)
                     && let Some(desc) = object.__get_own_property__(
                         &PropertyKey::from(r.clone()),
-                        &mut InternalMethodContext::new(context),
+                        &mut InternalMethodPropertyContext::new(context),
                     )?
                 {
                     iterator.visited_keys.insert(r.clone());
