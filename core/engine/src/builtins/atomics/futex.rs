@@ -158,7 +158,6 @@ use std::sync::{Condvar, Mutex, MutexGuard};
 
 use boa_string::JsString;
 use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
-use portable_atomic::AtomicBool;
 use rustc_hash::FxHashMap;
 use small_btree::{Entry, SmallBTreeMap};
 
@@ -186,7 +185,6 @@ struct AsyncWaiterData {
     // Only here to ensure the buffer does not get collected before all its
     // waiters.
     _buffer: SharedArrayBuffer,
-    notified: AtomicBool,
 }
 
 /// A waiter of a memory address.
@@ -221,10 +219,7 @@ impl FutexWaiter {
             link: LinkedListLink::new(),
             cond_var: Condvar::new(),
             addr,
-            async_data: Some(AsyncWaiterData {
-                _buffer: buffer,
-                notified: AtomicBool::new(false),
-            }),
+            async_data: Some(AsyncWaiterData { _buffer: buffer }),
         })
     }
 }
@@ -291,11 +286,9 @@ impl AsyncPendingWaiters {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-enqueueresolveinagentjob
     pub(crate) fn enqueue_waiter_jobs(&mut self, context: &mut Context) {
-        for (waiter, (functions, timeout_cancel)) in self.waiters.extract_if(|k, _| {
-            k.0.async_data
-                .as_ref()
-                .is_some_and(|data| data.notified.load(Ordering::Relaxed))
-        }) {
+        for (waiter, (functions, timeout_cancel)) in
+            self.waiters.extract_if(|k, _| Arc::strong_count(&k.0) < 2)
+        {
             // Should have been removed from the waiters list at this point.
             debug_assert!(!waiter.0.link.is_linked());
             let realm = functions
@@ -391,9 +384,7 @@ impl FutexWaiters {
 
             elem.cond_var.notify_one();
 
-            if let Some(async_data) = &elem.async_data {
-                async_data.notified.store(true, Ordering::Relaxed);
-
+            if elem.async_data.is_some() {
                 // SAFETY: All entries on the waiter list must be valid, and all async entries
                 // must come from an Arc.
                 let elem = unsafe {
@@ -652,14 +643,15 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
     // 26. NOTE: When t is +∞, timeoutTime is also +∞.
 
     // 27. Let waiterRecord be a new Waiter Record { [[AgentSignifier]]: thisAgent,
-    //     [[PromiseCapability]]: promiseCapability, [[TimeoutTime]]: timeoutTime, [[Result]]: "ok" }.
+    //     [[PromiseCapability]]: promiseCapability, [[TimeoutTime]]: timeoutTime, [[Result]]: "ok"}.
     // ensure we can have aliased pointers to the waiter in a sound way.
-    let waiter = AsyncFutexWaiter(FutexWaiter::new_async(buffer.clone(), buf.as_ptr().addr()));
+    let waiter = FutexWaiter::new_async(buffer.clone(), buf.as_ptr().addr());
+    let weak_waiter = Arc::downgrade(&waiter);
 
     // 28. Perform AddWaiter(WL, waiterRecord).
     // SAFETY: `waiter` is pinned to the heap, so it must be valid.
     unsafe {
-        waiters.add_async_waiter(Arc::clone(&waiter.0));
+        waiters.add_async_waiter(waiter.clone());
     }
 
     // 30. Else if timeoutTime is finite, then
@@ -667,53 +659,32 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
     let timeout_cancel = if let Some(timeout) = timeout {
         // EnqueueAtomicsWaitAsyncTimeoutJob ( WL, waiterRecord )
         // https://tc39.es/ecma262/#sec-enqueueatomicswaitasynctimeoutjob
-        #[derive(Debug)]
-        struct WaiterDropGuard(Option<AsyncFutexWaiter>);
-
-        impl Drop for WaiterDropGuard {
-            fn drop(&mut self) {
-                let Some(waiter) = self.0.take() else {
-                    return;
-                };
-                let Ok(mut global_waiters) = FutexWaiters::get() else {
-                    // Cannot cleanup a poisoned mutex.
-                    return;
-                };
-                if waiter.0.link.is_linked() {
-                    // SAFETY: the node is linked and the Arc ensures it has not been deallocated.
-                    unsafe {
-                        global_waiters.remove_waiter(&waiter.0);
-                    }
-                }
-            }
-        }
 
         // 1. Let timeoutJob be a new Job Abstract Closure with no parameters that captures WL and waiterRecord and performs the following steps when called:
         // TODO: this design is a bit suboptimal since most event loops will wait until all timeouts
         // are resolved. If we can, we should make it possible to remove the timeout if the waiter
         // was notified.
-        let mut waiter_guard = WaiterDropGuard(Some(waiter.clone()));
         let job = TimeoutJob::with_realm(
             move |context| {
                 //    a. Perform EnterCriticalSection(WL).
-                let Some(waiter) = waiter_guard.0.take() else {
-                    panic!("waiter pointer disappeared");
-                };
-
                 let mut waiters = FutexWaiters::get()?;
 
                 //    b. If WL.[[Waiters]] contains waiterRecord, then
-                if waiter.0.link.is_linked() {
+                if let Some(waiter) = weak_waiter.upgrade()
+                    && waiter.link.is_linked()
+                {
                     // i. Let timeOfJobExecution be the time value (UTC) identifying the current time.
                     // ii. Assert: ℝ(timeOfJobExecution) ≥ waiterRecord.[[TimeoutTime]] (ignoring potential non-monotonicity of time values).
                     // iii. Set waiterRecord.[[Result]] to "timed-out".
                     // SAFETY: the node is linked and still valid thanks to the reference count.
                     unsafe {
                         // iv. Perform RemoveWaiter(WL, waiterRecord).
-                        waiters.remove_waiter(&waiter.0);
+                        waiters.remove_waiter(&waiter);
                     }
 
-                    let Some((functions, _)) = context.pending_waiters.remove(&waiter) else {
+                    let Some((functions, _)) =
+                        context.pending_waiters.remove(&AsyncFutexWaiter(waiter))
+                    else {
                         panic!("timeout job was not executed by its original context")
                     };
 
@@ -751,7 +722,7 @@ pub(super) unsafe fn wait_async<E: Element + PartialEq>(
 
     context
         .pending_waiters
-        .insert(waiter, functions, timeout_cancel);
+        .insert(AsyncFutexWaiter(waiter), functions, timeout_cancel);
 
     Ok(AtomicsWaitResult::Ok)
 }
