@@ -144,7 +144,7 @@ impl AsyncGenerator {
         let generator = if_abrupt_reject_promise!(result, promise_capability, context);
 
         // 5. Let state be generator.[[AsyncGeneratorState]].
-        let state = generator.borrow().data.state;
+        let state = generator.borrow().data().state;
 
         // 6. If state is completed, then
         if state == AsyncGeneratorState::Completed {
@@ -223,12 +223,12 @@ impl AsyncGenerator {
         Self::enqueue(&generator, completion.clone(), promise_capability.clone());
 
         // 7. Let state be generator.[[AsyncGeneratorState]].
-        let state = generator.borrow().data.state;
+        let state = generator.borrow().data().state;
 
         // 8. If state is either suspended-start or completed, then
         if state == AsyncGeneratorState::SuspendedStart || state == AsyncGeneratorState::Completed {
             // a. Set generator.[[AsyncGeneratorState]] to draining-queue.
-            generator.borrow_mut().data.state = AsyncGeneratorState::DrainingQueue;
+            generator.borrow_mut().data_mut().state = AsyncGeneratorState::DrainingQueue;
 
             // b. Perform ! AsyncGeneratorAwaitReturn(generator).
             Self::await_return(&generator, return_value, context);
@@ -283,13 +283,13 @@ impl AsyncGenerator {
         let mut r#gen = generator.borrow_mut();
 
         // 5. Let state be generator.[[AsyncGeneratorState]].
-        let mut state = r#gen.data.state;
+        let mut state = r#gen.data().state;
 
         // 6. If state is suspendedStart, then
         if state == AsyncGeneratorState::SuspendedStart {
             // a. Set generator.[[AsyncGeneratorState]] to completed.
-            r#gen.data.state = AsyncGeneratorState::Completed;
-            r#gen.data.context = None;
+            r#gen.data_mut().state = AsyncGeneratorState::Completed;
+            r#gen.data_mut().context = None;
 
             // b. Set state to completed.
             state = AsyncGeneratorState::Completed;
@@ -352,7 +352,7 @@ impl AsyncGenerator {
         };
 
         // 2. Append request to the end of generator.[[AsyncGeneratorQueue]].
-        r#gen.data.queue.push_back(request);
+        r#gen.data_mut().queue.push_back(request);
     }
 
     /// `AsyncGeneratorCompleteStep ( generator, completion, done [ , realm ] )`
@@ -377,7 +377,7 @@ impl AsyncGenerator {
         // 3. Remove the first element from generator.[[AsyncGeneratorQueue]].
         let next = generator
             .borrow_mut()
-            .data
+            .data_mut()
             .queue
             .pop_front()
             .expect("1. Assert: generator.[[AsyncGeneratorQueue]] is not empty.");
@@ -445,20 +445,20 @@ impl AsyncGenerator {
     ) {
         // 1. Assert: generator.[[AsyncGeneratorState]] is either suspended-start or suspended-yield.
         assert!(matches!(
-            generator.borrow().data.state,
+            generator.borrow().data().state,
             AsyncGeneratorState::SuspendedStart | AsyncGeneratorState::SuspendedYield
         ));
 
         // 2. Let genContext be generator.[[AsyncGeneratorContext]].
         let mut generator_context = generator
             .borrow_mut()
-            .data
+            .data_mut()
             .context
             .take()
             .expect("generator context cannot be empty here");
 
         // 5. Set generator.[[AsyncGeneratorState]] to executing.
-        generator.borrow_mut().data.state = AsyncGeneratorState::Executing;
+        generator.borrow_mut().data_mut().state = AsyncGeneratorState::Executing;
 
         let (value, resume_kind) = match completion {
             CompletionRecord::Normal(val) => (val, GeneratorResumeKind::Normal),
@@ -472,7 +472,7 @@ impl AsyncGenerator {
         let result = generator_context.resume(Some(value), resume_kind, context);
 
         // 7. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the Completion Record returned by the resumed computation.
-        generator.borrow_mut().data.context = Some(generator_context);
+        generator.borrow_mut().data_mut().context = Some(generator_context);
 
         // 8. Assert: result is never an abrupt completion.
         assert!(!result.is_throw_completion());
@@ -499,7 +499,7 @@ impl AsyncGenerator {
     ) {
         // 1. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
         assert_eq!(
-            generator.borrow().data.state,
+            generator.borrow().data().state,
             AsyncGeneratorState::DrainingQueue
         );
 
@@ -539,7 +539,7 @@ impl AsyncGenerator {
                 |_this, args, generator, context| {
                     // a. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
                     assert_eq!(
-                        generator.borrow().data.state,
+                        generator.borrow().data().state,
                         AsyncGeneratorState::DrainingQueue
                     );
 
@@ -570,7 +570,7 @@ impl AsyncGenerator {
                 |_this, args, generator, context| {
                     // a. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
                     assert_eq!(
-                        generator.borrow().data.state,
+                        generator.borrow().data().state,
                         AsyncGeneratorState::DrainingQueue
                     );
 
@@ -617,16 +617,16 @@ impl AsyncGenerator {
     pub(crate) fn drain_queue(generator: &JsObject<AsyncGenerator>, context: &mut Context) {
         // 1. Assert: generator.[[AsyncGeneratorState]] is draining-queue.
         assert_eq!(
-            generator.borrow().data.state,
+            generator.borrow().data().state,
             AsyncGeneratorState::DrainingQueue
         );
 
         // 2. Let queue be generator.[[AsyncGeneratorQueue]].
         // 3. If queue is empty, then
-        if generator.borrow().data.queue.is_empty() {
+        if generator.borrow().data().queue.is_empty() {
             // a. Set generator.[[AsyncGeneratorState]] to completed.
-            generator.borrow_mut().data.state = AsyncGeneratorState::Completed;
-            generator.borrow_mut().data.context = None;
+            generator.borrow_mut().data_mut().state = AsyncGeneratorState::Completed;
+            generator.borrow_mut().data_mut().context = None;
             // b. Return unused.
             return;
         }
@@ -637,7 +637,7 @@ impl AsyncGenerator {
             // a. Let next be the first element of queue.
             let next = generator
                 .borrow()
-                .data
+                .data()
                 .queue
                 .front()
                 .expect("must have entry")
@@ -664,10 +664,10 @@ impl AsyncGenerator {
                     Self::complete_step(generator, completion, true, None, context);
 
                     // iii. If queue is empty, then
-                    if generator.borrow().data.queue.is_empty() {
+                    if generator.borrow().data().queue.is_empty() {
                         // 1. Set generator.[[AsyncGeneratorState]] to completed.
-                        generator.borrow_mut().data.state = AsyncGeneratorState::Completed;
-                        generator.borrow_mut().data.context = None;
+                        generator.borrow_mut().data_mut().state = AsyncGeneratorState::Completed;
+                        generator.borrow_mut().data_mut().context = None;
                         // 2. Set done to true.
                         break;
                     }
