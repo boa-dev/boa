@@ -165,6 +165,9 @@ impl dyn NativeObject {
 #[derive(Debug, Finalize, Trace)]
 // SAFETY: This does not implement drop, so this is safe.
 #[boa_gc(unsafe_no_drop)]
+// SAFETY: This type must use `#[repr(C)]` to prevent the compiler from reordering fields,
+//         as it is used for casting between types.
+#[repr(C)]
 pub struct Object<T: ?Sized> {
     /// The collection of properties contained in the object
     pub(crate) properties: PropertyMap,
