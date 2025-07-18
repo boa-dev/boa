@@ -1,7 +1,9 @@
 //! Module for the register options type.
 
-use crate::fetch::fetchers::ErrorFetcher;
-use crate::{DefaultLogger, Logger, fetch};
+#[cfg(feature = "fetch")]
+use crate::fetch;
+
+use crate::{DefaultLogger, Logger};
 use boa_engine::realm::Realm;
 
 /// Create a generic type declaration based on features.
@@ -12,19 +14,19 @@ use boa_engine::realm::Realm;
 /// We'll likely need a new design for passing the options to the register
 /// function.
 #[cfg(feature = "fetch")]
-macro_rules! RegisterOptionsType {
-    ($f: ident, $l: ident) => {
+macro_rules! register_options_type {
+    ($f: ty, $l: ty) => {
         RegisterOptions<$f, $l>
     }
 }
 #[cfg(not(feature = "fetch"))]
-macro_rules! RegisterOptionsType {
-    ($f: ident, $l: ident) => {
+macro_rules! register_options_type {
+    ($f: ty, $l: ty) => {
         RegisterOptions<$l>
     }
 }
 
-pub(crate) use RegisterOptionsType;
+pub(crate) use register_options_type;
 
 /// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
 #[derive(Debug)]
@@ -36,19 +38,18 @@ pub struct RegisterOptions<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logge
     pub(crate) fetcher: Option<F>,
 }
 
-#[cfg(feature = "fetch")]
-impl Default for RegisterOptions<ErrorFetcher, DefaultLogger> {
+impl Default for register_options_type![fetch::ErrorFetcher, DefaultLogger] {
     fn default() -> Self {
         Self {
             realm: None,
             console_logger: DefaultLogger,
+            #[cfg(feature = "fetch")]
             fetcher: None,
         }
     }
 }
 
-#[cfg(feature = "fetch")]
-impl RegisterOptions<ErrorFetcher, DefaultLogger> {
+impl register_options_type![fetch::ErrorFetcher, DefaultLogger] {
     /// Create a new `RegisterOptions` with the default options.
     #[must_use]
     pub fn new() -> Self {
@@ -56,7 +57,7 @@ impl RegisterOptions<ErrorFetcher, DefaultLogger> {
     }
 }
 
-impl<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger> RegisterOptionsType![F, L] {
+impl<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger> register_options_type![F, L] {
     /// Set the realm to which we should register the APIs.
     #[must_use]
     pub fn with_realm(self, realm: Realm) -> Self {
@@ -67,10 +68,11 @@ impl<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger> RegisterOptionsType
     }
 
     /// Set the logger for the console object.
-    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> RegisterOptionsType![F, L2] {
-        RegisterOptions::<F, L2> {
+    pub fn with_console_logger<L2: Logger>(self, logger: L2) -> register_options_type![F, L2] {
+        RegisterOptions {
             realm: self.realm,
             console_logger: logger,
+            #[cfg(feature = "fetch")]
             fetcher: self.fetcher,
         }
     }
@@ -79,8 +81,11 @@ impl<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger> RegisterOptionsType
 #[cfg(feature = "fetch")]
 impl<F: fetch::Fetcher, L: Logger> RegisterOptions<F, L> {
     /// Set the fetch provider for the fetch API.
-    pub fn with_fetcher<F2: fetch::Fetcher>(self, new_fetcher: F2) -> RegisterOptions<F2, L> {
-        RegisterOptions::<F2, L> {
+    pub fn with_fetcher<F2: fetch::Fetcher>(
+        self,
+        new_fetcher: F2,
+    ) -> register_options_type![F2, L] {
+        RegisterOptions {
             realm: self.realm,
             fetcher: Some(new_fetcher),
             console_logger: self.console_logger,

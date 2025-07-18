@@ -457,7 +457,7 @@ fn add_runtime(context: &mut Context) {
     boa_runtime::register(
         context,
         boa_runtime::RegisterOptions::default()
-            .with_fetcher(boa_runtime::fetch::fetchers::BlockingReqwestFetcher::default()),
+            .with_fetcher(boa_runtime::fetch::BlockingReqwestFetcher::default()),
     )
     .expect("should not fail while registering the runtime");
 }

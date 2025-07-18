@@ -30,7 +30,10 @@ pub mod headers;
 pub mod request;
 pub mod response;
 
-pub mod fetchers;
+mod fetchers;
+
+#[doc(inline)]
+pub use fetchers::*;
 
 /// A trait for backend implementation of an HTTP fetcher.
 // TODO: consider implementing an async version of this.

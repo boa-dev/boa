@@ -76,7 +76,7 @@ pub use options::RegisterOptions;
 /// This will error is any of the built-in objects or functions cannot be registered.
 pub fn register<#[cfg(feature = "fetch")] F: fetch::Fetcher, L: Logger + 'static>(
     ctx: &mut boa_engine::Context,
-    options: options::RegisterOptionsType![F, L],
+    options: options::register_options_type![F, L],
 ) -> boa_engine::JsResult<()> {
     Console::register_with_logger(ctx, options.console_logger)?;
     TextDecoder::register(ctx)?;
