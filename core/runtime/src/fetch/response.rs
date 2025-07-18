@@ -203,7 +203,7 @@ impl JsResponse {
         JsPromise::from_future(
             async move |context| {
                 JsUint8Array::from_iter(body.iter().copied(), &mut context.borrow_mut())
-                    .map(|arr| arr.into())
+                    .map(Into::into)
             },
             context,
         )
