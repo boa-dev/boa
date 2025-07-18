@@ -5,7 +5,7 @@
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Response
 use crate::fetch::headers::JsHeaders;
-use boa_engine::object::builtins::JsPromise;
+use boa_engine::object::builtins::{JsPromise, JsUint8Array};
 use boa_engine::value::{TryFromJs, TryIntoJs};
 use boa_engine::{
     Context, JsData, JsNativeError, JsResult, JsString, JsValue, js_error, js_str, js_string,
@@ -25,7 +25,7 @@ pub enum ResponseType {
     ///
     /// The request is same-origin.
     /// The requested URL's scheme is `data:`.
-    /// The request's mode is navigate or websocket.
+    /// The request's mode is `navigate` or `websocket`.
     ///
     /// With this type, all response headers are exposed except Set-Cookie.
     Basic,
@@ -34,22 +34,22 @@ pub enum ResponseType {
     /// type, only CORS-safelisted response headers are exposed.
     Cors,
 
-    /// A network error occurred. The status property is set to 0, body is null, headers
+    /// A network error occurred. The status property is set to 0, `body` is null, headers
     /// are empty and immutable.
     Error,
 
     /// A response to a cross-origin request whose mode was set to no-cors. The status
-    /// property is set to 0, body is null, headers are empty and immutable.
+    /// property is set to 0, `body` is null, headers are empty and immutable.
     Opaque,
 
-    /// A response to a request whose redirect option was set to manual, and which was
-    /// redirected by the server. The status property is set to 0, body is null, headers
+    /// A response to a request whose redirect option was set to manual and which was
+    /// redirected by the server. The status property is set to 0, `body` is null, headers
     /// are empty and immutable.
     OpaqueRedirect,
 }
 
 impl ResponseType {
-    /// Return the Javascript String representing this response type.
+    /// Return the JavaScript String representing this response type.
     #[must_use]
     pub fn to_string(self) -> JsString {
         match self {
@@ -125,7 +125,7 @@ impl JsResponse {
         }
     }
 
-    /// Create a new instance of response that is an error.
+    /// Create a new instance of [`JsResponse`] that is an error.
     #[must_use]
     pub fn error() -> Self {
         Self {
@@ -196,6 +196,17 @@ impl JsResponse {
     #[boa(getter)]
     fn url(&self) -> JsString {
         self.url.clone()
+    }
+
+    fn bytes(&self, context: &mut Context) -> JsPromise {
+        let body = self.body();
+        JsPromise::from_future(
+            async move |context| {
+                JsUint8Array::from_iter(body.iter().copied(), &mut context.borrow_mut())
+                    .map(|arr| arr.into())
+            },
+            context,
+        )
     }
 
     fn text(&self, context: &mut Context) -> JsPromise {

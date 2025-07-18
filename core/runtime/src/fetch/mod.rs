@@ -7,8 +7,6 @@
 //! [spec]: https://fetch.spec.whatwg.org/
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/fetch
 
-pub mod tests;
-
 use crate::fetch::headers::JsHeaders;
 use crate::fetch::request::{JsRequest, RequestInit};
 use crate::fetch::response::JsResponse;
@@ -29,6 +27,7 @@ use std::rc::Rc;
 pub mod headers;
 pub mod request;
 pub mod response;
+pub mod tests;
 
 mod fetchers;
 

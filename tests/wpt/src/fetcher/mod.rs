@@ -1,8 +1,8 @@
 use boa_engine::{js_error, Context, Finalize, JsData, JsError, JsResult, Trace};
 use boa_gc::{Gc, GcRefCell};
-use boa_runtime::fetch::fetchers::BlockingReqwestFetcher;
 use boa_runtime::fetch::request::JsRequest;
 use boa_runtime::fetch::response::JsResponse;
+use boa_runtime::fetch::BlockingReqwestFetcher;
 use boa_runtime::fetch::Fetcher;
 use std::cell::RefCell;
 use std::path::PathBuf;
