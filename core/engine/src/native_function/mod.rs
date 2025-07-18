@@ -5,24 +5,24 @@
 
 use std::cell::RefCell;
 
-use boa_gc::{Finalize, Gc, Trace, custom_trace};
+use boa_gc::{custom_trace, Finalize, Gc, Trace};
 use boa_string::JsString;
 
 use crate::job::NativeAsyncJob;
 use crate::object::internal_methods::InternalMethodCallContext;
 use crate::value::JsVariant;
 use crate::{
-    Context, JsNativeError, JsObject, JsResult, JsValue,
-    builtins::{OrdinaryObject, function::ConstructorKind},
-    context::intrinsics::StandardConstructors,
-    object::{
-        FunctionObjectBuilder, JsData, JsFunction, JsPromise,
+    builtins::{function::ConstructorKind, OrdinaryObject}, context::intrinsics::StandardConstructors, object::{
         internal_methods::{
-            CallValue, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-            get_prototype_from_constructor,
-        },
-    },
-    realm::Realm,
+            get_prototype_from_constructor, CallValue, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS,
+        }, FunctionObjectBuilder, JsData, JsFunction,
+        JsPromise,
+    }, realm::Realm, Context,
+    JsNativeError,
+    JsObject,
+    JsResult,
+    JsValue,
 };
 
 #[cfg(feature = "experimental")]
@@ -178,13 +178,14 @@ impl NativeFunction {
     /// Certain async functions need to be desugared for them to be compatible. For example, the
     /// following won't compile:
     ///
+    /// TODO: this does not fail anymore.
     /// ```compile_fail
     /// # use std::cell::RefCell;
     /// # use boa_engine::{
     /// #   JsValue,
     /// #   Context,
     /// #   JsResult,
-    /// #   NativeFunction,
+    /// #   NativeFunction
     /// #   JsArgs,
     /// # };
     /// async fn test(
