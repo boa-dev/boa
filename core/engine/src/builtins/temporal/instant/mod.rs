@@ -32,11 +32,19 @@ use temporal_rs::{
 };
 
 /// The `Temporal.Instant` object.
-#[derive(Debug, Clone, Copy, Trace, Finalize, JsData)]
+#[derive(Debug, Clone, Trace, Finalize, JsData)]
 // SAFETY: Instant does not contain any traceable values.
 #[boa_gc(unsafe_empty_trace)]
 pub struct Instant {
-    pub(crate) inner: InnerInstant,
+    pub(crate) inner: Box<InnerInstant>,
+}
+
+impl Instant {
+    pub(crate) fn new(inner: InnerInstant) -> Self {
+        Self {
+            inner: Box::new(inner),
+        }
+    }
 }
 
 impl BuiltInObject for Instant {
@@ -453,7 +461,7 @@ impl Instant {
         let other = args.get_or_undefined(0);
         let other_instant = to_temporal_instant(other, context)?;
 
-        if instant.inner != other_instant {
+        if *instant.inner != other_instant {
             return Ok(false.into());
         }
         Ok(true.into())
@@ -597,7 +605,7 @@ pub(crate) fn create_temporal_instant(
         get_prototype_from_constructor(&new_target, StandardConstructors::instant, context)?;
 
     // 4. Set object.[[Nanoseconds]] to epochNanoseconds.
-    let obj = JsObject::from_proto_and_data(proto, Instant { inner: instant });
+    let obj = JsObject::from_proto_and_data(proto, Instant::new(instant));
 
     // 5. Return object.
     Ok(obj.into())
@@ -615,7 +623,7 @@ fn to_temporal_instant(item: &JsValue, context: &mut Context) -> JsResult<InnerI
         // c. NOTE: This use of ToPrimitive allows Instant-like objects to be converted.
         // d. Set item to ? ToPrimitive(item, string).
         if let Some(instant) = obj.downcast_ref::<Instant>() {
-            return Ok(instant.inner);
+            return Ok(*instant.inner);
         } else if let Some(zdt) = obj.downcast_ref::<ZonedDateTime>() {
             return Ok(zdt.inner.to_instant());
         }

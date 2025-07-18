@@ -94,7 +94,7 @@ macro_rules! atomic_op {
             //    to ToBigInt or ToIntegerOrInfinity on the preceding lines can have arbitrary side effects, which could
             //    cause the buffer to become detached.
             let ta = ta.borrow();
-            let ta = &ta.data;
+            let ta = ta.data();
             let mut buffer = ta.viewed_array_buffer().as_buffer_mut();
             let Some(mut data) = buffer.bytes_with_len(buf_len) else {
                 return Err(JsNativeError::typ()
@@ -182,7 +182,7 @@ impl Atomics {
 
         // 2. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
         let ta = ta.borrow();
-        let ta = &ta.data;
+        let ta = ta.data();
         let buffer = ta.viewed_array_buffer().as_buffer();
         let Some(data) = buffer.bytes_with_len(buf_len) else {
             return Err(JsNativeError::typ()
@@ -230,7 +230,7 @@ impl Atomics {
 
         // 4. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
         let ta = ta.borrow();
-        let ta = &ta.data;
+        let ta = ta.data();
         let mut buffer = ta.viewed_array_buffer().as_buffer_mut();
         let Some(mut buffer) = buffer.bytes_with_len(buf_len) else {
             return Err(JsNativeError::typ()
@@ -278,7 +278,7 @@ impl Atomics {
 
         // 6. Perform ? RevalidateAtomicAccess(typedArray, indexedPosition).
         let ta = ta.borrow();
-        let ta = &ta.data;
+        let ta = ta.data();
         let mut buffer = ta.viewed_array_buffer().as_buffer_mut();
         let Some(mut buffer) = buffer.bytes_with_len(buf_len) else {
             return Err(JsNativeError::typ()
@@ -398,7 +398,7 @@ impl Atomics {
 
         // 2. Let buffer be taRecord.[[Object]].[[ViewedArrayBuffer]].
         // 2. If IsSharedArrayBuffer(buffer) is false, throw a TypeError exception.
-        let buffer = match ta.borrow().data.viewed_array_buffer() {
+        let buffer = match ta.borrow().data().viewed_array_buffer() {
             BufferObject::SharedBuffer(buf) => buf.clone(),
             BufferObject::Buffer(_) => {
                 return Err(JsNativeError::typ()
@@ -444,7 +444,7 @@ impl Atomics {
         let result = unsafe {
             if access.kind == TypedArrayKind::BigInt64 {
                 futex::wait(
-                    &buffer.borrow().data,
+                    buffer.borrow().data(),
                     buf_len,
                     access.byte_offset,
                     value,
@@ -453,7 +453,7 @@ impl Atomics {
             } else {
                 // value must fit into `i32` since it came from an `i32` above.
                 futex::wait(
-                    &buffer.borrow().data,
+                    buffer.borrow().data(),
                     buf_len,
                     access.byte_offset,
                     value as i32,
@@ -501,7 +501,7 @@ impl Atomics {
         // 5. Let block be buffer.[[ArrayBufferData]].
         // 6. If IsSharedArrayBuffer(buffer) is false, return +0𝔽.
         let ta = ta.borrow();
-        let BufferRef::SharedBuffer(shared) = ta.data.viewed_array_buffer().as_buffer() else {
+        let BufferRef::SharedBuffer(shared) = ta.data().viewed_array_buffer().as_buffer() else {
             return Ok(0.into());
         };
 
@@ -574,7 +574,7 @@ fn validate_integer_typed_array(
         // 3. If waitable is true, then
         if waitable {
             //     a. If typedArray.[[TypedArrayName]] is neither "Int32Array" nor "BigInt64Array", throw a TypeError exception.
-            if ![TypedArrayKind::Int32, TypedArrayKind::BigInt64].contains(&array.data.kind()) {
+            if ![TypedArrayKind::Int32, TypedArrayKind::BigInt64].contains(&array.data().kind()) {
                 return Err(JsNativeError::typ()
                     .with_message("can only atomically wait using Int32 or BigInt64 arrays")
                     .into());
@@ -583,7 +583,7 @@ fn validate_integer_typed_array(
             // 4. Else,
             //     a. Let type be TypedArrayElementType(typedArray).
             //     b. If IsUnclampedIntegerElementType(type) is false and IsBigIntElementType(type) is false, throw a TypeError exception.
-            if !array.data.kind().supports_atomic_ops() {
+            if !array.data().kind().supports_atomic_ops() {
                 return Err(JsNativeError::typ()
                     .with_message(
                         "platform doesn't support atomic operations on the provided `TypedArray`",
@@ -614,7 +614,7 @@ fn validate_atomic_access(
     // 5. Let typedArray be taRecord.[[Object]].
     let (length, kind, offset) = {
         let array = array.borrow();
-        let array = &array.data;
+        let array = array.data();
 
         // 1. Let length be typedArray.[[ArrayLength]].
         // 6. Let elementSize be TypedArrayElementSize(typedArray).

@@ -160,7 +160,7 @@ impl SliceRef<'_> {
         {
             let mut target_buffer = target_buffer.borrow_mut();
             let target_block = target_buffer
-                .data
+                .data_mut()
                 .bytes_mut()
                 .expect("ArrayBuffer cannot be detached here");
 
