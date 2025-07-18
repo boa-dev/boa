@@ -135,6 +135,17 @@ impl<T> Nullable<T> {
 
     /// Maps a [`Nullable<T>`] to [`Nullable<U>`] by applying a function to a contained
     /// value.
+    ///
+    /// ```
+    /// # use boa_engine::value::Nullable;
+    /// let maybe_some_string = Nullable::NonNull(String::from("Hello, World!"));
+    /// // `Nullable::map` takes self *by value*, consuming `maybe_some_string`
+    /// let maybe_some_len = maybe_some_string.map(|s| s.len());
+    /// assert_eq!(maybe_some_len, Nullable::NonNull(13));
+    ///
+    /// let x: Nullable<&str> = Nullable::Null;
+    /// assert_eq!(x.map(|s| s.len()), Nullable::Null);
+    /// ```
     #[inline]
     pub fn map<U, F>(self, f: F) -> Nullable<U>
     where

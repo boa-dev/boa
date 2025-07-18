@@ -184,7 +184,7 @@ impl NativeFunction {
     /// #   JsValue,
     /// #   Context,
     /// #   JsResult,
-    /// #   NativeFunction
+    /// #   NativeFunction,
     /// #   JsArgs,
     /// # };
     /// async fn test(
