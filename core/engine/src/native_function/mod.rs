@@ -178,6 +178,7 @@ impl NativeFunction {
     /// Certain async functions need to be desugared for them to be compatible. For example, the
     /// following won't compile:
     ///
+    /// TODO: this does not fail anymore.
     /// ```compile_fail
     /// # use std::cell::RefCell;
     /// # use boa_engine::{

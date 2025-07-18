@@ -17,12 +17,15 @@ thin-vec = ["dep:thin-vec"]
 icu = ["dep:icu_locale_core"]
 # Enable default implementations of trace and finalize for the `boa_string` crate
 boa_string = ["dep:boa_string"]
+# Enable default implementations of trace and finalize for the `either` crate
+either = ["dep:either"]
 
 [dependencies]
 boa_macros.workspace = true
 hashbrown.workspace = true
 
 boa_string = { workspace = true, optional = true }
+either = { workspace = true, optional = true }
 thin-vec = { workspace = true, optional = true }
 icu_locale_core = { workspace = true, optional = true }
 

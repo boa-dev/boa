@@ -9,7 +9,9 @@ boa_engine = { path = "../../core/engine" }
 boa_gc = { path = "../../core/gc" }
 boa_interop = { path = "../../core/interop" }
 boa_runtime = { path = "../../core/runtime" }
+http = "1.3.1"
 rstest = "0.25.0"
+url = { version = "2.5.4", features = [] }
 
 [build-dependencies]
 git2 = "0.20.2"

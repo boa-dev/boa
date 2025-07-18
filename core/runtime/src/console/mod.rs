@@ -29,7 +29,7 @@ use std::{
 };
 
 /// A trait that can be used to forward console logs to an implementation.
-pub trait Logger: Trace + Sized {
+pub trait Logger: Trace {
     /// Log a trace message (`console.trace`). By default, passes the message and the
     /// code block names of each stack trace frame to `log`.
     ///

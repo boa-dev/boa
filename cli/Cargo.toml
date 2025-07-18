@@ -33,6 +33,7 @@ default = [
     "boa_engine/experimental",
     "boa_engine/intl_bundled",
     "boa_engine/native-backtrace",
+    "boa_runtime/all",
     "fast-allocator",
 ]
 dhat = ["dep:dhat"]
