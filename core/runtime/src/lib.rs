@@ -36,6 +36,55 @@
 //!     }
 //! };
 //! ```
+//!
+//! # Example: Add all supported Boa's Runtime Web API to your context
+//!
+//! ```ignore
+//! use boa_engine::{js_string, property::Attribute, Context, Source};
+//!
+//! // Create the context.
+//! let mut context = Context::default();
+//!
+//! // Register all objects in the context.
+//! boa_runtime::register(
+//!     &mut context,
+//!     boa_runtime::RegisterOptions::default()
+//!         // DefaultLogger is used by default. Enable this line to replace it with
+//!         // NullLogger, which drops all logs.
+//!         // .with_logger(boa_runtime::console::NullLogger)
+//!         // A fetcher needs to be added if the `fetch` feature flag is enabled.
+//!         // This fetcher uses the Reqwest blocking API to allow fetching using HTTP.
+//!         .with_fetcher(boa_runtime::fetch::BlockingReqwestFetcher::default()),
+//! );
+//!
+//! // JavaScript source for parsing.
+//! let js_code = r#"
+//!     fetch("https://google.com/")
+//!         .then(response => response.text())
+//!         .then(html => console.log(html))
+//! "#;
+//!
+//! // Parse the source code
+//! match context.eval(Source::from_bytes(js_code)) {
+//!     Ok(res) => {
+//!         // The result is a promise, so we need to await it.
+//!         res
+//!             .as_promise()
+//!             .expect("Should be a promise")
+//!             .await_blocking(&mut context)
+//!             .expect("Should resolve()");
+//!         println!(
+//!             "{}",
+//!             res.to_string(&mut context).unwrap().to_std_string_escaped()
+//!         );
+//!     }
+//!     Err(e) => {
+//!         // Pretty print the error
+//!         eprintln!("Uncaught {e}");
+//!         # panic!("An error occured in boa_runtime's js_code");
+//!     }
+//! };
+//! ```
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
