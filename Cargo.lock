@@ -546,6 +546,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "boa_interop",
+ "futures-lite 2.6.0",
  "indoc",
  "rustc-hash 2.1.1",
  "textwrap",
