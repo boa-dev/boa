@@ -1,6 +1,7 @@
 //! Boa's implementation of ECMAScript's `IteratorRecord` and iterator prototype objects.
 
 use crate::{
+    Context, JsResult, JsValue,
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -8,10 +9,8 @@ use crate::{
     object::JsObject,
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 mod async_from_sync_iterator;
 pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
@@ -159,8 +158,6 @@ pub(crate) struct Iterator;
 
 impl IntrinsicObject for Iterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("Iterator Prototype", "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(|v, _, _| Ok(v.clone()), JsSymbol::iterator(), 0)
             .build();
@@ -181,8 +178,6 @@ pub(crate) struct AsyncIterator;
 
 impl IntrinsicObject for AsyncIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(|v, _, _| Ok(v.clone()), JsSymbol::async_iterator(), 0)
             .build();
@@ -197,8 +192,6 @@ impl IntrinsicObject for AsyncIterator {
 ///
 /// Generates an object supporting the `IteratorResult` interface.
 pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
-    let _timer = Profiler::global().start_event("create_iter_result_object", "init");
-
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
@@ -480,8 +473,6 @@ impl IteratorRecord {
         value: Option<&JsValue>,
         context: &mut Context,
     ) -> JsResult<IteratorResult> {
-        let _timer = Profiler::global().start_event("IteratorRecord::step_with", "iterator");
-
         // 1. If value is not present, then
         //     a. Let result be Completion(Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]])).
         // 2. Else,
@@ -579,8 +570,6 @@ impl IteratorRecord {
         completion: JsResult<JsValue>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let _timer = Profiler::global().start_event("IteratorRecord::close", "iterator");
-
         // 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
 
         // 2. Let iterator be iteratorRecord.[[Iterator]].
@@ -636,8 +625,6 @@ impl IteratorRecord {
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratortolist
     pub(crate) fn into_list(mut self, context: &mut Context) -> JsResult<Vec<JsValue>> {
-        let _timer = Profiler::global().start_event("IteratorRecord::to_list", "iterator");
-
         // 1. Let values be a new empty List.
         let mut values = Vec::new();
 

@@ -12,7 +12,14 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-profiler = ["boa_profiler/profiler"]
+# Replace the NaN-boxing implementation of `JsValueInner` with an
+# enum-based implementation. This implementation is less performant
+# but compatible with more platforms.
+# If you encounter the "assertion left == right failed: Pointer is
+# not 4-bits aligned or over 51-bits." error, try this feature.
+# For more details, see https://github.com/boa-dev/boa/issues/4275
+# Disabled by default.
+jsvalue-enum = []
 deser = ["boa_interner/serde", "boa_ast/serde"]
 either = ["dep:either"]
 
@@ -27,9 +34,7 @@ intl_bundled = ["intl", "dep:boa_icu_provider"]
 intl = [
     "boa_gc/icu",
     "icu_normalizer/serde",
-    "icu_normalizer/std",
-    "dep:icu_locid_transform",
-    "dep:icu_locid",
+    "dep:icu_locale",
     "dep:icu_datetime",
     "dep:icu_plurals",
     "dep:icu_provider",
@@ -59,22 +64,27 @@ trace = ["js"]
 annex-b = ["boa_ast/annex-b", "boa_parser/annex-b"]
 
 # Enable Boa's Temporal proposal implementation
-temporal = ["dep:icu_calendar", "dep:temporal_rs"]
+temporal = ["dep:icu_calendar", "dep:temporal_rs", "dep:iana-time-zone"]
 
 # Enable experimental features, like Stage 3 proposals.
 experimental = ["temporal"]
 
 # Enable binding to JS APIs for system related utilities.
-js = ["dep:web-time"]
+js = ["dep:web-time", "dep:getrandom"]
+
+# Native Backtraces
+native-backtrace = []
 
 [dependencies]
+tag_ptr.workspace = true
 boa_interner.workspace = true
 boa_gc = { workspace = true, features = ["thin-vec", "boa_string"] }
-boa_profiler.workspace = true
 boa_macros.workspace = true
 boa_ast.workspace = true
 boa_parser.workspace = true
 boa_string.workspace = true
+cow-utils.workspace = true
+futures-lite.workspace = true
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_json.workspace = true
 rand.workspace = true
@@ -87,16 +97,19 @@ bitflags.workspace = true
 indexmap = { workspace = true, features = ["std"] }
 ryu-js.workspace = true
 fast-float2.workspace = true
-once_cell = { workspace = true, features = ["std"] }
 tap.workspace = true
-sptr.workspace = true
+small_btree.workspace = true
+paste.workspace = true
+
 thiserror.workspace = true
 dashmap.workspace = true
 num_enum.workspace = true
-pollster.workspace = true
 thin-vec.workspace = true
 itertools = { workspace = true, default-features = false }
-icu_normalizer = { workspace = true, features = ["compiled_data"] }
+icu_normalizer = { workspace = true, features = [
+    "compiled_data",
+    "utf16_iter",
+] }
 portable-atomic.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 arrayvec.workspace = true
@@ -111,34 +124,59 @@ static_assertions.workspace = true
 boa_icu_provider = { workspace = true, features = ["std"], optional = true }
 sys-locale = { workspace = true, optional = true }
 icu_provider = { workspace = true, optional = true }
-icu_locid = { workspace = true, features = ["serde"], optional = true }
-icu_locid_transform = { workspace = true, default-features = false, features = ["std", "serde"], optional = true }
-icu_datetime = { workspace = true, default-features = false, features = ["serde", "experimental"], optional = true }
+icu_locale = { workspace = true, default-features = false, features = [
+    "serde",
+], optional = true }
+icu_datetime = { workspace = true, default-features = false, features = [
+    "serde",
+    "experimental",
+], optional = true }
 icu_calendar = { workspace = true, default-features = false, optional = true }
-icu_collator = { workspace = true, default-features = false, features = ["serde"], optional = true }
-icu_plurals = { workspace = true, default-features = false, features = ["serde", "experimental"], optional = true }
-icu_list = { workspace = true, default-features = false, features = ["serde"], optional = true }
-icu_casemap = { workspace = true, default-features = false, features = ["serde"], optional = true }
-icu_segmenter = { workspace = true, default-features = false, features = ["auto", "serde"], optional = true }
-icu_decimal = { workspace = true, default-features = false, features = ["serde"], optional = true }
+icu_collator = { workspace = true, default-features = false, features = [
+    "serde",
+], optional = true }
+icu_plurals = { workspace = true, default-features = false, features = [
+    "serde",
+    "experimental",
+], optional = true }
+icu_list = { workspace = true, default-features = false, features = [
+    "serde",
+    "alloc",
+], optional = true }
+icu_casemap = { workspace = true, default-features = false, features = [
+    "serde",
+], optional = true }
+icu_segmenter = { workspace = true, default-features = false, features = [
+    "auto",
+    "serde",
+], optional = true }
+icu_decimal = { workspace = true, default-features = false, features = [
+    "serde",
+], optional = true }
 writeable = { workspace = true, optional = true }
 yoke = { workspace = true, optional = true }
 zerofrom = { workspace = true, optional = true }
-fixed_decimal = { workspace = true, features = ["ryu", "experimental"], optional = true }
+fixed_decimal = { workspace = true, features = [
+    "ryu",
+    "experimental",
+], optional = true }
 tinystr = { workspace = true, optional = true }
+dynify.workspace = true
 
 # temporal deps
 temporal_rs = { workspace = true, optional = true }
+iana-time-zone = { version = "0.1.63", optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 web-time = { workspace = true, optional = true }
+# NOTE: This enables the wasm_js required for rand to work on wasm
+getrandom = { workspace = true, features = ["wasm_js"], optional = true }
 
 [dev-dependencies]
 criterion.workspace = true
 float-cmp.workspace = true
 indoc.workspace = true
 textwrap.workspace = true
-futures-lite.workspace = true
 test-case.workspace = true
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]

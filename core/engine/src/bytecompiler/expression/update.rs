@@ -1,23 +1,19 @@
-use crate::{
-    bytecompiler::{Access, ByteCompiler, Operand, ToJsString},
-    vm::Opcode,
-};
+use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
 use boa_ast::{
     expression::{
         access::{PropertyAccess, PropertyAccessField},
-        operator::{update::UpdateOp, Update},
+        operator::{Update, update::UpdateOp},
     },
     scope::BindingLocatorError,
 };
 
 impl ByteCompiler<'_> {
-    pub(crate) fn compile_update(&mut self, update: &Update, use_expr: bool) {
-        let opcode = match update.op() {
-            UpdateOp::IncrementPre => Opcode::Inc,
-            UpdateOp::DecrementPre => Opcode::Dec,
-            UpdateOp::IncrementPost => Opcode::IncPost,
-            UpdateOp::DecrementPost => Opcode::DecPost,
-        };
+    pub(crate) fn compile_update(&mut self, update: &Update, dst: &Register) {
+        let mut compiler = self.position_guard(update);
+        let increment = matches!(
+            update.op(),
+            UpdateOp::IncrementPost | UpdateOp::IncrementPre
+        );
         let post = matches!(
             update.op(),
             UpdateOp::IncrementPost | UpdateOp::DecrementPost
@@ -25,142 +21,223 @@ impl ByteCompiler<'_> {
 
         match Access::from_update_target(update.target()) {
             Access::Variable { name } => {
-                let name = name.to_js_string(self.interner());
-                let binding = self.lexical_scope.get_identifier_reference(name.clone());
+                let name = name.to_js_string(compiler.interner());
+                let binding = compiler
+                    .lexical_scope
+                    .get_identifier_reference(name.clone());
                 let is_lexical = binding.is_lexical();
-                let index = self.get_or_insert_binding(binding);
+                let index = compiler.get_binding(&binding);
 
                 if is_lexical {
-                    self.emit_binding_access(Opcode::GetName, &index);
+                    compiler.emit_binding_access(BindingAccessOpcode::GetName, &index, dst);
                 } else {
-                    self.emit_binding_access(Opcode::GetNameAndLocator, &index);
+                    compiler.emit_binding_access(
+                        BindingAccessOpcode::GetNameAndLocator,
+                        &index,
+                        dst,
+                    );
                 }
 
-                self.emit_opcode(opcode);
-                if post {
-                    self.emit_opcode(Opcode::Swap);
+                let value = compiler.register_allocator.alloc();
+                if increment {
+                    compiler.bytecode.emit_inc(value.variable(), dst.variable());
                 } else {
-                    self.emit_opcode(Opcode::Dup);
+                    compiler.bytecode.emit_dec(value.variable(), dst.variable());
                 }
 
                 if is_lexical {
-                    match self.lexical_scope.set_mutable_binding(name.clone()) {
+                    match compiler.lexical_scope.set_mutable_binding(name.clone()) {
                         Ok(binding) => {
-                            let index = self.get_or_insert_binding(binding);
-                            self.emit_binding_access(Opcode::SetName, &index);
+                            let index = compiler.insert_binding(binding);
+                            compiler.emit_binding_access(
+                                BindingAccessOpcode::SetName,
+                                &index,
+                                &value,
+                            );
                         }
                         Err(BindingLocatorError::MutateImmutable) => {
-                            let index = self.get_or_insert_string(name);
-                            self.emit_with_varying_operand(Opcode::ThrowMutateImmutable, index);
+                            let index = compiler.get_or_insert_string(name);
+                            compiler.bytecode.emit_throw_mutate_immutable(index.into());
                         }
-                        Err(BindingLocatorError::Silent) => {
-                            self.emit_opcode(Opcode::Pop);
-                        }
+                        Err(BindingLocatorError::Silent) => {}
                     }
                 } else {
-                    self.emit_binding_access(Opcode::SetNameByLocator, &index);
+                    compiler.emit_binding_access(
+                        BindingAccessOpcode::SetNameByLocator,
+                        &index,
+                        &value,
+                    );
                 }
+                if !post {
+                    compiler
+                        .bytecode
+                        .emit_move(dst.variable(), value.variable());
+                }
+
+                compiler.register_allocator.dealloc(value);
             }
             Access::Property { access } => match access {
-                PropertyAccess::Simple(access) => match access.field() {
-                    PropertyAccessField::Const(name) => {
-                        self.compile_expr(access.target(), true);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
+                PropertyAccess::Simple(access) => {
+                    let object = compiler.register_allocator.alloc();
+                    compiler.compile_expr(access.target(), &object);
 
-                        self.emit_get_property_by_name(*name);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
+                    match access.field() {
+                        PropertyAccessField::Const(ident) => {
+                            compiler.emit_get_property_by_name(dst, &object, &object, ident.sym());
+                            let value = compiler.register_allocator.alloc();
+                            if increment {
+                                compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                            } else {
+                                compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                            }
+
+                            compiler.emit_set_property_by_name(
+                                &value,
+                                &object,
+                                &object,
+                                ident.sym(),
+                            );
+
+                            if !post {
+                                compiler
+                                    .bytecode
+                                    .emit_move(dst.variable(), value.variable());
+                            }
+
+                            compiler.register_allocator.dealloc(object);
+                            compiler.register_allocator.dealloc(value);
                         }
+                        PropertyAccessField::Expr(expr) => {
+                            let key = compiler.register_allocator.alloc();
+                            compiler.compile_expr(expr, &key);
 
-                        self.emit_set_property_by_name(*name);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
+                            compiler.bytecode.emit_get_property_by_value_push(
+                                dst.variable(),
+                                key.variable(),
+                                object.variable(),
+                                object.variable(),
+                            );
+
+                            let value = compiler.register_allocator.alloc();
+                            if increment {
+                                compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                            } else {
+                                compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                            }
+
+                            compiler.bytecode.emit_set_property_by_value(
+                                value.variable(),
+                                key.variable(),
+                                object.variable(),
+                                object.variable(),
+                            );
+
+                            if !post {
+                                compiler
+                                    .bytecode
+                                    .emit_move(dst.variable(), value.variable());
+                            }
+
+                            compiler.register_allocator.dealloc(key);
+                            compiler.register_allocator.dealloc(object);
+                            compiler.register_allocator.dealloc(value);
                         }
-                    }
-                    PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(access.target(), true);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::Dup);
-                        self.compile_expr(expr, true);
-
-                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(5)]);
-                        }
-
-                        self.emit_opcode(Opcode::SetPropertyByValue);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
-                        }
-                    }
-                },
-                PropertyAccess::Private(access) => {
-                    let index = self.get_or_insert_private_name(access.field());
-                    self.compile_expr(access.target(), true);
-                    self.emit_opcode(Opcode::Dup);
-
-                    self.emit_with_varying_operand(Opcode::GetPrivateField, index);
-                    self.emit_opcode(opcode);
-                    if post {
-                        self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
-                    }
-
-                    self.emit_with_varying_operand(Opcode::SetPrivateField, index);
-                    if post {
-                        self.emit_opcode(Opcode::Pop);
                     }
                 }
+                PropertyAccess::Private(access) => {
+                    let index = compiler.get_or_insert_private_name(access.field());
+
+                    let object = compiler.register_allocator.alloc();
+                    compiler.compile_expr(access.target(), &object);
+
+                    compiler.bytecode.emit_get_private_field(
+                        dst.variable(),
+                        object.variable(),
+                        index.into(),
+                    );
+
+                    let value = compiler.register_allocator.alloc();
+                    if increment {
+                        compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                    } else {
+                        compiler.bytecode.emit_dec(value.variable(), dst.variable());
+                    }
+                    compiler.bytecode.emit_set_private_field(
+                        value.variable(),
+                        object.variable(),
+                        index.into(),
+                    );
+
+                    if !post {
+                        compiler
+                            .bytecode
+                            .emit_move(dst.variable(), value.variable());
+                    }
+
+                    compiler.register_allocator.dealloc(value);
+                    compiler.register_allocator.dealloc(object);
+                }
                 PropertyAccess::Super(access) => match access.field() {
-                    PropertyAccessField::Const(name) => {
-                        self.emit_opcode(Opcode::Super);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::This);
-                        self.emit_opcode(Opcode::Swap);
-                        self.emit_opcode(Opcode::This);
+                    PropertyAccessField::Const(ident) => {
+                        let object = compiler.register_allocator.alloc();
+                        let receiver = compiler.register_allocator.alloc();
+                        compiler.bytecode.emit_super(object.variable());
+                        compiler.bytecode.emit_this(receiver.variable());
 
-                        self.emit_get_property_by_name(*name);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(3)]);
+                        compiler.emit_get_property_by_name(dst, &receiver, &object, ident.sym());
+
+                        let value = compiler.register_allocator.alloc();
+                        if increment {
+                            compiler.bytecode.emit_inc(value.variable(), dst.variable());
+                        } else {
+                            compiler.bytecode.emit_dec(value.variable(), dst.variable());
                         }
 
-                        self.emit_set_property_by_name(*name);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
+                        compiler.emit_set_property_by_name(&value, &receiver, &object, ident.sym());
+                        if !post {
+                            compiler
+                                .bytecode
+                                .emit_move(dst.variable(), value.variable());
                         }
+
+                        compiler.register_allocator.dealloc(receiver);
+                        compiler.register_allocator.dealloc(object);
+                        compiler.register_allocator.dealloc(value);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.emit_opcode(Opcode::Super);
-                        self.emit_opcode(Opcode::Dup);
-                        self.emit_opcode(Opcode::This);
-                        self.compile_expr(expr, true);
+                        let object = compiler.register_allocator.alloc();
+                        let receiver = compiler.register_allocator.alloc();
+                        compiler.bytecode.emit_super(object.variable());
+                        compiler.bytecode.emit_this(receiver.variable());
 
-                        self.emit_opcode(Opcode::GetPropertyByValuePush);
-                        self.emit_opcode(opcode);
-                        if post {
-                            self.emit(Opcode::RotateRight, &[Operand::U8(2)]);
+                        let key = compiler.register_allocator.alloc();
+                        compiler.compile_expr(expr, &key);
+
+                        compiler.bytecode.emit_get_property_by_value(
+                            dst.variable(),
+                            key.variable(),
+                            receiver.variable(),
+                            object.variable(),
+                        );
+                        if increment {
+                            compiler.bytecode.emit_inc(dst.variable(), dst.variable());
+                        } else {
+                            compiler.bytecode.emit_dec(dst.variable(), dst.variable());
                         }
+                        compiler.bytecode.emit_set_property_by_value(
+                            dst.variable(),
+                            key.variable(),
+                            receiver.variable(),
+                            object.variable(),
+                        );
 
-                        self.emit_opcode(Opcode::This);
-                        self.emit(Opcode::RotateRight, &[Operand::U8(2)]);
-
-                        self.emit_opcode(Opcode::SetPropertyByValue);
-                        if post {
-                            self.emit_opcode(Opcode::Pop);
-                        }
+                        compiler.register_allocator.dealloc(receiver);
+                        compiler.register_allocator.dealloc(object);
+                        compiler.register_allocator.dealloc(key);
                     }
                 },
             },
             Access::This => unreachable!(),
-        }
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
         }
     }
 }

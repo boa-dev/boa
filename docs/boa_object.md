@@ -42,7 +42,7 @@ Location  Count    Handler    Opcode                     Operands
 000016    0007      none      GetName                           0000: 'x'
 000018    0008      none      GetName                           0001: 'y'
 000020    0009      none      Add
-000021    0010      none      SetReturnValue
+000021    0010      none      SetAccumulatorFromStack
 000022    0011      none      CheckReturn
 000023    0012      none      Return
 000024    0013      none      CheckReturn
@@ -312,6 +312,32 @@ function x() {
   return x();
 }
 x(); // RuntimeLimit: Maximum recursion limit 100 exceeded
+```
+
+### Getter & Setter `$boa.limits.backtrace`
+
+This is an accessor property on the module, its getter returns the backtrace limit for a thrown error.
+Its setter can be used to set the backtrace limit.
+
+```javascript
+$boa.limits.backtrace = 100;
+
+function x() {
+  function y() {
+    function z() {
+      throw "Hello";
+    }
+    z();
+  }
+  y();
+}
+x();
+
+// Uncaught "Hello"
+//     at z (test.js:6:13)
+//     at y (test.js:8:6)
+//     at x (test.js:10:4)
+//     at <main> (test.js:12:2)
 ```
 
 ## Module `$boa.string`

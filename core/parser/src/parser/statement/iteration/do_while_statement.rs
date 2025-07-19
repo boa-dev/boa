@@ -8,17 +8,16 @@
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
 use crate::{
+    Error,
     lexer::{Token, TokenKind},
     parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression, statement::Statement,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{statement::DoWhileLoop, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, Spanned, statement::DoWhileLoop};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Do...while statement parsing
 ///
@@ -62,8 +61,6 @@ where
     type Output = DoWhileLoop;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("DoWhileStatement", "Parsing");
-
         cursor.expect((Keyword::Do, false), "do while statement", interner)?;
 
         let position = cursor.peek(0, interner).or_abrupt()?.span().start();

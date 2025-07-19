@@ -1,7 +1,7 @@
-use super::{formatter, Console, ConsoleState};
-use crate::test::{run_test_actions, run_test_actions_with, TestAction};
-use crate::Logger;
-use boa_engine::{js_string, property::Attribute, Context, JsError, JsResult, JsValue};
+use super::{Console, ConsoleState, formatter};
+use crate::test::{TestAction, run_test_actions, run_test_actions_with};
+use crate::{Logger, NullLogger};
+use boa_engine::{Context, JsError, JsResult, JsValue, js_string, property::Attribute};
 use boa_gc::{Gc, GcRefCell};
 use indoc::indoc;
 
@@ -97,7 +97,7 @@ fn formatter_float_format_works() {
 #[test]
 fn console_log_cyclic() {
     let mut context = Context::default();
-    let console = Console::init(&mut context);
+    let console = Console::init_with_logger(&mut context, NullLogger);
     context
         .register_global_property(Console::NAME, console, Attribute::all())
         .unwrap();
@@ -336,5 +336,43 @@ fn console_namespace_object_class_string() {
             "#}),
         ],
         &mut context,
+    );
+}
+
+#[test]
+fn trace_with_stack_trace() {
+    let mut context = Context::default();
+    let logger = RecordingLogger::default();
+    Console::register_with_logger(&mut context, logger.clone()).unwrap();
+
+    run_test_actions_with(
+        [
+            TestAction::run(TEST_HARNESS),
+            TestAction::run(indoc! {r#"
+            console.trace("one");
+            a();
+
+            function a() {
+                b();
+            }
+            function b() {
+                console.trace("two");
+            }
+        "#}),
+        ],
+        &mut context,
+    );
+
+    let logs = logger.log.borrow().clone();
+    assert_eq!(
+        logs,
+        indoc! { r#"
+            one
+            <main>
+            two
+            b
+            a
+            <main>
+        "# }
     );
 }

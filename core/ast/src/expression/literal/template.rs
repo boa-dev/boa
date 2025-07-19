@@ -1,11 +1,12 @@
 //! Template literal Expression.
 
 use crate::{
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// Template literals are string literals allowing embedded expressions.
 ///
@@ -19,6 +20,7 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateLiteral {
     elements: Box<[TemplateElement]>,
+    span: Span,
 }
 
 /// Manual implementation, because string and expression in the element list must always appear in order.
@@ -38,7 +40,7 @@ impl<'a> arbitrary::Arbitrary<'a> for TemplateLiteral {
             }
         }
 
-        Ok(Self::new(elements.into_boxed_slice()))
+        Ok(Self::new(elements.into_boxed_slice(), Span::arbitrary(u)?))
     }
 }
 
@@ -49,34 +51,25 @@ impl From<TemplateLiteral> for Expression {
     }
 }
 
-/// An element found within a [`TemplateLiteral`].
-///
-/// The [spec] doesn't define an element akin to `TemplateElement`. However, the AST defines this
-/// node as the equivalent of the components found in a template literal.
-///
-/// [spec]: https://tc39.es/ecma262/#sec-template-literals
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, PartialEq)]
-pub enum TemplateElement {
-    /// A simple string.
-    String(Sym),
-    /// An expression that is evaluated and replaced by its string representation.
-    Expr(Expression),
-}
-
 impl TemplateLiteral {
     /// Creates a new `TemplateLiteral` from a list of [`TemplateElement`]s.
     #[inline]
     #[must_use]
-    pub fn new(elements: Box<[TemplateElement]>) -> Self {
-        Self { elements }
+    pub fn new(elements: Box<[TemplateElement]>, span: Span) -> Self {
+        Self { elements, span }
     }
 
     /// Gets the element list of this `TemplateLiteral`.
     #[must_use]
     pub const fn elements(&self) -> &[TemplateElement] {
         &self.elements
+    }
+}
+
+impl Spanned for TemplateLiteral {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -88,10 +81,10 @@ impl ToInternedString for TemplateLiteral {
         for elt in &self.elements {
             match elt {
                 TemplateElement::String(s) => {
-                    buf.push_str(&format!("{}", interner.resolve_expect(*s)));
+                    let _ = write!(buf, "{}", interner.resolve_expect(*s));
                 }
                 TemplateElement::Expr(n) => {
-                    buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)));
+                    let _ = write!(buf, "${{{}}}", n.to_interned_string(interner));
                 }
             }
         }
@@ -121,6 +114,22 @@ impl VisitWith for TemplateLiteral {
         }
         ControlFlow::Continue(())
     }
+}
+
+/// An element found within a [`TemplateLiteral`].
+///
+/// The [spec] doesn't define an element akin to `TemplateElement`. However, the AST defines this
+/// node as the equivalent of the components found in a template literal.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-template-literals
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[derive(Clone, Debug, PartialEq)]
+pub enum TemplateElement {
+    /// A simple string.
+    String(Sym),
+    /// An expression that is evaluated and replaced by its string representation.
+    Expr(Expression),
 }
 
 impl VisitWith for TemplateElement {

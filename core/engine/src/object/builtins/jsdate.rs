@@ -1,11 +1,11 @@
 //! A Rust API wrapper for Boa's `Date` ECMAScript Builtin Object.
 
 use crate::{
-    builtins::Date, object::JsObject, value::TryFromJs, Context, JsNativeError, JsResult, JsValue,
+    Context, JsNativeError, JsResult, JsValue, builtins::Date, object::JsObject, value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 /// `JsDate` is a wrapper for JavaScript `JsDate` builtin object
 ///
@@ -42,11 +42,9 @@ impl JsDate {
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         let prototype = context.intrinsics().constructors().date().prototype();
-        let inner = JsObject::from_proto_and_data_with_shared_shape(
-            context.root_shape(),
-            prototype,
-            Date::utc_now(context.host_hooks()),
-        );
+        let now = Date::utc_now(context);
+        let inner =
+            JsObject::from_proto_and_data_with_shared_shape(context.root_shape(), prototype, now);
 
         Self { inner }
     }

@@ -22,24 +22,23 @@ pub use shared::SharedArrayBuffer;
 use std::sync::atomic::Ordering;
 
 use crate::{
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, Object},
+    object::{JsObject, Object, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRef, GcRefMut, Trace};
-use boa_profiler::Profiler;
 
 use self::utils::{SliceRef, SliceRefMut};
 
 use super::{
-    typed_array::TypedArray, Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject,
+    Array, BuiltInBuilder, BuiltInConstructor, DataView, IntrinsicObject, typed_array::TypedArray,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -149,9 +148,9 @@ impl BufferObject {
         &self,
     ) -> BufferRef<GcRef<'_, ArrayBuffer>, GcRef<'_, SharedArrayBuffer>> {
         match self {
-            Self::Buffer(buf) => BufferRef::Buffer(GcRef::map(buf.borrow(), |o| &o.data)),
+            Self::Buffer(buf) => BufferRef::Buffer(GcRef::map(buf.borrow(), |o| o.data())),
             Self::SharedBuffer(buf) => {
-                BufferRef::SharedBuffer(GcRef::map(buf.borrow(), |o| &o.data))
+                BufferRef::SharedBuffer(GcRef::map(buf.borrow(), |o| o.data()))
             }
         }
     }
@@ -167,16 +166,17 @@ impl BufferObject {
     > {
         match self {
             Self::Buffer(buf) => {
-                BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+                BufferRefMut::Buffer(GcRefMut::map(buf.borrow_mut(), |o| o.data_mut()))
             }
             Self::SharedBuffer(buf) => {
-                BufferRefMut::SharedBuffer(GcRefMut::map(buf.borrow_mut(), |o| &mut o.data))
+                BufferRefMut::SharedBuffer(GcRefMut::map(buf.borrow_mut(), |o| o.data_mut()))
             }
         }
     }
 
     /// Returns `true` if the buffer objects point to the same buffer.
     #[inline]
+    #[track_caller]
     pub(crate) fn equals(lhs: &Self, rhs: &Self) -> bool {
         match (lhs, rhs) {
             (BufferObject::Buffer(lhs), BufferObject::Buffer(rhs)) => JsObject::equals(lhs, rhs),
@@ -319,8 +319,6 @@ impl ArrayBuffer {
 
 impl IntrinsicObject for ArrayBuffer {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
@@ -489,8 +487,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -514,8 +513,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message(
@@ -547,8 +547,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -571,8 +572,9 @@ impl ArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -861,12 +863,12 @@ impl ArrayBuffer {
         // 3. If allocatingResizableBuffer is true, then
         //     a. If byteLength > maxByteLength, throw a RangeError exception.
         //     b. Append [[ArrayBufferMaxByteLength]] to slots.
-        if let Some(max_byte_len) = max_byte_len {
-            if byte_len > max_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("`length` cannot be bigger than `maxByteLength`")
-                    .into());
-            }
+        if let Some(max_byte_len) = max_byte_len
+            && byte_len > max_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("`length` cannot be bigger than `maxByteLength`")
+                .into());
         }
 
         // 4. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", slots).

@@ -9,7 +9,7 @@ use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::{SimpleModuleLoader, SyntheticModuleInitializer};
 use boa_engine::object::FunctionObjectBuilder;
 use boa_engine::{
-    js_string, Context, JsArgs, JsError, JsNativeError, JsValue, Module, NativeFunction, Source,
+    Context, JsArgs, JsError, JsNativeError, JsValue, Module, NativeFunction, Source, js_string,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let promise_result = module.load_link_evaluate(context);
 
     // Very important to push forward the job queue after queueing promises.
-    context.run_jobs();
+    context.run_jobs()?;
 
     // Checking if the final promise didn't return an error.
     match promise_result.state() {
@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             assert_eq!(v, JsValue::undefined());
         }
         PromiseState::Rejected(err) => {
-            return Err(JsError::from_opaque(err).try_native(context)?.into())
+            return Err(JsError::from_opaque(err).try_native(context)?.into());
         }
     }
 
@@ -89,7 +89,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mix = namespace
         .get(js_string!("mix"), context)?
         .as_callable()
-        .cloned()
         .ok_or_else(|| JsNativeError::typ().with_message("mix export wasn't a function!"))?;
     let result = mix.call(&JsValue::undefined(), &[5.into(), 10.into()], context)?;
 

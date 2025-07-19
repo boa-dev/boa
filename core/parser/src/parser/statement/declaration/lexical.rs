@@ -8,20 +8,19 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::{
+    Error,
     lexer::{Error as LexError, Token, TokenKind},
     parser::{
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
         cursor::{Cursor, SemicolonResult},
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
-    Error,
 };
 use ast::operations::bound_names;
-use boa_ast::{self as ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned, declaration::Variable};
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 
 /// Parses a lexical declaration.
@@ -67,7 +66,6 @@ where
     type Output = ast::declaration::LexicalDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("LexicalDeclaration", "Parsing");
         let tok = cursor.next(interner).or_abrupt()?;
 
         let lexical_declaration = match tok.kind() {
@@ -75,7 +73,7 @@ where
                 return Err(Error::general(
                     "Keyword must not contain escaped characters",
                     tok.span().start(),
-                ))
+                ));
             }
             TokenKind::Keyword((Keyword::Const, false)) => BindingList::new(
                 self.allow_in,
@@ -105,7 +103,7 @@ where
         let bound_names = bound_names(&lexical_declaration);
         let mut names = FxHashSet::default();
         for name in bound_names {
-            if name.sym() == Sym::LET {
+            if name == Sym::LET {
                 return Err(Error::general(
                     "'let' is disallowed as a lexically bound name",
                     tok.span().start(),
@@ -187,8 +185,6 @@ where
     type Output = ast::declaration::LexicalDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("BindingList", "Parsing");
-
         // Create vectors to store the variable declarations
         // Const and Let signatures are slightly different, Const needs definitions, Lets don't
         let mut decls = Vec::new();
@@ -228,7 +224,7 @@ where
                     if tk.kind() == &TokenKind::Keyword((Keyword::Of, false))
                         || tk.kind() == &TokenKind::Keyword((Keyword::In, false)) =>
                 {
-                    break
+                    break;
                 }
                 SemicolonResult::NotFound(tk)
                     if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
@@ -296,8 +292,6 @@ where
     type Output = Variable;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("LexicalBinding", "Parsing");
-
         let peek_token = cursor.peek(0, interner).or_abrupt()?;
         let position = peek_token.span().start();
 
@@ -319,9 +313,9 @@ where
                     None
                 };
 
-                let declaration = Pattern::Object(bindings.into());
+                let declaration = bindings.into();
 
-                if bound_names(&declaration).contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET) {
                     return Err(Error::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
@@ -347,9 +341,9 @@ where
                     None
                 };
 
-                let declaration = Pattern::Array(bindings.into());
+                let declaration = bindings.into();
 
-                if bound_names(&declaration).contains(&Sym::LET.into()) {
+                if bound_names(&declaration).contains(&Sym::LET) {
                     return Err(Error::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,

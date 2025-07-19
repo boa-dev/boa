@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::SimpleModuleLoader;
-use boa_engine::{js_string, Context, JsValue, Source};
+use boa_engine::{Context, JsValue, Source, js_string};
 
 /// Test that relative imports work with the simple module loader.
 #[test]
@@ -23,7 +23,7 @@ fn subdirectories() {
     let module = boa_engine::Module::parse(source, None, &mut context).unwrap();
     let result = module.load_link_evaluate(&mut context);
 
-    context.run_jobs();
+    context.run_jobs().unwrap();
     match result.state() {
         PromiseState::Pending => {}
         PromiseState::Fulfilled(v) => {

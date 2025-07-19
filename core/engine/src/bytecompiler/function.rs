@@ -1,9 +1,9 @@
 use crate::{
+    JsString, SpannedSourceText,
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
     js_string,
-    vm::{CodeBlock, CodeBlockFlags, Opcode},
-    JsString,
+    vm::{CodeBlock, CodeBlockFlags, source_info::SourcePath},
 };
 use boa_ast::{
     function::{FormalParameterList, FunctionBody},
@@ -23,12 +23,15 @@ pub(crate) struct FunctionCompiler {
     arrow: bool,
     method: bool,
     in_with: bool,
+    force_function_scope: bool,
     name_scope: Option<Scope>,
+    spanned_source_text: SpannedSourceText,
+    source_path: SourcePath,
 }
 
 impl FunctionCompiler {
     /// Create a new `FunctionCompiler`.
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(spanned_source_text: SpannedSourceText) -> Self {
         Self {
             name: js_string!(),
             generator: false,
@@ -37,7 +40,10 @@ impl FunctionCompiler {
             arrow: false,
             method: false,
             in_with: false,
+            force_function_scope: false,
             name_scope: None,
+            spanned_source_text,
+            source_path: SourcePath::None,
         }
     }
 
@@ -93,6 +99,18 @@ impl FunctionCompiler {
         self
     }
 
+    /// Indicate if the function is in a `with` statement.
+    pub(crate) const fn force_function_scope(mut self, force_function_scope: bool) -> Self {
+        self.force_function_scope = force_function_scope;
+        self
+    }
+
+    /// Set source map file path.
+    pub(crate) fn source_path(mut self, source_path: SourcePath) -> Self {
+        self.source_path = source_path;
+        self
+    }
+
     /// Compile a function statement list and it's parameters into bytecode.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile(
@@ -119,7 +137,10 @@ impl FunctionCompiler {
             self.generator,
             interner,
             self.in_with,
+            self.spanned_source_text,
+            self.source_path,
         );
+
         compiler.length = length;
         compiler.code_block_flags.set(
             CodeBlockFlags::HAS_PROTOTYPE_PROPERTY,
@@ -130,19 +151,27 @@ impl FunctionCompiler {
             compiler.this_mode = ThisMode::Lexical;
         }
 
-        if let Some(scope) = self.name_scope {
-            if !scope.all_bindings_local() {
-                compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
-                let _ = compiler.push_scope(&scope);
-            }
+        if let Some(scope) = self.name_scope
+            && !scope.all_bindings_local()
+        {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_BINDING_IDENTIFIER;
+            let _ = compiler.push_scope(&scope);
         }
 
-        if self.arrow && scopes.function_scope().all_bindings_local() && !contains_direct_eval {
+        if contains_direct_eval || !scopes.function_scope().all_bindings_local() {
+            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+        } else if !self.arrow {
+            compiler.code_block_flags.set(
+                CodeBlockFlags::HAS_FUNCTION_SCOPE,
+                self.force_function_scope || scopes.requires_function_scope(),
+            );
+        }
+
+        if compiler.code_block_flags.has_function_scope() {
+            let _ = compiler.push_scope(scopes.function_scope());
+        } else {
             compiler.variable_scope = scopes.function_scope().clone();
             compiler.lexical_scope = scopes.function_scope().clone();
-        } else {
-            compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
-            let _ = compiler.push_scope(scopes.function_scope());
         }
 
         // Taken from:
@@ -159,7 +188,7 @@ impl FunctionCompiler {
             // Note: If the promise capability is already set, then we do nothing.
             // This is a deviation from the spec, but it allows to set the promise capability by
             // ExecuteAsyncModule ( module ): <https://tc39.es/ecma262/#sec-execute-async-module>
-            compiler.emit_opcode(Opcode::CreatePromiseCapability);
+            compiler.bytecode.emit_create_promise_capability();
 
             // 2. Let declResult be Completion(FunctionDeclarationInstantiation(functionObject, argumentsList)).
             //
@@ -192,7 +221,10 @@ impl FunctionCompiler {
             }
         }
 
-        compiler.compile_statement_list(body.statement_list(), false, false);
+        {
+            let mut compiler = compiler.position_guard(body);
+            compiler.compile_statement_list(body.statement_list(), false, false);
+        }
 
         compiler.params = parameters.clone();
         compiler.parameter_scope = scopes.parameter_scope();

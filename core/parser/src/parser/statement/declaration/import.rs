@@ -12,22 +12,21 @@
 use crate::{
     lexer::TokenKind,
     parser::{
-        cursor::Cursor,
-        statement::{declaration::FromClause, BindingIdentifier},
         Error, OrAbrupt, ParseResult, TokenParser,
+        cursor::Cursor,
+        statement::{BindingIdentifier, declaration::FromClause},
     },
     source::ReadChar,
 };
 use boa_ast::{
+    Keyword, Punctuator, Spanned,
     declaration::{
         ImportDeclaration as AstImportDeclaration, ImportKind,
         ImportSpecifier as AstImportSpecifier, ModuleSpecifier,
     },
     expression::Identifier,
-    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses an import declaration.
 ///
@@ -76,8 +75,6 @@ where
     type Output = AstImportDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ImportDeclaration", "Parsing");
-
         cursor.expect((Keyword::Import, false), "import declaration", interner)?;
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -132,7 +129,7 @@ where
                                     tok.to_string(interner),
                                     tok.span(),
                                     "import declaration",
-                                ))
+                                ));
                             }
                         }
                     }
@@ -150,7 +147,7 @@ where
                     tok.to_string(interner),
                     tok.span(),
                     "import declaration",
-                ))
+                ));
             }
         };
 

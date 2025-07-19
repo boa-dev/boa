@@ -18,7 +18,6 @@ mod plain_date_time;
 mod plain_month_day;
 mod plain_time;
 mod plain_year_month;
-mod time_zone;
 mod zoneddatetime;
 
 #[cfg(test)]
@@ -29,32 +28,19 @@ pub use self::{
     plain_time::*, plain_year_month::*, zoneddatetime::*,
 };
 
-use crate::value::JsVariant;
 use crate::{
+    Context, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{BuiltInBuilder, BuiltInObject, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
-use boa_profiler::Profiler;
 use temporal_rs::options::RelativeTo;
 use temporal_rs::{
-    primitive::FiniteF64, PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime,
-    NS_PER_DAY,
+    PlainDate as TemporalDate, ZonedDateTime as TemporalZonedDateTime, primitive::FiniteF64,
 };
-
-// TODO: Remove in favor of `temporal_rs`
-pub(crate) fn ns_max_instant() -> JsBigInt {
-    JsBigInt::from(i128::from(NS_PER_DAY) * 100_000_000_i128)
-}
-
-// TODO: Remove in favor of `temporal_rs`
-pub(crate) fn ns_min_instant() -> JsBigInt {
-    JsBigInt::from(i128::from(NS_PER_DAY) * -100_000_000_i128)
-}
 
 // An enum representing common fields across `Temporal` objects.
 pub(crate) enum DateTimeValues {
@@ -83,8 +69,6 @@ impl BuiltInObject for Temporal {
 
 impl IntrinsicObject for Temporal {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
@@ -162,14 +146,6 @@ impl IntrinsicObject for Temporal {
 
 // -- Temporal Abstract Operations --
 
-/// Abstract operation `ToZeroPaddedDecimalString ( n, minLength )`
-///
-/// The abstract operation `ToZeroPaddedDecimalString` takes arguments `n` (a non-negative integer)
-/// and `minLength` (a non-negative integer) and returns a String.
-fn to_zero_padded_decimal_string(n: u64, min_length: usize) -> String {
-    format!("{n:0min_length$}")
-}
-
 pub(crate) fn get_relative_to_option(
     options: &JsObject,
     context: &mut Context,
@@ -200,7 +176,7 @@ pub(crate) fn get_relative_to_option(
         }
         // d. Let calendar be ? GetTemporalCalendarIdentifierWithISODefault(value).
         // e. Let fields be ? PrepareCalendarFields(calendar, value, « year, month, month-code, day », « hour, minute, second, millisecond, microsecond, nanosecond, offset, time-zone », «»).
-        let partial = to_partial_zoneddatetime(object, context)?;
+        let partial = to_partial_zoneddatetime(&object, context)?;
         // f. Let result be ? InterpretTemporalDateTimeFields(calendar, fields, constrain).
         // g. Let timeZone be fields.[[TimeZone]].
         // h. Let offsetString be fields.[[OffsetString]].
@@ -237,35 +213,11 @@ pub(crate) fn get_relative_to_option(
     )?))
 }
 
-type RelativeTemporalObjectResult = JsResult<(Option<TemporalDate>, Option<TemporalZonedDateTime>)>;
-
-/// 13.21 `ToRelativeTemporalObject ( options )`
-pub(crate) fn to_relative_temporal_object(
-    options: &JsObject,
-    context: &mut Context,
-) -> RelativeTemporalObjectResult {
-    let relative_to = options.get(js_string!("relativeTo"), context)?;
-    let plain_date = match relative_to.variant() {
-        JsVariant::String(relative_to_str) => JsValue::from(relative_to_str.clone()),
-        JsVariant::Object(relative_to_obj) => JsValue::from(relative_to_obj.clone()),
-        JsVariant::Undefined => return Ok((None, None)),
-        _ => {
-            return Err(JsNativeError::typ()
-                .with_message("Invalid type for converting to relativeTo object")
-                .into())
-        }
-    };
-    let plain_date = to_temporal_date(&plain_date, None, context)?;
-
-    // TODO: Implement TemporalZonedDateTime conversion when ZonedDateTime is implemented
-    Ok((Some(plain_date), None))
-}
-
 // 13.26 IsPartialTemporalObject ( object )
-pub(crate) fn is_partial_temporal_object<'value>(
-    value: &'value JsValue,
+pub(crate) fn is_partial_temporal_object(
+    value: &JsValue,
     context: &mut Context,
-) -> JsResult<Option<&'value JsObject>> {
+) -> JsResult<Option<JsObject>> {
     // 1. If value is not an Object, return false.
     let Some(obj) = value.as_object() else {
         return Ok(None);
@@ -318,22 +270,22 @@ fn extract_from_temporal_type<DF, DTF, YMF, MDF, ZDTF, Ret>(
     zoned_datetime_f: ZDTF,
 ) -> JsResult<Option<Ret>>
 where
-    DF: FnOnce(JsObject<PlainDate>) -> JsResult<Option<Ret>>,
-    DTF: FnOnce(JsObject<PlainDateTime>) -> JsResult<Option<Ret>>,
-    YMF: FnOnce(JsObject<PlainYearMonth>) -> JsResult<Option<Ret>>,
-    MDF: FnOnce(JsObject<PlainMonthDay>) -> JsResult<Option<Ret>>,
-    ZDTF: FnOnce(JsObject<ZonedDateTime>) -> JsResult<Option<Ret>>,
+    DF: FnOnce(&PlainDate) -> JsResult<Option<Ret>>,
+    DTF: FnOnce(&PlainDateTime) -> JsResult<Option<Ret>>,
+    YMF: FnOnce(&PlainYearMonth) -> JsResult<Option<Ret>>,
+    MDF: FnOnce(&PlainMonthDay) -> JsResult<Option<Ret>>,
+    ZDTF: FnOnce(&ZonedDateTime) -> JsResult<Option<Ret>>,
 {
-    if let Ok(date) = object.clone().downcast::<PlainDate>() {
-        return date_f(date);
-    } else if let Ok(dt) = object.clone().downcast::<PlainDateTime>() {
-        return datetime_f(dt);
-    } else if let Ok(ym) = object.clone().downcast::<PlainYearMonth>() {
-        return year_month_f(ym);
-    } else if let Ok(md) = object.clone().downcast::<PlainMonthDay>() {
-        return month_day_f(md);
-    } else if let Ok(dt) = object.clone().downcast::<ZonedDateTime>() {
-        return zoned_datetime_f(dt);
+    if let Some(date) = object.downcast_ref::<PlainDate>() {
+        return date_f(&date);
+    } else if let Some(dt) = object.downcast_ref::<PlainDateTime>() {
+        return datetime_f(&dt);
+    } else if let Some(ym) = object.downcast_ref::<PlainYearMonth>() {
+        return year_month_f(&ym);
+    } else if let Some(md) = object.downcast_ref::<PlainMonthDay>() {
+        return month_day_f(&md);
+    } else if let Some(dt) = object.downcast_ref::<ZonedDateTime>() {
+        return zoned_datetime_f(&dt);
     }
 
     Ok(None)

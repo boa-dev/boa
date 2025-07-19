@@ -1,15 +1,14 @@
 use super::{FormalParameterList, FunctionBody};
 use crate::{
-    block_to_string,
+    Declaration, LinearSpan, LinearSpanIgnoreEq, Span, Spanned, block_to_string,
     expression::{Expression, Identifier},
     join_nodes,
-    operations::{contains, ContainsSymbol},
+    operations::{ContainsSymbol, contains},
     scope::{FunctionScopes, Scope},
     visitor::{VisitWith, Visitor, VisitorMut},
-    Declaration,
 };
 use boa_interner::{Interner, ToIndentedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// A generator declaration.
 ///
@@ -30,13 +29,19 @@ pub struct GeneratorDeclaration {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
 }
 
 impl GeneratorDeclaration {
     /// Creates a new generator declaration.
     #[inline]
     #[must_use]
-    pub fn new(name: Identifier, parameters: FormalParameterList, body: FunctionBody) -> Self {
+    pub fn new(
+        name: Identifier,
+        parameters: FormalParameterList,
+        body: FunctionBody,
+        linear_span: LinearSpan,
+    ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
         Self {
@@ -45,6 +50,7 @@ impl GeneratorDeclaration {
             body,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
         }
     }
 
@@ -74,6 +80,13 @@ impl GeneratorDeclaration {
     #[must_use]
     pub const fn scopes(&self) -> &FunctionScopes {
         &self.scopes
+    }
+
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
     }
 
     /// Returns `true` if the generator declaration contains a direct call to `eval`.
@@ -145,6 +158,9 @@ pub struct GeneratorExpression {
 
     #[cfg_attr(feature = "serde", serde(skip))]
     pub(crate) scopes: FunctionScopes,
+    linear_span: LinearSpanIgnoreEq,
+
+    span: Span,
 }
 
 impl GeneratorExpression {
@@ -155,7 +171,9 @@ impl GeneratorExpression {
         name: Option<Identifier>,
         parameters: FormalParameterList,
         body: FunctionBody,
+        linear_span: LinearSpan,
         has_binding_identifier: bool,
+        span: Span,
     ) -> Self {
         let contains_direct_eval = contains(&parameters, ContainsSymbol::DirectEval)
             || contains(&body, ContainsSymbol::DirectEval);
@@ -167,6 +185,8 @@ impl GeneratorExpression {
             name_scope: None,
             contains_direct_eval,
             scopes: FunctionScopes::default(),
+            linear_span: linear_span.into(),
+            span,
         }
     }
 
@@ -212,6 +232,13 @@ impl GeneratorExpression {
         &self.scopes
     }
 
+    /// Gets linear span of the function declaration.
+    #[inline]
+    #[must_use]
+    pub const fn linear_span(&self) -> LinearSpan {
+        self.linear_span.0
+    }
+
     /// Returns `true` if the generator expression contains a direct call to `eval`.
     #[inline]
     #[must_use]
@@ -220,19 +247,27 @@ impl GeneratorExpression {
     }
 }
 
+impl Spanned for GeneratorExpression {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 impl ToIndentedString for GeneratorExpression {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function*".to_owned();
-        if self.has_binding_identifier {
-            if let Some(name) = self.name {
-                buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
-            }
+        if self.has_binding_identifier
+            && let Some(name) = self.name
+        {
+            let _ = write!(buf, " {}", interner.resolve_expect(name.sym()));
         }
-        buf.push_str(&format!(
+        let _ = write!(
+            buf,
             "({}) {}",
             join_nodes(interner, self.parameters.as_ref()),
             block_to_string(&self.body.statements, interner, indentation)
-        ));
+        );
 
         buf
     }

@@ -10,36 +10,38 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use crate::{
-    builtins::{iterable::if_abrupt_close_iterator, BuiltInObject, Number},
+    Context, JsArgs, JsResult, JsString,
+    builtins::{BuiltInObject, Number, iterable::if_abrupt_close_iterator},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     object::{
+        CONSTRUCTOR, IndexedProperties, JsData, JsObject,
         internal_methods::{
+            InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
             get_prototype_from_constructor, ordinary_define_own_property,
-            ordinary_get_own_property, InternalMethodContext, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
+            ordinary_get_own_property,
         },
-        IndexedProperties, JsData, JsObject, CONSTRUCTOR,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsArgs, JsResult, JsString,
 };
-use std::cmp::{min, Ordering};
+use std::cmp::{Ordering, min};
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
 mod array_iterator;
 use crate::value::JsVariant;
 pub(crate) use array_iterator::ArrayIterator;
+
+#[cfg(feature = "experimental")]
+mod from_async;
 
 #[cfg(test)]
 mod tests;
@@ -75,8 +77,6 @@ impl JsData for Array {
 
 impl IntrinsicObject for Array {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let symbol_iterator = JsSymbol::iterator();
         let symbol_unscopables = JsSymbol::unscopables();
 
@@ -106,7 +106,7 @@ impl IntrinsicObject for Array {
 
         let unscopables_object = Self::unscopables_object();
 
-        BuiltInBuilder::from_standard_constructor::<Self>(realm)
+        let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             // Static Methods
             .static_method(Self::from, js_string!("from"), 1)
             .static_method(Self::is_array, js_string!("isArray"), 1)
@@ -177,8 +177,12 @@ impl IntrinsicObject for Array {
                 symbol_unscopables,
                 unscopables_object,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .build();
+            );
+
+        #[cfg(feature = "experimental")]
+        let builder = builder.static_method(Self::from_async, js_string!("fromAsync"), 1);
+
+        builder.build();
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {
@@ -374,7 +378,7 @@ impl Array {
                 .enumerable(false)
                 .configurable(false)
                 .build(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         Ok(array)
@@ -477,7 +481,7 @@ impl Array {
 
             // c. If thisRealm and realmC are not the same Realm Record, then
             if this_realm != realm_c
-                && *c == realm_c.intrinsics().constructors().array().constructor()
+                && c == realm_c.intrinsics().constructors().array().constructor()
             {
                 // i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
                 // Note: fast path to step 6.
@@ -506,7 +510,7 @@ impl Array {
 
         if let Some(c) = c.as_constructor() {
             // 8. Return ? Construct(C, « 𝔽(length) »).
-            return c.construct(&[JsValue::new(length)], Some(c), context);
+            return c.construct(&[JsValue::new(length)], Some(&c), context);
         }
 
         // 7. If IsConstructor(C) is false, throw a TypeError exception.
@@ -545,7 +549,7 @@ impl Array {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message(format!("`{}` is not callable", mapfn.type_of()))
-                    .into())
+                    .into());
             }
         };
 
@@ -580,7 +584,7 @@ impl Array {
                 // b. Let kValue be ? Get(arrayLike, Pk).
                 let k_value = array_like.get(k, context)?;
 
-                let mapped_value = if let Some(mapfn) = mapping {
+                let mapped_value = if let Some(ref mapfn) = mapping {
                     // c. If mapping is true, then
                     //     i. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
                     mapfn.call(this_arg, &[k_value, k.into()], context)?
@@ -630,7 +634,7 @@ impl Array {
             };
 
             // v. If mapping is true, then
-            let mapped_value = if let Some(mapfn) = mapping {
+            let mapped_value = if let Some(ref mapfn) = mapping {
                 // 1. Let mappedValue be Completion(Call(mapper, thisArg, « next, 𝔽(k) »)).
                 let mapped_value = mapfn.call(this_arg, &[next, k.into()], context);
 
@@ -1219,13 +1223,13 @@ impl Array {
                     return Ok(v.into());
                 }
             }
-            if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut() {
-                if len <= dense.len() as u64 {
-                    let v = dense.remove(0);
-                    drop(o_borrow);
-                    Self::set_length(&o, len - 1, context)?;
-                    return Ok(v);
-                }
+            if let Some(dense) = o_borrow.properties_mut().dense_indexed_properties_mut()
+                && len <= dense.len() as u64
+            {
+                let v = dense.remove(0);
+                drop(o_borrow);
+                Self::set_length(&o, len - 1, context)?;
+                return Ok(v);
             }
         }
 
@@ -1483,7 +1487,7 @@ impl Array {
             if k < 0 {
                 k = 0;
             }
-        };
+        }
 
         let search_element = args.get_or_undefined(0);
 
@@ -1774,7 +1778,7 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => depth_num = u64::MAX,
                 _ => depth_num = 0,
             }
-        };
+        }
 
         // 5. Let A be ArraySpeciesCreate(O, 0)
         let a = Self::array_species_create(&o, 0, context)?;
@@ -1833,7 +1837,7 @@ impl Array {
             source_len,
             0,
             1,
-            Some(mapper_function),
+            Some(&mapper_function),
             args.get_or_undefined(1),
             context,
         )?;
@@ -1920,7 +1924,7 @@ impl Array {
                     // 4. Set targetIndex to ? FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
                         target,
-                        element,
+                        &element,
                         element_len,
                         target_index,
                         new_depth,
@@ -2165,6 +2169,9 @@ impl Array {
         // 2. Let len be ? ToLength(? Get(array, "length")).
         let len = array.length_of_array_like(context)?;
 
+        let locales = args.get_or_undefined(0);
+        let options = args.get_or_undefined(1);
+
         // 3. Let separator be the implementation-defined list-separator String value appropriate for the host environment's current locale (such as ", ").
         let separator = {
             #[cfg(feature = "intl")]
@@ -2198,7 +2205,11 @@ impl Array {
             if !next.is_null_or_undefined() {
                 // i. Let S be ? ToString(? Invoke(nextElement, "toLocaleString", « locales, options »)).
                 let s = next
-                    .invoke(js_string!("toLocaleString"), args, context)?
+                    .invoke(
+                        js_string!("toLocaleString"),
+                        &[locales.clone(), options.clone()],
+                        context,
+                    )?
                     .to_string(context)?;
 
                 // ii. Set R to the string-concatenation of R and S.
@@ -2673,7 +2684,7 @@ impl Array {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
-                    .into())
+                    .into());
             }
         };
 
@@ -2687,7 +2698,7 @@ impl Array {
         let sort_compare =
             |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<Ordering> {
                 // a. Return ? CompareArrayElements(x, y, comparefn).
-                compare_array_elements(x, y, comparefn, context)
+                compare_array_elements(x, y, comparefn.as_ref(), context)
             };
 
         // 5. Let sortedList be ? SortIndexedProperties(obj, len, SortCompare, skip-holes).
@@ -2736,7 +2747,7 @@ impl Array {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("The comparison function must be either a function or undefined")
-                    .into())
+                    .into());
             }
         };
 
@@ -2753,7 +2764,7 @@ impl Array {
         let sort_compare =
             |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<Ordering> {
                 // a. Return ? CompareArrayElements(x, y, comparefn).
-                compare_array_elements(x, y, comparefn, context)
+                compare_array_elements(x, y, comparefn.as_ref(), context)
             };
 
         // 6. Let sortedList be ? SortIndexedProperties(O, len, SortCompare, read-through-holes).
@@ -3411,12 +3422,12 @@ fn array_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     match key {
         // 2. If P is "length", then
-        PropertyKey::String(ref s) if s == &StaticJsStrings::LENGTH => {
+        PropertyKey::String(s) if s == &StaticJsStrings::LENGTH => {
             // a. Return ? ArraySetLength(A, Desc).
 
             array_set_length(obj, desc, context)
@@ -3424,6 +3435,33 @@ fn array_exotic_define_own_property(
         // 3. Else if P is an array index, then
         PropertyKey::Index(index) => {
             let index = index.get();
+            let new_len = index + 1;
+
+            // Optimization: If the shape of the object is the array template shape,
+            // we know the position of the "length" property.
+            if u64::from(new_len) < (2u64.pow(32) - 1) {
+                let borrowed_object = obj.borrow();
+                if borrowed_object.properties().shape.to_addr_usize()
+                    == context
+                        .intrinsics()
+                        .templates()
+                        .array()
+                        .shape()
+                        .to_addr_usize()
+                {
+                    let old_len = borrowed_object.properties().storage[0].clone();
+                    drop(borrowed_object);
+                    let old_len = old_len.to_u32(context)?;
+                    if new_len >= old_len {
+                        if ordinary_define_own_property(obj, key, desc, context)? {
+                            let mut borrowed_object = obj.borrow_mut();
+                            borrowed_object.properties_mut().storage[0] = JsValue::new(new_len);
+                            return Ok(true);
+                        }
+                        return Ok(false);
+                    }
+                }
+            }
 
             // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
             let old_len_desc =
@@ -3455,7 +3493,7 @@ fn array_exotic_define_own_property(
                 if index >= old_len {
                     // i. Set oldLenDesc.[[Value]] to index + 1𝔽.
                     let old_len_desc = PropertyDescriptor::builder()
-                        .value(index + 1)
+                        .value(new_len)
                         .maybe_writable(old_len_desc.writable())
                         .maybe_enumerable(old_len_desc.enumerable())
                         .maybe_configurable(old_len_desc.configurable());
@@ -3493,7 +3531,7 @@ fn array_exotic_define_own_property(
 fn array_set_length(
     obj: &JsObject,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. If Desc.[[Value]] is absent, then
     let Some(new_len_val) = desc.value() else {

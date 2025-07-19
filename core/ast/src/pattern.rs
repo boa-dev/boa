@@ -23,13 +23,13 @@
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
 use crate::{
-    expression::{access::PropertyAccess, Identifier},
+    Expression, Span, Spanned,
+    expression::{Identifier, access::PropertyAccess},
     property::PropertyName,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Expression,
 };
 use boa_interner::{Interner, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// An object or array pattern binding or assignment.
 ///
@@ -44,6 +44,16 @@ pub enum Pattern {
     Array(ArrayPattern),
 }
 
+impl Spanned for Pattern {
+    #[inline]
+    fn span(&self) -> Span {
+        match self {
+            Pattern::Object(object_pattern) => object_pattern.span(),
+            Pattern::Array(array_pattern) => array_pattern.span(),
+        }
+    }
+}
+
 impl From<ObjectPattern> for Pattern {
     fn from(obj: ObjectPattern) -> Self {
         Self::Object(obj)
@@ -53,17 +63,6 @@ impl From<ObjectPattern> for Pattern {
 impl From<ArrayPattern> for Pattern {
     fn from(obj: ArrayPattern) -> Self {
         Self::Array(obj)
-    }
-}
-
-impl From<Vec<ObjectPatternElement>> for Pattern {
-    fn from(elements: Vec<ObjectPatternElement>) -> Self {
-        ObjectPattern::new(elements.into()).into()
-    }
-}
-impl From<Vec<ArrayPatternElement>> for Pattern {
-    fn from(elements: Vec<ArrayPatternElement>) -> Self {
-        ArrayPattern::new(elements.into()).into()
     }
 }
 
@@ -110,20 +109,17 @@ impl VisitWith for Pattern {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ObjectPattern(Box<[ObjectPatternElement]>);
-
-impl From<Vec<ObjectPatternElement>> for ObjectPattern {
-    fn from(elements: Vec<ObjectPatternElement>) -> Self {
-        Self(elements.into())
-    }
+pub struct ObjectPattern {
+    elements: Box<[ObjectPatternElement]>,
+    span: Span,
 }
 
 impl ToInternedString for ObjectPattern {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "{".to_owned();
-        for (i, binding) in self.0.iter().enumerate() {
+        for (i, binding) in self.elements.iter().enumerate() {
             let binding = binding.to_interned_string(interner);
-            let str = if i == self.0.len() - 1 {
+            let str = if i == self.elements.len() - 1 {
                 format!("{binding} ")
             } else {
                 format!("{binding},")
@@ -131,7 +127,7 @@ impl ToInternedString for ObjectPattern {
 
             buf.push_str(&str);
         }
-        if self.0.is_empty() {
+        if self.elements.is_empty() {
             buf.push(' ');
         }
         buf.push('}');
@@ -143,15 +139,15 @@ impl ObjectPattern {
     /// Creates a new object binding pattern.
     #[inline]
     #[must_use]
-    pub fn new(bindings: Box<[ObjectPatternElement]>) -> Self {
-        Self(bindings)
+    pub const fn new(elements: Box<[ObjectPatternElement]>, span: Span) -> Self {
+        Self { elements, span }
     }
 
     /// Gets the bindings for the object binding pattern.
     #[inline]
     #[must_use]
     pub const fn bindings(&self) -> &[ObjectPatternElement] {
-        &self.0
+        &self.elements
     }
 
     /// Returns true if the object binding pattern has a rest element.
@@ -159,9 +155,16 @@ impl ObjectPattern {
     #[must_use]
     pub const fn has_rest(&self) -> bool {
         matches!(
-            self.0.last(),
+            self.elements.last(),
             Some(ObjectPatternElement::RestProperty { .. })
         )
+    }
+}
+
+impl Spanned for ObjectPattern {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -170,7 +173,7 @@ impl VisitWith for ObjectPattern {
     where
         V: Visitor<'a>,
     {
-        for elem in &*self.0 {
+        for elem in &*self.elements {
             visitor.visit_object_pattern_element(elem)?;
         }
         ControlFlow::Continue(())
@@ -180,7 +183,7 @@ impl VisitWith for ObjectPattern {
     where
         V: VisitorMut<'a>,
     {
-        for elem in &mut *self.0 {
+        for elem in &mut *self.elements {
             visitor.visit_object_pattern_element_mut(elem)?;
         }
         ControlFlow::Continue(())
@@ -199,27 +202,26 @@ impl VisitWith for ObjectPattern {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct ArrayPattern(Box<[ArrayPatternElement]>);
-
-impl From<Vec<ArrayPatternElement>> for ArrayPattern {
-    fn from(elements: Vec<ArrayPatternElement>) -> Self {
-        Self(elements.into())
-    }
+pub struct ArrayPattern {
+    bindings: Box<[ArrayPatternElement]>,
+    span: Span,
 }
 
 impl ToInternedString for ArrayPattern {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "[".to_owned();
-        for (i, binding) in self.0.iter().enumerate() {
-            if i == self.0.len() - 1 {
+        for (i, binding) in self.bindings.iter().enumerate() {
+            if i == self.bindings.len() - 1 {
                 match binding {
                     ArrayPatternElement::Elision => {
-                        buf.push_str(&format!("{}, ", binding.to_interned_string(interner)));
+                        let _ = write!(buf, "{}, ", binding.to_interned_string(interner));
                     }
-                    _ => buf.push_str(&format!("{} ", binding.to_interned_string(interner))),
+                    _ => {
+                        let _ = write!(buf, "{} ", binding.to_interned_string(interner));
+                    }
                 }
             } else {
-                buf.push_str(&format!("{},", binding.to_interned_string(interner)));
+                let _ = write!(buf, "{},", binding.to_interned_string(interner));
             }
         }
         buf.push(']');
@@ -231,15 +233,22 @@ impl ArrayPattern {
     /// Creates a new array binding pattern.
     #[inline]
     #[must_use]
-    pub fn new(bindings: Box<[ArrayPatternElement]>) -> Self {
-        Self(bindings)
+    pub fn new(bindings: Box<[ArrayPatternElement]>, span: Span) -> Self {
+        Self { bindings, span }
     }
 
     /// Gets the bindings for the array binding pattern.
     #[inline]
     #[must_use]
     pub const fn bindings(&self) -> &[ArrayPatternElement] {
-        &self.0
+        &self.bindings
+    }
+}
+
+impl Spanned for ArrayPattern {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -248,7 +257,7 @@ impl VisitWith for ArrayPattern {
     where
         V: Visitor<'a>,
     {
-        for elem in &*self.0 {
+        for elem in &*self.bindings {
             visitor.visit_array_pattern_element(elem)?;
         }
         ControlFlow::Continue(())
@@ -258,7 +267,7 @@ impl VisitWith for ArrayPattern {
     where
         V: VisitorMut<'a>,
     {
-        for elem in &mut *self.0 {
+        for elem in &mut *self.bindings {
             visitor.visit_array_pattern_element_mut(elem)?;
         }
         ControlFlow::Continue(())
@@ -375,7 +384,7 @@ impl ToInternedString for ObjectPatternElement {
                     PropertyName::Literal(name) => {
                         format!(
                             " {} : {}",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.sym()),
                             interner.resolve_expect(ident.sym())
                         )
                     }
@@ -387,8 +396,8 @@ impl ToInternedString for ObjectPatternElement {
                         )
                     }
                 };
-                if let Some(ref init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                if let Some(init) = default_init {
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -407,7 +416,7 @@ impl ToInternedString for ObjectPatternElement {
                     PropertyName::Literal(name) => {
                         format!(
                             " {} : {}",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.sym()),
                             access.to_interned_string(interner)
                         )
                     }
@@ -420,7 +429,7 @@ impl ToInternedString for ObjectPatternElement {
                     }
                 };
                 if let Some(init) = &default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -433,7 +442,7 @@ impl ToInternedString for ObjectPatternElement {
                     PropertyName::Literal(name) => {
                         format!(
                             " {} : {}",
-                            interner.resolve_expect(*name),
+                            interner.resolve_expect(name.sym()),
                             pattern.to_interned_string(interner),
                         )
                     }
@@ -445,8 +454,8 @@ impl ToInternedString for ObjectPatternElement {
                         )
                     }
                 };
-                if let Some(ref init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                if let Some(init) = default_init {
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -669,8 +678,8 @@ impl ToInternedString for ArrayPatternElement {
                 default_init,
             } => {
                 let mut buf = format!(" {}", interner.resolve_expect(ident.sym()));
-                if let Some(ref init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                if let Some(init) = default_init {
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -680,7 +689,7 @@ impl ToInternedString for ArrayPatternElement {
             } => {
                 let mut buf = format!(" {}", access.to_interned_string(interner));
                 if let Some(init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }
@@ -690,7 +699,7 @@ impl ToInternedString for ArrayPatternElement {
             } => {
                 let mut buf = format!(" {}", pattern.to_interned_string(interner));
                 if let Some(init) = default_init {
-                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                    let _ = write!(buf, " = {}", init.to_interned_string(interner));
                 }
                 buf
             }

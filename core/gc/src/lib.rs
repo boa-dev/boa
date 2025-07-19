@@ -5,8 +5,8 @@
 //! for garbage collected values.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
@@ -23,7 +23,6 @@ mod trace;
 
 pub(crate) mod internals;
 
-use boa_profiler::Profiler;
 use internals::{EphemeronBox, ErasedEphemeronBox, ErasedWeakMapBox, WeakMapBox};
 use pointers::{NonTraceable, RawWeakMap};
 use std::{
@@ -36,7 +35,7 @@ pub use crate::trace::{Finalize, Trace, Tracer};
 pub use boa_macros::{Finalize, Trace};
 pub use cell::{GcRef, GcRefCell, GcRefMut};
 pub use internals::GcBox;
-pub use pointers::{Ephemeron, Gc, WeakGc, WeakMap};
+pub use pointers::{Ephemeron, Gc, GcErased, WeakGc, WeakMap};
 
 type GcErasedPointer = NonNull<GcBox<NonTraceable>>;
 type EphemeronPointer = NonNull<dyn ErasedEphemeronBox>;
@@ -130,7 +129,6 @@ struct Allocator;
 impl Allocator {
     /// Allocate a new garbage collected value to the Garbage Collector's heap.
     fn alloc_gc<T: Trace>(value: GcBox<T>) -> NonNull<GcBox<T>> {
-        let _timer = Profiler::global().start_event("New GcBox", "BoaAlloc");
         let element_size = size_of_val::<GcBox<T>>(&value);
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
@@ -150,7 +148,6 @@ impl Allocator {
     fn alloc_ephemeron<K: Trace + ?Sized, V: Trace>(
         value: EphemeronBox<K, V>,
     ) -> NonNull<EphemeronBox<K, V>> {
-        let _timer = Profiler::global().start_event("New EphemeronBox", "BoaAlloc");
         let element_size = size_of_val::<EphemeronBox<K, V>>(&value);
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
@@ -168,8 +165,6 @@ impl Allocator {
     }
 
     fn alloc_weak_map<K: Trace + ?Sized, V: Trace + Clone>() -> WeakMap<K, V> {
-        let _timer = Profiler::global().start_event("New WeakMap", "BoaAlloc");
-
         let weak_map = WeakMap {
             inner: Gc::new(GcRefCell::new(RawWeakMap::new())),
         };
@@ -228,7 +223,6 @@ struct Collector;
 impl Collector {
     /// Run a collection on the full heap.
     fn collect(gc: &mut BoaGc) {
-        let _timer = Profiler::global().start_event("Gc Full Collection", "gc");
         gc.runtime.collections += 1;
 
         Self::trace_non_roots(gc);
@@ -310,8 +304,6 @@ impl Collector {
         weaks: &[EphemeronPointer],
         weak_maps: &[ErasedWeakMapBoxPointer],
     ) -> Unreachables {
-        let _timer = Profiler::global().start_event("Gc Marking", "gc");
-
         // Walk the list, tracing and marking the nodes
         let mut strong_dead = Vec::new();
         let mut pending_ephemerons = Vec::new();
@@ -428,7 +420,6 @@ impl Collector {
     ///
     /// Passing a `strong` or a `weak` vec with invalid pointers will result in Undefined Behaviour.
     unsafe fn finalize(unreachables: Unreachables) {
-        let _timer = Profiler::global().start_event("Gc Finalization", "gc");
         for node in unreachables.strong {
             // SAFETY: The caller must ensure all pointers inside `unreachables.strong` are valid.
             let node_ref = unsafe { node.as_ref() };
@@ -457,7 +448,6 @@ impl Collector {
         weak: &mut Vec<EphemeronPointer>,
         total_allocated: &mut usize,
     ) {
-        let _timer = Profiler::global().start_event("Gc Sweeping", "gc");
         let _guard = DropGuard::new();
 
         strong.retain(|node| {

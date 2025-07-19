@@ -1,8 +1,8 @@
 //! A CLI implementation for `boa_engine` that comes complete with file execution and a REPL.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(not(test), deny(clippy::unwrap_used))]
 #![allow(clippy::print_stdout, clippy::print_stderr)]
@@ -11,24 +11,24 @@ mod debug;
 mod helper;
 
 use boa_engine::{
+    Context, JsError, JsResult, Source,
     builtins::promise::PromiseState,
     context::ContextBuilder,
-    job::{FutureJob, JobQueue, NativeJob},
+    job::{Job, JobExecutor, NativeAsyncJob, PromiseJob},
     module::{Module, SimpleModuleLoader},
     optimizer::OptimizerOptions,
     script::Script,
     vm::flowgraph::{Direction, Graph},
-    Context, JsError, Source,
 };
 use boa_parser::source::ReadChar;
 use clap::{Parser, ValueEnum, ValueHint};
 use color_eyre::{
-    eyre::{eyre, WrapErr},
     Result, Section,
+    eyre::{WrapErr, eyre},
 };
 use colored::Colorize;
 use debug::init_boa_debug_object;
-use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
+use rustyline::{EditMode, Editor, config::Config, error::ReadlineError};
 use std::{
     cell::RefCell,
     collections::VecDeque,
@@ -52,10 +52,22 @@ use jemallocator as _;
     target_arch = "x86_64",
     target_os = "linux",
     target_env = "gnu",
+    feature = "fast-allocator",
     not(feature = "dhat")
 ))]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
+
+#[cfg(all(target_os = "windows", feature = "dhat"))]
+use mimalloc_safe as _;
+
+#[cfg(all(
+    target_os = "windows",
+    feature = "fast-allocator",
+    not(feature = "dhat")
+))]
+#[global_allocator]
+static ALLOC: mimalloc_safe::MiMalloc = mimalloc_safe::MiMalloc;
 
 #[cfg(feature = "dhat")]
 #[global_allocator]
@@ -241,14 +253,12 @@ fn generate_flowgraph<R: ReadChar>(
     let code = script
         .codeblock(context)
         .map_err(|e| e.into_erased(context))?;
-
     let direction = match direction {
         Some(FlowgraphDirection::TopToBottom) | None => Direction::TopToBottom,
         Some(FlowgraphDirection::BottomToTop) => Direction::BottomToTop,
         Some(FlowgraphDirection::LeftToRight) => Direction::LeftToRight,
         Some(FlowgraphDirection::RightToLeft) => Direction::RightToLeft,
     };
-
     let mut graph = Graph::new(direction);
     code.to_graph(graph.subgraph(String::default()));
     let result = match format {
@@ -292,14 +302,14 @@ fn evaluate_file(
         );
 
         let promise = module.load_link_evaluate(context);
-        context.run_jobs();
+        context.run_jobs().map_err(|err| err.into_erased(context))?;
         let result = promise.state();
 
         return match result {
             PromiseState::Pending => Err(eyre!("module didn't execute")),
             PromiseState::Fulfilled(_) => Ok(()),
             PromiseState::Rejected(err) => {
-                return Err(JsError::from_opaque(err).into_erased(context).into())
+                return Err(JsError::from_opaque(err).into_erased(context).into());
             }
         };
     }
@@ -308,21 +318,17 @@ fn evaluate_file(
         Ok(v) => println!("{}", v.display()),
         Err(v) => eprintln!("Uncaught {v}"),
     }
-    context.run_jobs();
 
-    Ok(())
+    context
+        .run_jobs()
+        .map_err(|err| err.into_erased(context).into())
 }
 
-fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) {
+fn evaluate_files(args: &Opt, context: &mut Context, loader: &SimpleModuleLoader) -> Result<()> {
     for file in &args.files {
-        let Err(err) = evaluate_file(file, args, context, loader)
-            .wrap_err_with(|| eyre!("could not evaluate file `{}`", file.display()))
-        else {
-            continue;
-        };
-
-        eprintln!("{err:?}");
+        evaluate_file(file, args, context, loader)?;
     }
+    Ok(())
 }
 
 fn main() -> Result<()> {
@@ -336,10 +342,10 @@ fn main() -> Result<()> {
 
     let args = Opt::parse();
 
-    let queue = Rc::new(Jobs::default());
+    let executor = Rc::new(Executor::default());
     let loader = Rc::new(SimpleModuleLoader::new(&args.root).map_err(|e| eyre!(e.to_string()))?);
     let mut context = ContextBuilder::new()
-        .job_queue(queue)
+        .job_executor(executor)
         .module_loader(loader.clone())
         .build()
         .map_err(|e| eyre!(e.to_string()))?;
@@ -364,7 +370,7 @@ fn main() -> Result<()> {
     context.set_optimizer_options(optimizer_options);
 
     if !args.files.is_empty() {
-        evaluate_files(&args, &mut context, &loader);
+        evaluate_files(&args, &mut context, &loader)?;
         return Ok(());
     }
 
@@ -398,18 +404,16 @@ fn main() -> Result<()> {
             Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
             Ok(line) => {
-                editor
-                    .add_history_entry(&line)
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+                let line = line.trim_end();
+
+                editor.add_history_entry(line).map_err(io::Error::other)?;
 
                 if args.has_dump_flag() {
-                    if let Err(e) = dump(Source::from_bytes(&line), &args, &mut context) {
-                        eprintln!("{e:?}");
-                    }
+                    dump(Source::from_bytes(&line), &args, &mut context)?;
                 } else if let Some(flowgraph) = args.flowgraph {
                     match generate_flowgraph(
                         &mut context,
-                        Source::from_bytes(line.trim_end()),
+                        Source::from_bytes(line),
                         flowgraph.unwrap_or(FlowgraphFormat::Graphviz),
                         args.flowgraph_direction,
                     ) {
@@ -417,7 +421,7 @@ fn main() -> Result<()> {
                         Err(v) => eprintln!("{v:?}"),
                     }
                 } else {
-                    match context.eval(Source::from_bytes(line.trim_end())) {
+                    match context.eval(Source::from_bytes(line)) {
                         Ok(v) => {
                             println!("{}", v.display());
                         }
@@ -425,7 +429,9 @@ fn main() -> Result<()> {
                             eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
                         }
                     }
-                    context.run_jobs();
+                    if let Err(err) = context.run_jobs() {
+                        eprintln!("{err}");
+                    }
                 }
             }
 
@@ -453,29 +459,45 @@ fn add_runtime(context: &mut Context) {
 }
 
 #[derive(Default)]
-struct Jobs(RefCell<VecDeque<NativeJob>>);
+struct Executor {
+    promise_jobs: RefCell<VecDeque<PromiseJob>>,
+    async_jobs: RefCell<VecDeque<NativeAsyncJob>>,
+}
 
-impl JobQueue for Jobs {
-    fn enqueue_promise_job(&self, job: NativeJob, _: &mut Context) {
-        self.0.borrow_mut().push_back(job);
+impl JobExecutor for Executor {
+    fn enqueue_job(self: Rc<Self>, job: Job, _: &mut Context) {
+        match job {
+            Job::PromiseJob(job) => self.promise_jobs.borrow_mut().push_back(job),
+            Job::AsyncJob(job) => self.async_jobs.borrow_mut().push_back(job),
+            job => eprintln!("unsupported job type {job:?}"),
+        }
     }
 
-    fn run_jobs(&self, context: &mut Context) {
+    fn run_jobs(self: Rc<Self>, context: &mut Context) -> JsResult<()> {
         loop {
-            let jobs = std::mem::take(&mut *self.0.borrow_mut());
-            if jobs.is_empty() {
-                return;
+            if self.promise_jobs.borrow().is_empty() && self.async_jobs.borrow().is_empty() {
+                return Ok(());
             }
+
+            let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
             for job in jobs {
                 if let Err(e) = job.call(context) {
                     eprintln!("Uncaught {e}");
                 }
             }
-        }
-    }
 
-    fn enqueue_future_job(&self, future: FutureJob, _: &mut Context) {
-        let job = pollster::block_on(future);
-        self.0.borrow_mut().push_back(job);
+            let async_jobs = std::mem::take(&mut *self.async_jobs.borrow_mut());
+            for async_job in async_jobs {
+                if let Err(err) = pollster::block_on(async_job.call(&RefCell::new(context))) {
+                    eprintln!("Uncaught {err}");
+                }
+                let jobs = std::mem::take(&mut *self.promise_jobs.borrow_mut());
+                for job in jobs {
+                    if let Err(e) = job.call(context) {
+                        eprintln!("Uncaught {e}");
+                    }
+                }
+            }
+        }
     }
 }

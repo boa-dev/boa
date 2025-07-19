@@ -1,29 +1,27 @@
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use icu_segmenter::{
-    GraphemeClusterBreakIteratorLatin1, GraphemeClusterBreakIteratorUtf16,
-    SentenceBreakIteratorLatin1, SentenceBreakIteratorUtf16, WordBreakIteratorLatin1,
-    WordBreakIteratorUtf16,
+    iterators::{GraphemeClusterBreakIterator, SentenceBreakIterator, WordBreakIterator},
+    scaffold::{Latin1, Utf16},
 };
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
+    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
     context::intrinsics::Intrinsics,
     js_string,
     property::Attribute,
     realm::Realm,
-    Context, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{create_segment_data_object, Segmenter};
+use super::{Segmenter, create_segment_data_object};
 
 pub(crate) enum NativeSegmentIterator<'l, 's> {
-    GraphemeUtf16(GraphemeClusterBreakIteratorUtf16<'l, 's>),
-    WordUtf16(WordBreakIteratorUtf16<'l, 's>),
-    SentenceUtf16(SentenceBreakIteratorUtf16<'l, 's>),
-    GraphemeLatin1(GraphemeClusterBreakIteratorLatin1<'l, 's>),
-    WordLatin1(WordBreakIteratorLatin1<'l, 's>),
-    SentenceLatin1(SentenceBreakIteratorLatin1<'l, 's>),
+    GraphemeUtf16(GraphemeClusterBreakIterator<'l, 's, Utf16>),
+    WordUtf16(WordBreakIterator<'l, 's, Utf16>),
+    SentenceUtf16(SentenceBreakIterator<'l, 's, Utf16>),
+    GraphemeLatin1(GraphemeClusterBreakIterator<'l, 's, Latin1>),
+    WordLatin1(WordBreakIterator<'l, 's, Latin1>),
+    SentenceLatin1(SentenceBreakIterator<'l, 's, Latin1>),
 }
 
 impl Iterator for NativeSegmentIterator<'_, '_> {
@@ -62,8 +60,6 @@ pub(crate) struct SegmentIterator {
 
 impl IntrinsicObject for SegmentIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("%SegmentIteratorPrototype%", "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(
                 JsSymbol::to_string_tag(),
@@ -110,8 +106,9 @@ impl SegmentIterator {
     fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let iterator be the this value.
         // 2. Perform ? RequireInternalSlot(iterator, [[IteratingSegmenter]]).
-        let mut iter = this
-            .as_object()
+        let object = this.as_object();
+        let mut iter = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -125,8 +122,8 @@ impl SegmentIterator {
         // 6. Let endIndex be ! FindBoundary(segmenter, string, startIndex, after).
         let Some((end, is_word_like)) = iter.string.get(start..).and_then(|string| {
             // 3. Let segmenter be iterator.[[IteratingSegmenter]].
-            let segmenter = iter.segmenter.borrow();
-            let segmenter = segmenter
+            let segmenter = iter
+                .segmenter
                 .downcast_ref::<Segmenter>()
                 .expect("segment iterator object should contain a segmenter");
             let mut segments = segmenter.native.segment(string);

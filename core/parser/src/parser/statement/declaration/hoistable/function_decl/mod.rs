@@ -3,12 +3,12 @@ mod tests;
 
 use crate::{
     parser::{
-        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+        statement::declaration::hoistable::{CallableDeclaration, parse_callable_declaration},
     },
     source::ReadChar,
 };
-use boa_ast::{function::FunctionDeclaration as FunctionDeclarationNode, Keyword};
+use boa_ast::{Keyword, function::FunctionDeclaration as FunctionDeclarationNode};
 use boa_interner::Interner;
 
 /// Function declaration parsing.
@@ -77,10 +77,16 @@ where
     type Output = FunctionDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        cursor.expect((Keyword::Function, false), "function declaration", interner)?;
+        let func_token =
+            cursor.expect((Keyword::Function, false), "function declaration", interner)?;
+        let func_token_span = func_token.linear_span();
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
+        let linear_pos_end = result.2.linear_pos_end();
+        let span = func_token_span.union(linear_pos_end);
 
-        Ok(FunctionDeclarationNode::new(result.0, result.1, result.2))
+        Ok(FunctionDeclarationNode::new(
+            result.0, result.1, result.2, span,
+        ))
     }
 }

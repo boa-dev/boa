@@ -1,4 +1,4 @@
-use crate::{Interner, Sym, COMMON_STRINGS_UTF16, COMMON_STRINGS_UTF8};
+use crate::{COMMON_STRINGS_UTF8, COMMON_STRINGS_UTF16, Interner, Sym};
 use boa_macros::utf16;
 
 #[track_caller]

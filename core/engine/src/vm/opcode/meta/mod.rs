@@ -1,10 +1,10 @@
-use std::unreachable;
-
+use super::VaryingOperand;
 use crate::{
+    Context, JsObject, JsValue,
     module::ModuleKind,
-    vm::{opcode::Operation, ActiveRunnable, CompletionType},
-    Context, JsObject, JsResult, JsValue,
+    vm::{ActiveRunnable, opcode::Operation},
 };
+use std::unreachable;
 
 /// `NewTarget` implements the Opcode Operation for `Opcode::NewTarget`
 ///
@@ -13,12 +13,9 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct NewTarget;
 
-impl Operation for NewTarget {
-    const NAME: &'static str = "NewTarget";
-    const INSTRUCTION: &'static str = "INST - NewTarget";
-    const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl NewTarget {
+    #[inline(always)]
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
         let new_target = if let Some(new_target) = context
             .vm
             .environments
@@ -30,9 +27,14 @@ impl Operation for NewTarget {
         } else {
             JsValue::undefined()
         };
-        context.vm.push(new_target);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), new_target);
     }
+}
+
+impl Operation for NewTarget {
+    const NAME: &'static str = "NewTarget";
+    const INSTRUCTION: &'static str = "INST - NewTarget";
+    const COST: u8 = 2;
 }
 
 /// `ImportMeta` implements the Opcode Operation for `Opcode::ImportMeta`
@@ -42,12 +44,9 @@ impl Operation for NewTarget {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ImportMeta;
 
-impl Operation for ImportMeta {
-    const NAME: &'static str = "ImportMeta";
-    const INSTRUCTION: &'static str = "INST - ImportMeta";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl ImportMeta {
+    #[inline(always)]
+    pub(super) fn operation(dst: VaryingOperand, context: &mut Context) {
         // Meta Properties
         //
         // ImportMeta : import . meta
@@ -90,8 +89,12 @@ impl Operation for ImportMeta {
 
         //     b. Return importMeta.
         //     f. Return importMeta.
-        context.vm.push(import_meta);
-
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), import_meta.into());
     }
+}
+
+impl Operation for ImportMeta {
+    const NAME: &'static str = "ImportMeta";
+    const INSTRUCTION: &'static str = "INST - ImportMeta";
+    const COST: u8 = 6;
 }

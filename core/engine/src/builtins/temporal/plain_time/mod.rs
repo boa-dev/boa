@@ -1,15 +1,16 @@
 //! Boa's implementation of the ECMAScript `Temporal.PlainTime` builtin object.
 
 use super::{
-    create_temporal_duration,
-    options::{get_difference_settings, get_temporal_unit, TemporalUnitGroup},
-    to_temporal_duration_record, PlainDateTime, ZonedDateTime,
+    PlainDateTime, ZonedDateTime, create_temporal_duration,
+    options::{TemporalUnitGroup, get_difference_settings, get_temporal_unit},
+    to_temporal_duration_record,
 };
-use crate::value::JsVariant;
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
+    JsValue,
     builtins::{
-        options::{get_option, get_options_object},
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        options::{get_option, get_options_object},
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -17,15 +18,13 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsObject, JsResult, JsString, JsSymbol,
-    JsValue,
 };
+use crate::{builtins::temporal::options::get_digits_option, value::JsVariant};
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use temporal_rs::{
-    options::{ArithmeticOverflow, TemporalRoundingMode},
-    partial::PartialTime,
     PlainTime as PlainTimeInner,
+    options::{ArithmeticOverflow, RoundingMode, ToStringRoundingOptions, Unit},
+    partial::PartialTime,
 };
 
 /// The `Temporal.PlainTime` object.
@@ -42,7 +41,6 @@ impl BuiltInObject for PlainTime {
 
 impl IntrinsicObject for PlainTime {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
         let get_hour = BuiltInBuilder::callable(realm, Self::get_hour)
             .name(js_string!("get hour"))
             .build();
@@ -118,7 +116,9 @@ impl IntrinsicObject for PlainTime {
             .method(Self::since, js_string!("since"), 1)
             .method(Self::round, js_string!("round"), 1)
             .method(Self::equals, js_string!("equals"), 1)
-            .method(Self::get_iso_fields, js_string!("getISOFields"), 0)
+            .method(Self::to_string, js_string!("toString"), 0)
+            .method(Self::to_locale_string, js_string!("toLocaleString"), 0)
+            .method(Self::to_json, js_string!("toJSON"), 0)
             .method(Self::value_of, js_string!("valueOf"), 0)
             .build();
     }
@@ -204,8 +204,9 @@ impl PlainTime {
     fn get_hour(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -219,8 +220,9 @@ impl PlainTime {
     fn get_minute(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -234,8 +236,9 @@ impl PlainTime {
     fn get_second(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -249,8 +252,9 @@ impl PlainTime {
     fn get_millisecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -264,8 +268,9 @@ impl PlainTime {
     fn get_microsecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -279,8 +284,9 @@ impl PlainTime {
     fn get_nanosecond(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -300,8 +306,9 @@ impl PlainTime {
         // 1. Set options to ? GetOptionsObject(options).
         // 2. Let overflow be ? GetTemporalOverflowOption(options).
         // 3. If item is an Object and item has an [[InitializedTemporalTime]] internal slot, then
-        let time = if let Some(time) = item
-            .as_object()
+        let object = item.as_object();
+        let time = if let Some(time) = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<PlainTime>)
         {
             // a. Return ! CreateTemporalTime(item.[[ISOHour]], item.[[ISOMinute]],
@@ -337,8 +344,9 @@ impl PlainTime {
     fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -355,8 +363,9 @@ impl PlainTime {
     fn subtract(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -372,8 +381,9 @@ impl PlainTime {
     fn with(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1.Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -390,7 +400,7 @@ impl PlainTime {
         };
 
         // Steps 5-16 equate to the below
-        let partial = to_partial_time_record(partial_object, context)?;
+        let partial = to_partial_time_record(&partial_object, context)?;
         // 17. Let resolvedOptions be ? GetOptionsObject(options).
         // 18. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let options = get_options_object(args.get_or_undefined(1))?;
@@ -401,8 +411,9 @@ impl PlainTime {
 
     /// 4.3.12 Temporal.PlainTime.prototype.until ( other [ , options ] )
     fn until(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -420,8 +431,9 @@ impl PlainTime {
 
     /// 4.3.13 Temporal.PlainTime.prototype.since ( other [ , options ] )
     fn since(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -441,8 +453,9 @@ impl PlainTime {
     fn round(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -453,7 +466,7 @@ impl PlainTime {
             None | Some(JsVariant::Undefined) => {
                 return Err(JsNativeError::typ()
                     .with_message("roundTo cannot be undefined.")
-                    .into())
+                    .into());
             }
             // 4. If Type(roundTo) is String, then
             Some(JsVariant::String(rt)) => {
@@ -483,7 +496,7 @@ impl PlainTime {
 
         // 8. Let roundingMode be ? ToTemporalRoundingMode(roundTo, "halfExpand").
         let rounding_mode =
-            get_option::<TemporalRoundingMode>(&round_to, js_string!("roundingMode"), context)?;
+            get_option::<RoundingMode>(&round_to, js_string!("roundingMode"), context)?;
 
         // 9. Let smallestUnit be ? GetTemporalUnit(roundTo, "smallestUnit", time, required).
         let smallest_unit = get_temporal_unit(
@@ -511,8 +524,9 @@ impl PlainTime {
     fn equals(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let temporalTime be the this value.
         // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
+        let object = this.as_object();
+        let time = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
@@ -530,58 +544,68 @@ impl PlainTime {
         Ok((time.inner == other).into())
     }
 
-    /// 4.3.18 Temporal.PlainTime.prototype.getISOFields ( )
-    fn get_iso_fields(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        // 1. Let temporalTime be the this value.
-        // 2. Perform ? RequireInternalSlot(temporalTime, [[InitializedTemporalTime]]).
-        let time = this
-            .as_object()
-            .and_then(JsObject::downcast_ref::<PlainTime>)
+    /// 4.3.16 `Temporal.PlainTime.prototype.toString ( [ options ] )`
+    fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let object = this.as_object();
+        let time = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("the this object must be a PlainTime object.")
             })?;
 
-        // 3. Let fields be OrdinaryObjectCreate(%Object.prototype%).
-        let fields = JsObject::with_object_proto(context.intrinsics());
+        let options = get_options_object(args.get_or_undefined(0))?;
 
-        // 4. Perform ! CreateDataPropertyOrThrow(fields, "isoHour", 𝔽(temporalTime.[[ISOHour]])).
-        fields.create_data_property_or_throw(js_string!("isoHour"), time.inner.hour(), context)?;
-        // 5. Perform ! CreateDataPropertyOrThrow(fields, "isoMicrosecond", 𝔽(temporalTime.[[ISOMicrosecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoMicrosecond"),
-            time.inner.microsecond(),
-            context,
-        )?;
-        // 6. Perform ! CreateDataPropertyOrThrow(fields, "isoMillisecond", 𝔽(temporalTime.[[ISOMillisecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoMillisecond"),
-            time.inner.millisecond(),
-            context,
-        )?;
-        // 7. Perform ! CreateDataPropertyOrThrow(fields, "isoMinute", 𝔽(temporalTime.[[ISOMinute]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoMinute"),
-            time.inner.minute(),
-            context,
-        )?;
-        // 8. Perform ! CreateDataPropertyOrThrow(fields, "isoNanosecond", 𝔽(temporalTime.[[ISONanosecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoNanosecond"),
-            time.inner.nanosecond(),
-            context,
-        )?;
-        // 9. Perform ! CreateDataPropertyOrThrow(fields, "isoSecond", 𝔽(temporalTime.[[ISOSecond]])).
-        fields.create_data_property_or_throw(
-            js_string!("isoSecond"),
-            time.inner.second(),
-            context,
-        )?;
+        let precision = get_digits_option(&options, context)?;
+        let rounding_mode =
+            get_option::<RoundingMode>(&options, js_string!("roundingMode"), context)?;
+        let smallest_unit = get_option::<Unit>(&options, js_string!("smallestUnit"), context)?;
 
-        // 10. Return fields.
-        Ok(fields.into())
+        let options = ToStringRoundingOptions {
+            precision,
+            rounding_mode,
+            smallest_unit,
+        };
+
+        let ixdtf = time.inner.to_ixdtf_string(options)?;
+
+        Ok(JsString::from(ixdtf).into())
     }
 
-    /// 4.3.22 Temporal.PlainTime.prototype.valueOf ( )
+    /// 4.3.17 `Temporal.PlainTime.prototype.toLocaleString ( [ locales [ , options ] ] )`
+    fn to_locale_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // TODO: Update for ECMA-402 compliance
+        let object = this.as_object();
+        let time = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let ixdtf = time
+            .inner
+            .to_ixdtf_string(ToStringRoundingOptions::default())?;
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 4.3.18 `Temporal.PlainTime.prototype.toJSON ( )`
+    fn to_json(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let object = this.as_object();
+        let time = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("the this object must be a PlainTime object.")
+            })?;
+
+        let ixdtf = time
+            .inner
+            .to_ixdtf_string(ToStringRoundingOptions::default())?;
+        Ok(JsString::from(ixdtf).into())
+    }
+
+    /// 4.3.19 Temporal.PlainTime.prototype.valueOf ( )
     fn value_of(_this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
         Err(JsNativeError::typ()
@@ -677,23 +701,13 @@ pub(crate) fn to_temporal_time(
             // e. Set result to ? RegulateTime(result.[[Hour]], result.[[Minute]],
             // result.[[Second]], result.[[Millisecond]], result.[[Microsecond]],
             // result.[[Nanosecond]], overflow).
-            let partial = to_partial_time_record(object, context)?;
+            let partial = to_partial_time_record(&object, context)?;
 
             let options = get_options_object(options)?;
             let overflow =
-                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?
-                    .unwrap_or(ArithmeticOverflow::Constrain);
+                get_option::<ArithmeticOverflow>(&options, js_string!("overflow"), context)?;
 
-            PlainTimeInner::new_with_overflow(
-                partial.hour.unwrap_or(0),
-                partial.minute.unwrap_or(0),
-                partial.second.unwrap_or(0),
-                partial.millisecond.unwrap_or(0),
-                partial.microsecond.unwrap_or(0),
-                partial.nanosecond.unwrap_or(0),
-                overflow,
-            )
-            .map_err(Into::into)
+            PlainTimeInner::from_partial(partial, overflow).map_err(Into::into)
         }
         // 3. Else,
         JsVariant::String(str) => {
@@ -722,35 +736,7 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
         })
-        .transpose()?
-        .map(Into::into);
-
-    let minute = partial_object
-        .get(js_string!("minute"), context)?
-        .map(|v| {
-            let finite = v.to_finitef64(context)?;
-            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
-        })
-        .transpose()?
-        .map(Into::into);
-
-    let second = partial_object
-        .get(js_string!("second"), context)?
-        .map(|v| {
-            let finite = v.to_finitef64(context)?;
-            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
-        })
-        .transpose()?
-        .map(Into::into);
-
-    let millisecond = partial_object
-        .get(js_string!("millisecond"), context)?
-        .map(|v| {
-            let finite = v.to_finitef64(context)?;
-            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
-        })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
 
     let microsecond = partial_object
         .get(js_string!("microsecond"), context)?
@@ -758,8 +744,23 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
+
+    let millisecond = partial_object
+        .get(js_string!("millisecond"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
+        })
+        .transpose()?;
+
+    let minute = partial_object
+        .get(js_string!("minute"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
 
     let nanosecond = partial_object
         .get(js_string!("nanosecond"), context)?
@@ -767,8 +768,15 @@ pub(crate) fn to_partial_time_record(
             let finite = v.to_finitef64(context)?;
             Ok::<u16, JsError>(finite.as_integer_with_truncation::<u16>())
         })
-        .transpose()?
-        .map(Into::into);
+        .transpose()?;
+
+    let second = partial_object
+        .get(js_string!("second"), context)?
+        .map(|v| {
+            let finite = v.to_finitef64(context)?;
+            Ok::<u8, JsError>(finite.as_integer_with_truncation::<u8>())
+        })
+        .transpose()?;
 
     Ok(PartialTime {
         hour,

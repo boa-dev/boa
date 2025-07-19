@@ -5,26 +5,20 @@
 use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
-use boa_engine::module::ModuleLoader;
-use boa_engine::{js_string, Context, JsString, JsValue, Module, Source};
+use boa_engine::{Context, JsString, JsValue, Module, Source, js_string};
 use boa_interop::embed_module;
+use boa_interop::loaders::embedded::EmbeddedModuleLoader;
 
-#[test]
-fn simple() {
-    #[cfg(target_family = "unix")]
-    let module_loader = Rc::new(embed_module!("tests/embedded/"));
-    #[cfg(target_family = "windows")]
-    let module_loader = Rc::new(embed_module!("tests\\embedded\\"));
-
+fn load_module_and_test(module_loader: &Rc<EmbeddedModuleLoader>) {
     let mut context = Context::builder()
         .module_loader(module_loader.clone())
         .build()
         .unwrap();
 
     // Resolving modules that exist but haven't been cached yet should return None.
-    assert_eq!(module_loader.get_module(JsString::from("/file1.js")), None);
+    assert_eq!(module_loader.get_module(&JsString::from("/file1.js")), None);
     assert_eq!(
-        module_loader.get_module(JsString::from("/non-existent.js")),
+        module_loader.get_module(&JsString::from("/non-existent.js")),
         None
     );
 
@@ -35,7 +29,7 @@ fn simple() {
     )
     .expect("failed to parse module");
     let promise = module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     match promise.state() {
         PromiseState::Fulfilled(value) => {
@@ -50,7 +44,6 @@ fn simple() {
                 .get(js_string!("bar"), &mut context)
                 .unwrap()
                 .as_callable()
-                .cloned()
                 .unwrap();
             let value = bar.call(&JsValue::undefined(), &[], &mut context).unwrap();
             assert_eq!(
@@ -66,4 +59,25 @@ fn simple() {
         ),
         PromiseState::Pending => panic!("Promise was not settled"),
     }
+}
+
+#[test]
+fn simple() {
+    #[cfg(target_family = "unix")]
+    let module_loader = Rc::new(embed_module!("tests/embedded/"));
+    #[cfg(target_family = "windows")]
+    let module_loader = Rc::new(embed_module!("tests\\embedded\\"));
+
+    load_module_and_test(&module_loader);
+}
+
+#[cfg(feature = "embedded_lz4")]
+#[test]
+fn compressed_lz4() {
+    #[cfg(target_family = "unix")]
+    let module_loader = Rc::new(embed_module!("tests/embedded/", compress = "lz4"));
+    #[cfg(target_family = "windows")]
+    let module_loader = Rc::new(embed_module!("tests\\embedded\\", compress = "lz4"));
+
+    load_module_and_test(&module_loader);
 }

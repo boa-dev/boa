@@ -20,28 +20,26 @@ pub(in crate::parser) mod await_expr;
 mod tests;
 
 use crate::{
+    Error,
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
-        OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::assignment::ExponentiationExpression,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Position, Punctuator, Spanned,
     expression::{
-        operator::{
-            binary::{BinaryOp, LogicalOp},
-            Binary, BinaryInPrivate,
-        },
         Identifier,
+        operator::{
+            Binary, BinaryInPrivate,
+            binary::{BinaryOp, LogicalOp},
+        },
     },
     function::PrivateName,
-    Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 pub(in crate::parser) use {
@@ -78,7 +76,6 @@ macro_rules! expression {
             type Output = ast::Expression;
 
             fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
-                let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
 
                 if $goal.is_some() {
                     cursor.set_goal($goal.unwrap());
@@ -143,8 +140,6 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Expression", "Parsing");
-
         let mut lhs = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
         while let Some(tok) = cursor.peek(0, interner)? {
@@ -252,8 +247,6 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ShortCircuitExpression", "Parsing");
-
         let mut current_node =
             BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
@@ -265,7 +258,8 @@ where
                     if previous == PreviousExpr::Coalesce {
                         return Err(Error::expected(
                             ["??".to_owned()],
-                            tok.to_string(interner), tok.span(),
+                            tok.to_string(interner),
+                            tok.span(),
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }
@@ -282,7 +276,8 @@ where
                     if previous == PreviousExpr::Coalesce {
                         return Err(Error::expected(
                             ["??".to_owned()],
-                            tok.to_string(interner), tok.span(),
+                            tok.to_string(interner),
+                            tok.span(),
                             "logical expression (cannot use '??' without parentheses within '||' or '&&')",
                         ));
                     }
@@ -522,12 +517,11 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Relation Expression", "Parsing");
-
         if self.allow_in.0 {
             let token = cursor.peek(0, interner).or_abrupt()?;
             if let TokenKind::PrivateIdentifier(identifier) = token.kind() {
                 let identifier = *identifier;
+                let identifier_span = token.span();
                 let token = cursor.peek(1, interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Keyword((Keyword::In, true)) => {
@@ -543,7 +537,11 @@ where
                         let rhs = ShiftExpression::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
 
-                        return Ok(BinaryInPrivate::new(PrivateName::new(identifier), rhs).into());
+                        return Ok(BinaryInPrivate::new(
+                            PrivateName::new(identifier, identifier_span),
+                            rhs,
+                        )
+                        .into());
                     }
                     _ => {}
                 }

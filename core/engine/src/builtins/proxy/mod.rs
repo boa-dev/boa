@@ -11,29 +11,29 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject, OrdinaryObject};
+use crate::object::internal_methods::InternalMethodCallContext;
 use crate::value::JsVariant;
 use crate::{
-    builtins::{array, BuiltInObject},
+    Context, JsArgs, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, array},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{
+        JsData, JsFunction, JsObject, JsPrototype,
         internal_methods::{
-            is_compatible_property_descriptor, CallValue, InternalMethodContext,
-            InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            CallValue, InternalMethodPropertyContext, InternalObjectMethods,
+            ORDINARY_INTERNAL_METHODS, is_compatible_property_descriptor,
         },
         shape::slot::SlotAttributes,
-        JsData, JsFunction, JsObject, JsPrototype,
     },
     property::{PropertyDescriptor, PropertyKey},
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, GcRefCell, Trace};
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -87,8 +87,6 @@ impl JsData for Proxy {
 
 impl IntrinsicObject for Proxy {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .static_method(Self::revocable, js_string!("revocable"), 2)
             .build_without_prototype();
@@ -285,7 +283,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
         _ => {
             return Err(JsNativeError::typ()
                 .with_message("Proxy trap result is neither object nor null")
-                .into())
+                .into());
         }
     };
 
@@ -467,7 +465,7 @@ pub(crate) fn proxy_exotic_prevent_extensions(
 pub(crate) fn proxy_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -573,7 +571,7 @@ pub(crate) fn proxy_exotic_get_own_property(
                     .with_message(
                         "Proxy trap result is not configurable and target result is undefined",
                     )
-                    .into())
+                    .into());
             }
         }
     }
@@ -592,7 +590,7 @@ pub(crate) fn proxy_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -704,7 +702,7 @@ pub(crate) fn proxy_exotic_define_own_property(
 pub(crate) fn proxy_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -775,7 +773,7 @@ pub(crate) fn proxy_exotic_try_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     // Note: For now, this just calls the normal methods. Could be optimized further.
     if proxy_exotic_has_property(obj, key, context)? {
@@ -795,7 +793,7 @@ pub(crate) fn proxy_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     // Proxy object can't be cached.
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
@@ -827,26 +825,26 @@ pub(crate) fn proxy_exotic_get(
     let target_desc = target.__get_own_property__(key, context)?;
 
     // 9. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
-    if let Some(target_desc) = target_desc {
-        if !target_desc.expect_configurable() {
-            // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
-            if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
-                // i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
-                if !JsValue::same_value(&trap_result, target_desc.expect_value()) {
-                    return Err(JsNativeError::typ()
-                        .with_message("Proxy trap returned unexpected data descriptor")
-                        .into());
-                }
+    if let Some(target_desc) = target_desc
+        && !target_desc.expect_configurable()
+    {
+        // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
+        if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
+            // i. If SameValue(trapResult, targetDesc.[[Value]]) is false, throw a TypeError exception.
+            if !JsValue::same_value(&trap_result, target_desc.expect_value()) {
+                return Err(JsNativeError::typ()
+                    .with_message("Proxy trap returned unexpected data descriptor")
+                    .into());
             }
+        }
 
-            // b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
-            if target_desc.is_accessor_descriptor() && target_desc.expect_get().is_undefined() {
-                // i. If trapResult is not undefined, throw a TypeError exception.
-                if !trap_result.is_undefined() {
-                    return Err(JsNativeError::typ()
-                        .with_message("Proxy trap returned unexpected accessor descriptor")
-                        .into());
-                }
+        // b. If IsAccessorDescriptor(targetDesc) is true and targetDesc.[[Get]] is undefined, then
+        if target_desc.is_accessor_descriptor() && target_desc.expect_get().is_undefined() {
+            // i. If trapResult is not undefined, throw a TypeError exception.
+            if !trap_result.is_undefined() {
+                return Err(JsNativeError::typ()
+                    .with_message("Proxy trap returned unexpected accessor descriptor")
+                    .into());
             }
         }
     }
@@ -866,7 +864,7 @@ pub(crate) fn proxy_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     context.slot().attributes |= SlotAttributes::NOT_CACHABLE;
 
@@ -908,29 +906,29 @@ pub(crate) fn proxy_exotic_set(
     let target_desc = target.__get_own_property__(&key, context)?;
 
     // 10. If targetDesc is not undefined and targetDesc.[[Configurable]] is false, then
-    if let Some(target_desc) = target_desc {
-        if !target_desc.expect_configurable() {
-            // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
-            if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
-                // i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
-                if !JsValue::same_value(&value, target_desc.expect_value()) {
+    if let Some(target_desc) = target_desc
+        && !target_desc.expect_configurable()
+    {
+        // a. If IsDataDescriptor(targetDesc) is true and targetDesc.[[Writable]] is false, then
+        if target_desc.is_data_descriptor() && !target_desc.expect_writable() {
+            // i. If SameValue(V, targetDesc.[[Value]]) is false, throw a TypeError exception.
+            if !JsValue::same_value(&value, target_desc.expect_value()) {
+                return Err(JsNativeError::typ()
+                    .with_message("Proxy trap set unexpected data descriptor")
+                    .into());
+            }
+        }
+
+        // b. If IsAccessorDescriptor(targetDesc) is true, then
+        if target_desc.is_accessor_descriptor() {
+            // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
+            match target_desc.set().map(JsValue::is_undefined) {
+                None | Some(true) => {
                     return Err(JsNativeError::typ()
-                        .with_message("Proxy trap set unexpected data descriptor")
+                        .with_message("Proxy trap set unexpected accessor descriptor")
                         .into());
                 }
-            }
-
-            // b. If IsAccessorDescriptor(targetDesc) is true, then
-            if target_desc.is_accessor_descriptor() {
-                // i. If targetDesc.[[Set]] is undefined, throw a TypeError exception.
-                match target_desc.set().map(JsValue::is_undefined) {
-                    None | Some(true) => {
-                        return Err(JsNativeError::typ()
-                            .with_message("Proxy trap set unexpected accessor descriptor")
-                            .into());
-                    }
-                    _ => {}
-                }
+                _ => {}
             }
         }
     }
@@ -948,7 +946,7 @@ pub(crate) fn proxy_exotic_set(
 pub(crate) fn proxy_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1147,7 +1145,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
 fn proxy_exotic_call(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1165,21 +1163,24 @@ fn proxy_exotic_call(
         return Ok(target.__call__(argument_count));
     };
 
-    let args = context.vm.pop_n_values(argument_count);
+    let args = context
+        .vm
+        .stack
+        .calling_convention_pop_arguments(argument_count);
 
     // 7. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
 
     // 8. Return ? Call(trap, handler, « target, thisArgument, argArray »).
-    let _func = context.vm.pop();
-    let this = context.vm.pop();
+    let _func = context.vm.stack.pop();
+    let this = context.vm.stack.pop();
 
-    context.vm.push(handler); // This
-    context.vm.push(trap.clone()); // Function
+    context.vm.stack.push(handler); // This
+    context.vm.stack.push(trap.clone()); // Function
 
-    context.vm.push(target);
-    context.vm.push(this);
-    context.vm.push(arg_array);
+    context.vm.stack.push(target);
+    context.vm.stack.push(this);
+    context.vm.stack.push(arg_array);
     Ok(trap.__call__(3))
 }
 
@@ -1192,7 +1193,7 @@ fn proxy_exotic_call(
 fn proxy_exotic_construct(
     obj: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
@@ -1213,9 +1214,13 @@ fn proxy_exotic_construct(
         return Ok(target.__construct__(argument_count));
     };
 
-    let new_target = context.vm.pop();
-    let args = context.vm.pop_n_values(argument_count);
-    let _func = context.vm.pop();
+    let new_target = context.vm.stack.pop();
+    let args = context
+        .vm
+        .stack
+        .calling_convention_pop_arguments(argument_count);
+    let _func = context.vm.stack.pop();
+    let _this = context.vm.stack.pop();
 
     // 8. Let argArray be ! CreateArrayFromList(argumentsList).
     let arg_array = array::Array::create_array_from_list(args, context);
@@ -1228,11 +1233,11 @@ fn proxy_exotic_construct(
     )?;
 
     // 10. If Type(newObj) is not Object, throw a TypeError exception.
-    let new_obj = new_obj.as_object().cloned().ok_or_else(|| {
+    let new_obj = new_obj.as_object().ok_or_else(|| {
         JsNativeError::typ().with_message("Proxy trap constructor returned non-object value")
     })?;
 
     // 11. Return newObj.
-    context.vm.push(new_obj);
+    context.vm.stack.push(new_obj);
     Ok(CallValue::Complete)
 }

@@ -4,8 +4,8 @@ use boa_gc::GcRefCell;
 use boa_macros::{Finalize, Trace};
 
 use crate::{
-    object::shape::{slot::Slot, Shape, WeakShape},
     JsString,
+    object::shape::{Shape, WeakShape, slot::Slot},
 };
 
 #[cfg(test)]

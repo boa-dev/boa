@@ -6,9 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 
 use crate::{
+    Context, JsData, JsResult,
     builtins::{
-        iterable::create_iter_result_object, typed_array::TypedArray, Array, BuiltInBuilder,
-        IntrinsicObject, JsValue,
+        Array, BuiltInBuilder, IntrinsicObject, JsValue, iterable::create_iter_result_object,
+        typed_array::TypedArray,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -17,10 +18,8 @@ use crate::{
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 /// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
 ///
@@ -39,8 +38,6 @@ pub(crate) struct ArrayIterator {
 
 impl IntrinsicObject for ArrayIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm
@@ -103,8 +100,9 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut array_iterator = this
-            .as_object()
+        let object = this.as_object();
+        let mut array_iterator = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
         let index = array_iterator.next_index;

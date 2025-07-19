@@ -1,6 +1,7 @@
 use boa_engine::{
-    context::HostHooks, js_string, object::builtins::JsDate, Context, JsResult, JsValue,
+    Context, JsResult, JsValue, context::HostHooks, js_string, object::builtins::JsDate,
 };
+use std::rc::Rc;
 
 struct CustomTimezone;
 
@@ -15,7 +16,7 @@ impl HostHooks for CustomTimezone {
 
 fn main() -> JsResult<()> {
     let context = &mut Context::builder()
-        .host_hooks(&CustomTimezone)
+        .host_hooks(Rc::new(CustomTimezone))
         .build()
         .unwrap();
 

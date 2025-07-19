@@ -1,8 +1,7 @@
-use crate::value::JsVariant;
 use crate::{
-    value::Numeric,
-    vm::{opcode::Operation, CompletionType},
     Context, JsBigInt, JsResult,
+    value::{JsValue, JsVariant, Numeric},
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 /// `Dec` implements the Opcode Operation for `Opcode::Dec`
@@ -12,58 +11,34 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Dec;
 
+impl Dec {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (dst, src): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(src.into()).clone();
+
+        let (numeric, value) = match value.variant() {
+            JsVariant::Integer32(number) if number > i32::MIN => {
+                (JsValue::from(number), JsValue::from(number - 1))
+            }
+            _ => match value.to_numeric(context)? {
+                Numeric::Number(number) => (JsValue::from(number), JsValue::from(number - 1f64)),
+                Numeric::BigInt(bigint) => (
+                    JsValue::from(bigint.clone()),
+                    JsValue::from(JsBigInt::sub(&bigint, &JsBigInt::one())),
+                ),
+            },
+        };
+        context.vm.set_register(src.into(), numeric);
+        context.vm.set_register(dst.into(), value);
+        Ok(())
+    }
+}
+
 impl Operation for Dec {
     const NAME: &'static str = "Dec";
     const INSTRUCTION: &'static str = "INST - Dec";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value.variant() {
-            JsVariant::Integer32(number) if number > i32::MIN => {
-                context.vm.push(number - 1);
-            }
-            _ => match value.to_numeric(context)? {
-                Numeric::Number(number) => context.vm.push(number - 1f64),
-                Numeric::BigInt(bigint) => {
-                    context.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
-                }
-            },
-        }
-        Ok(CompletionType::Normal)
-    }
-}
-
-/// `DecPost` implements the Opcode Operation for `Opcode::DecPost`
-///
-/// Operation:
-///  - Unary postfix `--` operator.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct DecPost;
-
-impl Operation for DecPost {
-    const NAME: &'static str = "DecPost";
-    const INSTRUCTION: &'static str = "INST - DecPost";
-    const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        match value.variant() {
-            JsVariant::Integer32(number) if number > i32::MIN => {
-                context.vm.push(number - 1);
-                context.vm.push(value);
-            }
-            _ => {
-                let value = value.to_numeric(context)?;
-                match value {
-                    Numeric::Number(number) => context.vm.push(number - 1f64),
-                    Numeric::BigInt(ref bigint) => {
-                        context.vm.push(JsBigInt::sub(bigint, &JsBigInt::one()));
-                    }
-                }
-                context.vm.push(value);
-            }
-        }
-        Ok(CompletionType::Normal)
-    }
 }

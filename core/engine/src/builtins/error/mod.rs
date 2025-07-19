@@ -11,19 +11,19 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
 
 use crate::{
+    Context, JsArgs, JsData, JsResult, JsString, JsValue,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-    error::JsNativeError,
+    error::{IgnoreEq, JsNativeError},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsResult, JsString, JsValue,
+    vm::shadow_stack::ShadowEntry,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use boa_profiler::Profiler;
 
 pub(crate) mod aggregate;
 pub(crate) mod eval;
@@ -38,30 +38,21 @@ mod tests;
 
 pub(crate) use self::aggregate::AggregateError;
 pub(crate) use self::eval::EvalError;
-pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;
 pub(crate) use self::reference::ReferenceError;
 pub(crate) use self::syntax::SyntaxError;
+pub(crate) use self::r#type::TypeError;
 pub(crate) use self::uri::UriError;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-/// A built-in `Error` object, per the [ECMAScript spec][spec].
-///
-/// This is used internally to convert between [`JsObject`] and
-/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
-/// objects. However, the recommended way to create them is to construct a
-/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
-/// which will assign its prototype, properties and kind automatically.
-///
-/// For a description of every error kind and its usage, see
-/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+/// A tag of built-in `Error` object, [ECMAScript spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-error-objects
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Trace, Finalize, JsData)]
 #[boa_gc(empty_trace)]
 #[non_exhaustive]
-pub enum Error {
+pub enum ErrorKind {
     /// The `AggregateError` object type.
     ///
     /// More information:
@@ -127,10 +118,57 @@ pub enum Error {
     Uri,
 }
 
+/// A built-in `Error` object, per the [ECMAScript spec][spec].
+///
+/// This is used internally to convert between [`JsObject`] and
+/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
+/// objects. However, the recommended way to create them is to construct a
+/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
+/// which will assign its prototype, properties and kind automatically.
+///
+/// For a description of every error kind and its usage, see
+/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-error-objects
+#[derive(Debug, Clone, PartialEq, Eq, Trace, Finalize, JsData)]
+pub struct Error {
+    pub(crate) tag: ErrorKind,
+
+    // The position of where the Error was created does not affect equality check.
+    #[unsafe_ignore_trace]
+    pub(crate) position: IgnoreEq<Option<ShadowEntry>>,
+}
+
+impl Error {
+    /// Create a new [`Error`].
+    #[inline]
+    #[must_use]
+    pub fn new(tag: ErrorKind) -> Self {
+        Self {
+            tag,
+            position: IgnoreEq(None),
+        }
+    }
+
+    /// Create a new [`Error`] with the given optional [`ShadowEntry`].
+    pub(crate) fn with_shadow_entry(tag: ErrorKind, entry: Option<ShadowEntry>) -> Self {
+        Self {
+            tag,
+            position: IgnoreEq(entry),
+        }
+    }
+
+    /// Get the position from the last called function.
+    pub(crate) fn with_caller_position(tag: ErrorKind, context: &Context) -> Self {
+        Self {
+            tag,
+            position: IgnoreEq(context.vm.shadow_stack.caller_position()),
+        }
+    }
+}
+
 impl IntrinsicObject for Error {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         let builder = BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .property(js_string!("name"), Self::NAME, attribute)
@@ -184,7 +222,7 @@ impl BuiltInConstructor for Error {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Error,
+            Error::with_caller_position(ErrorKind::Error, context),
         );
 
         // 3. If message is not undefined, then
@@ -213,11 +251,11 @@ impl Error {
     ) -> JsResult<()> {
         // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
         // 1.a. Let cause be ? Get(options, "cause").
-        if let Some(options) = options.as_object() {
-            if let Some(cause) = options.try_get(js_string!("cause"), context)? {
-                // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
-                o.create_non_enumerable_data_property_or_throw(js_string!("cause"), cause, context);
-            }
+        if let Some(options) = options.as_object()
+            && let Some(cause) = options.try_get(js_string!("cause"), context)?
+        {
+            // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
+            o.create_non_enumerable_data_property_or_throw(js_string!("cause"), cause, context);
         }
 
         // 2. Return unused.
@@ -299,7 +337,7 @@ impl Error {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .is_some_and(|o| o.is::<Self>())
+            .is_some_and(|o| o.is::<Error>())
             .into())
     }
 }

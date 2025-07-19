@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult, JsValue,
     error::JsNativeError,
     object::PROTOTYPE,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult, JsValue,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 pub(crate) mod field;
@@ -18,14 +18,14 @@ pub(crate) use private::*;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrototype;
 
-impl Operation for PushClassPrototype {
-    const NAME: &'static str = "PushClassPrototype";
-    const INSTRUCTION: &'static str = "INST - PushClassPrototype";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let superclass = context.vm.pop();
-        let class = context.vm.pop();
+impl PushClassPrototype {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (dst, class, superclass): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let class = context.vm.get_register(class.into()).clone();
+        let superclass = context.vm.get_register(superclass.into()).clone();
 
         // // Taken from `15.7.14 Runtime Semantics: ClassDefinitionEvaluation`:
         // <https://tc39.es/ecma262/#sec-runtime-semantics-classdefinitionevaluation>
@@ -68,9 +68,13 @@ impl Operation for PushClassPrototype {
             class_object.set_prototype(Some(constructor_parent));
         }
 
-        context.vm.push(class);
-        context.vm.push(proto_parent);
-
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), proto_parent);
+        Ok(())
     }
+}
+
+impl Operation for PushClassPrototype {
+    const NAME: &'static str = "PushClassPrototype";
+    const INSTRUCTION: &'static str = "INST - PushClassPrototype";
+    const COST: u8 = 6;
 }

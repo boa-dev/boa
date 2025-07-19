@@ -3,12 +3,13 @@
 mod js262;
 
 use crate::{
-    read::ErrorType, Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test,
-    TestFlags, TestOutcomeResult, TestResult, TestSuite, VersionedStats,
+    Harness, Outcome, Phase, SpecEdition, Statistics, SuiteResult, Test, TestFlags,
+    TestOutcomeResult, TestResult, TestSuite, VersionedStats, read::ErrorType,
 };
 use boa_engine::{
+    Context, JsArgs, JsError, JsNativeErrorKind, JsResult, JsValue, Source,
     builtins::promise::PromiseState,
-    js_str, js_string,
+    js_str,
     module::{Module, SimpleModuleLoader},
     native_function::NativeFunction,
     object::FunctionObjectBuilder,
@@ -16,7 +17,6 @@ use boa_engine::{
     parser::source::ReadChar,
     property::Attribute,
     script::Script,
-    Context, JsArgs, JsError, JsNativeErrorKind, JsResult, JsValue, Source,
 };
 use colored::Colorize;
 use rayon::prelude::*;
@@ -289,11 +289,13 @@ impl Test {
 
                     let promise = module.load_link_evaluate(context);
 
-                    context.run_jobs();
+                    if let Err(err) = context.run_jobs() {
+                        return (false, format!("Uncaught {err}"));
+                    }
 
                     match promise.state() {
                         PromiseState::Pending => {
-                            return (false, "module should have been executed".to_string())
+                            return (false, "module should have been executed".to_string());
                         }
                         PromiseState::Fulfilled(v) => v,
                         PromiseState::Rejected(err) => {
@@ -322,7 +324,9 @@ impl Test {
                     }
                 };
 
-                context.run_jobs();
+                if let Err(err) = context.run_jobs() {
+                    return (false, format!("Uncaught {err}"));
+                }
 
                 match *async_result.inner.borrow() {
                     UninitResult::Err(ref e) => return (false, format!("Uncaught {e}")),
@@ -330,7 +334,7 @@ impl Test {
                         return (
                             false,
                             "async test did not print \"Test262:AsyncTestComplete\"".to_string(),
-                        )
+                        );
                     }
                     _ => {}
                 }
@@ -388,11 +392,13 @@ impl Test {
 
                 let promise = module.load(context);
 
-                context.run_jobs();
+                if let Err(err) = context.run_jobs() {
+                    return (false, format!("Uncaught {err}"));
+                }
 
                 match promise.state() {
                     PromiseState::Pending => {
-                        return (false, "module didn't try to load".to_string())
+                        return (false, "module didn't try to load".to_string());
                     }
                     PromiseState::Fulfilled(_) => {
                         // Try to link to see if the resolution error shows there.
@@ -433,15 +439,17 @@ impl Test {
 
                     let promise = module.load(context);
 
-                    context.run_jobs();
+                    if let Err(err) = context.run_jobs() {
+                        return (false, format!("Uncaught {err}"));
+                    }
 
                     match promise.state() {
                         PromiseState::Pending => {
-                            return (false, "module didn't try to load".to_string())
+                            return (false, "module didn't try to load".to_string());
                         }
                         PromiseState::Fulfilled(_) => {}
                         PromiseState::Rejected(err) => {
-                            return (false, format!("Uncaught {}", err.display()))
+                            return (false, format!("Uncaught {}", err.display()));
                         }
                     }
 
@@ -451,11 +459,13 @@ impl Test {
 
                     let promise = module.evaluate(context);
 
-                    context.run_jobs();
+                    if let Err(err) = context.run_jobs() {
+                        return (false, format!("Uncaught {err}"));
+                    }
 
                     match promise.state() {
                         PromiseState::Pending => {
-                            return (false, "module didn't try to evaluate".to_string())
+                            return (false, "module didn't try to evaluate".to_string());
                         }
                         PromiseState::Fulfilled(val) => return (false, val.display().to_string()),
                         PromiseState::Rejected(err) => JsError::from_opaque(err),
@@ -593,7 +603,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
         }
         true
     } else {
-        let passed = error
+        error
             .as_opaque()
             .expect("try_native cannot fail if e is not opaque")
             .as_object()
@@ -603,8 +613,7 @@ fn is_error_type(error: &JsError, target_type: ErrorType, context: &mut Context)
             .and_then(|o| o.get(js_str!("name"), context).ok())
             .as_ref()
             .and_then(JsValue::as_string)
-            .is_some_and(|s| s == target_type.as_str());
-        passed
+            .is_some_and(|s| s == target_type.as_str())
     }
 }
 
@@ -658,14 +667,15 @@ fn parse_module_and_register(
 ) -> JsResult<Module> {
     let module = Module::parse(source, None, context)?;
 
-    let path = js_string!(&*path
+    let path = path
         .canonicalize()
-        .expect("test path should be canonicalizable")
-        .to_string_lossy());
+        .expect("test path should be canonicalizable");
 
-    context
-        .module_loader()
-        .register_module(path, module.clone());
+    let loader = context
+        .downcast_module_loader::<SimpleModuleLoader>()
+        .expect("context must use a SimpleModuleLoader");
+
+    loader.insert(path, module.clone());
 
     Ok(module)
 }

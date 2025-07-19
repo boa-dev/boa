@@ -1,7 +1,10 @@
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    Span, Spanned,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 
 use super::Expression;
 
@@ -22,28 +25,36 @@ use super::Expression;
 /// [spec]: https://tc39.es/ecma262/#prod-SpreadElement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Spread {
     target: Box<Expression>,
+    span: Span,
 }
 
 impl Spread {
+    /// Creates a [`Spread`] AST Expression.
+    #[inline]
+    #[must_use]
+    pub fn new(target: Expression, span: Span) -> Self {
+        Self {
+            target: Box::new(target),
+            span,
+        }
+    }
+
     /// Gets the target expression to be expanded by the spread operator.
     #[inline]
     #[must_use]
     pub const fn target(&self) -> &Expression {
         &self.target
     }
+}
 
-    /// Creates a `Spread` AST Expression.
+impl Spanned for Spread {
     #[inline]
-    #[must_use]
-    pub fn new(target: Expression) -> Self {
-        Self {
-            target: Box::new(target),
-        }
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

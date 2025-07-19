@@ -1,7 +1,7 @@
 use super::PassAction;
 use boa_ast::{
-    visitor::{VisitWith, VisitorMut},
     Expression,
+    visitor::{VisitWith, VisitorMut},
 };
 use std::{convert::Infallible, ops::ControlFlow};
 
@@ -31,7 +31,7 @@ where
 
     /// Walk the AST in postorder.
     pub(crate) fn walk_expression_postorder(&mut self, expr: &mut Expression) {
-        self.visit_expression_mut(expr);
+        let _ = self.visit_expression_mut(expr);
     }
 }
 
@@ -43,7 +43,7 @@ where
 
     /// Visits the tree in postorder.
     fn visit_expression_mut(&mut self, expr: &'ast mut Expression) -> ControlFlow<Self::BreakTy> {
-        expr.visit_with_mut(self);
+        expr.visit_with_mut(self)?;
 
         match (self.f)(expr) {
             PassAction::Keep => {}

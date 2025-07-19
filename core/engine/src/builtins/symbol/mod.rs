@@ -18,9 +18,10 @@
 #[cfg(test)]
 mod tests;
 
-use std::hash::BuildHasherDefault;
+use std::{hash::BuildHasherDefault, sync::LazyLock};
 
 use crate::{
+    Context, JsArgs, JsResult, JsString,
     builtins::BuiltInObject,
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
@@ -31,16 +32,14 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsResult, JsString,
 };
-use boa_profiler::Profiler;
 use dashmap::DashMap;
-use once_cell::sync::Lazy;
 use rustc_hash::FxHasher;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
-static GLOBAL_SYMBOL_REGISTRY: Lazy<GlobalSymbolRegistry> = Lazy::new(GlobalSymbolRegistry::new);
+static GLOBAL_SYMBOL_REGISTRY: LazyLock<GlobalSymbolRegistry> =
+    LazyLock::new(GlobalSymbolRegistry::new);
 
 type FxDashMap<K, V> = DashMap<K, V, BuildHasherDefault<FxHasher>>;
 
@@ -95,8 +94,6 @@ pub struct Symbol;
 
 impl IntrinsicObject for Symbol {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let symbol_async_iterator = JsSymbol::async_iterator();
         let symbol_has_instance = JsSymbol::has_instance();
         let symbol_is_concat_spreadable = JsSymbol::is_concat_spreadable();

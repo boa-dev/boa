@@ -1,4 +1,4 @@
-use crate::test::{run_test_actions, TestAction};
+use crate::test::{TestAction, run_test_actions};
 
 const TEST_HARNESS: &str = r#"
 function assert(condition, message) {

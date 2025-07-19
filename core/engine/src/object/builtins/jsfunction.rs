@@ -1,7 +1,9 @@
 //! A Rust API wrapper for Boa's `Function` Builtin ECMAScript Object
+use crate::js_string;
 use crate::{
+    Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
     builtins::function::ConstructorKind, native_function::NativeFunctionObject, object::JsObject,
-    value::TryFromJs, Context, JsNativeError, JsResult, JsValue, NativeFunction, TryIntoJsResult,
+    value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::marker::PhantomData;
@@ -62,12 +64,14 @@ impl<A: TryIntoJsArguments, R: TryFromJs> TypedJsFunction<A, R> {
 
     /// Call the function with the given arguments.
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub fn call(&self, context: &mut Context, args: A) -> JsResult<R> {
         self.call_with_this(&JsValue::undefined(), context, args)
     }
 
     /// Call the function with the given argument and `this`.
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub fn call_with_this(&self, this: &JsValue, context: &mut Context, args: A) -> JsResult<R> {
         let arguments = args.into_js_args(context)?;
         let result = self.inner.call(this, &arguments, context)?;
@@ -129,6 +133,7 @@ impl JsFunction {
                 None,
                 NativeFunctionObject {
                     f: NativeFunction::from_fn_ptr(|_, _, _| Ok(JsValue::undefined())),
+                    name: js_string!(),
                     constructor: constructor.then_some(ConstructorKind::Base),
                     realm: None,
                 },

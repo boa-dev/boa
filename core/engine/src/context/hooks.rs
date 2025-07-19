@@ -1,10 +1,10 @@
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::promise::OperationType,
     context::intrinsics::Intrinsics,
     job::JobCallback,
     object::{JsFunction, JsObject},
     realm::Realm,
-    Context, JsResult, JsString, JsValue,
 };
 use time::{OffsetDateTime, UtcOffset};
 
@@ -19,6 +19,7 @@ use time::{OffsetDateTime, UtcOffset};
 /// need to be redefined:
 ///
 /// ```
+/// use std::rc::Rc;
 /// use boa_engine::{
 ///     context::{Context, ContextBuilder, HostHooks},
 ///     realm::Realm,
@@ -42,11 +43,13 @@ use time::{OffsetDateTime, UtcOffset};
 ///     }
 /// }
 ///
-/// let context = &mut ContextBuilder::new().host_hooks(&Hooks).build().unwrap();
+/// let context = &mut ContextBuilder::new().host_hooks(Rc::new(Hooks)).build().unwrap();
 /// let result = context.eval(Source::from_bytes(r#"eval("let a = 5")"#));
-/// assert_eq!(
-///     result.unwrap_err().to_string(),
-///     "TypeError: eval calls not available"
+/// assert!(
+///     result
+///         .unwrap_err()
+///         .to_string()
+///         .starts_with("TypeError: eval calls not available")
 /// );
 /// ```
 ///
@@ -73,6 +76,7 @@ pub trait HostHooks {
     /// - It must perform and return the result of `Call(jobCallback.[[Callback]], V, argumentsList)`.
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostcalljobcallback
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     fn call_job_callback(
         &self,
         job: JobCallback,
@@ -175,12 +179,16 @@ pub trait HostHooks {
         None
     }
 
-    /// Gets the current UTC time of the host.
+    /// Gets the current UTC time of the host, in milliseconds since epoch.
     ///
     /// Defaults to using [`OffsetDateTime::now_utc`] on all targets,
     /// which can cause panics if the target doesn't support [`SystemTime::now`][time].
     ///
     /// [time]: std::time::SystemTime::now
+    #[deprecated(
+        since = "0.21.0",
+        note = "Use `context.clock().now().millis_since_epoch()` instead"
+    )]
     fn utc_now(&self) -> i64 {
         let now = OffsetDateTime::now_utc();
         now.unix_timestamp() * 1000 + i64::from(now.millisecond())

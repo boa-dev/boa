@@ -40,11 +40,13 @@
 //! ```
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(test, allow(clippy::needless_raw_string_hashes))] // Makes strings a bit more copy-pastable
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+// Currently throws a false positive regarding dependencies that are only used in tests.
+#![allow(unused_crate_dependencies)]
 #![allow(
     clippy::module_name_repetitions,
     clippy::redundant_pub_crate,
@@ -54,7 +56,7 @@
 mod console;
 
 #[doc(inline)]
-pub use console::{Console, ConsoleState, Logger};
+pub use console::{Console, ConsoleState, DefaultLogger, Logger, NullLogger};
 
 mod text;
 
@@ -63,21 +65,23 @@ pub use text::{TextDecoder, TextEncoder};
 
 pub mod url;
 
+pub mod interval;
+
 /// Options used when registering all built-in objects and functions of the `WebAPI` runtime.
 #[derive(Debug)]
 pub struct RegisterOptions<L: Logger> {
     console_logger: L,
 }
 
-impl Default for RegisterOptions<console::DefaultLogger> {
+impl Default for RegisterOptions<DefaultLogger> {
     fn default() -> Self {
         Self {
-            console_logger: console::DefaultLogger,
+            console_logger: DefaultLogger,
         }
     }
 }
 
-impl RegisterOptions<console::DefaultLogger> {
+impl RegisterOptions<DefaultLogger> {
     /// Create a new `RegisterOptions` with the default options.
     #[must_use]
     pub fn new() -> Self {
@@ -109,21 +113,21 @@ pub fn register(
     #[cfg(feature = "url")]
     url::Url::register(ctx)?;
 
+    interval::register(ctx)?;
+
     Ok(())
 }
 
 #[cfg(test)]
 pub(crate) mod test {
-    use crate::{register, RegisterOptions};
-    use boa_engine::{builtins, Context, JsResult, JsValue, Source};
+    use crate::{RegisterOptions, register};
+    use boa_engine::{Context, JsResult, JsValue, Source, builtins};
     use std::borrow::Cow;
 
     /// A test action executed in a test function.
     #[allow(missing_debug_implementations)]
-    #[derive(Clone)]
     pub(crate) struct TestAction(Inner);
 
-    #[derive(Clone)]
     #[allow(dead_code)]
     enum Inner {
         RunHarness,
@@ -131,7 +135,7 @@ pub(crate) mod test {
             source: Cow<'static, str>,
         },
         InspectContext {
-            op: fn(&mut Context),
+            op: Box<dyn FnOnce(&mut Context)>,
         },
         Assert {
             source: Cow<'static, str>,
@@ -150,7 +154,7 @@ pub(crate) mod test {
         },
         AssertNativeError {
             source: Cow<'static, str>,
-            kind: builtins::error::Error,
+            kind: builtins::error::ErrorKind,
             message: &'static str,
         },
         AssertContext {
@@ -169,8 +173,8 @@ pub(crate) mod test {
         /// Executes `op` with the currently active context.
         ///
         /// Useful to make custom assertions that must be done from Rust code.
-        pub(crate) fn inspect_context(op: fn(&mut Context)) -> Self {
-            Self(Inner::InspectContext { op })
+        pub(crate) fn inspect_context(op: impl FnOnce(&mut Context) + 'static) -> Self {
+            Self(Inner::InspectContext { op: Box::new(op) })
         }
     }
 

@@ -48,8 +48,8 @@ pub use ordinary_function::{FunctionDeclaration, FunctionExpression};
 pub use parameters::{FormalParameter, FormalParameterList, FormalParameterListFlags};
 
 use crate::{
+    LinearPosition, Span, Spanned, StatementList, StatementListItem,
     visitor::{VisitWith, Visitor, VisitorMut},
-    StatementList, StatementListItem,
 };
 
 /// A Function body.
@@ -63,21 +63,18 @@ use crate::{
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FunctionBody {
     pub(crate) statements: StatementList,
+    span: Span,
 }
 
 impl FunctionBody {
     /// Creates a new `FunctionBody` AST node.
+    #[inline]
     #[must_use]
-    pub fn new<S>(statements: S, strict: bool) -> Self
-    where
-        S: Into<Box<[StatementListItem]>>,
-    {
-        Self {
-            statements: StatementList::new(statements.into(), strict),
-        }
+    pub fn new(statements: StatementList, span: Span) -> Self {
+        Self { statements, span }
     }
 
     /// Gets the list of statements.
@@ -100,11 +97,19 @@ impl FunctionBody {
     pub const fn strict(&self) -> bool {
         self.statements.strict()
     }
+
+    /// Get end of linear position in source code.
+    #[inline]
+    #[must_use]
+    pub const fn linear_pos_end(&self) -> LinearPosition {
+        self.statements.linear_pos_end()
+    }
 }
 
-impl From<StatementList> for FunctionBody {
-    fn from(statements: StatementList) -> Self {
-        Self { statements }
+impl Spanned for FunctionBody {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

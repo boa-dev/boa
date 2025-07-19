@@ -3,7 +3,10 @@
 use core::ops::ControlFlow;
 
 use super::Expression;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    Span, Spanned,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 /// An await expression is used within an async function to pause execution and wait for a
@@ -20,9 +23,16 @@ use boa_interner::{Interner, ToIndentedString, ToInternedString};
 #[derive(Clone, Debug, PartialEq)]
 pub struct Await {
     target: Box<Expression>,
+    span: Span,
 }
 
 impl Await {
+    /// Create a new [`Await`] node.
+    #[must_use]
+    pub const fn new(target: Box<Expression>, span: Span) -> Self {
+        Self { target, span }
+    }
+
     /// Return the target expression that should be awaited.
     #[inline]
     #[must_use]
@@ -31,12 +41,10 @@ impl Await {
     }
 }
 
-impl<T> From<T> for Await
-where
-    T: Into<Box<Expression>>,
-{
-    fn from(e: T) -> Self {
-        Self { target: e.into() }
+impl Spanned for Await {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

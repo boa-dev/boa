@@ -6,7 +6,7 @@ use crate::{
     visitor::{VisitWith, Visitor, VisitorMut},
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
 /// the condition is [`falsy`][falsy], another statement can be executed.
@@ -71,11 +71,12 @@ impl ToIndentedString for If {
         let mut buf = format!("if ({}) ", self.cond().to_interned_string(interner));
         match self.else_node() {
             Some(else_e) => {
-                buf.push_str(&format!(
+                let _ = write!(
+                    buf,
                     "{} else {}",
                     self.body().to_indented_string(interner, indent),
                     else_e.to_indented_string(interner, indent)
-                ));
+                );
             }
             None => {
                 buf.push_str(&self.body().to_indented_string(interner, indent));

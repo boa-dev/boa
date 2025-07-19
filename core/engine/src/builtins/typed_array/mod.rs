@@ -13,26 +13,25 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
 use crate::{
+    Context, JsArgs, JsResult, JsString,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{JsValue, Numeric},
-    Context, JsArgs, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 mod builtin;
 mod element;
 mod object;
 
-pub(crate) use builtin::{is_valid_integer_index, BuiltinTypedArray};
+pub(crate) use builtin::{BuiltinTypedArray, is_valid_integer_index};
 pub(crate) use element::{Atomic, ClampedU8, Element};
 pub use object::TypedArray;
 
@@ -47,8 +46,6 @@ impl<T: TypedArrayMarker> IntrinsicObject for T {
     }
 
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let get_species = BuiltInBuilder::callable(realm, BuiltinTypedArray::get_species)
             .name(js_string!("get [Symbol.species]"))
             .build();

@@ -1,12 +1,11 @@
 //! Boa's lexing for ECMAScript template literals.
 
 use crate::{
-    lexer::{string::UTF16CodeUnitsBuffer, Cursor, Error, Token, TokenKind, Tokenizer},
+    lexer::{Cursor, Error, Token, TokenKind, Tokenizer, string::UTF16CodeUnitsBuffer},
     source::ReadChar,
 };
-use boa_ast::{Position, Span};
+use boa_ast::PositionGroup;
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 use std::io::{self, ErrorKind};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -185,14 +184,12 @@ impl<R> Tokenizer<R> for TemplateLiteral {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("TemplateLiteral", "Lexing");
-
         let mut buf = Vec::new();
         loop {
             let ch = cursor.next_char()?.ok_or_else(|| {
@@ -208,9 +205,10 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                     let raw_sym = interner.get_or_intern(&buf[..]);
                     let template_string = TemplateString::new(raw_sym, interner);
 
-                    return Ok(Token::new(
+                    return Ok(Token::new_by_position_group(
                         TokenKind::template_no_substitution(template_string),
-                        Span::new(start_pos, cursor.pos()),
+                        start_pos,
+                        cursor.pos_group(),
                     ));
                 }
                 // $
@@ -218,9 +216,10 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                     let raw_sym = interner.get_or_intern(&buf[..]);
                     let template_string = TemplateString::new(raw_sym, interner);
 
-                    return Ok(Token::new(
+                    return Ok(Token::new_by_position_group(
                         TokenKind::template_middle(template_string),
-                        Span::new(start_pos, cursor.pos()),
+                        start_pos,
+                        cursor.pos_group(),
                     ));
                 }
                 // \

@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{run_test_actions, TestAction};
+use crate::{TestAction, run_test_actions};
 
 #[test]
 #[allow(clippy::redundant_closure_for_method_calls)]
@@ -31,7 +31,7 @@ fn issue_2658() {
                     genTwo.next().then(v => { result2 = v; });
                 "#
         }),
-        TestAction::inspect_context(|ctx| ctx.run_jobs()),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert("!result1.done"),
         TestAction::assert_eq("result1.value", 5),
         TestAction::assert("!result2.done"),

@@ -1,7 +1,7 @@
 //! A Rust API wrapper for Boa's `SharedArrayBuffer` Builtin ECMAScript Object
 use crate::{
-    builtins::array_buffer::SharedArrayBuffer, error::JsNativeError, object::JsObject,
-    value::TryFromJs, Context, JsResult, JsValue,
+    Context, JsResult, JsValue, builtins::array_buffer::SharedArrayBuffer, error::JsNativeError,
+    object::JsObject, value::TryFromJs,
 };
 use boa_gc::{Finalize, Trace};
 use std::{ops::Deref, sync::atomic::Ordering};
@@ -88,7 +88,7 @@ impl JsSharedArrayBuffer {
     #[inline]
     #[must_use]
     pub fn inner(&self) -> SharedArrayBuffer {
-        self.borrow().data.clone()
+        self.borrow().data.as_ref().clone()
     }
 }
 

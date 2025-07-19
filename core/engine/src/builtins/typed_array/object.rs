@@ -3,22 +3,22 @@
 use std::sync::atomic::Ordering;
 
 use crate::{
+    Context, JsNativeError, JsResult, JsString, JsValue,
     builtins::array_buffer::BufferObject,
     object::{
-        internal_methods::{
-            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
-            ordinary_has_property, ordinary_set, ordinary_try_get, InternalMethodContext,
-            InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
-        },
         JsData, JsObject,
+        internal_methods::{
+            InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            ordinary_define_own_property, ordinary_delete, ordinary_get, ordinary_get_own_property,
+            ordinary_has_property, ordinary_set, ordinary_try_get,
+        },
     },
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
 
-use super::{is_valid_integer_index, TypedArrayKind};
+use super::{TypedArrayKind, is_valid_integer_index};
 
 /// A `TypedArray` object is an exotic object that performs special handling of integer
 /// index property keys.
@@ -289,7 +289,7 @@ fn canonical_numeric_index_string(argument: &JsString) -> Option<f64> {
 pub(crate) fn typed_array_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -331,7 +331,7 @@ pub(crate) fn typed_array_exotic_get_own_property(
 pub(crate) fn typed_array_exotic_has_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -362,7 +362,7 @@ pub(crate) fn typed_array_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -428,7 +428,7 @@ pub(crate) fn typed_array_exotic_try_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<JsValue>> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -460,7 +460,7 @@ pub(crate) fn typed_array_exotic_get(
     obj: &JsObject,
     key: &PropertyKey,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<JsValue> {
     let p = match key {
         PropertyKey::String(key) => {
@@ -493,7 +493,7 @@ pub(crate) fn typed_array_exotic_set(
     key: PropertyKey,
     value: JsValue,
     receiver: JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -535,7 +535,7 @@ pub(crate) fn typed_array_exotic_set(
 pub(crate) fn typed_array_exotic_delete(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     let p = match &key {
         PropertyKey::String(key) => {
@@ -568,7 +568,6 @@ pub(crate) fn typed_array_exotic_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
-    let obj = obj.borrow();
     let inner = obj
         .downcast_ref::<TypedArray>()
         .expect("TypedArray exotic method should only be callable from TypedArray objects");
@@ -591,12 +590,13 @@ pub(crate) fn typed_array_exotic_own_property_keys(
         }
         _ => Vec::new(),
     };
+    drop(inner);
 
     // 4. For each own property key P of O such that P is a String and P is not an integer index, in ascending chronological order of property creation, do
     //     a. Append P to keys.
     // 5. For each own property key P of O such that P is a Symbol, in ascending chronological order of property creation, do
     //     a. Append P to keys.
-    keys.extend(obj.properties.shape.keys());
+    keys.extend(obj.borrow().properties.shape.keys());
 
     // 6. Return keys.
     Ok(keys)
@@ -654,7 +654,7 @@ pub(crate) fn typed_array_set_element(
     obj: &JsObject,
     index: f64,
     value: &JsValue,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<()> {
     let obj = obj
         .clone()

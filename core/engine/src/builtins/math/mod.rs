@@ -12,11 +12,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 use crate::{
-    builtins::BuiltInObject, context::intrinsics::Intrinsics, js_string, object::JsObject,
-    property::Attribute, realm::Realm, string::StaticJsStrings, symbol::JsSymbol, Context, JsArgs,
-    JsResult, JsString, JsValue,
+    Context, JsArgs, JsResult, JsString, JsValue, builtins::BuiltInObject,
+    context::intrinsics::Intrinsics, js_string, object::JsObject, property::Attribute,
+    realm::Realm, string::StaticJsStrings, symbol::JsSymbol,
 };
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -29,8 +28,6 @@ pub(crate) struct Math;
 
 impl IntrinsicObject for Math {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_property(js_string!("E"), std::f64::consts::E, attribute)

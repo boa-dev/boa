@@ -1,46 +1,47 @@
 use crate::value::JsVariant;
 use crate::{
-    builtins::Number, bytecompiler::ToJsString, optimizer::PassAction, value::Numeric, Context,
-    JsBigInt, JsValue,
+    Context, JsBigInt, JsValue, builtins::Number, bytecompiler::ToJsString, optimizer::PassAction,
+    value::Numeric,
 };
+use boa_ast::expression::literal::Literal;
 use boa_ast::{
+    Expression, Spanned,
     expression::{
-        literal::Literal,
+        literal::LiteralKind,
         operator::{
+            Binary, Unary,
             binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
             unary::UnaryOp,
-            Binary, Unary,
         },
     },
-    Expression,
 };
 use boa_interner::JStrRef;
 
 fn literal_to_js_value(literal: &Literal, context: &mut Context) -> JsValue {
-    match literal {
-        Literal::String(v) => JsValue::new(v.to_js_string(context.interner())),
-        Literal::Num(v) => JsValue::new(*v),
-        Literal::Int(v) => JsValue::new(*v),
-        Literal::BigInt(v) => JsValue::new(JsBigInt::new(v.clone())),
-        Literal::Bool(v) => JsValue::new(*v),
-        Literal::Null => JsValue::null(),
-        Literal::Undefined => JsValue::undefined(),
+    match literal.kind() {
+        LiteralKind::String(v) => JsValue::new(v.to_js_string(context.interner())),
+        LiteralKind::Num(v) => JsValue::new(*v),
+        LiteralKind::Int(v) => JsValue::new(*v),
+        LiteralKind::BigInt(v) => JsValue::new(JsBigInt::new(v.clone())),
+        LiteralKind::Bool(v) => JsValue::new(*v),
+        LiteralKind::Null => JsValue::null(),
+        LiteralKind::Undefined => JsValue::undefined(),
     }
 }
 
-fn js_value_to_literal(value: &JsValue, context: &mut Context) -> Literal {
+fn js_value_to_literal_kind(value: &JsValue, context: &mut Context) -> LiteralKind {
     match value.variant() {
-        JsVariant::Null => Literal::Null,
-        JsVariant::Undefined => Literal::Undefined,
-        JsVariant::Boolean(v) => Literal::Bool(v),
+        JsVariant::Null => LiteralKind::Null,
+        JsVariant::Undefined => LiteralKind::Undefined,
+        JsVariant::Boolean(v) => LiteralKind::Bool(v),
         JsVariant::String(v) => {
             // TODO: Replace JStrRef with JsStr this would eliminate the to_vec call.
             let v = v.to_vec();
-            Literal::String(context.interner_mut().get_or_intern(JStrRef::Utf16(&v)))
+            LiteralKind::String(context.interner_mut().get_or_intern(JStrRef::Utf16(&v)))
         }
-        JsVariant::Float64(v) => Literal::Num(v),
-        JsVariant::Integer32(v) => Literal::Int(v),
-        JsVariant::BigInt(v) => Literal::BigInt(Box::new(v.as_inner().clone())),
+        JsVariant::Float64(v) => LiteralKind::Num(v),
+        JsVariant::Integer32(v) => LiteralKind::Int(v),
+        JsVariant::BigInt(v) => LiteralKind::BigInt(Box::new(v.as_inner().clone())),
         JsVariant::Object(_) | JsVariant::Symbol(_) => {
             unreachable!("value must not be an object or symbol")
         }
@@ -90,10 +91,12 @@ impl ConstantFolding {
                 literal_to_js_value(literal, context).js_type_of(),
             )),
             (_, UnaryOp::Delete) => {
-                return PassAction::Replace(Expression::Literal(Literal::Bool(true)))
+                return PassAction::Replace(Literal::new(true, unary.span()).into());
             }
             (_, UnaryOp::Void) => {
-                return PassAction::Replace(Expression::Literal(Literal::Undefined))
+                return PassAction::Replace(
+                    Literal::new(LiteralKind::Undefined, unary.span()).into(),
+                );
             }
         };
 
@@ -102,7 +105,10 @@ impl ConstantFolding {
             return PassAction::Keep;
         };
 
-        PassAction::Replace(Expression::Literal(js_value_to_literal(&value, context)))
+        PassAction::Replace(Expression::Literal(Literal::new(
+            js_value_to_literal_kind(&value, context),
+            unary.span(),
+        )))
     }
 
     fn constant_fold_binary_expr(
@@ -126,23 +132,31 @@ impl ConstantFolding {
         // (complex_pure_expression, eval)                     --> (undefined, eval)
         // (complex_pure_expression, Object.prototype.valueOf) --> (undefined, Object.prototype.valueOf)
         if binary.op() == BinaryOp::Comma {
+            let span = binary.span();
             if !matches!(binary.rhs(), Expression::Literal(_)) {
                 // If left-hand side is already undefined then just keep it,
                 // so we don't cause an infinite loop.
-                if *binary.lhs() == Expression::Literal(Literal::Undefined) {
+                if let Expression::Literal(literal) = binary.lhs()
+                    && literal.is_undefined()
+                {
                     return PassAction::Keep;
                 }
 
-                *binary.lhs_mut() = Expression::Literal(Literal::Undefined);
+                *binary.lhs_mut() = Literal::new(LiteralKind::Undefined, span).into();
                 return PassAction::Modified;
             }
 
             // We take rhs, by replacing with a dummy value.
-            let rhs = std::mem::replace(binary.rhs_mut(), Expression::Literal(Literal::Undefined));
+            let rhs = std::mem::replace(
+                binary.rhs_mut(),
+                Literal::new(LiteralKind::Undefined, span).into(),
+            );
             return PassAction::Replace(rhs);
         }
 
         let lhs = literal_to_js_value(lhs, context);
+
+        let span = binary.span();
 
         // Do the following optimizations if it's a logical binary expression:
         //
@@ -161,34 +175,52 @@ impl ConstantFolding {
             let expr = match op {
                 LogicalOp::And => {
                     if lhs.to_boolean() {
-                        std::mem::replace(binary.rhs_mut(), Expression::Literal(Literal::Undefined))
+                        std::mem::replace(
+                            binary.rhs_mut(),
+                            Literal::new(LiteralKind::Undefined, span).into(),
+                        )
                     } else {
-                        std::mem::replace(binary.lhs_mut(), Expression::Literal(Literal::Undefined))
+                        std::mem::replace(
+                            binary.lhs_mut(),
+                            Literal::new(LiteralKind::Undefined, span).into(),
+                        )
                     }
                 }
                 LogicalOp::Or => {
                     if lhs.to_boolean() {
-                        std::mem::replace(binary.lhs_mut(), Expression::Literal(Literal::Undefined))
+                        std::mem::replace(
+                            binary.lhs_mut(),
+                            Literal::new(LiteralKind::Undefined, span).into(),
+                        )
                     } else {
-                        std::mem::replace(binary.rhs_mut(), Expression::Literal(Literal::Undefined))
+                        std::mem::replace(
+                            binary.rhs_mut(),
+                            Literal::new(LiteralKind::Undefined, span).into(),
+                        )
                     }
                 }
                 LogicalOp::Coalesce => {
                     if lhs.is_null_or_undefined() {
-                        std::mem::replace(binary.rhs_mut(), Expression::Literal(Literal::Undefined))
+                        std::mem::replace(
+                            binary.rhs_mut(),
+                            Literal::new(LiteralKind::Undefined, span).into(),
+                        )
                     } else {
-                        std::mem::replace(binary.lhs_mut(), Expression::Literal(Literal::Undefined))
+                        std::mem::replace(
+                            binary.lhs_mut(),
+                            Literal::new(LiteralKind::Undefined, span).into(),
+                        )
                     }
                 }
             };
             return PassAction::Replace(expr);
         }
 
-        let Expression::Literal(rhs) = binary.rhs() else {
+        let Expression::Literal(rhs_literal) = binary.rhs() else {
             return PassAction::Keep;
         };
 
-        let rhs = literal_to_js_value(rhs, context);
+        let rhs = literal_to_js_value(rhs_literal, context);
 
         let value = match binary.op() {
             BinaryOp::Arithmetic(op) => match op {
@@ -229,6 +261,8 @@ impl ConstantFolding {
             return PassAction::Keep;
         };
 
-        PassAction::Replace(Expression::Literal(js_value_to_literal(&value, context)))
+        PassAction::Replace(
+            Literal::new(js_value_to_literal_kind(&value, context), binary.span()).into(),
+        )
     }
 }

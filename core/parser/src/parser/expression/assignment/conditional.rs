@@ -10,14 +10,13 @@
 use crate::{
     lexer::TokenKind,
     parser::{
-        expression::{AssignmentExpression, ShortCircuitExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+        expression::{AssignmentExpression, ShortCircuitExpression},
     },
     source::ReadChar,
 };
-use boa_ast::{expression::operator::Conditional, Expression, Punctuator};
+use boa_ast::{Expression, Punctuator, expression::operator::Conditional};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Conditional expression parsing.
 ///
@@ -61,23 +60,21 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ConditionalExpression", "Parsing");
         let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
-        if let Some(tok) = cursor.peek(0, interner)? {
-            if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
-                cursor.advance(interner);
-                let then_clause =
-                    AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
-                cursor.expect(Punctuator::Colon, "conditional expression", interner)?;
+        if let Some(tok) = cursor.peek(0, interner)?
+            && tok.kind() == &TokenKind::Punctuator(Punctuator::Question)
+        {
+            cursor.advance(interner);
+            let then_clause = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+            cursor.expect(Punctuator::Colon, "conditional expression", interner)?;
 
-                let else_clause =
-                    AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
-                return Ok(Conditional::new(lhs, then_clause, else_clause).into());
-            }
+            let else_clause =
+                AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+            return Ok(Conditional::new(lhs, then_clause, else_clause).into());
         }
 
         Ok(lhs)

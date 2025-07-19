@@ -2,6 +2,7 @@
 
 use super::Declaration;
 use crate::{
+    LinearPosition,
     statement::Statement,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -20,9 +21,9 @@ use std::ops::Deref;
 #[derive(Clone, Debug, PartialEq)]
 pub enum StatementListItem {
     /// See [`Statement`].
-    Statement(Statement),
+    Statement(Box<Statement>),
     /// See [`Declaration`].
-    Declaration(Declaration),
+    Declaration(Box<Declaration>),
 }
 
 impl ToIndentedString for StatementListItem {
@@ -55,14 +56,14 @@ impl ToIndentedString for StatementListItem {
 impl From<Statement> for StatementListItem {
     #[inline]
     fn from(stmt: Statement) -> Self {
-        Self::Statement(stmt)
+        Self::Statement(Box::new(stmt))
     }
 }
 
 impl From<Declaration> for StatementListItem {
     #[inline]
     fn from(decl: Declaration) -> Self {
-        Self::Declaration(decl)
+        Self::Declaration(Box::new(decl))
     }
 }
 
@@ -95,21 +96,29 @@ impl VisitWith for StatementListItem {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default)]
 pub struct StatementList {
     pub(crate) statements: Box<[StatementListItem]>,
+    linear_pos_end: LinearPosition,
     strict: bool,
+}
+
+impl PartialEq for StatementList {
+    fn eq(&self, other: &Self) -> bool {
+        self.statements == other.statements && self.strict == other.strict
+    }
 }
 
 impl StatementList {
     /// Creates a new `StatementList` AST node.
     #[must_use]
-    pub fn new<S>(statements: S, strict: bool) -> Self
+    pub fn new<S>(statements: S, linear_pos_end: LinearPosition, strict: bool) -> Self
     where
         S: Into<Box<[StatementListItem]>>,
     {
         Self {
             statements: statements.into(),
+            linear_pos_end,
             strict,
         }
     }
@@ -127,23 +136,32 @@ impl StatementList {
     pub const fn strict(&self) -> bool {
         self.strict
     }
+
+    /// Get end of linear position in source code.
+    #[inline]
+    #[must_use]
+    pub const fn linear_pos_end(&self) -> LinearPosition {
+        self.linear_pos_end
+    }
 }
 
-impl From<Box<[StatementListItem]>> for StatementList {
+impl From<(Box<[StatementListItem]>, LinearPosition)> for StatementList {
     #[inline]
-    fn from(stm: Box<[StatementListItem]>) -> Self {
+    fn from(value: (Box<[StatementListItem]>, LinearPosition)) -> Self {
         Self {
-            statements: stm,
+            statements: value.0,
+            linear_pos_end: value.1,
             strict: false,
         }
     }
 }
 
-impl From<Vec<StatementListItem>> for StatementList {
+impl From<(Vec<StatementListItem>, LinearPosition)> for StatementList {
     #[inline]
-    fn from(stm: Vec<StatementListItem>) -> Self {
+    fn from(value: (Vec<StatementListItem>, LinearPosition)) -> Self {
         Self {
-            statements: stm.into(),
+            statements: value.0.into(),
+            linear_pos_end: value.1,
             strict: false,
         }
     }
@@ -198,6 +216,7 @@ impl<'a> arbitrary::Arbitrary<'a> for StatementList {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         Ok(Self {
             statements: u.arbitrary()?,
+            linear_pos_end: LinearPosition::default(),
             strict: false, // disable strictness; this is *not* in source data
         })
     }

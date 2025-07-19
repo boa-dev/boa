@@ -1,11 +1,11 @@
-use std::{fmt::Display, str::FromStr};
+use std::{fmt, str::FromStr};
 
 use num_traits::FromPrimitive;
 
 use crate::{
-    builtins::{options::ParsableOptionType, OrdinaryObject},
-    object::JsObject,
     Context, JsNativeError, JsResult, JsString, JsValue,
+    builtins::{OrdinaryObject, options::ParsableOptionType},
+    object::JsObject,
 };
 
 /// `IntlOptions` aggregates the `locale_matcher` selector and any other object
@@ -28,8 +28,8 @@ pub(super) enum LocaleMatcher {
 #[derive(Debug)]
 pub(super) struct ParseLocaleMatcherError;
 
-impl Display for ParseLocaleMatcherError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for ParseLocaleMatcherError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         "provided string was not `lookup` or `best fit`".fmt(f)
     }
 }

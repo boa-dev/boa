@@ -1,7 +1,7 @@
 //! Implements a set type that preserves insertion order.
 
-use crate::{builtins::map::ordered_map::MapKey, object::JsObject, JsData, JsValue};
-use boa_gc::{custom_trace, Finalize, Trace};
+use crate::{JsData, JsValue, builtins::map::ordered_map::MapKey, object::JsObject};
+use boa_gc::{Finalize, Trace, custom_trace};
 use indexmap::IndexSet;
 use std::fmt::Debug;
 
@@ -177,12 +177,10 @@ impl Finalize for SetLock {
     fn finalize(&self) {
         // Avoids panicking inside `Finalize`, with the downside of slightly increasing
         // memory usage if the set could not be borrowed.
-        let Ok(mut set) = self.0.try_borrow_mut() else {
-            return;
-        };
-        let set = set
+        // TODO: try_downcast_mut
+        self.0
             .downcast_mut::<OrderedSet>()
-            .expect("SetLock does not point to a set");
-        set.unlock();
+            .expect("SetLock does not point to a set")
+            .unlock();
     }
 }

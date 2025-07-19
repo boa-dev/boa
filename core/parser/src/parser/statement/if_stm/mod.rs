@@ -2,21 +2,20 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        expression::Expression,
-        statement::{declaration::FunctionDeclaration, Statement},
         AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression,
+        statement::{Statement, declaration::FunctionDeclaration},
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Declaration, Keyword, Punctuator, Spanned, StatementListItem,
     statement::{Block, If},
-    Declaration, Keyword, Punctuator, StatementListItem,
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// If statement parsing.
 ///
@@ -58,8 +57,6 @@ where
     type Output = If;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("IfStatement", "Parsing");
-
         cursor.expect((Keyword::If, false), "if statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "if statement", interner)?;
 
@@ -83,12 +80,16 @@ where
                 // Source text matched by this production is processed as if each matching
                 // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
                 // StatementListItem of a BlockStatement occupying that position in the source text.
-                Block::from(vec![StatementListItem::Declaration(
-                    Declaration::FunctionDeclaration(
-                        FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                            .parse(cursor, interner)?,
-                    ),
-                )])
+                Block::from((
+                    vec![StatementListItem::Declaration(
+                        Declaration::FunctionDeclaration(
+                            FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                                .parse(cursor, interner)?,
+                        )
+                        .into(),
+                    )],
+                    cursor.linear_pos(),
+                ))
                 .into()
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -127,16 +128,20 @@ where
                             // Source text matched by this production is processed as if each matching
                             // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
                             // StatementListItem of a BlockStatement occupying that position in the source text.
-                            Block::from(vec![StatementListItem::Declaration(
-                                Declaration::FunctionDeclaration(
-                                    FunctionDeclaration::new(
-                                        self.allow_yield,
-                                        self.allow_await,
-                                        false,
+                            Block::from((
+                                vec![StatementListItem::Declaration(
+                                    Declaration::FunctionDeclaration(
+                                        FunctionDeclaration::new(
+                                            self.allow_yield,
+                                            self.allow_await,
+                                            false,
+                                        )
+                                        .parse(cursor, interner)?,
                                     )
-                                    .parse(cursor, interner)?,
-                                ),
-                            )])
+                                    .into(),
+                                )],
+                                cursor.linear_pos(),
+                            ))
                             .into()
                         }
                         _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)

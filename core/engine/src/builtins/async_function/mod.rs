@@ -8,15 +8,14 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction
 
 use crate::{
-    builtins::{function::BuiltInFunctionObject, BuiltInObject},
+    Context, JsResult, JsString, JsValue,
+    builtins::{BuiltInObject, function::BuiltInFunctionObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -26,8 +25,6 @@ pub struct AsyncFunction;
 
 impl IntrinsicObject for AsyncFunction {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().function().constructor())
             .inherits(Some(

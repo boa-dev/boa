@@ -1,5 +1,6 @@
 use crate::expression::Call;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{Span, Spanned};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -53,6 +54,13 @@ impl From<Call> for New {
     #[inline]
     fn from(call: Call) -> Self {
         Self { call }
+    }
+}
+
+impl Spanned for New {
+    #[inline]
+    fn span(&self) -> Span {
+        self.call.span()
     }
 }
 

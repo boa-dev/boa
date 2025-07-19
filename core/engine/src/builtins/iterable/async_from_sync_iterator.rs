@@ -1,18 +1,17 @@
 use crate::{
+    Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsValue,
     builtins::{
-        iterable::{create_iter_result_object, IteratorRecord, IteratorResult},
-        promise::{if_abrupt_reject_promise, PromiseCapability},
         BuiltInBuilder, IntrinsicObject, Promise,
+        iterable::{IteratorRecord, IteratorResult, create_iter_result_object},
+        promise::{PromiseCapability, if_abrupt_reject_promise},
     },
     context::intrinsics::Intrinsics,
     js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     realm::Realm,
-    Context, JsArgs, JsData, JsError, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 /// `%AsyncFromSyncIteratorPrototype%` object.
 ///
@@ -28,8 +27,6 @@ pub(crate) struct AsyncFromSyncIterator {
 
 impl IntrinsicObject for AsyncFromSyncIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm
@@ -97,8 +94,9 @@ impl AsyncFromSyncIterator {
         // 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
-        let mut sync_iterator_record = this
-            .as_object()
+        let object = this.as_object();
+        let mut sync_iterator_record = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
@@ -140,8 +138,9 @@ impl AsyncFromSyncIterator {
         // 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
-        let sync_iterator_record = this
-            .as_object()
+        let object = this.as_object();
+        let sync_iterator_record = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record
@@ -217,8 +216,9 @@ impl AsyncFromSyncIterator {
         // 1. Let O be the this value.
         // 2. Assert: O is an Object that has a [[SyncIteratorRecord]] internal slot.
         // 4. Let syncIteratorRecord be O.[[SyncIteratorRecord]].
-        let sync_iterator_record = this
-            .as_object()
+        let object = this.as_object();
+        let sync_iterator_record = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .expect("async from sync iterator prototype must be object")
             .sync_iterator_record

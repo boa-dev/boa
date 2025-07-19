@@ -5,7 +5,7 @@
 use boa_engine::object::builtins::JsUint8Array;
 use boa_engine::string::CodePoint;
 use boa_engine::{
-    js_string, Context, Finalize, JsData, JsNativeError, JsObject, JsResult, JsString, Trace,
+    Context, Finalize, JsData, JsNativeError, JsObject, JsResult, JsString, Trace, js_string,
 };
 use boa_interop::js_class;
 

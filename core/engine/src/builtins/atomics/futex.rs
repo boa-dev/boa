@@ -137,28 +137,25 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(clippy::undocumented_unsafe_blocks)]
 #![allow(clippy::expl_impl_clone_on_copy)]
-#![allow(unstable_name_collisions)]
 
 use std::{cell::UnsafeCell, sync::atomic::Ordering};
 
 use crate::{
+    JsNativeError, JsResult,
     builtins::{
-        array_buffer::{utils::SliceRef, SharedArrayBuffer},
+        array_buffer::{SharedArrayBuffer, utils::SliceRef},
         typed_array::Element,
     },
     sys::time::{Duration, Instant},
-    JsNativeError, JsResult,
 };
 
 mod sync {
     use std::sync::{Condvar, Mutex, MutexGuard};
 
-    use intrusive_collections::{intrusive_adapter, LinkedList, LinkedListLink, UnsafeRef};
+    use intrusive_collections::{LinkedList, LinkedListLink, UnsafeRef, intrusive_adapter};
+    use small_btree::{Entry, SmallBTreeMap};
 
-    use crate::{
-        small_map::{Entry, SmallMap},
-        JsNativeError, JsResult,
-    };
+    use crate::{JsNativeError, JsResult};
 
     /// A waiter of a memory address.
     #[derive(Debug, Default)]
@@ -174,7 +171,7 @@ mod sync {
     /// List of memory addresses and its corresponding list of waiters for that address.
     #[derive(Debug)]
     pub(super) struct FutexWaiters {
-        waiters: SmallMap<usize, LinkedList<FutexWaiterAdapter>, 16>,
+        waiters: SmallBTreeMap<usize, LinkedList<FutexWaiterAdapter>, 16>,
     }
 
     // SAFETY: `FutexWaiters` is not constructable outside its `get` method, and it's only exposed by
@@ -186,7 +183,7 @@ mod sync {
         /// Gets the map of all shared data addresses and its corresponding list of agents waiting on that location.
         pub(super) fn get() -> JsResult<MutexGuard<'static, Self>> {
             static CRITICAL_SECTION: Mutex<FutexWaiters> = Mutex::new(FutexWaiters {
-                waiters: SmallMap::new(),
+                waiters: SmallBTreeMap::new(),
             });
 
             CRITICAL_SECTION.lock().map_err(|_| {
@@ -326,7 +323,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
     // SAFETY: waiter is valid and we call `remove_node` below.
     unsafe {
-        waiters.add_waiter(waiter_ptr, sptr::Strict::addr(buffer.as_ptr()));
+        waiters.add_waiter(waiter_ptr, buffer.as_ptr().addr());
     }
 
     // 18. Let notified be SuspendAgent(WL, W, t).
@@ -395,7 +392,7 @@ pub(super) unsafe fn wait<E: Element + PartialEq>(
 
 /// Notifies at most `count` agents waiting on the memory address pointed to by `buffer[offset..]`.
 pub(super) fn notify(buffer: &SharedArrayBuffer, offset: usize, count: u64) -> JsResult<u64> {
-    let addr = sptr::Strict::addr(buffer.as_ptr()) + offset;
+    let addr = buffer.as_ptr().addr() + offset;
 
     // 7. Let WL be GetWaiterList(block, indexedPosition).
     // 8. Perform EnterCriticalSection(WL).

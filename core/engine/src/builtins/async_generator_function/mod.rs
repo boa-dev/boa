@@ -6,7 +6,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-asyncgeneratorfunction-objects
 
 use crate::{
-    builtins::{function::BuiltInFunctionObject, BuiltInObject},
+    Context, JsResult, JsString,
+    builtins::{BuiltInObject, function::BuiltInFunctionObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     object::{JsObject, PROTOTYPE},
     property::Attribute,
@@ -14,9 +15,7 @@ use crate::{
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsResult, JsString,
 };
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -26,8 +25,6 @@ pub struct AsyncGeneratorFunction;
 
 impl IntrinsicObject for AsyncGeneratorFunction {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .inherits(Some(
                 realm.intrinsics().constructors().function().prototype(),

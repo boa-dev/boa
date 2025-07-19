@@ -1,10 +1,10 @@
 use crate::{
+    Context, JsResult, JsString,
     object::{JsData, JsObject},
     property::{PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsString,
 };
 
-use super::{InternalMethodContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+use super::{InternalMethodPropertyContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 
 impl JsData for JsString {
     fn internal_methods(&self) -> &'static InternalObjectMethods {
@@ -28,7 +28,7 @@ impl JsData for JsString {
 pub(crate) fn string_exotic_get_own_property(
     obj: &JsObject,
     key: &PropertyKey,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<Option<PropertyDescriptor>> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let desc be OrdinaryGetOwnProperty(S, P).
@@ -53,7 +53,7 @@ pub(crate) fn string_exotic_define_own_property(
     obj: &JsObject,
     key: &PropertyKey,
     desc: PropertyDescriptor,
-    context: &mut InternalMethodContext<'_>,
+    context: &mut InternalMethodPropertyContext<'_>,
 ) -> JsResult<bool> {
     // 1. Assert: IsPropertyKey(P) is true.
     // 2. Let stringDesc be ! StringGetOwnProperty(S, P).
@@ -86,8 +86,6 @@ pub(crate) fn string_exotic_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
-    let obj = obj.borrow();
-
     // 2. Let str be O.[[StringData]].
     // 3. Assert: Type(str) is String.
     let string = obj
@@ -108,6 +106,7 @@ pub(crate) fn string_exotic_own_property_keys(
     // and ! ToIntegerOrInfinity(P) ≥ len, in ascending numeric index order, do
     //      a. Add P as the last element of keys.
     let mut remaining_indices: Vec<_> = obj
+        .borrow()
         .properties
         .index_property_keys()
         .filter(|idx| (*idx as usize) >= len)
@@ -122,7 +121,7 @@ pub(crate) fn string_exotic_own_property_keys(
     // 8. For each own property key P of O such that Type(P) is Symbol, in ascending
     // chronological order of property creation, do
     //      a. Add P as the last element of keys.
-    keys.extend(obj.properties.shape.keys());
+    keys.extend(obj.borrow().properties.shape.keys());
 
     // 9. Return keys.
     Ok(keys)

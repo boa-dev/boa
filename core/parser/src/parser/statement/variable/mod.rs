@@ -3,19 +3,18 @@
 use crate::{
     lexer::TokenKind,
     parser::{
+        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
         expression::Initializer,
         statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowIn, AllowYield, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
 };
 use boa_ast::{
-    declaration::{VarDeclaration, Variable},
     Keyword, Punctuator,
+    declaration::{VarDeclaration, Variable},
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use std::convert::TryInto;
 
 /// Variable statement parsing.
@@ -55,7 +54,6 @@ where
     type Output = VarDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect((Keyword::Var, false), "variable statement", interner)?;
 
         let decl_list = VariableDeclarationList::new(true, self.allow_yield, self.allow_await)

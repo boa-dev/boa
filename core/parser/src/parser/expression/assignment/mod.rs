@@ -14,27 +14,26 @@ mod exponentiation;
 mod r#yield;
 
 use crate::{
+    Error,
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
+        AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::assignment::{
             arrow_function::{ArrowFunction, ConciseBody},
             async_arrow_function::AsyncArrowFunction,
             conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
-        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, OrAbrupt,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Expression, Keyword, Punctuator, Span, Spanned,
     expression::operator::assign::{Assign, AssignOp, AssignTarget},
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Expression, Keyword, Punctuator,
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 pub(super) use exponentiation::ExponentiationExpression;
 
@@ -86,14 +85,13 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Expression> {
-        let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
         match cursor.peek(0, interner).or_abrupt()?.kind() {
             // [+Yield]YieldExpression[?In, ?Await]
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 return YieldExpression::new(self.allow_in, self.allow_await)
-                    .parse(cursor, interner)
+                    .parse(cursor, interner);
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::IdentifierName(_)
@@ -107,16 +105,12 @@ where
                 } else {
                     1
                 };
-                if let Some(tok) = cursor.peek_no_skip_line_term(skip_n, interner)? {
-                    if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                        return ArrowFunction::new(
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
+                if let Some(tok) = cursor.peek_no_skip_line_term(skip_n, interner)?
+                    && tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
+                {
+                    return ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
                         .map(Expression::ArrowFunction);
-                    }
                 }
             }
             //  AsyncArrowFunction[?In, ?Yield, ?Await]
@@ -154,7 +148,9 @@ where
 
         cursor.set_goal(InputElement::Div);
 
-        let position = cursor.peek(0, interner).or_abrupt()?.span().start();
+        let peek_token = cursor.peek(0, interner).or_abrupt()?;
+        let position = peek_token.span().start();
+        let start_linear_span = peek_token.linear_span();
         let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
@@ -216,7 +212,18 @@ where
                 interner,
             )?;
 
-            return Ok(boa_ast::function::ArrowFunction::new(None, parameters, body).into());
+            let linear_pos_end = body.linear_pos_end();
+            let linear_span = start_linear_span.union(linear_pos_end);
+
+            let body_span_end = body.span().end();
+            return Ok(boa_ast::function::ArrowFunction::new(
+                None,
+                parameters,
+                body,
+                linear_span,
+                Span::new(position, body_span_end),
+            )
+            .into());
         }
 
         // Review if we are trying to assign to an invalid left hand side expression.

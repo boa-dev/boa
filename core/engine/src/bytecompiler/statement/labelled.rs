@@ -1,7 +1,7 @@
 use crate::bytecompiler::{ByteCompiler, NodeKind};
 use boa_ast::{
-    statement::{Labelled, LabelledItem},
     Statement,
+    statement::{Labelled, LabelledItem},
 };
 
 impl ByteCompiler<'_> {
@@ -30,7 +30,9 @@ impl ByteCompiler<'_> {
                 stmt => self.compile_stmt(stmt, use_expr, true),
             },
             LabelledItem::FunctionDeclaration(f) => {
-                self.function_with_binding(f.into(), NodeKind::Declaration, false);
+                let dst = self.register_allocator.alloc();
+                self.function_with_binding(f.into(), NodeKind::Declaration, &dst);
+                self.register_allocator.dealloc(dst);
             }
         }
 

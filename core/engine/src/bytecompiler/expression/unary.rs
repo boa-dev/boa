@@ -1,52 +1,56 @@
-use boa_ast::{
-    expression::operator::{unary::UnaryOp, Unary},
-    Expression,
-};
-
-use crate::{
-    bytecompiler::{Access, ByteCompiler, ToJsString},
-    vm::Opcode,
-};
+use crate::bytecompiler::{Access, BindingAccessOpcode, ByteCompiler, Register, ToJsString};
+use boa_ast::Expression;
+use boa_ast::expression::operator::{Unary, unary::UnaryOp};
 
 impl ByteCompiler<'_> {
-    pub(crate) fn compile_unary(&mut self, unary: &Unary, use_expr: bool) {
-        let opcode = match unary.op() {
+    pub(crate) fn compile_unary(&mut self, unary: &Unary, dst: &Register) {
+        match unary.op() {
             UnaryOp::Delete => {
+                let mut compiler = self.position_guard(unary);
+
                 if let Some(access) = Access::from_expression(unary.target()) {
-                    self.access_delete(access);
+                    compiler.access_delete(access, dst);
                 } else {
-                    self.compile_expr(unary.target(), false);
-                    self.emit(Opcode::PushTrue, &[]);
+                    compiler.compile_expr(unary.target(), dst);
+                    compiler.bytecode.emit_push_true(dst.variable());
                 }
-                None
             }
-            UnaryOp::Minus => Some(Opcode::Neg),
-            UnaryOp::Plus => Some(Opcode::Pos),
-            UnaryOp::Not => Some(Opcode::LogicalNot),
-            UnaryOp::Tilde => Some(Opcode::BitNot),
+            UnaryOp::Minus => {
+                self.compile_expr(unary.target(), dst);
+                self.bytecode.emit_neg(dst.variable());
+            }
+            UnaryOp::Plus => {
+                self.compile_expr(unary.target(), dst);
+                self.bytecode.emit_pos(dst.variable());
+            }
+            UnaryOp::Not => {
+                self.compile_expr(unary.target(), dst);
+                self.bytecode.emit_logical_not(dst.variable());
+            }
+            UnaryOp::Tilde => {
+                self.compile_expr(unary.target(), dst);
+                self.bytecode.emit_bit_not(dst.variable());
+            }
             UnaryOp::TypeOf => {
                 match unary.target().flatten() {
                     Expression::Identifier(identifier) => {
                         let identifier = identifier.to_js_string(self.interner());
                         let binding = self.lexical_scope.get_identifier_reference(identifier);
-                        let index = self.get_or_insert_binding(binding);
-                        self.emit_binding_access(Opcode::GetNameOrUndefined, &index);
+                        let index = self.get_binding(&binding);
+                        self.emit_binding_access(
+                            BindingAccessOpcode::GetNameOrUndefined,
+                            &index,
+                            dst,
+                        );
                     }
-                    expr => self.compile_expr(expr, true),
+                    expr => self.compile_expr(expr, dst),
                 }
-                self.emit_opcode(Opcode::TypeOf);
-                None
+                self.bytecode.emit_type_of(dst.variable());
             }
-            UnaryOp::Void => Some(Opcode::Void),
-        };
-
-        if let Some(opcode) = opcode {
-            self.compile_expr(unary.target(), true);
-            self.emit(opcode, &[]);
-        }
-
-        if !use_expr {
-            self.emit_opcode(Opcode::Pop);
+            UnaryOp::Void => {
+                self.compile_expr(unary.target(), dst);
+                self.bytecode.emit_push_undefined(dst.variable());
+            }
         }
     }
 }

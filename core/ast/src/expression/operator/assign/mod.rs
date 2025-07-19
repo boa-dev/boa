@@ -20,7 +20,8 @@ pub use op::*;
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::{
-    expression::{access::PropertyAccess, identifier::Identifier, Expression},
+    Span, Spanned,
+    expression::{Expression, access::PropertyAccess, identifier::Identifier},
     pattern::Pattern,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -68,6 +69,13 @@ impl Assign {
     #[must_use]
     pub const fn rhs(&self) -> &Expression {
         &self.rhs
+    }
+}
+
+impl Spanned for Assign {
+    #[inline]
+    fn span(&self) -> Span {
+        Span::new(self.lhs.span().start(), self.rhs.span().end())
     }
 }
 
@@ -158,6 +166,17 @@ impl AssignTarget {
             Expression::PropertyAccess(access) => Some(Self::Access(access.clone())),
             Expression::Parenthesized(p) => Self::from_expression_simple(p.expression(), strict),
             _ => None,
+        }
+    }
+}
+
+impl Spanned for AssignTarget {
+    #[inline]
+    fn span(&self) -> Span {
+        match self {
+            AssignTarget::Identifier(identifier) => identifier.span(),
+            AssignTarget::Access(property_access) => property_access.span(),
+            AssignTarget::Pattern(pattern) => pattern.span(),
         }
     }
 }

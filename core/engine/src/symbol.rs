@@ -24,16 +24,16 @@
 use crate::{
     js_string,
     string::{JsString, StaticJsStrings},
-    tagged::{Tagged, UnwrappedTagged},
 };
 use boa_gc::{Finalize, Trace};
+use tag_ptr::{Tagged, UnwrappedTagged};
 
-use boa_macros::{js_str, JsData};
+use boa_macros::{JsData, js_str};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 use std::{
     hash::{Hash, Hasher},
-    sync::{atomic::Ordering, Arc},
+    sync::{Arc, atomic::Ordering},
 };
 
 use portable_atomic::AtomicU64;

@@ -1,9 +1,9 @@
 //! Boa's implementation of ECMAScript's bigint primitive type.
 
-use crate::{builtins::Number, error::JsNativeError, JsData, JsResult, JsString};
+use crate::{JsData, JsResult, JsString, builtins::Number, error::JsNativeError};
 use boa_gc::{Finalize, Trace};
 use num_integer::Integer;
-use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
+use num_traits::{FromPrimitive, One, ToPrimitive, Zero, pow::Pow};
 use std::{
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},
@@ -78,6 +78,15 @@ impl JsBigInt {
     #[must_use]
     pub fn to_f64(&self) -> f64 {
         self.inner.to_f64().unwrap_or(f64::INFINITY)
+    }
+
+    /// Converts the `BigInt` to a i128 type.
+    ///
+    /// Returns `i128::MAX` if the `BigInt` is too big.
+    #[inline]
+    #[must_use]
+    pub fn to_i128(&self) -> i128 {
+        self.inner.to_i128().unwrap_or(i128::MAX)
     }
 
     /// Converts a string to a `BigInt` with the specified radix.

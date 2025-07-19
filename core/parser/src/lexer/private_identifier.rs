@@ -1,10 +1,9 @@
 //! Boa's lexing for ECMAScript private identifiers (#foo, #myvar, etc.).
 
-use crate::lexer::{identifier::Identifier, Cursor, Error, Token, TokenKind, Tokenizer};
+use crate::lexer::{Cursor, Error, Token, TokenKind, Tokenizer, identifier::Identifier};
 use crate::source::ReadChar;
-use boa_ast::{Position, Span};
+use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Private Identifier lexing.
 ///
@@ -26,51 +25,51 @@ impl<R> Tokenizer<R> for PrivateIdentifier {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("PrivateIdentifier", "Lexing");
-
-        if let Some(next_ch) = cursor.next_char()? {
-            if let Ok(c) = char::try_from(next_ch) {
-                match c {
-                    '\\' if cursor.peek_char()? == Some(0x0075 /* u */) => {
-                        let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
-                        Ok(Token::new(
-                            TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
-                            Span::new(start_pos, cursor.pos()),
-                        ))
-                    }
-                    _ if Identifier::is_identifier_start(c as u32) => {
-                        let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
-                        Ok(Token::new(
-                            TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
-                            Span::new(start_pos, cursor.pos()),
-                        ))
-                    }
-                    _ => Err(Error::syntax(
-                        "Abrupt end: Expecting private identifier",
-                        start_pos,
-                    )),
-                }
-            } else {
-                Err(Error::syntax(
-                    format!(
-                        "unexpected utf-8 char '\\u{next_ch}' at line {}, column {}",
-                        start_pos.line_number(),
-                        start_pos.column_number()
-                    ),
-                    start_pos,
-                ))
-            }
-        } else {
-            Err(Error::syntax(
+        let Some(next_ch) = cursor.next_char()? else {
+            return Err(Error::syntax(
                 "Abrupt end: Expecting private identifier",
                 start_pos,
-            ))
+            ));
+        };
+
+        let Ok(c) = char::try_from(next_ch) else {
+            return Err(Error::syntax(
+                format!(
+                    "unexpected utf-8 char '\\u{next_ch}' at line {}, column {}",
+                    start_pos.line_number(),
+                    start_pos.column_number()
+                ),
+                start_pos,
+            ));
+        };
+
+        match c {
+            '\\' if cursor.peek_char()? == Some(0x0075 /* u */) => {
+                let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
+                Ok(Token::new_by_position_group(
+                    TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
+                    start_pos,
+                    cursor.pos_group(),
+                ))
+            }
+            _ if Identifier::is_identifier_start(c as u32) => {
+                let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
+                Ok(Token::new_by_position_group(
+                    TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
+                    start_pos,
+                    cursor.pos_group(),
+                ))
+            }
+            _ => Err(Error::syntax(
+                "Abrupt end: Expecting private identifier",
+                start_pos,
+            )),
         }
     }
 }

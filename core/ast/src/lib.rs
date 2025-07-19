@@ -14,8 +14,8 @@
 //! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
@@ -28,6 +28,7 @@ mod module_item_list;
 mod position;
 mod punctuator;
 mod source;
+mod source_text;
 mod statement_list;
 
 pub mod declaration;
@@ -51,9 +52,12 @@ pub use self::{
     expression::Expression,
     keyword::Keyword,
     module_item_list::{ModuleItem, ModuleItemList},
-    position::{Position, Span},
+    position::{
+        LinearPosition, LinearSpan, LinearSpanIgnoreEq, Position, PositionGroup, Span, Spanned,
+    },
     punctuator::Punctuator,
     source::{Module, Script},
+    source_text::SourceText,
     statement::Statement,
     statement_list::{StatementList, StatementListItem},
 };

@@ -1,10 +1,11 @@
 use crate::value::JsVariant;
+use crate::vm::opcode::VaryingOperand;
 use crate::{
-    builtins::{function::OrdinaryFunction, OrdinaryObject},
-    object::{internal_methods::InternalMethodContext, JsObject, CONSTRUCTOR, PROTOTYPE},
+    Context,
+    builtins::{OrdinaryObject, function::OrdinaryFunction},
+    object::{CONSTRUCTOR, JsObject, PROTOTYPE, internal_methods::InternalMethodPropertyContext},
     property::PropertyDescriptorBuilder,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    vm::opcode::Operation,
 };
 
 /// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`
@@ -14,14 +15,14 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetClassPrototype;
 
-impl Operation for SetClassPrototype {
-    const NAME: &'static str = "SetClassPrototype";
-    const INSTRUCTION: &'static str = "INST - SetClassPrototype";
-    const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let prototype_value = context.vm.pop();
-        let prototype = match prototype_value.variant() {
+impl SetClassPrototype {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (dst, prototype, class): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
+        let prototype = context.vm.get_register(prototype.into());
+        let prototype = match prototype.variant() {
             JsVariant::Object(proto) => Some(proto.clone()),
             JsVariant::Null => None,
             JsVariant::Undefined => Some(context.intrinsics().constructors().object().prototype()),
@@ -34,7 +35,7 @@ impl Operation for SetClassPrototype {
             prototype,
             OrdinaryObject,
         );
-        let class = context.vm.pop();
+        let class = context.vm.get_register(class.into()).clone();
 
         {
             let class_object = class.as_object().expect("class must be object");
@@ -59,16 +60,21 @@ impl Operation for SetClassPrototype {
             .__define_own_property__(
                 &CONSTRUCTOR.into(),
                 PropertyDescriptorBuilder::new()
-                    .value(class)
+                    .value(class.clone())
                     .writable(true)
                     .enumerable(false)
                     .configurable(true)
                     .build(),
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )
             .expect("cannot fail per spec");
 
-        context.vm.push(proto);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), proto.into());
     }
+}
+
+impl Operation for SetClassPrototype {
+    const NAME: &'static str = "SetClassPrototype";
+    const INSTRUCTION: &'static str = "INST - SetClassPrototype";
+    const COST: u8 = 6;
 }

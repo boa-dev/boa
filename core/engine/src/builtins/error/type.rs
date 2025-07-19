@@ -16,20 +16,19 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunctionObject,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsResult, JsString, JsValue, NativeFunction,
 };
-use boa_profiler::Profiler;
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 /// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -37,8 +36,6 @@ pub(crate) struct TypeError;
 
 impl IntrinsicObject for TypeError {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
@@ -92,7 +89,7 @@ impl BuiltInConstructor for TypeError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Type,
+            Error::with_caller_position(ErrorKind::Type, context),
         );
 
         // 3. If message is not undefined, then
@@ -124,23 +121,24 @@ impl IntrinsicObject for ThrowTypeError {
             .static_property(js_string!("name"), js_string!(), Attribute::empty())
             .build();
 
-        let mut obj = obj.borrow_mut();
-
-        *obj.downcast_mut::<NativeFunctionObject>()
-            .expect("`%ThrowTypeError%` must be a function") = NativeFunctionObject {
-            f: NativeFunction::from_fn_ptr(|_, _, _| {
+        {
+            let mut obj = obj
+                .downcast_mut::<NativeFunctionObject>()
+                .expect("`%ThrowTypeError%` must be a function");
+            obj.f = NativeFunction::from_fn_ptr(|_, _, _| {
                 Err(JsNativeError::typ()
                     .with_message(
                         "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode \
                         functions or the arguments objects for calls to them",
                     )
                     .into())
-            }),
-            constructor: None,
-            realm: Some(realm.clone()),
-        };
+            });
+            obj.name = js_string!();
+            obj.constructor = None;
+            obj.realm = Some(realm.clone());
+        }
 
-        obj.extensible = false;
+        obj.borrow_mut().extensible = false;
     }
 
     fn get(intrinsics: &Intrinsics) -> JsObject {

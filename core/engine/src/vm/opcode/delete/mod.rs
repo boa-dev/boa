@@ -1,9 +1,9 @@
 use crate::{
-    error::JsNativeError,
-    object::internal_methods::InternalMethodContext,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, JsError, JsResult, error::JsNativeError,
+    object::internal_methods::InternalMethodPropertyContext, vm::opcode::Operation,
 };
+
+use super::VaryingOperand;
 
 /// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`
 ///
@@ -13,21 +13,27 @@ use crate::{
 pub(crate) struct DeletePropertyByName;
 
 impl DeletePropertyByName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let object = value.to_object(context)?;
+    #[inline(always)]
+    pub(super) fn operation(
+        (object_register, index): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let object = context.vm.get_register(object_register.into()).clone();
+        let object = object.to_object(context)?;
         let code_block = context.vm.frame().code_block();
-        let key = code_block.constant_string(index).into();
+        let key = code_block.constant_string(index.into()).into();
         let strict = code_block.strict();
 
-        let result = object.__delete__(&key, &mut InternalMethodContext::new(context))?;
+        let result = object.__delete__(&key, &mut InternalMethodPropertyContext::new(context))?;
         if !result && strict {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
         }
-        context.vm.push(result);
-        Ok(CompletionType::Normal)
+        context
+            .vm
+            .set_register(object_register.into(), result.into());
+        Ok(())
     }
 }
 
@@ -35,21 +41,6 @@ impl Operation for DeletePropertyByName {
     const NAME: &'static str = "DeletePropertyByName";
     const INSTRUCTION: &'static str = "INST - DeletePropertyByName";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }
 
 /// `DeletePropertyByValue` implements the Opcode Operation for `Opcode::DeletePropertyByValue`
@@ -59,26 +50,37 @@ impl Operation for DeletePropertyByName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DeletePropertyByValue;
 
-impl Operation for DeletePropertyByValue {
-    const NAME: &'static str = "DeletePropertyByValue";
-    const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
-    const COST: u8 = 3;
+impl DeletePropertyByValue {
+    #[inline(always)]
+    pub(super) fn operation(
+        (object_register, key): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let object = context.vm.get_register(object_register.into()).clone();
+        let key = context.vm.get_register(key.into()).clone();
+        let object = object.to_object(context)?;
+        let property_key = key.to_property_key(context)?;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let key_value = context.vm.pop();
-        let value = context.vm.pop();
-        let object = value.to_object(context)?;
-        let property_key = key_value.to_property_key(context)?;
-
-        let result = object.__delete__(&property_key, &mut InternalMethodContext::new(context))?;
+        let result = object.__delete__(
+            &property_key,
+            &mut InternalMethodPropertyContext::new(context),
+        )?;
         if !result && context.vm.frame().code_block().strict() {
             return Err(JsNativeError::typ()
                 .with_message("Cannot delete property")
                 .into());
         }
-        context.vm.push(result);
-        Ok(CompletionType::Normal)
+        context
+            .vm
+            .set_register(object_register.into(), result.into());
+        Ok(())
     }
+}
+
+impl Operation for DeletePropertyByValue {
+    const NAME: &'static str = "DeletePropertyByValue";
+    const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
+    const COST: u8 = 3;
 }
 
 /// `DeleteName` implements the Opcode Operation for `Opcode::DeleteName`
@@ -89,15 +91,17 @@ impl Operation for DeletePropertyByValue {
 pub(crate) struct DeleteName;
 
 impl DeleteName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let mut binding_locator = context.vm.frame().code_block.bindings[index].clone();
-
+    #[inline(always)]
+    pub(super) fn operation(
+        (value, index): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let mut binding_locator =
+            context.vm.frame().code_block.bindings[usize::from(index)].clone();
         context.find_runtime_binding(&mut binding_locator)?;
-
         let deleted = context.delete_binding(&binding_locator)?;
-
-        context.vm.push(deleted);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(value.into(), deleted.into());
+        Ok(())
     }
 }
 
@@ -105,21 +109,6 @@ impl Operation for DeleteName {
     const NAME: &'static str = "DeleteName";
     const INSTRUCTION: &'static str = "INST - DeleteName";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
-    }
 }
 
 /// `DeleteSuperThrow` implements the Opcode Operation for `Opcode::DeleteSuperThrow`
@@ -129,14 +118,17 @@ impl Operation for DeleteName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DeleteSuperThrow;
 
+impl DeleteSuperThrow {
+    #[inline(always)]
+    pub(super) fn operation((): (), _: &mut Context) -> JsError {
+        JsNativeError::reference()
+            .with_message("cannot delete a property of `super`")
+            .into()
+    }
+}
+
 impl Operation for DeleteSuperThrow {
     const NAME: &'static str = "DeleteSuperThrow";
     const INSTRUCTION: &'static str = "INST - DeleteSuperThrow";
     const COST: u8 = 2;
-
-    fn execute(_: &mut Context) -> JsResult<CompletionType> {
-        Err(JsNativeError::reference()
-            .with_message("cannot delete a property of `super`")
-            .into())
-    }
 }

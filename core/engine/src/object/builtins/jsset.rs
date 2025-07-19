@@ -4,11 +4,11 @@ use std::ops::Deref;
 use boa_gc::{Finalize, Trace};
 
 use crate::{
-    builtins::{iterable::IteratorHint, set::ordered_set::OrderedSet, Set},
+    Context, JsResult, JsValue,
+    builtins::{Set, iterable::IteratorHint, set::ordered_set::OrderedSet},
     error::JsNativeError,
     object::{JsFunction, JsObject, JsSetIterator},
     value::TryFromJs,
-    Context, JsResult, JsValue,
 };
 
 /// `JsSet` provides a wrapper for Boa's implementation of the ECMAScript `Set` object.

@@ -64,7 +64,8 @@
 /// ```
 /// # use boa_engine::{JsString, JsData, js_string};
 /// # use boa_gc::{Finalize, Trace};
-/// use boa_interop::{js_class, Ignore, JsClass};
+/// use boa_engine::interop::{Ignore, JsClass};
+/// use boa_interop::{js_class};
 ///
 /// #[derive(Clone, Trace, Finalize, JsData)]
 /// pub enum Animal {
@@ -124,7 +125,7 @@
 ///
 ///     assert_eq!(
 ///         result.as_string().unwrap(),
-///         &js_str!("My pet is 3 years old. Right, buddy? - woof!")
+///         js_str!("My pet is 3 years old. Right, buddy? - woof!")
 ///     );
 /// }
 /// ```
@@ -245,7 +246,7 @@ macro_rules! js_class {
             ) -> $crate::boa_engine::JsResult<$class_name> {
                 let rest = args;
                 $(
-                    let ($ctor_arg, rest) : ($ctor_arg_ty, _) = $crate::TryFromJsArgument::try_from_js_argument(new_target, rest, context)?;
+                    let ($ctor_arg, rest) : ($ctor_arg_ty, _) = $crate::boa_engine::interop::TryFromJsArgument::try_from_js_argument(new_target, rest, context)?;
                 )*
 
                 $constructor_body
@@ -393,9 +394,10 @@ macro_rules! __get_set_decl {
 #[allow(clippy::too_many_lines)]
 fn js_class_test() {
     use crate::IntoJsFunctionCopied;
-    use crate::{js_class, loaders, JsClass};
+    use crate::{js_class, loaders};
+    use boa_engine::interop::JsClass;
     use boa_engine::property::Attribute;
-    use boa_engine::{js_string, Context, JsData, JsError, JsResult, Module, Source};
+    use boa_engine::{Context, JsData, JsError, JsResult, Module, Source, js_string};
     use boa_gc::{Finalize, Trace};
     use std::rc::Rc;
 
@@ -525,7 +527,7 @@ fn js_class_test() {
     let root_module = Module::parse(source, None, &mut context).unwrap();
 
     let promise_result = root_module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     // Checking if the final promise didn't return an error.
     assert!(

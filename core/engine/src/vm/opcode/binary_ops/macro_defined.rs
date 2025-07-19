@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
     Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 macro_rules! implement_bin_ops {
@@ -12,18 +12,24 @@ macro_rules! implement_bin_ops {
         #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
+        impl $name {
+            #[inline(always)]
+            pub(crate) fn operation(
+                (dst, lhs, rhs): (VaryingOperand, VaryingOperand, VaryingOperand),
+                context: &mut Context,
+            ) -> JsResult<()> {
+                let lhs = context.vm.get_register(lhs.into()).clone();
+                let rhs = context.vm.get_register(rhs.into()).clone();
+                let value = lhs.$op(&rhs, context)?;
+                context.vm.set_register(dst.into(), value.into());
+                Ok(())
+            }
+        }
+
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 2;
-
-            fn execute(context: &mut Context) -> JsResult<CompletionType> {
-                let rhs = context.vm.pop();
-                let lhs = context.vm.pop();
-                let value = lhs.$op(&rhs, context)?;
-                context.vm.push(value);
-                Ok(CompletionType::Normal)
-            }
         }
     };
 }
@@ -45,3 +51,4 @@ implement_bin_ops!(GreaterThan, gt, "Binary `>` operator.");
 implement_bin_ops!(GreaterThanOrEq, ge, "Binary `>=` operator.");
 implement_bin_ops!(LessThan, lt, "Binary `<` operator.");
 implement_bin_ops!(LessThanOrEq, le, "Binary `<=` operator.");
+implement_bin_ops!(InstanceOf, instance_of, "Binary `instanceof` operator.");

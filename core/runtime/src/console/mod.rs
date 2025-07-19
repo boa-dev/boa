@@ -17,18 +17,41 @@ mod tests;
 
 use boa_engine::property::Attribute;
 use boa_engine::{
-    js_str, js_string,
+    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol, js_str, js_string,
     native_function::NativeFunction,
     object::{JsObject, ObjectInitializer},
     value::{JsValue, Numeric},
-    Context, JsArgs, JsData, JsError, JsResult, JsString, JsSymbol,
 };
 use boa_gc::{Finalize, Trace};
 use rustc_hash::FxHashMap;
-use std::{cell::RefCell, collections::hash_map::Entry, io::Write, rc::Rc, time::SystemTime};
+use std::{
+    cell::RefCell, collections::hash_map::Entry, fmt::Write as _, io::Write, rc::Rc,
+    time::SystemTime,
+};
 
 /// A trait that can be used to forward console logs to an implementation.
 pub trait Logger: Trace + Sized {
+    /// Log a trace message (`console.trace`). By default, passes the message and the
+    /// code block names of each stack trace frame to `log`.
+    ///
+    /// # Errors
+    /// Returning an error will throw an exception in JavaScript.
+    fn trace(&self, msg: String, state: &ConsoleState, context: &mut Context) -> JsResult<()> {
+        self.log(msg, state, context)?;
+
+        let stack_trace_dump = context
+            .stack_trace()
+            .map(|frame| frame.code_block().name())
+            .map(JsString::to_std_string_escaped)
+            .collect::<Vec<_>>();
+
+        for frame in stack_trace_dump {
+            self.log(frame, state, context)?;
+        }
+
+        Ok(())
+    }
+
     /// Log a debug message (`console.debug`). By default, passes the message to `log`.
     ///
     /// # Errors
@@ -94,6 +117,32 @@ impl Logger for DefaultLogger {
     }
 }
 
+/// A logger that drops all logging. Useful for testing.
+#[derive(Debug, Trace, Finalize)]
+pub struct NullLogger;
+
+impl Logger for NullLogger {
+    #[inline]
+    fn log(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn info(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn warn(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+
+    #[inline]
+    fn error(&self, _: String, _: &ConsoleState, _: &mut Context) -> JsResult<()> {
+        Ok(())
+    }
+}
+
 /// This represents the `console` formatter.
 fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
     fn to_string(value: &JsValue, context: &mut Context) -> JsResult<String> {
@@ -133,7 +182,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                         /* float */
                         'f' => {
                             let arg = data.get_or_undefined(arg_index).to_number(context)?;
-                            formatted.push_str(&format!("{arg:.6}"));
+                            let _ = write!(formatted, "{arg:.6}");
                             arg_index += 1;
                         }
                         /* object, FIXME: how to render this properly? */
@@ -176,7 +225,7 @@ fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                     }
                 } else {
                     formatted.push(c);
-                };
+                }
             }
 
             /* unformatted data */
@@ -291,7 +340,6 @@ impl Console {
                 })
             }
         }
-        // let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
 
         let state = Rc::new(RefCell::new(Self::default()));
         let logger = Rc::new(logger);
@@ -586,20 +634,7 @@ impl Console {
         logger: &impl Logger,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if !args.is_empty() {
-            logger.log(formatter(args, context)?, &console.state, context)?;
-        }
-
-        let stack_trace_dump = context
-            .stack_trace()
-            .map(|frame| frame.code_block().name())
-            .collect::<Vec<_>>()
-            .into_iter()
-            .map(JsString::to_std_string_escaped)
-            .collect::<Vec<_>>()
-            .join("\n");
-        logger.log(stack_trace_dump, &console.state, context)?;
-
+        Logger::trace(logger, formatter(args, context)?, &console.state, context)?;
         Ok(JsValue::undefined())
     }
 
@@ -810,7 +845,7 @@ impl Console {
                 &console.state,
                 context,
             )?;
-        };
+        }
 
         Ok(JsValue::undefined())
     }

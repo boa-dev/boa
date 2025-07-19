@@ -1,14 +1,11 @@
 #![allow(clippy::doc_link_with_quotes)]
 
 use crate::{
-    finalizer_safe,
+    Allocator, Gc, Tracer, finalizer_safe,
     internals::EphemeronBox,
     trace::{Finalize, Trace},
-    Allocator, Gc, Tracer,
 };
 use std::ptr::NonNull;
-
-use super::addr_eq;
 
 /// A key-value pair where the value becomes unaccesible when the key is garbage collected.
 ///
@@ -74,7 +71,7 @@ impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
     /// Returns `true` if the two `Ephemeron`s point to the same allocation.
     #[must_use]
     pub fn ptr_eq(this: &Self, other: &Self) -> bool {
-        addr_eq(this.inner(), other.inner())
+        std::ptr::addr_eq(this.inner(), other.inner())
     }
 
     pub(crate) fn inner_ptr(&self) -> NonNull<EphemeronBox<K, V>> {

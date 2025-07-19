@@ -20,23 +20,22 @@ use boa_macros::utf16;
 use itertools::Itertools;
 
 use crate::{
+    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue, SpannedSourceText,
     builtins::BuiltInObject,
     bytecompiler::ByteCompiler,
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{internal_methods::InternalMethodContext, JsObject},
+    object::{JsObject, internal_methods::InternalMethodPropertyContext},
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    vm::{CallFrame, CallFrameFlags},
-    Context, JsArgs, JsBigInt, JsResult, JsString, JsValue,
+    vm::{CallFrame, CallFrameFlags, source_info::SourcePath},
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -49,8 +48,6 @@ pub(crate) struct Json;
 
 impl IntrinsicObject for Json {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_string_tag = JsSymbol::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
@@ -110,13 +107,19 @@ impl Json {
         // 8. NOTE: The PropertyDefinitionEvaluation semantics defined in 13.2.5.5 have special handling for the above evaluation.
         // 9. Let unfiltered be completion.[[Value]].
         // 10. Assert: unfiltered is either a String, Number, Boolean, Null, or an Object that is defined by either an ArrayLiteral or an ObjectLiteral.
-        let mut parser = Parser::new(Source::from_bytes(&script_string));
+        let source = Source::from_bytes(&script_string);
+
+        let mut parser = Parser::new(source);
         parser.set_json_parse();
+        // In json we don't need the source: there no way to pass an object that needs a source text
+        // But if it's incorrect, just call `parser.parse_script_with_source` here
         let script = parser.parse_script(&Scope::new_global(), context.interner_mut())?;
         let code_block = {
             let in_with = context.vm.environments.has_object_environment();
+            // If the source is needed then call `parser.parse_script_with_source` and pass `source_text` here.
+            let spanned_source_text = SpannedSourceText::new_empty();
             let mut compiler = ByteCompiler::new(
-                js_string!("<main>"),
+                js_string!("<json>"),
                 script.strict(),
                 true,
                 context.realm().scope().clone(),
@@ -125,6 +128,9 @@ impl Json {
                 false,
                 context.interner_mut(),
                 in_with,
+                spanned_source_text,
+                // TODO: Could give more information from previous shadow stack.
+                SourcePath::Json,
             );
             compiler.compile_statement_list(script.statements(), true, false);
             Gc::new(compiler.finish())
@@ -158,7 +164,7 @@ impl Json {
                 .expect("CreateDataPropertyOrThrow should never throw here");
 
             // d. Return ? InternalizeJSONProperty(root, rootName, reviver).
-            Self::internalize_json_property(&root, js_string!(), obj, context)
+            Self::internalize_json_property(&root, js_string!(), &obj, context)
         } else {
             // 12. Else,
             // a. Return unfiltered.
@@ -194,12 +200,15 @@ impl Json {
                     // 1. Let prop be ! ToString(𝔽(I)).
                     // 2. Let newElement be ? InternalizeJSONProperty(val, prop, reviver).
                     let new_element =
-                        Self::internalize_json_property(obj, i.into(), reviver, context)?;
+                        Self::internalize_json_property(&obj, i.into(), reviver, context)?;
 
                     // 3. If newElement is undefined, then
                     if new_element.is_undefined() {
                         // a. Perform ? val.[[Delete]](prop).
-                        obj.__delete__(&i.into(), &mut InternalMethodContext::new(context))?;
+                        obj.__delete__(
+                            &i.into(),
+                            &mut InternalMethodPropertyContext::new(context),
+                        )?;
                     }
                     // 4. Else,
                     else {
@@ -218,17 +227,19 @@ impl Json {
                     // This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
                     let p = p
                         .as_string()
-                        .expect("EnumerableOwnPropertyNames only returns strings")
-                        .clone();
+                        .expect("EnumerableOwnPropertyNames only returns strings");
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
                     let new_element =
-                        Self::internalize_json_property(obj, p.clone(), reviver, context)?;
+                        Self::internalize_json_property(&obj, p.clone(), reviver, context)?;
 
                     // 2. If newElement is undefined, then
                     if new_element.is_undefined() {
                         // a. Perform ? val.[[Delete]](P).
-                        obj.__delete__(&p.into(), &mut InternalMethodContext::new(context))?;
+                        obj.__delete__(
+                            &p.into(),
+                            &mut InternalMethodPropertyContext::new(context),
+                        )?;
                     }
                     // 3. Else,
                     else {
@@ -309,17 +320,17 @@ impl Json {
                         // g. If item is not undefined and item is not currently an element of PropertyList, then
                         // i. Append item to the end of PropertyList.
                         if let Some(s) = v.as_string() {
-                            property_set.insert(s.clone());
+                            property_set.insert(s);
                         } else if v.is_number() {
                             property_set.insert(
                                 v.to_string(context)
                                     .expect("ToString cannot fail on number value"),
                             );
-                        } else if let Some(obj) = v.as_object() {
+                        } else if let Some(obj) = v.as_object()
+                            && (obj.is::<JsString>() || obj.is::<f64>())
+                        {
                             // i. If v has a [[StringData]] or [[NumberData]] internal slot, set item to ? ToString(v).
-                            if obj.is::<JsString>() || obj.is::<f64>() {
-                                property_set.insert(v.to_string(context)?);
-                            }
+                            property_set.insert(v.to_string(context)?);
                         }
 
                         // h. Set k to k + 1.
@@ -423,11 +434,9 @@ impl Json {
             let to_json = value.get_v(js_string!("toJSON"), context)?;
 
             // b. If IsCallable(toJSON) is true, then
-            if let Some(obj) = to_json.as_object() {
-                if obj.is_callable() {
-                    // i. Set value to ? Call(toJSON, value, « key »).
-                    value = obj.call(&value, &[key.clone().into()], context)?;
-                }
+            if let Some(obj) = to_json.as_callable() {
+                // i. Set value to ? Call(toJSON, value, « key »).
+                value = obj.call(&value, &[key.clone().into()], context)?;
             }
         }
 
@@ -438,7 +447,7 @@ impl Json {
         }
 
         // 4. If Type(value) is Object, then
-        if let Some(obj) = value.as_object().cloned() {
+        if let Some(obj) = value.as_object() {
             // a. If value has a [[NumberData]] internal slot, then
             if obj.is::<f64>() {
                 // i. Set value to ? ToNumber(value).
@@ -478,7 +487,7 @@ impl Json {
 
         // 8. If Type(value) is String, return QuoteJSONString(value).
         if let Some(s) = value.as_string() {
-            return Ok(Some(Self::quote_json_string(s)));
+            return Ok(Some(Self::quote_json_string(&s)));
         }
 
         // 9. If Type(value) is Number, then
@@ -510,9 +519,9 @@ impl Json {
                 // b. If isArray is true, return ? SerializeJSONArray(state, value).
                 // c. Return ? SerializeJSONObject(state, value).
                 return if obj.is_array_abstract()? {
-                    Ok(Some(Self::serialize_json_array(state, obj, context)?))
+                    Ok(Some(Self::serialize_json_array(state, &obj, context)?))
                 } else {
-                    Ok(Some(Self::serialize_json_object(state, obj, context)?))
+                    Ok(Some(Self::serialize_json_object(state, &obj, context)?))
                 };
             }
         }

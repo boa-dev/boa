@@ -1,9 +1,10 @@
-use super::{ByteCompiler, Literal, Operand, ToJsString};
+use super::{BindingAccessOpcode, ByteCompiler, Literal, Register, ToJsString};
 use crate::{
     js_string,
-    vm::{BindingOpcode, CodeBlock, CodeBlockFlags, Opcode},
+    vm::{CodeBlock, CodeBlockFlags, opcode::BindingOpcode},
 };
 use boa_ast::{
+    Expression,
     expression::Identifier,
     function::{
         ClassDeclaration, ClassElement, ClassElementName, ClassExpression, FormalParameterList,
@@ -11,10 +12,10 @@ use boa_ast::{
     },
     property::{MethodDefinitionKind, PropertyName},
     scope::Scope,
-    Expression,
 };
 use boa_gc::Gc;
 use boa_interner::Sym;
+use thin_vec::ThinVec;
 
 // Static class elements that are initialized at a later time in the class creation.
 enum StaticElement {
@@ -22,7 +23,17 @@ enum StaticElement {
     StaticBlock(Gc<CodeBlock>),
 
     // A static class field with it's function code, an optional name index and the information if the function is an anonymous function.
-    StaticField((Gc<CodeBlock>, Option<u32>, bool)),
+    StaticField {
+        code: Gc<CodeBlock>,
+        name_index: StaticFieldName,
+        is_anonymous_function: bool,
+    },
+}
+
+enum StaticFieldName {
+    PrivateName(u32),
+    Index(u32),
+    Register(Register),
 }
 
 /// Describes the complete specification of a class.
@@ -68,7 +79,7 @@ impl ByteCompiler<'_> {
     /// The compilation of a class declaration and expression is mostly equal.
     /// A class declaration binds the resulting class object to it's identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
-    pub(crate) fn compile_class(&mut self, class: ClassSpec<'_>, expression: bool) {
+    pub(crate) fn compile_class(&mut self, class: ClassSpec<'_>, dst: Option<&Register>) {
         // 11.2.2 Strict Mode Code - <https://tc39.es/ecma262/#sec-strict-mode-code>
         //  - All parts of a ClassDeclaration or a ClassExpression are strict mode code.
         let strict = self.strict();
@@ -81,6 +92,8 @@ impl ByteCompiler<'_> {
 
         let outer_scope = self.push_declarative_scope(class.name_scope);
 
+        // The new span is not the same as the parent `ByteCompiler` have.
+        let spanned_source_text = self.spanned_source_text.clone_only_source();
         let mut compiler = ByteCompiler::new(
             class_name.clone(),
             true,
@@ -91,10 +104,13 @@ impl ByteCompiler<'_> {
             false,
             self.interner,
             self.in_with,
+            spanned_source_text,
+            self.source_path.clone(),
         );
 
         compiler.code_block_flags |= CodeBlockFlags::IS_CLASS_CONSTRUCTOR;
 
+        let value = compiler.register_allocator.alloc();
         if let Some(expr) = &class.constructor {
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(expr.scopes().function_scope());
@@ -112,22 +128,27 @@ impl ByteCompiler<'_> {
                 expr.scopes(),
             );
 
-            compiler.compile_statement_list(expr.body().statement_list(), false, false);
+            {
+                let mut compiler = compiler.position_guard(expr);
+                compiler.compile_statement_list(expr.body().statement_list(), false, false);
+            }
 
-            compiler.emit_opcode(Opcode::PushUndefined);
+            compiler.bytecode.emit_push_undefined(value.variable());
         } else if class.super_ref.is_some() {
             // We push an empty, unused function scope since the compiler expects a function scope.
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
-            compiler.emit_opcode(Opcode::SuperCallDerived);
-            compiler.emit_opcode(Opcode::BindThisValue);
+            compiler.bytecode.emit_super_call_derived();
+            compiler.pop_into_register(&value);
+            compiler.bytecode.emit_bind_this_value(value.variable());
         } else {
             // We push an empty, unused function scope since the compiler expects a function scope.
             compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
             let _ = compiler.push_scope(&Scope::new(compiler.lexical_scope.clone(), true));
-            compiler.emit_opcode(Opcode::PushUndefined);
+            compiler.bytecode.emit_push_undefined(value.variable());
         }
-        compiler.emit_opcode(Opcode::SetReturnValue);
+        compiler.bytecode.emit_set_accumulator(value.variable());
+        compiler.register_allocator.dealloc(value);
 
         // 17. If ClassHeritageopt is present, set F.[[ConstructorKind]] to derived.
         compiler.code_block_flags.set(
@@ -137,146 +158,251 @@ impl ByteCompiler<'_> {
 
         let code = Gc::new(compiler.finish());
         let index = self.push_function_to_constants(code);
-        self.emit_with_varying_operand(Opcode::GetFunction, index);
 
-        self.emit_opcode(Opcode::Dup);
-        if let Some(node) = &class.super_ref {
-            self.compile_expr(node, true);
-            self.emit_opcode(Opcode::PushClassPrototype);
+        let class_register = self.register_allocator.alloc();
+        self.emit_get_function(&class_register, index);
+
+        let prototype_register = self.register_allocator.alloc();
+
+        if let Some(node) = class.super_ref {
+            self.compile_expr(node, &prototype_register);
+            self.bytecode.emit_push_class_prototype(
+                prototype_register.variable(),
+                class_register.variable(),
+                prototype_register.variable(),
+            );
         } else {
-            self.emit_opcode(Opcode::PushUndefined);
+            self.bytecode
+                .emit_push_undefined(prototype_register.variable());
         }
-        self.emit_opcode(Opcode::SetClassPrototype);
-        self.emit_opcode(Opcode::Swap);
 
-        let count_label = self.emit_opcode_with_operand(Opcode::PushPrivateEnvironment);
-        let mut count = 0;
+        let proto_register = self.register_allocator.alloc();
+
+        self.bytecode.emit_set_class_prototype(
+            proto_register.variable(),
+            prototype_register.variable(),
+            class_register.variable(),
+        );
+        self.register_allocator.dealloc(prototype_register);
+
+        let mut name_indices = ThinVec::new();
         for element in class.elements {
             match element {
                 ClassElement::MethodDefinition(m) => {
                     if let ClassElementName::PrivateName(name) = m.name() {
-                        count += 1;
                         let index = self.get_or_insert_private_name(*name);
-                        self.emit_u32(index);
+                        name_indices.push(index);
                     }
                 }
-                ClassElement::PrivateFieldDefinition(field) => {
-                    count += 1;
+                ClassElement::PrivateFieldDefinition(field)
+                | ClassElement::PrivateStaticFieldDefinition(field) => {
                     let index = self.get_or_insert_private_name(*field.name());
-                    self.emit_u32(index);
-                }
-                ClassElement::PrivateStaticFieldDefinition(name, _) => {
-                    count += 1;
-                    let index = self.get_or_insert_private_name(*name);
-                    self.emit_u32(index);
+                    name_indices.push(index);
                 }
                 _ => {}
             }
         }
-        self.patch_jump_with_target(count_label, count);
+        self.bytecode
+            .emit_push_private_environment(class_register.variable(), name_indices);
 
         let mut static_elements = Vec::new();
-        let mut static_field_name_count = 0;
 
         if let Some(scope) = class.name_scope {
             let binding = scope.get_identifier_reference(class_name.clone());
-            let index = self.get_or_insert_binding(binding);
-            self.emit_opcode(Opcode::Dup);
-            self.emit_binding_access(Opcode::PutLexicalValue, &index);
+            let index = self.insert_binding(binding);
+            self.emit_binding_access(
+                BindingAccessOpcode::PutLexicalValue,
+                &index,
+                &class_register,
+            );
         }
 
         for element in class.elements {
             match element {
-                ClassElement::MethodDefinition(m) => {
-                    if !m.is_static() && !m.is_private() {
-                        self.emit_opcode(Opcode::Swap);
-                        self.emit_opcode(Opcode::Dup);
-                    } else {
-                        self.emit_opcode(Opcode::Dup);
-                    }
+                ClassElement::MethodDefinition(m) => match m.name() {
+                    ClassElementName::PropertyName(PropertyName::Literal(name)) => {
+                        let index = self.get_or_insert_name(name.sym());
+                        let method = self.method(m.into());
 
-                    match m.name() {
-                        ClassElementName::PropertyName(PropertyName::Literal(name)) => {
-                            self.method(m.into());
-                            let index = self.get_or_insert_name((*name).into());
-                            let opcode = match (m.is_static(), m.kind()) {
-                                (true, MethodDefinitionKind::Get) => {
-                                    Opcode::DefineClassStaticGetterByName
-                                }
-                                (true, MethodDefinitionKind::Set) => {
-                                    Opcode::DefineClassStaticSetterByName
-                                }
-                                (true, _) => Opcode::DefineClassStaticMethodByName,
-                                (false, MethodDefinitionKind::Get) => {
-                                    Opcode::DefineClassGetterByName
-                                }
-                                (false, MethodDefinitionKind::Set) => {
-                                    Opcode::DefineClassSetterByName
-                                }
-                                (false, _) => Opcode::DefineClassMethodByName,
-                            };
-                            self.emit_with_varying_operand(opcode, index);
-                        }
-                        ClassElementName::PropertyName(PropertyName::Computed(name)) => {
-                            self.compile_expr(name, true);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.method(m.into());
-                            let opcode = match (m.is_static(), m.kind()) {
-                                (true, MethodDefinitionKind::Get) => {
-                                    Opcode::DefineClassStaticGetterByValue
-                                }
-                                (true, MethodDefinitionKind::Set) => {
-                                    Opcode::DefineClassStaticSetterByValue
-                                }
-                                (true, _) => Opcode::DefineClassStaticMethodByValue,
-                                (false, MethodDefinitionKind::Get) => {
-                                    Opcode::DefineClassGetterByValue
-                                }
-                                (false, MethodDefinitionKind::Set) => {
-                                    Opcode::DefineClassSetterByValue
-                                }
-                                (false, _) => Opcode::DefineClassMethodByValue,
-                            };
-                            self.emit_opcode(opcode);
-                        }
-                        ClassElementName::PrivateName(name) => {
-                            let index = self.get_or_insert_private_name(*name);
-                            let opcode = match (m.is_static(), m.kind()) {
-                                (true, MethodDefinitionKind::Get) => Opcode::SetPrivateGetter,
-                                (true, MethodDefinitionKind::Set) => Opcode::SetPrivateSetter,
-                                (true, _) => Opcode::SetPrivateMethod,
-                                (false, MethodDefinitionKind::Get) => {
-                                    Opcode::PushClassPrivateGetter
-                                }
-                                (false, MethodDefinitionKind::Set) => {
-                                    Opcode::PushClassPrivateSetter
-                                }
-                                (false, _) => {
-                                    self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
-                                    self.emit_opcode(Opcode::Dup);
-                                    self.emit(Opcode::RotateRight, &[Operand::U8(4)]);
-                                    Opcode::PushClassPrivateMethod
-                                }
-                            };
-                            self.method(m.into());
-                            self.emit_with_varying_operand(opcode, index);
-                        }
-                    }
+                        let object_register = if m.is_static() {
+                            &class_register
+                        } else {
+                            &proto_register
+                        };
 
-                    if !m.is_static() && !m.is_private() {
-                        self.emit_opcode(Opcode::Swap);
+                        match (m.is_static(), m.kind()) {
+                            (true, MethodDefinitionKind::Get) => {
+                                self.bytecode.emit_define_class_static_getter_by_name(
+                                    method.variable(),
+                                    object_register.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (true, MethodDefinitionKind::Set) => {
+                                self.bytecode.emit_define_class_static_setter_by_name(
+                                    method.variable(),
+                                    object_register.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (true, _) => {
+                                self.bytecode.emit_define_class_static_method_by_name(
+                                    method.variable(),
+                                    object_register.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (false, MethodDefinitionKind::Get) => {
+                                self.bytecode.emit_define_class_getter_by_name(
+                                    method.variable(),
+                                    object_register.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (false, MethodDefinitionKind::Set) => {
+                                self.bytecode.emit_define_class_setter_by_name(
+                                    method.variable(),
+                                    object_register.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (false, _) => {
+                                self.bytecode.emit_define_class_method_by_name(
+                                    method.variable(),
+                                    object_register.variable(),
+                                    index.into(),
+                                );
+                            }
+                        }
+
+                        self.register_allocator.dealloc(method);
                     }
-                }
+                    ClassElementName::PropertyName(PropertyName::Computed(name)) => {
+                        let key = self.register_allocator.alloc();
+                        self.compile_expr(name, &key);
+                        self.bytecode
+                            .emit_to_property_key(key.variable(), key.variable());
+                        let method = self.method(m.into());
+                        let object_register = if m.is_static() {
+                            &class_register
+                        } else {
+                            &proto_register
+                        };
+
+                        match (m.is_static(), m.kind()) {
+                            (true, MethodDefinitionKind::Get) => {
+                                self.bytecode.emit_define_class_static_getter_by_value(
+                                    method.variable(),
+                                    key.variable(),
+                                    object_register.variable(),
+                                );
+                            }
+                            (true, MethodDefinitionKind::Set) => {
+                                self.bytecode.emit_define_class_static_setter_by_value(
+                                    method.variable(),
+                                    key.variable(),
+                                    object_register.variable(),
+                                );
+                            }
+                            (true, _) => {
+                                self.bytecode.emit_define_class_static_method_by_value(
+                                    method.variable(),
+                                    key.variable(),
+                                    object_register.variable(),
+                                );
+                            }
+                            (false, MethodDefinitionKind::Get) => {
+                                self.bytecode.emit_define_class_getter_by_value(
+                                    method.variable(),
+                                    key.variable(),
+                                    object_register.variable(),
+                                );
+                            }
+                            (false, MethodDefinitionKind::Set) => {
+                                self.bytecode.emit_define_class_setter_by_value(
+                                    method.variable(),
+                                    key.variable(),
+                                    object_register.variable(),
+                                );
+                            }
+                            (false, _) => {
+                                self.bytecode.emit_define_class_method_by_value(
+                                    method.variable(),
+                                    key.variable(),
+                                    object_register.variable(),
+                                );
+                            }
+                        }
+
+                        self.register_allocator.dealloc(method);
+                        self.register_allocator.dealloc(key);
+                    }
+                    ClassElementName::PrivateName(name) => {
+                        let index = self.get_or_insert_private_name(*name);
+                        let method = self.method(m.into());
+                        match (m.is_static(), m.kind()) {
+                            (true, MethodDefinitionKind::Get) => {
+                                self.bytecode.emit_set_private_getter(
+                                    class_register.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (true, MethodDefinitionKind::Set) => {
+                                self.bytecode.emit_set_private_setter(
+                                    class_register.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (true, _) => {
+                                self.bytecode.emit_set_private_method(
+                                    class_register.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (false, MethodDefinitionKind::Get) => {
+                                self.bytecode.emit_push_class_private_getter(
+                                    class_register.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (false, MethodDefinitionKind::Set) => {
+                                self.bytecode.emit_push_class_private_setter(
+                                    class_register.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                );
+                            }
+                            (false, _) => {
+                                self.bytecode.emit_push_class_private_method(
+                                    class_register.variable(),
+                                    proto_register.variable(),
+                                    method.variable(),
+                                    index.into(),
+                                );
+                            }
+                        }
+                        self.register_allocator.dealloc(method);
+                    }
+                },
                 ClassElement::FieldDefinition(field) => {
-                    self.emit_opcode(Opcode::Dup);
+                    let name = self.register_allocator.alloc();
                     match field.name() {
-                        PropertyName::Literal(name) => {
-                            self.emit_push_literal(Literal::String(
-                                self.interner().resolve_expect(*name).into_common(false),
-                            ));
+                        PropertyName::Literal(ident) => {
+                            self.emit_push_literal(
+                                Literal::String(
+                                    self.interner()
+                                        .resolve_expect(ident.sym())
+                                        .into_common(false),
+                                ),
+                                &name,
+                            );
                         }
-                        PropertyName::Computed(name) => {
-                            self.compile_expr(name, true);
+                        PropertyName::Computed(expr) => {
+                            self.compile_expr(expr, &name);
                         }
                     }
                     let mut field_compiler = ByteCompiler::new(
@@ -289,32 +415,46 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
 
                     // Function environment
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
-                    let is_anonymous_function = if let Some(node) = &field.field() {
-                        field_compiler.compile_expr(node, true);
+                    let value = field_compiler.register_allocator.alloc();
+                    let is_anonymous_function = if let Some(node) = &field.initializer() {
+                        field_compiler.compile_expr(node, &value);
                         node.is_anonymous_function_definition()
                     } else {
-                        field_compiler.emit_opcode(Opcode::PushUndefined);
+                        field_compiler
+                            .bytecode
+                            .emit_push_undefined(value.variable());
                         false
                     };
-                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+
+                    field_compiler
+                        .bytecode
+                        .emit_set_accumulator(value.variable());
+                    field_compiler.register_allocator.dealloc(value);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = Gc::new(field_compiler.finish());
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
-                    self.emit(
-                        Opcode::PushClassField,
-                        &[Operand::Bool(is_anonymous_function)],
+
+                    let dst = self.register_allocator.alloc();
+                    self.emit_get_function(&dst, index);
+                    self.bytecode.emit_push_class_field(
+                        class_register.variable(),
+                        name.variable(),
+                        dst.variable(),
+                        is_anonymous_function.into(),
                     );
+                    self.register_allocator.dealloc(name);
+                    self.register_allocator.dealloc(dst);
                 }
                 ClassElement::PrivateFieldDefinition(field) => {
-                    self.emit_opcode(Opcode::Dup);
                     let name_index = self.get_or_insert_private_name(*field.name());
                     let mut field_compiler = ByteCompiler::new(
                         class_name.clone(),
@@ -326,36 +466,46 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
-                    if let Some(node) = field.field() {
-                        field_compiler.compile_expr(node, true);
+                    let value = field_compiler.register_allocator.alloc();
+                    if let Some(node) = field.initializer() {
+                        field_compiler.compile_expr(node, &value);
                     } else {
-                        field_compiler.emit_opcode(Opcode::PushUndefined);
+                        field_compiler
+                            .bytecode
+                            .emit_push_undefined(value.variable());
                     }
-                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+                    field_compiler
+                        .bytecode
+                        .emit_set_accumulator(value.variable());
+                    field_compiler.register_allocator.dealloc(value);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = Gc::new(field_compiler.finish());
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
-                    self.emit_with_varying_operand(Opcode::PushClassFieldPrivate, name_index);
+                    let dst = self.register_allocator.alloc();
+                    self.emit_get_function(&dst, index);
+                    self.bytecode.emit_push_class_field_private(
+                        class_register.variable(),
+                        dst.variable(),
+                        name_index.into(),
+                    );
+                    self.register_allocator.dealloc(dst);
                 }
                 ClassElement::StaticFieldDefinition(field) => {
                     let name_index = match field.name() {
                         PropertyName::Literal(name) => {
-                            Some(self.get_or_insert_name((*name).into()))
+                            StaticFieldName::Index(self.get_or_insert_name(name.sym()))
                         }
                         PropertyName::Computed(name) => {
-                            self.compile_expr(name, true);
-                            self.emit(
-                                Opcode::RotateRight,
-                                &[Operand::U8(3 + static_field_name_count)],
-                            );
-                            static_field_name_count += 1;
-                            None
+                            let name_register = self.register_allocator.alloc();
+                            self.compile_expr(name, &name_register);
+                            StaticFieldName::Register(name_register)
                         }
                     };
                     let mut field_compiler = ByteCompiler::new(
@@ -368,38 +518,81 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
                     field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = field_compiler.push_scope(field.scope());
-                    let is_anonymous_function = if let Some(node) = &field.field() {
-                        field_compiler.compile_expr(node, true);
+                    let value = field_compiler.register_allocator.alloc();
+                    let is_anonymous_function = if let Some(node) = &field.initializer() {
+                        field_compiler.compile_expr(node, &value);
                         node.is_anonymous_function_definition()
                     } else {
-                        field_compiler.emit_opcode(Opcode::PushUndefined);
+                        field_compiler
+                            .bytecode
+                            .emit_push_undefined(value.variable());
                         false
                     };
-                    field_compiler.emit_opcode(Opcode::SetReturnValue);
+
+                    field_compiler
+                        .bytecode
+                        .emit_set_accumulator(value.variable());
+                    field_compiler.register_allocator.dealloc(value);
 
                     field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
 
                     let code = field_compiler.finish();
                     let code = Gc::new(code);
 
-                    static_elements.push(StaticElement::StaticField((
+                    static_elements.push(StaticElement::StaticField {
                         code,
                         name_index,
                         is_anonymous_function,
-                    )));
+                    });
                 }
-                ClassElement::PrivateStaticFieldDefinition(name, field) => {
-                    self.emit_opcode(Opcode::Dup);
-                    if let Some(node) = field {
-                        self.compile_expr(node, true);
+                ClassElement::PrivateStaticFieldDefinition(field) => {
+                    let name_index = self.get_or_insert_private_name(*field.name());
+                    let mut field_compiler = ByteCompiler::new(
+                        class_name.clone(),
+                        true,
+                        self.json_parse,
+                        self.variable_scope.clone(),
+                        self.lexical_scope.clone(),
+                        false,
+                        false,
+                        self.interner,
+                        self.in_with,
+                        self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
+                    );
+                    field_compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
+                    let _ = field_compiler.push_scope(field.scope());
+                    let value = field_compiler.register_allocator.alloc();
+                    let is_anonymous_function = if let Some(node) = &field.initializer() {
+                        field_compiler.compile_expr(node, &value);
+                        node.is_anonymous_function_definition()
                     } else {
-                        self.emit_opcode(Opcode::PushUndefined);
-                    }
-                    let index = self.get_or_insert_private_name(*name);
-                    self.emit_with_varying_operand(Opcode::DefinePrivateField, index);
+                        field_compiler
+                            .bytecode
+                            .emit_push_undefined(value.variable());
+                        false
+                    };
+
+                    field_compiler
+                        .bytecode
+                        .emit_set_accumulator(value.variable());
+                    field_compiler.register_allocator.dealloc(value);
+
+                    field_compiler.code_block_flags |= CodeBlockFlags::IN_CLASS_FIELD_INITIALIZER;
+
+                    let code = field_compiler.finish();
+                    let code = Gc::new(code);
+
+                    static_elements.push(StaticElement::StaticField {
+                        code,
+                        name_index: StaticFieldName::PrivateName(name_index),
+                        is_anonymous_function,
+                    });
                 }
                 ClassElement::StaticBlock(block) => {
                     let mut compiler = ByteCompiler::new(
@@ -412,6 +605,8 @@ impl ByteCompiler<'_> {
                         false,
                         self.interner,
                         self.in_with,
+                        self.spanned_source_text.clone_only_source(),
+                        self.source_path.clone(),
                     );
                     compiler.code_block_flags |= CodeBlockFlags::HAS_FUNCTION_SCOPE;
                     let _ = compiler.push_scope(block.scopes().function_scope());
@@ -425,11 +620,14 @@ impl ByteCompiler<'_> {
                         block.scopes(),
                     );
 
-                    compiler.compile_statement_list(
-                        block.statements().statement_list(),
-                        false,
-                        false,
-                    );
+                    {
+                        let mut compiler = compiler.position_guard(block.statements());
+                        compiler.compile_statement_list(
+                            block.statements().statement_list(),
+                            false,
+                            false,
+                        );
+                    }
 
                     let code = Gc::new(compiler.finish());
                     static_elements.push(StaticElement::StaticBlock(code));
@@ -440,49 +638,85 @@ impl ByteCompiler<'_> {
         for element in static_elements {
             match element {
                 StaticElement::StaticBlock(code) => {
-                    self.emit_opcode(Opcode::Dup);
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
-                    self.emit_opcode(Opcode::SetHomeObject);
-                    self.emit_with_varying_operand(Opcode::Call, 0);
-                    self.emit_opcode(Opcode::Pop);
+                    let function = self.register_allocator.alloc();
+                    self.emit_get_function(&function, index);
+                    self.bytecode
+                        .emit_set_home_object(function.variable(), class_register.variable());
+                    self.push_from_register(&class_register);
+                    self.push_from_register(&function);
+                    self.register_allocator.dealloc(function);
+                    self.bytecode.emit_call(0u32.into());
+                    self.bytecode.emit_pop();
                 }
-                StaticElement::StaticField((code, name_index, is_anonymous_function)) => {
-                    self.emit_opcode(Opcode::Dup);
-                    self.emit_opcode(Opcode::Dup);
+                StaticElement::StaticField {
+                    code,
+                    name_index,
+                    is_anonymous_function,
+                } => {
                     let index = self.push_function_to_constants(code);
-                    self.emit_with_varying_operand(Opcode::GetFunction, index);
-                    self.emit_opcode(Opcode::SetHomeObject);
-                    self.emit_with_varying_operand(Opcode::Call, 0);
-                    if let Some(name_index) = name_index {
-                        self.emit_with_varying_operand(Opcode::DefineOwnPropertyByName, name_index);
-                    } else {
-                        self.emit(Opcode::RotateLeft, &[Operand::U8(5)]);
-                        if is_anonymous_function {
-                            self.emit_opcode(Opcode::Dup);
-                            self.emit(Opcode::RotateLeft, &[Operand::U8(3)]);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::ToPropertyKey);
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit(Opcode::SetFunctionName, &[Operand::U8(0)]);
-                        } else {
-                            self.emit_opcode(Opcode::Swap);
+                    let function = self.register_allocator.alloc();
+                    self.emit_get_function(&function, index);
+                    self.bytecode
+                        .emit_set_home_object(function.variable(), class_register.variable());
+                    self.push_from_register(&class_register);
+                    self.push_from_register(&function);
+                    self.register_allocator.dealloc(function);
+                    self.bytecode.emit_call(0u32.into());
+                    let value = self.register_allocator.alloc();
+                    self.pop_into_register(&value);
+                    match name_index {
+                        StaticFieldName::PrivateName(name) => {
+                            self.bytecode.emit_define_private_field(
+                                class_register.variable(),
+                                value.variable(),
+                                name.into(),
+                            );
                         }
-                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                        StaticFieldName::Index(name) => {
+                            self.bytecode.emit_define_own_property_by_name(
+                                class_register.variable(),
+                                value.variable(),
+                                name.into(),
+                            );
+                        }
+                        StaticFieldName::Register(key) => {
+                            if is_anonymous_function {
+                                self.bytecode
+                                    .emit_to_property_key(key.variable(), key.variable());
+                                self.bytecode.emit_set_function_name(
+                                    value.variable(),
+                                    key.variable(),
+                                    0u32.into(),
+                                );
+                            }
+                            self.bytecode.emit_define_own_property_by_value(
+                                value.variable(),
+                                key.variable(),
+                                class_register.variable(),
+                            );
+                            self.register_allocator.dealloc(key);
+                        }
                     }
+
+                    self.register_allocator.dealloc(value);
                 }
             }
         }
 
-        self.emit_opcode(Opcode::Swap);
-        self.emit_opcode(Opcode::Pop);
+        self.register_allocator.dealloc(proto_register);
 
         self.pop_declarative_scope(outer_scope);
-        self.emit_opcode(Opcode::PopPrivateEnvironment);
+        self.bytecode.emit_pop_private_environment();
 
-        if !expression {
-            self.emit_binding(BindingOpcode::InitVar, class_name);
+        if let Some(dst) = dst {
+            self.bytecode
+                .emit_move(dst.variable(), class_register.variable());
+        } else {
+            self.emit_binding(BindingOpcode::InitVar, class_name, &class_register);
         }
+
+        self.register_allocator.dealloc(class_register);
 
         // NOTE: Reset strict mode to before class declaration/expression evalutation.
         self.code_block_flags.set(CodeBlockFlags::STRICT, strict);

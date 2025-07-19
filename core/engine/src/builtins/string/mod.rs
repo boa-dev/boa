@@ -10,23 +10,26 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{Array, BuiltInObject, Number, RegExp},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::{Attribute, PropertyDescriptor},
     realm::Realm,
     string::{CodePoint, StaticJsStrings},
     symbol::JsSymbol,
     value::IntegerOrInfinity,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
 use boa_macros::utf16;
 
-use boa_profiler::Profiler;
+use cow_utils::CowUtils;
 use icu_normalizer::{ComposingNormalizer, DecomposingNormalizer};
-use std::cmp::{max, min};
+use std::{
+    borrow::Cow,
+    cmp::{max, min},
+};
 
 use super::{BuiltInBuilder, BuiltInConstructor, IntrinsicObject};
 
@@ -34,7 +37,7 @@ mod string_iterator;
 pub(crate) use string_iterator::StringIterator;
 
 #[cfg(feature = "annex-b")]
-pub use crate::{js_str, JsStr};
+pub use crate::{JsStr, js_str};
 
 /// The set of normalizers required for the `String.prototype.normalize` function.
 #[derive(Debug)]
@@ -80,8 +83,6 @@ pub(crate) struct String;
 
 impl IntrinsicObject for String {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let trim_start = BuiltInBuilder::callable(realm, Self::trim_start)
             .length(0)
             .name(js_string!("trimStart"))
@@ -223,7 +224,7 @@ impl BuiltInConstructor for String {
                     .as_symbol()
                     .expect("Already checked for a symbol")
                     .descriptive_string()
-                    .into())
+                    .into());
             }
             // b. Let s be ? ToString(value).
             Some(value) => value.to_string(context)?,
@@ -298,7 +299,6 @@ impl String {
     fn this_string_value(this: &JsValue) -> JsResult<JsString> {
         // 1. If Type(value) is String, return value.
         this.as_string()
-            .cloned()
             // 2. If Type(value) is Object and value has a [[StringData]] internal slot, then
             //     a. Let s be value.[[StringData]].
             //     b. Assert: Type(s) is String.
@@ -722,9 +722,7 @@ impl String {
                 let n = n as usize;
                 let mut result = Vec::with_capacity(n);
 
-                std::iter::repeat(string.as_str())
-                    .take(n)
-                    .for_each(|s| result.push(s));
+                std::iter::repeat_n(string.as_str(), n).for_each(|s| result.push(s));
 
                 // 6. Return the String value that is made from n copies of S appended together.
                 Ok(JsString::concat_array(&result).into())
@@ -1010,8 +1008,8 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // Helper enum.
-        enum CallableOrString<'a> {
-            FunctionalReplace(&'a JsObject),
+        enum CallableOrString {
+            FunctionalReplace(JsObject),
             ReplaceValue(JsString),
         }
 
@@ -1210,7 +1208,7 @@ impl String {
             // c. Else,
             let replacement = match replace {
                 // b. If functionalReplace is true, then
-                Ok(replace_fn) => {
+                Ok(ref replace_fn) => {
                     // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
                     replace_fn
                         .call(
@@ -1440,19 +1438,19 @@ impl String {
                     context,
                 )?;
 
-                let collator = collator
-                    .as_object()
-                    .map(JsObject::borrow)
-                    .expect("constructor must return a JsObject");
-                let collator = collator
-                    .downcast_ref::<Collator>()
-                    .expect("constructor must return a `Collator` object")
-                    .collator();
+                let object = collator.as_object();
+                let collator = object
+                    .as_ref()
+                    .and_then(|o| o.downcast_ref::<Collator>())
+                    .expect("constructor must return a `Collator` object");
 
                 let s = s.iter().collect::<Vec<_>>();
                 let that_value = that_value.iter().collect::<Vec<_>>();
 
-                collator.compare_utf16(&s, &that_value) as i8
+                collator
+                    .collator()
+                    .as_borrowed()
+                    .compare_utf16(&s, &that_value) as i8
             }
 
             // Default to common comparison if the user doesn't have `Intl` enabled.
@@ -1558,11 +1556,7 @@ impl String {
         let repetitions = {
             let q = fill_len / filler_len;
             let r = fill_len % filler_len;
-            if r == 0 {
-                q
-            } else {
-                q + 1
-            }
+            if r == 0 { q } else { q + 1 }
         };
 
         let truncated_string_filler = filler.to_vec().repeat(repetitions as usize);
@@ -1726,16 +1720,20 @@ impl String {
         // 4. Let upperText be the result of toUppercase(sText), according to
         // the Unicode Default Case Conversion algorithm.
         let text = string.map_valid_segments(|s| {
-            if UPPER {
-                s.to_uppercase()
+            let cow_str = if UPPER {
+                s.cow_to_uppercase()
             } else {
-                s.to_lowercase()
+                s.cow_to_lowercase()
+            };
+            match cow_str {
+                Cow::Borrowed(_) => s,
+                Cow::Owned(replaced_str) => replaced_str,
             }
         });
 
         // 5. Let L be ! CodePointsToString(upperText).
         // 6. Return L.
-        Ok(js_string!(text).into())
+        Ok(text.into())
     }
 
     /// [`String.prototype.toLocaleLowerCase ( [ locales ] )`][lower] and
@@ -1750,13 +1748,7 @@ impl String {
     ) -> JsResult<JsValue> {
         #[cfg(feature = "intl")]
         {
-            use super::intl::locale::{
-                canonicalize_locale_list, default_locale, lookup_matching_locale_by_prefix,
-            };
-            // TODO: Small hack to make lookups behave.
-            // We would really like to be able to use `icu_casemap::provider::CaseMapV1Marker`
-            use icu_locid::Locale;
-            use icu_plurals::provider::OrdinalV1Marker;
+            use super::intl::locale::{canonicalize_locale_list, default_locale};
 
             // 1. Let O be ? RequireObjectCoercible(this value).
             let this = this.require_object_coercible()?;
@@ -1771,7 +1763,7 @@ impl String {
 
             // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
             // 2. If requestedLocales is not an empty List, then
-            let mut requested_locale = if let Some(locale) =
+            let requested_locale = if let Some(locale) =
                 canonicalize_locale_list(args.get_or_undefined(0), context)?
                     .into_iter()
                     .next()
@@ -1783,20 +1775,14 @@ impl String {
                 //     a. Let requestedLocale be ! DefaultLocale().
                 default_locale(context.intl_provider().locale_canonicalizer()?)
             };
-            // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
-            requested_locale.extensions.unicode.clear();
 
+            // 4. Let noExtensionsLocale be the String value that is requestedLocale with any Unicode locale extension sequences (6.2.1) removed.
             // 5. Let availableLocales be a List with language tags that includes the languages for which the Unicode
             //    Character Database contains language sensitive case mappings. Implementations may add additional
             //    language tags if they support case mapping for additional locales.
             // 6. Let match be LookupMatchingLocaleByPrefix(availableLocales, noExtensionsLocale).
             // 7. If match is not undefined, let locale be match.[[locale]]; else let locale be "und".
-            let locale = lookup_matching_locale_by_prefix::<OrdinalV1Marker>(
-                [requested_locale],
-                context.intl_provider(),
-            )
-            .unwrap_or(Locale::UND);
-
+            // ICU4X already handles locales in the correct way.
             let casemapper = context.intl_provider().case_mapper()?;
 
             // 8. Let codePoints be StringToCodePoints(S).
@@ -1805,11 +1791,17 @@ impl String {
                     // 10. Else,
                     //     a. Assert: targetCase is upper.
                     //     b. Let newCodePoints be a List whose elements are the result of an uppercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.uppercase_to_string(&segment, &locale.id)
+                    casemapper
+                        .as_borrowed()
+                        .uppercase_to_string(&segment, &requested_locale.id)
+                        .into()
                 } else {
                     // 9. If targetCase is lower, then
                     //     a. Let newCodePoints be a List whose elements are the result of a lowercase transformation of codePoints according to an implementation-derived algorithm using locale or the Unicode Default Case Conversion algorithm.
-                    casemapper.lowercase_to_string(&segment, &locale.id)
+                    casemapper
+                        .as_borrowed()
+                        .lowercase_to_string(&segment, &requested_locale.id)
+                        .into()
                 }
             });
 
@@ -2172,10 +2164,10 @@ impl String {
             #[cfg(not(feature = "intl"))]
             {
                 const NORMALIZERS: StringNormalizers = StringNormalizers {
-                    nfc: ComposingNormalizer::new_nfc(),
-                    nfkc: ComposingNormalizer::new_nfkc(),
-                    nfd: DecomposingNormalizer::new_nfd(),
-                    nfkd: DecomposingNormalizer::new_nfkd(),
+                    nfc: ComposingNormalizer::new_nfc().static_to_owned(),
+                    nfkc: ComposingNormalizer::new_nfkc().static_to_owned(),
+                    nfd: DecomposingNormalizer::new_nfd().static_to_owned(),
+                    nfkd: DecomposingNormalizer::new_nfkd().static_to_owned(),
                 };
                 &NORMALIZERS
             }
@@ -2188,10 +2180,10 @@ impl String {
         let s = s.iter().collect::<Vec<_>>();
 
         let result = match normalization {
-            Normalization::Nfc => normalizers.nfc.normalize_utf16(&s),
-            Normalization::Nfd => normalizers.nfd.normalize_utf16(&s),
-            Normalization::Nfkc => normalizers.nfkc.normalize_utf16(&s),
-            Normalization::Nfkd => normalizers.nfkd.normalize_utf16(&s),
+            Normalization::Nfc => normalizers.nfc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfd => normalizers.nfd.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkc => normalizers.nfkc.as_borrowed().normalize_utf16(&s),
+            Normalization::Nfkd => normalizers.nfkd.as_borrowed().normalize_utf16(&s),
         };
 
         // 7. Return ns.
@@ -2729,10 +2721,10 @@ pub(crate) fn get_substitution(
                         //     a. Let refReplacement be the empty String.
                         // 3. Else,
                         //     a. Let refReplacement be capture.
-                        if let Some(capture) = captures.get(index - 1) {
-                            if let Some(s) = capture.as_string() {
-                                result.extend(s.iter());
-                            }
+                        if let Some(capture) = captures.get(index - 1)
+                            && let Some(s) = capture.as_string()
+                        {
+                            result.extend(s.iter());
                         }
 
                     // viii. Else,

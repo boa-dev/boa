@@ -1,6 +1,6 @@
 use crate::bytecompiler::{
-    jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind},
     ByteCompiler,
+    jump_control::{JumpRecord, JumpRecordAction, JumpRecordKind},
 };
 use boa_ast::statement::Break;
 
@@ -18,9 +18,12 @@ impl ByteCompiler<'_> {
             let count = self.jump_info_open_environment_count(i);
             actions.push(JumpRecordAction::PopEnvironments { count });
 
-            if info.is_try_with_finally_block() && !info.in_finally() {
+            if !info.in_finally()
+                && let Some(finally_throw) = info.finally_throw
+            {
                 actions.push(JumpRecordAction::HandleFinally {
                     index: info.jumps.len() as u32,
+                    finally_throw,
                 });
                 actions.push(JumpRecordAction::Transfer { index: i as u32 });
             }

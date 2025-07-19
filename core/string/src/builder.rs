@@ -1,15 +1,11 @@
-use crate::{
-    alloc_overflow, tagged::Tagged, JsStr, JsStrVariant, JsString, RawJsString, RefCount,
-    TaggedLen, DATA_OFFSET,
-};
+use crate::{DATA_OFFSET, JsStr, JsStrVariant, JsString, RawJsString, TaggedLen, alloc_overflow};
 
 use std::{
-    alloc::{alloc, dealloc, realloc, Layout},
+    alloc::{Layout, alloc, dealloc, realloc},
     cell::Cell,
     marker::PhantomData,
-    mem::ManuallyDrop,
     ops::{Add, AddAssign},
-    ptr::{self, addr_of_mut, NonNull},
+    ptr::{self, NonNull},
     str::{self},
 };
 
@@ -60,7 +56,7 @@ impl<D: Copy> JsStringBuilder<D> {
     /// - The elements at `old_len..new_len` must be initialized.
     ///
     #[inline]
-    pub unsafe fn set_len(&mut self, new_len: usize) {
+    pub const unsafe fn set_len(&mut self, new_len: usize) {
         debug_assert!(new_len <= self.capacity());
 
         self.len = new_len;
@@ -140,10 +136,10 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure that the inner is allocated.
     #[must_use]
-    unsafe fn data(&self) -> *mut D {
+    const unsafe fn data(&self) -> *mut D {
         // SAFETY:
         // Caller should ensure that the inner is allocated.
-        unsafe { addr_of_mut!((*self.inner.as_ptr()).data).cast() }
+        unsafe { (&raw mut (*self.inner.as_ptr()).data).cast() }
     }
 
     /// Allocates when there is not sufficient capacity.
@@ -205,7 +201,7 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
-    pub unsafe fn extend_from_slice_unchecked(&mut self, v: &[D]) {
+    pub const unsafe fn extend_from_slice_unchecked(&mut self, v: &[D]) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
             ptr::copy_nonoverlapping(v.as_ptr(), self.data().add(self.len()), v.len());
@@ -294,7 +290,7 @@ impl<D: Copy> JsStringBuilder<D> {
     ///
     /// Caller should ensure the capacity is large enough to hold elements.
     #[inline]
-    pub unsafe fn push_unchecked(&mut self, v: D) {
+    pub const unsafe fn push_unchecked(&mut self, v: D) {
         // SAFETY: Caller should ensure the capacity is large enough to hold elements.
         unsafe {
             self.data().add(self.len()).write(v);
@@ -375,9 +371,7 @@ impl<D: Copy> JsStringBuilder<D> {
         unsafe {
             inner.as_ptr().write(RawJsString {
                 tagged_len: TaggedLen::new(len, latin1),
-                refcount: RefCount {
-                    read_write: ManuallyDrop::new(Cell::new(1)),
-                },
+                refcount: Cell::new(1),
                 data: [0; 0],
             });
         }
@@ -385,9 +379,8 @@ impl<D: Copy> JsStringBuilder<D> {
         // Tell the compiler not to call the destructor of `JsStringBuilder`,
         // becuase we move inner `RawJsString` to `JsString`.
         std::mem::forget(self);
-        JsString {
-            ptr: Tagged::from_non_null(inner),
-        }
+
+        JsString { ptr: inner }
     }
 }
 
@@ -429,7 +422,6 @@ impl<D: Copy> Add<&JsStringBuilder<D>> for JsStringBuilder<D> {
     type Output = Self;
 
     #[inline]
-    #[must_use]
     fn add(mut self, rhs: &JsStringBuilder<D>) -> Self::Output {
         self.extend_from_slice(rhs.as_slice());
         self
@@ -440,7 +432,6 @@ impl<D: Copy> Add<&[D]> for JsStringBuilder<D> {
     type Output = Self;
 
     #[inline]
-    #[must_use]
     fn add(mut self, rhs: &[D]) -> Self::Output {
         self.extend_from_slice(rhs);
         self
@@ -469,7 +460,6 @@ impl<D: Copy> FromIterator<D> for JsStringBuilder<D> {
 
 impl<D: Copy> From<&[D]> for JsStringBuilder<D> {
     #[inline]
-    #[must_use]
     fn from(value: &[D]) -> Self {
         let mut builder = Self::with_capacity(value.len());
         // SAFETY: The capacity is large enough to hold elements.
@@ -480,7 +470,6 @@ impl<D: Copy> From<&[D]> for JsStringBuilder<D> {
 
 impl<D: Copy + Eq + PartialEq> PartialEq for JsStringBuilder<D> {
     #[inline]
-    #[must_use]
     fn eq(&self, other: &Self) -> bool {
         self.as_slice().eq(other.as_slice())
     }
@@ -488,7 +477,6 @@ impl<D: Copy + Eq + PartialEq> PartialEq for JsStringBuilder<D> {
 
 impl<D: Copy> Clone for JsStringBuilder<D> {
     #[inline]
-    #[must_use]
     fn clone(&self) -> Self {
         if self.is_allocated() {
             let mut builder = Self::with_capacity(self.capacity());
@@ -907,7 +895,6 @@ impl<'ref_str, T: Into<Segment<'ref_str>>> Add<T> for CommonJsStringBuilder<'ref
     type Output = Self;
 
     #[inline]
-    #[must_use]
     fn add(mut self, rhs: T) -> Self::Output {
         self.push(rhs);
         self

@@ -1,4 +1,11 @@
-use std::{cell::Cell, collections::HashSet, hash::BuildHasherDefault, rc::Rc};
+use std::{
+    cell::{Cell, RefCell},
+    collections::HashSet,
+    hash::BuildHasherDefault,
+    mem::MaybeUninit,
+    path::PathBuf,
+    rc::Rc,
+};
 
 use boa_ast::{
     declaration::{
@@ -6,34 +13,38 @@ use boa_ast::{
         ReExportImportName,
     },
     operations::{
-        bound_names, contains, lexically_scoped_declarations, var_scoped_declarations,
-        ContainsSymbol, LexicallyScopedDeclaration,
+        ContainsSymbol, LexicallyScopedDeclaration, bound_names, contains,
+        lexically_scoped_declarations, var_scoped_declarations,
     },
     scope::BindingLocator,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use boa_interner::Interner;
 use boa_macros::js_str;
+use dynify::Dynify;
 use indexmap::IndexSet;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use crate::{
-    builtins::{promise::PromiseCapability, Promise},
-    bytecompiler::{ByteCompiler, FunctionSpec, ToJsString},
+    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
+    SpannedSourceText,
+    builtins::{Promise, promise::PromiseCapability},
+    bytecompiler::{BindingAccessOpcode, ByteCompiler, FunctionSpec, ToJsString},
     environments::{DeclarativeEnvironment, EnvironmentStack},
+    job::NativeAsyncJob,
     js_string,
     module::ModuleKind,
     object::{FunctionObjectBuilder, JsPromise},
     realm::Realm,
     vm::{
-        create_function_object_fast, ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock,
-        CompletionRecord, Opcode,
+        ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock, CompletionRecord,
+        create_function_object_fast,
     },
-    Context, JsArgs, JsError, JsNativeError, JsObject, JsResult, JsString, JsValue, NativeFunction,
 };
 
 use super::{
     BindingName, GraphLoadingState, Module, Referrer, ResolveExportError, ResolvedBinding,
+    SourceText,
 };
 
 /// Information for the [**Depth-first search**] algorithm used in the
@@ -232,6 +243,8 @@ struct ModuleCode {
     has_tla: bool,
     requested_modules: IndexSet<JsString, BuildHasherDefault<FxHasher>>,
     source: boa_ast::Module,
+    source_text: SourceText,
+    path: Option<PathBuf>,
     import_entries: Vec<ImportEntry>,
     local_export_entries: Vec<LocalExportEntry>,
     indirect_export_entries: Vec<IndirectExportEntry>,
@@ -244,7 +257,12 @@ impl SourceTextModule {
     /// Contains part of the abstract operation [`ParseModule`][parse].
     ///
     /// [parse]: https://tc39.es/ecma262/#sec-parsemodule
-    pub(super) fn new(code: boa_ast::Module, interner: &Interner) -> Self {
+    pub(super) fn new(
+        code: boa_ast::Module,
+        interner: &Interner,
+        source_text: SourceText,
+        path: Option<PathBuf>,
+    ) -> Self {
         // 3. Let requestedModules be the ModuleRequests of body.
         let requested_modules = code
             .items()
@@ -335,6 +353,8 @@ impl SourceTextModule {
             import_meta: GcRefCell::default(),
             code: ModuleCode {
                 source: code,
+                source_text,
+                path,
                 requested_modules,
                 has_tla,
                 import_entries,
@@ -354,6 +374,89 @@ impl SourceTextModule {
         state: &Rc<GraphLoadingState>,
         context: &mut Context,
     ) {
+        /// Loads the module of an import.
+        ///
+        /// This combines the operations:
+        /// - [`HostLoadImportedModule(module, required, state.[[HostDefined]], state)`][load]
+        /// - [`FinishLoadingImportedModule ( referrer, specifier, payload, result )`][finish]
+        /// - [`ContinueModuleLoading ( state, moduleCompletion )`][continue]
+        ///
+        /// [load]: https://tc39.es/ecma262/#sec-HostLoadImportedModule
+        /// [finish]: https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
+        /// [continue]: https://tc39.es/ecma262/#sec-ContinueModuleLoading
+        async fn finish_loading_imported_module(
+            specifier: JsString,
+            src: Module,
+            state: Rc<GraphLoadingState>,
+            context: &RefCell<&mut Context>,
+        ) {
+            let loader = context.borrow().module_loader();
+            let fut = loader.load_imported_module(
+                Referrer::Module(src.clone()),
+                specifier.clone(),
+                context,
+            );
+            let mut stack = [MaybeUninit::<u8>::uninit(); 16];
+            let mut heap = Vec::<MaybeUninit<u8>>::new();
+            let completion = fut.init2(&mut stack, &mut heap).await;
+
+            // FinishLoadingImportedModule ( referrer, specifier, payload, result )
+            // https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
+
+            // 1. If result is a normal completion, then
+            if let Ok(loaded) = &completion {
+                let ModuleKind::SourceText(src) = src.kind() else {
+                    unreachable!("captured src must be a source text module");
+                };
+                // a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
+                // b. Else,
+                //    i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
+                let mut loaded_modules = src.loaded_modules.borrow_mut();
+                let entry = loaded_modules
+                    .entry(specifier)
+                    .or_insert_with(|| loaded.clone());
+
+                //    i. Assert: That Record's [[Module]] is result.[[Value]].
+                assert_eq!(entry, loaded);
+            }
+
+            // 2. If payload is a GraphLoadingState Record, then
+            //    a. Perform ContinueModuleLoading(payload, result).
+
+            // Abstract operation `ContinueModuleLoading ( state, moduleCompletion )`.
+            //
+            // https://tc39.es/ecma262/#sec-ContinueModuleLoading
+
+            // 1. If state.[[IsLoading]] is false, return unused.
+            if !state.loading.get() {
+                return;
+            }
+
+            // 2. If moduleCompletion is a normal completion, then
+            match completion {
+                Ok(m) => {
+                    // a. Perform InnerModuleLoading(state, moduleCompletion.[[Value]]).
+                    m.inner_load(&state, &mut context.borrow_mut());
+                }
+                // 3. Else,
+                Err(err) => {
+                    // a. Set state.[[IsLoading]] to false.
+                    state.loading.set(false);
+
+                    let err = err.to_opaque(&mut context.borrow_mut());
+
+                    // b. Perform ! Call(state.[[PromiseCapability]].[[Reject]], undefined, « moduleCompletion.[[Value]] »).
+                    state
+                        .capability
+                        .reject()
+                        .call(&JsValue::undefined(), &[err], &mut context.borrow_mut())
+                        .expect("cannot fail for the default reject function");
+                }
+            }
+
+            // 4. Return unused.
+        }
+
         // 2. If module is a Cyclic Module Record, module.[[Status]] is new, and state.[[Visited]] does not contain
         //    module, then
         // a. Append module to state.[[Visited]].
@@ -367,9 +470,9 @@ impl SourceTextModule {
                 .pending_modules
                 .set(state.pending_modules.get() + requested.len());
             // d. For each String required of module.[[RequestedModules]], do
-            for required in requested.iter().cloned() {
+            for required in requested {
                 // i. If module.[[LoadedModules]] contains a Record whose [[Specifier]] is required, then
-                let loaded = self.loaded_modules.borrow().get(&required).cloned();
+                let loaded = self.loaded_modules.borrow().get(required).cloned();
                 if let Some(loaded) = loaded {
                     // 1. Let record be that Record.
                     // 2. Perform InnerModuleLoading(state, record.[[Module]]).
@@ -382,70 +485,15 @@ impl SourceTextModule {
                     let name_specifier = required.clone();
                     let src = module_self.clone();
                     let state = state.clone();
-                    context.module_loader().load_imported_module(
-                        Referrer::Module(module_self.clone()),
-                        name_specifier,
-                        Box::new(move |completion, context| {
-                            // FinishLoadingImportedModule ( referrer, specifier, payload, result )
-                            // https://tc39.es/ecma262/#sec-FinishLoadingImportedModule
-
-                            // 1. If result is a normal completion, then
-                            if let Ok(loaded) = &completion {
-                                let ModuleKind::SourceText(src) = src.kind() else {
-                                    unreachable!("captured src must be a source text module");
-                                };
-                                // a. If referrer.[[LoadedModules]] contains a Record whose [[Specifier]] is specifier, then
-                                // b. Else,
-                                //    i. Append the Record { [[Specifier]]: specifier, [[Module]]: result.[[Value]] } to referrer.[[LoadedModules]].
-                                let mut loaded_modules = src.loaded_modules.borrow_mut();
-                                let entry = loaded_modules
-                                    .entry(required)
-                                    .or_insert_with(|| loaded.clone());
-
-                                //    i. Assert: That Record's [[Module]] is result.[[Value]].
-                                assert_eq!(entry, loaded);
-                            }
-
-                            // 2. If payload is a GraphLoadingState Record, then
-                            //    a. Perform ContinueModuleLoading(payload, result).
-
-                            // Abstract operation `ContinueModuleLoading ( state, moduleCompletion )`.
-                            //
-                            // https://tc39.es/ecma262/#sec-ContinueModuleLoading
-
-                            // 1. If state.[[IsLoading]] is false, return unused.
-                            if !state.loading.get() {
-                                return;
-                            }
-
-                            // 2. If moduleCompletion is a normal completion, then
-                            match completion {
-                                Ok(m) => {
-                                    // a. Perform InnerModuleLoading(state, moduleCompletion.[[Value]]).
-                                    m.inner_load(&state, context);
-                                }
-                                // 3. Else,
-                                Err(err) => {
-                                    // a. Set state.[[IsLoading]] to false.
-                                    state.loading.set(false);
-
-                                    // b. Perform ! Call(state.[[PromiseCapability]].[[Reject]], undefined, « moduleCompletion.[[Value]] »).
-                                    state
-                                        .capability
-                                        .reject()
-                                        .call(
-                                            &JsValue::undefined(),
-                                            &[err.to_opaque(context)],
-                                            context,
-                                        )
-                                        .expect("cannot fail for the default reject function");
-                                }
-                            }
-
-                            // 4. Return unused.
-                        }),
-                        context,
+                    let async_job = NativeAsyncJob::with_realm(
+                        async move |context| {
+                            finish_loading_imported_module(name_specifier, src, state, context)
+                                .await;
+                            Ok(JsValue::undefined())
+                        },
+                        context.realm().clone(),
                     );
+                    context.enqueue_job(async_job.into());
                 }
                 // iii. If state.[[IsLoading]] is false, return unused.
                 if !state.loading.get() {
@@ -863,7 +911,9 @@ impl SourceTextModule {
                 | ModuleStatus::Linking { .. }
                 | ModuleStatus::PreLinked { .. }
                 | ModuleStatus::Evaluating { .. } => {
-                    unreachable!("2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated.")
+                    unreachable!(
+                        "2. Assert: module.[[Status]] is one of linked, evaluating-async, or evaluated."
+                    )
                 }
                 ModuleStatus::Linked { .. } => (module_self.clone(), None),
                 // 3. If module.[[Status]] is either evaluating-async or evaluated, set module to module.[[CycleRoot]].
@@ -1019,7 +1069,7 @@ impl SourceTextModule {
         match &*self.status.borrow() {
             // 3. If module.[[Status]] is evaluating, return index.
             ModuleStatus::Evaluating { .. } | ModuleStatus::EvaluatingAsync { .. } => {
-                return Ok(index)
+                return Ok(index);
             }
             //     a. If module.[[EvaluationError]] is empty, return index.
             //     b. Otherwise, return ? module.[[EvaluationError]].
@@ -1080,7 +1130,10 @@ impl SourceTextModule {
                     _ => false,
                 });
 
-                let (required_module, async_eval, req_info) = match &*required_module_src.status.borrow() {
+                let (required_module, async_eval, req_info) = match &*required_module_src
+                    .status
+                    .borrow()
+                {
                     // iii. If requiredModule.[[Status]] is evaluating, then
                     ModuleStatus::Evaluating {
                         info,
@@ -1088,7 +1141,11 @@ impl SourceTextModule {
                         ..
                     } => {
                         // 1. Set module.[[DFSAncestorIndex]] to min(module.[[DFSAncestorIndex]], requiredModule.[[DFSAncestorIndex]]).
-                        (required_module.clone(), async_eval_index.is_some(), Some(*info))
+                        (
+                            required_module.clone(),
+                            async_eval_index.is_some(),
+                            Some(*info),
+                        )
                     }
                     // iv. Else,
                     ModuleStatus::EvaluatingAsync { cycle_root, .. }
@@ -1100,14 +1157,22 @@ impl SourceTextModule {
 
                         // 2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated.
                         match &*cycle_root_src.status.borrow() {
-                            ModuleStatus::EvaluatingAsync { .. } => (cycle_root.clone(), true, None),
+                            ModuleStatus::EvaluatingAsync { .. } => {
+                                (cycle_root.clone(), true, None)
+                            }
                             // 3. If requiredModule.[[EvaluationError]] is not empty, return ? requiredModule.[[EvaluationError]].
-                            ModuleStatus::Evaluated { error: Some(error), .. } => return Err(error.clone()),
+                            ModuleStatus::Evaluated {
+                                error: Some(error), ..
+                            } => return Err(error.clone()),
                             ModuleStatus::Evaluated { .. } => (cycle_root.clone(), false, None),
-                            _ => unreachable!("2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated."),
+                            _ => unreachable!(
+                                "2. Assert: requiredModule.[[Status]] is either evaluating-async or evaluated."
+                            ),
                         }
                     }
-                    _ => unreachable!("i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated."),
+                    _ => unreachable!(
+                        "i. Assert: requiredModule.[[Status]] is one of evaluating, evaluating-async, or evaluated."
+                    ),
                 };
 
                 let ModuleKind::SourceText(required_module) = required_module.kind() else {
@@ -1424,6 +1489,7 @@ impl SourceTextModule {
         let global_env = realm.environment().clone();
         let env = self.code.source.scope().clone();
 
+        let spanned_source_text = SpannedSourceText::new_source_only(self.code.source_text.clone());
         let mut compiler = ByteCompiler::new(
             js_string!("<main>"),
             true,
@@ -1434,6 +1500,8 @@ impl SourceTextModule {
             false,
             context.interner_mut(),
             false,
+            spanned_source_text,
+            self.code.path.clone().into(),
         );
 
         compiler.async_handler = Some(compiler.push_handler());
@@ -1521,9 +1589,15 @@ impl SourceTextModule {
                         let binding = env
                             .get_binding_reference(&name)
                             .expect("binding must exist");
-                        let index = compiler.get_or_insert_binding(binding);
-                        compiler.emit_opcode(Opcode::PushUndefined);
-                        compiler.emit_binding_access(Opcode::DefInitVar, &index);
+                        let index = compiler.insert_binding(binding);
+                        let value = compiler.register_allocator.alloc();
+                        compiler.bytecode.emit_push_undefined(value.variable());
+                        compiler.emit_binding_access(
+                            BindingAccessOpcode::DefInitVar,
+                            &index,
+                            &value,
+                        );
+                        compiler.register_allocator.dealloc(value);
 
                         // 3. Append dn to declaredVarNames.
                         declared_var_names.push(name);
@@ -1742,8 +1816,8 @@ impl SourceTextModule {
 
         context
             .vm
-            .frame
-            .set_promise_capability(&mut context.vm.stack, capability);
+            .stack
+            .set_promise_capability(&context.vm.frame, capability);
 
         // 9. If module.[[HasTLA]] is false, then
         //    a. Assert: capability is not present.

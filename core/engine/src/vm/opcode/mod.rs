@@ -1,7 +1,14 @@
-use std::iter::FusedIterator;
+#![allow(clippy::inline_always)]
 
-/// The opcodes of the vm.
-use crate::{vm::CompletionType, Context, JsResult, JsValue};
+use crate::{
+    Context,
+    vm::{completion_record::CompletionRecord, completion_record::IntoCompletionRecord},
+};
+use args::{Argument, read};
+use std::ops::ControlFlow;
+use thin_vec::ThinVec;
+
+mod args;
 
 // Operation modules
 mod arguments;
@@ -13,23 +20,18 @@ mod control_flow;
 mod copy;
 mod define;
 mod delete;
-mod dup;
 mod environment;
 mod generator;
 mod get;
 mod global;
 mod iteration;
-mod locals;
 mod meta;
-mod modifier;
 mod new;
 mod nop;
 mod pop;
 mod push;
-mod require;
 mod rest_parameter;
 mod set;
-mod swap;
 mod switch;
 mod templates;
 mod to;
@@ -39,6 +41,8 @@ mod value;
 // Operation structs
 #[doc(inline)]
 pub(crate) use arguments::*;
+#[doc(inline)]
+pub(crate) use r#await::*;
 #[doc(inline)]
 pub(crate) use binary_ops::*;
 #[doc(inline)]
@@ -54,8 +58,6 @@ pub(crate) use define::*;
 #[doc(inline)]
 pub(crate) use delete::*;
 #[doc(inline)]
-pub(crate) use dup::*;
-#[doc(inline)]
 pub(crate) use environment::*;
 #[doc(inline)]
 pub(crate) use generator::*;
@@ -66,11 +68,7 @@ pub(crate) use global::*;
 #[doc(inline)]
 pub(crate) use iteration::*;
 #[doc(inline)]
-pub(crate) use locals::*;
-#[doc(inline)]
 pub(crate) use meta::*;
-#[doc(inline)]
-pub(crate) use modifier::*;
 #[doc(inline)]
 pub(crate) use new::*;
 #[doc(inline)]
@@ -80,15 +78,9 @@ pub(crate) use pop::*;
 #[doc(inline)]
 pub(crate) use push::*;
 #[doc(inline)]
-pub(crate) use r#await::*;
-#[doc(inline)]
-pub(crate) use require::*;
-#[doc(inline)]
 pub(crate) use rest_parameter::*;
 #[doc(inline)]
 pub(crate) use set::*;
-#[doc(inline)]
-pub(crate) use swap::*;
 #[doc(inline)]
 pub(crate) use switch::*;
 #[doc(inline)]
@@ -100,278 +92,208 @@ pub(crate) use unary_ops::*;
 #[doc(inline)]
 pub(crate) use value::*;
 
-use super::{code_block::Readable, GeneratorResumeKind};
-use thin_vec::ThinVec;
-
-/// Read type T from code.
+/// Specific opcodes for bindings.
 ///
-/// # Safety
-///
-/// Does not check if read happens out-of-bounds.
-pub(crate) const unsafe fn read_unchecked<T>(bytes: &[u8], offset: usize) -> T
-where
-    T: Readable,
-{
-    // Safety:
-    // The function caller must ensure that the read is in bounds.
-    //
-    // This has to be an unaligned read because we can't guarantee that
-    // the types are aligned.
-    unsafe { bytes.as_ptr().add(offset).cast::<T>().read_unaligned() }
+/// This separate enum exists to make matching exhaustive where needed.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum BindingOpcode {
+    Var,
+    InitVar,
+    InitLexical,
+    SetName,
 }
 
-/// Read type T from code.
-#[track_caller]
-pub(crate) fn read<T>(bytes: &[u8], offset: usize) -> T
-where
-    T: Readable,
-{
-    assert!(offset + size_of::<T>() - 1 < bytes.len());
-
-    // Safety: We checked that it is not an out-of-bounds read,
-    // so this is safe.
-    unsafe { read_unchecked(bytes, offset) }
+/// The `Operation` trait implements the execution code along with the
+/// identifying Name and Instruction value for an Boa Opcode.
+///
+/// This trait should be implemented for a struct that corresponds with
+/// any arm of the `OpCode` enum.
+pub(crate) trait Operation {
+    const NAME: &'static str;
+    const INSTRUCTION: &'static str;
+    const COST: u8;
 }
 
-/// Represents a varying operand kind.
-#[derive(Default, Debug, Clone, Copy)]
-pub(crate) enum VaryingOperandKind {
-    #[default]
-    U8,
-    U16,
-    U32,
+/// The compile time representation of bytecode instructions.
+#[derive(Debug)]
+pub(crate) struct ByteCodeEmitter {
+    bytecode: Vec<u8>,
+}
+
+impl ByteCodeEmitter {
+    /// Create a new [`ByteCodeEmitter`] instance.
+    pub(crate) fn new() -> Self {
+        Self {
+            bytecode: Vec::new(),
+        }
+    }
+
+    /// Convert the [`ByteCodeEmitter`] into a [`ByteCode`] instance.
+    pub(crate) fn into_bytecode(self) -> ByteCode {
+        ByteCode {
+            bytecode: self.bytecode.into_boxed_slice(),
+        }
+    }
+
+    /// Get the location of the next opcode in the bytecode.
+    pub(crate) fn next_opcode_location(&self) -> u32 {
+        self.bytecode.len() as u32
+    }
+
+    /// Patch the jump instruction at the given label with the given address.
+    pub(crate) fn patch_jump(&mut self, label: u32, patch: u32) {
+        let pos = label as usize;
+        let bytes = patch.to_le_bytes();
+        self.bytecode[pos + 1] = bytes[0];
+        self.bytecode[pos + 2] = bytes[1];
+        self.bytecode[pos + 3] = bytes[2];
+        self.bytecode[pos + 4] = bytes[3];
+    }
+
+    /// Patch the jump instruction at the given label with two addresses.
+    pub(crate) fn patch_jump_two_addresses(&mut self, label: u32, patch: (u32, u32)) {
+        let pos = label as usize;
+        // Write first patched value
+        let bytes = patch.0.to_le_bytes();
+        self.bytecode[pos + 1] = bytes[0];
+        self.bytecode[pos + 2] = bytes[1];
+        self.bytecode[pos + 3] = bytes[2];
+        self.bytecode[pos + 4] = bytes[3];
+
+        // Write second patched value
+        let bytes = patch.1.to_le_bytes();
+        self.bytecode[pos + 5] = bytes[0];
+        self.bytecode[pos + 6] = bytes[1];
+        self.bytecode[pos + 7] = bytes[2];
+        self.bytecode[pos + 8] = bytes[3];
+    }
+
+    /// Patch the jump instruction at the given label with jump table addresses.
+    pub(crate) fn patch_jump_table(&mut self, label: u32, patch: (u32, &[u32])) {
+        let pos = label as usize;
+
+        let (total_len, pos) = read::<u16>(&self.bytecode, pos + 1);
+        let arg_count = total_len as usize;
+        assert_eq!(arg_count, patch.1.len());
+
+        // Write first patched value (default address)
+        let bytes = patch.0.to_le_bytes();
+        self.bytecode[pos] = bytes[0];
+        self.bytecode[pos + 1] = bytes[1];
+        self.bytecode[pos + 2] = bytes[2];
+        self.bytecode[pos + 3] = bytes[3];
+
+        // Write remaining patched values
+        for (i, value) in patch.1.iter().enumerate() {
+            let offset = pos + 4 + (i) * 4;
+            let bytes = value.to_le_bytes();
+            self.bytecode[offset] = bytes[0];
+            self.bytecode[offset + 1] = bytes[1];
+            self.bytecode[offset + 2] = bytes[2];
+            self.bytecode[offset + 3] = bytes[3];
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+/// The bytecode representation of a codeblock.
+pub(crate) struct ByteCode {
+    pub(crate) bytecode: Box<[u8]>,
+}
+
+/// The enum representation of [`VaryingOperand`] values.
+enum VaryingOperandVariant {
+    U8(u8),
+    U16(u16),
+    U32(u32),
 }
 
 #[derive(Debug, Clone, Copy)]
+/// A varying operand is a value that can be either a u8, u16 or u32.
 pub(crate) struct VaryingOperand {
-    kind: VaryingOperandKind,
     value: u32,
 }
 
-impl PartialEq for VaryingOperand {
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
-
 impl VaryingOperand {
-    #[must_use]
-    pub(crate) fn u8(value: u8) -> Self {
-        Self {
-            kind: VaryingOperandKind::U8,
-            value: u32::from(value),
-        }
+    /// Create a new [`VaryingOperand`] from a u32 value.
+    pub(crate) fn new(value: u32) -> Self {
+        Self { value }
     }
-    #[must_use]
-    pub(crate) fn u16(value: u16) -> Self {
-        Self {
-            kind: VaryingOperandKind::U16,
-            value: u32::from(value),
-        }
-    }
-    #[must_use]
-    pub(crate) const fn u32(value: u32) -> Self {
-        Self {
-            kind: VaryingOperandKind::U32,
-            value,
-        }
-    }
-    #[must_use]
-    pub(crate) const fn value(self) -> u32 {
-        self.value
-    }
-    #[must_use]
-    pub(crate) const fn kind(self) -> VaryingOperandKind {
-        self.kind
-    }
-}
 
-trait BytecodeConversion: Sized {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>);
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self;
-}
-
-impl BytecodeConversion for VaryingOperand {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        match self.kind() {
-            VaryingOperandKind::U8 => u8::to_bytecode(&(self.value() as u8), bytes),
-            VaryingOperandKind::U16 => u16::to_bytecode(&(self.value() as u16), bytes),
-            VaryingOperandKind::U32 => u32::to_bytecode(&self.value(), bytes),
-        }
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self {
-        match varying_kind {
-            VaryingOperandKind::U8 => Self::u8(u8::from_bytecode(bytes, pc, varying_kind)),
-            VaryingOperandKind::U16 => Self::u16(u16::from_bytecode(bytes, pc, varying_kind)),
-            VaryingOperandKind::U32 => Self::u32(u32::from_bytecode(bytes, pc, varying_kind)),
+    /// Return the variant of the [`VaryingOperand`].
+    fn variant(self) -> VaryingOperandVariant {
+        if let Ok(value) = u8::try_from(self.value) {
+            VaryingOperandVariant::U8(value)
+        } else if let Ok(value) = u16::try_from(self.value) {
+            VaryingOperandVariant::U16(value)
+        } else {
+            VaryingOperandVariant::U32(self.value)
         }
     }
 }
 
-impl BytecodeConversion for GeneratorResumeKind {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(*self as u8);
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<u8>(bytes, *pc);
-        *pc += size_of::<Self>();
-        JsValue::from(value).to_generator_resume_kind()
+impl From<VaryingOperand> for u32 {
+    fn from(value: VaryingOperand) -> Self {
+        value.value
     }
 }
 
-impl BytecodeConversion for bool {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(u8::from(*self));
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<u8>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value != 0
+impl From<VaryingOperand> for usize {
+    fn from(value: VaryingOperand) -> Self {
+        value.value as usize
     }
 }
 
-impl BytecodeConversion for i8 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(*self as u8);
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
+impl From<bool> for VaryingOperand {
+    fn from(value: bool) -> Self {
+        Self::new(value.into())
     }
 }
 
-impl BytecodeConversion for u8 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.push(*self);
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
+impl From<u8> for VaryingOperand {
+    fn from(value: u8) -> Self {
+        Self::new(value.into())
     }
 }
 
-impl BytecodeConversion for i16 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
+impl From<u16> for VaryingOperand {
+    fn from(value: u16) -> Self {
+        Self::new(value.into())
     }
 }
 
-impl BytecodeConversion for u16 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
+impl From<u32> for VaryingOperand {
+    fn from(value: u32) -> Self {
+        Self::new(value)
     }
 }
 
-impl BytecodeConversion for i32 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
+impl std::fmt::Display for VaryingOperand {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 
-impl BytecodeConversion for u32 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
+impl Opcode {
+    fn encode(self) -> u8 {
+        self as u8
     }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
+
+    pub(crate) fn decode(instruction: u8) -> Self {
+        Self::from(instruction)
     }
 }
 
-impl BytecodeConversion for i64 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
+fn encode_instruction<A: Argument>(opcode: Opcode, args: A, bytes: &mut Vec<u8>) {
+    bytes.push(opcode.encode());
+    args.encode(bytes);
 }
 
-impl BytecodeConversion for u64 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for f32 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for f64 {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&self.to_ne_bytes());
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let value = read::<Self>(bytes, *pc);
-        *pc += size_of::<Self>();
-        value
-    }
-}
-
-impl BytecodeConversion for ThinVec<u32> {
-    fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-        bytes.extend_from_slice(&(self.len() as u32).to_ne_bytes());
-        for item in self {
-            bytes.extend_from_slice(&item.to_ne_bytes());
-        }
-    }
-    fn from_bytecode(bytes: &[u8], pc: &mut usize, _varying_kind: VaryingOperandKind) -> Self {
-        let count = read::<u32>(bytes, *pc);
-        *pc += size_of::<u32>();
-        let mut result = Self::with_capacity(count as usize);
-        for _ in 0..count {
-            let item = read::<u32>(bytes, *pc);
-            *pc += size_of::<u32>();
-            result.push(item);
-        }
-        result
-    }
-}
-
-/// Generate [`Opcode`]s and [`Instruction`]s enums.
 macro_rules! generate_opcodes {
-    ( name $name:ident ) => { $name };
-    ( name $name:ident => $mapping:ident ) => { $mapping };
-
-    // If if-block is empty use else-block, use if-block otherwise.
-    { if { $($if:tt)+ } else { $($else:tt)* } } => { $($if)+ };
-    { if { } else { $($else:tt)* } } => { $($else)* };
-
     (
         $(
-            $(#[$inner:ident $($args:tt)*])*
+            $(#[$comment:ident $($args:tt)*])*
             $Variant:ident $({
                 $(
                     $(#[$fieldinner:ident $($fieldargs:tt)*])*
@@ -386,7 +308,7 @@ macro_rules! generate_opcodes {
         #[repr(u8)]
         pub(crate) enum Opcode {
             $(
-                $(#[$inner $($args)*])*
+                $(#[$comment $($args)*])*
                 $Variant
             ),*
         }
@@ -405,79 +327,99 @@ macro_rules! generate_opcodes {
         }
 
         impl Opcode {
-            const MAX: usize = 2usize.pow(8);
-
-            // TODO: see if this can be exposed on all features.
-            #[allow(unused)]
-            const NAMES: [&'static str; Self::MAX * 3] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::NAME),*
-            ];
-
-            /// Name of this opcode.
-            #[must_use]
-            // TODO: see if this can be exposed on all features.
-            #[allow(unused)]
-            pub(crate) const fn as_str(self) -> &'static str {
-                Self::NAMES[self as usize]
-            }
-
-            const INSTRUCTIONS: [&'static str; Self::MAX * 3] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::INSTRUCTION),*
-            ];
-
-            /// Name of the profiler event for this opcode.
-            #[must_use]
-            pub(crate) const fn as_instruction_str(self) -> &'static str {
-                Self::INSTRUCTIONS[self as usize]
-            }
-
-            const SPEND_FNS: [fn(&mut Context, &mut u32) -> JsResult<CompletionType>; Self::MAX] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::spend_budget_and_execute),*,
-            ];
-
-            /// Spends the cost of this opcode into the provided budget and executes it.
-            pub(super) fn spend_budget_and_execute(
-                self,
-                context: &mut Context,
-                budget: &mut u32
-            ) -> JsResult<CompletionType> {
-                Self::SPEND_FNS[self as usize](context, budget)
-            }
-
-            const COSTS: [u8; Self::MAX] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::COST),*,
-            ];
-
-            /// Return the cost of this opcode.
-            pub(super) const fn cost(self) -> u8 {
-                Self::COSTS[self as usize]
-            }
-
-            const EXECUTE_FNS: [fn(&mut Context) -> JsResult<CompletionType>; Self::MAX * 3] = [
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_with_u16_operands),*,
-                $(<generate_opcodes!(name $Variant $(=> $mapping)?)>::execute_with_u32_operands),*
-            ];
-
-            pub(super) fn execute(self, context: &mut Context) -> JsResult<CompletionType> {
-                Self::EXECUTE_FNS[self as usize](context)
+            pub(crate) fn as_str(&self) -> &'static str {
+                match self {
+                    $(Self::$Variant => $Variant::NAME),*
+                }
             }
         }
 
-        /// This represents a VM instruction, it contains both opcode and operands.
-        ///
-        // TODO: An instruction should be a representation of a valid executable instruction (opcode + operands),
-        //       so variants like `ReservedN`, or operand width prefix modifiers, idealy shouldn't
-        //       be a part of `Instruction`.
-        #[derive(Debug, Clone, PartialEq)]
-        #[repr(u8)]
+        impl ByteCodeEmitter {
+            $(
+                paste::paste! {
+                    #[allow(unused)]
+                    pub(crate) fn [<emit_ $Variant:snake>](&mut self $( $(, $FieldName: $FieldType)* )? ) {
+                        encode_instruction(
+                            Opcode::$Variant,
+                            ($($($FieldName),*)?),
+                            &mut self.bytecode,
+                        );
+                    }
+                }
+            )*
+        }
+
+        type OpcodeHandler = fn(&mut Context, usize) -> ControlFlow<CompletionRecord>;
+
+        const OPCODE_HANDLERS: [OpcodeHandler; 256] = {
+            [
+                $(
+                    paste::paste! { [<handle_ $Variant:snake>] },
+                )*
+            ]
+        };
+
+        type OpcodeHandlerBudget = fn(&mut Context, usize, &mut u32) -> ControlFlow<CompletionRecord>;
+
+        const OPCODE_HANDLERS_BUDGET: [OpcodeHandlerBudget; 256] = {
+            [
+                $(
+                    paste::paste! { [<handle_ $Variant:snake _budget>] },
+                )*
+            ]
+        };
+
+        $(
+            paste::paste! {
+                #[inline(always)]
+                #[allow(unused_parens)]
+                fn [<handle_ $Variant:snake>](context: &mut Context, pc: usize) -> ControlFlow<CompletionRecord> {
+                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
+                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
+                    context.vm.frame_mut().pc = next_pc as u32;
+                    let result = $Variant::operation(args, context);
+                    IntoCompletionRecord::into_completion_record(result, context)
+                }
+            }
+        )*
+
+        $(
+            paste::paste! {
+                #[inline(always)]
+                #[allow(unused_parens)]
+                fn [<handle_ $Variant:snake _budget>](context: &mut Context, pc: usize, budget: &mut u32) -> ControlFlow<CompletionRecord> {
+                    *budget = budget.saturating_sub(u32::from($Variant::COST));
+                    let bytes = &context.vm.frame.code_block.bytecode.bytecode;
+                    let (args, next_pc) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
+                    context.vm.frame_mut().pc = next_pc as u32;
+                    let result = $Variant::operation(args, context);
+                    IntoCompletionRecord::into_completion_record(result, context)
+                }
+            }
+        )*
+
+        $(
+            $(
+                struct $Variant {}
+                impl $Variant {
+                    #[allow(unused_parens)]
+                    #[allow(unused_variables)]
+                    #[inline(always)]
+                    fn operation(args: (), context: &mut Context) {
+                        $mapping::operation(args, context)
+                    }
+                }
+
+                impl Operation for $Variant {
+                    const NAME: &'static str = "Reserved";
+                    const INSTRUCTION: &'static str = "INST - Reserved";
+                    const COST: u8 = 0;
+                }
+            )?
+        )*
+
         pub(crate) enum Instruction {
             $(
-                $(#[$inner $($args)*])*
                 $Variant $({
                     $(
                         $(#[$fieldinner $($fieldargs)*])*
@@ -487,1067 +429,1115 @@ macro_rules! generate_opcodes {
             ),*
         }
 
-        impl Instruction {
-            /// Convert [`Instruction`] to compact bytecode.
-            #[inline]
-            #[allow(dead_code)]
-            pub(crate) fn to_bytecode(&self, bytes: &mut Vec<u8>) {
-                match self {
-                    $(
-                        Self::$Variant $({
-                            $( $FieldName ),*
-                        })? => {
-                            bytes.push(Opcode::$Variant as u8);
-                            $({
-                                $( BytecodeConversion::to_bytecode($FieldName, bytes); )*
-                            })?
-                        }
-                    ),*
-                }
-            }
+        impl ByteCode {
+            #[allow(unused_parens)]
+            pub(crate) fn next_instruction(&self, pc: usize) -> (Instruction, usize) {
+                let bytes = &self.bytecode;
+                let opcode = Opcode::decode(bytes[pc]);
 
-            /// Convert compact bytecode to [`Instruction`].
-            ///
-            /// # Panics
-            ///
-            /// If the provided bytecode is not valid.
-            #[inline]
-            #[must_use]
-            pub(crate) fn from_bytecode(bytes: &[u8], pc: &mut usize, varying_kind: VaryingOperandKind) -> Self {
-                let opcode = bytes[*pc].into();
-                *pc += 1;
                 match opcode {
                     $(
                         Opcode::$Variant => {
-                            generate_opcodes!(
-                                if {
-                                    $({
-                                        Self::$Variant {
-                                            $(
-                                                $FieldName: BytecodeConversion::from_bytecode(bytes, pc, varying_kind)
-                                            ),*
-                                        }
-                                    })?
-                                } else {
-                                    Self::$Variant
-                                }
-                            )
+                            let (($($($FieldName),*)?), read_size) = <($($($FieldType),*)?)>::decode(bytes, pc + 1);
+                            (Instruction::$Variant $({
+                                $(
+                                    $FieldName: $FieldName
+                                ),*
+                            })?, read_size)
                         }
-                    ),*
-                }
-            }
-
-            /// Get the [`Opcode`] of the [`Instruction`].
-            #[inline]
-            #[must_use]
-            // TODO: see if this can be exposed on all features.
-            #[allow(unused)]
-            pub(crate) const fn opcode(&self) -> Opcode {
-                match self {
-                    $(
-                        Self::$Variant $({ $( $FieldName: _ ),* })? => Opcode::$Variant
                     ),*
                 }
             }
         }
-    };
+    }
 }
 
-/// The `Operation` trait implements the execution code along with the
-/// identifying Name and Instruction value for an Boa Opcode.
-///
-/// This trait should be implemented for a struct that corresponds with
-/// any arm of the `OpCode` enum.
-pub(crate) trait Operation {
-    const NAME: &'static str;
-    const INSTRUCTION: &'static str;
-    const COST: u8;
+impl Context {
+    pub(crate) fn execute_bytecode_instruction(
+        &mut self,
+        opcode: Opcode,
+    ) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame_mut();
+        let pc = frame.pc as usize;
 
-    /// Execute opcode with [`VaryingOperandKind::U8`] sized [`VaryingOperand`]s.
-    fn execute(context: &mut Context) -> JsResult<CompletionType>;
-
-    /// Execute opcode with [`VaryingOperandKind::U16`] sized [`VaryingOperand`]s.
-    ///
-    /// By default if not implemented will call [`Reserved::execute_with_u16_operands()`] which panics.
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        Reserved::execute_with_u16_operands(context)
+        OPCODE_HANDLERS[opcode as usize](self, pc)
     }
 
-    /// Execute opcode with [`VaryingOperandKind::U32`] sized [`VaryingOperand`]s.
-    ///
-    /// By default if not implemented will call [`Reserved::execute_with_u32_operands()`] which panics.
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        Reserved::execute_with_u32_operands(context)
-    }
-
-    /// Spends the cost of this operation into `budget` and runs `execute`.
-    fn spend_budget_and_execute(
-        context: &mut Context,
+    pub(crate) fn execute_bytecode_instruction_with_budget(
+        &mut self,
         budget: &mut u32,
-    ) -> JsResult<CompletionType> {
-        *budget = budget.saturating_sub(u32::from(Self::COST));
-        Self::execute(context)
+        opcode: Opcode,
+    ) -> ControlFlow<CompletionRecord> {
+        let frame = self.vm.frame_mut();
+        let pc = frame.pc as usize;
+
+        OPCODE_HANDLERS_BUDGET[opcode as usize](self, pc, budget)
+    }
+}
+
+/// Iterator over the instructions in the compact bytecode.
+// #[derive(Debug, Clone)]
+pub(crate) struct InstructionIterator<'bytecode> {
+    bytes: &'bytecode ByteCode,
+    pc: usize,
+}
+
+// TODO: see if this can be exposed on all features.
+// #[allow(unused)]
+impl<'bytecode> InstructionIterator<'bytecode> {
+    /// Create a new [`InstructionIterator`] from bytecode array.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn new(bytes: &'bytecode ByteCode) -> Self {
+        Self { bytes, pc: 0 }
+    }
+
+    /// Get the current program counter.
+    #[inline]
+    #[must_use]
+    pub(crate) const fn pc(&self) -> usize {
+        self.pc
+    }
+}
+
+impl Iterator for InstructionIterator<'_> {
+    type Item = (usize, Opcode, Instruction);
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let start_pc = self.pc;
+        if self.pc >= self.bytes.bytecode.len() {
+            return None;
+        }
+
+        let bytes = &self.bytes.bytecode;
+        let opcode = Opcode::decode(bytes[self.pc]);
+        // Get instruction and determine how much to advance pc
+        let (instruction, read_size) = self.bytes.next_instruction(self.pc);
+        self.pc = read_size;
+        Some((start_pc, opcode, instruction))
     }
 }
 
 generate_opcodes! {
     /// Pop the top value from the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>**
+    /// - Stack: value **=>**
     Pop,
-
-    /// Push a copy of the top value on the stack.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** value, value
-    Dup,
-
-    /// Swap the top two values on the stack.
-    ///
-    /// Operands:
-    ///
-    /// Stack: second, first **=>** first, second
-    Swap,
-
-    /// Rotates the top `n` values of the stack to the left by `1`.
-    ///
-    /// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the
-    /// stack.
-    ///
-    /// Operands: n: `u8`
-    ///
-    /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=>** v\[n-1\], ... , v\[1\], v\[0\], v\[n\]
-    RotateLeft { n: u8 },
-
-    /// Rotates the top `n` values of the stack to the right by `1`.
-    ///
-    /// Equivalent to calling [`slice::rotate_right`] with argument `1` on the top `n` values of the
-    /// stack.
-    ///
-    /// Operands: n: `u8`
-    ///
-    /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=>** v\[0\], v\[n\], v\[n-1\], ... , v\[1\]
-    RotateRight { n: u8 },
 
     /// Push integer `0` on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `0`
-    PushZero,
+    /// - Registers:
+    ///   - Output: dst
+    PushZero { dst: VaryingOperand },
 
     /// Push integer `1` on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `1`
-    PushOne,
+    /// - Registers:
+    ///   - Output: dst
+    PushOne { dst: VaryingOperand },
 
     /// Push `i8` value on the stack.
     ///
-    /// Operands: value: `i8`
-    ///
-    /// Stack: **=>** value
-    PushInt8 { value: i8 },
+    /// - Operands:
+    ///   - value: `i8`
+    /// - Registers:
+    ///   - Output: dst
+    PushInt8 { dst: VaryingOperand, value: i8 },
 
     /// Push i16 value on the stack.
     ///
-    /// Operands: value: `i16`
-    ///
-    /// Stack: **=>** value
-    PushInt16 { value: i16 },
+    /// - Operands:
+    ///   - value: `i16`
+    /// - Registers:
+    ///   - Output: dst
+    PushInt16 { dst: VaryingOperand, value: i16 },
 
     /// Push i32 value on the stack.
     ///
-    /// Operands: value: `i32`
-    ///
-    /// Stack: **=>** value
-    PushInt32 { value: i32 },
+    /// - Operands:
+    ///   - value: `i32`
+    /// - Registers:
+    ///   - Output: dst
+    PushInt32 { dst: VaryingOperand, value: i32 },
 
     /// Push `f32` value on the stack.
     ///
-    /// Operands: value: `f32`
-    ///
-    /// Stack: **=>** value
-    PushFloat { value: f32 },
+    /// - Operands:
+    ///   - value: `f32`
+    /// - Registers:
+    ///   - Output: dst
+    PushFloat { dst: VaryingOperand, value: f32 },
 
     /// Push `f64` value on the stack.
     ///
-    /// Operands: value: `f64`
-    ///
-    /// Stack: **=>** value
-    PushDouble { value: f64 },
+    /// - Operands:
+    ///   - value: `f64`
+    /// - Registers:
+    ///   - Output: dst
+    PushDouble { dst: VaryingOperand, value: f64 },
 
     /// Push `NaN` integer on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `NaN`
-    PushNaN,
+    /// - Registers:
+    ///   - Output: dst
+    PushNan { dst: VaryingOperand },
 
     /// Push `Infinity` value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `Infinity`
-    PushPositiveInfinity,
+    /// - Registers:
+    ///   - Output: dst
+    PushPositiveInfinity { dst: VaryingOperand },
 
     /// Push `-Infinity` value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `-Infinity`
-    PushNegativeInfinity,
+    /// - Registers:
+    ///   - Output: dst
+    PushNegativeInfinity { dst: VaryingOperand },
 
     /// Push `null` value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `null`
-    PushNull,
+    /// - Registers:
+    ///   - Output: dst
+    PushNull { dst: VaryingOperand },
 
     /// Push `true` value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `true`
-    PushTrue,
+    /// - Registers:
+    ///   - Output: dst
+    PushTrue { dst: VaryingOperand },
 
     /// Push `false` value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `false`
-    PushFalse,
+    /// - Registers:
+    ///   - Output: dst
+    PushFalse { dst: VaryingOperand },
 
     /// Push `undefined` value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `undefined`
-    PushUndefined,
+    /// - Registers:
+    ///   - Output: dst
+    PushUndefined { dst: VaryingOperand },
 
     /// Push literal value on the stack.
     ///
     /// Like strings and bigints. The index operand is used to index into the `literals`
     /// array to get the value.
     ///
-    /// Operands: index: `VaryingOperand`
-    ///
-    /// Stack: **=>** (`literals[index]`)
-    PushLiteral { index: VaryingOperand },
+    /// - Operands:
+    ///   - index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    PushLiteral { dst: VaryingOperand, index: VaryingOperand },
 
     /// Push regexp value on the stack.
     ///
-    /// Operands: pattern_index: `VaryingOperand`, flags: `VaryingOperand`
-    ///
-    /// Stack: **=>** regexp
-    PushRegExp { pattern_index: VaryingOperand, flags_index: VaryingOperand },
+    /// - Operands:
+    ///   - pattern_index: `VaryingOperand`
+    ///   - flags: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    PushRegexp { dst: VaryingOperand, pattern_index: VaryingOperand, flags_index: VaryingOperand },
 
     /// Push empty object `{}` value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `{}`
-    PushEmptyObject,
+    /// - Registers:
+    ///   - Output: dst
+    PushEmptyObject { dst: VaryingOperand },
 
     /// Get the prototype of a superclass and push it on the stack.
     ///
     /// Additionally this sets the `[[prototype]]` of the class and the `DERIVED` flag.
     ///
-    /// Operands:
-    ///
-    /// Stack: class, superclass **=>** class, superclass.prototype
-    PushClassPrototype,
+    /// - Registers:
+    ///   - Input: class, superclass
+    ///   - Output: dst
+    PushClassPrototype {
+        dst: VaryingOperand,
+        class: VaryingOperand,
+        superclass: VaryingOperand
+    },
 
     /// Set the prototype of a class object.
     ///
-    /// Operands:
-    ///
-    /// Stack: class, prototype **=>** class.prototype
-    SetClassPrototype,
+    /// - Registers:
+    ///   - Input: class, prototype
+    ///   - Output: dst
+    SetClassPrototype {
+        dst: VaryingOperand,
+        prototype: VaryingOperand,
+        class: VaryingOperand
+    },
 
     /// Set home object internal slot of an object literal method.
     ///
-    /// Operands:
-    ///
-    /// Stack: home, function **=>** home, function
-    SetHomeObject,
+    /// - Registers:
+    ///   - Input: function, home
+    SetHomeObject {
+        function: VaryingOperand,
+        home: VaryingOperand
+    },
 
     /// Set the prototype of an object if the value is an object or null.
     ///
-    /// Operands:
-    ///
-    /// Stack: object, value **=>**
-    SetPrototype,
+    /// - Registers:
+    ///   - Input: object, prototype
+    SetPrototype {
+        object: VaryingOperand,
+        prototype: VaryingOperand
+    },
 
     /// Push an empty array value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `[]`
-    PushNewArray,
+    /// - Registers:
+    ///   - Output: dst
+    PushNewArray { dst: VaryingOperand },
 
     /// Push a value to an array.
     ///
-    /// Operands:
-    ///
-    /// Stack: array, value **=>** array
-    PushValueToArray,
+    /// - Registers:
+    ///   - Input: array, value
+    PushValueToArray { value: VaryingOperand, array: VaryingOperand },
 
     /// Push an empty element/hole to an array.
     ///
-    /// Operands:
-    ///
-    /// Stack: array **=>** array
-    PushElisionToArray,
+    /// - Registers:
+    ///   - Input: array
+    PushElisionToArray { array: VaryingOperand },
 
     /// Push all iterator values to an array.
     ///
-    /// Operands:
-    ///
-    /// Stack: array, iterator, next_method **=>** array
-    PushIteratorToArray,
+    /// - Registers:
+    ///   - Input: array
+    PushIteratorToArray { array: VaryingOperand },
 
     /// Binary `+` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs + rhs)
-    Add,
+    /// - Registers
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    Add { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `-` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs - rhs)
-    Sub,
+    /// - Registers
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    Sub { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `/` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs / rhs)
-    Div,
+    /// - Registers
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    Div { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `*` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs * rhs)
-    Mul,
+    /// - Registers
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    Mul { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `%` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs % rhs)
-    Mod,
+    /// - Registers
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    Mod { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `**` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs ** rhs)
-    Pow,
+    /// - Registers
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    Pow { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs >> rhs)
-    ShiftRight,
+    /// - Registers
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    ShiftRight { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<<` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** `(lhs << rhs)`
-    ShiftLeft,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    ShiftLeft { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>>>` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs >>> rhs)
-    UnsignedShiftRight,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    UnsignedShiftRight { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `|` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs | rhs)
-    BitOr,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    BitOr { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `&` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs & rhs)
-    BitAnd,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    BitAnd { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary bitwise `^` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs ^ rhs)
-    BitXor,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    BitXor { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Unary bitwise `~` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** ~value
-    BitNot,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    BitNot { value: VaryingOperand },
 
     /// Binary `in` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs `in` rhs)
-    In,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    In { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `in` operator for private names.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: rhs **=>** (private_name `in` rhs)
-    InPrivate { index: VaryingOperand },
+    /// - Operands: index: `u32`
+    /// - Registers:
+    ///   - Input: rhs
+    ///   - Output: dst
+    InPrivate { dst: VaryingOperand, index: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `==` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs `==` rhs)
-    Eq,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    Eq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `===` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs `===` rhs)
-    StrictEq,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    StrictEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!=` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs `!=` rhs)
-    NotEq,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    NotEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `!==` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs `!==` rhs)
-    StrictNotEq,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    StrictNotEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs > rhs)
-    GreaterThan,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    GreaterThan { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `>=` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs >= rhs)
-    GreaterThanOrEq,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    GreaterThanOrEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** `(lhs < rhs)`
-    LessThan,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    LessThan { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `<=` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** `(lhs <= rhs)`
-    LessThanOrEq,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    LessThanOrEq { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary `instanceof` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: lhs, rhs **=>** (lhs instanceof rhs)
-    InstanceOf,
+    /// - Registers:
+    ///   - Input: lhs, rhs
+    ///   - Output: dst
+    InstanceOf { dst: VaryingOperand, lhs: VaryingOperand, rhs: VaryingOperand },
 
     /// Binary logical `&&` operator.
     ///
     /// This is a short-circuit operator, if the `lhs` value is `false`, then it jumps to `exit` address.
     ///
-    /// Operands: exit: `u32`
-    ///
-    /// Stack: lhs, rhs **=>** (lhs && rhs)
-    LogicalAnd { exit: u32 },
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    LogicalAnd { address: u32, value: VaryingOperand },
 
     /// Binary logical `||` operator.
     ///
     /// This is a short-circuit operator, if the `lhs` value is `true`, then it jumps to `exit` address.
     ///
-    /// Operands: exit: `u32`
-    ///
-    /// Stack: lhs, rhs **=>** (lhs || rhs)
-    LogicalOr { exit: u32 },
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    LogicalOr { address: u32, value: VaryingOperand },
 
     /// Binary `??` operator.
     ///
     /// This is a short-circuit operator, if the `lhs` value is **not** `null` or `undefined`,
     /// then it jumps to `exit` address.
     ///
-    /// Operands: exit: `u32`
-    ///
-    /// Stack: lhs, rhs **=>** (lhs ?? rhs)
-    Coalesce { exit: u32 },
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    Coalesce { address: u32, value: VaryingOperand },
 
     /// Unary `typeof` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (`typeof` value)
-    TypeOf,
-
-    /// Unary `void` operator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** `undefined`
-    Void,
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    TypeOf { value: VaryingOperand },
 
     /// Unary logical `!` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (!value)
-    LogicalNot,
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    LogicalNot { value: VaryingOperand },
 
     /// Unary `+` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (+value)
-    Pos,
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    Pos { value: VaryingOperand },
 
     /// Unary `-` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (-value)
-    Neg,
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    Neg { value: VaryingOperand },
 
     /// Unary `++` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (value + 1)
-    Inc,
-
-    /// Unary postfix `++` operator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (ToNumeric(value)), (value + 1)
-    IncPost,
+    /// - Registers:
+    ///   - Input: src
+    ///   - Output: dst
+    Inc { dst: VaryingOperand, src: VaryingOperand },
 
     /// Unary `--` operator.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (value - 1)
-    Dec,
-
-    /// Unary postfix `--` operator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (ToNumeric(value)), (value - 1)
-    DecPost,
+    /// - Registers:
+    ///   - Input: src
+    ///   - Output: dst
+    Dec { dst: VaryingOperand, src: VaryingOperand },
 
     /// Declare `var` type variable.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>**
-    DefVar { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    DefVar { binding_index: VaryingOperand },
 
     /// Declare and initialize `var` type variable.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: value **=>**
-    DefInitVar { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: src
+    DefInitVar { src: VaryingOperand, binding_index: VaryingOperand },
 
     /// Initialize a lexical binding.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: value **=>**
-    PutLexicalValue { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: src
+    PutLexicalValue { src: VaryingOperand, binding_index: VaryingOperand },
 
     /// Throws an error because the binding access is illegal.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   -index: `VaryingOperand`
     ThrowMutateImmutable { index: VaryingOperand },
 
     /// Get i-th argument of the current frame.
     ///
     /// Returns `undefined` if `arguments.len()` < `index`.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>** value
-    GetArgument { index: VaryingOperand },
+    /// - Operands:
+    ///   - index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    GetArgument { index: VaryingOperand, dst: VaryingOperand },
 
     /// Find a binding on the environment chain and push its value.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>** value
-    GetName { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    GetName { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Find a binding in the global object and push its value.
     ///
-    /// Operands: index: `VaryingOperand`, ic_index: `VaryingOperand`,
-    ///
-    /// Stack: **=>** value
-    GetNameGlobal { index: VaryingOperand, ic_index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    ///   - ic_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    GetNameGlobal { dst: VaryingOperand, binding_index: VaryingOperand, ic_index: VaryingOperand },
 
     /// Find a binding on the environment and set the `current_binding` of the current frame.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>**
-    GetLocator { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    GetLocator { binding_index: VaryingOperand },
 
     /// Find a binding on the environment chain and push its value to the stack and its
     /// `BindingLocator` to the `bindings_stack`.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>** value
-    GetNameAndLocator { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    GetNameAndLocator { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>** value
-    GetNameOrUndefined { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    GetNameOrUndefined { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Find a binding on the environment chain and assign its value.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: value **=>**
-    SetName { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: src
+    SetName { src: VaryingOperand, binding_index: VaryingOperand },
 
     /// Assigns a value to the binding pointed by the top of the `bindings_stack`.
     ///
-    /// Stack: value **=>**
-    SetNameByLocator,
+    /// - Registers:
+    ///   - Input: src
+    SetNameByLocator { src: VaryingOperand },
 
     /// Deletes a property of the global object.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: **=>** deleted
-    DeleteName { index: VaryingOperand },
+    /// - Operands:
+    ///   - binding_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    DeleteName { dst: VaryingOperand, binding_index: VaryingOperand },
 
     /// Get a property by name from an object an push it on the stack.
     ///
     /// Like `object.name`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, receiver **=>** value
-    GetPropertyByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - ic_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: receiver, value
+    ///   - Output: dst
+    GetPropertyByName {
+        dst: VaryingOperand,
+        receiver: VaryingOperand,
+        value: VaryingOperand,
+        ic_index: VaryingOperand
+    },
 
     /// Get a property by value from an object an push it on the stack.
     ///
     /// Like `object[key]`
     ///
-    /// Operands:
-    ///
-    /// Stack: object, receiver, key **=>** value
-    GetPropertyByValue,
+    /// - Registers:
+    ///   - Input: object, receiver, key
+    ///   - Output: dst
+    GetPropertyByValue {
+        dst: VaryingOperand,
+        key: VaryingOperand,
+        receiver: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Get a property by value from an object an push the key and value on the stack.
     ///
     /// Like `object[key]`
     ///
-    /// Operands:
-    ///
-    /// Stack: object, receiver, key **=>** key, value
-    GetPropertyByValuePush,
+    /// - Registers:
+    ///   - Input: object, receiver, key
+    ///   - Output: dst
+    GetPropertyByValuePush {
+        dst: VaryingOperand,
+        key: VaryingOperand,
+        receiver: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Sets a property by name of an object.
     ///
     /// Like `object.name = value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, receiver, value **=>** value
-    SetPropertyByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - ic_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object,receiver, value
+    SetPropertyByName {
+        value: VaryingOperand,
+        receiver: VaryingOperand,
+        object: VaryingOperand,
+        ic_index: VaryingOperand
+    },
 
     /// Sets the name of a function object.
     ///
     /// This operation is corresponds to the `SetFunctionName` abstract operation in the [spec].
     ///
-    ///  The prefix operand is mapped as follows:
-    /// * 0 -> no prefix
-    /// * 1 -> "get "
-    /// * 2 -> "set "
-    ///
-    /// Operands: prefix: `u8`
-    ///
-    /// Stack: name, function **=>** function
-    ///
     /// [spec]: https://tc39.es/ecma262/#sec-setfunctionname
-    SetFunctionName { prefix: u8 },
+    ///
+    /// - Operands:
+    ///   - prefix
+    ///     - 0: no prefix
+    ///     - 1: "get "
+    ///     - 2: "set "
+    /// - Registers:
+    ///   - Input: function, name
+    SetFunctionName { function: VaryingOperand, name: VaryingOperand, prefix: VaryingOperand },
 
     /// Defines a own property of an object by name.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>**
-    DefineOwnPropertyByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefineOwnPropertyByName { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Defines a static class method by name.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class, function **=>**
-    DefineClassStaticMethodByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefineClassStaticMethodByName {
+        value: VaryingOperand,
+        object: VaryingOperand,
+        name_index: VaryingOperand
+    },
 
     /// Defines a class method by name.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class_proto, function **=>**
-    DefineClassMethodByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefineClassMethodByName {
+        value: VaryingOperand,
+        object: VaryingOperand,
+        name_index: VaryingOperand
+    },
 
     /// Sets a property by value of an object.
     ///
     /// Like `object[key] = value`
     ///
-    /// Operands:
-    ///
-    /// Stack: object, receiver, key, value **=>** value
-    SetPropertyByValue,
+    /// - Registers:
+    ///   - Input: value, key, receiver, object
+    SetPropertyByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        receiver: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Defines a own property of an object by value.
     ///
-    /// Operands:
-    ///
-    /// Stack: object, key, value **=>**
-    DefineOwnPropertyByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    DefineOwnPropertyByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Defines a static class method by value.
     ///
-    /// Operands:
-    ///
-    /// Stack: class, key, function **=>**
-    DefineClassStaticMethodByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    DefineClassStaticMethodByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Defines a class method by value.
     ///
-    /// Operands:
-    ///
-    /// Stack: class_proto, key, function **=>**
-    DefineClassMethodByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    DefineClassMethodByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Sets a getter property by name of an object.
     ///
     /// Like `get name() value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>**
-    SetPropertyGetterByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    SetPropertyGetterByName { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Defines a static getter class method by name.
     ///
     /// Like `static get name() value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class, binding_function **=>**
-    DefineClassStaticGetterByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefineClassStaticGetterByName {
+        value: VaryingOperand,
+        object: VaryingOperand,
+        name_index: VaryingOperand
+    },
 
     /// Defines a getter class method by name.
     ///
     /// Like `get name() value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class_proto, function **=>** class
-    DefineClassGetterByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefineClassGetterByName {
+        value: VaryingOperand,
+        object: VaryingOperand,
+        name_index: VaryingOperand
+    },
 
     /// Sets a getter property by value of an object.
     ///
     /// Like `get [key]() value`
     ///
-    /// Operands:
-    ///
-    /// Stack: object, key, value **=>**
-    SetPropertyGetterByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    SetPropertyGetterByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Defines a static getter class method by value.
     ///
     /// Like `static get [key]() value`
     ///
-    /// Operands:
-    ///
-    /// Stack: class, key, function **=>**
-    DefineClassStaticGetterByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    DefineClassStaticGetterByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Defines a getter class method by value.
     ///
     /// Like `get [key]() value`
     ///
-    /// Operands:
-    ///
-    /// Stack: class_proto, key, function **=>**
-    DefineClassGetterByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    DefineClassGetterByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Sets a setter property by name of an object.
     ///
     /// Like `set name() value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>**
-    SetPropertySetterByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    SetPropertySetterByName { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Defines a static setter class method by name.
     ///
     /// Like `static set name() value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class, function **=>**
-    DefineClassStaticSetterByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefineClassStaticSetterByName {
+        value: VaryingOperand,
+        object: VaryingOperand,
+        name_index: VaryingOperand
+    },
 
     /// Defines a setter class method by name.
     ///
     /// Like `set name() value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class_proto, function **=>**
-    DefineClassSetterByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefineClassSetterByName {
+        value: VaryingOperand,
+        object: VaryingOperand,
+        name_index: VaryingOperand
+    },
 
     /// Sets a setter property by value of an object.
     ///
     /// Like `set [key]() value`
     ///
-    /// Operands:
-    ///
-    /// Stack: object, key, value **=>**
-    SetPropertySetterByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    SetPropertySetterByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Defines a static setter class method by value.
     ///
     /// Like `static set [key]() value`
     ///
-    /// Operands:
-    ///
-    /// Stack: class, key, function **=>**
-    DefineClassStaticSetterByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    DefineClassStaticSetterByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Defines a setter class method by value.
     ///
     /// Like `set [key]() value`
     ///
-    /// Operands:
-    ///
-    /// Stack: class_proto, key, function **=>**
-    DefineClassSetterByValue,
+    /// - Registers:
+    ///   - Input: object, key, value
+    DefineClassSetterByValue {
+        value: VaryingOperand,
+        key: VaryingOperand,
+        object: VaryingOperand
+    },
 
     /// Set the value of a private property of an object by it's name.
     ///
     /// Like `obj.#name = value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>** value
-    SetPrivateField { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    SetPrivateField { value: VaryingOperand, object: VaryingOperand, name_index: VaryingOperand },
 
     /// Define a private property of a class constructor by it's name.
     ///
     /// Like `#name = value`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>**
-    DefinePrivateField { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    DefinePrivateField { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Set a private method of a class constructor by it's name.
     ///
     /// Like `#name() {}`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>**
-    SetPrivateMethod { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    SetPrivateMethod { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Set a private setter property of a class constructor by it's name.
     ///
     /// Like `set #name() {}`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>**
-    SetPrivateSetter { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    SetPrivateSetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Set a private getter property of a class constructor by it's name.
     ///
     /// Like `get #name() {}`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object, value **=>**
-    SetPrivateGetter { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    SetPrivateGetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Get a private property by name from an object an push it on the stack.
     ///
     /// Like `object.#name`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object **=>** value
-    GetPrivateField { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object
+    ///   - Output: dst
+    GetPrivateField { dst: VaryingOperand, object: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a field to a class.
     ///
-    /// Operands: is_anonymous_function: `bool`
-    ///
-    /// Stack: class, field_name, field_function **=>**
-    PushClassField  { is_anonymous_function: bool },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    ///   - is_anonymous_function: `bool`
+    /// - Registers:
+    ///   - Input: object, value
+    PushClassField { object: VaryingOperand, name_index: VaryingOperand, value: VaryingOperand, is_anonymous_function: VaryingOperand },
 
     /// Push a private field to the class.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class, field_function **=>**
-    PushClassFieldPrivate { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    PushClassFieldPrivate { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a private getter to the class.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class, getter **=>**
-    PushClassPrivateGetter { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    PushClassPrivateGetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a private setter to the class.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class, setter **=>**
-    PushClassPrivateSetter { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, value
+    PushClassPrivateSetter { object: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Push a private method to the class.
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: class, class_proto, method **=>**
-    PushClassPrivateMethod { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object, proto, value
+    PushClassPrivateMethod { object: VaryingOperand, proto: VaryingOperand, value: VaryingOperand, name_index: VaryingOperand },
 
     /// Deletes a property by name of an object.
     ///
     /// Like `delete object.key`
     ///
-    /// Operands: index: `u32`
-    ///
-    /// Stack: object **=>**
-    DeletePropertyByName { index: VaryingOperand },
+    /// - Operands:
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: object
+    DeletePropertyByName { object: VaryingOperand, name_index: VaryingOperand },
 
     /// Deletes a property by value of an object.
     ///
     /// Like `delete object[key]`
     ///
-    /// Operands:
-    ///
-    /// Stack: object, key **=>**
-    DeletePropertyByValue,
+    /// - Registers:
+    ///   - Input: object, key
+    DeletePropertyByValue { object: VaryingOperand, key: VaryingOperand },
 
     /// Throws an error when trying to delete a property of `super`
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     DeleteSuperThrow,
 
     /// Copy all properties of one object to another object.
     ///
-    /// Operands: excluded_key_count: `VaryingOperand`, excluded_key_count_computed: `VaryingOperand`
-    ///
-    /// Stack: excluded_key_computed_0 ... excluded_key_computed_n, source, value, excluded_key_0 ... excluded_key_n **=>** value
-    CopyDataProperties { excluded_key_count: VaryingOperand, excluded_key_count_computed: VaryingOperand },
+    /// - Registers:
+    ///   - Input: object, source, excluded_keys
+    CopyDataProperties { object: VaryingOperand, source: VaryingOperand, excluded_keys: ThinVec<VaryingOperand> },
 
     /// Call ToPropertyKey on the value on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** key
-    ToPropertyKey,
+    /// - Registers:
+    ///   - Input: src
+    ///   - Output: dst
+    ToPropertyKey { src: VaryingOperand, dst: VaryingOperand },
 
     /// Unconditional jump to address.
     ///
-    /// Operands: address: `u32`
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   - address: `u32`
     Jump { address: u32 },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is [`truthy`][truthy] then jump to `address`.
     ///
-    /// Operands: address: `u32`
-    ///
-    /// Stack: cond **=>**
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Output: value
     ///
     /// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
-    JumpIfTrue { address: u32 },
+    JumpIfTrue { address: u32, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is [`falsy`][falsy] then jump to `address`.
     ///
-    /// Operands: address: `u32`
-    ///
-    /// Stack: cond **=>**
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Output: value
     ///
     /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/Falsy
-    JumpIfFalse { address: u32 },
+    JumpIfFalse { address: u32, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is not undefined jump to `address`.
     ///
-    /// Operands: address: `u32`
-    ///
-    /// Stack: value **=>** value
-    JumpIfNotUndefined { address: u32 },
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Output: value
+    JumpIfNotUndefined { address: u32, value: VaryingOperand },
 
     /// Conditional jump to address.
     ///
     /// If the value popped is undefined jump to `address`.
     ///
-    /// Operands: address: `u32`
-    ///
-    /// Stack: value **=>** value
-    JumpIfNullOrUndefined { address: u32 },
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Output: value
+    JumpIfNullOrUndefined { address: u32, value: VaryingOperand },
 
     /// Jump table that jumps depending on top value of the stack.
     ///
@@ -1563,20 +1553,15 @@ generate_opcodes! {
     ///
     /// This sets pending exception and searches for an exception handler.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>**
-    Throw,
+    /// - Registers:
+    ///   - Input: src
+    Throw { src: VaryingOperand },
 
     /// Rethrow thrown exception.
     ///
     /// This is also used to handle generator `return()` call, we throw an empty exception, by setting pending exception to [`None`],
     /// propagating it and calling finally code until there is no exception handler left, in that case we consume the empty exception and return
     /// from the generator.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     ReThrow,
 
     /// Get the thrown pending exception (if it's set) and push on the stack.
@@ -1584,72 +1569,65 @@ generate_opcodes! {
     /// If there is no pending exception, which can happend if we are handling `return()` call on generator,
     /// then we rethrow the empty exception. See [`Opcode::ReThrow`].
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** exception
-    Exception,
+    /// - Registers:
+    ///   - Output: dst
+    Exception { dst: VaryingOperand },
 
     /// Get the thrown pending exception if it's set and push `true`, otherwise push only `false`.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** (`true`, exception) or `false`
-    MaybeException,
+    /// - Registers:
+    ///   - Output: exception, has_exception
+    MaybeException { has_exception: VaryingOperand, exception: VaryingOperand },
 
     /// Throw a new `TypeError` exception
     ///
-    /// Operands: message: u32
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   - message: `VaryingOperand`
     ThrowNewTypeError { message: VaryingOperand },
 
     /// Throw a new `SyntaxError` exception
     ///
-    /// Operands: message: u32
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   - message: `VaryingOperand`
     ThrowNewSyntaxError { message: VaryingOperand },
 
-    /// Pops value converts it to boolean and pushes it back.
+    /// Throw a new `ReferenceError` exception
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** (`ToBoolean(value)`)
-    ToBoolean,
+    /// - Operands:
+    ///   - message: `VaryingOperand`
+    ThrowNewReferenceError { message: VaryingOperand },
 
     /// Pushes `this` value
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** this
-    This,
+    /// - Registers:
+    ///   - Output: dst
+    This { dst: VaryingOperand },
 
     /// Pushes `this` value that is related to the object environment of the given binding
     ///
-    /// Operands: index: `VaryingOperand`
-    ///
-    /// Stack: **=>** value
-    ThisForObjectEnvironmentName { index: VaryingOperand },
+    /// - Operands:
+    ///   - index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    ThisForObjectEnvironmentName { dst: VaryingOperand, index: VaryingOperand },
 
     /// Pushes the current `super` value to the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** super
-    Super,
+    /// - Registers:
+    ///   - Output: dst
+    Super { dst: VaryingOperand },
 
     /// Get the super constructor and the new target of the current environment.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** super_constructor
-    SuperCallPrepare,
+    /// - Registers:
+    ///   - Output: dst
+    SuperCallPrepare { dst: VaryingOperand },
 
     /// Execute the `super()` method.
     ///
-    /// Operands: argument_count: `u32`
-    ///
-    /// Stack: super_constructor, argument_1, ... argument_n **=>**
+    /// - Operands:
+    ///   - argument_count: `VaryingOperand`
+    /// - Stack: super_constructor, argument_1, ... argument_n **=>**
     SuperCall { argument_count: VaryingOperand },
 
     /// Execute the `super()` method where the arguments contain spreads.
@@ -1670,19 +1648,19 @@ generate_opcodes! {
     ///
     /// Performs steps 7-12 of [`SuperCall: super Arguments`][spec]
     ///
-    /// Operands:
-    ///
-    /// Stack: result **=>** result
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-super-keyword-runtime-semantics-evaluation
-    BindThisValue,
+    BindThisValue { value: VaryingOperand },
 
     /// Dynamically import a module.
     ///
-    /// Operands:
-    ///
-    /// Stack: specifier **=>** promise
-    ImportCall,
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    ImportCall { value: VaryingOperand },
 
     /// Pop the two values of the stack, strict equal compares the two values,
     /// if true jumps to address, otherwise push the second pop'ed value.
@@ -1690,41 +1668,40 @@ generate_opcodes! {
     /// Operands: address: `u32`
     ///
     /// Stack: value, cond **=>** cond (if `cond !== value`).
-    Case { address: u32 },
-
-    /// Pops the top of stack and jump to address.
-    ///
-    /// Operands: address: `u32`
-    ///
-    /// Stack: `value` **=>**
-    Default { address: u32 },
+    /// - Operands:
+    ///   - address: `u32`
+    /// - Registers:
+    ///   - Input: value, condition
+    Case { address: u32, value: VaryingOperand, condition: VaryingOperand },
 
     /// Get function from the pre-compiled inner functions.
     ///
-    /// Operands: index: `VaryingOperand`
-    ///
-    /// Stack: **=>** func
-    GetFunction { index: VaryingOperand },
+    /// - Operands:
+    ///   - index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
+    GetFunction { dst: VaryingOperand, index: VaryingOperand },
 
     /// Call a function named "eval".
     ///
-    /// Operands: argument_count: `VaryingOperand`, scope_index: `VaryingOperand`
-    ///
-    /// Stack: this, func, argument_1, ... argument_n **=>** result
+    /// - Operands:
+    ///   - argument_count: `VaryingOperand`
+    ///   - scope_index: `VaryingOperand`
+    /// - Stack: this, func, argument_1, ... argument_n **=>** result
     CallEval { argument_count: VaryingOperand, scope_index: VaryingOperand },
 
     /// Call a function named "eval" where the arguments contain spreads.
     ///
-    /// Operands:
-    ///
-    /// Stack: this, func, arguments_array **=>** result
-    CallEvalSpread { index: VaryingOperand },
+    /// - Operands:
+    ///   - scope_index: `VaryingOperand`
+    /// - Stack: Stack: this, func, arguments_array **=>** result
+    CallEvalSpread { scope_index: VaryingOperand },
 
     /// Call a function.
     ///
-    /// Operands: argument_count: `u32`
-    ///
-    /// Stack: this, func, argument_1, ... argument_n **=>** result
+    /// - Operands:
+    ///   - argument_count: `VaryingOperand`
+    /// - Stack: this, func, argument_1, ... argument_n **=>** result
     Call { argument_count: VaryingOperand },
 
     /// Call a function where the arguments contain spreads.
@@ -1736,9 +1713,9 @@ generate_opcodes! {
 
     /// Call construct on a function.
     ///
-    /// Operands: argument_count: `u32`
-    ///
-    /// Stack: func, argument_1, ... argument_n **=>** result
+    /// - Operands:
+    ///   - argument_count: `VaryingOperand`
+    /// - Stack: this, func, argument_1, ... argument_n **=>** result
     New { argument_count: VaryingOperand },
 
     /// Call construct on a function where the arguments contain spreads.
@@ -1749,360 +1726,301 @@ generate_opcodes! {
     NewSpread,
 
     /// Check return from a function.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     CheckReturn,
 
     /// Return from a function.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     Return,
 
     /// Close an async generator function.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     AsyncGeneratorClose,
 
     /// Creates the generator object and yields.
     ///
-    /// Operands: async: `u8`
-    ///
-    /// Stack: **=>** resume_kind
-    Generator { r#async: bool },
-
-    /// Get return value of a function.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>** value
-    GetReturnValue,
+    /// - Operands:
+    ///   - async: `bool`
+    /// - Stack: **=>** resume_kind
+    Generator { r#async: VaryingOperand },
 
     /// Set return value of a function.
     ///
-    /// Operands:
+    /// - Registers:
+    ///   - Input: src
+    SetAccumulator { src: VaryingOperand },
+
+    // Set return value of a function.
     ///
-    /// Stack: value **=>**
-    SetReturnValue,
+    /// - Registers:
+    ///   - Output: dst
+    SetRegisterFromAccumulator { dst: VaryingOperand },
+
+    /// Move value of operand `src` to register `dst`.
+    ///
+    /// - Registers:
+    ///   - Input: src
+    ///   - Output: dst
+    Move { dst: VaryingOperand, src: VaryingOperand },
 
     /// Pop value from the stack and push to register `dst`
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>**
+    /// - Registers:
+    ///   - Output: dst
     PopIntoRegister { dst: VaryingOperand },
 
-    /// Copy value at register `src` and push it into the stack.
+    /// Copy value at register `src` and push it on the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** value
+    /// - Registers:
+    ///   - Input: src
     PushFromRegister { src: VaryingOperand },
-
-    /// Pop value from the stack and push to a local binding register `dst`.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>**
-    PopIntoLocal { dst: VaryingOperand },
-
-    /// Copy value at local binding register `src` and push it into the stack.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>** value
-    PushFromLocal { src: VaryingOperand },
 
     /// Push a declarative environment.
     ///
-    /// Operands: index: `VaryingOperand`
-    ///
-    /// Stack: **=>**
-    PushScope { index: VaryingOperand },
+    /// - Operands:
+    ///   - scope_index: `VaryingOperand`
+    PushScope { scope_index: VaryingOperand },
 
     /// Push an object environment.
     ///
-    /// Operands:
-    ///
-    /// Stack: object **=>**
-    PushObjectEnvironment,
+    /// - Registers:
+    ///   - Input: src
+    PushObjectEnvironment { src: VaryingOperand },
 
     /// Pop the current environment.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     PopEnvironment,
 
-    /// Increment loop itearation count.
+    /// Increment loop iteration count.
     ///
     /// Used for limiting the loop iteration.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     IncrementLoopIteration,
 
     /// Creates the ForInIterator of an object.
     ///
-    /// Stack: object **=>**
-    ///
-    /// Iterator Stack: `iterator`
-    CreateForInIterator,
+    /// - Registers:
+    ///   - Input: src
+    CreateForInIterator { src: VaryingOperand },
 
     /// Gets the iterator of an object.
     ///
-    /// Operands:
-    ///
-    /// Stack: object **=>**
-    ///
-    /// Iterator Stack: `iterator`
-    GetIterator,
+    /// - Registers:
+    ///   - Input: src
+    /// - Iterator Stack: **=>** `iterator`
+    GetIterator { src: VaryingOperand },
 
     /// Gets the async iterator of an object.
     ///
-    /// Operands:
-    ///
-    /// Stack: object **=>**
-    ///
-    /// Iterator Stack: `iterator`
-    GetAsyncIterator,
+    /// - Registers:
+    ///   - Input: src
+    /// - Iterator Stack: **=>** `iterator`
+    GetAsyncIterator { src: VaryingOperand },
 
     /// Calls the `next` method of `iterator`, updating its record with the next value.
     ///
-    /// Operands:
-    ///
-    /// Iterator Stack: `iterator` **=>** `iterator`
+    /// - Iterator Stack: `iterator` **=>** `iterator`
     IteratorNext,
-
-    /// Calls the `next` method of `iterator`, updating its record with the next value.
-    ///
-    /// Operands:
-    ///
-    /// Iterator Stack: `iterator` **=>** `iterator`
-    IteratorNextWithoutPop,
 
     /// Returns `true` if the current iterator is done, or `false` otherwise
     ///
-    /// Stack: **=>** done
-    ///
-    /// Iterator Stack: `iterator` **=>** `iterator`
-    IteratorDone,
+    /// - Registers:
+    ///   - Output: dst
+    /// - Iterator Stack: `iterator` **=>** `iterator`
+    IteratorDone { dst: VaryingOperand },
 
     /// Finishes the call to `Opcode::IteratorNext` within a `for await` loop by setting the current
     /// result of the current iterator.
     ///
-    /// Operands:
-    ///
-    /// Stack: `next_result`, `resume_kind` **=>** `resume_kind`
-    ///
-    /// Iterator Stack: iterator **=>** iterator
-    IteratorFinishAsyncNext,
+    /// - Registers:
+    ///   - Input: resume_kind, value
+    /// - Iterator Stack: `iterator` **=>** `iterator`
+    IteratorFinishAsyncNext { resume_kind: VaryingOperand, value: VaryingOperand },
 
     /// Gets the `value` property of the current iterator record.
     ///
-    /// Stack: **=>** `value`
-    ///
-    /// Iterator Stack: `iterator` **=>** `iterator`
-    IteratorValue,
-
-    /// Gets the `value` property of the current iterator record.
-    ///
-    /// Stack: **=>** `value`
-    ///
-    /// Iterator Stack: `iterator` **=>** `iterator`
-    IteratorValueWithoutPop,
+    /// - Registers:
+    ///   - Output: dst
+    /// - Iterator Stack: `iterator` **=>** `iterator`
+    IteratorValue { dst: VaryingOperand },
 
     /// Gets the last iteration result of the current iterator record.
     ///
-    /// Stack: **=>** `result`
-    ///
-    /// Iterator Stack: `iterator` **=>** `iterator`
-    IteratorResult,
+    /// - Registers:
+    ///   - Output: dst
+    /// - Iterator Stack: `iterator` **=>** `iterator`
+    IteratorResult { dst: VaryingOperand },
 
     /// Consume the iterator and construct and array with all the values.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** array
-    ///
-    /// Iterator Stack: `iterator` **=>** `iterator`
-    IteratorToArray,
+    /// - Registers:
+    ///   - Output: dst
+    /// - Iterator Stack: `iterator` **=>** `iterator`
+    IteratorToArray { dst: VaryingOperand },
 
     /// Pushes `true` to the stack if the iterator stack is empty.
     ///
-    /// Stack:
-    /// - **=>** `is_empty`
-    ///
-    /// Iterator Stack:
-    /// - **=>**
-    IteratorStackEmpty,
+    /// - Registers:
+    ///   - Output: dst
+    /// - Iterator Stack: **=>**
+    IteratorStackEmpty { dst: VaryingOperand },
 
     /// Creates a new iterator result object.
     ///
-    /// Operands:
-    /// - done: bool (codified as u8 with `0` -> `false` and `!0` -> `true`)
-    ///
-    /// Stack:
-    /// - value **=>**
-    ///
-    CreateIteratorResult { done: bool },
+    /// - Operands:
+    ///   - done: `bool` (codified as u8 with `0` -> `false` and `!0` -> `true`)
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    CreateIteratorResult { value: VaryingOperand, done: VaryingOperand },
 
     /// Calls `return` on the current iterator and returns the result.
     ///
-    /// Stack: **=>** return_val (if return is a method), is_return_method
-    ///
-    /// Iterator Stack: `iterator` **=>**
-    IteratorReturn,
+    /// - Registers:
+    ///   - Output: value, called
+    /// - Iterator Stack: `iterator` **=>**
+    IteratorReturn { value: VaryingOperand, called: VaryingOperand },
 
     /// Concat multiple stack objects into a string.
     ///
-    /// Operands: value_count: `u32`
-    ///
-    /// Stack: `value_1`,...`value_n` **=>** `string`
-    ConcatToString { value_count: VaryingOperand },
-
-    /// Call RequireObjectCoercible on the stack value.
-    ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** value
-    RequireObjectCoercible,
+    /// - Registers:
+    ///   - Input: values
+    ///   - Output: dst
+    ConcatToString { dst: VaryingOperand, values: ThinVec<VaryingOperand> },
 
     /// Require the stack value to be neither null nor undefined.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** value
-    ValueNotNullOrUndefined,
+    /// - Registers:
+    ///   - Input: src
+    ValueNotNullOrUndefined { src: VaryingOperand },
 
     /// Initialize the rest parameter value of a function from the remaining arguments.
     ///
-    /// Operands:
-    ///
-    /// Stack: `argument_1` .. `argument_n` **=>** `array`
-    RestParameterInit,
+    /// - Stack: `argument_1` .. `argument_n` **=>**
+    /// - Registers:
+    ///   - Output: dst
+    RestParameterInit { dst: VaryingOperand },
 
     /// Yields from the current generator execution.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** resume_kind, received
-    GeneratorYield,
+    /// - Registers:
+    ///   - Input: src
+    ///   - Output: resume_kind, received
+    GeneratorYield { src: VaryingOperand },
 
     /// Resumes the current generator function.
     ///
     /// If the `resume_kind` is `Throw`, then the value is poped and thrown, otherwise if `Return`
     /// we pop the value, set it as the return value and throw and empty exception. See [`Opcode::ReThrow`].
     ///
-    /// Operands:
-    ///
-    /// Stack: `resume_kind`, value **=>** value
-    GeneratorNext,
+    /// - Registers:
+    ///   - Input: resume_kind, value
+    GeneratorNext { resume_kind: VaryingOperand, value: VaryingOperand },
 
     /// Yields from the current async generator execution.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** received
-    AsyncGeneratorYield,
+    /// - Registers:
+    ///   - Input: src
+    ///   - Output: resume_kind, received
+    AsyncGeneratorYield { src: VaryingOperand },
 
     /// Create a promise capacity for an async function, if not already set.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     CreatePromiseCapability,
 
     /// Resolves or rejects the promise capability of an async function.
     ///
     /// If the pending exception is set, reject and rethrow the exception, otherwise resolve.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     CompletePromiseCapability,
 
     /// Jumps to the specified address if the resume kind is not equal.
     ///
-    /// Operands: `exit`: `u32`, `resume_kind`: `u8`.
-    ///
-    /// Stack: `resume_kind` **=>** `resume_kind`
-    JumpIfNotResumeKind { exit: u32, resume_kind: GeneratorResumeKind },
+    /// - Operands:
+    ///   - address: `u32`
+    ///   - resume_kind: `GeneratorResumeKind`
+    /// - Registers:
+    ///   - Input: src
+    JumpIfNotResumeKind { address: u32, resume_kind: VaryingOperand, src: VaryingOperand },
 
     /// Delegates the current async generator function to another iterator.
     ///
-    /// Operands: throw_method_undefined: `u32`, return_method_undefined: `u32`
-    ///
-    /// Stack: received **=>** result
-    GeneratorDelegateNext { throw_method_undefined: u32, return_method_undefined: u32 },
+    /// - Operands:
+    ///   - throw_method_undefined: `u32`,
+    ///   - return_method_undefined: `u32`
+    /// - Registers:
+    ///   - Input: value, resume_kind
+    ///   - Output: value, is_return
+    GeneratorDelegateNext {
+        throw_method_undefined: u32,
+        return_method_undefined: u32,
+        value: VaryingOperand,
+        resume_kind: VaryingOperand,
+        is_return: VaryingOperand
+    },
 
     /// Resume the async generator with yield delegate logic after it awaits a value.
     ///
-    /// Operands: return: `u32`, exit: `u32`
-    ///
-    /// Stack: is_return, received **=>** value
-    GeneratorDelegateResume { r#return: u32, exit: u32 },
+    /// - Operands:
+    ///   - r#return: `u32`,
+    ///   - exit: `u32`
+    /// - Registers:
+    ///   - Input: value, resume_kind, is_return
+    ///   - Output: value
+    GeneratorDelegateResume {
+        r#return: u32,
+        exit: u32,
+        value: VaryingOperand,
+        resume_kind: VaryingOperand,
+        is_return: VaryingOperand
+    },
 
     /// Stops the current async function and schedules it to resume later.
     ///
-    /// Operands:
-    ///
-    /// Stack: promise **=>** received
-    Await,
+    /// - Registers:
+    ///   - Input: src
+    ///   - Output: resume_kind, received
+    Await { src: VaryingOperand },
 
     /// Push the current new target to the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `new.target`
-    NewTarget,
+    /// - Registers:
+    ///   - Output: dst
+    NewTarget { dst: VaryingOperand },
 
     /// Push the current `import.meta` to the stack.
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `import.meta`
-    ImportMeta,
+    /// - Registers:
+    ///   - Output: dst
+    ImportMeta { dst: VaryingOperand },
 
     /// Pushes `true` to the stack if the top stack value is an object, or `false` otherwise.
     ///
-    /// Operands:
-    ///
-    /// Stack: value **=>** is_object
-    IsObject,
+    /// - Registers:
+    ///   - Input: value
+    ///   - Output: value
+    IsObject { value: VaryingOperand },
 
     /// Lookup if a tagged template object is cached and skip the creation if it is.
     ///
-    /// Operands: exit: `u32`, site: `u64`
-    ///
-    /// Stack: **=>** template (if cached)
-    TemplateLookup { exit: u32, site: u64 },
+    /// - Operands:
+    ///   - address: `u32`
+    ///   - site: `u64`
+    /// - Registers:
+    ///   - Output: dst
+    TemplateLookup { address: u32, site: u64, dst: VaryingOperand },
 
     /// Create a new tagged template object and cache it.
     ///
-    /// Operands: count: `VaryingOperand`, site: `u64`
-    ///
-    /// Stack: count * (cooked_value, raw_value) **=>** template
-    TemplateCreate { count: VaryingOperand, site: u64 },
+    /// - Operands:
+    ///   - site: `u64`
+    /// - Registers:
+    ///   - Inputs: values
+    ///   - Output: dst
+    TemplateCreate { site: u64, dst: VaryingOperand, values: ThinVec<u32> },
 
     /// Push a private environment.
     ///
     /// Operands: count: `u32`, count * name_index: `u32`
     ///
-    /// Stack: class **=>** class
-    PushPrivateEnvironment { name_indices: ThinVec<u32> },
+    /// - Registers:
+    ///   - Input: class, name_indices
+    PushPrivateEnvironment { class: VaryingOperand, name_indices: ThinVec<u32> },
 
     /// Pop a private environment.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
     PopPrivateEnvironment,
 
     /// Creates a mapped `arguments` object.
@@ -2111,10 +2029,9 @@ generate_opcodes! {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createunmappedargumentsobject
     ///
-    /// Operands:
-    ///
-    /// Stack: **=>** `arguments`
-    CreateMappedArgumentsObject,
+    /// - Registers:
+    ///   - Output: dst
+    CreateMappedArgumentsObject { dst: VaryingOperand },
 
     /// Creates an unmapped `arguments` object.
     ///
@@ -2122,74 +2039,59 @@ generate_opcodes! {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createmappedargumentsobject
     ///
-    /// Stack: **=>** `arguments`
-    CreateUnmappedArgumentsObject,
+    /// - Registers:
+    ///   - Output: dst
+    CreateUnmappedArgumentsObject { dst: VaryingOperand },
 
     /// Performs [`HasRestrictedGlobalProperty ( N )`][spec]
     ///
-    /// Operands: `index`: u32
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   - index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasrestrictedglobalproperty
-    HasRestrictedGlobalProperty { index: VaryingOperand },
+    HasRestrictedGlobalProperty { dst: VaryingOperand, index: VaryingOperand },
 
     /// Performs [`CanDeclareGlobalFunction ( N )`][spec]
     ///
-    /// Operands: `index`: u32
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   - index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalfunction
-    CanDeclareGlobalFunction { index: VaryingOperand },
+    CanDeclareGlobalFunction { dst: VaryingOperand, index: VaryingOperand },
 
     /// Performs [`CanDeclareGlobalVar ( N )`][spec]
     ///
-    /// Operands: `index`: u32
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   - index: `VaryingOperand`
+    /// - Registers:
+    ///   - Output: dst
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-candeclareglobalvar
-    CanDeclareGlobalVar { index: VaryingOperand },
+    CanDeclareGlobalVar { dst: VaryingOperand, index: VaryingOperand },
 
     /// Performs [`CreateGlobalFunctionBinding ( N, V, D )`][spec]
     ///
-    /// Operands: configurable: `bool`, `index`: `VaryingOperand`
-    ///
-    /// Stack: `function` **=>**
+    /// - Operands:
+    ///   - configurable: `bool`
+    ///   - name_index: `VaryingOperand`
+    /// - Registers:
+    ///   - Input: src
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalfunctionbinding
-    CreateGlobalFunctionBinding { configurable: bool, index: VaryingOperand },
+    CreateGlobalFunctionBinding { src: VaryingOperand, configurable: VaryingOperand, name_index: VaryingOperand },
 
     /// Performs [`CreateGlobalVarBinding ( N, V, D )`][spec]
     ///
-    /// Operands: configurable: `bool`, `index`: `VaryingOperand`
-    ///
-    /// Stack: **=>**
+    /// - Operands:
+    ///   - configurable: `bool`
+    ///   - name_index: `VaryingOperand`
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createglobalvarbinding
-    CreateGlobalVarBinding { configurable: bool, index: VaryingOperand },
-
-    /// No-operation instruction, does nothing.
-    ///
-    /// Operands:
-    ///
-    /// Stack: **=>**
-    Nop,
-
-    /// Opcode prefix modifier, makes all [`VaryingOperand`]s of an instruction [`u16`] sized.
-    ///
-    /// Operands: opcode (operands if any).
-    ///
-    /// Stack: The stack changes based on the opcode that is being prefixed.
-    U16Operands,
-
-    /// Opcode prefix modifier, [`Opcode`] prefix operand modifier, makes all [`VaryingOperand`]s of an instruction [`u32`] sized.
-    ///
-    /// Operands: opcode (operands if any).
-    ///
-    /// Stack: The stack changes based on the opcode that is being prefixed.
-    U32Operands,
+    CreateGlobalVarBinding { configurable: VaryingOperand, name_index: VaryingOperand },
 
     /// Reserved [`Opcode`].
     Reserved1 => Reserved,
@@ -2287,79 +2189,34 @@ generate_opcodes! {
     Reserved47 => Reserved,
     /// Reserved [`Opcode`].
     Reserved48 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved49 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved50 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved51 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved52 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved53 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved54 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved55 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved56 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved57 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved58 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved59 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved60 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved61 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved62 => Reserved,
+    /// Reserved [`Opcode`].
+    Reserved63 => Reserved,
 }
-
-/// Specific opcodes for bindings.
-///
-/// This separate enum exists to make matching exhaustive where needed.
-#[derive(Clone, Copy, Debug)]
-pub(crate) enum BindingOpcode {
-    Var,
-    InitVar,
-    InitLexical,
-    SetName,
-}
-
-/// Iterator over the instructions in the compact bytecode.
-#[derive(Debug, Clone)]
-pub(crate) struct InstructionIterator<'bytecode> {
-    bytes: &'bytecode [u8],
-    pc: usize,
-}
-
-// TODO: see if this can be exposed on all features.
-#[allow(unused)]
-impl<'bytecode> InstructionIterator<'bytecode> {
-    /// Create a new [`InstructionIterator`] from bytecode array.
-    #[inline]
-    #[must_use]
-    pub(crate) const fn new(bytes: &'bytecode [u8]) -> Self {
-        Self { bytes, pc: 0 }
-    }
-
-    /// Create a new [`InstructionIterator`] from bytecode array at pc.
-    #[inline]
-    #[must_use]
-    pub(crate) const fn with_pc(bytes: &'bytecode [u8], pc: usize) -> Self {
-        Self { bytes, pc }
-    }
-
-    /// Return the current program counter.
-    #[must_use]
-    pub(crate) const fn pc(&self) -> usize {
-        self.pc
-    }
-}
-
-impl Iterator for InstructionIterator<'_> {
-    type Item = (usize, VaryingOperandKind, Instruction);
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        let start_pc = self.pc;
-        if self.pc >= self.bytes.len() {
-            return None;
-        }
-
-        let instruction =
-            Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U8);
-
-        if instruction == Instruction::U16Operands {
-            return Some((
-                start_pc,
-                VaryingOperandKind::U16,
-                Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U16),
-            ));
-        } else if instruction == Instruction::U32Operands {
-            return Some((
-                start_pc,
-                VaryingOperandKind::U32,
-                Instruction::from_bytecode(self.bytes, &mut self.pc, VaryingOperandKind::U32),
-            ));
-        }
-
-        Some((start_pc, VaryingOperandKind::U8, instruction))
-    }
-}
-
-impl FusedIterator for InstructionIterator<'_> {}

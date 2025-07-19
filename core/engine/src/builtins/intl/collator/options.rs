@@ -1,10 +1,13 @@
 use std::str::FromStr;
 
-use icu_collator::{CaseFirst, CaseLevel, Strength};
+use icu_collator::{
+    options::{CaseLevel, Strength},
+    preferences::CollationCaseFirst,
+};
 
 use crate::{
-    builtins::options::{OptionType, ParsableOptionType},
     Context, JsNativeError, JsResult, JsValue,
+    builtins::options::{OptionType, ParsableOptionType},
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -82,12 +85,12 @@ impl FromStr for Usage {
 
 impl ParsableOptionType for Usage {}
 
-impl OptionType for CaseFirst {
+impl OptionType for CollationCaseFirst {
     fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
         match value.to_string(context)?.to_std_string_escaped().as_str() {
-            "upper" => Ok(Self::UpperFirst),
-            "lower" => Ok(Self::LowerFirst),
-            "false" => Ok(Self::Off),
+            "upper" => Ok(Self::Upper),
+            "lower" => Ok(Self::Lower),
+            "false" => Ok(Self::False),
             _ => Err(JsNativeError::range()
                 .with_message("provided string was not `upper`, `lower` or `false`")
                 .into()),

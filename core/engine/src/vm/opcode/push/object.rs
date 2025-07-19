@@ -1,7 +1,7 @@
 use crate::{
+    Context,
     builtins::OrdinaryObject,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 /// `PushEmptyObject` implements the Opcode Operation for `Opcode::PushEmptyObject`
@@ -11,18 +11,20 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushEmptyObject;
 
-impl Operation for PushEmptyObject {
-    const NAME: &'static str = "PushEmptyObject";
-    const INSTRUCTION: &'static str = "INST - PushEmptyObject";
-    const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl PushEmptyObject {
+    #[inline(always)]
+    pub(crate) fn operation(dst: VaryingOperand, context: &mut Context) {
         let o = context
             .intrinsics()
             .templates()
             .ordinary_object()
             .create(OrdinaryObject, Vec::default());
-        context.vm.push(o);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), o.into());
     }
+}
+
+impl Operation for PushEmptyObject {
+    const NAME: &'static str = "PushEmptyObject";
+    const INSTRUCTION: &'static str = "INST - PushEmptyObject";
+    const COST: u8 = 1;
 }

@@ -6,8 +6,8 @@ use std::{
     hash::{BuildHasher, Hash},
     marker::PhantomData,
     num::{
-        NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
-        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
+        NonZeroI8, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI128, NonZeroIsize, NonZeroU8,
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU128, NonZeroUsize,
     },
     path::{Path, PathBuf},
     rc::Rc,
@@ -198,7 +198,7 @@ impl<T: ToOwned + ?Sized> JsData for Cow<'static, T> {}
 impl<T> JsData for Cell<Option<T>> {}
 
 #[cfg(feature = "intl")]
-default_impls!(icu_locid::Locale);
+default_impls!(icu_locale::Locale);
 
 impl<T: Trace + ?Sized> JsData for Gc<T> {}
 

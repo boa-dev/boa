@@ -2,7 +2,7 @@ use boa_macros::js_str;
 use indoc::indoc;
 mod loops;
 
-use crate::{run_test_actions, JsNativeErrorKind, TestAction};
+use crate::{JsNativeErrorKind, TestAction, run_test_actions};
 
 #[test]
 fn test_invalid_break() {

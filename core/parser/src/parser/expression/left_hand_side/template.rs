@@ -1,15 +1,14 @@
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, OrAbrupt, ParseResult,
-        TokenParser,
+        AllowAwait, AllowYield, OrAbrupt, ParseResult, TokenParser, cursor::Cursor,
+        expression::Expression,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{self as ast, expression::TaggedTemplate, Position, Punctuator};
+use boa_ast::{self as ast, PositionGroup, Punctuator, Span, Spanned, expression::TaggedTemplate};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Parses a tagged template.
 ///
@@ -21,7 +20,7 @@ use boa_profiler::Profiler;
 pub(super) struct TaggedTemplateLiteral {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    start: Position,
+    start: PositionGroup,
     tag: ast::Expression,
 }
 
@@ -30,7 +29,7 @@ impl TaggedTemplateLiteral {
     pub(super) fn new<Y, A>(
         allow_yield: Y,
         allow_await: A,
-        start: Position,
+        start: PositionGroup,
         tag: ast::Expression,
     ) -> Self
     where
@@ -53,8 +52,6 @@ where
     type Output = TaggedTemplate;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("TaggedTemplateLiteral", "Parsing");
-
         let mut raws = Vec::new();
         let mut cookeds = Vec::new();
         let mut exprs = Vec::new();
@@ -85,13 +82,14 @@ where
                         cookeds.into_boxed_slice(),
                         exprs.into_boxed_slice(),
                         cursor.tagged_template_identifier(),
+                        Span::new(self.start.position(), token.span().end()),
                     ));
                 }
                 _ => {
                     return Err(Error::general(
                         "cannot parse tagged template literal",
                         self.start,
-                    ))
+                    ));
                 }
             }
             token = cursor.lex_template(self.start, interner)?;

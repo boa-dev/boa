@@ -1,19 +1,19 @@
-use super::internal_methods::InternalMethodContext;
+use super::internal_methods::InternalMethodPropertyContext;
 use crate::value::JsVariant;
 use crate::{
+    Context, JsResult, JsSymbol, JsValue,
     builtins::{
-        function::{set_function_name, BoundFunction, ClassFieldDefinition, OrdinaryFunction},
         Array, Proxy,
+        function::{BoundFunction, ClassFieldDefinition, OrdinaryFunction, set_function_name},
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
     error::JsNativeError,
     native_function::NativeFunctionObject,
-    object::{JsObject, PrivateElement, PrivateName, CONSTRUCTOR, PROTOTYPE},
+    object::{CONSTRUCTOR, JsObject, PROTOTYPE, PrivateElement, PrivateName},
     property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     value::Type,
-    Context, JsResult, JsSymbol, JsValue,
 };
 
 /// Object integrity level.
@@ -80,7 +80,7 @@ impl JsObject {
         self.__get__(
             &key.into(),
             self.clone().into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -104,7 +104,7 @@ impl JsObject {
             key.clone(),
             value.into(),
             self.clone().into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         // 5. If success is false and Throw is true, throw a TypeError exception.
         if !success && throw {
@@ -144,7 +144,7 @@ impl JsObject {
         self.__define_own_property__(
             &key.into(),
             new_desc.into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -158,7 +158,7 @@ impl JsObject {
         &self,
         key: K,
         value: V,
-        context: &mut InternalMethodContext<'_>,
+        context: &mut InternalMethodPropertyContext<'_>,
     ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
@@ -269,7 +269,7 @@ impl JsObject {
         let success = self.__define_own_property__(
             &key,
             desc.into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
@@ -295,7 +295,7 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let success be ? O.[[Delete]](P).
-        let success = self.__delete__(&key, &mut InternalMethodContext::new(context))?;
+        let success = self.__delete__(&key, &mut InternalMethodPropertyContext::new(context))?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
             return Err(JsNativeError::typ()
@@ -320,7 +320,10 @@ impl JsObject {
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Return ? O.[[HasProperty]](P).
 
-        self.__has_property__(&key.into(), &mut InternalMethodContext::new(context))
+        self.__has_property__(
+            &key.into(),
+            &mut InternalMethodPropertyContext::new(context),
+        )
     }
 
     /// Abstract optimization operation.
@@ -341,7 +344,7 @@ impl JsObject {
         self.__try_get__(
             &key.into(),
             self.clone().into(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -359,7 +362,8 @@ impl JsObject {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let desc be ? O.[[GetOwnProperty]](P).
-        let desc = self.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+        let desc =
+            self.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
         // 4. If desc is undefined, return false.
         // 5. Return true.
         Ok(desc.is_some())
@@ -398,17 +402,15 @@ impl JsObject {
         // NOTE(HalidOdat): For object's that are not callable we implement a special __call__ internal method
         //                  that throws on call.
 
-        context.vm.push(this.clone()); // this
-        context.vm.push(self.clone()); // func
+        context.vm.stack.push(this.clone()); // this
+        context.vm.stack.push(self.clone()); // func
         let argument_count = args.len();
-        context.vm.push_values(args);
+        context.vm.stack.calling_convention_push_arguments(args);
 
         // 3. Return ? F.[[Call]](V, argumentsList).
         let frame_index = context.vm.frames.len();
-        let is_complete = self.__call__(argument_count).resolve(context)?;
-
-        if is_complete {
-            return Ok(context.vm.pop());
+        if self.__call__(argument_count).resolve(context)? {
+            return Ok(context.vm.stack.pop());
         }
 
         if frame_index + 1 == context.vm.frames.len() {
@@ -447,18 +449,18 @@ impl JsObject {
         // 1. If newTarget is not present, set newTarget to F.
         let new_target = new_target.unwrap_or(self);
 
-        context.vm.push(self.clone()); // func
+        context.vm.stack.push(JsValue::undefined());
+        context.vm.stack.push(self.clone()); // func
         let argument_count = args.len();
-        context.vm.push_values(args);
-        context.vm.push(new_target.clone());
+        context.vm.stack.calling_convention_push_arguments(args);
+        context.vm.stack.push(new_target.clone());
 
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
         let frame_index = context.vm.frames.len();
-        let is_complete = self.__construct__(argument_count).resolve(context)?;
 
-        if is_complete {
-            let result = context.vm.pop();
+        if self.__construct__(argument_count).resolve(context)? {
+            let result = context.vm.stack.pop();
             return Ok(result
                 .as_object()
                 .expect("construct value should be an object")
@@ -493,14 +495,15 @@ impl JsObject {
         // 2. Assert: level is either sealed or frozen.
 
         // 3. Let status be ? O.[[PreventExtensions]]().
-        let status = self.__prevent_extensions__(&mut InternalMethodContext::new(context))?;
+        let status =
+            self.__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?;
         // 4. If status is false, return false.
         if !status {
             return Ok(false);
         }
 
         // 5. Let keys be ? O.[[OwnPropertyKeys]]().
-        let keys = self.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+        let keys = self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
         match level {
             // 6. If level is sealed, then
@@ -521,8 +524,10 @@ impl JsObject {
                 // b. For each element k of keys, do
                 for k in keys {
                     // i. Let currentDesc be ? O.[[GetOwnProperty]](k).
-                    let current_desc =
-                        self.__get_own_property__(&k, &mut InternalMethodContext::new(context))?;
+                    let current_desc = self.__get_own_property__(
+                        &k,
+                        &mut InternalMethodPropertyContext::new(context),
+                    )?;
                     // ii. If currentDesc is not undefined, then
                     if let Some(current_desc) = current_desc {
                         // 1. If IsAccessorDescriptor(currentDesc) is true, then
@@ -572,13 +577,13 @@ impl JsObject {
 
         // 5. NOTE: If the object is extensible, none of its properties are examined.
         // 6. Let keys be ? O.[[OwnPropertyKeys]]().
-        let keys = self.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+        let keys = self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
         // 7. For each element k of keys, do
         for k in keys {
             // a. Let currentDesc be ? O.[[GetOwnProperty]](k).
             let current_desc =
-                self.__get_own_property__(&k, &mut InternalMethodContext::new(context))?;
+                self.__get_own_property__(&k, &mut InternalMethodPropertyContext::new(context))?;
             // b. If currentDesc is not undefined, then
             if let Some(current_desc) = current_desc {
                 // i. If currentDesc.[[Configurable]] is true, return false.
@@ -688,7 +693,8 @@ impl JsObject {
     ) -> JsResult<Vec<JsValue>> {
         // 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
-        let own_keys = self.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+        let own_keys =
+            self.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
         // 3. Let properties be a new empty List.
         let mut properties = vec![];
 
@@ -703,32 +709,32 @@ impl JsObject {
 
             if let Some(key_str) = key_str {
                 // i. Let desc be ? O.[[GetOwnProperty]](key).
-                let desc =
-                    self.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+                let desc = self
+                    .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
-                if let Some(desc) = desc {
-                    if desc.expect_enumerable() {
-                        match kind {
-                            // 1. If kind is key, append key to properties.
-                            PropertyNameKind::Key => properties.push(key_str.into()),
-                            // 2. Else,
-                            // a. Let value be ? Get(O, key).
-                            // b. If kind is value, append value to properties.
-                            PropertyNameKind::Value => {
-                                properties.push(self.get(key.clone(), context)?);
-                            }
-                            // c. Else,
-                            // i. Assert: kind is key+value.
-                            // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                            // iii. Append entry to properties.
-                            PropertyNameKind::KeyAndValue => properties.push(
-                                Array::create_array_from_list(
-                                    [key_str.into(), self.get(key.clone(), context)?],
-                                    context,
-                                )
-                                .into(),
-                            ),
+                if let Some(desc) = desc
+                    && desc.expect_enumerable()
+                {
+                    match kind {
+                        // 1. If kind is key, append key to properties.
+                        PropertyNameKind::Key => properties.push(key_str.into()),
+                        // 2. Else,
+                        // a. Let value be ? Get(O, key).
+                        // b. If kind is value, append value to properties.
+                        PropertyNameKind::Value => {
+                            properties.push(self.get(key.clone(), context)?);
                         }
+                        // c. Else,
+                        // i. Assert: kind is key+value.
+                        // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                        // iii. Append entry to properties.
+                        PropertyNameKind::KeyAndValue => properties.push(
+                            Array::create_array_from_list(
+                                [key_str.into(), self.get(key.clone(), context)?],
+                                context,
+                            )
+                            .into(),
+                        ),
                     }
                 }
             }
@@ -760,7 +766,7 @@ impl JsObject {
             .__get__(
                 &key.into(),
                 self.clone().into(),
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )?
             .variant()
         {
@@ -793,8 +799,7 @@ impl JsObject {
         }
 
         // 3. If argument is a Proxy exotic object, then
-        let object = self.borrow();
-        if let Some(proxy) = object.downcast_ref::<Proxy>() {
+        if let Some(proxy) = self.downcast_ref::<Proxy>() {
             // a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
             // b. Let target be argument.[[ProxyTarget]].
             let (target, _) = proxy.try_data()?;
@@ -811,24 +816,21 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getfunctionrealm
     pub(crate) fn get_function_realm(&self, context: &mut Context) -> JsResult<Realm> {
-        let constructor = self.borrow();
-        if let Some(fun) = constructor.downcast_ref::<OrdinaryFunction>() {
+        if let Some(fun) = self.downcast_ref::<OrdinaryFunction>() {
             return Ok(fun.realm().clone());
         }
 
-        if let Some(f) = constructor.downcast_ref::<NativeFunctionObject>() {
+        if let Some(f) = self.downcast_ref::<NativeFunctionObject>() {
             return Ok(f.realm.clone().unwrap_or_else(|| context.realm().clone()));
         }
 
-        if let Some(bound) = constructor.downcast_ref::<BoundFunction>() {
+        if let Some(bound) = self.downcast_ref::<BoundFunction>() {
             let fun = bound.target_function().clone();
-            drop(constructor);
             return fun.get_function_realm(context);
         }
 
-        if let Some(proxy) = constructor.downcast_ref::<Proxy>() {
+        if let Some(proxy) = self.downcast_ref::<Proxy>() {
             let (fun, _) = proxy.try_data()?;
-            drop(constructor);
             return fun.get_function_realm(context);
         }
 
@@ -1028,7 +1030,7 @@ impl JsObject {
             None => {
                 return Err(JsNativeError::typ()
                     .with_message("Private element does not exist on object")
-                    .into())
+                    .into());
             }
 
             // 3. If entry.[[Kind]] is field, then
@@ -1042,7 +1044,7 @@ impl JsObject {
             Some(PrivateElement::Method(_)) => {
                 return Err(JsNativeError::typ()
                     .with_message("private method is not writable")
-                    .into())
+                    .into());
             }
 
             // 5. Else,
@@ -1101,7 +1103,7 @@ impl JsObject {
             ClassFieldDefinition::Public(field_name, _, function_name) => {
                 if let Some(function_name) = function_name {
                     set_function_name(
-                        init_value
+                        &init_value
                             .as_object()
                             .expect("init value must be a function object"),
                         function_name,
@@ -1181,7 +1183,7 @@ impl JsObject {
         let func = self.__get__(
             &key.into(),
             this_value.clone(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )?;
 
         // 3. Return ? Call(func, V, argumentsList)
@@ -1212,7 +1214,7 @@ impl JsValue {
         o.__get__(
             &key.into(),
             self.clone(),
-            &mut InternalMethodContext::new(context),
+            &mut InternalMethodPropertyContext::new(context),
         )
     }
 
@@ -1304,6 +1306,7 @@ impl JsValue {
     ///
     /// [call]: https://tc39.es/ecma262/#sec-call
     #[inline]
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn call(&self, this: &Self, args: &[Self], context: &mut Context) -> JsResult<Self> {
         let Some(object) = self.as_object() else {
             return Err(JsNativeError::typ()
@@ -1325,6 +1328,7 @@ impl JsValue {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-invoke
+    #[cfg_attr(feature = "native-backtrace", track_caller)]
     pub(crate) fn invoke<K>(&self, key: K, args: &[Self], context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
@@ -1360,7 +1364,7 @@ impl JsValue {
             return object.instance_of(&bound_function.target_function().clone().into(), context);
         }
 
-        let Some(mut object) = object.as_object().cloned() else {
+        let Some(mut object) = object.as_object() else {
             // 3. If Type(O) is not Object, return false.
             return Ok(false);
         };
@@ -1377,14 +1381,16 @@ impl JsValue {
         // 6. Repeat,
         loop {
             // a. Set O to ? O.[[GetPrototypeOf]]().
-            object = match object.__get_prototype_of__(&mut InternalMethodContext::new(context))? {
+            object = match object
+                .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?
+            {
                 Some(obj) => obj,
                 // b. If O is null, return false.
                 None => return Ok(false),
             };
 
             // c. If SameValue(P, O) is true, return true.
-            if JsObject::equals(&object, prototype) {
+            if JsObject::equals(&object, &prototype) {
                 return Ok(true);
             }
         }

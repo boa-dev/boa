@@ -1,3 +1,4 @@
+use num_traits::{AsPrimitive, FromPrimitive};
 use std::cmp::Ordering;
 
 /// Represents the result of the `ToIntegerOrInfinity` operation
@@ -21,10 +22,12 @@ impl IntegerOrInfinity {
     ///
     /// Panics if `min > max`.
     #[must_use]
-    pub fn clamp_finite(self, min: i64, max: i64) -> i64 {
+    pub fn clamp_finite<I: Ord + AsPrimitive<i64> + FromPrimitive>(self, min: I, max: I) -> I {
         assert!(min <= max);
         match self {
-            Self::Integer(i) => i.clamp(min, max),
+            Self::Integer(i) => {
+                I::from_i64(i.clamp(min.as_(), max.as_())).expect("`i` should already be clamped")
+            }
             Self::PositiveInfinity => max,
             Self::NegativeInfinity => min,
         }

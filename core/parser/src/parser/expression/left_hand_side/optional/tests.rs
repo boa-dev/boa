@@ -1,11 +1,11 @@
 use crate::parser::tests::{check_invalid_script, check_script_parser};
 
 use boa_ast::{
+    Span, Statement,
     expression::{
-        access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalOperation,
-        OptionalOperationKind,
+        Identifier, Optional, OptionalOperation, OptionalOperationKind,
+        access::PropertyAccessField, literal::Literal,
     },
-    Expression, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -16,22 +16,28 @@ fn simple() {
 
     check_script_parser(
         r#"5?.name"#,
-        vec![Statement::Expression(
-            Optional::new(
-                Literal::Int(5).into(),
-                vec![OptionalOperation::new(
-                    OptionalOperationKind::SimplePropertyAccess {
-                        field: PropertyAccessField::Const(
-                            interner.get_or_intern_static("name", utf16!("name")),
-                        ),
-                    },
-                    true,
-                )]
+        vec![
+            Statement::Expression(
+                Optional::new(
+                    Literal::new(5, Span::new((1, 1), (1, 2))).into(),
+                    vec![OptionalOperation::new(
+                        OptionalOperationKind::SimplePropertyAccess {
+                            field: Identifier::new(
+                                interner.get_or_intern_static("name", utf16!("name")),
+                                Span::new((1, 4), (1, 8)),
+                            )
+                            .into(),
+                        },
+                        true,
+                        Span::new((1, 2), (1, 8)),
+                    )]
+                    .into(),
+                    Span::new((1, 1), (1, 8)),
+                )
                 .into(),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }
@@ -42,39 +48,55 @@ fn complex_chain() {
 
     check_script_parser(
         r#"a?.b(true)?.["c"]"#,
-        vec![Statement::Expression(
-            Optional::new(
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                vec![
-                    OptionalOperation::new(
-                        OptionalOperationKind::SimplePropertyAccess {
-                            field: PropertyAccessField::Const(
-                                interner.get_or_intern_static("b", utf16!("b")),
-                            ),
-                        },
-                        true,
-                    ),
-                    OptionalOperation::new(
-                        OptionalOperationKind::Call {
-                            args: vec![Expression::Literal(Literal::Bool(true))].into(),
-                        },
-                        false,
-                    ),
-                    OptionalOperation::new(
-                        OptionalOperationKind::SimplePropertyAccess {
-                            field: PropertyAccessField::Expr(Box::new(
-                                Literal::String(interner.get_or_intern_static("c", utf16!("c")))
+        vec![
+            Statement::Expression(
+                Optional::new(
+                    Identifier::new(
+                        interner.get_or_intern_static("a", utf16!("a")),
+                        Span::new((1, 1), (1, 2)),
+                    )
+                    .into(),
+                    vec![
+                        OptionalOperation::new(
+                            OptionalOperationKind::SimplePropertyAccess {
+                                field: Identifier::new(
+                                    interner.get_or_intern_static("b", utf16!("b")),
+                                    Span::new((1, 4), (1, 5)),
+                                )
+                                .into(),
+                            },
+                            true,
+                            Span::new((1, 2), (1, 5)),
+                        ),
+                        OptionalOperation::new(
+                            OptionalOperationKind::Call {
+                                args: vec![Literal::new(true, Span::new((1, 6), (1, 10))).into()]
                                     .into(),
-                            )),
-                        },
-                        true,
-                    ),
-                ]
+                            },
+                            false,
+                            Span::new((1, 5), (1, 11)),
+                        ),
+                        OptionalOperation::new(
+                            OptionalOperationKind::SimplePropertyAccess {
+                                field: PropertyAccessField::Expr(Box::new(
+                                    Literal::new(
+                                        interner.get_or_intern_static("c", utf16!("c")),
+                                        Span::new((1, 14), (1, 17)),
+                                    )
+                                    .into(),
+                                )),
+                            },
+                            true,
+                            Span::new((1, 11), (1, 18)),
+                        ),
+                    ]
+                    .into(),
+                    Span::new((1, 1), (1, 18)),
+                )
                 .into(),
             )
             .into(),
-        )
-        .into()],
+        ],
         interner,
     );
 }

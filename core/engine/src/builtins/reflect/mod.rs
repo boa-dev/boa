@@ -13,18 +13,17 @@
 use super::{Array, BuiltInBuilder, IntrinsicObject};
 use crate::value::JsVariant;
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{self, BuiltInObject},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{internal_methods::InternalMethodContext, JsObject},
+    object::{JsObject, internal_methods::InternalMethodPropertyContext},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;
@@ -35,8 +34,6 @@ pub(crate) struct Reflect;
 
 impl IntrinsicObject for Reflect {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_string_tag = JsSymbol::to_string_tag();
 
         BuiltInBuilder::with_intrinsic::<Self>(realm)
@@ -126,7 +123,7 @@ impl Reflect {
             })?
         } else {
             // 2. If newTarget is not present, set newTarget to target.
-            target
+            target.clone()
         };
 
         // 4. Let args be ? CreateListFromArrayLike(argumentsList).
@@ -136,7 +133,7 @@ impl Reflect {
 
         // 5. Return ? Construct(target, args, newTarget).
         target
-            .construct(&args, Some(new_target), context)
+            .construct(&args, Some(&new_target), context)
             .map(JsValue::from)
     }
 
@@ -160,7 +157,7 @@ impl Reflect {
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let prop_desc: JsValue = args
             .get(2)
-            .and_then(|v| v.as_object().cloned())
+            .and_then(JsValue::as_object)
             .ok_or_else(|| {
                 JsNativeError::typ().with_message("property descriptor must be an object")
             })?
@@ -170,7 +167,7 @@ impl Reflect {
             .__define_own_property__(
                 &key,
                 prop_desc.to_property_descriptor(context)?,
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )
             .map(Into::into)
     }
@@ -195,7 +192,7 @@ impl Reflect {
         let key = args.get_or_undefined(1).to_property_key(context)?;
 
         Ok(target
-            .__delete__(&key, &mut InternalMethodContext::new(context))?
+            .__delete__(&key, &mut InternalMethodPropertyContext::new(context))?
             .into())
     }
 
@@ -223,7 +220,11 @@ impl Reflect {
             .unwrap_or_else(|| target.clone().into());
         // 4. Return ? target.[[Get]](key, receiver).
 
-        target.__get__(&key, receiver, &mut InternalMethodContext::new(context))
+        target.__get__(
+            &key,
+            receiver,
+            &mut InternalMethodPropertyContext::new(context),
+        )
     }
 
     /// Gets a property of an object.
@@ -272,7 +273,7 @@ impl Reflect {
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
-            .__get_prototype_of__(&mut InternalMethodContext::new(context))?
+            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?
             .map_or(JsValue::null(), JsValue::new))
     }
 
@@ -295,7 +296,7 @@ impl Reflect {
             .to_property_key(context)?;
 
         Ok(target
-            .__has_property__(&key, &mut InternalMethodContext::new(context))?
+            .__has_property__(&key, &mut InternalMethodPropertyContext::new(context))?
             .into())
     }
 
@@ -317,7 +318,7 @@ impl Reflect {
             .and_then(JsValue::as_object)
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
-            .__is_extensible__(&mut InternalMethodContext::new(context))?
+            .__is_extensible__(&mut InternalMethodPropertyContext::new(context))?
             .into())
     }
 
@@ -340,7 +341,7 @@ impl Reflect {
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
         let keys: Vec<JsValue> = target
-            .__own_property_keys__(&mut InternalMethodContext::new(context))?
+            .__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?
             .into_iter()
             .map(Into::into)
             .collect();
@@ -367,7 +368,7 @@ impl Reflect {
             .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
         Ok(target
-            .__prevent_extensions__(&mut InternalMethodContext::new(context))?
+            .__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?
             .into())
     }
 
@@ -396,7 +397,7 @@ impl Reflect {
                 key,
                 value.clone(),
                 receiver,
-                &mut InternalMethodContext::new(context),
+                &mut InternalMethodPropertyContext::new(context),
             )?
             .into())
     }
@@ -424,11 +425,11 @@ impl Reflect {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("proto must be an object or null")
-                    .into())
+                    .into());
             }
         };
         Ok(target
-            .__set_prototype_of__(proto, &mut InternalMethodContext::new(context))?
+            .__set_prototype_of__(proto, &mut InternalMethodPropertyContext::new(context))?
             .into())
     }
 }

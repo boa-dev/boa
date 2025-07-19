@@ -12,6 +12,7 @@
 mod op;
 
 use crate::{
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -34,16 +35,18 @@ pub use op::*;
 pub struct Unary {
     op: UnaryOp,
     target: Box<Expression>,
+    span: Span,
 }
 
 impl Unary {
     /// Creates a new `UnaryOp` AST Expression.
     #[inline]
     #[must_use]
-    pub fn new(op: UnaryOp, target: Expression) -> Self {
+    pub fn new(op: UnaryOp, target: Expression, span: Span) -> Self {
         Self {
             op,
             target: Box::new(target),
+            span,
         }
     }
 
@@ -66,6 +69,13 @@ impl Unary {
     #[must_use]
     pub fn target_mut(&mut self) -> &mut Expression {
         self.target.as_mut()
+    }
+}
+
+impl Spanned for Unary {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

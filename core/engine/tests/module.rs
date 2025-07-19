@@ -1,28 +1,26 @@
 #![allow(unused_crate_dependencies, missing_docs)]
 
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use boa_engine::builtins::promise::PromiseState;
 use boa_engine::module::{ModuleLoader, Referrer};
-use boa_engine::{js_string, Context, JsResult, JsString, Module, Source};
+use boa_engine::{Context, JsResult, JsString, Module, Source, js_string};
 
 #[test]
 fn test_json_module_from_str() {
     struct TestModuleLoader(JsString);
     impl ModuleLoader for TestModuleLoader {
-        fn load_imported_module(
-            &self,
+        async fn load_imported_module(
+            self: Rc<Self>,
             _referrer: Referrer,
             specifier: JsString,
-            finish_load: Box<dyn FnOnce(JsResult<Module>, &mut Context)>,
-            context: &mut Context,
-        ) {
+            context: &RefCell<&mut Context>,
+        ) -> JsResult<Module> {
             assert_eq!(specifier.to_std_string_escaped(), "basic");
+            let src = self.0.clone();
 
-            finish_load(
-                Ok(Module::parse_json(self.0.clone(), context).unwrap()),
-                context,
-            );
+            Ok(Module::parse_json(src, &mut context.borrow_mut()).unwrap())
         }
     }
 
@@ -41,7 +39,7 @@ fn test_json_module_from_str() {
 
     let module = Module::parse(source, None, &mut context).unwrap();
     let promise = module.load_link_evaluate(&mut context);
-    context.run_jobs();
+    context.run_jobs().unwrap();
 
     match promise.state() {
         PromiseState::Pending => {}
@@ -59,7 +57,7 @@ fn test_json_module_from_str() {
         .unwrap();
 
     assert_eq!(
-        JsString::from(json.to_json(&mut context).unwrap().to_string()),
+        JsString::from(json.to_json(&mut context).unwrap().unwrap().to_string()),
         json_string
     );
 }

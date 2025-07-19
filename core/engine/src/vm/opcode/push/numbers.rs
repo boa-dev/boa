@@ -1,6 +1,6 @@
 use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 macro_rules! implement_push_numbers_with_conversion {
@@ -12,16 +12,17 @@ macro_rules! implement_push_numbers_with_conversion {
         #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
+        impl $name {
+            #[inline(always)]
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+                context.vm.set_register(dst.into(), i32::from(value).into());
+            }
+        }
+
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 1;
-
-            fn execute(context: &mut Context) -> JsResult<CompletionType> {
-                let value = context.vm.read::<$num_type>();
-                context.vm.push(i32::from(value));
-                Ok(CompletionType::Normal)
-            }
         }
     };
 }
@@ -35,16 +36,17 @@ macro_rules! implement_push_numbers_no_conversion {
         #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
+        impl $name {
+            #[inline(always)]
+            pub(crate) fn operation((dst, value): (VaryingOperand, $num_type),  context: &mut Context) {
+                context.vm.set_register(dst.into(), value.into());
+            }
+        }
+
         impl Operation for $name {
             const NAME: &'static str = stringify!($name);
             const INSTRUCTION: &'static str = stringify!("INST - " + $name);
             const COST: u8 = 1;
-
-            fn execute(context: &mut Context) -> JsResult<CompletionType> {
-                let value = context.vm.read::<$num_type>();
-                context.vm.push(value);
-                Ok(CompletionType::Normal)
-            }
         }
     };
 }

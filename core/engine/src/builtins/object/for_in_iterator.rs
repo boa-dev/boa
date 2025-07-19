@@ -9,17 +9,16 @@
 // Opportunity to optimize this for iteration speed.
 
 use crate::{
-    builtins::{iterable::create_iter_result_object, BuiltInBuilder, IntrinsicObject},
+    Context, JsData, JsResult, JsString, JsValue,
+    builtins::{BuiltInBuilder, IntrinsicObject, iterable::create_iter_result_object},
     context::intrinsics::Intrinsics,
     error::JsNativeError,
     js_string,
-    object::{internal_methods::InternalMethodContext, JsObject},
+    object::{JsObject, internal_methods::InternalMethodPropertyContext},
     property::PropertyKey,
     realm::Realm,
-    Context, JsData, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
 
@@ -40,8 +39,6 @@ pub(crate) struct ForInIterator {
 
 impl IntrinsicObject for ForInIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm
@@ -98,15 +95,16 @@ impl ForInIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut iterator = this
-            .as_object()
-            .and_then(JsObject::downcast_mut::<Self>)
+        let object = this.as_object();
+        let mut iterator = object
+            .as_ref()
+            .and_then(|o| o.downcast_mut::<Self>())
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ForInIterator"))?;
         let mut object = iterator.object.to_object(context)?;
         loop {
             if !iterator.object_was_visited {
-                let keys =
-                    object.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+                let keys = object
+                    .__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
                 for k in keys {
                     match k {
                         PropertyKey::String(ref k) => {
@@ -121,15 +119,15 @@ impl ForInIterator {
                 iterator.object_was_visited = true;
             }
             while let Some(r) = iterator.remaining_keys.pop_front() {
-                if !iterator.visited_keys.contains(&r) {
-                    if let Some(desc) = object.__get_own_property__(
+                if !iterator.visited_keys.contains(&r)
+                    && let Some(desc) = object.__get_own_property__(
                         &PropertyKey::from(r.clone()),
-                        &mut InternalMethodContext::new(context),
-                    )? {
-                        iterator.visited_keys.insert(r.clone());
-                        if desc.expect_enumerable() {
-                            return Ok(create_iter_result_object(JsValue::new(r), false, context));
-                        }
+                        &mut InternalMethodPropertyContext::new(context),
+                    )?
+                {
+                    iterator.visited_keys.insert(r.clone());
+                    if desc.expect_enumerable() {
+                        return Ok(create_iter_result_object(JsValue::new(r), false, context));
                     }
                 }
             }
@@ -143,7 +141,7 @@ impl ForInIterator {
                         JsValue::undefined(),
                         true,
                         context,
-                    ))
+                    ));
                 }
             }
             iterator.object = JsValue::new(object.clone());

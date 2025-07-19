@@ -3,12 +3,12 @@ mod tests;
 
 use crate::{
     parser::{
-        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+        statement::declaration::hoistable::{CallableDeclaration, parse_callable_declaration},
     },
     source::ReadChar,
 };
-use boa_ast::{function::GeneratorDeclaration as GeneratorDeclarationNode, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, function::GeneratorDeclaration as GeneratorDeclarationNode};
 use boa_interner::Interner;
 
 /// Generator declaration parsing.
@@ -79,15 +79,20 @@ where
     type Output = GeneratorDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        cursor.expect(
+        let func_token = cursor.expect(
             (Keyword::Function, false),
             "generator declaration",
             interner,
         )?;
+        let start_linear_span = func_token.linear_span();
+
         cursor.expect(Punctuator::Mul, "generator declaration", interner)?;
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
+        let span = start_linear_span.union(result.2.linear_pos_end());
 
-        Ok(GeneratorDeclarationNode::new(result.0, result.1, result.2))
+        Ok(GeneratorDeclarationNode::new(
+            result.0, result.1, result.2, span,
+        ))
     }
 }

@@ -1,12 +1,11 @@
 use crate::{
+    Error,
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::ParseResult,
     source::{ReadChar, UTF8Input},
-    Error,
 };
-use boa_ast::Position;
+use boa_ast::{LinearPosition, PositionGroup};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;
@@ -30,6 +29,7 @@ pub(super) struct BufferedLexer<R> {
     peeked: [Option<Token>; PEEK_BUF_SIZE],
     read_index: usize,
     write_index: usize,
+    last_linear_pos: LinearPosition,
 }
 
 impl<R> From<Lexer<R>> for BufferedLexer<R>
@@ -52,6 +52,7 @@ where
             ],
             read_index: 0,
             write_index: 0,
+            last_linear_pos: LinearPosition::default(),
         }
     }
 }
@@ -77,7 +78,6 @@ where
 {
     /// Sets the goal symbol for the lexer.
     pub(super) fn set_goal(&mut self, elm: InputElement) {
-        let _timer = Profiler::global().start_event("cursor::set_goal()", "Parsing");
         self.lexer.set_goal(elm);
     }
 
@@ -85,11 +85,10 @@ where
     /// If `init_with_eq` is `true`, then assuming that the starting '/=' has already been consumed.
     pub(super) fn lex_regex(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
         init_with_eq: bool,
     ) -> ParseResult<Token> {
-        let _timer = Profiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
         self.lexer
             .lex_slash_token(start, interner, init_with_eq)
@@ -100,7 +99,7 @@ where
     /// '}' has already been consumed.
     pub(super) fn lex_template(
         &mut self,
-        start: Position,
+        start: PositionGroup,
         interner: &mut Interner,
     ) -> ParseResult<Token> {
         self.lexer
@@ -135,28 +134,26 @@ where
 
         let previous_index = self.write_index.checked_sub(1).unwrap_or(PEEK_BUF_SIZE - 1);
 
-        if let Some(ref token) = self.peeked[previous_index] {
-            if token.kind() == &TokenKind::LineTerminator {
-                // We don't want to have multiple contiguous line terminators in the buffer, since
-                // they have no meaning.
-                let next = loop {
-                    self.lexer.skip_html_close(interner)?;
-                    let next = self.lexer.next_no_skip(interner)?;
-                    if let Some(ref token) = next {
-                        match token.kind() {
-                            TokenKind::LineTerminator => { /* skip */ }
-                            TokenKind::Comment => self.lexer.skip_html_close(interner)?,
-                            _ => break next,
-                        }
-                    } else {
-                        break None;
+        if let Some(ref token) = self.peeked[previous_index]
+            && token.kind() == &TokenKind::LineTerminator
+        {
+            // We don't want to have multiple contiguous line terminators in the buffer, since
+            // they have no meaning.
+            let next = loop {
+                self.lexer.skip_html_close(interner)?;
+                let next = self.lexer.next_no_skip(interner)?;
+                if let Some(ref token) = next {
+                    match token.kind() {
+                        TokenKind::LineTerminator => { /* skip */ }
+                        TokenKind::Comment => self.lexer.skip_html_close(interner)?,
+                        _ => break next,
                     }
-                };
+                } else {
+                    break None;
+                }
+            };
 
-                self.peeked[self.write_index] = next;
-            } else {
-                self.peeked[self.write_index] = self.lexer.next(interner)?;
-            }
+            self.peeked[self.write_index] = next;
         } else {
             self.peeked[self.write_index] = self.lexer.next(interner)?;
         }
@@ -201,6 +198,10 @@ where
             }
             let tok = self.peeked[self.read_index].take();
             self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
+
+            if let Some(tok) = &tok {
+                self.last_linear_pos = tok.linear_span().end();
+            }
 
             Ok(tok)
         } else {
@@ -264,5 +265,15 @@ where
         };
 
         Ok(res_token)
+    }
+
+    /// Gets current linear position in the source code.
+    #[inline]
+    pub(super) fn linear_pos(&self) -> LinearPosition {
+        self.last_linear_pos
+    }
+
+    pub(super) fn take_source(&mut self) -> boa_ast::SourceText {
+        self.lexer.take_source()
     }
 }

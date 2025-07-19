@@ -1,16 +1,15 @@
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 use itertools::Itertools;
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{BuiltInBuilder, IntrinsicObject},
     context::intrinsics::Intrinsics,
     js_string,
     realm::Realm,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use super::{create_segment_data_object, SegmentIterator, Segmenter};
+use super::{SegmentIterator, Segmenter, create_segment_data_object};
 
 #[derive(Debug, Trace, Finalize, JsData)]
 pub(crate) struct Segments {
@@ -20,8 +19,6 @@ pub(crate) struct Segments {
 
 impl IntrinsicObject for Segments {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event("%SegmentsPrototype%", "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .static_method(Self::containing, js_string!("containing"), 1)
             .static_method(Self::iterator, JsSymbol::iterator(), 0)
@@ -56,8 +53,9 @@ impl Segments {
     fn containing(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let segments = this
-            .as_object()
+        let object = this.as_object();
+        let segments = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -65,8 +63,8 @@ impl Segments {
             })?;
 
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
-        let segmenter = segments.segmenter.borrow();
-        let segmenter = segmenter
+        let segmenter = segments
+            .segmenter
             .downcast_ref::<Segmenter>()
             .expect("segments object should contain a segmenter");
 
@@ -110,14 +108,14 @@ impl Segments {
     fn iterator(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let segments be the this value.
         // 2. Perform ? RequireInternalSlot(segments, [[SegmentsSegmenter]]).
-        let segments = this.as_object().map(JsObject::borrow).ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`containing` can only be called on a `Segments` object")
-        })?;
-        let segments = segments.downcast_ref::<Self>().ok_or_else(|| {
-            JsNativeError::typ()
-                .with_message("`containing` can only be called on a `Segments` object")
-        })?;
+        let object = this.as_object();
+        let segments = object
+            .as_ref()
+            .and_then(|o| o.downcast_ref::<Self>())
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("`containing` can only be called on a `Segments` object")
+            })?;
 
         // 3. Let segmenter be segments.[[SegmentsSegmenter]].
         // 4. Let string be segments.[[SegmentsString]].

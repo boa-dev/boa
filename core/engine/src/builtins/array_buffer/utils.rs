@@ -1,12 +1,11 @@
-#![allow(unstable_name_collisions)]
-
 use std::{ptr, slice::SliceIndex, sync::atomic::Ordering};
 
 use portable_atomic::AtomicU8;
 
 use crate::{
+    Context, JsResult,
     builtins::typed_array::{ClampedU8, Element, TypedArrayElement, TypedArrayKind},
-    Context, JsObject, JsResult,
+    object::JsObject,
 };
 
 use super::ArrayBuffer;
@@ -55,8 +54,8 @@ impl SliceRef<'_> {
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
         match self {
-            Self::Slice(buf) => sptr::Strict::addr(buf.as_ptr()),
-            Self::AtomicSlice(buf) => sptr::Strict::addr(buf.as_ptr()),
+            Self::Slice(buf) => buf.as_ptr().addr(),
+            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
         }
     }
 
@@ -211,6 +210,7 @@ impl SliceRefMut<'_> {
     }
 
     /// Gets a subslice of this `SliceRefMut`.
+    #[expect(unused, reason = "could still be useful in the future")]
     pub(crate) fn subslice<I>(&self, index: I) -> SliceRef<'_>
     where
         I: SliceIndex<[u8], Output = [u8]> + SliceIndex<[AtomicU8], Output = [AtomicU8]>,
@@ -242,8 +242,8 @@ impl SliceRefMut<'_> {
     #[cfg(debug_assertions)]
     pub(crate) fn addr(&self) -> usize {
         match self {
-            Self::Slice(buf) => sptr::Strict::addr(buf.as_ptr()),
-            Self::AtomicSlice(buf) => sptr::Strict::addr(buf.as_ptr()),
+            Self::Slice(buf) => buf.as_ptr().addr(),
+            Self::AtomicSlice(buf) => buf.as_ptr().addr(),
         }
     }
 

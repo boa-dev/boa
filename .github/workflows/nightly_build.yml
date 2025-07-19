@@ -5,8 +5,8 @@ permissions:
 # Schedule this workflow to run at midnight every day
 on:
   schedule:
-    - cron: "0 0 * * *"  
-  workflow_dispatch: 
+    - cron: "0 0 * * *"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,21 +15,38 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
+            binary_extension: ""
           - target: x86_64-apple-darwin
-            os: macos-latest
+            os: macos-13
+            binary_extension: ""
+          - target: aarch64-apple-darwin
+            os: macos-14
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+            binary_extension: ""
           - target: x86_64-pc-windows-msvc
             os: windows-latest
+            binary_extension: ".exe"
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v4
-    - name: Upload binaries to release
-      uses: taiki-e/upload-rust-binary-action@v1
-      with:
-        bin: boa
-        # We may be able to provide a custom archive name, but
-        # currently just going with the example default.
-        target: ${{ matrix.target }}
-        archive: $bin-$tag-$target
-        ref: refs/tags/nightly
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --target ${{ matrix.target }} --release --locked --bin boa
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/${{ matrix.target }}/release/boa${{ matrix.binary_extension }}
+          asset_name: boa-${{ matrix.target }}${{ matrix.binary_extension }}
+          tag: refs/tags/nightly
+          overwrite: true
+          prerelease: true

@@ -1,14 +1,13 @@
 use crate::{
     lexer::TokenKind,
     parser::{
-        expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
-        OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::BindingIdentifier, statement::ClassTail,
     },
     source::ReadChar,
 };
-use boa_ast::{function::ClassExpression as ClassExpressionNode, Keyword};
+use boa_ast::{Keyword, Span, Spanned, function::ClassExpression as ClassExpressionNode};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Class expression parsing.
 ///
@@ -43,7 +42,15 @@ where
     type Output = ClassExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ClassExpression", "Parsing");
+        let class_span_start = cursor
+            .expect(
+                TokenKind::Keyword((Keyword::Class, false)),
+                "class expression",
+                interner,
+            )?
+            .span()
+            .start();
+
         let strict = cursor.strict();
         cursor.set_strict(true);
 
@@ -59,7 +66,7 @@ where
         };
         cursor.set_strict(strict);
 
-        let (super_ref, constructor, elements) =
+        let (super_ref, constructor, elements, end) =
             ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         Ok(ClassExpressionNode::new(
@@ -68,6 +75,7 @@ where
             constructor,
             elements.into_boxed_slice(),
             name.is_some(),
+            Span::new(class_span_start, end),
         ))
     }
 }

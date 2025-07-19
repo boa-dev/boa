@@ -96,7 +96,7 @@
 //!
 //!     assert_eq!(
 //!         result.as_string().unwrap(),
-//!         &js_str!("My pet is 3 years old. Right, buddy? - woof!")
+//!         js_str!("My pet is 3 years old. Right, buddy? - woof!")
 //!     );
 //! }
 //! ```
@@ -104,12 +104,12 @@
 //! [class-trait]: ./trait.Class.html
 
 use crate::{
+    Context, JsResult, JsValue,
     context::intrinsics::StandardConstructor,
     error::JsNativeError,
     native_function::NativeFunction,
     object::{ConstructorBuilder, FunctionBinding, JsFunction, JsObject, NativeObject, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    Context, JsResult, JsValue,
 };
 
 /// Native class.

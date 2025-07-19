@@ -1,5 +1,8 @@
 use super::Expression;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    Span, Spanned,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -16,15 +19,17 @@ use core::ops::ControlFlow;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Parenthesized {
     pub(crate) expression: Box<Expression>,
+    span: Span,
 }
 
 impl Parenthesized {
     /// Creates a parenthesized expression.
     #[inline]
     #[must_use]
-    pub fn new(expression: Expression) -> Self {
+    pub fn new(expression: Expression, span: Span) -> Self {
         Self {
             expression: Box::new(expression),
+            span,
         }
     }
 
@@ -33,6 +38,13 @@ impl Parenthesized {
     #[must_use]
     pub const fn expression(&self) -> &Expression {
         &self.expression
+    }
+}
+
+impl Spanned for Parenthesized {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

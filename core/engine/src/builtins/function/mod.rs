@@ -12,6 +12,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
 use crate::{
+    Context, JsArgs, JsResult, JsStr, JsString, JsValue, SpannedSourceText,
     builtins::{
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
     },
@@ -22,11 +23,11 @@ use crate::{
     js_string,
     native_function::NativeFunctionObject,
     object::{
-        internal_methods::{
-            get_prototype_from_constructor, CallValue, InternalObjectMethods,
-            ORDINARY_INTERNAL_METHODS,
-        },
         JsData, JsFunction, JsObject, PrivateElement, PrivateName,
+        internal_methods::{
+            CallValue, InternalMethodCallContext, InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
+            get_prototype_from_constructor,
+        },
     },
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -34,21 +35,20 @@ use crate::{
     symbol::JsSymbol,
     value::IntegerOrInfinity,
     vm::{ActiveRunnable, CallFrame, CallFrameFlags, CodeBlock},
-    Context, JsArgs, JsResult, JsStr, JsString, JsValue,
 };
 use boa_ast::{
+    Position, Span, Spanned, StatementList,
     function::{FormalParameterList, FunctionBody},
     operations::{
-        all_private_identifiers_valid, bound_names, contains, lexically_declared_names,
-        ContainsSymbol,
+        ContainsSymbol, all_private_identifiers_valid, bound_names, contains,
+        lexically_declared_names,
     },
     scope::BindingLocatorScope,
 };
-use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
+use boa_gc::{self, Finalize, Gc, Trace, custom_trace};
 use boa_interner::Sym;
 use boa_macros::js_str;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 use thin_vec::ThinVec;
 
 use super::Proxy;
@@ -306,8 +306,6 @@ pub struct BuiltInFunctionObject;
 
 impl IntrinsicObject for BuiltInFunctionObject {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let has_instance = BuiltInBuilder::callable(realm, Self::has_instance)
             .name(js_string!("[Symbol.hasInstance]"))
             .length(1)
@@ -535,7 +533,7 @@ impl BuiltInFunctionObject {
         };
 
         let body = if body.is_empty() {
-            FunctionBody::default()
+            FunctionBody::new(StatementList::default(), Span::new((1, 1), (1, 1)))
         } else {
             // 14. Let bodyParseString be the string-concatenation of 0x000A (LINE FEED), bodyString, and 0x000A (LINE FEED).
             let mut body_parse = Vec::with_capacity(body.len());
@@ -627,7 +625,7 @@ impl BuiltInFunctionObject {
                         return Err(JsNativeError::syntax()
                             .with_message(format!(
                                 "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(name.sym())
+                                context.interner().resolve_expect(name)
                             ))
                             .into());
                     }
@@ -637,8 +635,18 @@ impl BuiltInFunctionObject {
             body
         };
 
-        let mut function =
-            boa_ast::function::FunctionExpression::new(None, parameters, body, false);
+        // TODO: create SourceText : "anonymous(" parameters \n ") {" body_parse "}"
+
+        let function_span_start = Position::new(1, 1);
+        let function_span_end = body.span().end();
+        let mut function = boa_ast::function::FunctionExpression::new(
+            None,
+            parameters,
+            body,
+            None,
+            false,
+            Span::new(function_span_start, function_span_end),
+        );
         if !function.analyze_scope(strict, context.realm().scope(), context.interner()) {
             return Err(JsNativeError::syntax()
                 .with_message("failed to analyze function scope")
@@ -646,11 +654,14 @@ impl BuiltInFunctionObject {
         }
 
         let in_with = context.vm.environments.has_object_environment();
-        let code = FunctionCompiler::new()
+        let spanned_source_text = SpannedSourceText::new_empty();
+
+        let code = FunctionCompiler::new(spanned_source_text)
             .name(js_string!("anonymous"))
             .generator(generator)
             .r#async(r#async)
             .in_with(in_with)
+            .force_function_scope(true)
             .compile(
                 function.parameters(),
                 function.body(),
@@ -780,9 +791,7 @@ impl BuiltInFunctionObject {
         let target_name = target.get(js_string!("name"), context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
-        let target_name = target_name
-            .as_string()
-            .map_or_else(JsString::default, Clone::clone);
+        let target_name = target_name.as_string().unwrap_or_default();
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
         set_function_name(&f, &target_name.into(), Some(js_str!("bound")), context);
@@ -845,8 +854,7 @@ impl BuiltInFunctionObject {
             return Err(JsNativeError::typ().with_message("not a function").into());
         };
 
-        let object_borrow = object.borrow();
-        if object_borrow.is::<NativeFunctionObject>() {
+        if object.is::<NativeFunctionObject>() {
             let name = {
                 // Is there a case here where if there is no name field on a value
                 // name should default to None? Do all functions have names set?
@@ -860,15 +868,18 @@ impl BuiltInFunctionObject {
             return Ok(
                 js_string!(js_str!("function "), &name, js_str!("() { [native code] }")).into(),
             );
-        } else if object_borrow.is::<Proxy>() || object_borrow.is::<BoundFunction>() {
+        } else if object.is::<Proxy>() || object.is::<BoundFunction>() {
             return Ok(js_string!("function () { [native code] }").into());
         }
 
-        let function = object_borrow
+        let function = object
             .downcast_ref::<OrdinaryFunction>()
             .ok_or_else(|| JsNativeError::typ().with_message("not a function"))?;
 
         let code = function.codeblock();
+        if let Some(code_points) = code.source_info().text_spanned().to_code_points() {
+            return Ok(JsString::from(code_points).into());
+        }
 
         Ok(js_string!(
             js_str!("function "),
@@ -965,7 +976,11 @@ pub(crate) fn set_function_name(
 pub(crate) fn function_call(
     function_object: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    #[allow(
+        unused_variables,
+        reason = "Only used if native-backtrace feature is enabled"
+    )]
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
 
@@ -997,24 +1012,39 @@ pub(crate) fn function_call(
         .with_argument_count(argument_count as u32)
         .with_env_fp(env_fp);
 
-    context.vm.push_frame(frame);
+    #[cfg(feature = "native-backtrace")]
+    {
+        let native_source_info = context.native_source_info();
+        context
+            .vm
+            .shadow_stack
+            .patch_last_native(native_source_info);
+    }
 
-    let this = context.vm.frame().this(&context.vm);
+    context.vm.push_frame(frame);
+    let this = context.vm.stack.get_this(context.vm.frame());
+
+    let context = context.context();
 
     let lexical_this_mode = code.this_mode == ThisMode::Lexical;
-
     let this = if lexical_this_mode {
         ThisBindingStatus::Lexical
     } else if code.strict() {
-        ThisBindingStatus::Initialized(this.clone())
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        ThisBindingStatus::Initialized(this)
     } else if this.is_null_or_undefined() {
-        ThisBindingStatus::Initialized(context.realm().global_this().clone().into())
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        let this: JsValue = context.realm().global_this().clone().into();
+        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        ThisBindingStatus::Initialized(this)
     } else {
-        ThisBindingStatus::Initialized(
-            this.to_object(context)
-                .expect("conversion cannot fail")
-                .into(),
-        )
+        let this: JsValue = this
+            .to_object(context)
+            .expect("conversion cannot fail")
+            .into();
+        context.vm.frame_mut().flags |= CallFrameFlags::THIS_VALUE_CACHED;
+        context.vm.stack.set_this(&context.vm.frame, this.clone());
+        ThisBindingStatus::Initialized(this)
     };
 
     let mut last_env = 0;
@@ -1048,7 +1078,7 @@ pub(crate) fn function_call(
 fn function_construct(
     this_function_object: &JsObject,
     argument_count: usize,
-    context: &mut Context,
+    context: &mut InternalMethodCallContext<'_>,
 ) -> JsResult<CallValue> {
     context.check_runtime_limits()?;
 
@@ -1069,7 +1099,7 @@ fn function_construct(
 
     let env_fp = environments.len() as u32;
 
-    let new_target = context.vm.pop();
+    let new_target = context.vm.stack.pop();
 
     let this = if code.is_derived_constructor() {
         None
@@ -1102,12 +1132,16 @@ fn function_construct(
         .flags
         .set(CallFrameFlags::THIS_VALUE_CACHED, this.is_some());
 
-    let len = context.vm.stack.len();
+    #[cfg(feature = "native-backtrace")]
+    {
+        let native_source_info = context.native_source_info();
+        context
+            .vm
+            .shadow_stack
+            .patch_last_native(native_source_info);
+    }
 
     context.vm.push_frame(frame);
-
-    // NOTE(HalidOdat): +1 because we insert `this` value below.
-    context.vm.frame_mut().rp = len as u32 + 1;
 
     let mut last_env = 0;
 
@@ -1121,25 +1155,27 @@ fn function_construct(
         last_env += 1;
     }
 
-    context.vm.environments.push_function(
-        code.constant_scope(last_env),
-        FunctionSlots::new(
-            this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
-                ThisBindingStatus::Initialized(o.into())
-            }),
-            this_function_object.clone(),
-            Some(
-                new_target
-                    .as_object()
-                    .expect("new.target should be an object")
-                    .clone(),
+    if code.has_function_scope() {
+        context.vm.environments.push_function(
+            code.constant_scope(last_env),
+            FunctionSlots::new(
+                this.clone().map_or(ThisBindingStatus::Uninitialized, |o| {
+                    ThisBindingStatus::Initialized(o.into())
+                }),
+                this_function_object.clone(),
+                Some(
+                    new_target
+                        .as_object()
+                        .expect("new.target should be an object")
+                        .clone(),
+                ),
             ),
-        ),
-    );
+        );
+    }
 
-    // Insert `this` value
-    context.vm.stack.insert(
-        len - argument_count - 1,
+    let context = context.context();
+    context.vm.stack.set_this(
+        &context.vm.frame,
         this.map(JsValue::new).unwrap_or_default(),
     );
 

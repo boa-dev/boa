@@ -3,7 +3,7 @@
 use std::{fmt, str::FromStr};
 
 use crate::value::JsVariant;
-use crate::{object::JsObject, Context, JsNativeError, JsResult, JsString, JsValue};
+use crate::{Context, JsNativeError, JsResult, JsString, JsValue, object::JsObject};
 
 /// A type used as an option parameter for [`get_option`].
 pub(crate) trait OptionType: Sized {
@@ -122,122 +122,5 @@ impl OptionType for f64 {
         }
 
         Ok(value)
-    }
-}
-
-#[derive(Debug, Copy, Clone, Default)]
-pub(crate) enum RoundingMode {
-    Ceil,
-    Floor,
-    Expand,
-    Trunc,
-    HalfCeil,
-    HalfFloor,
-    #[default]
-    HalfExpand,
-    HalfTrunc,
-    HalfEven,
-}
-
-impl RoundingMode {
-    #[cfg(feature = "intl")]
-    pub(crate) fn to_js_string(self) -> JsString {
-        use crate::js_string;
-        match self {
-            Self::Ceil => js_string!("ceil"),
-            Self::Floor => js_string!("floor"),
-            Self::Expand => js_string!("expand"),
-            Self::Trunc => js_string!("trunc"),
-            Self::HalfCeil => js_string!("halfCeil"),
-            Self::HalfFloor => js_string!("halfFloor"),
-            Self::HalfExpand => js_string!("halfExpand"),
-            Self::HalfTrunc => js_string!("halfTrunc"),
-            Self::HalfEven => js_string!("halfEven"),
-        }
-    }
-}
-
-#[derive(Debug)]
-pub(crate) struct ParseRoundingModeError;
-
-impl fmt::Display for ParseRoundingModeError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("provided string was not a valid rounding mode")
-    }
-}
-
-impl FromStr for RoundingMode {
-    type Err = ParseRoundingModeError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "ceil" => Ok(Self::Ceil),
-            "floor" => Ok(Self::Floor),
-            "expand" => Ok(Self::Expand),
-            "trunc" => Ok(Self::Trunc),
-            "halfCeil" => Ok(Self::HalfCeil),
-            "halfFloor" => Ok(Self::HalfFloor),
-            "halfExpand" => Ok(Self::HalfExpand),
-            "halfTrunc" => Ok(Self::HalfTrunc),
-            "halfEven" => Ok(Self::HalfEven),
-            _ => Err(ParseRoundingModeError),
-        }
-    }
-}
-
-impl ParsableOptionType for RoundingMode {}
-
-// TODO: remove once confirmed.
-#[cfg(feature = "temporal")]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum UnsignedRoundingMode {
-    Infinity,
-    Zero,
-    HalfInfinity,
-    HalfZero,
-    HalfEven,
-}
-
-impl RoundingMode {
-    // TODO: remove once confirmed.
-    #[cfg(feature = "temporal")]
-    #[allow(dead_code)]
-    pub(crate) const fn negate(self) -> Self {
-        use RoundingMode::{
-            Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,
-        };
-
-        match self {
-            Ceil => Self::Floor,
-            Floor => Self::Ceil,
-            HalfCeil => Self::HalfFloor,
-            HalfFloor => Self::HalfCeil,
-            Trunc => Self::Trunc,
-            Expand => Self::Expand,
-            HalfTrunc => Self::HalfTrunc,
-            HalfExpand => Self::HalfExpand,
-            HalfEven => Self::HalfEven,
-        }
-    }
-
-    // TODO: remove once confirmed.
-    #[cfg(feature = "temporal")]
-    #[allow(dead_code)]
-    pub(crate) const fn get_unsigned_round_mode(self, is_negative: bool) -> UnsignedRoundingMode {
-        use RoundingMode::{
-            Ceil, Expand, Floor, HalfCeil, HalfEven, HalfExpand, HalfFloor, HalfTrunc, Trunc,
-        };
-
-        match self {
-            Ceil if !is_negative => UnsignedRoundingMode::Infinity,
-            Ceil => UnsignedRoundingMode::Zero,
-            Floor if !is_negative => UnsignedRoundingMode::Zero,
-            Floor | Trunc | Expand => UnsignedRoundingMode::Infinity,
-            HalfCeil if !is_negative => UnsignedRoundingMode::HalfInfinity,
-            HalfCeil | HalfTrunc => UnsignedRoundingMode::HalfZero,
-            HalfFloor if !is_negative => UnsignedRoundingMode::HalfZero,
-            HalfFloor | HalfExpand => UnsignedRoundingMode::HalfInfinity,
-            HalfEven => UnsignedRoundingMode::HalfEven,
-        }
     }
 }

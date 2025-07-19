@@ -11,42 +11,52 @@
 
 use self::{
     access::PropertyAccess,
-    literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
+    literal::{ArrayLiteral, ObjectLiteral, TemplateLiteral},
     operator::{Assign, Binary, BinaryInPrivate, Conditional, Unary, Update},
 };
 use super::{
+    Spanned, Statement,
     function::{
         ArrowFunction, AsyncFunctionExpression, AsyncGeneratorExpression, ClassExpression,
         FunctionExpression, GeneratorExpression,
     },
     function::{AsyncArrowFunction, FormalParameterList},
-    Statement,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
+use literal::Literal;
 
 mod r#await;
 mod call;
 mod identifier;
+mod import_meta;
 mod new;
+mod new_target;
 mod optional;
 mod parenthesized;
 mod regexp;
 mod spread;
 mod tagged_template;
+mod this;
 mod r#yield;
 
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    Span,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
+pub use r#await::Await;
 pub use call::{Call, ImportCall, SuperCall};
 pub use identifier::{Identifier, RESERVED_IDENTIFIERS_STRICT};
+pub use import_meta::ImportMeta;
 pub use new::New;
+pub use new_target::NewTarget;
 pub use optional::{Optional, OptionalOperation, OptionalOperationKind};
 pub use parenthesized::Parenthesized;
-pub use r#await::Await;
-pub use r#yield::Yield;
 pub use regexp::RegExpLiteral;
 pub use spread::Spread;
 pub use tagged_template::TaggedTemplate;
+pub use this::This;
+pub use r#yield::Yield;
 
 pub mod access;
 pub mod literal;
@@ -71,7 +81,7 @@ pub enum Expression {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-this-keyword
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
-    This,
+    This(This),
 
     /// See [`Identifier`].
     Identifier(Identifier),
@@ -137,10 +147,10 @@ pub enum Expression {
     TaggedTemplate(TaggedTemplate),
 
     /// The `new.target` pseudo-property expression.
-    NewTarget,
+    NewTarget(NewTarget),
 
     /// The `import.meta` pseudo-property expression.
-    ImportMeta,
+    ImportMeta(ImportMeta),
 
     /// See [`Assign`].
     Assign(Assign),
@@ -187,7 +197,7 @@ impl Expression {
     /// indents, use [`to_indented_string()`](Self::to_indented_string).
     pub(crate) fn to_no_indent_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
-            Self::This => "this".to_owned(),
+            Self::This(this) => this.to_interned_string(interner),
             Self::Identifier(id) => id.to_interned_string(interner),
             Self::Literal(lit) => lit.to_interned_string(interner),
             Self::ArrayLiteral(arr) => arr.to_interned_string(interner),
@@ -197,7 +207,7 @@ impl Expression {
             Self::AsyncArrowFunction(f) => f.to_indented_string(interner, indentation),
             Self::ArrowFunction(arrf) => arrf.to_indented_string(interner, indentation),
             Self::ClassExpression(cl) => cl.to_indented_string(interner, indentation),
-            Self::GeneratorExpression(gen) => gen.to_indented_string(interner, indentation),
+            Self::GeneratorExpression(r#gen) => r#gen.to_indented_string(interner, indentation),
             Self::AsyncFunctionExpression(asf) => asf.to_indented_string(interner, indentation),
             Self::AsyncGeneratorExpression(asgen) => {
                 asgen.to_indented_string(interner, indentation)
@@ -209,8 +219,8 @@ impl Expression {
             Self::SuperCall(supc) => supc.to_interned_string(interner),
             Self::ImportCall(impc) => impc.to_interned_string(interner),
             Self::Optional(opt) => opt.to_interned_string(interner),
-            Self::NewTarget => "new.target".to_owned(),
-            Self::ImportMeta => "import.meta".to_owned(),
+            Self::NewTarget(new_target) => new_target.to_interned_string(interner),
+            Self::ImportMeta(import_meta) => import_meta.to_interned_string(interner),
             Self::TaggedTemplate(tag) => tag.to_interned_string(interner),
             Self::Assign(assign) => assign.to_interned_string(interner),
             Self::Unary(unary) => unary.to_interned_string(interner),
@@ -279,6 +289,49 @@ impl Expression {
     }
 }
 
+impl Spanned for Expression {
+    #[inline]
+    fn span(&self) -> Span {
+        match self {
+            Self::This(this) => this.span(),
+            Self::Identifier(id) => id.span(),
+            Self::Literal(lit) => lit.span(),
+            Self::ArrayLiteral(arr) => arr.span(),
+            Self::ObjectLiteral(o) => o.span(),
+            Self::Spread(sp) => sp.span(),
+            Self::FunctionExpression(f) => f.span(),
+            Self::AsyncArrowFunction(f) => f.span(),
+            Self::ArrowFunction(arrf) => arrf.span(),
+            Self::ClassExpression(cl) => cl.span(),
+            Self::GeneratorExpression(r#gen) => r#gen.span(),
+            Self::AsyncFunctionExpression(asf) => asf.span(),
+            Self::AsyncGeneratorExpression(asgen) => asgen.span(),
+            Self::TemplateLiteral(tem) => tem.span(),
+            Self::PropertyAccess(prop) => prop.span(),
+            Self::New(new) => new.span(),
+            Self::Call(call) => call.span(),
+            Self::SuperCall(supc) => supc.span(),
+            Self::ImportCall(impc) => impc.span(),
+            Self::Optional(opt) => opt.span(),
+            Self::NewTarget(new_target) => new_target.span(),
+            Self::ImportMeta(import_meta) => import_meta.span(),
+            Self::TaggedTemplate(tag) => tag.span(),
+            Self::Assign(assign) => assign.span(),
+            Self::Unary(unary) => unary.span(),
+            Self::Update(update) => update.span(),
+            Self::Binary(bin) => bin.span(),
+            Self::BinaryInPrivate(bin) => bin.span(),
+            Self::Conditional(cond) => cond.span(),
+            Self::Await(aw) => aw.span(),
+            Self::Yield(yi) => yi.span(),
+            Self::Parenthesized(expr) => expr.span(),
+            Self::RegExpLiteral(regexp) => regexp.span(),
+            // TODO: Remove `FormalParameterList` and `Debugger` nodes
+            Self::FormalParameterList(_) | Self::Debugger => Span::EMPTY,
+        }
+    }
+}
+
 impl From<Expression> for Statement {
     #[inline]
     fn from(expr: Expression) -> Self {
@@ -299,6 +352,7 @@ impl VisitWith for Expression {
         V: Visitor<'a>,
     {
         match self {
+            Self::This(this) => visitor.visit_this(this),
             Self::Identifier(id) => visitor.visit_identifier(id),
             Self::Literal(lit) => visitor.visit_literal(lit),
             Self::RegExpLiteral(regexp) => visitor.visit_reg_exp_literal(regexp),
@@ -330,7 +384,9 @@ impl VisitWith for Expression {
             Self::Yield(y) => visitor.visit_yield(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list(fpl),
-            Self::This | Self::NewTarget | Self::ImportMeta | Self::Debugger => {
+            Self::NewTarget(new_target) => visitor.visit_new_target(new_target),
+            Self::ImportMeta(import_meta) => visitor.visit_import_meta(import_meta),
+            Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }
@@ -342,6 +398,7 @@ impl VisitWith for Expression {
         V: VisitorMut<'a>,
     {
         match self {
+            Self::This(this) => visitor.visit_this_mut(this),
             Self::Identifier(id) => visitor.visit_identifier_mut(id),
             Self::Literal(lit) => visitor.visit_literal_mut(lit),
             Self::RegExpLiteral(regexp) => visitor.visit_reg_exp_literal_mut(regexp),
@@ -373,7 +430,9 @@ impl VisitWith for Expression {
             Self::Yield(y) => visitor.visit_yield_mut(y),
             Self::Parenthesized(e) => visitor.visit_parenthesized_mut(e),
             Self::FormalParameterList(fpl) => visitor.visit_formal_parameter_list_mut(fpl),
-            Self::This | Self::NewTarget | Self::ImportMeta | Self::Debugger => {
+            Self::NewTarget(new_target) => visitor.visit_new_target_mut(new_target),
+            Self::ImportMeta(import_meta) => visitor.visit_import_meta_mut(import_meta),
+            Self::Debugger => {
                 // do nothing; can be handled as special case by visitor
                 ControlFlow::Continue(())
             }

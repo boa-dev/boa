@@ -1,12 +1,12 @@
 //! A Rust API wrapper for the `Proxy` Builtin ECMAScript Object
 use super::JsFunction;
 use crate::{
+    Context, JsNativeError, JsResult, JsValue,
     builtins::Proxy,
     js_string,
     native_function::{NativeFunction, NativeFunctionPointer},
     object::{FunctionObjectBuilder, JsObject},
     value::TryFromJs,
-    Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -37,7 +37,7 @@ impl JsProxy {
     /// `TypeError`.
     #[inline]
     pub fn from_object(object: JsObject) -> JsResult<Self> {
-        if object.borrow().is::<Proxy>() {
+        if object.is::<Proxy>() {
             Ok(Self { inner: object })
         } else {
             Err(JsNativeError::typ()

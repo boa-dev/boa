@@ -11,22 +11,22 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{Error as LexError, TokenKind},
     parser::{
+        Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseResult, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Keyword, Punctuator, Span, Spanned,
     function::FunctionExpression as FunctionExpressionNode,
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Keyword, Punctuator,
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Function expression parsing.
 ///
@@ -53,9 +53,12 @@ where
     type Output = FunctionExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("FunctionExpression", "Parsing");
+        let token = cursor.expect((Keyword::Function, false), "generator expression", interner)?;
+        let start_linear_span = token.linear_span();
+        let function_token_span_start = token.span().start();
 
         let token = cursor.peek(0, interner).or_abrupt()?;
+
         let (name, name_span) = match token.kind() {
             TokenKind::IdentifierName(_)
             | TokenKind::Keyword((
@@ -78,11 +81,9 @@ where
         let params = FormalParameters::new(false, false).parse(cursor, interner)?;
 
         cursor.expect(Punctuator::CloseParen, "function expression", interner)?;
-        cursor.expect(Punctuator::OpenBlock, "function expression", interner)?;
 
-        let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-
-        cursor.expect(Punctuator::CloseBlock, "function expression", interner)?;
+        let body =
+            FunctionBody::new(false, false, "function expression").parse(cursor, interner)?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -104,15 +105,14 @@ where
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        if let Some(name) = name {
-            if (cursor.strict() || body.strict())
-                && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
-            {
-                return Err(Error::lex(LexError::Syntax(
-                    "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
-                    name_span.start(),
-                )));
-            }
+        if let Some(name) = name
+            && (cursor.strict() || body.strict())
+            && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
+        {
+            return Err(Error::lex(LexError::Syntax(
+                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                name_span.start(),
+            )));
         }
 
         // Catch early error for BindingIdentifier, because strictness of the functions body is also
@@ -134,7 +134,17 @@ where
             interner,
         )?;
 
-        let function = FunctionExpressionNode::new(name, params, body, name.is_some());
+        let span = Some(start_linear_span.union(body.linear_pos_end()));
+
+        let body_span_end = body.span().end();
+        let function = FunctionExpressionNode::new(
+            name,
+            params,
+            body,
+            span,
+            name.is_some(),
+            Span::new(function_token_span_start, body_span_end),
+        );
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

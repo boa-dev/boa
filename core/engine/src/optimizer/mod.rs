@@ -6,7 +6,7 @@ pub(crate) mod walker;
 use self::{pass::ConstantFolding, walker::Walker};
 use crate::Context;
 use bitflags::bitflags;
-use boa_ast::{visitor::VisitorMut, Expression, StatementList};
+use boa_ast::{Expression, StatementList, visitor::VisitorMut};
 use std::{fmt, ops::ControlFlow};
 
 bitflags! {
@@ -113,7 +113,7 @@ impl<'context> Optimizer<'context> {
 
     /// Apply optimizations inplace.
     pub(crate) fn apply(&mut self, statement_list: &mut StatementList) -> OptimizerStatistics {
-        self.visit_statement_list_mut(statement_list);
+        let _ = self.visit_statement_list_mut(statement_list);
 
         #[allow(clippy::print_stdout)]
         if self

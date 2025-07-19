@@ -1,7 +1,7 @@
 // This example shows how to access the keys and values of a `JsObject`
 
 use boa_engine::{
-    js_string, property::PropertyKey, Context, JsError, JsNativeError, JsValue, Source,
+    Context, JsError, JsNativeError, JsValue, Source, js_string, property::PropertyKey,
 };
 
 fn main() -> Result<(), JsError> {

@@ -8,8 +8,8 @@
 //! [profiler-md]: https://github.com/boa-dev/boa/blob/main/docs/profiling.md
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![cfg_attr(not(feature = "profiler"), no_std)]
@@ -29,7 +29,7 @@ use std::sync::RwLock;
 #[cfg(feature = "profiler")]
 use std::{
     path::Path,
-    thread::{current, ThreadId},
+    thread::{ThreadId, current},
 };
 
 /// Profiler for the Boa JavaScript engine.

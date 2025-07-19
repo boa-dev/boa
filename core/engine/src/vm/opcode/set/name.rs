@@ -1,9 +1,9 @@
 use boa_ast::scope::{BindingLocator, BindingLocatorScope};
 
 use crate::{
+    Context, JsError, JsNativeError, JsResult,
     environments::Environment,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsNativeError, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 /// `ThrowMutateImmutable` implements the Opcode Operation for `Opcode::ThrowMutateImmutable`
@@ -14,15 +14,20 @@ use crate::{
 pub(crate) struct ThrowMutateImmutable;
 
 impl ThrowMutateImmutable {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block().constant_string(index);
+    #[inline(always)]
+    pub(crate) fn operation(index: VaryingOperand, context: &mut Context) -> JsError {
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
-        Err(JsNativeError::typ()
+        JsNativeError::typ()
             .with_message(format!(
                 "cannot mutate an immutable binding '{}'",
                 name.to_std_string_escaped()
             ))
-            .into())
+            .into()
     }
 }
 
@@ -30,21 +35,6 @@ impl Operation for ThrowMutateImmutable {
     const NAME: &'static str = "ThrowMutateImmutable";
     const INSTRUCTION: &'static str = "INST - ThrowMutateImmutable";
     const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
-    }
 }
 
 /// `SetName` implements the Opcode Operation for `Opcode::SetName`
@@ -55,19 +45,23 @@ impl Operation for ThrowMutateImmutable {
 pub(crate) struct SetName;
 
 impl SetName {
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (value, index): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(value.into()).clone();
         let code_block = context.vm.frame().code_block();
-        let mut binding_locator = code_block.bindings[index].clone();
+        let mut binding_locator = code_block.bindings[usize::from(index)].clone();
         let strict = code_block.strict();
-        let value = context.vm.pop();
 
         context.find_runtime_binding(&mut binding_locator)?;
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(&binding_locator, value, strict)?;
+        context.set_binding(&binding_locator, value.clone(), strict)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
 }
 
@@ -75,21 +69,6 @@ impl Operation for SetName {
     const NAME: &'static str = "SetName";
     const INSTRUCTION: &'static str = "INST - SetName";
     const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>();
-        Self::operation(context, index as usize)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>();
-        Self::operation(context, index as usize)
-    }
 }
 
 /// `SetNameByLocator` implements the Opcode Operation for `Opcode::SetNameByLocator`
@@ -99,26 +78,29 @@ impl Operation for SetName {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SetNameByLocator;
 
-impl Operation for SetNameByLocator {
-    const NAME: &'static str = "SetNameByLocator";
-    const INSTRUCTION: &'static str = "INST - SetNameByLocator";
-    const COST: u8 = 4;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl SetNameByLocator {
+    #[inline(always)]
+    pub(crate) fn operation(value: VaryingOperand, context: &mut Context) -> JsResult<()> {
         let frame = context.vm.frame_mut();
         let strict = frame.code_block.strict();
         let binding_locator = frame
             .binding_stack
             .pop()
             .expect("locator should have been popped before");
-        let value = context.vm.pop();
+        let value = context.vm.get_register(value.into()).clone();
 
         verify_initialized(&binding_locator, context)?;
 
-        context.set_binding(&binding_locator, value, strict)?;
+        context.set_binding(&binding_locator, value.clone(), strict)?;
 
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for SetNameByLocator {
+    const NAME: &'static str = "SetNameByLocator";
+    const INSTRUCTION: &'static str = "INST - SetNameByLocator";
+    const COST: u8 = 4;
 }
 
 /// Checks that the binding pointed by `locator` exists and is initialized.

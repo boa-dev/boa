@@ -10,25 +10,25 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::{function::OrdinaryFunction, BuiltInObject},
-    bytecompiler::{eval_declaration_instantiation_context, ByteCompiler},
+    Context, JsArgs, JsResult, JsString, JsValue, SpannedSourceText,
+    builtins::{BuiltInObject, function::OrdinaryFunction},
+    bytecompiler::{ByteCompiler, eval_declaration_instantiation_context},
     context::intrinsics::Intrinsics,
     environments::Environment,
     error::JsNativeError,
     js_string,
     object::JsObject,
     realm::Realm,
+    spanned_source_text::SourceText,
     string::StaticJsStrings,
-    vm::{CallFrame, CallFrameFlags, Constant, Opcode},
-    Context, JsArgs, JsResult, JsString, JsValue,
+    vm::{CallFrame, CallFrameFlags, Constant, source_info::SourcePath},
 };
 use boa_ast::{
-    operations::{contains, contains_arguments, ContainsSymbol},
+    operations::{ContainsSymbol, contains, contains_arguments},
     scope::Scope,
 };
 use boa_gc::Gc;
 use boa_parser::{Parser, Source};
-use boa_profiler::Profiler;
 
 use super::{BuiltInBuilder, IntrinsicObject};
 
@@ -37,8 +37,6 @@ pub(crate) struct Eval;
 
 impl IntrinsicObject for Eval {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::callable_with_intrinsic::<Self>(realm, Self::eval)
             .name(Self::NAME)
             .length(1)
@@ -117,7 +115,7 @@ impl Eval {
         // 5. Perform ? HostEnsureCanCompileStrings(evalRealm, « », x, direct).
         context
             .host_hooks()
-            .ensure_can_compile_strings(eval_realm, &[], x, direct, context)?;
+            .ensure_can_compile_strings(eval_realm, &[], &x, direct, context)?;
 
         // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
         //     a. Let script be ParseText(StringToCodePoints(x), Script).
@@ -125,12 +123,14 @@ impl Eval {
         //     c. If script Contains ScriptBody is false, return undefined.
         //     d. Let body be the ScriptBody of script.
         let x = x.to_vec();
-        let mut parser = Parser::new(Source::from_utf16(&x));
+        let source = Source::from_utf16(&x);
+
+        let mut parser = Parser::new(source);
         parser.set_identifier(context.next_parser_identifier());
         if strict {
             parser.set_strict();
         }
-        let mut body = parser.parse_eval(direct, context.interner_mut())?;
+        let (mut body, source) = parser.parse_eval(direct, context.interner_mut())?;
 
         // 6. Let inFunction be false.
         // 7. Let inMethod be false.
@@ -142,7 +142,11 @@ impl Eval {
             //     b. If thisEnvRec is a Function Environment Record, then
             Some(function_env) if direct => {
                 // i. Let F be thisEnvRec.[[FunctionObject]].
-                let function_object = function_env.slots().function_object().borrow();
+                let function_object = function_env
+                    .slots()
+                    .function_object()
+                    .downcast_ref::<OrdinaryFunction>()
+                    .expect("must be function object");
 
                 // ii. Set inFunction to true.
                 let mut flags = Flags::IN_FUNCTION;
@@ -151,10 +155,6 @@ impl Eval {
                 if function_env.has_super_binding() {
                     flags |= Flags::IN_METHOD;
                 }
-
-                let function_object = function_object
-                    .downcast_ref::<OrdinaryFunction>()
-                    .expect("must be function object");
 
                 // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
                 if function_object.is_derived_constructor() {
@@ -261,8 +261,11 @@ impl Eval {
 
         let in_with = context.vm.environments.has_object_environment();
 
+        let source_text = SourceText::new(source);
+        let spanned_source_text = SpannedSourceText::new_source_only(source_text);
+
         let mut compiler = ByteCompiler::new(
-            js_string!("<main>"),
+            js_string!("<eval>"),
             body.strict(),
             false,
             variable_scope.clone(),
@@ -271,6 +274,9 @@ impl Eval {
             false,
             context.interner_mut(),
             in_with,
+            spanned_source_text,
+            // TODO: Could give more information from previous shadow stack.
+            SourcePath::Eval,
         );
 
         compiler.current_open_environments_count += 1;
@@ -280,7 +286,7 @@ impl Eval {
             .constants
             .push(Constant::Scope(lexical_scope.clone()));
 
-        compiler.emit_with_varying_operand(Opcode::PushScope, scope_index);
+        compiler.bytecode.emit_push_scope(scope_index.into());
         if strict {
             variable_scope = lexical_scope.clone();
             compiler.variable_scope = lexical_scope.clone();

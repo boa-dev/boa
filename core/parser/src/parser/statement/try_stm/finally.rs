@@ -1,13 +1,12 @@
 use crate::{
     parser::{
-        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
-        TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult, TokenParser,
+        statement::block::Block,
     },
     source::ReadChar,
 };
-use boa_ast::{statement, Keyword};
+use boa_ast::{Keyword, statement};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// Finally parsing
 ///
@@ -47,7 +46,6 @@ where
     type Output = statement::Finally;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Finally", "Parsing");
         cursor.expect((Keyword::Finally, false), "try statement", interner)?;
         Ok(
             Block::new(self.allow_yield, self.allow_await, self.allow_return)

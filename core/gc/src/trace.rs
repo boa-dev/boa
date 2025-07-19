@@ -6,8 +6,8 @@ use std::{
     hash::{BuildHasher, Hash},
     marker::PhantomData,
     num::{
-        NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
-        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
+        NonZeroI8, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI128, NonZeroIsize, NonZeroU8,
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU128, NonZeroUsize,
     },
     path::{Path, PathBuf},
     rc::Rc,
@@ -489,7 +489,7 @@ where
     T::Owned: Trace,
 {
     custom_trace!(this, mark, {
-        if let Cow::Owned(ref v) = this {
+        if let Cow::Owned(v) = this {
             mark(v);
         }
     });
@@ -519,7 +519,7 @@ unsafe impl<T: Trace> Trace for OnceCell<T> {
 
 #[cfg(feature = "icu")]
 mod icu {
-    use icu_locid::{LanguageIdentifier, Locale};
+    use icu_locale_core::{LanguageIdentifier, Locale};
 
     use crate::{Finalize, Trace};
 

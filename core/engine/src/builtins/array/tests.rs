@@ -1,6 +1,6 @@
 use super::Array;
 use crate::{
-    builtins::Number, js_string, run_test_actions, Context, JsNativeErrorKind, JsValue, TestAction,
+    Context, JsNativeErrorKind, JsValue, TestAction, builtins::Number, js_string, run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;
@@ -951,5 +951,14 @@ fn array_sort() {
                     [1, 5, "9", 40, "80", 200, "700"]
                 )
             "#}),
+    ]);
+}
+
+#[test]
+fn array_of_neg_zero() {
+    run_test_actions([
+        TestAction::run("let arr = [-0, -0, -0, -0];"),
+        // Assert the parity of all items of the list.
+        TestAction::assert("arr.every(x => (1/x) === -Infinity)"),
     ]);
 }

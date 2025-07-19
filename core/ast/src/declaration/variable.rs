@@ -2,14 +2,14 @@
 
 use super::Declaration;
 use crate::{
+    Statement,
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
     visitor::{VisitWith, Visitor, VisitorMut},
-    Statement,
 };
 use boa_interner::{Interner, ToInternedString};
-use core::{convert::TryFrom, ops::ControlFlow};
+use core::{convert::TryFrom, fmt::Write as _, ops::ControlFlow};
 
 /// A [`var`][var] statement, also called [`VariableStatement`][varstmt] in the spec.
 ///
@@ -263,7 +263,7 @@ impl ToInternedString for Variable {
         let mut buf = self.binding.to_interned_string(interner);
 
         if let Some(ref init) = self.init {
-            buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+            let _ = write!(buf, " = {}", init.to_interned_string(interner));
         }
         buf
     }
@@ -359,7 +359,7 @@ impl ToInternedString for Binding {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             Self::Identifier(id) => id.to_interned_string(interner),
-            Self::Pattern(ref pattern) => pattern.to_interned_string(interner),
+            Self::Pattern(pattern) => pattern.to_interned_string(interner),
         }
     }
 }

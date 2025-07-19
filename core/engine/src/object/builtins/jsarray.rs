@@ -1,10 +1,10 @@
 //! A Rust API wrapper for Boa's `Array` Builtin ECMAScript Object
 use crate::{
+    Context, JsResult, JsString, JsValue,
     builtins::Array,
     error::JsNativeError,
     object::{JsFunction, JsObject},
     value::{IntoOrUndefined, TryFromJs},
-    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
@@ -115,7 +115,6 @@ impl JsArray {
     pub fn concat(&self, items: &[JsValue], context: &mut Context) -> JsResult<Self> {
         let object = Array::concat(&self.inner.clone().into(), items, context)?
             .as_object()
-            .cloned()
             .expect("Array.prototype.filter should always return object");
 
         Self::from_object(object)
@@ -131,7 +130,6 @@ impl JsArray {
         )
         .map(|x| {
             x.as_string()
-                .cloned()
                 .expect("Array.prototype.join always returns string")
         })
     }
@@ -240,7 +238,6 @@ impl JsArray {
             context,
         )?
         .as_object()
-        .cloned()
         .expect("Array.prototype.filter should always return object");
 
         Self::from_object(object)
@@ -260,7 +257,6 @@ impl JsArray {
             context,
         )?
         .as_object()
-        .cloned()
         .expect("Array.prototype.map should always return object");
 
         Self::from_object(object)
@@ -330,7 +326,6 @@ impl JsArray {
             context,
         )?
         .as_object()
-        .cloned()
         .expect("Array.prototype.slice should always return object");
 
         Self::from_object(object)
@@ -374,7 +369,6 @@ impl JsArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .cloned()
                 .expect("`to_reversed` must always return an `Array` on success"),
         })
     }
@@ -395,7 +389,6 @@ impl JsArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .cloned()
                 .expect("`to_sorted` must always return an `Array` on success"),
         })
     }
@@ -408,7 +401,6 @@ impl JsArray {
         Ok(Self {
             inner: array
                 .as_object()
-                .cloned()
                 .expect("`with` must always return an `Array` on success"),
         })
     }

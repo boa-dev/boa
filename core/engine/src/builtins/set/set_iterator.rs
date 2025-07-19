@@ -7,8 +7,9 @@
 
 use super::ordered_set::{OrderedSet, SetLock};
 use crate::{
+    Context, JsData, JsResult,
     builtins::{
-        iterable::create_iter_result_object, Array, BuiltInBuilder, IntrinsicObject, JsValue,
+        Array, BuiltInBuilder, IntrinsicObject, JsValue, iterable::create_iter_result_object,
     },
     context::intrinsics::Intrinsics,
     error::JsNativeError,
@@ -17,10 +18,8 @@ use crate::{
     property::{Attribute, PropertyNameKind},
     realm::Realm,
     symbol::JsSymbol,
-    Context, JsData, JsResult,
 };
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
 
 /// The Set Iterator object represents an iteration over a set. It implements the iterator protocol.
 ///
@@ -39,8 +38,6 @@ pub(crate) struct SetIterator {
 
 impl IntrinsicObject for SetIterator {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::with_intrinsic::<Self>(realm)
             .prototype(
                 realm
@@ -105,8 +102,9 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut set_iterator = this
-            .as_object()
+        let object = this.as_object();
+        let mut set_iterator = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Self>)
             .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an SetIterator"))?;
 
@@ -127,10 +125,10 @@ impl SetIterator {
                 ));
             }
 
-            let entries = m.as_object().map(JsObject::borrow);
-            let entries = entries
+            let object = m.as_object();
+            let entries = object
                 .as_ref()
-                .and_then(|obj| obj.downcast_ref::<OrderedSet>())
+                .and_then(|o| o.downcast_ref::<OrderedSet>())
                 .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
             let num_entries = entries.full_len();

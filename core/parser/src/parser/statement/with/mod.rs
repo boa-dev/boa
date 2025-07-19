@@ -1,16 +1,15 @@
 //! With statement parsing.
 
 use crate::{
+    Error,
     parser::{
-        cursor::Cursor, expression::Expression, statement::Statement, AllowAwait, AllowReturn,
-        AllowYield, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, ParseResult, TokenParser, cursor::Cursor,
+        expression::Expression, statement::Statement,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{statement::With, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, Spanned, statement::With};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// With statement parsing.
 ///
@@ -54,8 +53,6 @@ where
     type Output = With;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("WithStatement", "Parsing");
-
         let position = cursor
             .expect((Keyword::With, false), "with statement", interner)?
             .span()

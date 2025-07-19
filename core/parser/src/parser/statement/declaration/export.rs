@@ -10,25 +10,24 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 
 use crate::{
-    lexer::{token::ContainsEscapeSequence, TokenKind},
+    lexer::{TokenKind, token::ContainsEscapeSequence},
     parser::{
+        Error, OrAbrupt, ParseResult, TokenParser,
         cursor::Cursor,
         expression::AssignmentExpression,
         statement::{declaration::ClassDeclaration, variable::VariableStatement},
-        Error, OrAbrupt, ParseResult, TokenParser,
     },
     source::ReadChar,
 };
 use boa_ast::{
+    Keyword, Punctuator, Spanned,
     declaration::{ExportDeclaration as AstExportDeclaration, ReExportKind},
-    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 use super::{
-    hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
     Declaration, FromClause, FunctionDeclaration,
+    hoistable::{AsyncFunctionDeclaration, AsyncGeneratorDeclaration, GeneratorDeclaration},
 };
 
 /// Parses an export declaration.
@@ -47,8 +46,6 @@ where
     type Output = AstExportDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ExportDeclaration", "Parsing");
-
         cursor.expect((Keyword::Export, false), "export declaration", interner)?;
 
         let tok = cursor.peek(0, interner).or_abrupt()?;
@@ -75,7 +72,7 @@ where
                                     tok.to_string(interner),
                                     tok.span(),
                                     "export declaration",
-                                ))
+                                ));
                             }
                         };
 
@@ -102,7 +99,7 @@ where
                             next.to_string(interner),
                             next.span(),
                             "export declaration",
-                        ))
+                        ));
                     }
                 };
 
@@ -200,7 +197,9 @@ where
                     }
                     TokenKind::Keyword((Keyword::Class, false)) => {
                         AstExportDeclaration::DefaultClassDeclaration(
-                            ClassDeclaration::new(false, true, true).parse(cursor, interner)?,
+                            ClassDeclaration::new(false, true, true)
+                                .parse(cursor, interner)?
+                                .into(),
                         )
                     }
                     _ => {

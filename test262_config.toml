@@ -1,4 +1,4 @@
-commit = "8296db887368bbffa3379f995a1e628ddbe8421f"
+commit = "a073f479f80b336256b7fc4e04700c827293e2fe"
 
 [ignored]
 # Not implemented yet:
@@ -13,6 +13,14 @@ features = [
     "Intl.DisplayNames",
     "Intl.RelativeTimeFormat",
     "Intl-enumeration",
+    "import-attributes",
+    "json-modules",
+    "Intl.DurationFormat",
+    "regexp-duplicate-named-groups",
+    "RegExp.escape",
+    "iterator-helpers",
+    "Float16Array",
+    "explicit-resource-management",
 
     ### Pending proposals
 
@@ -22,54 +30,38 @@ features = [
     # https://github.com/tc39/proposal-regexp-legacy-features
     "legacy-regexp",
 
-    # Import Attributes
-    # https://github.com/tc39/proposal-import-attributes/
-    "import-attributes",
-
-    # https://github.com/tc39/proposal-import-attributes
-    "import-assertions",
-
     # https://github.com/tc39/proposal-defer-import-eval
     "import-defer",
 
     # https://github.com/tc39/proposal-iterator-sequencing
     "iterator-sequencing",
 
-    # https://github.com/tc39/proposal-json-modules
-    "json-modules",
-
     # https://github.com/tc39/proposal-realms
     "ShadowRealm",
-
-    # https://github.com/tc39/proposal-intl-duration-format
-    "Intl.DurationFormat",
 
     # https://github.com/tc39/proposal-decorators
     "decorators",
 
-    # https://github.com/tc39/proposal-duplicate-named-capturing-groups
-    "regexp-duplicate-named-groups",
-
-    # https://github.com/tc39/proposal-array-from-async
-    "Array.fromAsync",
-
     # https://github.com/tc39/proposal-json-parse-with-source
     "json-parse-with-source",
-
-    # RegExp.escape
-    # https://github.com/tc39/proposal-regex-escaping
-    "RegExp.escape",
-
-    # https://github.com/tc39/proposal-iterator-helpers
-    "iterator-helpers",
-
-    # Set methods
-    # https://github.com/tc39/proposal-set-methods
-    "set-methods",
 
     # Uint8Array Base64
     # https://github.com/tc39/proposal-arraybuffer-base64
     "uint8array-base64",
+
+    # Time Zone Canonicalization
+    # https://github.com/tc39/proposal-canonical-tz
+    "canonical-tz",
+
+    # Upsert
+    # https://github.com/tc39/proposal-upsert
+    "upsert",
+
+    # Source Phase Imports
+    # https://github.com/tc39/proposal-source-phase-imports
+    "source-phase-imports",
+    # test262 special specifier
+    "source-phase-imports-module-source",
 
     ### Non-standard
     "caller",

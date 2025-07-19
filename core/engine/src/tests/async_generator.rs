@@ -1,6 +1,6 @@
 use crate::{
-    builtins::promise::PromiseState, object::JsPromise, run_test_actions, Context, JsValue,
-    TestAction,
+    Context, JsValue, TestAction, builtins::promise::PromiseState, object::JsPromise,
+    run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;
@@ -47,7 +47,7 @@ fn return_on_then_infinite_loop() {
             });
             g.return();
         "#}),
-        TestAction::inspect_context(Context::run_jobs),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert_eq("count", 100),
     ]);
 }
@@ -71,7 +71,7 @@ fn return_on_then_single() {
             });
             let ret = g.return()
         "#}),
-        TestAction::inspect_context(Context::run_jobs),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert_eq("first", false),
         TestAction::assert_with_op("ret", |ret, context| {
             assert_promise_iter_value(&ret, &JsValue::undefined(), true, context);
@@ -104,7 +104,7 @@ fn return_on_then_queue() {
             let second = g.next();
             let ret = g.return();
         "#}),
-        TestAction::inspect_context(Context::run_jobs),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert_with_op("first", |first, context| {
             assert_promise_iter_value(&first, &JsValue::from(1), false, context);
             true

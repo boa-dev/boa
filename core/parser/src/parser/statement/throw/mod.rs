@@ -2,12 +2,11 @@
 mod tests;
 
 use crate::{
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser, expression::Expression},
     source::ReadChar,
 };
-use boa_ast::{statement::Throw, Keyword};
+use boa_ast::{Keyword, statement::Throw};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// For statement parsing
 ///
@@ -44,7 +43,6 @@ where
     type Output = Throw;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("ThrowStatement", "Parsing");
         cursor.expect((Keyword::Throw, false), "throw statement", interner)?;
 
         cursor.peek_expect_no_lineterminator(0, "throw statement", interner)?;

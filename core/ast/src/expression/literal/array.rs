@@ -1,9 +1,10 @@
 //! Array declaration Expression.
 
-use crate::expression::operator::assign::{AssignOp, AssignTarget};
 use crate::expression::Expression;
+use crate::expression::operator::assign::{AssignOp, AssignTarget};
 use crate::pattern::{ArrayPattern, ArrayPatternElement, Pattern};
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{Span, Spanned};
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -29,17 +30,19 @@ use core::ops::ControlFlow;
 pub struct ArrayLiteral {
     arr: Box<[Option<Expression>]>,
     has_trailing_comma_spread: bool,
+    span: Span,
 }
 
 impl ArrayLiteral {
     /// Creates a new array literal.
-    pub fn new<A>(array: A, has_trailing_comma_spread: bool) -> Self
+    pub fn new<A>(array: A, has_trailing_comma_spread: bool, span: Span) -> Self
     where
         A: Into<Box<[Option<Expression>]>>,
     {
         Self {
             arr: array.into(),
             has_trailing_comma_spread,
+            span,
         }
     }
 
@@ -156,7 +159,14 @@ impl ArrayLiteral {
                 _ => return None,
             }
         }
-        Some(ArrayPattern::new(bindings.into()))
+        Some(ArrayPattern::new(bindings.into(), self.span))
+    }
+}
+
+impl Spanned for ArrayLiteral {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -171,18 +181,6 @@ impl AsMut<[Option<Expression>]> for ArrayLiteral {
     #[inline]
     fn as_mut(&mut self) -> &mut [Option<Expression>] {
         &mut self.arr
-    }
-}
-
-impl<T> From<T> for ArrayLiteral
-where
-    T: Into<Box<[Option<Expression>]>>,
-{
-    fn from(decl: T) -> Self {
-        Self {
-            arr: decl.into(),
-            has_trailing_comma_spread: false,
-        }
     }
 }
 

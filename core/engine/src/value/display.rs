@@ -1,14 +1,14 @@
-use super::{fmt, Display, HashSet, JsValue, JsVariant};
+use super::{Display, HashSet, JsValue, JsVariant, fmt};
 use crate::{
+    JsError, JsString,
     builtins::{
-        error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
-        set::ordered_set::OrderedSet, Array, Promise,
+        Array, Promise, error::Error, map::ordered_map::OrderedMap, promise::PromiseState,
+        set::ordered_set::OrderedSet,
     },
     js_string,
     property::PropertyDescriptor,
-    JsError, JsString,
 };
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Write};
 
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
@@ -36,7 +36,7 @@ impl ValueDisplay<'_> {
 /// - The function with which to print
 /// - The indentation for the current level (for nested objects)
 /// - A `HashSet` with the addresses of the already printed objects for the current branch
-///      (used to avoid infinite loops when there are cyclic deps)
+///   (used to avoid infinite loops when there are cyclic deps)
 macro_rules! print_obj_value {
     (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
         {
@@ -103,20 +103,20 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
         JsVariant::Object(v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
-            let v_bor = v.borrow();
-            if let Some(s) = v_bor.downcast_ref::<JsString>() {
+            if let Some(s) = v.downcast_ref::<JsString>() {
                 format!("String {{ \"{}\" }}", s.to_std_string_escaped())
-            } else if let Some(b) = v_bor.downcast_ref::<bool>() {
+            } else if let Some(b) = v.downcast_ref::<bool>() {
                 format!("Boolean {{ {b} }}")
-            } else if let Some(r) = v_bor.downcast_ref::<f64>() {
+            } else if let Some(r) = v.downcast_ref::<f64>() {
                 if r.is_sign_negative() && *r == 0.0 {
                     "Number { -0 }".to_string()
                 } else {
                     let mut buffer = ryu_js::Buffer::new();
                     format!("Number {{ {} }}", buffer.format(*r))
                 }
-            } else if v_bor.is::<Array>() {
-                let len = v_bor
+            } else if v.is::<Array>() {
+                let len = v
+                    .borrow()
                     .properties()
                     .get(&js_string!("length").into())
                     .expect("array object must have 'length' property")
@@ -137,7 +137,8 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                             // which are part of the Array
 
                             // FIXME: handle accessor descriptors
-                            if let Some(value) = v_bor
+                            if let Some(value) = v
+                                .borrow()
                                 .properties()
                                 .get(&i.into())
                                 .and_then(|x| x.value().cloned())
@@ -154,7 +155,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Array({len})")
                 }
-            } else if let Some(map) = v_bor.downcast_ref::<OrderedMap<JsValue>>() {
+            } else if let Some(map) = v.downcast_ref::<OrderedMap<JsValue>>() {
                 let size = map.len();
                 if size == 0 {
                     return String::from("Map(0)");
@@ -174,7 +175,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Map({size})")
                 }
-            } else if let Some(set) = v_bor.downcast_ref::<OrderedSet>() {
+            } else if let Some(set) = v.downcast_ref::<OrderedSet>() {
                 let size = set.len();
 
                 if size == 0 {
@@ -191,8 +192,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                 } else {
                     format!("Set({size})")
                 }
-            } else if v_bor.is::<Error>() {
-                drop(v_bor);
+            } else if v.is::<Error>() {
                 let name: Cow<'static, str> = v
                     .get_property(&js_string!("name").into())
                     .as_ref()
@@ -201,6 +201,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         || "<error>".into(),
                         |v| {
                             v.as_string()
+                                .as_ref()
                                 .map_or_else(
                                     || v.display().to_string(),
                                     JsString::to_std_string_escaped,
@@ -213,20 +214,28 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                     .as_ref()
                     .and_then(PropertyDescriptor::value)
                     .map(|v| {
-                        v.as_string().map_or_else(
+                        v.as_string().as_ref().map_or_else(
                             || v.display().to_string(),
                             JsString::to_std_string_escaped,
                         )
                     })
                     .unwrap_or_default();
-                if name.is_empty() {
+                let mut result = if name.is_empty() {
                     message
                 } else if message.is_empty() {
                     name.to_string()
                 } else {
                     format!("{name}: {message}")
+                };
+                let data = v
+                    .downcast_ref::<Error>()
+                    .expect("already checked object type");
+
+                if let Some(position) = &data.position.0 {
+                    write!(&mut result, "{position}").expect("should not fail");
                 }
-            } else if let Some(promise) = v_bor.downcast_ref::<Promise>() {
+                result
+            } else if let Some(promise) = v.downcast_ref::<Promise>() {
                 format!(
                     "Promise {{ {} }}",
                     match promise.state() {

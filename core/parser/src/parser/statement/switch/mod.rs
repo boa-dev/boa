@@ -2,18 +2,17 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{
-        expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-        Cursor, OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression, statement::StatementList,
     },
     source::ReadChar,
-    Error,
 };
 use ast::operations::{lexically_declared_names_legacy, var_declared_names};
-use boa_ast::{self as ast, statement, statement::Switch, Keyword, Punctuator};
+use boa_ast::{self as ast, Keyword, Punctuator, Spanned, statement, statement::Switch};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 
 /// The possible `TokenKind` which indicate the end of a case statement.
@@ -61,7 +60,6 @@ where
     type Output = Switch;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect((Keyword::Switch, false), "switch statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "switch statement", interner)?;
 
@@ -167,7 +165,7 @@ where
 
                     cursor.expect(Punctuator::Colon, "switch case block", interner)?;
 
-                    let statement_list = StatementList::new(
+                    let (statement_list, _) = StatementList::new(
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,
@@ -191,7 +189,7 @@ where
 
                     cursor.expect(Punctuator::Colon, "switch default block", interner)?;
 
-                    let statement_list = StatementList::new(
+                    let (statement_list, _) = StatementList::new(
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,
@@ -212,7 +210,7 @@ where
                         token.to_string(interner),
                         token.span(),
                         "switch case block",
-                    ))
+                    ));
                 }
             }
         }

@@ -1,16 +1,14 @@
-#![allow(unstable_name_collisions)]
-
 use std::{
     alloc,
-    sync::{atomic::Ordering, Arc},
+    sync::{Arc, atomic::Ordering},
 };
 
-use boa_profiler::Profiler;
 use portable_atomic::{AtomicU8, AtomicUsize};
 
 use boa_gc::{Finalize, Trace};
 
 use crate::{
+    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
     builtins::{Array, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
@@ -18,7 +16,6 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsData, JsNativeError, JsObject, JsResult, JsString, JsSymbol, JsValue,
 };
 
 use super::{get_max_byte_len, utils::copy_shared_to_shared};
@@ -88,8 +85,6 @@ impl SharedArrayBuffer {
 
 impl IntrinsicObject for SharedArrayBuffer {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_species = BuiltInBuilder::callable(realm, Self::get_species)
@@ -218,8 +213,9 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is true, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -244,8 +240,9 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -267,8 +264,9 @@ impl SharedArrayBuffer {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         // 3. If IsSharedArrayBuffer(O) is false, throw a TypeError exception.
-        let buf = this
-            .as_object()
+        let object = this.as_object();
+        let buf = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Self>)
             .ok_or_else(|| {
                 JsNativeError::typ()
@@ -491,12 +489,12 @@ impl SharedArrayBuffer {
         //     b. Append [[ArrayBufferByteLengthData]] and [[ArrayBufferMaxByteLength]] to slots.
         // 4. Else,
         //     a. Append [[ArrayBufferByteLength]] to slots.
-        if let Some(max_byte_len) = max_byte_len {
-            if byte_len > max_byte_len {
-                return Err(JsNativeError::range()
-                    .with_message("`length` cannot be bigger than `maxByteLength`")
-                    .into());
-            }
+        if let Some(max_byte_len) = max_byte_len
+            && byte_len > max_byte_len
+        {
+            return Err(JsNativeError::range()
+                .with_message("`length` cannot be bigger than `maxByteLength`")
+                .into());
         }
 
         // 5. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%SharedArrayBuffer.prototype%", slots).
@@ -610,7 +608,7 @@ pub(crate) fn create_shared_byte_data_block(
     // This could be replaced with a custom `Box` implementation, but most architectures
     // already align pointers to 8 bytes, so it's a lot of work for such a small
     // compatibility improvement.
-    assert_eq!(sptr::Strict::addr(buffer.as_ptr()) % align_of::<u64>(), 0);
+    assert_eq!(buffer.as_ptr().addr() % align_of::<u64>(), 0);
 
     // 3. Return db.
     Ok(buffer)

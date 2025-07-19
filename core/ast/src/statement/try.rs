@@ -1,6 +1,6 @@
 //! Error handling statements
 
-use crate::operations::{contains, ContainsSymbol};
+use crate::operations::{ContainsSymbol, contains};
 use crate::scope::Scope;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
     statement::{Block, Statement},
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use core::ops::ControlFlow;
+use core::{fmt::Write as _, ops::ControlFlow};
 
 /// The `try...catch` statement marks a block of statements to try and specifies a response
 /// should an exception be thrown.
@@ -193,13 +193,14 @@ impl Catch {
 impl ToIndentedString for Catch {
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = " catch".to_owned();
-        if let Some(ref param) = self.parameter {
-            buf.push_str(&format!("({})", param.to_interned_string(interner)));
+        if let Some(param) = &self.parameter {
+            let _ = write!(buf, "({})", param.to_interned_string(interner));
         }
-        buf.push_str(&format!(
+        let _ = write!(
+            buf,
             " {}",
             self.block.to_indented_string(interner, indentation)
-        ));
+        );
 
         buf
     }

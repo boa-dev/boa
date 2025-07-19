@@ -1,8 +1,8 @@
 use crate::{
+    Context, JsResult,
     builtins::function::OrdinaryFunction,
     object::JsFunction,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    vm::opcode::{Operation, VaryingOperand},
 };
 
 /// `PushClassField` implements the Opcode Operation for `Opcode::PushClassField`
@@ -12,44 +12,53 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassField;
 
-impl Operation for PushClassField {
-    const NAME: &'static str = "PushClassField";
-    const INSTRUCTION: &'static str = "INST - PushClassField";
-    const COST: u8 = 6;
+impl PushClassField {
+    #[inline(always)]
+    pub(crate) fn operation(
+        (class, name, function, is_anonyms_function): (
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+            VaryingOperand,
+        ),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let class = context.vm.get_register(class.into()).clone();
+        let name = context.vm.get_register(name.into()).clone();
+        let function = context.vm.get_register(function.into()).clone();
+        let is_anonyms_function = u32::from(is_anonyms_function) != 0;
 
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let is_annonymus_function = context.vm.read::<u8>() != 0;
-        let field_function_value = context.vm.pop();
-        let field_name_value = context.vm.pop();
-        let class_value = context.vm.pop();
-
-        let field_name_key = field_name_value.to_property_key(context)?;
-        let field_function_object = field_function_value
+        let name = name.to_property_key(context)?;
+        let function = function
             .as_object()
             .expect("field value must be function object");
-        let class_object = class_value
-            .as_object()
-            .expect("class must be function object");
+        let class = class.as_object().expect("class must be function object");
 
-        field_function_object
+        function
             .downcast_mut::<OrdinaryFunction>()
             .expect("field value must be function object")
-            .set_home_object(class_object.clone());
+            .set_home_object(class.clone());
 
-        class_object
+        class
             .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_field(
-                field_name_key.clone(),
-                JsFunction::from_object_unchecked(field_function_object.clone()),
-                if is_annonymus_function {
-                    Some(field_name_key)
+                name.clone(),
+                JsFunction::from_object_unchecked(function.clone()),
+                if is_anonyms_function {
+                    Some(name)
                 } else {
                     None
                 },
             );
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for PushClassField {
+    const NAME: &'static str = "PushClassField";
+    const INSTRUCTION: &'static str = "INST - PushClassField";
+    const COST: u8 = 6;
 }
 
 /// `PushClassFieldPrivate` implements the Opcode Operation for `Opcode::PushClassFieldPrivate`
@@ -60,32 +69,36 @@ impl Operation for PushClassField {
 pub(crate) struct PushClassFieldPrivate;
 
 impl PushClassFieldPrivate {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context, index: usize) -> JsResult<CompletionType> {
-        let name = context.vm.frame().code_block().constant_string(index);
-        let field_function_value = context.vm.pop();
-        let class_value = context.vm.pop();
+    #[inline(always)]
+    pub(crate) fn operation(
+        (class, function, index): (VaryingOperand, VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) {
+        let class = context.vm.get_register(class.into());
+        let function = context.vm.get_register(function.into());
+        let name = context
+            .vm
+            .frame()
+            .code_block()
+            .constant_string(index.into());
 
-        let field_function_object = field_function_value
+        let function = function
             .as_object()
             .expect("field value must be function object");
-        let class_object = class_value
-            .as_object()
-            .expect("class must be function object");
+        let class = class.as_object().expect("class must be function object");
 
-        field_function_object
+        function
             .downcast_mut::<OrdinaryFunction>()
             .expect("field value must be function object")
-            .set_home_object(class_object.clone());
+            .set_home_object(class.clone());
 
-        class_object
+        class
             .downcast_mut::<OrdinaryFunction>()
             .expect("class must be function object")
             .push_field_private(
-                class_object.private_name(name),
-                JsFunction::from_object_unchecked(field_function_object.clone()),
+                class.private_name(name),
+                JsFunction::from_object_unchecked(function.clone()),
             );
-        Ok(CompletionType::Normal)
     }
 }
 
@@ -93,19 +106,4 @@ impl Operation for PushClassFieldPrivate {
     const NAME: &'static str = "PushClassFieldPrivate";
     const INSTRUCTION: &'static str = "INST - PushClassFieldPrivate";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u8>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u16>() as usize;
-        Self::operation(context, index)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let index = context.vm.read::<u32>() as usize;
-        Self::operation(context, index)
-    }
 }

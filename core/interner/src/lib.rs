@@ -11,8 +11,8 @@
 //! compiler.
 #![doc = include_str!("../ABOUT.md")]
 #![doc(
-    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
-    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo_black.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
 #![allow(
@@ -106,10 +106,8 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
         F: FnOnce(&'a str) -> T,
         G: FnOnce(&'b [u16]) -> T,
     {
-        if prioritize_utf8 {
-            if let Some(str) = self.utf8 {
-                return f(str);
-            }
+        if prioritize_utf8 && let Some(str) = self.utf8 {
+            return f(str);
         }
         g(self.utf16)
     }
@@ -123,10 +121,8 @@ impl<'a, 'b> JSInternedStrRef<'a, 'b> {
         F: FnOnce(&'a str, C) -> T,
         G: FnOnce(&'b [u16], C) -> T,
     {
-        if prioritize_utf8 {
-            if let Some(str) = self.utf8 {
-                return f(str, ctx);
-            }
+        if prioritize_utf8 && let Some(str) = self.utf8 {
+            return f(str, ctx);
         }
         g(self.utf16, ctx)
     }

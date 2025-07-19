@@ -1,21 +1,18 @@
 //! List of commonly used strings in Javascript code.
 
-use crate::{tagged::Tagged, JsStr};
-
 use super::JsString;
+use crate::JsStr;
 use paste::paste;
-use rustc_hash::{FxBuildHasher, FxHashMap};
-use std::{collections::HashMap, sync::LazyLock};
+use rustc_hash::{FxBuildHasher, FxHashSet};
+use std::{collections::HashSet, sync::LazyLock};
 
 macro_rules! well_known_statics {
     ( $( $(#[$attr:meta])* ($name:ident, $string:literal) ),+$(,)? ) => {
         $(
             paste!{
                 #[doc = "Gets the static `JsString` for `\"" $string "\"`."]
-                pub const $name: JsString = JsString {
-                    ptr: Tagged::from_tag(
-                        Self::find_index($string),
-                    ),
+                pub const $name: JsString = const {
+                    JsString::from_static_js_str(Self::find_static_js_string($string))
                 };
             }
         )+
@@ -30,7 +27,7 @@ pub struct StaticJsStrings;
 
 impl StaticJsStrings {
     // useful to search at compile time a certain string in the array
-    const fn find_index(candidate: &str) -> usize {
+    const fn find_static_js_string(candidate: &str) -> &'static JsStr<'static> {
         const fn const_eq(lhs: &[u8], rhs: &[u8]) -> bool {
             if lhs.len() != rhs.len() {
                 return false;
@@ -54,7 +51,7 @@ impl StaticJsStrings {
                 unreachable!()
             };
             if const_eq(s, candidate.as_bytes()) {
-                return i;
+                return &RAW_STATICS[i];
             }
             i += 1;
         }
@@ -71,17 +68,12 @@ impl StaticJsStrings {
             return None;
         }
 
-        let index = RAW_STATICS_CACHE.get(string).copied()?;
+        let str = *RAW_STATICS_CACHE.get(string)?;
 
-        Some(JsString {
-            ptr: Tagged::from_tag(index),
-        })
-    }
+        // SAFETY: Type of T in is `&'static JsStr<'static>`, so this is safe.
+        let ptr = unsafe { std::mem::transmute::<&JsStr<'_>, &'static JsStr<'static>>(str) };
 
-    /// Gets the `&[u16]` slice corresponding to the provided index, or `None` if the index
-    /// provided exceeds the size of the static array.
-    pub(crate) fn get(index: usize) -> Option<JsStr<'static>> {
-        RAW_STATICS.get(index).copied()
+        Some(JsString::from_static_js_str(ptr))
     }
 
     // Some consts are only used on certain features, which triggers the unused lint.
@@ -221,16 +213,16 @@ const MAX_STATIC_LENGTH: usize = {
 };
 
 /// Map from a string inside [`RAW_STATICS`] to its corresponding static index on `RAW_STATICS`.
-static RAW_STATICS_CACHE: LazyLock<FxHashMap<JsStr<'static>, usize>> = LazyLock::new(|| {
+//
+// SAFETY: Must always point to static memory, otherwise this is unsafe.
+static RAW_STATICS_CACHE: LazyLock<FxHashSet<&'static JsStr<'static>>> = LazyLock::new(|| {
     RAW_STATICS
         .iter()
-        .enumerate()
-        .map(|(v, &k)| (k, v))
-        .collect::<HashMap<JsStr<'static>, usize, FxBuildHasher>>()
+        .collect::<HashSet<&'static JsStr<'static>, FxBuildHasher>>()
 });
 
 /// Array of raw static strings that aren't reference counted.
-const RAW_STATICS: &[JsStr<'_>] = &[
+const RAW_STATICS: &[JsStr<'static>] = &[
     JsStr::latin1("".as_bytes()),
     // Well known symbols
     JsStr::latin1("Symbol.asyncIterator".as_bytes()),

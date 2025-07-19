@@ -1,4 +1,4 @@
-use crate::{run_test_actions, TestAction};
+use crate::{TestAction, run_test_actions};
 use boa_macros::js_str;
 use indoc::indoc;
 
@@ -44,4 +44,31 @@ fn class_superclass_from_regex_error() {
         crate::JsNativeErrorKind::Type,
         "superclass must be a constructor",
     )]);
+}
+
+// https://github.com/boa-dev/boa/issues/3055
+#[test]
+fn class_can_access_super_from_static_initializer() {
+    run_test_actions([
+        TestAction::run(indoc! {r#"
+            class a {
+                static field = "super field";
+            }
+
+            class b extends a {
+                static #field = super.field;
+                static get field() {
+                    return this.#field;
+                }
+            }
+
+            class c extends a {
+                static field = super.field;
+            }
+
+        "#}),
+        TestAction::assert_eq("a.field", js_str!("super field")),
+        TestAction::assert_eq("b.field", js_str!("super field")),
+        TestAction::assert_eq("c.field", js_str!("super field")),
+    ]);
 }

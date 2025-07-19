@@ -1,10 +1,11 @@
 use crate::{
+    JsNativeErrorKind, JsValue, TestAction,
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{FunctionObjectBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
-    run_test_actions, JsNativeErrorKind, JsValue, TestAction,
+    run_test_actions,
 };
 use boa_macros::js_str;
 use indoc::indoc;
@@ -158,8 +159,7 @@ fn closure_capture_clone() {
                                     &js_string!("key").into(),
                                     &mut context.into()
                                 )?
-                                .and_then(|prop| prop.value().cloned())
-                                .and_then(|val| val.as_string().cloned())
+                                .and_then(|prop| prop.value().and_then(JsValue::as_string))
                                 .ok_or_else(
                                     || JsNativeError::typ().with_message("invalid `key` property")
                                 )?

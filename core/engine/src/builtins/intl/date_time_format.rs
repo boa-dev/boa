@@ -8,36 +8,23 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
+    Context, JsData, JsResult, JsString, JsValue,
     builtins::{
-        options::OptionType, BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
-        OrdinaryObject,
+        BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject, OrdinaryObject,
+        options::OptionType,
     },
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsData, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
-use boa_profiler::Profiler;
-use icu_datetime::options::preferences::HourCycle;
-
-impl OptionType for HourCycle {
-    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
-        match value.to_string(context)?.to_std_string_escaped().as_str() {
-            "h11" => Ok(Self::H11),
-            "h12" => Ok(Self::H12),
-            "h23" => Ok(Self::H23),
-            "h24" => Ok(Self::H24),
-            _ => Err(JsNativeError::range()
-                .with_message("provided string was not `h11`, `h12`, `h23` or `h24`")
-                .into()),
-        }
-    }
-}
+use icu_calendar::preferences::CalendarAlgorithm;
+use icu_datetime::preferences::HourCycle;
+use icu_locale::extensions::unicode::Value;
 
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize, JsData)]
@@ -65,8 +52,6 @@ pub(crate) struct DateTimeFormat {
 
 impl IntrinsicObject for DateTimeFormat {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         BuiltInBuilder::from_standard_constructor::<Self>(realm).build();
     }
 
@@ -294,4 +279,34 @@ pub(crate) fn to_date_time_options(
 
     // 13. Return options.
     Ok(options)
+}
+
+impl OptionType for CalendarAlgorithm {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        let s = value.to_string(context)?.to_std_string_escaped();
+        Value::try_from_str(&s)
+            .ok()
+            .and_then(|v| CalendarAlgorithm::try_from(&v).ok())
+            .ok_or_else(|| {
+                JsNativeError::range()
+                    .with_message(format!("provided calendar `{s}` is invalid"))
+                    .into()
+            })
+    }
+}
+
+// TODO: track https://github.com/unicode-org/icu4x/issues/6597 and
+// https://github.com/tc39/ecma402/issues/1002 for resolution on
+// `HourCycle::H24`.
+impl OptionType for HourCycle {
+    fn from_value(value: JsValue, context: &mut Context) -> JsResult<Self> {
+        match value.to_string(context)?.to_std_string_escaped().as_str() {
+            "h11" => Ok(HourCycle::H11),
+            "h12" => Ok(HourCycle::H12),
+            "h23" => Ok(HourCycle::H23),
+            _ => Err(JsNativeError::range()
+                .with_message("provided hour cycle was not `h11`, `h12` or `h23`")
+                .into()),
+        }
+    }
 }

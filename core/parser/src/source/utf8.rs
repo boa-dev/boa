@@ -11,6 +11,7 @@ impl<R: Read> UTF8Input<R> {
     /// Creates a new `UTF8Input` from a UTF-8 encoded source.
     pub(crate) fn new(iter: R) -> Self {
         Self {
+            #[allow(clippy::unbuffered_bytes)]
             input: iter.bytes(),
         }
     }
@@ -43,14 +44,14 @@ impl<R: Read> ReadChar for UTF8Input<R> {
             // 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid
             let z = self.next_byte()?.unwrap_or(0);
             let y_z = utf8_acc_cont_byte(u32::from(y & CONT_MASK), z);
-            ch = init << 12 | y_z;
+            ch = (init << 12) | y_z;
             if x >= 0xF0 {
                 // [x y z w] case
                 // use only the lower 3 bits of `init`
                 let w = self.next_byte()?.unwrap_or(0);
-                ch = (init & 7) << 18 | utf8_acc_cont_byte(y_z, w);
+                ch = ((init & 7) << 18) | utf8_acc_cont_byte(y_z, w);
             }
-        };
+        }
 
         Ok(Some(ch))
     }

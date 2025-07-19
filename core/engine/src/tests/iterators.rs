@@ -1,6 +1,6 @@
 use indoc::indoc;
 
-use crate::{run_test_actions, TestAction};
+use crate::{TestAction, run_test_actions};
 
 #[test]
 fn iterator_close_in_continue_before_jobs() {
@@ -46,8 +46,7 @@ fn iterator_close_in_continue_before_jobs() {
                 actual.push("async fn end");
             }();
         "#}),
-        #[allow(clippy::redundant_closure_for_method_calls)]
-        TestAction::inspect_context(|ctx| ctx.run_jobs()),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert(indoc! {r#"
             arrayEquals(
                 actual,
@@ -110,8 +109,7 @@ fn async_iterator_close_in_continue_is_awaited() {
                 actual.push("async fn end");
             }();
         "#}),
-        #[allow(clippy::redundant_closure_for_method_calls)]
-        TestAction::inspect_context(|ctx| ctx.run_jobs()),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert(indoc! {r#"
             arrayEquals(
                 actual,
@@ -198,8 +196,7 @@ fn mixed_iterators_close_in_continue() {
                 actual.push("async fn end");
             }();
         "#}),
-        #[allow(clippy::redundant_closure_for_method_calls)]
-        TestAction::inspect_context(|ctx| ctx.run_jobs()),
+        TestAction::inspect_context(|ctx| ctx.run_jobs().unwrap()),
         TestAction::assert(indoc! {r#"
             arrayEquals(
                 actual,

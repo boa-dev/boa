@@ -1,8 +1,8 @@
-use crate::test::{run_test_actions_with, TestAction};
+use crate::test::{TestAction, run_test_actions_with};
 use crate::{TextDecoder, TextEncoder};
 use boa_engine::object::builtins::JsUint8Array;
 use boa_engine::property::Attribute;
-use boa_engine::{js_str, js_string, Context, JsString};
+use boa_engine::{Context, JsString, js_str, js_string};
 use indoc::indoc;
 
 #[test]
@@ -34,7 +34,7 @@ fn encoder_js() {
 
 #[test]
 fn encoder_js_unpaired() {
-    use crate::test::{run_test_actions_with, TestAction};
+    use crate::test::{TestAction, run_test_actions_with};
     use indoc::indoc;
 
     let context = &mut Context::default();
@@ -86,7 +86,7 @@ fn decoder_js() {
                     .global_object()
                     .get(js_str!("decoded"), context)
                     .unwrap();
-                assert_eq!(decoded.as_string(), Some(&js_string!("Hello, World!")));
+                assert_eq!(decoded.as_string(), Some(js_string!("Hello, World!")));
             }),
         ],
         context,
@@ -95,7 +95,7 @@ fn decoder_js() {
 
 #[test]
 fn decoder_js_invalid() {
-    use crate::test::{run_test_actions_with, TestAction};
+    use crate::test::{TestAction, run_test_actions_with};
     use indoc::indoc;
 
     let context = &mut Context::default();
@@ -116,7 +116,7 @@ fn decoder_js_invalid() {
                     .unwrap();
                 assert_eq!(
                     decoded.as_string(),
-                    Some(&js_string!("Hello\u{FFFD}World\u{FFFD}"))
+                    Some(js_string!("Hello\u{FFFD}World\u{FFFD}"))
                 );
             }),
         ],
@@ -144,7 +144,7 @@ fn roundtrip() {
                     .global_object()
                     .get(js_str!("decoded"), context)
                     .unwrap();
-                assert_eq!(decoded.as_string(), Some(&js_string!("Hello, World!")));
+                assert_eq!(decoded.as_string(), Some(js_string!("Hello, World!")));
             }),
         ],
         context,

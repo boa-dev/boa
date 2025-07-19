@@ -1,11 +1,9 @@
+use super::VaryingOperand;
 use crate::{
-    builtins::array::Array,
-    js_string,
-    object::IntegrityLevel,
-    property::PropertyDescriptor,
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
+    Context, builtins::array::Array, js_string, object::IntegrityLevel,
+    property::PropertyDescriptor, vm::opcode::Operation,
 };
+use thin_vec::ThinVec;
 
 /// `TemplateLookup` implements the Opcode Operation for `Opcode::TemplateLookup`
 ///
@@ -14,22 +12,20 @@ use crate::{
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TemplateLookup;
 
+impl TemplateLookup {
+    #[inline(always)]
+    pub(super) fn operation((jump, site, dst): (u32, u64, VaryingOperand), context: &mut Context) {
+        if let Some(template) = context.realm().lookup_template(site) {
+            context.vm.set_register(dst.into(), template.into());
+            context.vm.frame_mut().pc = jump;
+        }
+    }
+}
+
 impl Operation for TemplateLookup {
     const NAME: &'static str = "TemplateLookup";
     const INSTRUCTION: &'static str = "INST - TemplateLookup";
     const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let jump = context.vm.read::<u32>();
-        let site = context.vm.read::<u64>();
-
-        if let Some(template) = context.realm().lookup_template(site) {
-            context.vm.push(template);
-            context.vm.frame_mut().pc = jump;
-        }
-
-        Ok(CompletionType::Normal)
-    }
 }
 
 /// `TemplateCreate` implements the Opcode Operation for `Opcode::TemplateCreate`
@@ -40,38 +36,50 @@ impl Operation for TemplateLookup {
 pub(crate) struct TemplateCreate;
 
 impl TemplateCreate {
-    #[allow(clippy::unnecessary_wraps)]
-    fn operation(context: &mut Context, count: u32, site: u64) -> JsResult<CompletionType> {
+    #[inline(always)]
+    pub(super) fn operation(
+        (site, dst, values): (u64, VaryingOperand, ThinVec<u32>),
+        context: &mut Context,
+    ) {
+        let count = values.len() / 2;
         let template =
-            Array::array_create(count.into(), None, context).expect("cannot fail per spec");
+            Array::array_create(count as u64, None, context).expect("cannot fail per spec");
         let raw_obj =
-            Array::array_create(count.into(), None, context).expect("cannot fail per spec");
+            Array::array_create(count as u64, None, context).expect("cannot fail per spec");
 
-        for index in (0..count).rev() {
-            let raw_value = context.vm.pop();
-            let cooked_value = context.vm.pop();
-            template
-                .define_property_or_throw(
-                    index,
-                    PropertyDescriptor::builder()
-                        .value(cooked_value)
-                        .writable(false)
-                        .enumerable(true)
-                        .configurable(false),
-                    context,
-                )
-                .expect("should not fail on new array");
-            raw_obj
-                .define_property_or_throw(
-                    index,
-                    PropertyDescriptor::builder()
-                        .value(raw_value)
-                        .writable(false)
-                        .enumerable(true)
-                        .configurable(false),
-                    context,
-                )
-                .expect("should not fail on new array");
+        let mut index = 0;
+        let mut cooked = true;
+        for value in values {
+            if cooked {
+                let cooked_value = context.vm.get_register(value as usize);
+                template
+                    .define_property_or_throw(
+                        index,
+                        PropertyDescriptor::builder()
+                            .value(cooked_value.clone())
+                            .writable(false)
+                            .enumerable(true)
+                            .configurable(false),
+                        context,
+                    )
+                    .expect("should not fail on new array");
+            } else {
+                let raw_value = context.vm.get_register(value as usize);
+                raw_obj
+                    .define_property_or_throw(
+                        index,
+                        PropertyDescriptor::builder()
+                            .value(raw_value.clone())
+                            .writable(false)
+                            .enumerable(true)
+                            .configurable(false),
+                        context,
+                    )
+                    .expect("should not fail on new array");
+                index += 1;
+            }
+
+            cooked = !cooked;
         }
 
         raw_obj
@@ -94,8 +102,7 @@ impl TemplateCreate {
 
         context.realm().push_template(site, template.clone());
 
-        context.vm.push(template);
-        Ok(CompletionType::Normal)
+        context.vm.set_register(dst.into(), template.into());
     }
 }
 
@@ -103,22 +110,4 @@ impl Operation for TemplateCreate {
     const NAME: &'static str = "TemplateCreate";
     const INSTRUCTION: &'static str = "INST - TemplateCreate";
     const COST: u8 = 6;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let count = u32::from(context.vm.read::<u8>());
-        let site = context.vm.read::<u64>();
-        Self::operation(context, count, site)
-    }
-
-    fn execute_with_u16_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let count = u32::from(context.vm.read::<u16>());
-        let site = context.vm.read::<u64>();
-        Self::operation(context, count, site)
-    }
-
-    fn execute_with_u32_operands(context: &mut Context) -> JsResult<CompletionType> {
-        let count = context.vm.read::<u32>();
-        let site = context.vm.read::<u64>();
-        Self::operation(context, count, site)
-    }
 }

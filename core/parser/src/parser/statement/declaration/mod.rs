@@ -17,20 +17,19 @@ mod tests;
 pub(in crate::parser) use self::{
     export::ExportDeclaration,
     hoistable::{
-        class_decl::ClassTail, ClassDeclaration, FunctionDeclaration, HoistableDeclaration,
+        ClassDeclaration, FunctionDeclaration, HoistableDeclaration, class_decl::ClassTail,
     },
     import::ImportDeclaration,
-    lexical::{allowed_token_after_let, LexicalDeclaration},
+    lexical::{LexicalDeclaration, allowed_token_after_let},
 };
 use crate::{
+    Error,
     lexer::TokenKind,
     parser::{AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser},
     source::ReadChar,
-    Error,
 };
-use boa_ast::{self as ast, Keyword};
+use boa_ast::{self as ast, Keyword, Spanned};
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses a declaration.
 ///
@@ -66,7 +65,6 @@ where
     type Output = ast::Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("Declaration", "Parsing");
         let tok = cursor.peek(0, interner).or_abrupt()?;
 
         match tok.kind() {
@@ -121,8 +119,6 @@ where
     type Output = ast::declaration::ModuleSpecifier;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("FromClause", "Parsing");
-
         cursor.expect(TokenKind::identifier(Sym::FROM), self.context, interner)?;
 
         let tok = cursor.next(interner).or_abrupt()?;

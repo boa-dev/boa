@@ -1,14 +1,13 @@
 use crate::{
+    Error,
     parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        OrAbrupt, ParseResult, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::Expression, statement::Statement,
     },
     source::ReadChar,
-    Error,
 };
-use boa_ast::{statement::WhileLoop, Keyword, Punctuator};
+use boa_ast::{Keyword, Punctuator, Spanned, statement::WhileLoop};
 use boa_interner::Interner;
-use boa_profiler::Profiler;
 
 /// While statement parsing
 ///
@@ -52,7 +51,6 @@ where
     type Output = WhileLoop;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("WhileStatement", "Parsing");
         cursor.expect((Keyword::While, false), "while statement", interner)?;
 
         cursor.expect(Punctuator::OpenParen, "while statement", interner)?;

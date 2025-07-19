@@ -1,4 +1,5 @@
 use crate::{
+    Span, Spanned,
     expression::Expression,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
@@ -59,6 +60,13 @@ impl Conditional {
             if_true: Box::new(if_true),
             if_false: Box::new(if_false),
         }
+    }
+}
+
+impl Spanned for Conditional {
+    #[inline]
+    fn span(&self) -> Span {
+        Span::new(self.condition.span().start(), self.if_false.span().end())
     }
 }
 

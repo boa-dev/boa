@@ -1,26 +1,5 @@
-use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
-};
-
-/// `ToBoolean` implements the Opcode Operation for `Opcode::ToBoolean`
-///
-/// Operation:
-///  - Pops value converts it to boolean and pushes it back.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct ToBoolean;
-
-impl Operation for ToBoolean {
-    const NAME: &'static str = "ToBoolean";
-    const INSTRUCTION: &'static str = "INST - ToBoolean";
-    const COST: u8 = 1;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        context.vm.push(value.to_boolean());
-        Ok(CompletionType::Normal)
-    }
-}
+use super::VaryingOperand;
+use crate::{Context, JsResult, vm::opcode::Operation};
 
 /// `ToPropertyKey` implements the Opcode Operation for `Opcode::ToPropertyKey`
 ///
@@ -29,15 +8,21 @@ impl Operation for ToBoolean {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ToPropertyKey;
 
+impl ToPropertyKey {
+    #[inline(always)]
+    pub(super) fn operation(
+        (value, dst): (VaryingOperand, VaryingOperand),
+        context: &mut Context,
+    ) -> JsResult<()> {
+        let value = context.vm.get_register(value.into()).clone();
+        let key = value.to_property_key(context)?;
+        context.vm.set_register(dst.into(), key.into());
+        Ok(())
+    }
+}
+
 impl Operation for ToPropertyKey {
     const NAME: &'static str = "ToPropertyKey";
     const INSTRUCTION: &'static str = "INST - ToPropertyKey";
     const COST: u8 = 2;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
-        let value = context.vm.pop();
-        let key = value.to_property_key(context)?;
-        context.vm.push(key);
-        Ok(CompletionType::Normal)
-    }
 }

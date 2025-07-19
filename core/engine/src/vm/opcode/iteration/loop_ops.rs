@@ -1,22 +1,16 @@
 use crate::JsNativeError;
-use crate::{
-    vm::{opcode::Operation, CompletionType},
-    Context, JsResult,
-};
+use crate::{Context, JsResult, vm::opcode::Operation};
 
 /// `IncrementLoopIteration` implements the Opcode Operation for `Opcode::IncrementLoopIteration`.
 ///
 /// Operation:
-///  - Increment loop itearation count.
+///  - Increment loop iteration count.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct IncrementLoopIteration;
 
-impl Operation for IncrementLoopIteration {
-    const NAME: &'static str = "IncrementLoopIteration";
-    const INSTRUCTION: &'static str = "INST - IncrementLoopIteration";
-    const COST: u8 = 3;
-
-    fn execute(context: &mut Context) -> JsResult<CompletionType> {
+impl IncrementLoopIteration {
+    #[inline(always)]
+    pub(crate) fn operation((): (), context: &mut Context) -> JsResult<()> {
         let max = context.vm.runtime_limits.loop_iteration_limit();
         let frame = context.vm.frame_mut();
         let previous_iteration_count = frame.loop_iteration_count;
@@ -28,6 +22,12 @@ impl Operation for IncrementLoopIteration {
         }
 
         frame.loop_iteration_count = previous_iteration_count.wrapping_add(1);
-        Ok(CompletionType::Normal)
+        Ok(())
     }
+}
+
+impl Operation for IncrementLoopIteration {
+    const NAME: &'static str = "IncrementLoopIteration";
+    const INSTRUCTION: &'static str = "INST - IncrementLoopIteration";
+    const COST: u8 = 3;
 }

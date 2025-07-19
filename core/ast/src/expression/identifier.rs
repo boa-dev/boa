@@ -1,8 +1,8 @@
 //! Local identifier Expression.
 
 use crate::{
+    Span, Spanned, ToStringEscaped,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ToStringEscaped,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
@@ -38,16 +38,12 @@ pub const RESERVED_IDENTIFIERS_STRICT: [Sym; 9] = [
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Identifier
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
-#[cfg_attr(
-    feature = "serde",
-    derive(serde::Serialize, serde::Deserialize),
-    serde(transparent)
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[repr(transparent)]
 pub struct Identifier {
     ident: Sym,
+    span: Span,
 }
 
 impl PartialEq<Sym> for Identifier {
@@ -68,8 +64,8 @@ impl Identifier {
     /// Creates a new identifier AST Expression.
     #[inline]
     #[must_use]
-    pub const fn new(ident: Sym) -> Self {
-        Self { ident }
+    pub const fn new(ident: Sym, span: Span) -> Self {
+        Self { ident, span }
     }
 
     /// Retrieves the identifier's string symbol in the interner.
@@ -77,6 +73,27 @@ impl Identifier {
     #[must_use]
     pub const fn sym(self) -> Sym {
         self.ident
+    }
+
+    /// Retrieves the identifier's string symbol in the interner.
+    #[inline]
+    #[must_use]
+    pub const fn sym_ref(&self) -> &Sym {
+        &self.ident
+    }
+
+    /// Retrieves the identifier's string symbol in the interner.
+    #[inline]
+    #[must_use]
+    pub const fn sym_mut(&mut self) -> &mut Sym {
+        &mut self.ident
+    }
+}
+
+impl Spanned for Identifier {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -88,13 +105,6 @@ impl ToInternedString for Identifier {
             ToStringEscaped::to_string_escaped,
             true,
         )
-    }
-}
-
-impl From<Sym> for Identifier {
-    #[inline]
-    fn from(sym: Sym) -> Self {
-        Self { ident: sym }
     }
 }
 

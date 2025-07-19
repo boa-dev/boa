@@ -14,29 +14,29 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 use super::{
-    error::Error, Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp,
+    Array, BuiltInBuilder, BuiltInConstructor, Date, IntrinsicObject, RegExp, error::Error,
 };
+use crate::builtins::function::arguments::{MappedArguments, UnmappedArguments};
 use crate::value::JsVariant;
 use crate::{
-    builtins::{iterable::IteratorHint, map, BuiltInObject},
+    Context, JsArgs, JsData, JsResult, JsString,
+    builtins::{BuiltInObject, iterable::IteratorHint, map},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
     native_function::NativeFunction,
     object::{
-        internal_methods::{get_prototype_from_constructor, InternalMethodContext},
         FunctionObjectBuilder, IntegrityLevel, JsObject,
+        internal_methods::{InternalMethodPropertyContext, get_prototype_from_constructor},
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::JsValue,
-    Context, JsArgs, JsData, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
 pub(crate) mod for_in_iterator;
@@ -50,8 +50,6 @@ pub struct OrdinaryObject;
 
 impl IntrinsicObject for OrdinaryObject {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let legacy_proto_getter = BuiltInBuilder::callable(realm, Self::legacy_proto_getter)
             .name(js_string!("get __proto__"))
             .build();
@@ -214,7 +212,7 @@ impl OrdinaryObject {
         let obj = this.to_object(context)?;
 
         // 2. Return ? O.[[GetPrototypeOf]]().
-        let proto = obj.__get_prototype_of__(&mut InternalMethodContext::new(context))?;
+        let proto = obj.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?;
 
         Ok(proto.map_or(JsValue::null(), JsValue::new))
     }
@@ -252,7 +250,7 @@ impl OrdinaryObject {
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
         let status =
-            object.__set_prototype_of__(proto, &mut InternalMethodContext::new(context))?;
+            object.__set_prototype_of__(proto, &mut InternalMethodPropertyContext::new(context))?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -376,7 +374,8 @@ impl OrdinaryObject {
         loop {
             // a. Let desc be ? O.[[GetOwnProperty]](key).
 
-            let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+            let desc =
+                obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
             // b. If desc is not undefined, then
             if let Some(current_desc) = desc {
@@ -388,7 +387,7 @@ impl OrdinaryObject {
                     Ok(JsValue::undefined())
                 };
             }
-            match obj.__get_prototype_of__(&mut InternalMethodContext::new(context))? {
+            match obj.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))? {
                 // c. Set O to ? O.[[GetPrototypeOf]]().
                 Some(o) => obj = o,
                 // d. If O is null, return undefined.
@@ -421,7 +420,8 @@ impl OrdinaryObject {
         loop {
             // a. Let desc be ? O.[[GetOwnProperty]](key).
 
-            let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+            let desc =
+                obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
             // b. If desc is not undefined, then
             if let Some(current_desc) = desc {
@@ -433,7 +433,7 @@ impl OrdinaryObject {
                     Ok(JsValue::undefined())
                 };
             }
-            match obj.__get_prototype_of__(&mut InternalMethodContext::new(context))? {
+            match obj.__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))? {
                 // c. Set O to ? O.[[GetPrototypeOf]]().
                 Some(o) => obj = o,
                 // d. If O is null, return undefined.
@@ -460,7 +460,7 @@ impl OrdinaryObject {
             JsVariant::Object(_) | JsVariant::Null => {
                 JsObject::from_proto_and_data_with_shared_shape(
                     context.root_shape(),
-                    prototype.as_object().cloned(),
+                    prototype.as_object(),
                     OrdinaryObject,
                 )
             }
@@ -470,7 +470,7 @@ impl OrdinaryObject {
                         "Object prototype may only be an Object or null: {}",
                         prototype.display()
                     ))
-                    .into())
+                    .into());
             }
         };
 
@@ -505,7 +505,8 @@ impl OrdinaryObject {
 
         // 3. Let desc be ? obj.[[GetOwnProperty]](key).
 
-        let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+        let desc =
+            obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
         // 4. Return FromPropertyDescriptor(desc).
         Ok(Self::from_property_descriptor(desc, context))
@@ -530,7 +531,8 @@ impl OrdinaryObject {
         let obj = args.get_or_undefined(0).to_object(context)?;
 
         // 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().
-        let own_keys = obj.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+        let own_keys =
+            obj.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
         // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
         let descriptors = JsObject::with_object_proto(context.intrinsics());
@@ -539,7 +541,8 @@ impl OrdinaryObject {
         for key in own_keys {
             // a. Let desc be ? obj.[[GetOwnProperty]](key).
 
-            let desc = obj.__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+            let desc =
+                obj.__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
             // b. Let descriptor be FromPropertyDescriptor(desc).
             let descriptor = Self::from_property_descriptor(desc, context);
@@ -652,7 +655,7 @@ impl OrdinaryObject {
 
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
-            .__get_prototype_of__(&mut InternalMethodContext::new(context))?
+            .__get_prototype_of__(&mut InternalMethodPropertyContext::new(context))?
             .map_or(JsValue::null(), JsValue::new))
     }
 
@@ -693,7 +696,7 @@ impl OrdinaryObject {
                         "expected an object or null, got `{}`",
                         val.type_of()
                     ))
-                    .into())
+                    .into());
             }
         };
 
@@ -703,7 +706,8 @@ impl OrdinaryObject {
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = obj.__set_prototype_of__(proto, &mut InternalMethodContext::new(context))?;
+        let status =
+            obj.__set_prototype_of__(proto, &mut InternalMethodPropertyContext::new(context))?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -792,7 +796,7 @@ impl OrdinaryObject {
         let arg = args.get_or_undefined(0);
         if let Some(obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
-            object_define_properties(obj, props, context)?;
+            object_define_properties(&obj, props, context)?;
             Ok(arg.clone())
         } else {
             Err(JsNativeError::typ()
@@ -841,47 +845,44 @@ impl OrdinaryObject {
         //  5. If isArray is true, let builtinTag be "Array".
         let builtin_tag = if o.is_array_abstract()? {
             js_str!("Array")
+        } else if o.is::<UnmappedArguments>() || o.is::<MappedArguments>() {
+            // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
+            js_str!("Arguments")
+        } else if o.is_callable() {
+            // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
+            js_str!("Function")
+        } else if o.is::<Error>() {
+            // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
+            js_str!("Error")
+        } else if o.is::<bool>() {
+            // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+            js_str!("Boolean")
+        } else if o.is::<f64>() {
+            // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+            js_str!("Number")
+        } else if o.is::<JsString>() {
+            // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
+            js_str!("String")
+        } else if o.is::<Date>() {
+            // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+            js_str!("Date")
+        } else if o.is::<RegExp>() {
+            // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
+            js_str!("RegExp")
         } else {
-            let o_borrow = o.borrow();
-
-            if o_borrow.is_arguments() {
-                // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
-                js_str!("Arguments")
-            } else if o.is_callable() {
-                // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
-                js_str!("Function")
-            } else if o.is::<Error>() {
-                // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
-                js_str!("Error")
-            } else if o.is::<bool>() {
-                // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
-                js_str!("Boolean")
-            } else if o.is::<f64>() {
-                // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
-                js_str!("Number")
-            } else if o.is::<JsString>() {
-                // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
-                js_str!("String")
-            } else if o.is::<Date>() {
-                // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
-                js_str!("Date")
-            } else if o.is::<RegExp>() {
-                // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
-                js_str!("RegExp")
-            } else {
-                // 14. Else, let builtinTag be "Object".
-                js_str!("Object")
-            }
+            // 14. Else, let builtinTag be "Object".
+            js_str!("Object")
         };
 
         // 15. Let tag be ? Get(O, @@toStringTag).
         let tag = o.get(JsSymbol::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
+        let tag = tag.as_string();
+        let tag = tag.as_ref().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(js_string!(js_str!("[object "), tag_str, js_str!("]")).into())
+        Ok(js_string!(js_str!("[object "), tag, js_str!("]")).into())
     }
 
     /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`
@@ -953,7 +954,7 @@ impl OrdinaryObject {
 
         let own_prop = this
             .to_object(context)?
-            .__get_own_property__(&key, &mut InternalMethodContext::new(context))?;
+            .__get_own_property__(&key, &mut InternalMethodPropertyContext::new(context))?;
 
         own_prop
             .as_ref()
@@ -992,14 +993,16 @@ impl OrdinaryObject {
                     .to_object(context)
                     .expect("this ToObject call must not fail");
                 // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
-                let keys = from.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+                let keys =
+                    from.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
                 // 3.a.iii. For each element nextKey of keys, do
                 for key in keys {
                     // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
 
-                    if let Some(desc) =
-                        from.__get_own_property__(&key, &mut InternalMethodContext::new(context))?
-                    {
+                    if let Some(desc) = from.__get_own_property__(
+                        &key,
+                        &mut InternalMethodPropertyContext::new(context),
+                    )? {
                         // 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
                         if desc.expect_enumerable() {
                             // 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).
@@ -1210,7 +1213,8 @@ impl OrdinaryObject {
 
         if let Some(o) = o.as_object() {
             // 2. Let status be ? O.[[PreventExtensions]]().
-            let status = o.__prevent_extensions__(&mut InternalMethodContext::new(context))?;
+            let status =
+                o.__prevent_extensions__(&mut InternalMethodPropertyContext::new(context))?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
                 return Err(JsNativeError::typ()
@@ -1359,7 +1363,7 @@ impl OrdinaryObject {
         use indexmap::IndexMap;
         use rustc_hash::FxHasher;
 
-        use crate::builtins::{iterable::if_abrupt_close_iterator, Number};
+        use crate::builtins::{Number, iterable::if_abrupt_close_iterator};
 
         let items = args.get_or_undefined(0);
         let callback = args.get_or_undefined(1);
@@ -1464,7 +1468,7 @@ fn object_define_properties(
     let props = &props.to_object(context)?;
 
     // 3. Let keys be ? props.[[OwnPropertyKeys]]().
-    let keys = props.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+    let keys = props.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
     // 4. Let descriptors be a new empty List.
     let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
@@ -1474,8 +1478,8 @@ fn object_define_properties(
         // a. Let propDesc be ? props.[[GetOwnProperty]](nextKey).
         // b. If propDesc is not undefined and propDesc.[[Enumerable]] is true, then
 
-        if let Some(prop_desc) =
-            props.__get_own_property__(&next_key, &mut InternalMethodContext::new(context))?
+        if let Some(prop_desc) = props
+            .__get_own_property__(&next_key, &mut InternalMethodPropertyContext::new(context))?
         {
             if prop_desc.expect_enumerable() {
                 // i. Let descObj be ? Get(props, nextKey).
@@ -1524,7 +1528,7 @@ fn get_own_property_keys(
     let obj = o.to_object(context)?;
 
     // 2. Let keys be ? obj.[[OwnPropertyKeys]]().
-    let keys = obj.__own_property_keys__(&mut InternalMethodContext::new(context))?;
+    let keys = obj.__own_property_keys__(&mut InternalMethodPropertyContext::new(context))?;
 
     // 3. Let nameList be a new empty List.
     // 4. For each element nextKey of keys, do

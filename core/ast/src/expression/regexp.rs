@@ -11,7 +11,10 @@ use std::ops::ControlFlow;
 
 use boa_interner::{Interner, Sym, ToInternedString};
 
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::{
+    Span, Spanned,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 
 use super::Expression;
 
@@ -29,14 +32,19 @@ use super::Expression;
 pub struct RegExpLiteral {
     pattern: Sym,
     flags: Sym,
+    span: Span,
 }
 
 impl RegExpLiteral {
     /// Create a new [`RegExpLiteral`].
     #[inline]
     #[must_use]
-    pub const fn new(pattern: Sym, flags: Sym) -> Self {
-        Self { pattern, flags }
+    pub const fn new(pattern: Sym, flags: Sym, span: Span) -> Self {
+        Self {
+            pattern,
+            flags,
+            span,
+        }
     }
 
     /// Get the pattern part of the [`RegExpLiteral`].
@@ -51,6 +59,13 @@ impl RegExpLiteral {
     #[must_use]
     pub const fn flags(&self) -> Sym {
         self.flags
+    }
+}
+
+impl Spanned for RegExpLiteral {
+    #[inline]
+    fn span(&self) -> Span {
+        self.span
     }
 }
 

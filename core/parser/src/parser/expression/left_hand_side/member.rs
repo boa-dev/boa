@@ -7,29 +7,25 @@
 
 use super::arguments::Arguments;
 use crate::{
-    lexer::{token::ContainsEscapeSequence, InputElement, TokenKind},
+    Error,
+    lexer::{InputElement, TokenKind, token::ContainsEscapeSequence},
     parser::{
-        expression::{
-            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
-        },
         AllowAwait, AllowYield, Cursor, OrAbrupt, ParseResult, TokenParser,
+        expression::{
+            Expression, left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
+        },
     },
     source::ReadChar,
-    Error,
 };
 use ast::function::PrivateName;
 use boa_ast::{
-    self as ast,
+    self as ast, Keyword, Punctuator, Span, Spanned,
     expression::{
-        access::{
-            PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess, SuperPropertyAccess,
-        },
-        Call, New,
+        Call, Identifier, ImportMeta, New, NewTarget,
+        access::{PrivatePropertyAccess, SimplePropertyAccess, SuperPropertyAccess},
     },
-    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Parses a member expression.
 ///
@@ -64,8 +60,6 @@ where
     type Output = ast::Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("MemberExpression", "Parsing");
-
         cursor.set_goal(InputElement::RegExp);
 
         let token = cursor.peek(0, interner).or_abrupt()?;
@@ -78,6 +72,7 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::Import, false)) => {
+                let import_span = token.span();
                 cursor.advance(interner);
 
                 cursor.expect(
@@ -114,12 +109,13 @@ where
                     ));
                 }
 
-                ast::Expression::ImportMeta
+                ImportMeta::new(Span::new(import_span.start(), token.span().end())).into()
             }
             TokenKind::Keyword((Keyword::New, false)) => {
+                let new_token_span = token.span();
                 cursor.advance(interner);
 
-                let lhs_new_target = if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
+                if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner).or_abrupt()?;
                     match token.kind() {
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(true))) => {
@@ -129,7 +125,8 @@ where
                             ));
                         }
                         TokenKind::IdentifierName((Sym::TARGET, ContainsEscapeSequence(false))) => {
-                            ast::Expression::NewTarget
+                            NewTarget::new(Span::new(new_token_span.start(), token.span().end()))
+                                .into()
                         }
                         _ => {
                             return Err(Error::general(
@@ -140,41 +137,52 @@ where
                     }
                 } else {
                     let lhs_inner = self.parse(cursor, interner)?;
-                    let args = match cursor.peek(0, interner)? {
+                    let (args, args_span) = match cursor.peek(0, interner)? {
                         Some(next)
                             if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) =>
                         {
                             Arguments::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?
                         }
-                        _ => Box::new([]),
+                        _ => (Box::default(), lhs_inner.span()),
                     };
-                    let call_node = Call::new(lhs_inner, args);
+                    let call_node = Call::new(
+                        lhs_inner,
+                        args,
+                        Span::new(new_token_span.start(), args_span.end()),
+                    );
 
-                    ast::Expression::from(New::from(call_node))
-                };
-                lhs_new_target
+                    New::from(call_node).into()
+                }
             }
             TokenKind::Keyword((Keyword::Super, _)) => {
+                let super_token_span = token.span();
                 cursor.advance(interner);
                 let token = cursor.next(interner).or_abrupt()?;
                 match token.kind() {
                     TokenKind::Punctuator(Punctuator::Dot) => {
                         let token = cursor.next(interner).or_abrupt()?;
                         let field = match token.kind() {
-                            TokenKind::IdentifierName((name, _)) => {
-                                SuperPropertyAccess::new(PropertyAccessField::from(*name))
-                            }
-                            TokenKind::Keyword((kw, _)) => {
-                                SuperPropertyAccess::new(kw.to_sym().into())
-                            }
-                            TokenKind::BooleanLiteral((true, _)) => {
-                                SuperPropertyAccess::new(Sym::TRUE.into())
-                            }
-                            TokenKind::BooleanLiteral((false, _)) => {
-                                SuperPropertyAccess::new(Sym::FALSE.into())
-                            }
-                            TokenKind::NullLiteral(_) => SuperPropertyAccess::new(Sym::NULL.into()),
+                            TokenKind::IdentifierName((name, _)) => SuperPropertyAccess::new(
+                                Identifier::new(*name, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
+                            ),
+                            TokenKind::Keyword((kw, _)) => SuperPropertyAccess::new(
+                                Identifier::new(kw.to_sym(), token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
+                            ),
+                            TokenKind::BooleanLiteral((true, _)) => SuperPropertyAccess::new(
+                                Identifier::new(Sym::TRUE, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
+                            ),
+                            TokenKind::BooleanLiteral((false, _)) => SuperPropertyAccess::new(
+                                Identifier::new(Sym::FALSE, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
+                            ),
+                            TokenKind::NullLiteral(_) => SuperPropertyAccess::new(
+                                Identifier::new(Sym::NULL, token.span()).into(),
+                                Span::new(super_token_span.start(), token.span().end()),
+                            ),
                             TokenKind::PrivateIdentifier(_) => {
                                 return Err(Error::general(
                                     "unexpected private identifier",
@@ -194,9 +202,16 @@ where
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let expr = Expression::new(true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                        cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
+                        let token_span = cursor
+                            .expect(Punctuator::CloseBracket, "super property", interner)?
+                            .span();
+
                         ast::Expression::PropertyAccess(
-                            SuperPropertyAccess::new(expr.into()).into(),
+                            SuperPropertyAccess::new(
+                                expr.into(),
+                                Span::new(super_token_span.start(), token_span.end()),
+                            )
+                            .into(),
                         )
                     }
                     _ => {
@@ -204,7 +219,7 @@ where
                             token.to_string(interner),
                             token.span(),
                             "expected super property",
-                        ))
+                        ));
                     }
                 }
             }
@@ -223,25 +238,36 @@ where
 
                     let token = cursor.next(interner).or_abrupt()?;
 
+                    let lhs_span = lhs.span();
                     let access = match token.kind() {
                         TokenKind::IdentifierName((name, _)) => {
-                            SimplePropertyAccess::new(lhs, *name).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(*name, token.span()))
+                                .into()
                         }
-                        TokenKind::Keyword((kw, _)) => {
-                            SimplePropertyAccess::new(lhs, kw.to_sym()).into()
-                        }
+                        TokenKind::Keyword((kw, _)) => SimplePropertyAccess::new(
+                            lhs,
+                            Identifier::new(kw.to_sym(), token.span()),
+                        )
+                        .into(),
                         TokenKind::BooleanLiteral((true, _)) => {
-                            SimplePropertyAccess::new(lhs, Sym::TRUE).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(Sym::TRUE, token.span()))
+                                .into()
                         }
-                        TokenKind::BooleanLiteral((false, _)) => {
-                            SimplePropertyAccess::new(lhs, Sym::FALSE).into()
-                        }
+                        TokenKind::BooleanLiteral((false, _)) => SimplePropertyAccess::new(
+                            lhs,
+                            Identifier::new(Sym::FALSE, token.span()),
+                        )
+                        .into(),
                         TokenKind::NullLiteral(_) => {
-                            SimplePropertyAccess::new(lhs, Sym::NULL).into()
+                            SimplePropertyAccess::new(lhs, Identifier::new(Sym::NULL, token.span()))
+                                .into()
                         }
-                        TokenKind::PrivateIdentifier(name) => {
-                            PrivatePropertyAccess::new(lhs, PrivateName::new(*name)).into()
-                        }
+                        TokenKind::PrivateIdentifier(name) => PrivatePropertyAccess::new(
+                            lhs,
+                            PrivateName::new(*name, token.span()),
+                            Span::new(lhs_span.start(), token.span().end()),
+                        )
+                        .into(),
                         _ => {
                             return Err(Error::expected(
                                 ["identifier".to_owned()],
@@ -268,7 +294,7 @@ where
                     lhs = TaggedTemplateLiteral::new(
                         self.allow_yield,
                         self.allow_await,
-                        tok.span().start(),
+                        tok.start_group(),
                         lhs,
                     )
                     .parse(cursor, interner)?

@@ -8,33 +8,29 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
 
 use crate::{
+    Context, JsArgs, JsData, JsError, JsResult, JsString,
     builtins::{
-        date::utils::{
-            date_from_time, date_string, day, hour_from_time, local_time, make_date, make_day,
-            make_full_year, make_time, min_from_time, month_from_time, ms_from_time, pad_five,
-            pad_four, pad_six, pad_three, pad_two, parse_date, sec_from_time, time_clip,
-            time_string, time_within_day, time_zone_string, to_date_string_t, utc_t, week_day,
-            year_from_time, MS_PER_MINUTE,
-        },
         BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject,
+        date::utils::{
+            MS_PER_MINUTE, date_from_time, date_string, day, hour_from_time, local_time, make_date,
+            make_day, make_full_year, make_time, min_from_time, month_from_time, ms_from_time,
+            pad_five, pad_four, pad_six, pad_three, pad_two, parse_date, sec_from_time, time_clip,
+            time_string, time_within_day, time_zone_string, to_date_string_t, utc_t, week_day,
+            year_from_time,
+        },
     },
-    context::{
-        intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
-        HostHooks,
-    },
+    context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     error::JsNativeError,
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
     symbol::JsSymbol,
     value::{JsValue, PreferredType},
-    Context, JsArgs, JsData, JsError, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
 use boa_macros::js_str;
-use boa_profiler::Profiler;
 
 pub(crate) mod utils;
 
@@ -53,15 +49,13 @@ impl Date {
     }
 
     /// Creates a new `Date` from the current UTC time of the host.
-    pub(crate) fn utc_now(hooks: &dyn HostHooks) -> Self {
-        Self(hooks.utc_now() as f64)
+    pub(crate) fn utc_now(context: &mut Context) -> Self {
+        Self(context.clock().now().millis_since_epoch() as f64)
     }
 }
 
 impl IntrinsicObject for Date {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let to_utc_string = BuiltInBuilder::callable(realm, Self::to_utc_string)
             .name(js_string!("toUTCString"))
             .length(0)
@@ -208,12 +202,12 @@ impl BuiltInConstructor for Date {
         // 1. If NewTarget is undefined, then
         if new_target.is_undefined() {
             // a. Let now be the time value (UTC) identifying the current time.
-            let now = context.host_hooks().utc_now();
+            let now = context.clock().now().millis_since_epoch();
 
             // b. Return ToDateString(now).
             return Ok(JsValue::from(to_date_string_t(
                 now as f64,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             )));
         }
 
@@ -222,40 +216,40 @@ impl BuiltInConstructor for Date {
             // 3. If numberOfArgs = 0, then
             [] => {
                 // a. Let dv be the time value (UTC) identifying the current time.
-                Self::utc_now(context.host_hooks())
+                Self::utc_now(context)
             }
             // 4. Else if numberOfArgs = 1, then
             // a. Let value be values[0].
             [value] => {
                 // b. If value is an Object and value has a [[DateValue]] internal slot, then
-                let tv = if let Some(date) =
-                    value.as_object().and_then(JsObject::downcast_ref::<Self>)
-                {
-                    // i. Let tv be value.[[DateValue]].
-                    date.0
-                }
-                // c. Else,
-                else {
-                    // i. Let v be ? ToPrimitive(value).
-                    let v = value.to_primitive(context, PreferredType::Default)?;
-
-                    // ii. If v is a String, then
-                    if let Some(v) = v.as_string() {
-                        // 1. Assert: The next step never returns an abrupt completion because v is a String.
-                        // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the parse method (21.4.3.2).
-                        let tv = parse_date(v, context.host_hooks());
-                        if let Some(tv) = tv {
-                            tv as f64
-                        } else {
-                            f64::NAN
-                        }
+                let object = value.as_object();
+                let tv =
+                    if let Some(date) = object.as_ref().and_then(JsObject::downcast_ref::<Self>) {
+                        // i. Let tv be value.[[DateValue]].
+                        date.0
                     }
-                    // iii. Else,
+                    // c. Else,
                     else {
-                        // 1. Let tv be ? ToNumber(v).
-                        v.to_number(context)?
-                    }
-                };
+                        // i. Let v be ? ToPrimitive(value).
+                        let v = value.to_primitive(context, PreferredType::Default)?;
+
+                        // ii. If v is a String, then
+                        if let Some(v) = v.as_string() {
+                            // 1. Assert: The next step never returns an abrupt completion because v is a String.
+                            // 2. Let tv be the result of parsing v as a date, in exactly the same manner as for the parse method (21.4.3.2).
+                            let tv = parse_date(&v, context.host_hooks().as_ref());
+                            if let Some(tv) = tv {
+                                tv as f64
+                            } else {
+                                f64::NAN
+                            }
+                        }
+                        // iii. Else,
+                        else {
+                            // 1. Let tv be ? ToNumber(v).
+                            v.to_number(context)?
+                        }
+                    };
 
                 // d. Let dv be TimeClip(tv).
                 Self(time_clip(tv))
@@ -296,7 +290,7 @@ impl BuiltInConstructor for Date {
                 let final_date = make_date(make_day(yr, m, dt), make_time(h, min, s, milli));
 
                 // k. Let dv be TimeClip(UTC(finalDate)).
-                Self(time_clip(utc_t(final_date, context.host_hooks())))
+                Self(time_clip(utc_t(final_date, context.host_hooks().as_ref())))
             }
         };
 
@@ -326,7 +320,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn now(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        Ok(JsValue::new(context.host_hooks().utc_now()))
+        Ok(JsValue::new(context.clock().now().millis_since_epoch()))
     }
 
     /// `Date.parse()`
@@ -343,7 +337,8 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
     pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let date = args.get_or_undefined(0).to_string(context)?;
-        Ok(parse_date(&date, context.host_hooks()).map_or(JsValue::from(f64::NAN), JsValue::from))
+        Ok(parse_date(&date, context.host_hooks().as_ref())
+            .map_or(JsValue::from(f64::NAN), JsValue::from))
     }
 
     /// `Date.UTC()`
@@ -424,13 +419,13 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::new(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return DateFromTime(LocalTime(t)).
             Ok(JsValue::from(date_from_time(local_time(
                 t,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             ))))
         } else {
             // 5. Return DateFromTime(t).
@@ -463,11 +458,14 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return WeekDay(LocalTime(t)).
-            Ok(JsValue::from(week_day(local_time(t, context.host_hooks()))))
+            Ok(JsValue::from(week_day(local_time(
+                t,
+                context.host_hooks().as_ref(),
+            ))))
         } else {
             // 5. Return WeekDay(t).
             Ok(JsValue::from(week_day(t)))
@@ -502,11 +500,11 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 5. Return YearFromTime(LocalTime(t)) - 1900𝔽.
         Ok(JsValue::from(
-            year_from_time(local_time(t, context.host_hooks())) - 1900,
+            year_from_time(local_time(t, context.host_hooks().as_ref())) - 1900,
         ))
     }
 
@@ -534,13 +532,13 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return YearFromTime(LocalTime(t)).
             Ok(JsValue::from(year_from_time(local_time(
                 t,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             ))))
         } else {
             // 5. Return YearFromTime(t).
@@ -572,13 +570,13 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return HourFromTime(LocalTime(t)).
             Ok(JsValue::from(hour_from_time(local_time(
                 t,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             ))))
         } else {
             // 5. Return HourFromTime(t).
@@ -610,13 +608,13 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return msFromTime(LocalTime(t)).
             Ok(JsValue::from(ms_from_time(local_time(
                 t,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             ))))
         } else {
             // 5. Return msFromTime(t).
@@ -648,13 +646,13 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return MinFromTime(LocalTime(t)).
             Ok(JsValue::from(min_from_time(local_time(
                 t,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             ))))
         } else {
             // 5. Return MinFromTime(t).
@@ -687,13 +685,13 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return MonthFromTime(LocalTime(t)).
             Ok(JsValue::from(month_from_time(local_time(
                 t,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             ))))
         } else {
             // 5. Return MonthFromTime(t).
@@ -725,13 +723,13 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 5. Return SecFromTime(LocalTime(t)).
             Ok(JsValue::from(sec_from_time(local_time(
                 t,
-                context.host_hooks(),
+                context.host_hooks().as_ref(),
             ))))
         } else {
             // 5. Return SecFromTime(t).
@@ -793,11 +791,11 @@ impl Date {
         // 4. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 5. Return (t - LocalTime(t)) / msPerMinute.
         Ok(JsValue::from(
-            (t - local_time(t, context.host_hooks())) / MS_PER_MINUTE,
+            (t - local_time(t, context.host_hooks().as_ref())) / MS_PER_MINUTE,
         ))
     }
 
@@ -816,8 +814,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -836,11 +835,11 @@ impl Date {
         // 5. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 6. Set t to LocalTime(t).
-            t = local_time(t, context.host_hooks());
+            t = local_time(t, context.host_hooks().as_ref());
         }
 
         // 7. Let newDate be MakeDate(MakeDay(YearFromTime(t), MonthFromTime(t), dt), TimeWithinDay(t)).
@@ -851,14 +850,15 @@ impl Date {
 
         let u = if LOCAL {
             // 8. Let u be TimeClip(UTC(newDate)).
-            time_clip(utc_t(new_date, context.host_hooks()))
+            time_clip(utc_t(new_date, context.host_hooks().as_ref()))
         } else {
             // 8. Let v be TimeClip(newDate).
             time_clip(new_date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -884,8 +884,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -903,15 +904,11 @@ impl Date {
             if t.is_nan() {
                 0.0
             } else {
-                local_time(t, context.host_hooks())
+                local_time(t, context.host_hooks().as_ref())
             }
         } else {
             // 4. If t is NaN, set t to +0𝔽.
-            if t.is_nan() {
-                0.0
-            } else {
-                t
-            }
+            if t.is_nan() { 0.0 } else { t }
         };
 
         // 4. Let y be ? ToNumber(year).
@@ -936,14 +933,15 @@ impl Date {
 
         let u = if LOCAL {
             // 9. Let u be TimeClip(UTC(newDate)).
-            time_clip(utc_t(new_date, context.host_hooks()))
+            time_clip(utc_t(new_date, context.host_hooks().as_ref()))
         } else {
             // 9. Let u be TimeClip(newDate).
             time_clip(new_date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -971,8 +969,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1000,11 +999,11 @@ impl Date {
         // 8. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 9. Set t to LocalTime(t).
-            t = local_time(t, context.host_hooks());
+            t = local_time(t, context.host_hooks().as_ref());
         }
 
         // 10. If min is not present, let m be MinFromTime(t).
@@ -1021,14 +1020,15 @@ impl Date {
 
         let u = if LOCAL {
             // 14. Let u be TimeClip(UTC(date)).
-            time_clip(utc_t(date, context.host_hooks()))
+            time_clip(utc_t(date, context.host_hooks().as_ref()))
         } else {
             // 14. Let u be TimeClip(date).
             time_clip(date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1053,8 +1053,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1073,11 +1074,11 @@ impl Date {
         // 5. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 6. Set t to LocalTime(t).
-            t = local_time(t, context.host_hooks());
+            t = local_time(t, context.host_hooks().as_ref());
         }
 
         // 7. Let time be MakeTime(HourFromTime(t), MinFromTime(t), SecFromTime(t), ms).
@@ -1090,14 +1091,18 @@ impl Date {
 
         let u = if LOCAL {
             // 8. Let u be TimeClip(UTC(MakeDate(Day(t), time))).
-            time_clip(utc_t(make_date(day(t), time), context.host_hooks()))
+            time_clip(utc_t(
+                make_date(day(t), time),
+                context.host_hooks().as_ref(),
+            ))
         } else {
             // 8. Let u be TimeClip(MakeDate(Day(t), time)).
             time_clip(make_date(day(t), time))
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1122,8 +1127,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1148,11 +1154,11 @@ impl Date {
         // 7. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         if LOCAL {
             // 8. Set t to LocalTime(t).
-            t = local_time(t, context.host_hooks());
+            t = local_time(t, context.host_hooks().as_ref());
         }
 
         // 9. If sec is not present, let s be SecFromTime(t).
@@ -1166,14 +1172,15 @@ impl Date {
 
         let u = if LOCAL {
             // 12. Let u be TimeClip(UTC(date)).
-            time_clip(utc_t(date, context.host_hooks()))
+            time_clip(utc_t(date, context.host_hooks().as_ref()))
         } else {
             // 12. Let u be TimeClip(date).
             time_clip(date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1199,8 +1206,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1222,11 +1230,11 @@ impl Date {
         // 6. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 7. Set t to LocalTime(t).
         if LOCAL {
-            t = local_time(t, context.host_hooks());
+            t = local_time(t, context.host_hooks().as_ref());
         }
 
         // 8. If date is not present, let dt be DateFromTime(t).
@@ -1240,14 +1248,15 @@ impl Date {
 
         let u = if LOCAL {
             // 10. Let u be TimeClip(UTC(newDate)).
-            time_clip(utc_t(new_date, context.host_hooks()))
+            time_clip(utc_t(new_date, context.host_hooks().as_ref()))
         } else {
             // 10. Let u be TimeClip(newDate).
             time_clip(new_date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1272,8 +1281,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1295,11 +1305,11 @@ impl Date {
         // 6. If t is NaN, return NaN.
         if t.is_nan() {
             return Ok(JsValue::from(f64::NAN));
-        };
+        }
 
         // 7. Set t to LocalTime(t).
         if LOCAL {
-            t = local_time(t, context.host_hooks());
+            t = local_time(t, context.host_hooks().as_ref());
         }
 
         // 8. If ms is not present, let milli be msFromTime(t).
@@ -1313,14 +1323,15 @@ impl Date {
 
         let u = if LOCAL {
             // 10. Let u be TimeClip(UTC(date)).
-            time_clip(utc_t(date, context.host_hooks()))
+            time_clip(utc_t(date, context.host_hooks().as_ref()))
         } else {
             // 10. Let u be TimeClip(date).
             time_clip(date)
         };
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1352,8 +1363,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1373,7 +1385,7 @@ impl Date {
         let t = if t.is_nan() {
             0.0
         } else {
-            local_time(t, context.host_hooks())
+            local_time(t, context.host_hooks().as_ref())
         };
 
         // 6. Let yyyy be MakeFullYear(y).
@@ -1386,10 +1398,11 @@ impl Date {
         let date = make_date(d, time_within_day(t));
 
         // 9. Let u be TimeClip(UTC(date)).
-        let u = time_clip(utc_t(date, context.host_hooks()));
+        let u = time_clip(utc_t(date, context.host_hooks().as_ref()));
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1417,8 +1430,9 @@ impl Date {
     ) -> JsResult<JsValue> {
         // 1. Let dateObject be the this value.
         // 2. Perform ? RequireInternalSlot(dateObject, [[DateValue]]).
-        let date = this
-            .as_object()
+        let object = this.as_object();
+        let date = object
+            .as_ref()
             .and_then(JsObject::downcast_ref::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1434,8 +1448,9 @@ impl Date {
         // 4. Let v be TimeClip(t).
         let v = time_clip(t);
 
-        let mut date_mut = this
-            .as_object()
+        let object = this.as_object();
+        let mut date_mut = object
+            .as_ref()
             .and_then(JsObject::downcast_mut::<Date>)
             .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Date"))?;
 
@@ -1472,10 +1487,10 @@ impl Date {
         // 4. If tv is NaN, return "Invalid Date".
         if tv.is_nan() {
             return Ok(js_string!("Invalid Date").into());
-        };
+        }
 
         // 5. Let t be LocalTime(tv).
-        let t = local_time(tv, context.host_hooks());
+        let t = local_time(tv, context.host_hooks().as_ref());
 
         // 6. Return DateString(t).
         Ok(JsValue::from(date_string(t)))
@@ -1668,7 +1683,10 @@ impl Date {
             .0;
 
         // 4. Return ToDateString(tv).
-        Ok(JsValue::from(to_date_string_t(tv, context.host_hooks())))
+        Ok(JsValue::from(to_date_string_t(
+            tv,
+            context.host_hooks().as_ref(),
+        )))
     }
 
     /// [`Date.prototype.toTimeString()`][spec].
@@ -1701,12 +1719,12 @@ impl Date {
         }
 
         // 5. Let t be LocalTime(tv).
-        let t = local_time(tv, context.host_hooks());
+        let t = local_time(tv, context.host_hooks().as_ref());
 
         // 6. Return the string-concatenation of TimeString(t) and TimeZoneString(tv).
         Ok(JsValue::from(js_string!(
             &time_string(t),
-            &time_zone_string(t, context.host_hooks())
+            &time_zone_string(t, context.host_hooks().as_ref())
         )))
     }
 
@@ -1872,7 +1890,7 @@ impl Date {
             _ => {
                 return Err(JsNativeError::typ()
                     .with_message("Date.prototype[@@toPrimitive] called with invalid hint")
-                    .into())
+                    .into());
             }
         };
 

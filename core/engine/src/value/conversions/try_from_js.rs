@@ -3,8 +3,7 @@
 use num_bigint::BigInt;
 use num_traits::AsPrimitive;
 
-use crate::value::InnerValue;
-use crate::{js_string, Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue};
+use crate::{Context, JsBigInt, JsNativeError, JsObject, JsResult, JsString, JsValue, js_string};
 
 mod collections;
 mod tuples;
@@ -62,11 +61,12 @@ impl TryFromJs for String {
 
 impl TryFromJs for JsString {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match &value.inner {
-            InnerValue::String(s) => Ok(s.clone()),
-            _ => Err(JsNativeError::typ()
-                .with_message("cannot convert value to a String")
-                .into()),
+        if let Some(s) = value.as_string() {
+            Ok(s.clone())
+        } else {
+            Err(JsNativeError::typ()
+                .with_message("cannot convert value to a JsString")
+                .into())
         }
     }
 }
@@ -76,8 +76,7 @@ where
     T: TryFromJs,
 {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
-        // TODO: remove NULL -> None conversion.
-        if value.is_null_or_undefined() {
+        if value.is_undefined() {
             Ok(None)
         } else {
             Ok(Some(T::try_from_js(value, context)?))
@@ -90,7 +89,7 @@ where
     T: TryFromJs,
 {
     fn try_from_js(value: &JsValue, context: &mut Context) -> JsResult<Self> {
-        let InnerValue::Object(object) = &value.inner else {
+        let Some(object) = &value.as_object() else {
             return Err(JsNativeError::typ()
                 .with_message("cannot convert value to a Vec")
                 .into());
@@ -119,33 +118,36 @@ where
 
 impl TryFromJs for JsObject {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match &value.inner {
-            InnerValue::Object(o) => Ok(o.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(o) = value.as_object() {
+            Ok(o.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("cannot convert value to a Object")
-                .into()),
+                .into())
         }
     }
 }
 
 impl TryFromJs for JsBigInt {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match &value.inner {
-            InnerValue::BigInt(b) => Ok(b.clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(b) = value.as_bigint() {
+            Ok(b.clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("cannot convert value to a BigInt")
-                .into()),
+                .into())
         }
     }
 }
 
 impl TryFromJs for BigInt {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match &value.inner {
-            InnerValue::BigInt(b) => Ok(b.as_inner().clone()),
-            _ => Err(JsNativeError::typ()
+        if let Some(b) = value.as_bigint() {
+            Ok(b.as_inner().clone())
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("cannot convert value to a BigInt")
-                .into()),
+                .into())
         }
     }
 }
@@ -158,12 +160,14 @@ impl TryFromJs for JsValue {
 
 impl TryFromJs for f64 {
     fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-        match &value.inner {
-            InnerValue::Integer32(i) => Ok((*i).into()),
-            InnerValue::Float64(r) => Ok(*r),
-            _ => Err(JsNativeError::typ()
+        if let Some(i) = value.0.as_integer32() {
+            Ok(f64::from(i))
+        } else if let Some(f) = value.0.as_float64() {
+            Ok(f)
+        } else {
+            Err(JsNativeError::typ()
                 .with_message("cannot convert value to a f64")
-                .into()),
+                .into())
         }
     }
 }
@@ -184,23 +188,25 @@ macro_rules! impl_try_from_js_integer {
         $(
             impl TryFromJs for $type {
                 fn try_from_js(value: &JsValue, _context: &mut Context) -> JsResult<Self> {
-                    match &value.inner {
-                        InnerValue::Integer32(i) => (*i).try_into().map_err(|e| {
+                    if let Some(i) = value.as_i32() {
+                        i.try_into().map_err(|e| {
                             JsNativeError::typ()
                                 .with_message(format!(
                                     concat!("cannot convert value to a ", stringify!($type), ": {}"),
                                     e)
                                 )
                                 .into()
-                        }),
-                        InnerValue::Float64(f) => from_f64(*f).ok_or_else(|| {
+                        })
+                    } else if let Some(f) = value.as_number() {
+                        from_f64(f).ok_or_else(|| {
                             JsNativeError::typ()
                                 .with_message(concat!("cannot convert value to a ", stringify!($type)))
                                 .into()
-                        }),
-                        _ => Err(JsNativeError::typ()
+                        })
+                    } else {
+                        Err(JsNativeError::typ()
                             .with_message(concat!("cannot convert value to a ", stringify!($type)))
-                            .into()),
+                            .into())
                     }
                 }
             }
@@ -242,7 +248,7 @@ fn integer_floating_js_value_to_integer() {
 
 #[test]
 fn value_into_vec() {
-    use boa_engine::{run_test_actions, TestAction};
+    use boa_engine::{TestAction, run_test_actions};
     use indoc::indoc;
 
     #[derive(Debug, PartialEq, Eq, boa_macros::TryFromJs)]
@@ -301,7 +307,7 @@ fn value_into_vec() {
 
 #[test]
 fn value_into_tuple() {
-    use boa_engine::{run_test_actions, TestAction};
+    use boa_engine::{TestAction, run_test_actions};
     use indoc::indoc;
 
     run_test_actions([
@@ -351,7 +357,7 @@ fn value_into_tuple() {
 
 #[test]
 fn value_into_map() {
-    use boa_engine::{run_test_actions, TestAction};
+    use boa_engine::{TestAction, run_test_actions};
     use indoc::indoc;
 
     run_test_actions([

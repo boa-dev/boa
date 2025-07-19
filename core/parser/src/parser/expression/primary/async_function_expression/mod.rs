@@ -2,22 +2,22 @@
 mod tests;
 
 use crate::{
+    Error,
     lexer::{Error as LexError, TokenKind},
     parser::{
+        Cursor, OrAbrupt, ParseResult, TokenParser,
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        name_in_lexically_declared_names, Cursor, OrAbrupt, ParseResult, TokenParser,
+        name_in_lexically_declared_names,
     },
     source::ReadChar,
-    Error,
 };
 use boa_ast::{
+    Keyword, Punctuator, Span, Spanned,
     function::AsyncFunctionExpression as AsyncFunctionExpressionNode,
-    operations::{bound_names, contains, lexically_declared_names, ContainsSymbol},
-    Keyword, Punctuator,
+    operations::{ContainsSymbol, bound_names, contains, lexically_declared_names},
 };
 use boa_interner::{Interner, Sym};
-use boa_profiler::Profiler;
 
 /// Async Function expression parsing.
 ///
@@ -44,7 +44,14 @@ where
     type Output = AsyncFunctionExpressionNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        let _timer = Profiler::global().start_event("AsyncFunctionExpression", "Parsing");
+        let token = cursor.expect(
+            (Keyword::Async, false),
+            "async function expression",
+            interner,
+        )?;
+        let start_linear_span = token.linear_span();
+        let function_span_start = token.span().start();
+
         cursor.peek_expect_no_lineterminator(0, "async function expression", interner)?;
         cursor.expect(
             (Keyword::Function, false),
@@ -79,15 +86,9 @@ where
             "async function expression",
             interner,
         )?;
-        cursor.expect(Punctuator::OpenBlock, "async function expression", interner)?;
 
-        let body = FunctionBody::new(false, true).parse(cursor, interner)?;
-
-        cursor.expect(
-            Punctuator::CloseBlock,
-            "async function expression",
-            interner,
-        )?;
+        let body =
+            FunctionBody::new(false, true, "async function expression").parse(cursor, interner)?;
 
         // Early Error: If the source code matching FormalParameters is strict mode code,
         // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
@@ -109,15 +110,14 @@ where
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        if let Some(name) = name {
-            if (cursor.strict() || body.strict())
-                && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
-            {
-                return Err(Error::lex(LexError::Syntax(
-                    "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
-                    name_span.start(),
-                )));
-            }
+        if let Some(name) = name
+            && (cursor.strict() || body.strict())
+            && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym())
+        {
+            return Err(Error::lex(LexError::Syntax(
+                "unexpected identifier 'eval' or 'arguments' in strict mode".into(),
+                name_span.start(),
+            )));
         }
 
         // Catch early error for BindingIdentifier, because strictness of the functions body is also
@@ -139,7 +139,17 @@ where
             interner,
         )?;
 
-        let function = AsyncFunctionExpressionNode::new(name, params, body, name.is_some());
+        let span = start_linear_span.union(body.linear_pos_end());
+
+        let function_span_end = body.span().end();
+        let function = AsyncFunctionExpressionNode::new(
+            name,
+            params,
+            body,
+            span,
+            name.is_some(),
+            Span::new(function_span_start, function_span_end),
+        );
 
         if contains(&function, ContainsSymbol::Super) {
             return Err(Error::lex(LexError::Syntax(

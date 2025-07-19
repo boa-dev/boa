@@ -10,18 +10,18 @@ mod while_loop;
 
 use crate::{
     declaration::{Binding, Variable},
-    expression::{access::PropertyAccess, Identifier},
+    expression::{Identifier, access::PropertyAccess},
     pattern::Pattern,
 };
 use core::ops::ControlFlow;
 
 pub use self::{
+    r#break::Break,
+    r#continue::Continue,
     do_while_loop::DoWhileLoop,
     for_in_loop::ForInLoop,
     for_loop::{ForLoop, ForLoopInitializer, ForLoopInitializerLexical},
     for_of_loop::ForOfLoop,
-    r#break::Break,
-    r#continue::Continue,
     while_loop::WhileLoop,
 };
 use crate::visitor::{VisitWith, Visitor, VisitorMut};

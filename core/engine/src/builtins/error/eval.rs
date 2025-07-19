@@ -12,18 +12,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError
 
 use crate::{
+    Context, JsArgs, JsResult, JsString, JsValue,
     builtins::{BuiltInBuilder, BuiltInConstructor, BuiltInObject, IntrinsicObject},
     context::intrinsics::{Intrinsics, StandardConstructor, StandardConstructors},
     js_string,
-    object::{internal_methods::get_prototype_from_constructor, JsObject},
+    object::{JsObject, internal_methods::get_prototype_from_constructor},
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
-    Context, JsArgs, JsResult, JsString, JsValue,
 };
-use boa_profiler::Profiler;
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 /// JavaScript `EvalError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -31,8 +30,6 @@ pub(crate) struct EvalError;
 
 impl IntrinsicObject for EvalError {
     fn init(realm: &Realm) {
-        let _timer = Profiler::global().start_event(std::any::type_name::<Self>(), "init");
-
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         BuiltInBuilder::from_standard_constructor::<Self>(realm)
             .prototype(realm.intrinsics().constructors().error().constructor())
@@ -86,7 +83,7 @@ impl BuiltInConstructor for EvalError {
         let o = JsObject::from_proto_and_data_with_shared_shape(
             context.root_shape(),
             prototype,
-            Error::Eval,
+            Error::with_caller_position(ErrorKind::Eval, context),
         );
 
         // 3. If message is not undefined, then

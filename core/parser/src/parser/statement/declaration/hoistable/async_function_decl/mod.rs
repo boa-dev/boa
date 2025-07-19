@@ -3,12 +3,12 @@ mod tests;
 
 use crate::{
     parser::{
-        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
+        statement::declaration::hoistable::{CallableDeclaration, parse_callable_declaration},
     },
     source::ReadChar,
 };
-use boa_ast::{function::AsyncFunctionDeclaration as AsyncFunctionDeclarationNode, Keyword};
+use boa_ast::{Keyword, function::AsyncFunctionDeclaration as AsyncFunctionDeclarationNode};
 use boa_interner::Interner;
 
 /// Async Function declaration parsing.
@@ -79,11 +79,13 @@ where
     type Output = AsyncFunctionDeclarationNode;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
-        cursor.expect(
+        let async_token = cursor.expect(
             (Keyword::Async, false),
             "async function declaration",
             interner,
         )?;
+        let start_linear_span = async_token.linear_span();
+
         cursor.peek_expect_no_lineterminator(0, "async function declaration", interner)?;
         cursor.expect(
             (Keyword::Function, false),
@@ -92,9 +94,10 @@ where
         )?;
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
+        let span = start_linear_span.union(result.2.linear_pos_end());
 
         Ok(AsyncFunctionDeclarationNode::new(
-            result.0, result.1, result.2,
+            result.0, result.1, result.2, span,
         ))
     }
 }

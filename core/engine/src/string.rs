@@ -55,9 +55,9 @@ macro_rules! js_string {
         $crate::string::JsString::default()
     };
     ($s:literal) => {{
-        const LITERAL: &$crate::string::StaticJsString = &$crate::string::StaticJsString::new($crate::js_str!($s));
+        const LITERAL: &$crate::string::JsStr<'static> = &$crate::js_str!($s);
 
-        $crate::string::JsString::from_static_js_string(LITERAL)
+        $crate::string::JsString::from_static_js_str(LITERAL)
     }};
     ($s:expr) => {
         $crate::string::JsString::from($s)
@@ -75,7 +75,7 @@ macro_rules! js_string {
 mod tests {
     use std::hash::{BuildHasher, BuildHasherDefault, Hash};
 
-    use crate::{string::StaticJsStrings, JsStr};
+    use crate::{JsStr, string::StaticJsStrings};
 
     use super::JsString;
     use boa_macros::{js_str, utf16};

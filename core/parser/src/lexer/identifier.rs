@@ -1,13 +1,13 @@
 //! This module implements lexing for identifiers (foo, myvar, etc.) used in ECMAScript.
 
 use crate::lexer::{
-    token::ContainsEscapeSequence, Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer,
+    Cursor, Error, StringLiteral, Token, TokenKind, Tokenizer, token::ContainsEscapeSequence,
 };
 use crate::source::ReadChar;
-use boa_ast::{Position, Span};
+use boa_ast::PositionGroup;
 use boa_interner::Interner;
-use boa_profiler::Profiler;
-
+use icu_properties::props::{IdContinue, IdStart};
+use icu_properties::{CodePointSetData, CodePointSetDataBorrowed};
 /// Identifier lexing.
 ///
 /// More information:
@@ -34,8 +34,8 @@ impl Identifier {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     pub(super) fn is_identifier_start(ch: u32) -> bool {
-        matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */)
-            || icu_properties::sets::id_start().contains32(ch)
+        const ID_START: CodePointSetDataBorrowed<'static> = CodePointSetData::new::<IdStart>();
+        matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */) || ID_START.contains32(ch)
     }
 
     /// Checks if a character is `IdentifierPart` as per ECMAScript standards.
@@ -45,10 +45,12 @@ impl Identifier {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
     fn is_identifier_part(ch: u32) -> bool {
+        const ID_CONTINUE: CodePointSetDataBorrowed<'static> =
+            CodePointSetData::new::<IdContinue>();
         matches!(
             ch,
             0x0024 /* $ */ | 0x005F /* _ */ | 0x200C /* <ZWNJ> */ | 0x200D /* <ZWJ> */
-        ) || icu_properties::sets::id_continue().contains32(ch)
+        ) || ID_CONTINUE.contains32(ch)
     }
 }
 
@@ -56,14 +58,12 @@ impl<R> Tokenizer<R> for Identifier {
     fn lex(
         &mut self,
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         interner: &mut Interner,
     ) -> Result<Token, Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Identifier", "Lexing");
-
         let (identifier_name, contains_escaped_chars) =
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
@@ -84,24 +84,26 @@ impl<R> Tokenizer<R> for Identifier {
             )),
         };
 
-        Ok(Token::new(token_kind, Span::new(start_pos, cursor.pos())))
+        Ok(Token::new_by_position_group(
+            token_kind,
+            start_pos,
+            cursor.pos_group(),
+        ))
     }
 }
 
 impl Identifier {
     pub(super) fn take_identifier_name<R>(
         cursor: &mut Cursor<R>,
-        start_pos: Position,
+        start_pos: PositionGroup,
         init: char,
     ) -> Result<(String, bool), Error>
     where
         R: ReadChar,
     {
-        let _timer = Profiler::global().start_event("Identifier::take_identifier_name", "Lexing");
-
         let mut contains_escaped_chars = false;
         let mut identifier_name = if init == '\\' && cursor.next_if(0x75 /* u */)? {
-            let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos)?;
+            let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos.position())?;
 
             if Self::is_identifier_start(ch) {
                 contains_escaped_chars = true;
@@ -110,7 +112,7 @@ impl Identifier {
                         .expect("all identifier starts must be convertible to strings"),
                 )
             } else {
-                return Err(Error::Syntax("invalid identifier start".into(), start_pos));
+                return Err(Error::syntax("invalid identifier start", start_pos));
             }
         } else {
             // The caller guarantees that `init` is a valid identifier start

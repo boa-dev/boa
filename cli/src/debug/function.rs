@@ -1,10 +1,11 @@
 use boa_engine::{
+    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
     builtins::function::OrdinaryFunction,
     js_string,
     object::ObjectInitializer,
     vm::flowgraph::{Direction, Graph},
-    Context, JsArgs, JsNativeError, JsObject, JsResult, JsValue, NativeFunction,
 };
+use cow_utils::CowUtils;
 
 use crate::FlowgraphFormat;
 
@@ -12,9 +13,8 @@ fn flowgraph_parse_format_option(value: &JsValue) -> JsResult<FlowgraphFormat> {
     if value.is_undefined() {
         return Ok(FlowgraphFormat::Mermaid);
     }
-
     if let Some(string) = value.as_string() {
-        return match string.to_std_string_escaped().to_lowercase().as_str() {
+        return match string.to_std_string_escaped().cow_to_lowercase().as_ref() {
             "mermaid" => Ok(FlowgraphFormat::Mermaid),
             "graphviz" => Ok(FlowgraphFormat::Graphviz),
             format => Err(JsNativeError::typ()
@@ -22,7 +22,6 @@ fn flowgraph_parse_format_option(value: &JsValue) -> JsResult<FlowgraphFormat> {
                 .into()),
         };
     }
-
     Err(JsNativeError::typ()
         .with_message("format type must be a string")
         .into())
@@ -32,9 +31,8 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
     if value.is_undefined() {
         return Ok(Direction::LeftToRight);
     }
-
     if let Some(string) = value.as_string() {
-        return match string.to_std_string_escaped().to_lowercase().as_str() {
+        return match string.to_std_string_escaped().cow_to_lowercase().as_ref() {
             "leftright" | "lr" => Ok(Direction::LeftToRight),
             "rightleft" | "rl" => Ok(Direction::RightToLeft),
             "topbottom" | "tb" => Ok(Direction::TopToBottom),
@@ -44,7 +42,6 @@ fn flowgraph_parse_direction_option(value: &JsValue) -> JsResult<Direction> {
                 .into()),
         };
     }
-
     Err(JsNativeError::typ()
         .with_message("direction type must be a string")
         .into())
@@ -57,13 +54,11 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             .with_message("expected function argument")
             .into());
     };
-
     let Some(object) = value.as_object() else {
         return Err(JsNativeError::typ()
             .with_message(format!("expected object, got {}", value.type_of()))
             .into());
     };
-
     let mut format = FlowgraphFormat::Mermaid;
     let mut direction = Direction::LeftToRight;
     if let Some(arguments) = args.get(1) {
@@ -72,30 +67,22 @@ fn flowgraph(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResu
             direction = flowgraph_parse_direction_option(
                 &arguments.get(js_string!("direction"), context)?,
             )?;
-        } else if value.is_string() {
-            format = flowgraph_parse_format_option(value)?;
         } else {
-            return Err(JsNativeError::typ()
-                .with_message("options argument must be a string or object")
-                .into());
+            format = flowgraph_parse_format_option(arguments)?;
         }
     }
-
     let Some(function) = object.downcast_ref::<OrdinaryFunction>() else {
         return Err(JsNativeError::typ()
             .with_message("expected an ordinary function object")
             .into());
     };
-
     let code = function.codeblock();
-
     let mut graph = Graph::new(direction);
     code.to_graph(graph.subgraph(String::default()));
     let result = match format {
         FlowgraphFormat::Graphviz => graph.to_graphviz_format(),
         FlowgraphFormat::Mermaid => graph.to_mermaid_format(),
     };
-
     Ok(JsValue::new(js_string!(result)))
 }
 
@@ -118,7 +105,9 @@ fn bytecode(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue>
     };
     let code = function.codeblock();
 
-    Ok(js_string!(code.to_string()).into())
+    println!("{code}");
+
+    Ok(JsValue::undefined())
 }
 
 fn set_trace_flag_in_function_object(object: &JsObject, value: bool) -> JsResult<()> {
@@ -145,9 +134,9 @@ fn trace(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsVal
 
     let arguments = args.get(2..).unwrap_or(&[]);
 
-    set_trace_flag_in_function_object(callable, true)?;
+    set_trace_flag_in_function_object(&callable, true)?;
     let result = callable.call(this, arguments, context);
-    set_trace_flag_in_function_object(callable, false)?;
+    set_trace_flag_in_function_object(&callable, false)?;
 
     result
 }
@@ -162,7 +151,7 @@ fn traceable(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue
             .into());
     };
 
-    set_trace_flag_in_function_object(callable, traceable)?;
+    set_trace_flag_in_function_object(&callable, traceable)?;
 
     Ok(value.clone())
 }
