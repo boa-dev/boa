@@ -173,7 +173,7 @@ impl NativeFunction {
     /// [`JsPromise::from_future`].
     ///
     ///
-    /// ## Example
+    /// # Examples
     ///
     /// ```
     /// # use std::cell::RefCell;
