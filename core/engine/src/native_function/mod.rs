@@ -172,7 +172,6 @@ impl NativeFunction {
     /// If you only need to convert a `Future`-like into a [`JsPromise`], see
     /// [`JsPromise::from_future`].
     ///
-    ///
     /// # Examples
     ///
     /// ```
