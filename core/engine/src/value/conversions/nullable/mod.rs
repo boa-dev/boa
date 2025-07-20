@@ -135,6 +135,7 @@ impl<T> Nullable<T> {
 
     /// Maps a [`Nullable<T>`] to [`Nullable<U>`] by applying a function to a contained
     /// value.
+    /// # Examples
     ///
     /// ```
     /// # use boa_engine::value::Nullable;

@@ -104,7 +104,7 @@ impl RequestInit {
 
         if let Some(Convert(ref method)) = self.method.take() {
             builder = builder.method(method.to_std_string().map_err(
-                |_| js_error!(TypeError: "Requestion constructor: {} is an invalid method", method.to_std_string_escaped()),
+                |_| js_error!(TypeError: "Request constructor: {} is an invalid method", method.to_std_string_escaped()),
             )?.as_str());
         }
 
