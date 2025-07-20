@@ -9,6 +9,7 @@ use std::{
     cmp::Ordering,
     fmt::{self, Debug, Display},
     hash::Hash,
+    mem::ManuallyDrop,
     ops::{Deref, DerefMut},
     ptr,
 };
@@ -420,22 +421,18 @@ impl<'a, T: ?Sized, U: ?Sized> GcRefMut<'a, T, U> {
     /// * The caller must ensure that `U` can be safeley cast to `V`.
     #[must_use]
     pub unsafe fn cast<V>(self) -> GcRefMut<'a, T, V> {
-        let value = ptr::from_mut::<U>(self.value);
+        let gc_cell = self.gc_cell;
+
+        let this = ManuallyDrop::new(self);
+        let value = unsafe { ptr::read(&raw const this.value) };
+
+        let value = ptr::from_mut::<U>(value);
 
         // SAFETY: This is safe as `GcCellRefMut` is already borrowed, so the value is rooted.
         // The caller must ensure that `U` can be safeley cast to `V`.
         let value = unsafe { &mut *(value.cast::<V>()) };
 
-        let cell = GcRefMut {
-            gc_cell: self.gc_cell,
-            value,
-        };
-
-        // We have to tell the compiler not to call the destructor of GcCellRef,
-        // because it will update the borrow flags.
-        std::mem::forget(self);
-
-        cell
+        GcRefMut { gc_cell, value }
     }
 
     /// Tries to make a new `GcCellRefMut` for a component of the borrowed data, returning `None`

@@ -66,11 +66,7 @@ impl<T> Tagged<T> {
         unsafe { Self(NonNull::new_unchecked(ptr)) }
     }
 
-    /// Creates a new `Tagged` pointer from a `NonNull` pointer.
-    ///
-    /// # Requirements
-    ///
-    /// - `ptr` must have an alignment of at least 2.
+    /// Creates a new `Tagged` pointer from a (possibly tagged) `NonNull` pointer.
     #[inline]
     #[must_use]
     pub const fn from_non_null(ptr: NonNull<T>) -> Self {

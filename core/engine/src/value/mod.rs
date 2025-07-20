@@ -143,7 +143,7 @@ impl JsValue {
     /// Return the variant of this value.
     #[inline]
     #[must_use]
-    pub fn variant(&self) -> JsVariant<'_> {
+    pub fn variant(&self) -> JsVariant {
         self.0.as_variant()
     }
 
@@ -192,7 +192,7 @@ impl JsValue {
     /// Returns true if the value is an object.
     #[inline]
     #[must_use]
-    pub const fn is_object(&self) -> bool {
+    pub fn is_object(&self) -> bool {
         self.0.is_object()
     }
 
@@ -294,7 +294,7 @@ impl JsValue {
     /// Returns true if the value is a symbol.
     #[inline]
     #[must_use]
-    pub const fn is_symbol(&self) -> bool {
+    pub fn is_symbol(&self) -> bool {
         self.0.is_symbol()
     }
 
@@ -302,27 +302,27 @@ impl JsValue {
     #[inline]
     #[must_use]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
-        self.0.as_symbol().cloned()
+        self.0.as_symbol()
     }
 
     /// Returns true if the value is undefined.
     #[inline]
     #[must_use]
-    pub const fn is_undefined(&self) -> bool {
+    pub fn is_undefined(&self) -> bool {
         self.0.is_undefined()
     }
 
     /// Returns true if the value is null.
     #[inline]
     #[must_use]
-    pub const fn is_null(&self) -> bool {
+    pub fn is_null(&self) -> bool {
         self.0.is_null()
     }
 
     /// Returns true if the value is null or undefined.
     #[inline]
     #[must_use]
-    pub const fn is_null_or_undefined(&self) -> bool {
+    pub fn is_null_or_undefined(&self) -> bool {
         self.is_undefined() || self.is_null()
     }
 
@@ -335,12 +335,11 @@ impl JsValue {
     #[inline]
     #[must_use]
     #[allow(clippy::float_cmp)]
-    pub const fn as_i32(&self) -> Option<i32> {
+    pub fn as_i32(&self) -> Option<i32> {
         if let Some(integer) = self.0.as_integer32() {
             Some(integer)
         } else if let Some(rational) = self.0.as_float64() {
-            // Use this poor-man's check as `[f64::fract]` isn't const.
-            if rational == ((rational as i32) as f64) {
+            if rational == f64::from(rational as i32) {
                 Some(rational as i32)
             } else {
                 None
@@ -353,7 +352,7 @@ impl JsValue {
     /// Returns true if the value is a number.
     #[inline]
     #[must_use]
-    pub const fn is_number(&self) -> bool {
+    pub fn is_number(&self) -> bool {
         self.0.is_integer32() || self.0.is_float64()
     }
 
@@ -371,7 +370,7 @@ impl JsValue {
     /// Returns true if the value is a string.
     #[inline]
     #[must_use]
-    pub const fn is_string(&self) -> bool {
+    pub fn is_string(&self) -> bool {
         self.0.is_string()
     }
 
@@ -385,28 +384,28 @@ impl JsValue {
     /// Returns true if the value is a boolean.
     #[inline]
     #[must_use]
-    pub const fn is_boolean(&self) -> bool {
+    pub fn is_boolean(&self) -> bool {
         self.0.is_bool()
     }
 
     /// Returns the boolean if the value is a boolean, otherwise `None`.
     #[inline]
     #[must_use]
-    pub const fn as_boolean(&self) -> Option<bool> {
+    pub fn as_boolean(&self) -> Option<bool> {
         self.0.as_bool()
     }
 
     /// Returns true if the value is a bigint.
     #[inline]
     #[must_use]
-    pub const fn is_bigint(&self) -> bool {
+    pub fn is_bigint(&self) -> bool {
         self.0.is_bigint()
     }
 
-    /// Returns an optional reference to a `BigInt` if the value is a `BigInt` primitive.
+    /// Returns a `BigInt` if the value is a `BigInt` primitive.
     #[inline]
     #[must_use]
-    pub const fn as_bigint(&self) -> Option<&JsBigInt> {
+    pub fn as_bigint(&self) -> Option<JsBigInt> {
         self.0.as_bigint()
     }
 

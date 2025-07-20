@@ -21,7 +21,7 @@ impl JsValue {
             (JsVariant::Float64(x), JsVariant::Float64(y)) => Self::new(x + y),
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) + y),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x + f64::from(y)),
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(&x, &y)),
 
             // String concat
             (JsVariant::String(x), JsVariant::String(y)) => Self::from(js_string!(&x, &y)),
@@ -62,7 +62,7 @@ impl JsValue {
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) - y),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x - f64::from(y)),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::sub(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::sub(&x, &y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -90,7 +90,7 @@ impl JsValue {
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(f64::from(x) * y),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x * f64::from(y)),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::mul(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::mul(&x, &y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -123,7 +123,7 @@ impl JsValue {
                         .with_message("BigInt division by zero")
                         .into());
                 }
-                Self::new(JsBigInt::div(x, y))
+                Self::new(JsBigInt::div(&x, &y))
             }
 
             // Slow path:
@@ -176,7 +176,7 @@ impl JsValue {
                         .with_message("BigInt division by zero")
                         .into());
                 }
-                Self::new(JsBigInt::rem(x, y))
+                Self::new(JsBigInt::rem(&x, &y))
             }
 
             // Slow path:
@@ -224,7 +224,7 @@ impl JsValue {
                 }
             }
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(x.powi(y)),
-            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => Self::new(JsBigInt::pow(a, b)?),
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => Self::new(JsBigInt::pow(&a, &b)?),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -256,7 +256,7 @@ impl JsValue {
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(x & f64_to_int32(y)),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(f64_to_int32(x) & y),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitand(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitand(&x, &y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -286,7 +286,7 @@ impl JsValue {
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(x | f64_to_int32(y)),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(f64_to_int32(x) | y),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitor(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitor(&x, &y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -316,7 +316,7 @@ impl JsValue {
             (JsVariant::Integer32(x), JsVariant::Float64(y)) => Self::new(x ^ f64_to_int32(y)),
             (JsVariant::Float64(x), JsVariant::Integer32(y)) => Self::new(f64_to_int32(x) ^ y),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitxor(x, y)),
+            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitxor(&x, &y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -352,7 +352,9 @@ impl JsValue {
                 Self::new(f64_to_int32(x).wrapping_shl(y as u32))
             }
 
-            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => Self::new(JsBigInt::shift_left(a, b)?),
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
+                Self::new(JsBigInt::shift_left(&a, &b)?)
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -388,7 +390,9 @@ impl JsValue {
                 Self::new(f64_to_int32(x).wrapping_shr(y as u32))
             }
 
-            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => Self::new(JsBigInt::shift_right(a, b)?),
+            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
+                Self::new(JsBigInt::shift_right(&a, &b)?)
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -497,7 +501,7 @@ impl JsValue {
             }
             JsVariant::Integer32(num) => Self::new(-num),
             JsVariant::Boolean(true) => Self::new(-1),
-            JsVariant::BigInt(x) => Self::new(JsBigInt::neg(x)),
+            JsVariant::BigInt(x) => Self::new(JsBigInt::neg(&x)),
         })
     }
 
@@ -554,9 +558,9 @@ impl JsValue {
                 match (px.variant(), py.variant()) {
                     (JsVariant::String(x), JsVariant::String(y)) => (x < y).into(),
                     (JsVariant::BigInt(x), JsVariant::String(y)) => JsBigInt::from_js_string(&y)
-                        .map_or(AbstractRelation::Undefined, |ref y| (x < y).into()),
+                        .map_or(AbstractRelation::Undefined, |y| (x < y).into()),
                     (JsVariant::String(x), JsVariant::BigInt(y)) => JsBigInt::from_js_string(&x)
-                        .map_or(AbstractRelation::Undefined, |ref x| (x < y).into()),
+                        .map_or(AbstractRelation::Undefined, |x| (x < y).into()),
                     (_, _) => match (px.to_numeric(context)?, py.to_numeric(context)?) {
                         (Numeric::Number(x), Numeric::Number(y)) => Number::less_than(x, y),
                         (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => (x < y).into(),

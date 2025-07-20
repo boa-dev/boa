@@ -3175,7 +3175,7 @@ fn compare_typed_array_elements(
             // 6. If x < y, return -1𝔽.
             // 7. If x > y, return 1𝔽.
             // 10. Return +0𝔽.
-            Ok(x.cmp(y))
+            Ok(x.cmp(&y))
         }
         (JsVariant::Integer32(x), JsVariant::Integer32(y)) => {
             // Note: Other steps are not relevant for integers.
