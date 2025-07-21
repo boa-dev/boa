@@ -596,8 +596,7 @@ fn to_temporal_year_month(
         let resolved_options = get_options_object(&options)?;
         // e. Let overflow be ? GetTemporalOverflowOption(resolvedOptions).
         let overflow =
-            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?
-                .unwrap_or(ArithmeticOverflow::Constrain);
+            get_option::<ArithmeticOverflow>(&resolved_options, js_string!("overflow"), context)?;
         // f. Let isoDate be ? CalendarYearMonthFromFields(calendar, fields, overflow).
         // g. Return ! CreateTemporalYearMonth(isoDate, calendar).
         return Ok(InnerYearMonth::from_partial(partial, overflow)?);
