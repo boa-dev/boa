@@ -5,7 +5,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
 use boa_engine::value::{Convert, TryFromJs};
-use boa_engine::{js_error, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace};
+use boa_engine::{Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error};
 use boa_interop::boa_macros::boa_class;
 use either::Either;
 use std::collections::BTreeMap;

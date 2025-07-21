@@ -1,6 +1,6 @@
 use boa_engine::{
-    builtins::promise::PromiseState, js_string, object::builtins::JsPromise, Context, JsArgs, JsError, JsNativeError,
-    JsResult, JsValue, NativeFunction,
+    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
+    builtins::promise::PromiseState, js_string, object::builtins::JsPromise,
 };
 
 // Simulate an API call that returns a Promise
