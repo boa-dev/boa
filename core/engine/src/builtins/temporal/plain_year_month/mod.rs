@@ -20,11 +20,10 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 
 use temporal_rs::{
-    Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth,
+    Calendar, Duration, MonthCode, PlainYearMonth as InnerYearMonth, TinyAsciiStr,
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::{PartialDate, PartialYearMonth},
 };
-use tinystr::TinyAsciiStr;
 
 use super::{
     DateTimeValues, calendar::get_temporal_calendar_slot_value_with_default, create_temporal_date,
