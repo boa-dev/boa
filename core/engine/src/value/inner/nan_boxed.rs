@@ -747,16 +747,16 @@ impl Drop for NanBoxedValue {
     fn drop(&mut self) {
         match self.value() & bits::MASK_KIND {
             bits::MASK_OBJECT => {
-                drop(unsafe { ManuallyDrop::into_inner(self.as_object_unchecked()) })
+                unsafe { ManuallyDrop::into_inner(self.as_object_unchecked()) };
             }
             bits::MASK_STRING => {
-                drop(unsafe { ManuallyDrop::into_inner(self.as_string_unchecked()) })
+                unsafe { ManuallyDrop::into_inner(self.as_string_unchecked()) };
             }
             bits::MASK_SYMBOL => {
-                drop(unsafe { ManuallyDrop::into_inner(self.as_symbol_unchecked()) })
+                unsafe { ManuallyDrop::into_inner(self.as_symbol_unchecked()) };
             }
             bits::MASK_BIGINT => {
-                drop(unsafe { ManuallyDrop::into_inner(self.as_bigint_unchecked()) })
+                unsafe { ManuallyDrop::into_inner(self.as_bigint_unchecked()) };
             }
             _ => {}
         }
