@@ -1,5 +1,4 @@
 use boa_engine::{js_error, Context, Finalize, JsData, JsError, JsResult, Trace};
-use boa_gc::{Gc, GcRefCell};
 use boa_runtime::fetch::request::JsRequest;
 use boa_runtime::fetch::response::JsResponse;
 use boa_runtime::fetch::BlockingReqwestFetcher;
@@ -13,7 +12,7 @@ use url::Url;
 pub struct WptFetcher {
     wpt_server: String,
     wpt_root: PathBuf,
-    current_file: Gc<GcRefCell<Option<PathBuf>>>,
+    current_file: Rc<RefCell<Option<PathBuf>>>,
 
     #[unsafe_ignore_trace]
     inner: Rc<BlockingReqwestFetcher>,

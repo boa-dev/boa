@@ -4,15 +4,17 @@
 //! See the [Response interface documentation][mdn] for more information.
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Response
+
 use crate::fetch::headers::JsHeaders;
 use boa_engine::object::builtins::{JsPromise, JsUint8Array};
 use boa_engine::value::{TryFromJs, TryIntoJs};
 use boa_engine::{
-    Context, JsData, JsNativeError, JsResult, JsString, JsValue, js_error, js_str, js_string,
+    js_error, js_str, js_string, Context, JsData, JsNativeError, JsResult, JsString, JsValue,
 };
-use boa_gc::{Finalize, Gc, Trace};
+use boa_gc::{Finalize, Trace};
 use boa_interop::boa_macros::boa_class;
 use http::StatusCode;
+use std::rc::Rc;
 
 /// The type read-only property of the Response interface contains the type of the
 /// response. The type determines whether scripts are able to access the response body
@@ -104,7 +106,8 @@ pub struct JsResponse {
 
     headers: JsHeaders,
 
-    body: Gc<Vec<u8>>,
+    #[unsafe_ignore_trace]
+    body: Rc<Vec<u8>>,
 }
 
 impl JsResponse {
@@ -114,7 +117,7 @@ impl JsResponse {
         let (parts, body) = inner.into_parts();
         let status = Some(parts.status);
         let headers = JsHeaders::from_http(parts.headers);
-        let body = Gc::new(body);
+        let body = Rc::new(body);
 
         Self {
             url,
@@ -133,13 +136,12 @@ impl JsResponse {
             r#type: ResponseType::Error,
             status: None,
             headers: JsHeaders::default(),
-            body: Gc::new(Vec::new()),
+            body: Rc::new(Vec::new()),
         }
     }
 
     /// Return a copy of the body.
-    #[must_use]
-    pub fn body(&self) -> Gc<Vec<u8>> {
+    pub fn body(&self) -> Rc<Vec<u8>> {
         self.body.clone()
     }
 }
@@ -199,8 +201,8 @@ impl JsResponse {
     }
 
     fn bytes(&self, context: &mut Context) -> JsPromise {
-        let body = self.body();
-        JsPromise::from_future(
+        let body = self.body.clone();
+        JsPromise::from_async_fn(
             async move |context| {
                 JsUint8Array::from_iter(body.iter().copied(), &mut context.borrow_mut())
                     .map(Into::into)
@@ -210,8 +212,8 @@ impl JsResponse {
     }
 
     fn text(&self, context: &mut Context) -> JsPromise {
-        let body = self.body();
-        JsPromise::from_future(
+        let body = self.body.clone();
+        JsPromise::from_async_fn(
             async move |_| {
                 let body = String::from_utf8_lossy(body.as_ref());
                 Ok(JsString::from(body).into())
@@ -221,8 +223,8 @@ impl JsResponse {
     }
 
     fn json(&self, context: &mut Context) -> JsPromise {
-        let body = self.body();
-        JsPromise::from_future(
+        let body = self.body.clone();
+        JsPromise::from_async_fn(
             async move |context| {
                 let json_string = String::from_utf8_lossy(body.as_ref());
                 let json = serde_json::from_str::<serde_json::Value>(&json_string)

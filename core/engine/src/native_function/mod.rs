@@ -170,7 +170,7 @@ impl NativeFunction {
     /// or rejected when the returned [`Future`] completes.
     ///
     /// If you only need to convert a [`Future`]-like into a [`JsPromise`], see
-    /// [`JsPromise::from_future`].
+    /// [`JsPromise::from_async_fn`].
     ///
     ///
     /// # Caveats

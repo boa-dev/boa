@@ -5,7 +5,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/Request
 use super::HttpRequest;
 use boa_engine::value::{Convert, TryFromJs};
-use boa_engine::{Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace, js_error};
+use boa_engine::{js_error, Finalize, JsData, JsObject, JsResult, JsString, JsValue, Trace};
 use boa_interop::boa_macros::boa_class;
 use either::Either;
 use std::collections::BTreeMap;
@@ -40,20 +40,6 @@ fn add_headers_to_builder<'a>(
     Ok(builder)
 }
 
-fn add_vec_headers_to_builder(
-    headers: &[(JsString, Convert<JsString>)],
-    builder: http::request::Builder,
-) -> JsResult<http::request::Builder> {
-    add_headers_to_builder(headers.iter().map(|(k, v)| (k, v)), builder)
-}
-
-fn add_btree_headers_to_builder(
-    headers: &BTreeMap<JsString, Convert<JsString>>,
-    builder: http::request::Builder,
-) -> JsResult<http::request::Builder> {
-    add_headers_to_builder(headers.iter(), builder)
-}
-
 type VecOrMap<K, V> = Either<Vec<(K, V)>, BTreeMap<K, V>>;
 
 /// A [RequestInit][mdn] object. This is a JavaScript object (not a
@@ -69,7 +55,7 @@ pub struct RequestInit {
 }
 
 impl RequestInit {
-    /// Create a [`http::request::Builder`] object and return both the
+    /// Create an [`http::request::Builder`] object and return both the
     /// body specified by JavaScript and the builder.
     ///
     /// # Errors
@@ -94,10 +80,10 @@ impl RequestInit {
         if let Some(ref headers) = self.headers.take() {
             match headers {
                 Either::Left(headers) => {
-                    builder = add_vec_headers_to_builder(headers, builder)?;
+                    builder = add_headers_to_builder(headers.iter().map(|(k, v)| (k, v)), builder)?;
                 }
                 Either::Right(headers) => {
-                    builder = add_btree_headers_to_builder(headers, builder)?;
+                    builder = add_headers_to_builder(headers.iter(), builder)?;
                 }
             }
         }

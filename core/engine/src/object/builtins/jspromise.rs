@@ -3,14 +3,14 @@
 use super::{JsArray, JsFunction};
 use crate::value::TryIntoJs;
 use crate::{
-    Context, JsArgs, JsError, JsNativeError, JsResult, JsValue, NativeFunction,
     builtins::{
-        Promise,
         promise::{PromiseState, ResolvingFunctions},
-    },
-    job::NativeAsyncJob,
-    object::JsObject,
-    value::TryFromJs,
+        Promise,
+    }, job::NativeAsyncJob, object::JsObject, value::TryFromJs, Context, JsArgs, JsError,
+    JsNativeError,
+    JsResult,
+    JsValue,
+    NativeFunction,
 };
 use boa_gc::{Finalize, Gc, GcRefCell, Trace};
 use std::cell::RefCell;
@@ -280,7 +280,7 @@ impl JsPromise {
     /// }
     /// let context = &mut Context::default();
     ///
-    /// let promise = JsPromise::from_future(f, context);
+    /// let promise = JsPromise::from_async_fn(f, context);
     ///
     /// context.run_jobs();
     ///
@@ -288,7 +288,7 @@ impl JsPromise {
     /// ```
     ///
     /// [async_fn]: crate::native_function::NativeFunction::from_async_fn
-    pub fn from_future<F>(f: F, context: &mut Context) -> Self
+    pub fn from_async_fn<F>(f: F, context: &mut Context) -> Self
     where
         F: AsyncFnOnce(&RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
     {

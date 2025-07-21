@@ -15,8 +15,8 @@ use boa_engine::object::builtins::JsPromise;
 use boa_engine::property::Attribute;
 use boa_engine::realm::Realm;
 use boa_engine::{
-    Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeObject, Trace,
-    js_error, js_string,
+    js_error, js_string, Context, Finalize, JsData, JsError, JsObject, JsResult, JsString, JsValue,
+    NativeObject, Trace,
 };
 use boa_interop::IntoJsFunctionCopied;
 use either::Either;
@@ -157,7 +157,7 @@ pub fn fetch<T: Fetcher>(
     options: Option<RequestInit>,
     context: &mut Context,
 ) -> JsPromise {
-    JsPromise::from_future(
+    JsPromise::from_async_fn(
         async move |context| fetch_inner::<T>(resource, options, context).await,
         context,
     )
