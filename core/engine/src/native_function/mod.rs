@@ -167,24 +167,20 @@ impl NativeFunction {
     /// Creates a `NativeFunction` from a function returning a [`Future`]-like.
     ///
     /// The returned `NativeFunction` will return an ECMAScript `Promise` that will be fulfilled
-    /// or rejected when the returned [`Future`] completes.
+    /// or rejected when the returned `Future` completes.
     ///
-    /// If you only need to convert a [`Future`]-like into a [`JsPromise`], see
+    /// If you only need to convert a `Future`-like into a [`JsPromise`], see
     /// [`JsPromise::from_future`].
     ///
+    /// # Examples
     ///
-    /// # Caveats
-    ///
-    /// Certain async functions need to be desugared for them to be compatible. For example, the
-    /// following won't compile:
-    ///
-    /// ```compile_fail
+    /// ```
     /// # use std::cell::RefCell;
     /// # use boa_engine::{
     /// #   JsValue,
     /// #   Context,
     /// #   JsResult,
-    /// #   NativeFunction
+    /// #   NativeFunction,
     /// #   JsArgs,
     /// # };
     /// async fn test(
@@ -200,92 +196,9 @@ impl NativeFunction {
     /// NativeFunction::from_async_fn(test);
     /// ```
     ///
-    /// Even though `args` is only used before the first await point, Rust's async functions are
-    /// fully lazy, which makes `test` equivalent to something like:
-    ///
-    /// ```
-    /// # use std::cell::RefCell;
-    /// # use std::future::Future;
-    /// # use boa_engine::{JsValue, Context, JsResult, JsArgs};
-    /// fn test<'a, 'b, 'c, 'd>(
-    ///     _this: &'a JsValue,
-    ///     args: &'b [JsValue],
-    ///     context: &'c RefCell<&'d mut Context>,
-    /// ) -> impl Future<Output = JsResult<JsValue>> + use<'a, 'b, 'c, 'd> {
-    ///     async move {
-    ///         let arg = args.get_or_undefined(0).clone();
-    ///         let value = arg.to_u32(&mut context.borrow_mut())?;
-    ///         Ok(JsValue::from(value * 2))
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// Note that all the arguments are captured by the async function, making the returned future not compatible with
-    /// the signature of `from_async_fn`.
-    ///
-    /// In those cases, you can manually restrict the lifetime of the arguments:
-    ///
-    /// ```
-    /// # use std::cell::RefCell;
-    /// # use std::future::Future;
-    /// # use boa_engine::{
-    /// #   JsValue,
-    /// #   Context,
-    /// #   JsResult,
-    /// #   NativeFunction,
-    /// #   JsArgs,
-    /// # };
-    /// fn test<'a, 'b>(
-    ///     _this: &JsValue,
-    ///     args: &[JsValue],
-    ///     context: &'a RefCell<&'b mut Context>,
-    /// ) -> impl Future<Output = JsResult<JsValue>> + use<'a, 'b> {
-    ///     let arg = args.get_or_undefined(0).clone();
-    ///     async move {
-    ///         std::future::ready(()).await;
-    ///         let value = arg.to_u32(&mut context.borrow_mut())?;
-    ///         Ok(JsValue::from(value * 2))
-    ///     }
-    /// }
-    /// NativeFunction::from_async_fn(test);
-    /// ```
-    ///
-    /// And this should always return a valid future.
-    ///
-    /// Keen readers will notice that this caveat doesn't apply to the `context` argument, since
-    /// we captured its lifetime on the previous snippet. This is indeed useful, because it allows
-    /// using the `context` between await points without having to enqueue a separate future job.
-    ///
-    /// ```
-    /// # use std::cell::RefCell;
-    /// # use std::future::Future;
-    /// # use boa_engine::{
-    /// #   JsValue,
-    /// #   Context,
-    /// #   JsResult,
-    /// #   NativeFunction,
-    /// #   JsArgs,
-    /// # };
-    /// fn test<'a, 'b>(
-    ///     _this: &JsValue,
-    ///     args: &[JsValue],
-    ///     context: &'a RefCell<&'b mut Context>,
-    /// ) -> impl Future<Output = JsResult<JsValue>> + use<'a, 'b> {
-    ///     let arg = args.get_or_undefined(0).clone();
-    ///     async move {
-    ///         std::future::ready(()).await;
-    ///         let value = arg.to_u32(&mut context.borrow_mut())?;
-    ///         Ok(JsValue::from(value * 2))
-    ///     }
-    /// }
-    /// NativeFunction::from_async_fn(test);
-    /// ```
-    ///
-    /// [`Future`]: std::future::Future
     pub fn from_async_fn<F>(f: F) -> Self
     where
-        F: for<'a> AsyncFn(&JsValue, &[JsValue], &'a RefCell<&mut Context>) -> JsResult<JsValue>
-            + 'static,
+        F: AsyncFn(&JsValue, &[JsValue], &RefCell<&mut Context>) -> JsResult<JsValue> + 'static,
         F: Copy,
     {
         Self::from_copy_closure(move |this, args, context| {
