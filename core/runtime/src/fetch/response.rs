@@ -141,6 +141,7 @@ impl JsResponse {
     }
 
     /// Return a copy of the body.
+    #[must_use]
     pub fn body(&self) -> Rc<Vec<u8>> {
         self.body.clone()
     }
