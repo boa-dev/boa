@@ -15,6 +15,7 @@ use crate::{
     property::Attribute,
     realm::Realm,
     string::StaticJsStrings,
+    value::IntoOrUndefined,
 };
 use boa_gc::{Finalize, Trace};
 
@@ -23,6 +24,7 @@ use temporal_rs::{
     options::{ArithmeticOverflow, DisplayCalendar},
     partial::{PartialDate, PartialYearMonth},
 };
+use tinystr::TinyAsciiStr;
 
 use super::{
     DateTimeValues, calendar::get_temporal_calendar_slot_value_with_default, create_temporal_date,
@@ -51,6 +53,14 @@ impl IntrinsicObject for PlainYearMonth {
     fn init(realm: &Realm) {
         let get_calendar_id = BuiltInBuilder::callable(realm, Self::get_calendar_id)
             .name(js_string!("get calendarId"))
+            .build();
+
+        let get_era_year = BuiltInBuilder::callable(realm, Self::get_era_year)
+            .name(js_string!("get eraYear"))
+            .build();
+
+        let get_era = BuiltInBuilder::callable(realm, Self::get_era)
+            .name(js_string!("get era"))
             .build();
 
         let get_year = BuiltInBuilder::callable(realm, Self::get_year)
@@ -90,6 +100,18 @@ impl IntrinsicObject for PlainYearMonth {
             .accessor(
                 js_string!("calendarId"),
                 Some(get_calendar_id),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("era"),
+                Some(get_era),
+                None,
+                Attribute::CONFIGURABLE,
+            )
+            .accessor(
+                js_string!("eraYear"),
+                Some(get_era_year),
                 None,
                 Attribute::CONFIGURABLE,
             )
@@ -277,6 +299,33 @@ impl PlainYearMonth {
 
         let calendar = year_month.borrow().data().inner.calendar().clone();
         Ok(js_string!(calendar.identifier()).into())
+    }
+
+    fn get_era(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+
+        Ok(year_month
+            .inner
+            .era()
+            .map(|s| JsString::from(s.as_str()))
+            .into_or_undefined())
+    }
+
+    fn get_era_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let object = this.as_object();
+        let year_month = object
+            .as_ref()
+            .and_then(JsObject::downcast_ref::<Self>)
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("this value must be a PlainYearMonth object.")
+            })?;
+        Ok(year_month.inner.era_year().into_or_undefined())
     }
 
     fn get_year(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
@@ -716,6 +765,35 @@ fn to_partial_year_month(
     // a. Let calendar be ? ToTemporalCalendar(item).
     let calendar = get_temporal_calendar_slot_value_with_default(partial_object, context)?;
 
+    // TODO: `temporal_rs` needs a `has_era` method
+    let (era, era_year) = if calendar == Calendar::default() {
+        (None, None)
+    } else {
+        let era = partial_object
+            .get(js_string!("era"), context)?
+            .map(|v| {
+                let v = v.to_primitive(context, crate::value::PreferredType::String)?;
+                let Some(era) = v.as_string() else {
+                    return Err(JsError::from(
+                        JsNativeError::typ()
+                            .with_message("The monthCode field value must be a string."),
+                    ));
+                };
+                // TODO: double check if an invalid monthCode is a range or type error.
+                TinyAsciiStr::<19>::try_from_str(&era.to_std_string_escaped())
+                    .map_err(|e| JsError::from(JsNativeError::range().with_message(e.to_string())))
+            })
+            .transpose()?;
+        let era_year = partial_object
+            .get(js_string!("eraYear"), context)?
+            .map(|v| {
+                let finite = v.to_finitef64(context)?;
+                Ok::<i32, JsError>(finite.as_integer_with_truncation::<i32>())
+            })
+            .transpose()?;
+        (era, era_year)
+    };
+
     let month = partial_object
         .get(js_string!("month"), context)?
         .map(|v| {
@@ -747,6 +825,8 @@ fn to_partial_year_month(
         .transpose()?;
 
     Ok(PartialYearMonth::new()
+        .with_era(era)
+        .with_era_year(era_year)
         .with_year(year)
         .with_month(month)
         .with_month_code(month_code)
