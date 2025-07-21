@@ -26,7 +26,7 @@ use temporal_rs::{
         ToStringRoundingOptions, Unit,
     },
     partial::{PartialDate, PartialTime, PartialZonedDateTime},
-    provider::{TimeZoneProvider, TransitionDirection},
+    provider::TransitionDirection,
 };
 
 use super::{
@@ -414,16 +414,10 @@ impl BuiltInConstructor for ZonedDateTime {
         // c. Set timeZone to identifierRecord.[[Identifier]].
         //  7. Else,
         // a. Set timeZone to FormatOffsetTimeZoneIdentifier(timeZoneParse.[[OffsetMinutes]]).
-        let timezone = TimeZone::try_from_identifier_str(&timezone_str.to_std_string_escaped())?;
-        if matches!(timezone, TimeZone::IanaIdentifier(_))
-            && !context
-                .tz_provider()
-                .check_identifier(&timezone.identifier()?)
-        {
-            return Err(JsNativeError::range()
-                .with_message("TimeZone string is not a supported by IANA identifier.")
-                .into());
-        }
+        let timezone = TimeZone::try_from_identifier_str_with_provider(
+            &timezone_str.to_std_string_escaped(),
+            context.tz_provider(),
+        )?;
 
         //  8. If calendar is undefined, set calendar to "iso8601".
         //  9. If calendar is not a String, throw a TypeError exception.
@@ -474,8 +468,7 @@ impl ZonedDateTime {
                 JsNativeError::typ().with_message("the this object must be a ZonedDateTime object.")
             })?;
 
-        let tz_id = zdt.inner.timezone().identifier()?;
-        Ok(JsString::from(tz_id).into())
+        Ok(JsString::from(zdt.inner.timezone().identifier()).into())
     }
 
     /// 6.3.5 get `Temporal.ZonedDateTime.prototype.era`
@@ -1531,8 +1524,8 @@ pub(crate) fn to_temporal_zoneddatetime(
             // 7. If offsetBehaviour is option, then
             //        a. Set offsetNanoseconds to ! ParseDateTimeUTCOffset(offsetString).
             // 8. Let epochNanoseconds be ? InterpretISODateTimeOffset(isoDate, time, offsetBehaviour, offsetNanoseconds, timeZone, disambiguation, offsetOption, matchBehaviour).
-            Ok(ZonedDateTimeInner::from_str_with_provider(
-                &zdt_source.to_std_string_escaped(),
+            Ok(ZonedDateTimeInner::from_utf8_with_provider(
+                zdt_source.to_std_string_escaped().as_bytes(),
                 disambiguation,
                 offset_option,
                 context.tz_provider(),
@@ -1574,16 +1567,11 @@ pub(crate) fn to_temporal_timezone_identifier(
     // 7. Let timeZoneIdentifierRecord be GetAvailableNamedTimeZoneIdentifier(name).
     // 8. If timeZoneIdentifierRecord is empty, throw a RangeError exception.
     // 9. Return timeZoneIdentifierRecord.[[Identifier]].
-    let timezone = TimeZone::try_from_str(&tz_string.to_std_string_escaped())?;
-    if matches!(timezone, TimeZone::IanaIdentifier(_))
-        && !context
-            .tz_provider()
-            .check_identifier(&timezone.identifier()?)
-    {
-        return Err(JsNativeError::range()
-            .with_message("TimeZone string is not a supported IANA identifier.")
-            .into());
-    }
+    let timezone = TimeZone::try_from_str_with_provider(
+        &tz_string.to_std_string_escaped(),
+        context.tz_provider(),
+    )?;
+
     Ok(timezone)
 }
 
@@ -1755,6 +1743,7 @@ pub(crate) fn to_partial_zoneddatetime(
     Ok(PartialZonedDateTime {
         date,
         time,
+        has_utc_designator: false,
         offset,
         timezone,
     })

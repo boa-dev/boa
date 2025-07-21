@@ -137,7 +137,7 @@ impl Now {
 
 fn build_now(context: &mut Context) -> JsResult<NowInner> {
     Ok(NowBuilder::default()
-        .with_system_zone(system_time_zone()?)
+        .with_system_zone(system_time_zone(context)?)
         .with_system_nanoseconds(system_nanoseconds(context)?)
         .build())
 }
@@ -154,6 +154,9 @@ fn system_time_zone_id() -> JsResult<String> {
 }
 
 // TODO: Move system time zone fetching to context similiar to `Clock` and `TimeZoneProvider`
-fn system_time_zone() -> JsResult<TimeZone> {
-    system_time_zone_id().and_then(|s| TimeZone::try_from_identifier_str(&s).map_err(Into::into))
+fn system_time_zone(context: &Context) -> JsResult<TimeZone> {
+    system_time_zone_id().and_then(|s| {
+        TimeZone::try_from_identifier_str_with_provider(&s, context.tz_provider())
+            .map_err(Into::into)
+    })
 }
